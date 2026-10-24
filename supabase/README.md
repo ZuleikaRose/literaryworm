@@ -24,7 +24,7 @@ Database migrations, Edge Functions and security tests for BookWorm. The root `s
 
 | Function | Who can call | What it does |
 |---|---|---|
-| `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors and returns only the fields the UI shows, with https covers. `volume` also returns `mature` (Google's MATURE rating), which the app uses to keep those titles from Teen and Kids profiles. |
+| `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only; optional `genre` from the six and `sort=newest`), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors, asks once more when Google answers a first page with no results at all (it does that when strained) and returns only the fields the UI shows, with https covers. `volume` also returns `mature` (Google's MATURE rating), which the app uses to keep those titles from Teen and Kids profiles. |
 | `manage-profile` | Signed-in accounts | Kids profiles with consent, PINs, daily limits, unlocking and deleting profiles. Re-checks the account password; checks the profile belongs to the caller. |
 | `checkout` | Signed-in accounts | Validates and records the plan choice. (Payment isn't taken yet.) |
 
