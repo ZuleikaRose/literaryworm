@@ -20,7 +20,7 @@ export const legalPages: LegalPage[] = [
   {
     slug: "privacy-choices",
     title: "Your Privacy Choices",
-    summary: "Opt out of non-essential cookies and of any sale or sharing of personal information. Global Privacy Control is honoured.",
+    summary: "Opt out of non-essential cookies and of any sale or sharing of personal information. Global Privacy Control is honored.",
   },
   {
     slug: "terms",

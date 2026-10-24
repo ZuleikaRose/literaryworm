@@ -1,4 +1,4 @@
-/** Avatar colours: [background, ink]. Contrast checked against the initials. */
+/** Avatar colors: [background, ink]. Contrast checked against the initials. */
 export const avatarPalette: [string, string][] = [
   ["#43281f", "#efb095"],
   ["#1f3a35", "#9fd8c4"],

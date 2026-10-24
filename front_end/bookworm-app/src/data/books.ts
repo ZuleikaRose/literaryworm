@@ -150,7 +150,7 @@ export const books: Book[] = [
     pages: 320,
     ageRating: "teen",
     synopsis:
-      "A practical guide to creating good habits, breaking bad ones, and mastering the tiny behaviours that lead to remarkable results.",
+      "A practical guide to creating good habits, breaking bad ones, and mastering the tiny behaviors that lead to remarkable results.",
     cover: c("slash", "#20211e", "#eee7dc", "#d9cbb1"),
     trendingRank: 6,
     listenMinutes: 330,

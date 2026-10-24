@@ -17,11 +17,11 @@ export type CoverMotif =
 
 export interface CoverStyle {
   motif: CoverMotif;
-  /** Ground colour of the cover. */
+  /** Ground color of the cover. */
   bg: string;
-  /** Title colour. */
+  /** Title color. */
   ink: string;
-  /** Motif colour. */
+  /** Motif color. */
   accent: string;
   /** Optional second ground used by horizon/band motifs. */
   bg2?: string;

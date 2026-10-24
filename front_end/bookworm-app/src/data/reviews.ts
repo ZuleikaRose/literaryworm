@@ -40,7 +40,7 @@ export const seedReviews: Review[] = [
   seed("r2", "the-midnight-library", "Jonas Lee", 7, "Page 184", 6,
     "I like the episodic structure more than I expected. Each life is a small thought experiment, but Nora's voice keeps the book grounded."),
   seed("r3", "the-midnight-library", "Sofia Patel", 21, "Finished", 9,
-    "Accessible and hopeful without pretending that change is easy. The swimming-pool chapter was my favourite."),
+    "Accessible and hopeful without pretending that change is easy. The swimming-pool chapter was my favorite."),
   seed("r4", "dune", "Theo Grant", 4, "Finished", 22,
     "The first hundred pages are a wall of names and politics, then it clicks and you can't put it down. The audiobook's pacing helped a lot."),
   seed("r5", "dune", "Ana Ruiz", 12, "Chapter 9", 3,
