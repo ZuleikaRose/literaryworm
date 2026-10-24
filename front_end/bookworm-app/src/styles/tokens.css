@@ -1,0 +1,111 @@
+/* Design tokens, taken from the Figma wireframe (front_end/BookWorm_web_app_wireframe). */
+:root {
+  --font-body: "DM Sans", system-ui, sans-serif;
+  --font-display: "Manrope", "DM Sans", system-ui, sans-serif;
+  --font-reading: "Literata", Georgia, serif;
+  --text-scale: 1;
+
+  /* Surfaces, darkest to lightest */
+  --bg: #0b0d0f;
+  --bg-deep: #090b0d;
+  --surface: #111416;
+  --surface-raised: #181c1e;
+  --surface-high: #232729;
+  --field: #0e1112;
+  --line: #292d30;
+  --line-strong: #3a3e40;
+
+  /* Text */
+  --ink: #f6f1e8;
+  --cream: #eee5d4;
+  --ink-soft: #d6d3cc;
+  --muted: #a3a7a9;
+  --faint: #868b8e;
+
+  /* Accent */
+  --rust: #b85e3d;
+  --rust-bright: #d47652;
+  --rust-hover: #e1825e;
+  --rust-deep: #633421;
+  --rust-wash: #3a241c;
+  --rust-ink: #efb095;
+  --on-accent: #150f0b;
+  --star: #d99154;
+
+  --danger: #e5766b;
+  --danger-wash: #3a1d1b;
+  --success: #8cc59a;
+
+  /* Shape and depth */
+  --radius-sm: 7px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-float: 0 30px 90px #000000c7;
+  --shadow-cover: inset 9px 0 11px #00000027, 0 13px 26px #00000057;
+
+  /* Layout */
+  --gutter: clamp(16px, 5vw, 64px);
+  --content-max: 1320px;
+  --header-h: 76px;
+  --tab-h: 64px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f3f1ed;
+  --bg-deep: #ebe8e2;
+  --surface: #ffffff;
+  --surface-raised: #f8f6f2;
+  --surface-high: #e9e5de;
+  --field: #ffffff;
+  --line: #d9d4cb;
+  --line-strong: #bdb6aa;
+  --ink: #1b1c1d;
+  --cream: #1b1c1d;
+  --ink-soft: #33363a;
+  --muted: #565b60;
+  --faint: #676c71;
+  --rust: #a24e2f;
+  --rust-bright: #a8502f;
+  --rust-hover: #8f4127;
+  --rust-deep: #f1d9cd;
+  --rust-wash: #f4e1d7;
+  --rust-ink: #8a3f24;
+  --on-accent: #ffffff;
+  --star: #b8692a;
+  --danger: #b4372b;
+  --danger-wash: #fbe3df;
+  --success: #2f7a44;
+  --shadow-float: 0 24px 70px #2a201833;
+  color-scheme: light;
+}
+
+:root[data-high-contrast] {
+  --muted: #d0d3d4;
+  --faint: #bfc3c5;
+  --line: #5a5f62;
+  --line-strong: #7a8084;
+  --ink-soft: #ffffff;
+}
+
+:root[data-theme="light"][data-high-contrast] {
+  --muted: #2b2e31;
+  --faint: #33363a;
+  --line: #8d877c;
+  --line-strong: #5f5a52;
+  --ink-soft: #000000;
+}
+
+:root[data-readable-font] {
+  --font-body: "Lexend", system-ui, sans-serif;
+  --font-display: "Lexend", system-ui, sans-serif;
+  --font-reading: "Lexend", system-ui, sans-serif;
+}

@@ -1,0 +1,156 @@
+/* Drawn covers. Every cover is a palette (custom properties set inline) plus one motif. */
+
+.book-cover {
+  --a35: color-mix(in srgb, var(--cover-accent) 35%, transparent);
+  --a55: color-mix(in srgb, var(--cover-accent) 55%, transparent);
+  position: relative;
+  display: block;
+  width: 154px;
+  aspect-ratio: 0.68;
+  overflow: hidden;
+  border-radius: 4px 10px 10px 4px;
+  background-color: var(--cover-bg);
+  box-shadow: var(--shadow-cover);
+  container-type: inline-size;
+}
+
+.cover-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 11cqi 9cqi;
+  color: var(--cover-ink);
+  text-align: left;
+}
+
+/* Inner frame and spine line, as in the wireframe. */
+.cover-face::before {
+  position: absolute;
+  inset: 4.5cqi;
+  border: 1px solid #ffffff2c;
+  border-radius: 2px 7px 7px 2px;
+  content: "";
+}
+
+.cover-face::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5.2cqi;
+  width: 1px;
+  background: #ffffff28;
+  content: "";
+}
+
+.cover-kicker,
+.cover-title,
+.cover-author {
+  position: relative;
+  z-index: 1;
+}
+
+.cover-kicker {
+  margin-bottom: auto;
+  font-size: 4cqi;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.cover-title {
+  font-family: "Manrope", sans-serif;
+  font-size: 11cqi;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+}
+
+.cover-author {
+  margin-top: 5cqi;
+  font-size: 5.2cqi;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.cover-sm {
+  width: 96px;
+}
+
+.cover-lg {
+  width: 210px;
+}
+
+.cover-xl {
+  width: 250px;
+  box-shadow:
+    inset 12px 0 14px #00000032,
+    0 28px 55px #000000a3;
+}
+
+/* ---------- Motifs ---------- */
+
+.motif-dot-slash {
+  background:
+    radial-gradient(circle at 50% 35%, var(--cover-accent) 0 2.2%, transparent 3%),
+    linear-gradient(135deg, transparent 48%, var(--a35) 49% 51%, transparent 52%),
+    var(--cover-bg);
+}
+
+.motif-sun {
+  background:
+    radial-gradient(circle at 45% 35%, var(--cover-accent) 0 16%, transparent 16.6%),
+    linear-gradient(160deg, var(--cover-bg) 55%, var(--cover-bg2));
+}
+
+.motif-horizon {
+  background:
+    radial-gradient(circle at 70% 18%, color-mix(in srgb, var(--cover-accent) 90%, white) 0 9%, transparent 9.6%),
+    linear-gradient(155deg, var(--cover-bg), color-mix(in srgb, var(--cover-bg) 55%, var(--cover-accent)) 58%, var(--cover-bg2));
+}
+
+.motif-slash {
+  background:
+    linear-gradient(145deg, transparent 58%, var(--cover-accent) 59% 61%, transparent 62%),
+    var(--cover-bg);
+}
+
+.motif-rings {
+  background:
+    radial-gradient(circle at 50% 47%, var(--cover-accent) 0 5%, transparent 5.6%),
+    repeating-radial-gradient(circle at 50% 47%, transparent 0 12cqi, var(--a35) calc(12cqi + 1px) calc(12cqi + 2px)),
+    var(--cover-bg);
+}
+
+.motif-band {
+  background: linear-gradient(170deg, var(--cover-bg) 0 48%, var(--cover-accent) 49% 52%, var(--cover-bg2) 53%);
+}
+
+.motif-stripe {
+  background:
+    linear-gradient(90deg, transparent 45%, var(--a35) 46% 54%, transparent 55%),
+    var(--cover-bg);
+}
+
+.motif-arch {
+  background:
+    radial-gradient(ellipse 36% 26% at 50% 38%, var(--a55) 0 99%, transparent 100%),
+    linear-gradient(transparent 38%, var(--a55) 38% 58%, transparent 58%) center / 72% 100% no-repeat,
+    var(--cover-bg);
+}
+
+.motif-grid {
+  background:
+    linear-gradient(90deg, var(--a35) 1px, transparent 1px) 0 0 / 14cqi 14cqi,
+    linear-gradient(var(--a35) 1px, transparent 1px) 0 0 / 14cqi 14cqi,
+    var(--cover-bg);
+}
+
+.motif-wave {
+  background:
+    repeating-radial-gradient(ellipse 140% 60% at 50% -10%, transparent 0 8cqi, var(--a55) calc(8cqi + 1px) calc(8cqi + 3px)) top / 100% 58%
+      no-repeat,
+    var(--cover-bg);
+}

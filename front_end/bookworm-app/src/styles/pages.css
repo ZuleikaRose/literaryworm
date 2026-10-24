@@ -1,0 +1,179 @@
+/* ---------- Generic page frame ---------- */
+
+.page {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 56px var(--gutter) 80px;
+}
+
+.page > h1 {
+  margin: 0 0 12px;
+  color: var(--cream);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.placeholder-profiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Book cards and grids (wireframe .book-card) ---------- */
+
+.book-card {
+  display: block;
+  min-width: 0;
+  color: var(--ink);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .book-card:hover {
+    transform: translateY(-6px);
+  }
+}
+
+.book-card:focus-visible {
+  outline-offset: 6px;
+}
+
+.book-card-cover {
+  position: relative;
+  display: block;
+}
+
+.book-card .book-cover {
+  width: 100%;
+}
+
+.card-progress {
+  position: absolute;
+  right: 9%;
+  bottom: 5%;
+  left: 9%;
+  z-index: 2;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #ffffff38;
+}
+
+.card-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--rust-bright);
+}
+
+.book-card-copy {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 2px 0;
+}
+
+.book-card-copy > strong {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-card-copy > small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.rating .icon {
+  color: var(--star);
+}
+
+.card-progress-label {
+  margin-left: auto;
+  color: var(--faint);
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 40px clamp(16px, 2vw, 27px);
+  margin-top: 28px;
+}
+
+@media (max-width: 480px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Empty and error states ---------- */
+
+.empty-state {
+  max-width: 560px;
+  text-align: center;
+}
+
+.empty-state h1 {
+  margin: 20px 0 10px;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.empty-state p {
+  margin: 0 0 24px;
+  color: var(--muted);
+}
+
+.empty-icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--rust-ink);
+  background: var(--rust-wash);
+}
+
+/* ---------- Legal ---------- */
+
+.legal-page {
+  max-width: 760px;
+}
+
+.legal-summary {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+  line-height: 1.65;
+}
+
+.legal-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 40px 0 0;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.legal-index a {
+  color: var(--rust-bright);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
