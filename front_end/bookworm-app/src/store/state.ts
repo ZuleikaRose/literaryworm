@@ -1,5 +1,6 @@
 import { getBook } from "../data/books";
 import { seedLogs } from "../data/logs";
+import { usesBackend } from "../lib/backend";
 import type { A11ySettings, Account, LibraryEntry, Profile, ProfileData, ReadingLog, ReadingStatus } from "../types";
 
 /**
@@ -12,6 +13,13 @@ export interface AppState {
   /** The profile used before returning to Who's reading?, so Kids can't slip into profile management. */
   lastProfileId: string | null;
   profileData: Record<string, ProfileData>;
+  /**
+   * False until the app knows whether a Supabase session exists (restored after a refresh),
+   * so route guards wait instead of sending a signed-in member to the log-in page.
+   */
+  authReady: boolean;
+  /** A real account's library (library_items), shared by its household profiles. */
+  accountLibrary: Record<string, LibraryEntry>;
   /** Every profile's logs plus the sample ones; public on each book's page. */
   logs: ReadingLog[];
   a11y: A11ySettings;
@@ -143,6 +151,8 @@ export function demoHousehold(): Household {
 }
 
 export const initialState: AppState = {
+  authReady: !usesBackend,
+  accountLibrary: {},
   account: null,
   profiles: [],
   activeProfileId: null,

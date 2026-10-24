@@ -16,6 +16,8 @@ import { useBookFeed } from "../lib/useBookFeed";
 import { usePublicLogs } from "../lib/usePublicLogs";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
+import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
+import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { AgeRating, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
 import NotFound from "./NotFound";
@@ -171,7 +173,11 @@ function DetailPage({ view }: { view: DetailView }) {
     focusTarget.current = null;
   });
 
-  const entry = profile ? data.library[view.id] : undefined;
+  const library = useLibrary();
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const userId = state.account?.userId;
+  const entry = profile ? library.entries[view.id] : undefined;
   const rating = profile ? data.ratings[view.id] : undefined;
   const favorite = profile ? data.favorites.includes(view.id) : false;
   const canWriteLogs = Boolean(profile && profile.ageRating !== "kids");
@@ -180,7 +186,26 @@ function DetailPage({ view }: { view: DetailView }) {
   // This session's logs (sample ones and any written here) plus everyone's from Supabase.
   const sessionLogs = state.logs.filter((l) => l.bookId === view.id);
   const logs = [...sessionLogs, ...remote.items].sort((a, b) => b.createdAt - a.createdAt);
-  const myLogCount = sessionLogs.filter((l) => l.profileId && l.profileId === profile?.id).length;
+  const isMine = (log: ReadingLog) =>
+    Boolean(profile && ((log.profileId && log.profileId === profile.id) || (userId && log.userId === userId)));
+  const myLogCount = logs.filter(isMine).length;
+  // Logs show the account's display name for real accounts (profiles.display_name), the profile's otherwise.
+  const postingAs = userId ? state.account!.name : (profile?.name ?? "");
+
+  /** Runs a save, showing a plain-words error beside the buttons if it fails. */
+  async function attempt(work: () => Promise<void>): Promise<boolean> {
+    setBusy(true);
+    setActionError(null);
+    try {
+      await work();
+      return true;
+    } catch (err) {
+      setActionError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
 
   /** Visitors sign in first (then come back here); a signed-in account picks a profile. */
   function requireProfile(): boolean {
@@ -190,23 +215,56 @@ function DetailPage({ view }: { view: DetailView }) {
     return false;
   }
 
-  function addToLibrary(status?: ReadingStatus) {
+  async function addToLibrary(status?: ReadingStatus) {
     if (!requireProfile()) return;
-    dispatch({
-      type: "addToLibrary",
-      entry: { bookId: view.id, title: view.title, authors: view.authors, cover: view.coverUrl },
-      status,
-    });
-    setAnnouncement(`Added ${view.title} to your library.`);
+    const ok = await attempt(() =>
+      library.add({ bookId: view.id, title: view.title, authors: view.authors, cover: view.coverUrl }, status),
+    );
+    if (ok) setAnnouncement(`Added ${view.title} to your library.`);
   }
 
-  function removeFromLibrary() {
-    dispatch({ type: "removeFromLibrary", bookId: view.id });
+  async function removeFromLibrary() {
+    const hadLogs = myLogCount > 0;
     setPending(null);
+    const ok = await attempt(() => library.remove(view.id));
+    if (!ok) return;
+    // The database deleted this reader's logs with the book; show the list without them.
+    if (userId && hadLogs) remote.reload();
     focusTarget.current = "library-action";
-    setAnnouncement(
-      myLogCount ? `Removed ${view.title} and your logs about it.` : `Removed ${view.title} from your library.`,
-    );
+    setAnnouncement(hadLogs ? `Removed ${view.title} and your logs about it.` : `Removed ${view.title} from your library.`);
+  }
+
+  async function saveLog(body: string, value: number | null) {
+    const editing = writing?.log;
+    const ok = await attempt(async () => {
+      if (userId) {
+        if (editing) await updateLog(editing.id, body, value);
+        else await addLog(view.id, body, value);
+        remote.reload();
+      } else if (editing) {
+        dispatch({ type: "updateLog", id: editing.id, body, rating: value });
+      } else {
+        dispatch({ type: "addLog", bookId: view.id, body, rating: value });
+      }
+    });
+    setWriting(null);
+    if (ok) setAnnouncement(editing ? "Your log is updated." : "Log published. Readers can now find it on this page.");
+  }
+
+  async function removeLog(log: ReadingLog) {
+    setPending(null);
+    const ok = await attempt(async () => {
+      if (userId && log.userId) {
+        await deleteLog(log.id);
+        remote.reload();
+      } else {
+        dispatch({ type: "deleteLog", id: log.id });
+      }
+    });
+    if (ok) {
+      focusTarget.current = "logs-title";
+      setAnnouncement("Your log is deleted.");
+    }
   }
 
   function rate(value: RatingValue) {
@@ -299,10 +357,11 @@ function DetailPage({ view }: { view: DetailView }) {
                   <select
                     className="status-select"
                     value={entry.status}
-                    onChange={(e) => {
+                    disabled={busy}
+                    onChange={async (e) => {
                       const status = e.target.value as ReadingStatus;
-                      dispatch({ type: "setReadingStatus", bookId: view.id, status });
-                      setAnnouncement(`Marked as ${readingStatusLabel[status].toLowerCase()}.`);
+                      if (await attempt(() => library.setStatus(view.id, status)))
+                        setAnnouncement(`Marked as ${readingStatusLabel[status].toLowerCase()}.`);
                     }}
                   >
                     {Object.entries(readingStatusLabel).map(([value, label]) => (
@@ -327,11 +386,24 @@ function DetailPage({ view }: { view: DetailView }) {
                 </button>
               </>
             ) : (
-              <button type="button" id="library-action" className="primary-button" onClick={() => addToLibrary()}>
-                <Icon name="bookmark" size={18} /> Add to my library
+              <button
+                type="button"
+                id="library-action"
+                className="primary-button"
+                disabled={busy}
+                onClick={() => addToLibrary()}
+              >
+                <Icon name="bookmark" size={18} /> {busy ? "Adding…" : "Add to my library"}
               </button>
             )}
           </div>
+
+          {actionError && (
+            <div className="form-alert detail-error" role="alert">
+              <Icon name="alert" size={17} />
+              <p>{actionError}</p>
+            </div>
+          )}
 
           {profile && (
             <div className="taste-row" role="group" aria-label="Your rating">
@@ -410,7 +482,7 @@ function DetailPage({ view }: { view: DetailView }) {
         </div>
         <div className="logs-list">
           {logs.map((log) => {
-            const own = Boolean(profile && log.profileId === profile.id);
+            const own = isMine(log);
             return (
               <LogCard
                 key={log.id}
@@ -464,18 +536,9 @@ function DetailPage({ view }: { view: DetailView }) {
           open={writing !== null}
           onClose={() => setWriting(null)}
           bookTitle={view.title}
-          postingAs={profile.name}
+          postingAs={postingAs}
           initial={writing?.log ? { body: writing.log.body, rating: writing.log.rating } : undefined}
-          onSubmit={(body, value) => {
-            if (writing?.log) {
-              dispatch({ type: "updateLog", id: writing.log.id, body, rating: value });
-              setAnnouncement("Your log is updated.");
-            } else {
-              dispatch({ type: "addLog", bookId: view.id, body, rating: value });
-              setAnnouncement("Log published. Readers can now find it on this page.");
-            }
-            setWriting(null);
-          }}
+          onSubmit={saveLog}
         />
       )}
 
@@ -498,10 +561,7 @@ function DetailPage({ view }: { view: DetailView }) {
             className="danger-button"
             onClick={() => {
               if (pending?.kind === "remove") return removeFromLibrary();
-              if (pending?.kind === "deleteLog") dispatch({ type: "deleteLog", id: pending.log.id });
-              setPending(null);
-              focusTarget.current = "logs-title";
-              setAnnouncement("Your log is deleted.");
+              if (pending?.kind === "deleteLog") return removeLog(pending.log);
             }}
           >
             {pending?.kind === "remove" ? "Remove book and logs" : "Delete log"}

@@ -9,6 +9,7 @@ import { type BrowseGenre, browseGenres, genreLabel, isBrowseGenre } from "../da
 import { fromLocal } from "../lib/booksApi";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
+import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useProfileData } from "../store/context";
 import type { AgeRating, Book } from "../types";
@@ -45,6 +46,7 @@ export default function Browse() {
   const data = useProfileData();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const library = useLibrary();
   const genreParam = params.get("genre");
   const genre: BrowseGenre = isBrowseGenre(genreParam) ? genreParam : "technology";
 
@@ -64,11 +66,11 @@ export default function Browse() {
   const topTen = [...catalog].sort((a, b) => b.rating - a.rating || b.ratingsCount - a.ratingsCount).slice(0, 10);
 
   // The catalog title most recently added to the library.
-  const saved = Object.values(data?.library ?? {}).sort((a, b) => b.addedAt - a.addedAt);
+  const saved = Object.values(library.entries).sort((a, b) => b.addedAt - a.addedAt);
   const lastSaved = saved.map((entry) => getBook(entry.bookId)).find(visible);
   const becauseSaved = lastSaved
     ? catalog.filter(
-        (b) => b.id !== lastSaved.id && !data?.library[b.id] && b.genres.some((g) => lastSaved.genres.includes(g)),
+        (b) => b.id !== lastSaved.id && !library.entries[b.id] && b.genres.some((g) => lastSaved.genres.includes(g)),
       )
     : [];
 

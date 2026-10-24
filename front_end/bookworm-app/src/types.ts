@@ -74,9 +74,14 @@ export interface Plan {
 }
 
 export interface Account {
+  /** The Supabase user id for real accounts; absent for the demo and in-memory accounts. */
+  userId?: string;
   name: string;
   email: string;
-  /** Kept only in memory so "Ask a grown-up" gates have something to check against. */
+  /**
+   * In-memory accounts only, so "Ask a grown-up" gates have something to check against.
+   * Empty for real accounts: Supabase checks their password.
+   */
   password: string;
   dob: string;
   planId: PlanId | null;
@@ -136,10 +141,10 @@ export interface LibraryEntry {
   bookId: string;
   status: ReadingStatus;
   addedAt: number;
-  /** What the Library page needs to show a Google Books title without asking again. */
-  title: string;
-  authors: string[];
-  cover: string | null;
+  /** What the Library page needs to show a Google Books title without asking again (when known). */
+  title?: string;
+  authors?: string[];
+  cover?: string | null;
 }
 
 export interface ProfileData {
@@ -160,8 +165,10 @@ export interface ProfileData {
 export interface ReadingLog {
   id: string;
   bookId: string;
-  /** The profile that wrote it; null for the sample community logs. */
+  /** The profile that wrote it (in-memory accounts); null for sample logs and logs from Supabase. */
   profileId: string | null;
+  /** The Supabase user who wrote it, for logs read from the database. */
+  userId?: string | null;
   displayName: string;
   body: string;
   /** Optional 1–5. */

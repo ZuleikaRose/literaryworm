@@ -3,11 +3,13 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { TabBar } from "../components/TabBar";
+import { useAuthSync } from "../lib/useAuthSync";
 import { useActiveProfile, useStore } from "../store/context";
 
-/** Applies accessibility settings to <html> and resets scroll on navigation. */
+/** Applies accessibility settings to <html>, resets scroll on navigation and follows Supabase Auth. */
 export function AppEffects() {
   const { state } = useStore();
+  useAuthSync();
   const { pathname } = useLocation();
   const { a11y } = state;
 
@@ -56,10 +58,20 @@ export function ImmersiveLayout() {
   );
 }
 
+/** Shown for a moment while a signed-in member's session is restored after a refresh. */
+function Restoring() {
+  return (
+    <p className="page restoring" role="status">
+      Signing you back in…
+    </p>
+  );
+}
+
 /** Signed-in only. Sends visitors to sign in, then back here. */
 export function RequireAccount() {
   const { state } = useStore();
   const location = useLocation();
+  if (!state.authReady) return <Restoring />;
   if (!state.account) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />;
   if (!state.account.planId) return <Navigate to="/plans?setup=1" replace />;
   return <Outlet />;
@@ -69,6 +81,7 @@ export function RequireAccount() {
 export function RequireProfile() {
   const { state } = useStore();
   const location = useLocation();
+  if (!state.authReady) return <Restoring />;
   if (!state.account) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />;
   if (!state.account.planId) return <Navigate to="/plans?setup=1" replace />;
   if (!state.activeProfileId) return <Navigate to="/profiles" replace state={{ from: location.pathname + location.search }} />;

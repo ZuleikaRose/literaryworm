@@ -69,14 +69,14 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const focusFirstError = () =>
     requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
 
-  const save = (e: FormEvent) => {
+  const save = async (e: FormEvent) => {
     e.preventDefault();
     const next: Errors = {};
     const nameError = validateProfileName(name, others);
     if (nameError) next.name = nameError;
     if (needsConsent && !consent) next.consent = "Give consent as the parent or guardian to create a Kids profile.";
     if (pinOn && (pin.length > 0 || !profile?.pin) && !isValidPin(pin)) next.pin = `Enter ${PIN_LENGTH} digits.`;
-    if (needsPassword && !checkPassword(password)) next.password = "Enter the account password to save these changes.";
+    if (needsPassword && !(await checkPassword(password))) next.password = "Enter the account password to save these changes.";
     setErrors(next);
     if (Object.keys(next).length) {
       focusFirstError();
@@ -96,9 +96,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     onDone();
   };
 
-  const remove = () => {
+  const remove = async () => {
     if (!profile) return;
-    if (!checkPassword(password)) {
+    if (!(await checkPassword(password))) {
       setErrors({ password: "Enter the account password to delete this profile." });
       focusFirstError();
       return;

@@ -11,6 +11,7 @@ import Plans from "./pages/Plans";
 import Player from "./pages/Player";
 import Profiles from "./pages/Profiles";
 import Reader from "./pages/Reader";
+import ResetPassword from "./pages/ResetPassword";
 import Search from "./pages/Search";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="plans" element={<Plans />} />
           <Route path="signin" element={<SignIn />} />
           <Route path="signup" element={<SignUp />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="legal/:slug" element={<Legal />} />
           {/* Book details are public (the brief's /books/:id); actions ask visitors to sign in. */}
           <Route path="books/:id" element={<BookDetail />} />

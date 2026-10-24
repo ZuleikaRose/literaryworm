@@ -64,5 +64,11 @@ export function usePublicLogs(bookId: string) {
     setRequested((r) => ({ bookId, page: view.nextPage, attempt: r.attempt + 1 }));
   }, [view.nextPage, bookId]);
 
-  return { items: view.items, status: view.status, error: view.error, loadMore, retry };
+  /** Start again from the first page (after this reader writes, edits or deletes a log). */
+  const reload = useCallback(() => {
+    setState((s) => ({ ...s, status: "loading", error: null }));
+    setRequested((r) => ({ bookId, page: 0, attempt: r.attempt + 1 }));
+  }, [bookId]);
+
+  return { items: view.items, status: view.status, error: view.error, loadMore, retry, reload };
 }

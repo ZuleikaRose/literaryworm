@@ -22,6 +22,7 @@ const VOLUME_ID = /^[A-Za-z0-9_-]{1,40}$/;
 
 interface Row {
   id: string;
+  user_id: string;
   body: string;
   rating: number | null;
   created_at: string;
@@ -32,7 +33,8 @@ interface Row {
 export async function fetchPublicLogs(bookId: string, page: number): Promise<LogsPage> {
   if (!usesBackend || !VOLUME_ID.test(bookId)) return { items: [], hasMore: false };
   const params = new URLSearchParams({
-    select: "id,body,rating,created_at,updated_at,author:profiles(display_name)",
+    // user_id is public on logs (it's how a reader finds their own); it reveals nothing about libraries.
+    select: "id,user_id,body,rating,created_at,updated_at,author:profiles(display_name)",
     volume_id: `eq.${bookId}`,
     order: "created_at.desc,id.desc",
     offset: String(page * LOGS_PAGE_SIZE),
@@ -52,6 +54,7 @@ export async function fetchPublicLogs(bookId: string, page: number): Promise<Log
       id: row.id,
       bookId,
       profileId: null,
+      userId: row.user_id,
       displayName: row.author?.display_name ?? "A reader",
       body: row.body,
       rating: row.rating,

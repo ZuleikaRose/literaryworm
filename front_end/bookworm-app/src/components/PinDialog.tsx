@@ -58,9 +58,9 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
     pinRef.current?.focus();
   };
 
-  const submitPassword = (e: FormEvent) => {
+  const submitPassword = async (e: FormEvent) => {
     e.preventDefault();
-    if (!checkPassword(password)) {
+    if (!(await checkPassword(password))) {
       setPasswordError("That isn't the account password.");
       return;
     }

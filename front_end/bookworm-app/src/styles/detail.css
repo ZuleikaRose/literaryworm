@@ -527,3 +527,8 @@
     transition: none;
   }
 }
+
+.detail-error {
+  max-width: 600px;
+  margin: 16px 0 0;
+}

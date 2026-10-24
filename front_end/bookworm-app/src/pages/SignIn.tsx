@@ -1,13 +1,16 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCard } from "../components/AuthCard";
 import { Field } from "../components/Field";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
+import * as accountApi from "../lib/accountApi";
+import { AccountError } from "../lib/accountApi";
+import { usesBackend } from "../lib/backend";
 import { useTitle } from "../lib/useTitle";
 import { credentialsMatch, validateEmail } from "../lib/validation";
 import { useStore } from "../store/context";
-import { DEMO_ACCOUNT_PASSWORD, DEMO_EMAIL } from "../store/state";
+import { DEMO_ACCOUNT_PASSWORD, DEMO_EMAIL, emailKey } from "../store/state";
 
 type Mode = "signin" | "forgot" | "sent";
 
@@ -21,7 +24,10 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
+  const [params] = useSearchParams();
+  const justConfirmed = params.get("confirmed") === "1";
   useTitle(mode === "signin" ? "Log in" : "Reset your password");
 
   // Also catches the render right after signing in, so it must agree with afterSignIn() on where to go.
@@ -30,12 +36,27 @@ export default function SignIn() {
 
   const afterSignIn = () => navigate("/profiles", { replace: true, state: from ? { from } : undefined });
 
-  const signIn = (e: FormEvent) => {
+  // Real accounts sign in through Supabase; the demo (and every account without a backend) stays in memory.
+  const isLocal = !usesBackend || emailKey(email) === DEMO_EMAIL;
+
+  const signIn = async (e: FormEvent) => {
     e.preventDefault();
     const error = validateEmail(email);
     setEmailError(error);
     if (error) {
       emailRef.current?.focus();
+      return;
+    }
+    if (!isLocal) {
+      setBusy(true);
+      setFormError(null);
+      try {
+        await accountApi.signIn(email, password);
+        // useAuthSync loads the account; the redirect above then takes over.
+      } catch (err) {
+        setFormError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+        setBusy(false);
+      }
       return;
     }
     if (!password || !credentialsMatch(state, email, password)) {
@@ -47,18 +68,31 @@ export default function SignIn() {
     afterSignIn();
   };
 
-  const tryDemo = () => {
+  const tryDemo = async () => {
+    // The demo is a separate, in-memory household: leave any real session first.
+    await accountApi.signOut();
     dispatch({ type: "startDemo" });
     afterSignIn();
   };
 
-  const sendReset = (e: FormEvent) => {
+  const sendReset = async (e: FormEvent) => {
     e.preventDefault();
     const error = validateEmail(email);
     setEmailError(error);
     if (error) {
       emailRef.current?.focus();
       return;
+    }
+    if (!isLocal) {
+      setBusy(true);
+      try {
+        await accountApi.sendPasswordReset(email);
+      } catch (err) {
+        setEmailError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+        setBusy(false);
+        return;
+      }
+      setBusy(false);
     }
     setMode("sent");
   };
@@ -75,7 +109,11 @@ export default function SignIn() {
           </p>
         }
       >
-        <p className="auth-note">This demo doesn't send email, so no message will arrive.</p>
+        {isLocal ? (
+          <p className="auth-note">The demo doesn't send email, so no message will arrive.</p>
+        ) : (
+          <p className="auth-note">No email after a few minutes? Check your spam folder, or try again.</p>
+        )}
         <button type="button" className="secondary-button auth-submit" onClick={() => setMode("signin")}>
           <Icon name="arrowLeft" size={16} /> Back to log in
         </button>
@@ -105,8 +143,8 @@ export default function SignIn() {
             onChange={(e) => setEmail(e.target.value)}
             error={emailError}
           />
-          <button type="submit" className="primary-button auth-submit">
-            Send reset link
+          <button type="submit" className="primary-button auth-submit" disabled={busy}>
+            {busy ? "Sending…" : "Send reset link"}
           </button>
         </form>
       </AuthCard>
@@ -125,6 +163,12 @@ export default function SignIn() {
         </>
       }
     >
+      {justConfirmed && !formError && (
+        <div className="form-success" role="status">
+          <Icon name="check" size={17} />
+          <p>Your email is confirmed. Log in to finish setting up your account.</p>
+        </div>
+      )}
       {formError && (
         <div className="form-alert" role="alert">
           <Icon name="alert" size={17} />
@@ -152,8 +196,8 @@ export default function SignIn() {
         <button type="button" className="text-button forgot-link" onClick={() => setMode("forgot")}>
           Forgot password?
         </button>
-        <button type="submit" className="primary-button auth-submit">
-          Log in
+        <button type="submit" className="primary-button auth-submit" disabled={busy}>
+          {busy ? "Logging in…" : "Log in"}
         </button>
       </form>
 

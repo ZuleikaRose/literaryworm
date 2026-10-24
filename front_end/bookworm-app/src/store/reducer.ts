@@ -8,6 +8,7 @@ import {
   type Household,
   initialState,
   MAX_PROFILES,
+  makeProfile,
   newId,
 } from "./state";
 
@@ -15,6 +16,9 @@ export type Action =
   | { type: "startDemo" }
   | { type: "createAccount"; account: Account; firstProfile: Profile }
   | { type: "signIn"; email: string }
+  /** A real (Supabase) account signed in or was restored after a refresh. */
+  | { type: "enterAccount"; account: Account; library: Record<string, LibraryEntry>; restored: boolean }
+  | { type: "authChecked" }
   | { type: "signOut" }
   | { type: "choosePlan"; planId: PlanId; billingDay: number }
   | { type: "updateAccount"; patch: Partial<Account> }
@@ -24,7 +28,7 @@ export type Action =
   | { type: "selectProfile"; id: string | null }
   | { type: "updateA11y"; patch: Partial<A11ySettings> }
   // The active profile's library, ratings and logs
-  | { type: "addToLibrary"; entry: Omit<LibraryEntry, "addedAt" | "status">; status?: ReadingStatus }
+  | { type: "addToLibrary"; entry: Omit<LibraryEntry, "addedAt" | "status"> & Partial<Pick<LibraryEntry, "addedAt" | "status">>; status?: ReadingStatus }
   | { type: "setReadingStatus"; bookId: string; status: ReadingStatus }
   | { type: "removeFromLibrary"; bookId: string }
   | { type: "toggleFavorite"; bookId: string }
@@ -32,6 +36,12 @@ export type Action =
   | { type: "addLog"; bookId: string; body: string; rating: number | null }
   | { type: "updateLog"; id: string; body: string; rating: number | null }
   | { type: "deleteLog"; id: string }
+  | { type: "createList"; name: string; description: string }
+  | { type: "updateList"; id: string; name: string; description: string }
+  | { type: "deleteList"; id: string }
+  | { type: "moveList"; id: string; by: -1 | 1 }
+  | { type: "addToList"; id: string; bookId: string }
+  | { type: "removeFromList"; id: string; bookId: string }
   | { type: "addRecentSearch"; q: string }
   | { type: "removeRecentSearch"; q: string }
   | { type: "clearRecentSearches" };
@@ -41,9 +51,9 @@ function enter(state: AppState, household: Household): AppState {
   return { ...state, ...household, activeProfileId: null, lastProfileId: null };
 }
 
-/** Put the current household away so it can be signed back into this session. */
+/** Put the current household away so it can be signed back into this session (in-memory accounts). */
 function stash(state: AppState): AppState["households"] {
-  if (!state.account) return state.households;
+  if (!state.account || state.account.userId) return state.households;
   const { account, profiles, profileData } = state;
   return { ...state.households, [emailKey(account.email)]: { account, profiles, profileData } };
 }
@@ -53,6 +63,17 @@ function withProfileData(state: AppState, change: (data: ProfileData) => Profile
   const id = state.activeProfileId;
   if (!id) return state;
   return { ...state, profileData: { ...state.profileData, [id]: change(state.profileData[id] ?? emptyProfileData()) } };
+}
+
+/** The library the active profile uses: the account's for real accounts, the profile's otherwise. */
+function withLibrary(state: AppState, change: (library: Record<string, LibraryEntry>) => Record<string, LibraryEntry>): AppState {
+  if (state.account?.userId) return { ...state, accountLibrary: change(state.accountLibrary) };
+  return withProfileData(state, (data) => ({ ...data, library: change(data.library) }));
+}
+
+export function activeLibrary(state: AppState): Record<string, LibraryEntry> {
+  if (state.account?.userId) return state.accountLibrary;
+  return (state.activeProfileId && state.profileData[state.activeProfileId]?.library) || {};
 }
 
 /** The same rules as the logs table: 1–5000 characters after trimming, rating 1–5 or none. */
@@ -78,6 +99,30 @@ export function reducer(state: AppState, action: Action): AppState {
       );
     }
 
+    case "enterAccount": {
+      if (state.account?.userId === action.account.userId) {
+        // Restored again (token refresh, another tab): keep the household, update the details.
+        return { ...state, authReady: true, account: action.account, accountLibrary: action.library };
+      }
+      // Household profiles stay in memory for now; the first one is named after the account holder.
+      const first = makeProfile({ name: action.account.name.split(/\s+/)[0].slice(0, 20), ageRating: "all" });
+      const entered = enter({ ...state, households: stash(state) }, {
+        account: action.account,
+        profiles: [first],
+        profileData: { [first.id]: emptyProfileData() },
+      });
+      return {
+        ...entered,
+        // Restored after a refresh: carry on as the account's one profile instead of asking again.
+        activeProfileId: action.restored ? first.id : null,
+        authReady: true,
+        accountLibrary: action.library,
+      };
+    }
+
+    case "authChecked":
+      return { ...state, authReady: true };
+
     case "signIn": {
       const household = state.households[emailKey(action.email)];
       return household ? enter({ ...state, households: stash(state) }, household) : state;
@@ -85,7 +130,7 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "signOut":
       // Accessibility settings belong to the device, so they survive signing out.
-      return { ...initialState, a11y: state.a11y, logs: state.logs, households: stash(state) };
+      return { ...initialState, authReady: true, a11y: state.a11y, logs: state.logs, households: stash(state) };
 
     case "choosePlan":
       return state.account
@@ -134,32 +179,34 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, a11y: { ...state.a11y, ...action.patch } };
 
     case "addToLibrary":
-      return withProfileData(state, (data) =>
-        data.library[action.entry.bookId]
-          ? data
+      return withLibrary(state, (library) =>
+        library[action.entry.bookId]
+          ? library
           : {
-              ...data,
-              library: {
-                ...data.library,
-                [action.entry.bookId]: { ...action.entry, status: action.status ?? "want_to_read", addedAt: Date.now() },
+              ...library,
+              [action.entry.bookId]: {
+                status: action.status ?? "want_to_read",
+                addedAt: Date.now(),
+                ...action.entry,
               },
             },
       );
 
     case "setReadingStatus":
-      return withProfileData(state, (data) => {
-        const entry = data.library[action.bookId];
-        return entry ? { ...data, library: { ...data.library, [action.bookId]: { ...entry, status: action.status } } } : data;
+      return withLibrary(state, (library) => {
+        const entry = library[action.bookId];
+        return entry ? { ...library, [action.bookId]: { ...entry, status: action.status } } : library;
       });
 
     case "removeFromLibrary": {
       const profileId = state.activeProfileId;
-      const next = withProfileData(state, (data) => {
-        const library = { ...data.library };
-        delete library[action.bookId];
-        return { ...data, library };
+      const next = withLibrary(state, (library) => {
+        const rest = { ...library };
+        delete rest[action.bookId];
+        return rest;
       });
-      // Removing a book deletes the profile's logs about it, as the database's foreign key does.
+      // Removing a book deletes the profile's logs about it, as the database's foreign key does
+      // (for real accounts the database does it, and the page reloads the logs).
       return { ...next, logs: next.logs.filter((l) => !(l.profileId === profileId && l.bookId === action.bookId)) };
     }
 
@@ -181,7 +228,7 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "addLog": {
       const profile = state.profiles.find((p) => p.id === state.activeProfileId);
-      const inLibrary = profile && state.profileData[profile.id]?.library[action.bookId];
+      const inLibrary = profile && activeLibrary(state)[action.bookId];
       // Logs are public, so Kids profiles don't write them.
       if (!profile || profile.ageRating === "kids" || !inLibrary || !validLog(action.body, action.rating)) return state;
       const now = Date.now();
@@ -213,6 +260,52 @@ export function reducer(state: AppState, action: Action): AppState {
             : l,
         ),
       };
+
+    case "createList":
+      return withProfileData(state, (data) => ({
+        ...data,
+        customLists: [
+          ...data.customLists,
+          { id: newId(), name: action.name.trim(), description: action.description.trim(), bookIds: [], shared: false },
+        ],
+      }));
+
+    case "updateList":
+      return withProfileData(state, (data) => ({
+        ...data,
+        customLists: data.customLists.map((l) =>
+          l.id === action.id ? { ...l, name: action.name.trim(), description: action.description.trim() } : l,
+        ),
+      }));
+
+    case "deleteList":
+      return withProfileData(state, (data) => ({ ...data, customLists: data.customLists.filter((l) => l.id !== action.id) }));
+
+    case "moveList":
+      return withProfileData(state, (data) => {
+        const lists = [...data.customLists];
+        const from = lists.findIndex((l) => l.id === action.id);
+        const to = from + action.by;
+        if (from < 0 || to < 0 || to >= lists.length) return data;
+        [lists[from], lists[to]] = [lists[to], lists[from]];
+        return { ...data, customLists: lists };
+      });
+
+    case "addToList":
+      return withProfileData(state, (data) => ({
+        ...data,
+        customLists: data.customLists.map((l) =>
+          l.id === action.id && !l.bookIds.includes(action.bookId) ? { ...l, bookIds: [...l.bookIds, action.bookId] } : l,
+        ),
+      }));
+
+    case "removeFromList":
+      return withProfileData(state, (data) => ({
+        ...data,
+        customLists: data.customLists.map((l) =>
+          l.id === action.id ? { ...l, bookIds: l.bookIds.filter((b) => b !== action.bookId) } : l,
+        ),
+      }));
 
     case "addRecentSearch": {
       // Newest first, no repeats (ignoring case), at most ten per profile.

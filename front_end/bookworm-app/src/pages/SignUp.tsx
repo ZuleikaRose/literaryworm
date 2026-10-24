@@ -5,6 +5,8 @@ import { Field } from "../components/Field";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
 import { planById } from "../data/plans";
+import { AccountError, signUp } from "../lib/accountApi";
+import { usesBackend } from "../lib/backend";
 import { useTitle } from "../lib/useTitle";
 import { PASSWORD_MAX, PASSWORD_MIN, validateDob, validateEmail, validateNewPassword } from "../lib/validation";
 import { useStore } from "../store/context";
@@ -32,6 +34,9 @@ export default function SignUp() {
   const [marketing, setMarketing] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const setupUrl = `/plans?setup=1${plan ? `&plan=${plan.id}` : ""}`;
@@ -43,7 +48,8 @@ export default function SignUp() {
     if (!name.trim()) next.name = "Enter your name.";
     const emailError = validateEmail(email);
     if (emailError) next.email = emailError;
-    else if (state.households[emailKey(email)]) next.email = "An account already uses this email. Log in instead.";
+    // Real accounts: Supabase answers the same way for new and existing emails, so nothing is revealed here.
+    else if (!usesBackend && state.households[emailKey(email)]) next.email = "An account already uses this email. Log in instead.";
     const passwordError = validateNewPassword(password);
     if (passwordError) next.password = passwordError;
     const dobError = validateDob(dob);
@@ -55,7 +61,7 @@ export default function SignUp() {
   // After the first submit, errors update as people fix them.
   const liveErrors = submitted ? validate() : errors;
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
     const next = validate();
@@ -63,6 +69,20 @@ export default function SignUp() {
     if (Object.keys(next).length > 0) {
       // Move focus to the first field that needs attention.
       requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+      return;
+    }
+    if (usesBackend) {
+      setBusy(true);
+      setFormError(null);
+      try {
+        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing });
+        // Confirmed straight away: useAuthSync loads the account and the redirect above continues to the plan step.
+        if (needsConfirmation) setSentTo(email.trim());
+      } catch (err) {
+        setFormError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     const firstName = name.trim().split(/\s+/)[0];
@@ -86,6 +106,32 @@ export default function SignUp() {
 
   const length = password.length;
 
+  if (sentTo) {
+    return (
+      <AuthCard
+        eyebrow="Check your email"
+        title="Confirm your email address"
+        intro={
+          <p>
+            We've sent a link to <strong>{sentTo}</strong>. Open it to confirm your address, then log in to choose your
+            plan. The link works for 24 hours.
+          </p>
+        }
+        footer={
+          <>
+            <span>Confirmed already?</span>
+            <Link to="/signin">Log in</Link>
+          </>
+        }
+      >
+        <p className="auth-note">
+          No email after a few minutes? Check your spam folder. If you already have an account with this email, log in
+          or reset your password instead.
+        </p>
+      </AuthCard>
+    );
+  }
+
   return (
     <AuthCard
       eyebrow="Join BookWorm"
@@ -108,6 +154,12 @@ export default function SignUp() {
         </>
       }
     >
+      {formError && (
+        <div className="form-alert" role="alert">
+          <Icon name="alert" size={17} />
+          <p>{formError}</p>
+        </div>
+      )}
       <form ref={formRef} className="auth-form" noValidate onSubmit={submit}>
         <Field
           label="Your name"
@@ -185,8 +237,8 @@ export default function SignUp() {
           </label>
         </div>
 
-        <button type="submit" className="primary-button auth-submit">
-          Create account
+        <button type="submit" className="primary-button auth-submit" disabled={busy}>
+          {busy ? "Creating your account…" : "Create account"}
         </button>
       </form>
     </AuthCard>

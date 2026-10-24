@@ -31,9 +31,13 @@ function GrownUpForm({ onConfirmed }: { onConfirmed: () => void }) {
   const check = useCheckAccountPassword();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const submit = (e: FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!check(password)) {
+    setBusy(true);
+    const ok = await check(password);
+    setBusy(false);
+    if (!ok) {
       setError("That isn't the account password.");
       return;
     }
@@ -42,8 +46,8 @@ function GrownUpForm({ onConfirmed }: { onConfirmed: () => void }) {
   return (
     <form noValidate onSubmit={submit}>
       <AccountPasswordField value={password} onChange={setPassword} error={error} />
-      <button type="submit" className="primary-button modal-submit">
-        Continue
+      <button type="submit" className="primary-button modal-submit" disabled={busy}>
+        {busy ? "Checking…" : "Continue"}
       </button>
     </form>
   );

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { formatPrice, planById, planFaqs, plans } from "../data/plans";
+import { AccountError, choosePlan } from "../lib/accountApi";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { Plan, PlanId } from "../types";
@@ -23,6 +24,8 @@ const longDate = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day
 export default function Plans() {
   useTitle("Plans and pricing");
   const { state, dispatch } = useStore();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const setup = params.get("setup") === "1";
@@ -53,12 +56,25 @@ export default function Plans() {
     setConfirmed(null);
   };
 
-  const confirm = (e: FormEvent) => {
+  const confirm = async (e: FormEvent) => {
     e.preventDefault();
     if (!selected) return;
     if (!agreed) {
       setAgreeError(true);
       return;
+    }
+    if (account?.userId) {
+      // Real accounts: the checkout Edge Function writes the subscription (never the browser).
+      setSaving(true);
+      setSaveError(null);
+      try {
+        await choosePlan(selected, billingDay);
+      } catch (err) {
+        setSaveError(err instanceof AccountError ? err.message : "We couldn't save your plan. Try again.");
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
     }
     dispatch({ type: "choosePlan", planId: selected, billingDay });
     setConfirmed(selected);
@@ -235,9 +251,15 @@ export default function Plans() {
                   </p>
                 )}
 
+                {saveError && (
+                  <div className="form-alert" role="alert">
+                    <Icon name="alert" size={17} />
+                    <p>{saveError}</p>
+                  </div>
+                )}
                 <div className="checkout-actions">
-                  <button type="submit" className="primary-button">
-                    Start {plan.name} for {formatPrice(plan.price)}/month
+                  <button type="submit" className="primary-button" disabled={saving}>
+                    {saving ? "Saving your plan…" : `Start ${plan.name} for ${formatPrice(plan.price)}/month`}
                   </button>
                   <button type="button" className="ghost-button" onClick={() => setSelected(null)}>
                     Cancel
