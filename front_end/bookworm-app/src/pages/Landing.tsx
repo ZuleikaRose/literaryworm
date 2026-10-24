@@ -52,6 +52,12 @@ export default function Landing() {
 
   return (
     <div className="landing">
+      {params.get("deleted") === "1" && !state.account && (
+        <div className="form-success landing-notice" role="status">
+          <Icon name="check" size={17} />
+          <p>Your account has been deleted, and your plan won't charge you again. Thanks for reading with us.</p>
+        </div>
+      )}
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-glow" aria-hidden="true" />
         <div className="hero-copy">

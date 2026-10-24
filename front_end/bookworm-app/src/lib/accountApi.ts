@@ -1,5 +1,5 @@
 import type { AccountReading } from "../store/state";
-import type { Account, Bookmark, Format, LibraryEntry, PlanId, Progress, ReadingStatus } from "../types";
+import type { AgeRating, Account, Bookmark, Format, LibraryEntry, PlanId, Profile, Progress, ReadingStatus } from "../types";
 import { SUPABASE_URL } from "./backend";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
@@ -164,43 +164,223 @@ export async function loadAccount(): Promise<Account | null> {
   const [profile, details, subscription] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
     db.from("account_private").select("date_of_birth, marketing_emails").eq("user_id", user.id).maybeSingle(),
-    db.from("subscriptions").select("plan_id, billing_day, status").eq("user_id", user.id).maybeSingle(),
+    db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
-  const status = subscription.data?.status;
   return {
     userId: user.id,
     name: profile.data?.display_name ?? "Reader",
     email: user.email ?? "",
     password: "",
     dob: details.data?.date_of_birth ?? "",
-    planId: (subscription.data?.plan_id as PlanId | undefined) ?? null,
-    billingDay: subscription.data?.billing_day ?? null,
     marketingEmails: details.data?.marketing_emails ?? false,
     isDemo: false,
-    status: status === "paused" || status === "cancelled" ? status : "active",
+    ...fromSubscription(subscription.data as SubscriptionRow | null),
   };
 }
 
-/** Chooses or changes the plan through the `checkout` Edge Function (subscriptions are server-written). */
-export async function choosePlan(planId: PlanId, billingDay: number): Promise<void> {
+interface SubscriptionRow {
+  plan_id: string;
+  billing_day: number;
+  status: string;
+  cancel_at_period_end: boolean;
+  current_period_end: string | null;
+}
+
+const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end";
+
+/** The account's plan fields from a subscriptions row (or none yet). */
+function fromSubscription(row: SubscriptionRow | null): Pick<Account, "planId" | "billingDay" | "status" | "endsAt"> {
+  const status = row?.status;
+  return {
+    planId: (row?.plan_id as PlanId | undefined) ?? null,
+    billingDay: row?.billing_day ?? null,
+    status: status === "paused" || status === "cancelled" ? status : "active",
+    endsAt: row?.cancel_at_period_end ? row.current_period_end : null,
+  };
+}
+
+/**
+ * Calls one of BookWorm's Edge Functions as the signed-in member. A refused password comes
+ * back as "forbidden", which is reported in plain words; other errors use the function's message.
+ */
+async function callFunction<T>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
   const { data } = await client().auth.getSession();
   const token = data.session?.access_token;
-  if (!token) throw new AccountError("Your session has ended. Log in again to choose a plan.");
+  if (!token) throw new AccountError("Your session has ended. Log in again.");
   let res: Response;
   try {
-    res = await fetch(`${SUPABASE_URL}/functions/v1/checkout`, {
+    res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ planId, billingDay, renewalTermsAccepted: true }),
+      body: JSON.stringify(body),
     });
   } catch {
     throw new AccountError(OFFLINE);
   }
+  const payload = (await res.json().catch(() => null)) as ({ error?: { code?: string; message?: string } } & T) | null;
   if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-    throw new AccountError(body?.error?.message ?? "We couldn't save your plan. Try again.");
+    if (payload?.error?.code === "forbidden") throw new AccountError("That isn't the account password.");
+    if (res.status === 429) throw new AccountError("Too many tries in a short time. Wait a minute, then try again.");
+    throw new AccountError(payload?.error?.message ?? fallback);
   }
+  return payload as T;
+}
+
+/** Chooses or changes the plan through the `checkout` Edge Function (subscriptions are server-written). */
+export async function choosePlan(planId: PlanId, billingDay: number): Promise<void> {
+  await callFunction("checkout", { planId, billingDay, renewalTermsAccepted: true }, "We couldn't save your plan. Try again.");
+}
+
+// --- Membership and the account (manage-account function) ------------------
+
+export type MembershipAction = "pause" | "resume" | "cancel" | "restart";
+
+/** Pauses, resumes, cancels or restarts the membership; returns the account's new plan fields. */
+export async function changeMembership(action: MembershipAction) {
+  const row = await callFunction<SubscriptionRow>("manage-account", { action }, "We couldn't change your membership. Try again.");
+  return fromSubscription(row);
+}
+
+/** Deletes the account and everything it owns, after the function re-checks the password. */
+export async function deleteAccount(password: string): Promise<void> {
+  await callFunction("manage-account", { action: "delete", password, confirm: true }, "We couldn't delete the account. Try again.");
+}
+
+/** The public display name shown on logs (profiles.display_name, 1–60 characters). */
+export async function setDisplayName(userId: string, name: string): Promise<void> {
+  const { error } = await client().from("profiles").update({ display_name: name.trim() }).eq("id", userId);
+  if (error) throw new AccountError("We couldn't save your display name. Try again.");
+}
+
+export async function setMarketingEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ marketing_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** Changes the password after checking the current one. */
+export async function changePassword(email: string, current: string, next: string): Promise<void> {
+  if (!(await verifyPassword(email, current))) throw new AccountError("Your current password isn't right.");
+  await setNewPassword(next);
+}
+
+/** The logs this account wrote, for Download my data. */
+export async function loadMyLogs(userId: string) {
+  const { data, error } = await client()
+    .from("logs")
+    .select("id, volume_id, body, rating, created_at, updated_at")
+    .eq("user_id", userId)
+    .order("created_at");
+  if (error) throw new AccountError("We couldn't gather your logs. Try again.");
+  return data;
+}
+
+// --- Household profiles (reader_profiles, manage-profile function) -----------
+
+interface ProfileRow {
+  id: string;
+  name: string;
+  avatar: number;
+  age_rating: AgeRating;
+  has_pin: boolean;
+  failed_pin_attempts: number;
+  locked_until: string | null;
+  daily_limit_minutes: number | null;
+  favorite_genres: string[];
+  kids_consent_at: string | null;
+}
+
+const PROFILE_COLUMNS =
+  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, favorite_genres, kids_consent_at";
+
+const toProfile = (row: ProfileRow): Profile => ({
+  id: row.id,
+  name: row.name,
+  avatar: row.avatar,
+  ageRating: row.age_rating,
+  pin: null,
+  hasPin: row.has_pin,
+  failedPinAttempts: row.failed_pin_attempts,
+  lockedUntil: row.locked_until ? Date.parse(row.locked_until) : null,
+  favoriteGenres: row.favorite_genres,
+  dailyLimitMinutes: row.daily_limit_minutes,
+  kidsConsent: Boolean(row.kids_consent_at),
+});
+
+/** The household's profiles, oldest first. A new account gets its first profile here. */
+export async function loadProfiles(account: Pick<Account, "name">): Promise<Profile[]> {
+  const db = client();
+  const { data, error } = await db.from("reader_profiles").select(PROFILE_COLUMNS).order("created_at");
+  if (error) throw new AccountError("We couldn't load your profiles. Try again.");
+  if (data.length > 0) return (data as ProfileRow[]).map(toProfile);
+  const first = await createProfile({ name: account.name.split(/\s+/)[0].slice(0, 20) || "Reader", avatar: 0, ageRating: "all", favoriteGenres: [] });
+  return [first];
+}
+
+/** Adds an everyday (Teen or All) profile. Kids profiles go through createKidsProfile. */
+export async function createProfile(input: Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres">): Promise<Profile> {
+  const { data, error } = await client()
+    .from("reader_profiles")
+    .insert({
+      account_id: await signedInUserId(),
+      name: input.name.trim(),
+      avatar: input.avatar,
+      age_rating: input.ageRating,
+      favorite_genres: input.favoriteGenres,
+    })
+    .select(PROFILE_COLUMNS)
+    .single();
+  if (error) {
+    if (error.code === "23505") throw new AccountError("Another profile already uses this name.");
+    if (error.code === "23514") throw new AccountError("Your plan doesn't allow another profile. Change plan to add more.");
+    throw new AccountError("We couldn't add the profile. Try again.");
+  }
+  return toProfile(data as ProfileRow);
+}
+
+/** Name, avatar and favourite genres: the changes that don't need the account password. */
+export async function updateProfileBasics(id: string, patch: Pick<Profile, "name" | "avatar" | "favoriteGenres">): Promise<void> {
+  const { error } = await client()
+    .from("reader_profiles")
+    .update({ name: patch.name.trim(), avatar: patch.avatar, favorite_genres: patch.favoriteGenres })
+    .eq("id", id);
+  if (error) {
+    if (error.code === "23505") throw new AccountError("Another profile already uses this name.");
+    throw new AccountError("We couldn't save the profile. Try again.");
+  }
+}
+
+type ProtectedProfileChange =
+  | { action: "create_kids"; name: string; avatar: number; dailyLimitMinutes: number | null; noticeVersion: string }
+  | { action: "set_pin"; profileId: string; pin: string | null }
+  | { action: "set_daily_limit"; profileId: string; dailyLimitMinutes: number | null }
+  | { action: "set_age_rating"; profileId: string; ageRating: AgeRating; noticeVersion?: string }
+  | { action: "unlock"; profileId: string }
+  | { action: "delete"; profileId: string };
+
+/** Changes a grown-up controls; the manage-profile function re-checks the account password. */
+export async function changeProtectedProfile(change: ProtectedProfileChange, password: string): Promise<{ id?: string }> {
+  return callFunction("manage-profile", { ...change, password }, "We couldn't save the profile. Try again.");
+}
+
+export interface PinCheck {
+  ok: boolean;
+  attemptsLeft: number;
+  lockedUntil: number | null;
+}
+
+/** Checks a profile PIN on the server, which counts wrong tries and locks after five. */
+export async function verifyProfilePin(profileId: string, pin: string): Promise<PinCheck> {
+  const result = await callFunction<{ ok: boolean; attempts_left?: number; locked_until?: string | null }>(
+    "manage-profile",
+    { action: "verify_pin", profileId, pin },
+    "We couldn't check the PIN. Try again.",
+  );
+  return {
+    ok: result.ok,
+    attemptsLeft: result.attempts_left ?? 0,
+    lockedUntil: result.locked_until ? Date.parse(result.locked_until) : null,
+  };
 }
 
 // --- Library (library_items: owner-only RLS) ---------------------------------

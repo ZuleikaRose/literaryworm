@@ -4,7 +4,7 @@ import { getBook, isAllowed } from "../data/books";
 import { EXTRA_MINUTES } from "../lib/useDailyLimit";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { useTitle } from "../lib/useTitle";
-import { useActiveProfile } from "../store/context";
+import { useActiveProfile, useStore } from "../store/context";
 import type { Book, Bookmark, Format } from "../types";
 import { AccountPasswordField } from "./AccountPasswordField";
 import { Dialog } from "./Dialog";
@@ -33,7 +33,42 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
   const { id } = useParams();
   const book = getBook(id);
   const profile = useActiveProfile();
+  const { account } = useStore().state;
+  // When the page opened; enough to tell whether a cancelled plan's end date has passed.
+  const [openedAt] = useState(() => Date.now());
   const verb = format === "ebook" ? "read" : "listen to";
+
+  // A paused membership, or one whose cancellation date has passed, doesn't open books.
+  if (account?.status === "paused") {
+    return (
+      <ReadingMessage
+        title="Your membership is paused"
+        icon="clock"
+        action={
+          <Link className="primary-button" to="/account#plan">
+            Resume in Account
+          </Link>
+        }
+      >
+        <p>Reading and listening start again as soon as the membership is resumed. Your place in every book is saved.</p>
+      </ReadingMessage>
+    );
+  }
+  if (account?.status === "cancelled" || (account?.endsAt && Date.parse(account.endsAt) <= openedAt)) {
+    return (
+      <ReadingMessage
+        title="Your membership has ended"
+        icon="lock"
+        action={
+          <Link className="primary-button" to="/plans">
+            Choose a plan
+          </Link>
+        }
+      >
+        <p>Choose a plan to keep reading. Your library and your place in every book are still here.</p>
+      </ReadingMessage>
+    );
+  }
 
   if (!book) {
     return (

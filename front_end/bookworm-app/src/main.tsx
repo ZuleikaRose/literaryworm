@@ -16,6 +16,7 @@ import "./styles/detail.css";
 import "./styles/search.css";
 import "./styles/library.css";
 import "./styles/reader.css";
+import "./styles/account.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

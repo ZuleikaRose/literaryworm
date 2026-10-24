@@ -1,0 +1,297 @@
+/* ---------- Account ---------- */
+
+.account-page {
+  max-width: 1040px;
+}
+
+.account-sub {
+  margin: 0 0 24px;
+  color: var(--muted);
+}
+
+/* In-page section links, wrapping as a row of pills. */
+.account-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.account-nav a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
+}
+
+.account-nav a:hover {
+  border-color: var(--faint);
+  color: var(--ink);
+}
+
+.account-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 24px 48px;
+  padding: 36px 0;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+.account-section-heading h2 {
+  margin: 0;
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.account-section-heading p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.account-section-body {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  justify-items: start;
+  gap: 16px;
+}
+
+.account-section-body > p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.account-section-body .form-alert,
+.account-section-body .form-success {
+  margin: 0;
+}
+
+.account-facts {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+.account-facts > div {
+  padding: 14px 16px;
+  background: var(--surface);
+}
+
+.account-facts dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.account-facts dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-pill::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  content: "";
+}
+
+.status-paused::before {
+  background: var(--star);
+}
+
+.status-ending::before {
+  background: var(--danger);
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.account-form {
+  display: grid;
+  width: 100%;
+  max-width: 460px;
+  justify-items: start;
+  gap: 14px;
+}
+
+.account-form .field {
+  width: 100%;
+}
+
+.account-form h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.account-fact-row {
+  display: grid;
+  width: 100%;
+  gap: 2px;
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+}
+
+.account-fact-row span,
+.account-fact-row small {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.account-fact-row strong {
+  overflow-wrap: anywhere;
+}
+
+.account-section .switch-row {
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+}
+
+.account-section .switch-row strong {
+  font-size: 0.9375rem;
+}
+
+.account-section .switch-row small {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+}
+
+.account-note {
+  display: flex;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.account-note .icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--rust-bright);
+}
+
+.family-list {
+  display: grid;
+  width: 100%;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.family-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 0;
+}
+
+.family-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.family-name {
+  font-weight: 700;
+}
+
+.family-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.account-links {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-links a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--rust-ink);
+  font-weight: 600;
+}
+
+/* The danger zone is the one red section on the page. */
+.danger-zone {
+  border-top-color: color-mix(in srgb, var(--danger) 55%, transparent);
+}
+
+.danger-zone .account-section-heading h2 {
+  color: var(--danger);
+}
+
+.delete-form {
+  display: grid;
+  gap: 16px;
+}
+
+.delete-form .modal-actions {
+  margin-top: 4px;
+}
+
+.landing-notice {
+  max-width: var(--content-max);
+  margin: 20px auto 0;
+  margin-inline: max(var(--gutter), calc((100% - var(--content-max)) / 2));
+}
+
+@media (max-width: 760px) {
+  .account-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 28px 0;
+  }
+
+  .account-facts {
+    grid-template-columns: 1fr;
+  }
+}

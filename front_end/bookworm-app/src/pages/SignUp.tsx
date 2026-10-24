@@ -98,6 +98,7 @@ export default function SignUp() {
         marketingEmails: marketing,
         isDemo: false,
         status: "active",
+        endsAt: null,
       },
       firstProfile: makeProfile({ name: firstName, ageRating: "all" }),
     });

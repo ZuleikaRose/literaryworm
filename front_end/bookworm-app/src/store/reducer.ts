@@ -22,7 +22,6 @@ import {
   type Household,
   initialState,
   MAX_PROFILES,
-  makeProfile,
   newId,
 } from "./state";
 
@@ -36,8 +35,13 @@ export type Action =
       account: Account;
       library: Record<string, LibraryEntry>;
       reading: AccountReading;
+      profiles: Profile[];
       restored: boolean;
     }
+  /** A real account's profiles, reloaded from Supabase after a change. */
+  | { type: "setProfiles"; profiles: Profile[] }
+  /** An in-memory account deleted itself. */
+  | { type: "deleteAccount" }
   | { type: "authChecked"; error?: string }
   | { type: "signOut" }
   | { type: "choosePlan"; planId: PlanId; billingDay: number }
@@ -84,6 +88,19 @@ function stash(state: AppState): AppState["households"] {
   if (!state.account || state.account.userId) return state.households;
   const { account, profiles, profileData } = state;
   return { ...state.households, [emailKey(account.email)]: { account, profiles, profileData } };
+}
+
+/** Replace the household's profiles, keeping each surviving profile's in-memory data. */
+function withProfiles(state: AppState, profiles: Profile[]): AppState {
+  const ids = new Set(profiles.map((p) => p.id));
+  const profileData = Object.fromEntries(profiles.map((p) => [p.id, state.profileData[p.id] ?? emptyProfileData()]));
+  return {
+    ...state,
+    profiles,
+    profileData,
+    activeProfileId: state.activeProfileId && ids.has(state.activeProfileId) ? state.activeProfileId : null,
+    lastProfileId: state.lastProfileId && ids.has(state.lastProfileId) ? state.lastProfileId : null,
+  };
 }
 
 /** Change the active profile's data; a no-op with no profile chosen. */
@@ -146,7 +163,7 @@ export function reducer(state: AppState, action: Action): AppState {
       if (state.account?.userId === action.account.userId) {
         // Restored again (token refresh, another tab): keep the household, update the details.
         return {
-          ...state,
+          ...withProfiles(state, action.profiles),
           authReady: true,
           authError: null,
           account: action.account,
@@ -154,22 +171,33 @@ export function reducer(state: AppState, action: Action): AppState {
           accountReading: action.reading,
         };
       }
-      // Household profiles stay in memory for now; the first one is named after the account holder.
-      const first = makeProfile({ name: action.account.name.split(/\s+/)[0].slice(0, 20), ageRating: "all" });
       const entered = enter({ ...state, households: stash(state) }, {
         account: action.account,
-        profiles: [first],
-        profileData: { [first.id]: emptyProfileData() },
+        profiles: action.profiles,
+        profileData: Object.fromEntries(action.profiles.map((p) => [p.id, emptyProfileData()])),
       });
+      // Restored after a refresh: carry on when there's only one profile and nothing guards it;
+      // otherwise Who's reading? asks (PIN locks and Kids profiles still apply).
+      const only = action.profiles.length === 1 ? action.profiles[0] : null;
+      const carryOn = action.restored && only && !only.hasPin && only.ageRating !== "kids";
       return {
         ...entered,
-        // Restored after a refresh: carry on as the account's one profile instead of asking again.
-        activeProfileId: action.restored ? first.id : null,
+        activeProfileId: carryOn ? only.id : null,
         authReady: true,
         authError: null,
         accountLibrary: action.library,
         accountReading: action.reading,
       };
+    }
+
+    case "setProfiles":
+      return withProfiles(state, action.profiles);
+
+    case "deleteAccount": {
+      if (!state.account || state.account.userId) return state;
+      const households = { ...state.households };
+      delete households[emailKey(state.account.email)];
+      return { ...initialState, authReady: true, a11y: state.a11y, logs: state.logs, households };
     }
 
     case "authChecked":
@@ -203,7 +231,11 @@ export function reducer(state: AppState, action: Action): AppState {
     case "updateProfile":
       return {
         ...state,
-        profiles: state.profiles.map((p) => (p.id === action.id ? { ...p, ...action.patch } : p)),
+        profiles: state.profiles.map((p) =>
+          p.id === action.id
+            ? { ...p, ...action.patch, hasPin: action.patch.pin !== undefined ? action.patch.pin !== null : (action.patch.hasPin ?? p.hasPin) }
+            : p,
+        ),
       };
 
     case "deleteProfile": {

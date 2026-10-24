@@ -55,7 +55,7 @@ export function ProfileMenu() {
                     <button type="button" className="menu-item" onClick={switchTo}>
                       <Avatar name={p.name} avatar={p.avatar} size={26} />
                       {p.name}
-                      {p.pin && <Icon name="lock" size={14} className="menu-item-end" />}
+                      {p.hasPin && <Icon name="lock" size={14} className="menu-item-end" />}
                     </button>
                   </li>
                 ))}

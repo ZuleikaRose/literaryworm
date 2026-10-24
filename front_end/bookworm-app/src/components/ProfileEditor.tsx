@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { allGenres } from "../data/books";
 import { avatarPalette } from "../lib/avatars";
 import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName } from "../lib/profiles";
+import { AccountError } from "../lib/accountApi";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
+import { useProfiles } from "../lib/useProfiles";
 import { useStore } from "../store/context";
-import { makeProfile } from "../store/state";
 import type { AgeRating, Profile } from "../types";
 import { AccountPasswordField } from "./AccountPasswordField";
 import { Avatar } from "./Avatar";
@@ -36,11 +37,13 @@ export function ProfileEditor({ open, profile, onClose }: ProfileEditorProps) {
   );
 }
 
-type Errors = Partial<Record<"name" | "consent" | "pin" | "password", string>>;
+type Errors = Partial<Record<"name" | "consent" | "pin" | "password" | "form", string>>;
 
 function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () => void }) {
-  const { state, dispatch } = useStore();
+  const { state } = useStore();
+  const household = useProfiles();
   const checkPassword = useCheckAccountPassword();
+  const [busy, setBusy] = useState(false);
   const isNew = !profile;
   const others = state.profiles.filter((p) => p.id !== profile?.id);
 
@@ -49,7 +52,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const [rating, setRating] = useState<AgeRating>(profile?.ageRating ?? "all");
   const [genres, setGenres] = useState<string[]>(profile?.favoriteGenres ?? []);
   const [consent, setConsent] = useState(profile?.kidsConsent ?? false);
-  const [pinOn, setPinOn] = useState(Boolean(profile?.pin));
+  const [pinOn, setPinOn] = useState(Boolean(profile?.hasPin));
   const [pin, setPin] = useState("");
   const [limit, setLimit] = useState<number | null>(profile?.dailyLimitMinutes ?? null);
   const [password, setPassword] = useState("");
@@ -58,9 +61,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const formRef = useRef<HTMLFormElement>(null);
 
   // Changing who can see what, or locking a profile, is the account holder's call.
-  const pinChanged = pinOn ? pin.length > 0 || !profile?.pin : Boolean(profile?.pin);
+  const pinChanged = pinOn ? pin.length > 0 || !profile?.hasPin : Boolean(profile?.hasPin);
   const protectedChange =
-    (!isNew && rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null);
+    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null);
   const needsPassword = protectedChange || confirmDelete;
   const needsConsent = rating === "kids" && !(profile?.ageRating === "kids" && profile.kidsConsent);
 
@@ -75,40 +78,56 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     const nameError = validateProfileName(name, others);
     if (nameError) next.name = nameError;
     if (needsConsent && !consent) next.consent = "Give consent as the parent or guardian to create a Kids profile.";
-    if (pinOn && (pin.length > 0 || !profile?.pin) && !isValidPin(pin)) next.pin = `Enter ${PIN_LENGTH} digits.`;
-    if (needsPassword) {
+    if (pinOn && (pin.length > 0 || !profile?.hasPin) && !isValidPin(pin)) next.pin = `Enter ${PIN_LENGTH} digits.`;
+    setBusy(true);
+    if (needsPassword && !next.name && !next.consent && !next.pin) {
       const result = await checkPassword(password);
       if (!result.ok) next.password = result.problem ?? "Enter the account password to save these changes.";
     }
     setErrors(next);
     if (Object.keys(next).length) {
+      setBusy(false);
       focusFirstError();
       return;
     }
-    const patch: Partial<Profile> = {
-      name: name.trim(),
-      avatar,
-      ageRating: rating,
-      favoriteGenres: genres,
-      kidsConsent: rating === "kids" ? true : (profile?.kidsConsent ?? false),
-      pin: pinOn ? (pin.length > 0 ? pin : (profile?.pin ?? null)) : null,
-      dailyLimitMinutes: limit,
-    };
-    if (isNew) dispatch({ type: "addProfile", profile: makeProfile({ ...patch, name: patch.name!, ageRating: rating }) });
-    else dispatch({ type: "updateProfile", id: profile.id, patch: { ...patch, failedPinAttempts: 0, lockedUntil: null } });
-    onDone();
+    try {
+      await household.save(
+        profile,
+        {
+          name,
+          avatar,
+          ageRating: rating,
+          favoriteGenres: genres,
+          dailyLimitMinutes: limit,
+          // undefined keeps the current PIN; null removes it.
+          pin: pinOn ? (pin.length > 0 ? pin : undefined) : profile?.hasPin ? null : undefined,
+        },
+        password,
+      );
+      onDone();
+    } catch (err) {
+      setErrors({ form: err instanceof AccountError ? err.message : "We couldn't save the profile. Try again." });
+      setBusy(false);
+    }
   };
 
   const remove = async () => {
     if (!profile) return;
+    setBusy(true);
     const result = await checkPassword(password);
     if (!result.ok) {
+      setBusy(false);
       setErrors({ password: result.problem ?? "Enter the account password to delete this profile." });
       focusFirstError();
       return;
     }
-    dispatch({ type: "deleteProfile", id: profile.id });
-    onDone();
+    try {
+      await household.remove(profile, password);
+      onDone();
+    } catch (err) {
+      setErrors({ form: err instanceof AccountError ? err.message : "We couldn't delete the profile. Try again." });
+      setBusy(false);
+    }
   };
 
   return (
@@ -207,7 +226,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
         </label>
         {pinOn && (
           <Field
-            label={profile?.pin ? "New PIN (leave blank to keep the current one)" : "PIN"}
+            label={profile?.hasPin ? "New PIN (leave blank to keep the current one)" : "PIN"}
             type="password"
             inputMode="numeric"
             autoComplete="off"
@@ -244,6 +263,13 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
         </div>
       )}
 
+      {errors.form && (
+        <div className="form-alert" role="alert">
+          <Icon name="alert" size={17} />
+          <p>{errors.form}</p>
+        </div>
+      )}
+
       {confirmDelete ? (
         <div className="delete-confirm" role="group" aria-label="Delete profile">
           <p>
@@ -251,8 +277,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
             profiles aren't affected.
           </p>
           <div className="modal-actions">
-            <button type="button" className="danger-button" onClick={remove}>
-              <Icon name="trash" size={16} /> Delete profile
+            <button type="button" className="danger-button" onClick={remove} disabled={busy}>
+              <Icon name="trash" size={16} /> {busy ? "Deleting…" : "Delete profile"}
             </button>
             <button type="button" className="ghost-button" onClick={() => setConfirmDelete(false)}>
               Keep profile
@@ -261,8 +287,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
         </div>
       ) : (
         <div className="modal-actions">
-          <button type="submit" className="primary-button">
-            {isNew ? "Add profile" : "Save changes"}
+          <button type="submit" className="primary-button" disabled={busy}>
+            {busy ? "Saving…" : isNew ? "Add profile" : "Save changes"}
           </button>
           {!isNew && others.length > 0 && (
             <button type="button" className="ghost-button danger-text" onClick={() => setConfirmDelete(true)}>

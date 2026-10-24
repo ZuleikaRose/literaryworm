@@ -10,3 +10,6 @@ verify_jwt = true
 
 [functions.checkout]
 verify_jwt = true
+
+[functions.manage-account]
+verify_jwt = true

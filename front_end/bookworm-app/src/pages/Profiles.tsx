@@ -8,6 +8,7 @@ import { ProfileEditor } from "../components/ProfileEditor";
 import { allGenres } from "../data/books";
 import { planById } from "../data/plans";
 import { ageRatingDetails, lockMinutesLeft } from "../lib/profiles";
+import { useProfiles } from "../lib/useProfiles";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import { MAX_PROFILES } from "../store/state";
@@ -18,24 +19,29 @@ type Pending = { kind: "manage" } | { kind: "add" } | { kind: "edit"; profile: P
 export default function Profiles() {
   useTitle("Who's reading?");
   const { state, dispatch } = useStore();
+  const household = useProfiles();
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
   const from = (location.state as { from?: string } | null)?.from;
 
-  const [managing, setManaging] = useState(false);
+  // A child on (or just back from) a Kids profile can't reach profile settings without a grown-up.
+  const { profiles, account } = state;
+  const guardProfile = profiles.find((p) => p.id === (state.activeProfileId ?? state.lastProfileId));
+  const kidsGuard = guardProfile?.ageRating === "kids";
+  // Account's "Manage profiles" link opens straight into managing (asking a grown-up first on Kids).
+  const askedToManage = params.get("manage") === "1";
+
+  const [managing, setManaging] = useState(askedToManage && !kidsGuard);
   const [editing, setEditing] = useState<{ open: boolean; profile: Profile | null }>({ open: false, profile: null });
   const [pinFor, setPinFor] = useState<Profile | null>(null);
-  const [grownUpFor, setGrownUpFor] = useState<Pending | null>(null);
+  const [grownUpFor, setGrownUpFor] = useState<Pending | null>(askedToManage && kidsGuard ? { kind: "manage" } : null);
   const [grownUpOk, setGrownUpOk] = useState(false);
 
-  const { profiles, account } = state;
   const plan = account?.planId ? planById.get(account.planId) : undefined;
   const profileLimit = Math.min(plan?.profiles ?? 1, MAX_PROFILES);
   const canAdd = profiles.length < profileLimit;
-  // A child who just left a Kids profile can't reach profile settings without a grown-up.
-  const lastProfile = profiles.find((p) => p.id === state.lastProfileId);
-  const needsGrownUp = lastProfile?.ageRating === "kids" && !grownUpOk;
+  const needsGrownUp = kidsGuard && !grownUpOk;
 
   const run = (action: Pending) => {
     if (action.kind === "manage") setManaging(true);
@@ -51,7 +57,7 @@ export default function Profiles() {
 
   const choose = (profile: Profile) => {
     if (managing) return guarded({ kind: "edit", profile });
-    if (profile.pin) return setPinFor(profile);
+    if (profile.hasPin) return setPinFor(profile);
     enter(profile);
   };
 
@@ -61,8 +67,13 @@ export default function Profiles() {
     return (
       <GenreSetup
         profile={setupProfile}
-        onDone={(genres) => {
-          dispatch({ type: "updateProfile", id: setupProfile.id, patch: { favoriteGenres: genres } });
+        onDone={async (genres) => {
+          try {
+            await household.setGenres(setupProfile, genres);
+          } catch {
+            // Genres only seed recommendations: keep them for this visit and carry on.
+            dispatch({ type: "updateProfile", id: setupProfile.id, patch: { favoriteGenres: genres } });
+          }
           setParams({}, { replace: true });
         }}
       />
@@ -81,7 +92,7 @@ export default function Profiles() {
           const locked = lockMinutesLeft(p) > 0;
           // The accessible name comes from the visible text plus this hidden state, so it always
           // contains what sighted users see (WCAG 2.5.3 Label in Name).
-          const status = managing ? "edit" : p.pin ? (locked ? "locked" : "PIN required") : null;
+          const status = managing ? "edit" : p.hasPin ? (locked ? "locked" : "PIN required") : null;
           return (
             <li key={p.id}>
               <button
@@ -96,7 +107,7 @@ export default function Profiles() {
                       <Icon name="edit" size={16} />
                     </span>
                   )}
-                  {!managing && p.pin && (
+                  {!managing && p.hasPin && (
                     <span className="profile-tile-badge" aria-hidden="true">
                       <Icon name="lock" size={15} />
                     </span>
@@ -184,7 +195,7 @@ export default function Profiles() {
   );
 }
 
-function GenreSetup({ profile, onDone }: { profile: Profile; onDone: (genres: string[]) => void }) {
+function GenreSetup({ profile, onDone }: { profile: Profile; onDone: (genres: string[]) => Promise<void> }) {
   const [genres, setGenres] = useState<string[]>(profile.favoriteGenres);
   const toggle = (g: string) => setGenres((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
   return (

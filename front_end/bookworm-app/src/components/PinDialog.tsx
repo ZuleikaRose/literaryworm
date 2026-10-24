@@ -1,8 +1,10 @@
 import { useRef, useState, type FormEvent } from "react";
-import { lockMinutesLeft, MAX_PIN_ATTEMPTS, PIN_LENGTH, PIN_LOCK_MINUTES, pinAttemptResult } from "../lib/profiles";
+import { AccountError } from "../lib/accountApi";
+import { lockMinutesLeft, MAX_PIN_ATTEMPTS, PIN_LENGTH, PIN_LOCK_MINUTES } from "../lib/profiles";
+import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
+import { useProfiles } from "../lib/useProfiles";
 import { useStore } from "../store/context";
 import type { Profile } from "../types";
-import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { AccountPasswordField } from "./AccountPasswordField";
 import { Avatar } from "./Avatar";
 import { Dialog } from "./Dialog";
@@ -25,8 +27,10 @@ export function PinDialog({ profile, onClose, onUnlocked }: PinDialogProps) {
 }
 
 function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profile: Profile) => void }) {
-  const { state, dispatch } = useStore();
+  const { state } = useStore();
+  const household = useProfiles();
   const checkPassword = useCheckAccountPassword();
+  const [busy, setBusy] = useState(false);
   // Read the live profile so attempts and lockouts update as they happen.
   const live = state.profiles.find((p) => p.id === profile.id) ?? profile;
   const [pin, setPin] = useState("");
@@ -37,14 +41,22 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
   const pinRef = useRef<HTMLInputElement>(null);
   const minutesLeft = lockMinutesLeft(live);
 
-  const submitPin = (e: FormEvent) => {
+  const submitPin = async (e: FormEvent) => {
     e.preventDefault();
     if (pin.length !== PIN_LENGTH) {
       setError(`Enter all ${PIN_LENGTH} digits.`);
       return;
     }
-    const result = pinAttemptResult(live, pin);
-    dispatch({ type: "updateProfile", id: live.id, patch: result.patch });
+    setBusy(true);
+    let result;
+    try {
+      result = await household.checkPin(live, pin);
+    } catch (err) {
+      setBusy(false);
+      setError(err instanceof AccountError ? err.message : "We couldn't check the PIN. Try again.");
+      return;
+    }
+    setBusy(false);
     if (result.ok) {
       onUnlocked(live);
       return;
@@ -65,7 +77,12 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
       setPasswordError(result.problem ?? "That isn't the account password.");
       return;
     }
-    dispatch({ type: "updateProfile", id: live.id, patch: { failedPinAttempts: 0, lockedUntil: null } });
+    try {
+      await household.unlock(live, password);
+    } catch (err) {
+      setPasswordError(err instanceof AccountError ? err.message : "We couldn't unlock the profile. Try again.");
+      return;
+    }
     onUnlocked(live);
   };
 
@@ -117,8 +134,8 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
                 After {MAX_PIN_ATTEMPTS} wrong tries the profile locks for {PIN_LOCK_MINUTES} minutes.
               </p>
             )}
-            <button type="submit" className="primary-button modal-submit">
-              Open {live.name}
+            <button type="submit" className="primary-button modal-submit" disabled={busy}>
+              {busy ? "Checking…" : `Open ${live.name}`}
             </button>
           </form>
         )

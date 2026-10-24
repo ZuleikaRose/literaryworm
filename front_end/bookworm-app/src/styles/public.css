@@ -595,9 +595,10 @@ select.field-input {
 .field-toggle {
   position: absolute;
   top: 50%;
-  right: 6px;
+  /* Fills the 46px field's inner height, so the target is 44px tall. */
+  right: 1px;
   min-width: 56px;
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 10px;
   border-radius: 6px;
   color: var(--ink-soft);

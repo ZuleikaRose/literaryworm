@@ -114,6 +114,7 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
     dailyLimitMinutes: null,
     kidsConsent: input.ageRating === "kids",
     ...input,
+    hasPin: input.hasPin ?? Boolean(input.pin),
   };
 }
 
@@ -170,6 +171,7 @@ export function demoHousehold(): Household {
       marketingEmails: false,
       isDemo: true,
       status: "active",
+      endsAt: null,
     },
     profiles: [avery, sam, mia],
     profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },

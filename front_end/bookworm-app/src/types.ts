@@ -89,6 +89,8 @@ export interface Account {
   marketingEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
+  /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */
+  endsAt: string | null;
 }
 
 export interface Profile {
@@ -97,7 +99,9 @@ export interface Profile {
   /** Index into the avatar palette. */
   avatar: number;
   ageRating: AgeRating;
+  /** In-memory accounts only. Real accounts never see the PIN: Supabase keeps a hash. */
   pin: string | null;
+  hasPin: boolean;
   failedPinAttempts: number;
   lockedUntil: number | null;
   favoriteGenres: string[];

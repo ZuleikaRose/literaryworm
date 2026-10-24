@@ -1,3 +1,6 @@
+/** The Children's Privacy Notice version a parent agrees to when creating a Kids profile. */
+export const CHILDREN_NOTICE_VERSION = "2026-10";
+
 export interface LegalPage {
   slug: string;
   title: string;

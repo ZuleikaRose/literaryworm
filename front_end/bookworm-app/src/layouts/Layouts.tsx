@@ -6,11 +6,11 @@ import { TabBar } from "../components/TabBar";
 import { useAuthSync } from "../lib/useAuthSync";
 import { useActiveProfile, useStore } from "../store/context";
 
-/** Applies accessibility settings to <html>, resets scroll on navigation and follows Supabase Auth. */
+/** Applies accessibility settings to <html>, resets scroll on navigation (or goes to #section) and follows Supabase Auth. */
 export function AppEffects() {
   const { state } = useStore();
   useAuthSync();
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const { a11y } = state;
 
   useEffect(() => {
@@ -23,9 +23,15 @@ export function AppEffects() {
     root.toggleAttribute("data-underline-links", a11y.underlineLinks);
   }, [a11y]);
 
+  // New pages start at the top; a link to a section (/account#plan) goes to that section once it renders.
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (!hash) {
+      window.scrollTo(0, 0);
+      return;
+    }
+    const id = requestAnimationFrame(() => document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView());
+    return () => cancelAnimationFrame(id);
+  }, [pathname, hash]);
 
   return null;
 }

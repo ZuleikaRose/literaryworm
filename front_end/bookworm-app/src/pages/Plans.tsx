@@ -3,23 +3,10 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { formatPrice, planById, planFaqs, plans } from "../data/plans";
 import { AccountError, choosePlan } from "../lib/accountApi";
+import { longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { Plan, PlanId } from "../types";
-
-const ordinal = (n: number) => {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-
-function nextBillingDate(day: number, from = new Date()): Date {
-  const next = new Date(from.getFullYear(), from.getMonth(), day);
-  if (next <= from) next.setMonth(next.getMonth() + 1);
-  return next;
-}
-
-const longDate = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
 export default function Plans() {
   useTitle("Plans and pricing");

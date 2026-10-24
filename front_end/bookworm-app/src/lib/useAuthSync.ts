@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
-import { loadAccount, loadLibrary, loadReading, takeFreshSignIn } from "./accountApi";
+import { loadAccount, loadLibrary, loadProfiles, loadReading, takeFreshSignIn } from "./accountApi";
 import { supabase } from "./supabase";
 
 /**
@@ -13,6 +13,9 @@ export function useAuthSync() {
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const accountRef = useRef(state.account);
+  // The member whose account is loading, so two events for one sign-in don't load (or create the
+  // first profile) twice.
+  const loading = useRef<string | null>(null);
 
   useEffect(() => {
     accountRef.current = state.account;
@@ -37,18 +40,26 @@ export function useAuthSync() {
         if (["INITIAL_SESSION", "SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED"].includes(event)) {
           // A repeat for the same member (token refresh, password re-check, the second restore event) changes nothing.
           if (event !== "USER_UPDATED" && accountRef.current?.userId === session.user.id) return;
+          if (loading.current === session.user.id) return;
+          loading.current = session.user.id;
           // A session this tab didn't just sign in to was restored after a refresh (or signed in from another tab).
           const restored = !takeFreshSignIn();
           try {
             const [account, library, reading] = await Promise.all([loadAccount(), loadLibrary(), loadReading()]);
-            if (account) dispatch({ type: "enterAccount", account, library, reading, restored });
-            else dispatch({ type: "authChecked" });
+            if (!account) {
+              dispatch({ type: "authChecked" });
+              return;
+            }
+            const profiles = await loadProfiles(account);
+            dispatch({ type: "enterAccount", account, library, reading, profiles, restored });
           } catch {
             // Offline or the database is unreachable: carry on as a visitor and say why; logging in again retries.
             dispatch({
               type: "authChecked",
               error: "We couldn't load your account. Check your connection, then log in again or refresh the page.",
             });
+          } finally {
+            loading.current = null;
           }
         }
       }, 0);
