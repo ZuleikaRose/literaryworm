@@ -76,7 +76,10 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     if (nameError) next.name = nameError;
     if (needsConsent && !consent) next.consent = "Give consent as the parent or guardian to create a Kids profile.";
     if (pinOn && (pin.length > 0 || !profile?.pin) && !isValidPin(pin)) next.pin = `Enter ${PIN_LENGTH} digits.`;
-    if (needsPassword && !(await checkPassword(password))) next.password = "Enter the account password to save these changes.";
+    if (needsPassword) {
+      const result = await checkPassword(password);
+      if (!result.ok) next.password = result.problem ?? "Enter the account password to save these changes.";
+    }
     setErrors(next);
     if (Object.keys(next).length) {
       focusFirstError();
@@ -98,8 +101,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
 
   const remove = async () => {
     if (!profile) return;
-    if (!(await checkPassword(password))) {
-      setErrors({ password: "Enter the account password to delete this profile." });
+    const result = await checkPassword(password);
+    if (!result.ok) {
+      setErrors({ password: result.problem ?? "Enter the account password to delete this profile." });
       focusFirstError();
       return;
     }

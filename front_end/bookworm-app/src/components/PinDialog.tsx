@@ -60,8 +60,9 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
 
   const submitPassword = async (e: FormEvent) => {
     e.preventDefault();
-    if (!(await checkPassword(password))) {
-      setPasswordError("That isn't the account password.");
+    const result = await checkPassword(password);
+    if (!result.ok) {
+      setPasswordError(result.problem ?? "That isn't the account password.");
       return;
     }
     dispatch({ type: "updateProfile", id: live.id, patch: { failedPinAttempts: 0, lockedUntil: null } });

@@ -35,10 +35,10 @@ function GrownUpForm({ onConfirmed }: { onConfirmed: () => void }) {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const ok = await check(password);
+    const result = await check(password);
     setBusy(false);
-    if (!ok) {
-      setError("That isn't the account password.");
+    if (!result.ok) {
+      setError(result.problem ?? "That isn't the account password.");
       return;
     }
     onConfirmed();

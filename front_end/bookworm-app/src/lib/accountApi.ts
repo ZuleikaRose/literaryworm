@@ -71,16 +71,36 @@ export async function signIn(email: string, password: string): Promise<void> {
   if (error) throw new AccountError(authMessage(error));
 }
 
+/**
+ * Ends the session. If Supabase can't be reached, the session is still removed from this
+ * browser, so the member is never left half signed in.
+ */
 export async function signOut(): Promise<void> {
-  await supabase?.auth.signOut();
+  if (!supabase) return;
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    await supabase.auth.signOut({ scope: "local" });
+  }
 }
 
-/** Says "sent" whether or not the email has an account, so the page reveals nothing. */
+/**
+ * Sends a reset link. Supabase answers the same way whether or not the email has an account,
+ * so the page still reveals nothing; a failure here means the request itself didn't go through.
+ */
 export async function sendPasswordReset(email: string): Promise<void> {
-  const { error } = await client().auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-  if (error?.status === 429) throw new AccountError(authMessage(error));
+  let error: Parameters<typeof authMessage>[0] | null;
+  try {
+    ({ error } = await client().auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    }));
+  } catch {
+    throw new AccountError(OFFLINE);
+  }
+  if (!error) return;
+  if (error.status === 429) throw new AccountError(authMessage(error));
+  throw new AccountError("We couldn't send the reset link just now. Try again in a moment.");
 }
 
 export async function setNewPassword(password: string): Promise<void> {
@@ -88,11 +108,23 @@ export async function setNewPassword(password: string): Promise<void> {
   if (error) throw new AccountError(authMessage(error));
 }
 
-/** Checks the account password again (grown-up gates). The same account stays signed in. */
+/**
+ * Checks the account password again (grown-up gates). The same account stays signed in.
+ * Resolves false for a wrong password; throws an AccountError when the check couldn't run
+ * (offline, rate limited), so the gate can say so instead of "wrong password".
+ */
 export async function verifyPassword(email: string, password: string): Promise<boolean> {
   if (!password) return false;
-  const { error } = await client().auth.signInWithPassword({ email, password });
-  return !error;
+  let error: Parameters<typeof authMessage>[0] | null;
+  try {
+    ({ error } = await client().auth.signInWithPassword({ email, password }));
+  } catch {
+    throw new AccountError(OFFLINE);
+  }
+  if (!error) return true;
+  // 400 is Supabase's answer for a wrong email or password.
+  if (error.status === 400 || (error.message ?? "").toLowerCase().includes("invalid login")) return false;
+  throw new AccountError(authMessage(error));
 }
 
 /** The signed-in account: public display name, private details and plan. */
