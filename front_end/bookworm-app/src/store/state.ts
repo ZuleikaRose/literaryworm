@@ -45,6 +45,12 @@ export const initialState: AppState = {
 
 export const newId = () => crypto.randomUUID();
 
+/**
+ * Not a secret: the demo household is public sample data that only exists in memory.
+ * It's shown to demo users wherever the app asks for the account password ("Ask a grown-up").
+ */
+export const DEMO_ACCOUNT_PASSWORD = "bookworm-demo";
+
 export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ageRating">): Profile {
   return {
     id: newId(),
@@ -98,7 +104,7 @@ export function demoHousehold(): Pick<AppState, "account" | "profiles" | "profil
     account: {
       name: "Avery Brooks",
       email: "demo@bookworm.example",
-      password: "demo-account-password",
+      password: DEMO_ACCOUNT_PASSWORD,
       dob: "1990-01-01",
       planId: "premium",
       billingDay: 1,
