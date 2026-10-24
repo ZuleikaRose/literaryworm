@@ -110,9 +110,11 @@ Deno.serve(async (req) => {
         onlyKeys(body, ["action", "profileId", "password"]);
         const profileId = parseUuid(body.profileId, "profileId");
         await confirmPassword(user.email, password);
-        const { count } = await db.from("reader_profiles").select("id", { count: "exact", head: true })
+        const { count, error: countError } = await db.from("reader_profiles")
+          .select("id", { count: "exact", head: true })
           .eq("account_id", user.id);
-        if ((count ?? 0) <= 1) throw new HttpError("bad_request", "An account keeps at least one profile.");
+        if (countError) dbError(countError);
+        if (count === null || count <= 1) throw new HttpError("bad_request", "An account keeps at least one profile.");
         const { data, error } = await db.from("reader_profiles").delete()
           .eq("id", profileId).eq("account_id", user.id).select("id");
         if (error) dbError(error);
