@@ -300,8 +300,8 @@ App state is kept in memory, so refreshing resets it. Book lists and book detail
 | — | Supabase: migrations with RLS, indexes and grants; `books`, `manage-profile` and `checkout` Edge Functions; security tests; deployed | Done |
 | 3 | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows | Done |
 | 4 | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks | Done |
-| 5 | Title-only search, Surprise Me | Next |
-| 6 | Supabase Auth sign-in, so the library (`library_items`) and logs save to Supabase; Library page with reading status (want to read, reading, finished) | Planned |
+| 5 | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me | Done |
+| 6 | Supabase Auth sign-in, so the library (`library_items`) and logs save to Supabase; Library page with reading status (want to read, reading, finished) | Next |
 | 7 | Reader and audiobook player | Planned |
 | 8 | Account, Kids restrictions, polish, Vercel deploy | Planned |
 
