@@ -1,0 +1,12 @@
+# Supabase CLI settings for this project (only the parts that differ from the defaults).
+
+[functions.books]
+# Public: anonymous visitors browse and search. The function validates every
+# parameter and rate limits each IP instead of requiring a login.
+verify_jwt = false
+
+[functions.manage-profile]
+verify_jwt = true
+
+[functions.checkout]
+verify_jwt = true

@@ -33,7 +33,7 @@
         background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px);
         background-size: 22px 22px;
       }
-      #canvas { position: relative; width: 1720px; padding: 40px; }
+      #canvas { position: relative; width: 1680px; padding: 40px; }
       header { display: flex; align-items: baseline; gap: 18px; margin-bottom: 8px; }
       header h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
       header p { margin: 0; color: var(--muted); font-size: 14px; }
@@ -80,44 +80,71 @@
         <span><b style="color: var(--pk)">PK</b> primary key</span>
         <span><b style="color: var(--fk)">FK</b> foreign key</span>
         <span>? nullable</span>
-        <span>RLS enabled on every public table</span>
+        <span>RLS enabled on every table · every foreign key indexed</span>
       </div>
       <div class="groups" id="groups"></div>
     </div>
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · through Phase 2 (accounts, plans, subscriptions, household profiles)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0402)";
 
-      const colors = { auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c" };
+      const colors = {
+        auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
+        reading: "#8a4f8f", server: "#4a4e55",
+      };
 
       // x/y are positions on the canvas in px.
       const tables = [
         {
-          id: "auth.users", color: colors.auth, x: 430, y: 60, sub: "Supabase Auth",
-          cols: [
-            ["pk", "id", "uuid"],
-            ["", "email", "text"],
-            ["", "encrypted_password", "text"],
-            ["", "created_at", "timestamptz"],
-          ],
-          note: "Managed by Supabase Auth. Passwords never leave this table.",
-        },
-        {
-          id: "profiles", color: colors.account, x: 0, y: 0, sub: "one per user",
+          id: "profiles", color: colors.account, x: 0, y: 0, sub: "public · one per user",
           cols: [
             ["pk fk", "id", "uuid"],
-            ["", "display_name", "text"],
-            ["", "date_of_birth", "date"],
+            ["", "display_name", "text 1–60"],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "The brief's profiles table: only the display name is public (shown on logs). RLS: anyone reads; users rename only themselves. Created by the sign-up trigger, which validates the visitor's input.",
+        },
+        {
+          id: "account_private", color: colors.account, x: 0, y: 290, sub: "owner only",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["", "date_of_birth", "date (18+ trigger)"],
             ["", "marketing_emails", "boolean"],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "The brief's required profiles table. RLS: anyone reads display names; users insert/update only their own row. 18+ enforced by trigger.",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails only (column grant).",
         },
         {
-          id: "subscriptions", color: colors.billing, x: 430, y: 420, sub: "one per user",
+          id: "plans", color: colors.billing, x: 0, y: 620, sub: "catalog",
+          cols: [
+            ["pk", "id", "text"],
+            ["", "name", "text"],
+            ["", "price_cents", "integer"],
+            ["", "currency", "char(3)"],
+            ["", "max_profiles", "smallint 1–5"],
+            ["", "audio_hours", "integer", true],
+            ["", "download_devices", "smallint"],
+            ["", "summary", "text"],
+            ["", "sort_order", "smallint"],
+          ],
+          note: "RLS: readable by everyone; no browser writes. Seeded: basic, standard, premium.",
+        },
+        {
+          id: "auth.users", color: colors.auth, x: 420, y: 30, sub: "Supabase Auth",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["", "email", "text"],
+            ["", "encrypted_password", "text"],
+            ["", "raw_user_meta_data", "jsonb"],
+          ],
+          note: "Managed by Supabase Auth. Passwords stay here; no app table stores them.",
+        },
+        {
+          id: "subscriptions", color: colors.billing, x: 420, y: 330, sub: "one per user",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid (unique)"],
@@ -132,25 +159,35 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "RLS: users read only their own. Writes happen server-side (Edge Function / Stripe webhook). No card data.",
+          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function.",
         },
         {
-          id: "plans", color: colors.billing, x: 0, y: 520, sub: "catalog",
+          id: "logs", color: colors.reading, x: 420, y: 850, sub: "public",
           cols: [
-            ["pk", "id", "text"],
-            ["", "name", "text"],
-            ["", "price_cents", "integer"],
-            ["", "currency", "char(3)"],
-            ["", "max_profiles", "smallint"],
-            ["", "audio_hours", "integer", true],
-            ["", "download_devices", "smallint"],
-            ["", "summary", "text"],
-            ["", "sort_order", "smallint"],
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["fk", "volume_id", "text"],
+            ["", "body", "text 1–5000"],
+            ["", "rating", "smallint 1–5", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
           ],
-          note: "RLS: readable by everyone; only the service role writes. Seeded with basic, standard, premium.",
+          note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "reader_profiles", color: colors.household, x: 860, y: 0, sub: "up to 5 per account",
+          id: "library_items", color: colors.reading, x: 840, y: 600, sub: "private",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "volume_id", "text (Google id)"],
+            ["", "status", "reading_status"],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "Unique (user_id, volume_id). Status: want_to_read, reading, finished. RLS: owner only for every operation; browser may update status only.",
+        },
+        {
+          id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 5 per account",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "account_id", "uuid"],
@@ -158,7 +195,7 @@
             ["", "name_key", "text (generated)"],
             ["", "avatar", "smallint 0–5"],
             ["", "age_rating", "age_rating"],
-            ["", "pin_hash", "text", true],
+            ["", "pin_hash", "text (bcrypt)", true],
             ["", "has_pin", "boolean (generated)"],
             ["", "failed_pin_attempts", "smallint 0–5"],
             ["", "locked_until", "timestamptz", true],
@@ -168,10 +205,10 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Unique (account_id, name_key). Kids needs consent. Plan limit by trigger. RLS: own account only; browser may edit name, avatar and genres only. PIN hash never readable.",
+          note: "Unique (account_id, name_key). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres only. PINs, limits, Kids and deletes go through manage-profile.",
         },
         {
-          id: "parental_consents", color: colors.household, x: 1290, y: 120, sub: "COPPA record",
+          id: "parental_consents", color: colors.household, x: 1260, y: 60, sub: "COPPA record",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "account_id", "uuid"],
@@ -181,18 +218,31 @@
             ["", "consented_at", "timestamptz"],
             ["", "withdrawn_at", "timestamptz", true],
           ],
-          note: "Kept after the profile is deleted (profile_id set null). RLS: read own; written only by the Edge Function.",
+          note: "Indexes: account_id, profile_id. RLS: read own; written only by the Edge Function.",
+        },
+        {
+          id: "private.rate_limits", color: colors.server, x: 1260, y: 470, sub: "not exposed",
+          cols: [
+            ["pk", "key_hash", "bytea (sha256)"],
+            ["pk", "window_start", "timestamptz"],
+            ["", "hits", "integer"],
+          ],
+          note: "Per-IP / per-user request counts for the Edge Functions. Keys hashed, cleared after a day. Index: window_start. RLS on; no browser access.",
         },
       ];
 
       // [fromTable, fromColumn, toTable, toColumn, cardinality label]
       const relations = [
         ["profiles", "id", "auth.users", "id", "1 : 1"],
+        ["account_private", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "plan_id", "plans", "id", "N : 1"],
         ["reader_profiles", "account_id", "auth.users", "id", "N : 1"],
         ["parental_consents", "profile_id", "reader_profiles", "id", "N : 1"],
         ["parental_consents", "account_id", "auth.users", "id", "N : 1"],
+        ["library_items", "user_id", "auth.users", "id", "N : 1"],
+        ["logs", "user_id", "profiles", "id", "N : 1"],
+        ["logs", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
       ];
       // -----------------------------------------------------------------------------------
 
