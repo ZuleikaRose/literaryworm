@@ -39,20 +39,21 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=`) | Public (Kids profiles: catalog only) |
 | `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`) | Profile chosen |
 | `/account` | Account, family, preferences | Profile chosen |
-| `/read/:id`, `/listen/:id` | Reader and audiobook player (full screen) | Profile chosen |
+| `/read/:id`, `/listen/:id` | Reader and audiobook player (full screen; BookWorm titles the profile may see) | Profile chosen |
 
 ## Source layout
 
 ```
 src/
   components/   Header, Footer, TabBar, AccessibilityMenu, ProfileMenu, Cover, BookCard, BookTile, Shelf,
-                BookFeed, GenreNav, FeaturedCarousel, Icon, Avatar
-  data/         books, plans, sample logs, legal pages
+                BookFeed, GenreNav, FeaturedCarousel, Icon, Avatar, ReadingParts, ReaderDisplayDialog
+  data/         books, plans, sample logs, sample reader text, legal pages
   layouts/      SiteLayout, ImmersiveLayout, route guards, AppEffects
-  lib/          booksApi (Edge Function client), useBookFeed (load more), small hooks and helpers
+  lib/          booksApi (Edge Function client), accountApi (Supabase), useBookFeed (load more),
+                useLibrary, useReading (progress and bookmarks), useDailyLimit, reading (positions), hooks
   pages/        one file per route
   store/        state shape, reducer, context hooks
-  styles/       tokens (from the wireframe), base, shell, covers, pages
+  styles/       tokens (from the wireframe), base, shell, covers, pages, reader
 ```
 
 ## Build phases
@@ -69,5 +70,5 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 4 | Book details (Google data and catalog), public reader logs, library statuses, write/edit/delete logs, ratings, More like this | Done |
 | 5 | Public title search, filters (source, genre, sort), Did you mean, recent searches, Surprise Me | Done |
 | 6 | Supabase Auth (sign up, log in, log out, reset), library and logs saved in Supabase, Library page with statuses, Favorites and custom lists | Done |
-| 7 | Reader and audiobook player | |
+| 7 | Reader and audiobook player: display settings, chapters, bookmarks, Mark as finished?, speed, ±15 s, sleep timer; progress and bookmarks in Supabase; Continue reading; daily limit | Done |
 | 8 | Account, Kids restrictions, accessibility and motion polish | |

@@ -250,6 +250,7 @@ Your project will be assessed across these areas:
 - **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
 - **Real accounts.** Sign up, log in, log out and password reset use Supabase Auth with email and password. Sign-up sends the display name, date of birth and Terms acceptance; a database trigger checks them (18+) and creates the public `profiles` row, so logs show the display name and never the email. The browser holds only the publishable key and the member's own session.
 - **Libraries private, logs public.** `library_items` has owner-only policies. `logs` has a public read policy and a composite foreign key to the author's `library_items` row, so a log can't exist for a book outside its author's library and is deleted with it. The book page reads logs (with `profiles.display_name`) without touching anyone's library.
+- **Reading progress stays private too.** `reading_progress` (one row per book) and `bookmarks` are owner-only and tied to the reader's own `library_items` row by the same kind of composite foreign key, so removing a book removes its place and bookmarks. Opening a book adds it to the library as *Reading*; finishing it moves it to *Finished*.
 - **Database authorization.** RLS on every table with `(select auth.uid())` policies, column-level grants (for example, no one can read PIN hashes or Stripe ids), every foreign key indexed, and server-only functions callable only by the service role. `supabase/tests/security_test.sql` checks all of this.
 
 ### Run it locally
@@ -303,7 +304,7 @@ Accounts, libraries and logs are saved in Supabase, and a member stays signed in
 | 4 | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks | Done |
 | 5 | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me | Done |
 | 6 | Supabase Auth (sign up, log in, log out, password reset; stays signed in); plan saved by the `checkout` function; library (`library_items`) and logs saved in Supabase; Library page with reading status, Favorites and custom lists | Done |
-| 7 | Reader and audiobook player | Next |
-| 8 | Account, Kids restrictions, polish, Vercel deploy | Planned |
+| 7 | Reader (themes, fonts, sizes, spacing, margins; chapters; bookmarks; *Mark as finished?*) and audiobook player (speed 0.5–3×, ±15 s, chapter skips, sleep timer, credit skips, keyboard shortcuts); progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue reading; daily limit enforced. Sample text and silent audio until book files are licensed | Done |
+| 8 | Account, Kids restrictions, polish, Vercel deploy | Next |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
