@@ -13,3 +13,8 @@ verify_jwt = true
 
 [functions.manage-account]
 verify_jwt = true
+
+[functions.dictionary]
+# Public like books: the demo household reads without a session. The function
+# validates the word and rate limits each IP.
+verify_jwt = false
