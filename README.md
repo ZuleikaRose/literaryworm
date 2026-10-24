@@ -273,8 +273,8 @@ Data is kept in memory for now, so refreshing resets the app.
 |---|---|---|
 | 0 | Foundation: scaffold, design tokens, header/footer/accessibility menu, in-memory store, 29-title sample catalog, routes and guards | Done |
 | 1 | Landing, Plans and checkout, Sign up (18+, password rules, Terms), Log in, forgot password, demo | Done |
-| 2 | Who's reading? and profile management | In progress |
-| 3 | Home rows and featured carousel | Planned |
+| 2 | Who's reading? (PIN locks with lockout, Kids consent, plan limits, *Ask a grown-up*), profile management, genre picking | Done |
+| 3 | Home rows and featured carousel | Next |
 | 4 | Book details, ratings, lists, reviews | Planned |
 | 5 | Search, filters, Surprise Me | Planned |
 | 6 | Library and Custom Lists | Planned |

@@ -27,6 +27,8 @@ npm run lint    # oxlint; must be clean
 - Only export components from `.tsx` files (Fast Refresh); data and helpers go in `src/data` or `src/lib`.
 - Accessibility is required: visible labels, `aria-describedby` for errors, focus management, 44px targets, no sideways scroll on phones.
 - Copy follows the voice rules in the style guide.
+- When an action both navigates and changes state a route guard reads (sign out, switching profile), call `navigate()` first and wrap the dispatch in `startTransition`. React Router applies navigation in a transition, so otherwise the guard renders first and redirects (see `src/lib/useSignOut.ts`).
+- Modals use `src/components/Dialog.tsx` (native `<dialog>`). Profile-protected changes ask for the account password with `AccountPasswordField`.
 
 ## Phase workflow
 

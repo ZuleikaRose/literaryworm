@@ -225,7 +225,11 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 4. Forgot password | 1 | UI only | Request form and "if an account uses this email" confirmation; no email is sent. |
 | 5. Stay signed in | 1 | Changed | By request, all data resets on refresh. Sign out and back in works within a session. |
 | 8. Demo account | 0–1 | Done | *Try the demo*, or log in with the demo email; the demo can't make payments. It resets on refresh rather than after 24 hours. |
-| 10. Up to five profiles | 0 | Partly | Data model and limit exist; management screens are Phase 2. |
+| 10. Up to five profiles | 2 | Done | Add, edit and delete on *Who's reading?*; limited by plan (Basic 1, Standard 3, Premium 5). Deleting a profile leaves the account and other profiles alone. |
+| 11. Parental consent for Kids | 2 | Done | Consent checkbox with a link to the Children's Privacy Notice is required to create a Kids profile. `parental_consents` keeps the record. |
+| 12. PIN lock | 2 | Done | 4-digit PIN set or removed with the account password; 5 wrong tries lock the profile for 15 minutes; the account password unlocks it. |
+| 13. Ask a grown-up | 2 | Partly | After leaving a Kids profile, managing or adding profiles needs the account password. The Account page gate comes in Phase 8. |
+| 14. Daily limit | 2 | Partly | Limit (30 minutes to 4 hours) set with the account password. Enforcement in the reader and player comes in Phase 7. |
 | 17. Age ratings on titles | 0 | Done | Every title is Kids, Teen or All; a profile sees titles at or below its rating (Kids sees 10 of 29). |
 | 18. Choose a plan with terms first | 1 | Done | Price, what's included and auto-renewal terms shown before confirming; renewal consent required. |
 | 19. Billing day, card via Stripe | 1 | UI only | Billing day 1–28 and next charge date; no card is collected in the demo. `schema.sql` stores Stripe IDs only. |

@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. Data is kept in memory only, so a refresh starts the app over. The target database is in `schema.sql`, with its diagram in `drawsql.png`.
 
-### Journey as built so far (Phases 0–1)
+### Journey as built so far (Phases 0–2)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -537,6 +537,15 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 6. **Log in (`/signin`).** Email and password. A wrong email and a wrong password give the same message, and *Forgot password?* always says a link was sent "if an account uses" that email, so the page never reveals who has an account. *Try the demo* opens a sample household (Avery, Sam and Mia); the demo can also be opened with `demo@bookworm.example` / `bookworm-demo`.
 7. **Log out.** Returns to the landing page. Accounts created in this session can be logged back into until the page is refreshed.
 8. **On every page.** Header with the accessibility menu (text size, dark or light theme, dyslexia-friendly font, high contrast, highlighted links, stop animations); footer with Accessibility Policy, Privacy Policy, Your Privacy Choices, Terms of Service, Copyright/DMCA, Help and Status; a bottom tab bar on phones for signed-in members; *Skip to content*; ⌘K / Ctrl+K jumps to search.
+
+### Phase 2: Who's reading?
+
+9. **Step 3 of sign-up.** After checkout, the new member picks favorite genres for their first profile (or skips).
+10. **Who's reading? (`/profiles`).** Large avatar tiles with each profile's name, a Kids or Teen chip, a daily-limit chip and a lock badge if it has a PIN. Choosing a profile goes to Home, or back to the page the member was trying to reach.
+11. **PIN.** A locked profile asks for its 4-digit PIN. Each wrong try says how many are left; after 5 the profile locks for 15 minutes. *Forgot the PIN?* takes the account password instead.
+12. **Manage profiles.** Add a profile (up to the plan's limit), or choose one to edit its name, avatar, age rating, favorite genres, PIN and daily limit, or delete it. Changing the age rating, PIN or limit, and deleting, need the account password. A Kids profile needs the parent's consent, with a link to the Children's Privacy Notice.
+13. **Ask a grown-up.** If the last profile used was a Kids profile, *Manage profiles* and *Add profile* first ask for the account password.
+14. **Switching profiles.** The profile menu's *Switch profile* and *Manage profiles* always go back through *Who's reading?*, so PIN locks still apply.
 
 ### Where the build differs from the blueprint, and why
 
