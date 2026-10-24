@@ -9,8 +9,9 @@ A single-page app for reading ebooks and listening to audiobooks, built from the
   which is the only thing that talks to Google Books. Without `VITE_SUPABASE_URL` set, the sample catalog is used.
 - **Environment:** copy `../../.env.example` to `.env.development.local` and fill in the Supabase URL and
   publishable key (both public). Never put a secret in a `VITE_` variable.
-- **Catalog:** 29 sample titles in `src/data/books.ts`. Covers are drawn in CSS. Narrator names, reviews and
-  synopses are sample content.
+- **Catalog:** 29 sample titles in `src/data/books.ts`. Covers are drawn in CSS. Narrator names, sample logs and
+  synopses are sample content. Other titles are Google Books volumes from the `books` Edge Function; their
+  public reader logs come from Supabase (`src/lib/logsApi.ts`).
 
 ## Run it
 
@@ -45,7 +46,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 src/
   components/   Header, Footer, TabBar, AccessibilityMenu, ProfileMenu, Cover, BookCard, BookTile, Shelf,
                 BookFeed, GenreNav, FeaturedCarousel, Icon, Avatar
-  data/         books, plans, reviews, legal pages
+  data/         books, plans, sample logs, legal pages
   layouts/      SiteLayout, ImmersiveLayout, route guards, AppEffects
   lib/          booksApi (Edge Function client), useBookFeed (load more), small hooks and helpers
   pages/        one file per route
@@ -64,7 +65,7 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 1 | Landing, Plans, Sign up / Sign in, demo | Done |
 | 2 | Who's reading? and profile management | Done |
 | 3 | Home rows, featured carousel, technology and genre lists with infinite scroll | Done |
-| 4 | Book details, ratings, lists, reviews | |
+| 4 | Book details (Google data and catalog), public reader logs, library statuses, write/edit/delete logs, ratings, More like this | Done |
 | 5 | Search, filters, Surprise Me | |
 | 6 | Library and Custom Lists | |
 | 7 | Reader and audiobook player | |

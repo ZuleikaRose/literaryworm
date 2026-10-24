@@ -126,6 +126,16 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 ---
 
+**Book details hero.** Cover (250px, 200px on phones) beside the info column: eyebrow (first category · year), display title, subtitle, byline, a meta row split by thin rules (gold star rating, ratings, pages, logs), the description, then actions and a small lock-icon privacy note. Stacks on phones with the cover centred.
+
+**Reading status.** Once a book is saved, the primary button becomes a native `<select>` dressed as a rust-tinted button (bookmark icon, chevron), so the status stays one control that works with any input.
+
+**Rating buttons.** Pill toggles (44px) with `aria-pressed`: Not for me, I like this, I love this, Favorite. The pressed state uses the rust wash, never color alone (the icon fills too).
+
+**Log card.** Avatar initials, display name (with a *You* tag on your own), date, optional five gold stars (`role="img"`, "Rated 4 out of 5"), body in the reading serif. Long logs clamp to five lines with *Read full log*. Your own logs get a rust border and Edit and Delete.
+
+**Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
+
 ## Motion
 
 - Durations: 140ms (hover, press), 220ms (popovers, toggles), 420ms (panels appearing).

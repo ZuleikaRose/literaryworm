@@ -37,7 +37,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 1 | Landing, Plans, Sign up / Sign in, demo | Under-18 and short or breached passwords refused; Terms required; plan, price, billing day and renewal terms shown before confirming; demo works and can't pay; auth matches the wireframe modal |
 | 2 | Who's reading? and profile management | Max 5 profiles; Kids/Teen/All; PIN prompt with lockout after 5 wrong tries; choosing a profile goes to Home |
 | 3 | Home | Matches the wireframe Discover screen; technology books and the six genres via the Edge Function; infinite scroll with a Load more fallback; loading, error, empty and end states; rows work by keyboard; carousel pauses; titles respect the age rating |
-| 4 | Book details | Matches the wireframe detail screen; lists, ratings and reviews; blocked on Kids |
+| 4 | Book details | Matches the wireframe detail screen; `/books/:id` works on refresh; Google data with at least two extra fields; every reader's logs with display name and date; library statuses; logs only for books in the library, removed with the book; ratings; blocked on Kids, mature titles blocked on Teen |
 | 5 | Search | Search, filters, sort, *Did you mean*, recent searches, Surprise Me |
 | 6 | Library | Lists and Custom Lists create, rename, delete, reorder; empty states |
 | 7 | Reader and player | Reader controls, chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer; progress feeds Continue Reading |

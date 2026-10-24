@@ -238,6 +238,12 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | Brief: Genres | 3 | Done | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction, each with its own URL; mapped to Google `subject:` queries in the Edge Function. |
 | Brief: Load more | 3 | Done | Grids load more near the bottom (plus a button); Home rows end with *Load more*; loading, error (*Try again*), empty and end states. |
 | Home rows and carousel | 3 | Done | Featured carousel with Pause; Continue reading, Trending, Top 10, New releases, Because you saved, genre rows. Kids profiles see only age-rated titles. |
+| Brief: Book details page | 4 | Done | `/books/:id` works from a link or a refresh; Google data through the `books` function (title, authors, description, cover, plus publisher, published date, pages, language, categories); every reader's logs with display name and date. |
+| Brief: Library (add, remove, status) | 4 | Partly | Add, remove and change status (want to read, reading, finished) on the book page, private to the profile. Kept in memory until Supabase Auth sign-in (Phase 6); `library_items` and its RLS are ready. |
+| Brief: Logs | 4 | Partly | Write, edit and delete your own logs (1–5000 characters, optional 1–5 rating), only for books in your library; removing the book deletes them. Public reading from Supabase works; saving waits for Supabase Auth (Phase 6). The database enforces the rules with a composite foreign key and cascade. |
+| 29. Book page | 4 | Done | Cover, synopsis, author, narrator, length, format, age rating and logs; the Google key stays in the Edge Function. |
+| 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |
+| 50. Display name on logs | 4 | Done | Logs show the profile's display name, never an email; Kids profiles can't post logs. |
 | 61. Accessibility menu | 0 | Partly | Text size, theme, dyslexia-friendly font, contrast, highlighted links, stop animations. Settings survive sign-out within a session. |
 | 63. Accessibility Policy in footer | 0 | Done | Footer on every page; policy page is a placeholder summary. |
 | 70. Cookie choices | — | Planned | Footer links to Your Privacy Choices; banner not built. |

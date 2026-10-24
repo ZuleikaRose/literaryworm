@@ -25,6 +25,8 @@ npm run lint    # oxlint; must be clean
 - TypeScript strict. React Router DOM, declarative routes with `BrowserRouter`; routes live in `src/App.tsx`.
 - **State is in memory only** (`src/store`). No `localStorage`. A refresh resets the app on purpose.
 - **Book lists go through `src/lib/booksApi.ts`**, which calls only the `books` Edge Function. Never fetch Google Books from the browser. Kids profiles use the sample catalog only.
+- **Public logs come from `src/lib/logsApi.ts`** (the `logs` table with the publishable key, embedding only `profiles.display_name`). Public pages never read `library_items`.
+- The profile's library is `ProfileData.library` (keyed by book id, with the brief's three statuses). Store actions mirror the database rules: a log needs its book in the library, and removing the book removes that profile's logs.
 - Styles are plain CSS in `src/styles/`. Use tokens from `tokens.css`; no raw hex in component CSS (book cover palettes are the exception).
 - Only export components from `.tsx` files (Fast Refresh); data and helpers go in `src/data` or `src/lib`.
 - Accessibility is required: visible labels, `aria-describedby` for errors, focus management, 44px targets, no sideways scroll on phones.

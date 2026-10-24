@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–3)
+### Journey as built so far (Phases 0–4)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -554,11 +554,20 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 17. **Age ratings.** Kids profiles see only the age-rated BookWorm catalog (no Google Books results). Everyone else gets Google results with mature titles left out.
 18. **When the book service fails.** Rows and the grid show "We couldn't load …" with the reason in plain words (busy, too slow, offline) and *Try again*; books already loaded stay on screen.
 
+### Phase 4: Book details
+
+19. **Book page (`/books/:id`).** Public, and works when opened from a link or refreshed. BookWorm titles come from the catalog; any other id is a Google Books volume fetched through the `books` Edge Function. The page shows the cover, title, subtitle, author(s), average rating, number of ratings, pages and the description (long ones fold with *Read the full description*), then a *Book details* list: publisher, published date, pages, language and categories for Google titles; narrator, length, format, language, age rating and content notes for BookWorm titles. Google titles credit *Details from Google Books*.
+20. **Reader logs.** Every reader's logs, newest first, each with the writer's display name, date and optional 1–5 star rating; long logs fold with *Read full log*. Logs come from Supabase's `logs` table without signing in (the page never reads anyone's library), plus logs written this session. *Load more logs* fetches 20 more; if loading fails, the page says so with *Try again*.
+21. **Library and logs.** *Add to my library* (visitors are sent to log in first, then come back). Once saved, a reading-status menu (Want to read, Reading, Finished), *Write a log* and *Remove from library*. A log needs the book in the writer's library; its text is 1–5000 characters with an optional rating. Readers edit and delete only their own logs. Removing the book asks first when it has logs, then deletes them with it, as the database does.
+22. **Taste and actions.** Not for me / I like this / I love this, Favorite, and for BookWorm titles *Read* and *Listen*. *More like this* shows similar titles (catalog genres, or the closest of the six genres for Google titles).
+23. **Age ratings.** Kids profiles never load Google titles and see "This book isn't on …'s shelf"; they read logs but don't post them. Teen profiles can't open titles Google rates mature, or catalog titles above their rating.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
 - **No real email, payments or two-step sign-in yet.** These need the backend. The UI says so where it matters (reset link, checkout).
 - **Demo accounts are not deleted after 24 hours.** Everything resets on refresh instead.
+- **Logs written in the app stay in memory for now.** Accounts are still the in-memory ones from Phase 1, so a log or library entry made in the app isn't saved to Supabase yet; it follows the same rules as the database (book in the library, cascade on removal, 1–5000 characters, rating 1–5). Reading every reader's logs from Supabase already works. Saving to `library_items` and `logs` arrives with Supabase Auth sign-in in Phase 6.
 
 ### Assessment brief and blueprint together
 
@@ -571,6 +580,7 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 | Genres | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction | Genres from the catalog | The brief's six (Phase 3) |
 | Lists | Load more on every list (button or infinite scroll) | Horizontal rows | Both: infinite scroll plus a button on grids; *Load more* at the end of rows |
 | Book route | `/books/:id` | `/book/:id` | `/books/:id`; `/book/:id` redirects |
-| Library | One library with a reading status (want to read, reading, finished) | Reading List, Favorites and Custom Lists | Phase 6: `library_items` with the three statuses |
-| Reviews | "Logs": text plus optional 1–5 rating, only for books in your library, deleted with the library entry | Reviews plus Not for me / I like this / I love this | Phase 4: logs as the brief describes (enforced in the database) |
+| Library | One library with a reading status (want to read, reading, finished) | Reading List, Favorites and Custom Lists | Phase 4: one library with the three statuses on the book page (Reading List = *Want to read*); Phase 6: Library page and saving to `library_items` |
+| Reviews | "Logs": text plus optional 1–5 rating, only for books in your library, deleted with the library entry | Reviews plus Not for me / I like this / I love this | Both (Phase 4): logs as the brief describes (enforced in the database, mirrored in the app), plus the three rating buttons |
+| Book details | Google Books data with at least two extra fields; all readers' logs with display name and date | Cover, synopsis, author, narrator, length, format, age rating, reviews, More Like This | Both (Phase 4): publisher, published date, pages, language and categories, credited to Google; logs; More like this |
 | Profiles | One profile per user with a display name | Up to five household profiles per account | Both: `profiles.display_name` for logs, household `reader_profiles` |
