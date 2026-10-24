@@ -63,7 +63,7 @@ export default function Plans() {
     dispatch({ type: "choosePlan", planId: selected, billingDay });
     setConfirmed(selected);
     setSelected(null);
-    if (setup) navigate("/profiles");
+    if (setup) navigate("/profiles?setup=1");
   };
 
   const plan = selected ? planById.get(selected)! : null;

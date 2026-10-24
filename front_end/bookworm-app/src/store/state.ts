@@ -8,6 +8,8 @@ export interface AppState {
   account: Account | null;
   profiles: Profile[];
   activeProfileId: string | null;
+  /** The profile used before returning to Who's reading?, so Kids can't slip into profile management. */
+  lastProfileId: string | null;
   profileData: Record<string, ProfileData>;
   reviews: Review[];
   a11y: A11ySettings;
@@ -127,6 +129,7 @@ export const initialState: AppState = {
   account: null,
   profiles: [],
   activeProfileId: null,
+  lastProfileId: null,
   profileData: {},
   reviews: seedReviews,
   a11y: defaultA11y,

@@ -1,6 +1,7 @@
-import { useId } from "react";
+import { startTransition, useId } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePopover } from "../lib/usePopover";
+import { useSignOut } from "../lib/useSignOut";
 import { useActiveProfile, useStore } from "../store/context";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
@@ -9,6 +10,7 @@ export function ProfileMenu() {
   const { state, dispatch } = useStore();
   const profile = useActiveProfile();
   const navigate = useNavigate();
+  const signOutAndLeave = useSignOut();
   const { open, toggle, close, wrapRef, triggerRef } = usePopover();
   const menuId = useId();
   if (!profile) return null;
@@ -18,15 +20,14 @@ export function ProfileMenu() {
   const switchTo = () => {
     close(false);
     // Switching always goes back through Who's reading?, so PIN-locked profiles still ask.
-    dispatch({ type: "selectProfile", id: null });
+    // Same transition as the navigation, so the page's guard doesn't redirect first.
     navigate("/profiles");
+    startTransition(() => dispatch({ type: "selectProfile", id: null }));
   };
 
   const signOut = () => {
     close(false);
-    // Leave the guarded page first, or its guard would redirect to sign-in instead.
-    navigate("/");
-    dispatch({ type: "signOut" });
+    signOutAndLeave();
   };
 
   return (

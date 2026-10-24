@@ -1,0 +1,533 @@
+/* Who's reading?, profile editor, and the shared modal (wireframe .log-modal). */
+
+/* ---------- Modal ---------- */
+
+.modal {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  color: var(--ink);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-float);
+  /* Dialogs render in the top layer but still inherit from where they sit in the DOM. */
+  text-align: left;
+}
+
+.modal-sm {
+  width: min(430px, calc(100% - 32px));
+}
+
+.modal::backdrop {
+  background: #020304d9;
+  backdrop-filter: blur(5px);
+}
+
+:root[data-theme="light"] .modal::backdrop {
+  background: #1b1c1d8c;
+}
+
+.modal[open] {
+  animation: modal-in var(--dur-slow) var(--ease-out);
+}
+
+.modal[open]::backdrop {
+  animation: fade-in var(--dur) ease;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.modal-body {
+  position: relative;
+  padding: clamp(22px, 5vw, 35px);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--surface-high);
+}
+
+.modal-close:hover {
+  color: var(--ink);
+}
+
+.modal-body > .eyebrow {
+  margin-bottom: 8px;
+}
+
+.modal-title {
+  margin: 0 44px 8px 0;
+  font-size: 1.625rem;
+  letter-spacing: -0.03em;
+}
+
+.modal-description p {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.modal-submit {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+/* ---------- Who's reading? ---------- */
+
+.profiles-page {
+  display: flex;
+  min-height: calc(100vh - var(--header-h) - 120px);
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(48px, 8vw, 96px) var(--gutter) 64px;
+  text-align: center;
+}
+
+.profiles-page h1 {
+  margin: 0 0 10px;
+  color: var(--cream);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  letter-spacing: -0.045em;
+}
+
+.profiles-sub {
+  max-width: 46ch;
+  margin: 0 0 44px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.profile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 36px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-tile {
+  display: flex;
+  width: 140px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  color: var(--muted);
+}
+
+.profile-tile-avatar {
+  position: relative;
+  display: block;
+  border-radius: 50%;
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+
+.profile-tile .avatar {
+  font-size: 2.6rem !important;
+}
+
+@media (hover: hover) {
+  .profile-tile:hover .profile-tile-avatar {
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ink-soft);
+    transform: translateY(-4px);
+  }
+
+  .profile-tile:hover .profile-tile-name {
+    color: var(--ink);
+  }
+}
+
+.profile-tile:focus-visible {
+  outline: none;
+}
+
+.profile-tile:focus-visible .profile-tile-avatar {
+  box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--rust-bright);
+}
+
+.profile-tile:active .profile-tile-avatar {
+  transform: scale(0.97);
+}
+
+.profile-tile-badge {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--surface-high);
+}
+
+.profile-tile-badge.edit {
+  color: var(--on-accent);
+  background: var(--rust-bright);
+}
+
+.profile-tile.is-managing .avatar {
+  opacity: 0.6;
+}
+
+.profile-tile-name {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-fast) ease;
+}
+
+.profile-tile-meta {
+  display: flex;
+  min-height: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+
+.profile-tile-meta .rating-chip {
+  gap: 4px;
+}
+
+.add-avatar {
+  display: grid;
+  width: 112px;
+  height: 112px;
+  place-items: center;
+  color: var(--muted);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.profile-tile.add:hover .add-avatar {
+  color: var(--ink);
+}
+
+.profiles-note {
+  margin: 28px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.profiles-note a {
+  color: var(--rust-bright);
+  font-weight: 700;
+}
+
+.profiles-actions {
+  margin-top: 44px;
+}
+
+/* Genre step during sign-up */
+.profiles-page.setup .eyebrow {
+  margin-bottom: 14px;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chip-group-lg {
+  max-width: 720px;
+  justify-content: center;
+  gap: 10px;
+}
+
+.chip {
+  position: relative;
+}
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+}
+
+.chip span {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.chip-group-lg .chip span {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 0.9375rem;
+}
+
+.chip span:hover {
+  border-color: var(--faint);
+}
+
+.chip input:checked + span {
+  border-color: var(--rust-bright);
+  color: var(--ink);
+  background: var(--rust-wash);
+}
+
+.chip input:focus-visible + span {
+  outline: 2px solid var(--rust-bright);
+  outline-offset: 2px;
+}
+
+/* ---------- Profile editor ---------- */
+
+.profile-form .form-group {
+  margin: 22px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.profile-form .form-group > legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.avatar-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.avatar-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar-option input {
+  position: absolute;
+  opacity: 0;
+}
+
+.avatar-option .avatar {
+  transition: box-shadow var(--dur-fast) ease;
+}
+
+.avatar-option input:checked + .avatar {
+  box-shadow: 0 0 0 2px var(--surface-raised), 0 0 0 4px var(--rust-bright);
+}
+
+.avatar-option input:focus-visible + .avatar {
+  outline: 2px solid var(--rust-bright);
+  outline-offset: 5px;
+}
+
+.rating-options {
+  display: grid;
+  gap: 8px;
+}
+
+.rating-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.rating-option input {
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--rust-bright);
+}
+
+.rating-option > span {
+  display: block;
+  padding: 12px 14px 12px 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.rating-option input:checked + span {
+  border-color: var(--rust-bright);
+  background: color-mix(in srgb, var(--rust-bright) 7%, transparent);
+}
+
+.rating-option strong {
+  display: block;
+  font-size: 0.9375rem;
+}
+
+.rating-option small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.consent-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface-high);
+}
+
+.consent-box .check-row {
+  font-size: 0.8125rem;
+}
+
+.consent-box .field-error {
+  margin-left: 28px;
+}
+
+.genre-hint {
+  margin: -2px 0 10px;
+}
+
+.protected-group {
+  padding-top: 18px !important;
+  border-top: 1px solid var(--line) !important;
+}
+
+.protected-group .switch-row {
+  padding: 4px 0 12px;
+  text-align: left;
+}
+
+.protected-group .field {
+  margin-top: 12px;
+}
+
+.pin-field .field-input,
+.pin-input {
+  max-width: 180px;
+  font-size: 1.25rem;
+  letter-spacing: 0.5em;
+}
+
+.password-gate {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--rust-bright) 40%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--rust-bright) 6%, transparent);
+}
+
+.password-gate .field-hint strong,
+.modal .field-hint strong {
+  color: var(--ink-soft);
+}
+
+.delete-confirm {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  border-radius: var(--radius);
+  background: var(--danger-wash);
+}
+
+.delete-confirm p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.delete-confirm .modal-actions {
+  margin-top: 14px;
+}
+
+/* ---------- PIN dialog ---------- */
+
+.pin-profile {
+  position: relative;
+  width: 56px;
+  margin-bottom: 20px;
+}
+
+.pin-lock {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  padding: 4px;
+  box-sizing: content-box;
+  border: 2px solid var(--surface-raised);
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--surface-high);
+}
+
+.pin-forgot {
+  margin-top: 16px;
+}
+
+@media (max-width: 480px) {
+  .profile-tile {
+    width: 120px;
+  }
+
+  .profile-tile-avatar .avatar,
+  .add-avatar {
+    width: 92px !important;
+    height: 92px !important;
+  }
+
+  .profile-tile .avatar {
+    font-size: 2.1rem !important;
+  }
+}

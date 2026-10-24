@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useSignOut } from "../lib/useSignOut";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccessibilityMenu } from "./AccessibilityMenu";
 import { Icon } from "./Icon";
@@ -64,14 +65,9 @@ function HeaderSearch({ initialQuery }: { initialQuery: string }) {
 }
 
 export function Header() {
-  const { state, dispatch } = useStore();
+  const { state } = useStore();
   const profile = useActiveProfile();
-  const navigate = useNavigate();
-  const signOut = () => {
-    // Leave the guarded page first, or its guard would redirect to sign-in instead.
-    navigate("/");
-    dispatch({ type: "signOut" });
-  };
+  const signOut = useSignOut();
   const isMember = Boolean(state.account && profile);
   const location = useLocation();
   const [params] = useSearchParams();
@@ -107,9 +103,11 @@ export function Header() {
               Log out
             </button>
             {state.account.planId ? (
-              <Link className="signup-button" to="/profiles">
-                Choose profile
-              </Link>
+              location.pathname !== "/profiles" && (
+                <Link className="signup-button" to="/profiles">
+                  Choose profile
+                </Link>
+              )
             ) : (
               <Link className="signup-button" to="/plans?setup=1">
                 Finish setup

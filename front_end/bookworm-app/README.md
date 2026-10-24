@@ -58,7 +58,7 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | --- | --- | --- |
 | 0 | Foundation: scaffold, tokens, shell, store, catalog, routes | Done |
 | 1 | Landing, Plans, Sign up / Sign in, demo | Done |
-| 2 | Who's reading? and profile management | In progress |
+| 2 | Who's reading? and profile management | Done |
 | 3 | Home rows and featured carousel | |
 | 4 | Book details, ratings, lists, reviews | |
 | 5 | Search, filters, Surprise Me | |

@@ -18,6 +18,12 @@ export const legalPages: LegalPage[] = [
     summary: "What we collect, why we collect it, how long we keep it, and how to download or delete it.",
   },
   {
+    slug: "childrens-privacy",
+    title: "Children's Privacy Notice",
+    summary:
+      "For parents: Kids profiles collect only what the service needs (profile, reading progress, lists, ratings and screen time), only after you consent. You can review, delete or stop collection at any time from Account.",
+  },
+  {
     slug: "privacy-choices",
     title: "Your Privacy Choices",
     summary: "Opt out of non-essential cookies and of any sale or sharing of personal information. Global Privacy Control is honored.",

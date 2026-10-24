@@ -16,7 +16,7 @@ export type Action =
 
 /** Swap the signed-in household in, starting with no profile chosen. */
 function enter(state: AppState, household: Household): AppState {
-  return { ...state, ...household, activeProfileId: null };
+  return { ...state, ...household, activeProfileId: null, lastProfileId: null };
 }
 
 /** Put the current household away so it can be signed back into this session. */
@@ -82,11 +82,16 @@ export function reducer(state: AppState, action: Action): AppState {
         profiles: state.profiles.filter((p) => p.id !== action.id),
         profileData,
         activeProfileId: state.activeProfileId === action.id ? null : state.activeProfileId,
+        lastProfileId: state.lastProfileId === action.id ? null : state.lastProfileId,
       };
     }
 
     case "selectProfile":
-      return { ...state, activeProfileId: action.id };
+      return {
+        ...state,
+        activeProfileId: action.id,
+        lastProfileId: action.id === null ? (state.activeProfileId ?? state.lastProfileId) : state.lastProfileId,
+      };
 
     case "updateA11y":
       return { ...state, a11y: { ...state.a11y, ...action.patch } };
