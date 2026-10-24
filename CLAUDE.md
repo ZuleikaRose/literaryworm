@@ -7,7 +7,7 @@ BookWorm is a reading and listening app (ebooks and audiobooks, household profil
 - `front_end/bookworm-app/`: the React app (see its `README.md` for routes and layout).
 - `front_end/BookWorm_web_app_wireframe/`: the Figma Make wireframe. Visual source of truth; don't edit.
 - `front_end/style_guide.md`: design tokens, type, components, motion, voice.
-- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`).
+- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`).
 - `schema.sql`: generated from the migrations by `supabase/build-schema.sh`; don't edit by hand. `drawsql.png` is its ERD, rendered from `docs/erd/erd.html`.
 - `prompt.md`: the build brief and phase plan.
 - `vite-project/`: an unrelated earlier scaffold. Don't use it.

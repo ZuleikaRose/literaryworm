@@ -232,7 +232,7 @@ Your project will be assessed across these areas:
 | Path | What it is |
 |---|---|
 | `front_end/bookworm-app/` | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/bookworm-app/README.md) for routes and source layout. |
-| `supabase/` | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`) and security tests. See [supabase/README.md](supabase/README.md). |
+| `supabase/` | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`) and security tests. See [supabase/README.md](supabase/README.md). |
 | `schema.sql` | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table. |
 | `drawsql.png` | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md). |
 | `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from. |
@@ -292,7 +292,7 @@ Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. Detai
 
 ### Build progress
 
-Accounts, libraries and logs are saved in Supabase, and a member stays signed in after a refresh. The rest of the app's state (household profiles, ratings, favourites, custom lists, recent searches, and the whole demo household) is kept in memory, so a refresh resets it. Book lists and details come from the Edge Function.
+Accounts, household profiles, libraries, logs, reading progress and bookmarks are saved in Supabase, and a member stays signed in after a refresh. The rest of the app's state (ratings, favourites, custom lists, recent searches, reader settings, and the whole demo household) is kept in memory, so a refresh resets it. Book lists and details come from the Edge Function.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -305,6 +305,7 @@ Accounts, libraries and logs are saved in Supabase, and a member stays signed in
 | 5 | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me | Done |
 | 6 | Supabase Auth (sign up, log in, log out, password reset; stays signed in); plan saved by the `checkout` function; library (`library_items`) and logs saved in Supabase; Library page with reading status, Favorites and custom lists | Done |
 | 7 | Reader (themes, fonts, sizes, spacing, margins; chapters; bookmarks; *Mark as finished?*) and audiobook player (speed 0.5–3×, ±15 s, chapter skips, sleep timer, credit skips, keyboard shortcuts); progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue reading; daily limit enforced. Sample text and silent audio until book files are licensed | Done |
-| 8 | Account, Kids restrictions, polish, Vercel deploy | Next |
+| 8 | Household profiles saved to Supabase (`reader_profiles`; Kids, PINs, limits and age ratings through `manage-profile`, PINs checked on the server); Account page: plan and billing (pause, resume, cancel, keep), display name, change password, marketing emails, family, Download my data, help; Delete account through the `manage-account` function (cascades everything); paused or ended plans stop reading; *Ask a grown-up* on Account; accessibility pass (Lighthouse 100) | Done |
+| — | Vercel deploy | Not yet |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
