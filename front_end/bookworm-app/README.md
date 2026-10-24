@@ -4,7 +4,7 @@ A single-page app for reading ebooks and listening to audiobooks, built from the
 `../BookWorm_web_app_wireframe` and the blueprint in `../user_journey.md` and `../../user_stories.md`.
 
 - **Stack:** React 19, TypeScript (strict), Vite, React Router DOM (`BrowserRouter`, declarative routes).
-- **Data:** members' accounts, household profiles, libraries, logs, reading progress and bookmarks are saved in
+- **Data:** members' accounts, household profiles, libraries, logs, reading progress, bookmarks and highlights are saved in
   Supabase, and the session is kept so a member stays signed in. Everything else (and the whole demo household)
   lives in memory (React Context + `useReducer`), so **a refresh resets it**. Book lists come from the `books` Supabase Edge Function (`src/lib/booksApi.ts`),
   which is the only thing that talks to Google Books. Without `VITE_SUPABASE_URL` set, the sample catalog is used.
@@ -40,7 +40,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=`) | Public (Kids profiles: catalog only) |
 | `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`) | Profile chosen |
 | `/account` | Plan and billing, sign-in, preferences, family, privacy, help, delete account (Kids profiles ask a grown-up first) | Profile chosen |
-| `/read/:id`, `/listen/:id` | Reader and audiobook player (full screen; BookWorm titles the profile may see) | Profile chosen |
+| `/read/:id`, `/listen/:id` | Reader (with highlights, notes and the dictionary) and audiobook player (with the read-along transcript); full screen, loaded on demand; BookWorm titles the profile may see | Profile chosen |
 
 ## Source layout
 
@@ -48,15 +48,18 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 src/
   components/   Header, Footer, TabBar, AccessibilityMenu, ProfileMenu, Cover, BookCard, BookTile, Shelf,
                 BookFeed, GenreNav, FeaturedCarousel, Icon, Avatar, ReadingParts, ReaderDisplayDialog,
-                ProfileEditor, PinDialog, Dialog
+                ProfileEditor, PinDialog, Dialog, StudyTools (selection toolbar, highlights, dictionary), Transcript,
+                PlaybackProvider (the audiobook that's playing), MiniPlayer
   data/         books, plans, sample logs, sample reader text, legal pages
   layouts/      SiteLayout, ImmersiveLayout, route guards, AppEffects
   lib/          booksApi (Edge Function client), accountApi (Supabase), useBookFeed (load more),
                 useLibrary, useReading (progress and bookmarks), useProfiles (household), useAccount
-                (membership, delete, download), useDailyLimit, reading (positions), billing (dates), hooks
+                (membership, delete, download), useHighlights, highlights (page offsets), dictionaryApi (Edge Function
+                client), playback (usePlayback), transcript (timed sentences), useDailyLimit, reading (positions),
+                billing (dates), hooks
   pages/        one file per route
   store/        state shape, reducer, context hooks
-  styles/       tokens (from the wireframe), base, shell, covers, pages, reader, account
+  styles/       tokens (from the wireframe), base, shell, covers, pages, reader, account, study
 ```
 
 ## Build phases
@@ -75,3 +78,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 6 | Supabase Auth (sign up, log in, log out, reset), library and logs saved in Supabase, Library page with statuses, Favorites and custom lists | Done |
 | 7 | Reader and audiobook player: display settings, chapters, bookmarks, Mark as finished?, speed, ±15 s, sleep timer; progress and bookmarks in Supabase; Continue reading; daily limit | Done |
 | 8 | Household profiles in Supabase; Account page (plan, sign-in, preferences, family, privacy, help); pause, cancel and delete account; Ask a grown-up; accessibility pass | Done |
+| 9 | Highlights and notes (saved to Supabase), dictionary, read-along transcript (English or Spanish), mini-player; reader and player load on demand | Done |
