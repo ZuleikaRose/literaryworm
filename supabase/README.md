@@ -39,6 +39,19 @@ supabase secrets set ALLOWED_ORIGINS=https://<your-vercel-domain>,http://localho
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase.
 
+## Auth settings
+
+Set in the dashboard (Authentication) or the Management API; they aren't in the migrations:
+
+| Setting | Value | Why |
+|---|---|---|
+| Site URL | `http://localhost:5173` (add the Vercel URL when deployed) | Where reset links return |
+| Redirect URLs | `http://localhost:5173/**` | Allows `/reset-password` and `/signin` |
+| Minimum password length | 15 | Matches the app's rule (15–64 characters) |
+| Confirm email | Off | The built-in email reaches only the project team, 2 emails an hour; turn it on once an email provider (SMTP) is set up |
+
+How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_accepted` and `marketing_emails` as user metadata, and the `on_auth_user_created` trigger validates them and creates `profiles` and `account_private`. The browser then reads its own rows under RLS, writes `library_items` and `logs` directly (owner-only writes), and chooses a plan through the `checkout` function.
+
 ## Deploy
 
 ```bash
