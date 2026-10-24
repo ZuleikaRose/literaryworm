@@ -25,6 +25,8 @@
 /* ---------- Book cards and grids (wireframe .book-card) ---------- */
 
 .book-card {
+  /* Positioned so visually hidden text inside stays within scrolling rows. */
+  position: relative;
   display: block;
   min-width: 0;
   color: var(--ink);

@@ -1,0 +1,401 @@
+/* Shared page sections ported from the wireframe: hero, section headings, book rows, banner, FAQ. */
+
+/* ---------- Hero (wireframe .hero) ---------- */
+
+.hero {
+  position: relative;
+  display: flex;
+  min-height: 505px;
+  align-items: center;
+  overflow: hidden;
+  padding: 54px clamp(20px, 7.4vw, 114px);
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 76% 48%, #78382238 0, transparent 35%),
+    linear-gradient(110deg, #101416 10%, #161718 58%, #0b0d0f 100%);
+}
+
+:root[data-theme="light"] .hero {
+  background:
+    radial-gradient(circle at 76% 48%, #e7b49a55 0, transparent 38%),
+    linear-gradient(110deg, #f6f4f0 10%, #efebe4 58%, #e9e4dc 100%);
+}
+
+.hero::before {
+  position: absolute;
+  inset: 0;
+  opacity: 0.13;
+  background-image:
+    linear-gradient(90deg, transparent 49.5%, #ffffff16 50%),
+    linear-gradient(0deg, transparent 49.5%, #ffffff10 50%);
+  background-size: 46px 46px;
+  content: "";
+  mask-image: linear-gradient(to right, transparent, black);
+}
+
+.hero-glow {
+  position: absolute;
+  top: -100px;
+  left: 31%;
+  width: 500px;
+  height: 430px;
+  border-radius: 50%;
+  background: #a0543020;
+  filter: blur(90px);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  width: 48%;
+  max-width: 590px;
+}
+
+.hero h1 {
+  margin: 0 0 20px;
+  color: var(--cream);
+  font-size: clamp(2.8rem, 5.3vw, 4.625rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+}
+
+.hero-copy > p:not(.eyebrow, .hero-fine) {
+  max-width: 490px;
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero-fine {
+  margin: 16px 0 0;
+  color: var(--faint);
+  font-size: 0.8125rem;
+}
+
+.hero-books {
+  position: absolute;
+  right: clamp(-45px, 3vw, 55px);
+  bottom: 13px;
+  width: 48%;
+  height: 450px;
+}
+
+.hero-book {
+  position: absolute;
+  bottom: 27px;
+  filter: drop-shadow(0 32px 22px #000000a3);
+}
+
+.hero-book.front {
+  z-index: 3;
+  left: 32%;
+  transform: rotate(5deg) translateY(-2px);
+}
+
+.hero-book.back {
+  z-index: 1;
+  left: 4%;
+  opacity: 0.75;
+  transform: rotate(-12deg) scale(0.89);
+}
+
+.hero-book.edge {
+  z-index: 2;
+  right: -5%;
+  opacity: 0.84;
+  transform: rotate(14deg) scale(0.87);
+}
+
+/* One orchestrated page-load moment: the covers settle into their fan. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-reduce-motion]) .hero-book {
+    animation: cover-settle 900ms var(--ease-out) both;
+  }
+
+  :root:not([data-reduce-motion]) .hero-book.back {
+    animation-delay: 80ms;
+  }
+
+  :root:not([data-reduce-motion]) .hero-book.edge {
+    animation-delay: 160ms;
+  }
+}
+
+@keyframes cover-settle {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+
+/* ---------- Content column and section headings ---------- */
+
+.page-content {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 58px var(--gutter) 90px;
+}
+
+.page-content > section + section {
+  margin-top: clamp(64px, 8vw, 104px);
+}
+
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 22px;
+}
+
+.section-heading .eyebrow {
+  margin-bottom: 7px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+  letter-spacing: -0.03em;
+}
+
+.section-aside {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.view-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.view-all:hover {
+  color: var(--ink);
+}
+
+/* ---------- Book row (wireframe .book-row) ---------- */
+
+.book-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 27px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 900px) {
+  .book-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .book-row > li:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .book-row {
+    display: flex;
+    overflow-x: auto;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 4px var(--gutter) 12px;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .book-row > li,
+  .book-row > li:nth-child(n + 5) {
+    display: block;
+    flex: 0 0 40%;
+    scroll-snap-align: start;
+  }
+}
+
+/* ---------- Banner (wireframe .community-banner) ---------- */
+
+.community-banner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+  padding: 28px 32px;
+  border: 1px solid #34302c;
+  border-radius: 11px;
+  background: linear-gradient(100deg, #1e1815, #17191a 70%);
+}
+
+:root[data-theme="light"] .community-banner {
+  border-color: var(--line);
+  background: linear-gradient(100deg, #f6e7de, #f8f6f2 70%);
+}
+
+.community-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid #8d4c344c;
+  border-radius: 50%;
+  color: var(--rust-ink);
+  background: var(--rust-wash);
+}
+
+.community-banner .eyebrow {
+  margin-bottom: 5px;
+}
+
+.community-banner h2,
+.community-banner h3 {
+  margin: 0 0 5px;
+  font-size: 1.25rem;
+}
+
+.community-banner p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .community-banner {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+
+  .community-icon {
+    display: none;
+  }
+}
+
+/* ---------- FAQ ---------- */
+
+.faq h2 {
+  margin: 0 0 18px;
+  font-size: 1.5625rem;
+  letter-spacing: -0.03em;
+}
+
+.faq-list {
+  border-top: 1px solid var(--line);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary .icon {
+  color: var(--muted);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.faq details[open] summary .icon {
+  transform: rotate(180deg);
+}
+
+.faq details p {
+  max-width: 68ch;
+  margin: 0 0 20px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+/* ---------- Small shared bits ---------- */
+
+.rating-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: var(--surface-high);
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+/* ---------- Responsive hero ---------- */
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: 460px;
+    padding: 50px 32px;
+  }
+
+  .hero-copy {
+    width: 57%;
+  }
+
+  .hero-books {
+    right: -120px;
+    width: 55%;
+    transform: scale(0.82);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 36px 20px 0;
+  }
+
+  .hero-copy {
+    width: 100%;
+  }
+
+  .hero-books {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: 300px;
+    margin-top: 12px;
+    transform: none;
+  }
+
+  .hero-books .cover-lg {
+    width: 150px;
+  }
+
+  .hero-book.front {
+    left: 30%;
+  }
+
+  .hero-book.edge {
+    right: 2%;
+  }
+}

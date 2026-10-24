@@ -64,8 +64,14 @@ function HeaderSearch({ initialQuery }: { initialQuery: string }) {
 }
 
 export function Header() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const profile = useActiveProfile();
+  const navigate = useNavigate();
+  const signOut = () => {
+    // Leave the guarded page first, or its guard would redirect to sign-in instead.
+    navigate("/");
+    dispatch({ type: "signOut" });
+  };
   const isMember = Boolean(state.account && profile);
   const location = useLocation();
   const [params] = useSearchParams();
@@ -96,9 +102,20 @@ export function Header() {
         {isMember ? (
           <ProfileMenu />
         ) : state.account ? (
-          <Link className="login-button" to="/profiles">
-            Choose profile
-          </Link>
+          <>
+            <button type="button" className="login-button" onClick={signOut}>
+              Log out
+            </button>
+            {state.account.planId ? (
+              <Link className="signup-button" to="/profiles">
+                Choose profile
+              </Link>
+            ) : (
+              <Link className="signup-button" to="/plans?setup=1">
+                Finish setup
+              </Link>
+            )}
+          </>
         ) : (
           <>
             <Link className="login-button" to="/signin">

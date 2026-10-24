@@ -61,6 +61,7 @@ export function RequireAccount() {
   const { state } = useStore();
   const location = useLocation();
   if (!state.account) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />;
+  if (!state.account.planId) return <Navigate to="/plans?setup=1" replace />;
   return <Outlet />;
 }
 
@@ -69,6 +70,7 @@ export function RequireProfile() {
   const { state } = useStore();
   const location = useLocation();
   if (!state.account) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />;
+  if (!state.account.planId) return <Navigate to="/plans?setup=1" replace />;
   if (!state.activeProfileId) return <Navigate to="/profiles" replace state={{ from: location.pathname + location.search }} />;
   return <Outlet />;
 }

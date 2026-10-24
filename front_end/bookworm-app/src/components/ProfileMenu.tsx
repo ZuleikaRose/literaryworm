@@ -24,8 +24,9 @@ export function ProfileMenu() {
 
   const signOut = () => {
     close(false);
-    dispatch({ type: "signOut" });
+    // Leave the guarded page first, or its guard would redirect to sign-in instead.
     navigate("/");
+    dispatch({ type: "signOut" });
   };
 
   return (

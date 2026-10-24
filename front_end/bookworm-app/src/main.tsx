@@ -7,7 +7,9 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/shell.css";
 import "./styles/covers.css";
+import "./styles/sections.css";
 import "./styles/pages.css";
+import "./styles/public.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

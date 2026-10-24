@@ -11,6 +11,18 @@ export interface AppState {
   profileData: Record<string, ProfileData>;
   reviews: Review[];
   a11y: A11ySettings;
+  /**
+   * Accounts created (or signed out of) during this session, keyed by lower-case email,
+   * so signing back in works until the page is refreshed.
+   */
+  households: Record<string, Household>;
+}
+
+/** Everything that belongs to one account. */
+export interface Household {
+  account: Account;
+  profiles: Profile[];
+  profileData: Record<string, ProfileData>;
 }
 
 export const MAX_PROFILES = 5;
@@ -34,15 +46,6 @@ export const emptyProfileData = (): ProfileData => ({
   recentSearches: [],
 });
 
-export const initialState: AppState = {
-  account: null,
-  profiles: [],
-  activeProfileId: null,
-  profileData: {},
-  reviews: seedReviews,
-  a11y: defaultA11y,
-};
-
 export const newId = () => crypto.randomUUID();
 
 /**
@@ -50,6 +53,9 @@ export const newId = () => crypto.randomUUID();
  * It's shown to demo users wherever the app asks for the account password ("Ask a grown-up").
  */
 export const DEMO_ACCOUNT_PASSWORD = "bookworm-demo";
+export const DEMO_EMAIL = "demo@bookworm.example";
+
+export const emailKey = (email: string) => email.trim().toLowerCase();
 
 export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ageRating">): Profile {
   return {
@@ -66,7 +72,7 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
 }
 
 /** A ready-made household so visitors can explore without signing up. */
-export function demoHousehold(): Pick<AppState, "account" | "profiles" | "profileData"> {
+export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
   const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"] });
@@ -103,7 +109,7 @@ export function demoHousehold(): Pick<AppState, "account" | "profiles" | "profil
   return {
     account: {
       name: "Avery Brooks",
-      email: "demo@bookworm.example",
+      email: DEMO_EMAIL,
       password: DEMO_ACCOUNT_PASSWORD,
       dob: "1990-01-01",
       planId: "premium",
@@ -116,3 +122,13 @@ export function demoHousehold(): Pick<AppState, "account" | "profiles" | "profil
     profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },
   };
 }
+
+export const initialState: AppState = {
+  account: null,
+  profiles: [],
+  activeProfileId: null,
+  profileData: {},
+  reviews: seedReviews,
+  a11y: defaultA11y,
+  households: { [DEMO_EMAIL]: demoHousehold() },
+};
