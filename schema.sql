@@ -599,6 +599,17 @@ grant execute on function public.create_kids_profile(uuid, text, smallint, small
 create index concurrently if not exists rate_limits_window_start_idx on private.rate_limits (window_start);
 
 -- =============================================================================
+-- 20261024000302_rate_limits_deny_policy.sql
+-- =============================================================================
+-- Says out loud what RLS already does by default: browser roles can never touch
+-- rate limit rows. Only the SECURITY DEFINER check_rate_limit function writes them.
+create policy "No browser access to rate limits"
+  on private.rate_limits as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+-- =============================================================================
 -- 20261024000400_library_items_logs.sql
 -- =============================================================================
 -- The brief's library and logs.
