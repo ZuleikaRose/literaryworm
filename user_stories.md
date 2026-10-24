@@ -229,7 +229,7 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 11. Parental consent for Kids | 2 | Done | Consent checkbox with a link to the Children's Privacy Notice is required to create a Kids profile. `parental_consents` keeps the record. |
 | 12. PIN lock | 2 | Done | 4-digit PIN set or removed with the account password; 5 wrong tries lock the profile for 15 minutes; the account password unlocks it. |
 | 13. Ask a grown-up | 2 | Partly | After leaving a Kids profile, managing or adding profiles needs the account password. The Account page gate comes in Phase 8. |
-| 14. Daily limit | 2 | Partly | Limit (30 minutes to 4 hours) set with the account password. Enforcement in the reader and player comes in Phase 7. |
+| 14. Daily limit | 2, 7 | Done | Limit (30 minutes to 4 hours) set with the account password; the reader and player stop when it's used up, and the account password allows 30 more minutes. Time used is kept in memory, so a refresh resets it. |
 | 17. Age ratings on titles | 0 | Done | Every title is Kids, Teen or All; a profile sees titles at or below its rating (Kids sees 10 of 29). |
 | 18. Choose a plan with terms first | 1 | Done | Price, what's included and auto-renewal terms shown before confirming; renewal consent required. |
 | 19. Billing day, card via Stripe | 1 | UI only | Billing day 1–28 and next charge date; no card is collected in the demo. `schema.sql` stores Stripe IDs only. |
@@ -253,6 +253,12 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 26. Recent searches | 5 | Done | Last ten per profile, newest first, remove one or clear all. In memory, so a refresh clears them. |
 | 28. Google titles below BookWorm's | 5 | Done | *From BookWorm* first, then *From Google Books*, with the same genre and sort. |
 | 34. Surprise Me | 5 | Done | On Search and on Home; picks only titles the profile may see. |
+| 36. Reader display | 7 | Done | Light, sepia and dark themes; Literata, DM Sans or Lexend; six text sizes; line spacing; margins. Kept per profile until refresh. The text is placeholder prose until real book files are licensed. |
+| 37. Bookmarks, highlights, notes, dictionary | 7 | Partly | Bookmarks in the reader and player, saved to Supabase for real accounts. Highlights, notes and the dictionary are not built. |
+| 38. Progress and Continue Reading | 7 | Done | Saved to `reading_progress` (one position per book, shared by the reader and player) as you read and listen; Continue reading reopens the last format at that place, most recent first. |
+| 39. Player remembers speed | 7 | Partly | Speed kept per profile for the session; the browser's own volume applies. |
+| 40. Player controls | 7 | Partly | ±15 seconds, Skip Opening/Closing Credits, chapter list, chapter marks and a sleep timer. No mini-player yet; the audio is a silent sample. |
+| 41. Mark as finished? | 7 | Done | Dragging to the end or turning past the last page asks first; finishing moves the book to Finished. |
 | 61. Accessibility menu | 0 | Partly | Text size, theme, dyslexia-friendly font, contrast, highlighted links, stop animations. Settings survive sign-out within a session. |
 | 63. Accessibility Policy in footer | 0 | Done | Footer on every page; policy page is a placeholder summary. |
 | 70. Cookie choices | — | Planned | Footer links to Your Privacy Choices; banner not built. |

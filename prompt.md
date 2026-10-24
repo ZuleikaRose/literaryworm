@@ -40,7 +40,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 4 | Book details | Matches the wireframe detail screen; `/books/:id` works on refresh; Google data with at least two extra fields; every reader's logs with display name and date; library statuses; logs only for books in the library, removed with the book; ratings; blocked on Kids, mature titles blocked on Teen |
 | 5 | Search | Public title-only search (BookWorm titles, then Google through the Edge Function); filters and sort applied server-side; Load more; *Did you mean*; recent searches; Surprise Me; Kids see the catalog only |
 | 6 | Library and sign-in | Supabase Auth sign-up, log-in, log-out and password reset; session survives a refresh; plan saved by the `checkout` function; library (`library_items`) and logs saved to Supabase under RLS; Library page with the three statuses; Favorites; custom lists create, rename, delete, reorder; empty states |
-| 7 | Reader and player | Reader controls, chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer; progress feeds Continue Reading |
+| 7 | Reader and player | Reader display (theme, font, size, spacing, margins), chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer, credit skips; progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue Reading; daily limit enforced; keyboard-operable |
 | 8 | Account and polish | *Ask a grown-up* gate on Kids; cancel and delete flows; accessibility and motion pass |
 
 ## Code

@@ -144,6 +144,14 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Saving states.** Buttons that save to Supabase say what they're doing ("Adding…", "Saving your plan…", "Logging in…") and are disabled meanwhile; a failed save shows a plain-words alert beside the control and the screen doesn't change.
 
+**Reader.** The page is the book, not the app: its own paper themes (light, sepia, dark; `--paper-*` tokens), Literata by default, a 32–44rem measure, indented paragraphs, and a rust drop capital that opens each chapter. Two thin bars, top and bottom, fade out (opacity and an 8px slide, none with reduced motion) after 4 seconds and come back on any input. All their controls are 44px.
+
+**Progress bar with chapter marks.** A native range input, 44px tall, with a 6px track filled in the accent up to the current place and a small notch at each chapter start. Its value is spoken as "Page 16 of 84, Chapter 3" or "8 hours 37 minutes of 20 hours 33 minutes, Chapter 10".
+
+**Player.** Cover beside the controls on desktop, stacked on phones. A 76px rust play button between 56px outlined ±15 buttons, with previous and next chapter beside them; Speed and Sleep timer are labelled native selects. The sleep timer's state reads as one line of rust text under them.
+
+**Mark as finished? and daily limit.** Small dialogs and full-screen messages use the empty-state pattern (icon in a rust circle, title, one sentence, actions). The finished state pops its check icon in once.
+
 **Header on narrow phones.** Below 380px the wordmark is hidden visually (not with `display: none`), so the logo link is still announced as "BookWorm, home".
 
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.

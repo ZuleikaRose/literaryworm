@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–6)
+### Journey as built so far (Phases 0–7)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -580,6 +580,17 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 34. **Library page (`/library`).** *My library* lists every saved book, newest first, with a filter by status (with counts), a status menu and *Remove* (which warns that logs go too). *Favorites* shows the profile's favourites. *Lists* holds custom lists: create, rename, delete, reorder (Move up / Move down keep keyboard focus), add books from the library and remove them. Every view has an empty state that says what to do.
 35. **The demo** stays a sample household kept in memory; it never touches Supabase.
 
+### Phase 7: Reader and player
+
+36. **Reader (`/read/:id`).** Full screen and distraction-free, for BookWorm titles with an ebook. The top bar (Close, title and chapter, Chapters, Bookmarks, Display) and the bottom bar (previous and next page, a progress bar with chapter marks, the chapter name, page and percentage) fade after 4 seconds and come back on a tap, mouse move, key press or focus. Pages turn with the arrow keys or Page Up/Down, the buttons, a swipe, or a tap on the outer edges on touch screens. Each chapter opens with its name and a drop capital.
+37. **Display.** Theme (light, sepia, dark), font (Literata, DM Sans, or Lexend for easier reading), six text sizes (which also follow the accessibility menu's text size), line spacing and margins. The choices stay with the profile until the page is refreshed.
+38. **Player (`/listen/:id`).** Cover, title, author, narrator and chapter; a progress bar with chapter marks, elapsed and remaining time; previous chapter, back 15 seconds, play/pause, forward 15 seconds, next chapter; speed from 0.5× to 3× (kept per profile); a sleep timer (5, 15, 30, 45 or 60 minutes of playing, or the end of the chapter); *Skip opening credits* and *Skip closing credits* during the first and last 30 seconds. Space plays and pauses, and the arrow keys skip 15 seconds, when focus isn't on a control.
+39. **Chapters and bookmarks** in both: the chapter list marks the current chapter; a bookmark saves the place ("Chapter 3, page 2" or "Chapter 3, 12:40") and can be opened or removed later.
+40. **Progress and Continue reading.** The place is saved as the reader turns pages and every 15 seconds of listening, on pause and on leaving. One position per book, so the reader and the player pick up from each other. Home's *Continue reading* lists unfinished books, most recent first, and reopens the format used last at the saved place; the book page's buttons say *Continue reading · 42%*. Opening a book adds it to the library as *Reading* (a *Want to read* book moves to *Reading*).
+41. **Mark as finished?** Dragging the progress bar to the end, or turning past the last page, asks first; *Not yet* stays put. Finishing (or the audiobook reaching its end) moves the book to *Finished* and out of *Continue reading*, with *Write a log* next.
+42. **Daily limit.** A profile with a daily limit (set with the account password in Phase 2) counts reading time while the reader is open and listening time while playing. When it's used up, the reader and player stop with *That's today's reading time*; *Ask a grown-up for more time* takes the account password and allows 30 more minutes. The demo's Kids profile, Mia, has a one-hour limit.
+43. **Saved for real accounts.** Progress and bookmarks save to `reading_progress` and `bookmarks` in Supabase, private to the account and tied to a library book (removing the book removes them). If a save fails, the reader says so and keeps going; the next page turn tries again. The demo keeps them in memory.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
@@ -587,6 +598,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 - **Demo accounts are not deleted after 24 hours.** Everything resets on refresh instead.
 - **One library per account.** The brief gives each user one library and shows logs with that user's display name, so the household's profiles share the account's library and logs. Kids profiles see only Kids-rated titles in it and don't post logs.
 - **Household profiles, ratings, favourites, custom lists and recent searches are still in memory.** They reset on refresh (a restored member starts with one profile named after the account holder). Saving profiles to `reader_profiles` comes with the Account work in Phase 8.
+- **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. Highlights, notes, the dictionary, read-along transcripts and the mini-player are not built.
 - **No email confirmation.** Supabase's built-in email reaches only the project team (2 emails an hour), so sign-ups are confirmed automatically so that anyone can test the app. Password-reset emails have the same limit until an email provider is added in Supabase.
 
 ### Assessment brief and blueprint together
