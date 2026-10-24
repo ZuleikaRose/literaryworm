@@ -219,11 +219,11 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 
 | Story | Phase | Status | Notes |
 | --- | --- | --- | --- |
-| 1. Private account data | 0–1 | UI only | Data is per account in memory; `schema.sql` adds RLS so each member sees only their own rows. |
+| 1. Private account data | 6 | Done | Real accounts in Supabase Auth; RLS shows each member only their own account details, plan and library. Logs are public by design. |
 | 2. 18+ date of birth, Terms accepted | 1 | Done | Under-18 sign-ups are refused with a pointer to Kids/Teen profiles; Terms checkbox required; Privacy Policy linked. Enforced in `schema.sql` by trigger too. |
 | 3. Password rules | 1 | Done | 15–64 characters, no forced character mix, small breached-password list (a real build would check a breach service on the server). Two-step sign-in not built yet. |
-| 4. Forgot password | 1 | UI only | Request form and "if an account uses this email" confirmation; no email is sent. |
-| 5. Stay signed in | 1 | Changed | By request, all data resets on refresh. Sign out and back in works within a session. |
+| 4. Forgot password | 6 | Partly | Supabase sends a reset link to `/reset-password`; the page never says whether an email has an account. The built-in email reaches only the project team until an email provider is added. |
+| 5. Stay signed in | 6 | Done | The Supabase session survives a refresh (the only thing kept in browser storage); everything else still resets. |
 | 8. Demo account | 0–1 | Done | *Try the demo*, or log in with the demo email; the demo can't make payments. It resets on refresh rather than after 24 hours. |
 | 10. Up to five profiles | 2 | Done | Add, edit and delete on *Who's reading?*; limited by plan (Basic 1, Standard 3, Premium 5). Deleting a profile leaves the account and other profiles alone. |
 | 11. Parental consent for Kids | 2 | Done | Consent checkbox with a link to the Children's Privacy Notice is required to create a Kids profile. `parental_consents` keeps the record. |
@@ -239,8 +239,10 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | Brief: Load more | 3 | Done | Grids load more near the bottom (plus a button); Home rows end with *Load more*; loading, error (*Try again*), empty and end states. |
 | Home rows and carousel | 3 | Done | Featured carousel with Pause; Continue reading, Trending, Top 10, New releases, Because you saved, genre rows. Kids profiles see only age-rated titles. |
 | Brief: Book details page | 4 | Done | `/books/:id` works from a link or a refresh; Google data through the `books` function (title, authors, description, cover, plus publisher, published date, pages, language, categories); every reader's logs with display name and date. |
-| Brief: Library (add, remove, status) | 4 | Partly | Add, remove and change status (want to read, reading, finished) on the book page, private to the profile. Kept in memory until Supabase Auth sign-in (Phase 6); `library_items` and its RLS are ready. |
-| Brief: Logs | 4 | Partly | Write, edit and delete your own logs (1–5000 characters, optional 1–5 rating), only for books in your library; removing the book deletes them. Public reading from Supabase works; saving waits for Supabase Auth (Phase 6). The database enforces the rules with a composite foreign key and cascade. |
+| Brief: Library (add, remove, status) | 4, 6 | Done | Add, remove and change status (want to read, reading, finished) on the book page and the Library page; saved to `library_items`, private to the account (owner-only RLS). |
+| Brief: Logs | 4, 6 | Done | Write, edit and delete your own logs (1–5000 characters, optional 1–5 rating) in Supabase, only for books in your library (composite foreign key); removing the book deletes them (cascade). Everyone can read them; only the writer can change them. |
+| Brief: Sign up, log in, log out | 6 | Done | Supabase Auth email and password; every account has a public display name, and logs show it, never the email. |
+| Library page (Reading List, Favorites, Custom Lists) | 6 | Done | Status filter with counts, Favorites, custom lists (create, rename, delete, reorder, add and remove books). Custom lists are kept in memory per profile. |
 | 29. Book page | 4 | Done | Cover, synopsis, author, narrator, length, format, age rating and logs; the Google key stays in the Edge Function. |
 | 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |
 | 50. Display name on logs | 4 | Done | Logs show the profile's display name, never an email; Kids profiles can't post logs. |

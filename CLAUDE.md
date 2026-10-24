@@ -23,11 +23,12 @@ npm run lint    # oxlint; must be clean
 ## Conventions
 
 - TypeScript strict. React Router DOM, declarative routes with `BrowserRouter`; routes live in `src/App.tsx`.
-- **State is in memory only** (`src/store`). No `localStorage`. A refresh resets the app on purpose.
+- **State is in memory only** (`src/store`). No `localStorage`, with one exception: the Supabase session (`src/lib/supabase.ts`, key `bookworm-session`) so a member stays signed in. Everything else resets on refresh on purpose.
+- **Real accounts go through `src/lib/accountApi.ts`** (Supabase Auth, `library_items`, `logs`, the `checkout` function) and `src/lib/useAuthSync.ts` (restores the session, follows sign-in and sign-out). Use `useLibrary()` for the library: it writes to Supabase first, then updates the store. The demo household stays in memory and never calls Supabase.
 - **Book lists go through `src/lib/booksApi.ts`**, which calls only the `books` Edge Function. Never fetch Google Books from the browser. Kids profiles use the sample catalog only.
 - **Public logs come from `src/lib/logsApi.ts`** (the `logs` table with the publishable key, embedding only `profiles.display_name`). Public pages never read `library_items`.
 - Search is title only and public. Its state lives in the URL (`q`, `genre`, `sort`, `source`; see `src/lib/search.ts`), and the client checks queries with the same rules as the `books` function.
-- The profile's library is `ProfileData.library` (keyed by book id, with the brief's three statuses). Store actions mirror the database rules: a log needs its book in the library, and removing the book removes that profile's logs.
+- The library is the account's for real accounts (`state.accountLibrary`, from `library_items`) and the profile's for in-memory accounts (`ProfileData.library`); `activeLibrary()` picks the right one. Store actions mirror the database rules: a log needs its book in the library, and removing the book removes that profile's logs.
 - Styles are plain CSS in `src/styles/`. Use tokens from `tokens.css`; no raw hex in component CSS (book cover palettes are the exception).
 - Only export components from `.tsx` files (Fast Refresh); data and helpers go in `src/data` or `src/lib`.
 - Accessibility is required: visible labels, `aria-describedby` for errors, focus management, 44px targets, no sideways scroll on phones.

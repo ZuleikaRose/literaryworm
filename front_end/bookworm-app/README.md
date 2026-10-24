@@ -30,13 +30,14 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | --- | --- | --- |
 | `/`, `/?genre=…` | Landing: technology row and the infinite genre feed | Public |
 | `/plans` | Plans and pricing | Public |
-| `/signin`, `/signup` | Sign in, sign up, demo | Public |
+| `/signin`, `/signup` | Log in, sign up (Supabase Auth), demo (in memory) | Public |
+| `/reset-password` | Choose a new password from an emailed reset link | Reset link |
 | `/legal/:slug` | Policies and help | Public |
 | `/books/:id` | Book details (catalog id or Google Books volume id); `/book/:id` redirects | Public (actions need a profile) |
 | `/profiles` | Who's reading? | Signed in |
 | `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=`) | Public (Kids profiles: catalog only) |
-| `/library` | Reading List, Favorites, Custom Lists | Profile chosen |
+| `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`) | Profile chosen |
 | `/account` | Account, family, preferences | Profile chosen |
 | `/read/:id`, `/listen/:id` | Reader and audiobook player (full screen) | Profile chosen |
 
@@ -67,6 +68,6 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 3 | Home rows, featured carousel, technology and genre lists with infinite scroll | Done |
 | 4 | Book details (Google data and catalog), public reader logs, library statuses, write/edit/delete logs, ratings, More like this | Done |
 | 5 | Public title search, filters (source, genre, sort), Did you mean, recent searches, Surprise Me | Done |
-| 6 | Library and Custom Lists | |
+| 6 | Supabase Auth (sign up, log in, log out, reset), library and logs saved in Supabase, Library page with statuses, Favorites and custom lists | Done |
 | 7 | Reader and audiobook player | |
 | 8 | Account, Kids restrictions, accessibility and motion polish | |

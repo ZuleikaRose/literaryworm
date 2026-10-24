@@ -138,6 +138,12 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Did you mean.** One line on the surface color with a rust left rule; the suggestion is a bold rust link that runs the corrected search.
 
+**Library page.** Section links under the title (My library, Favorites, Lists) with a rust underline on the current one. Library rows: small cover, title link, author and the date added, then a compact status menu and *Remove*; on phones the controls wrap under the title. Status filters are radio chips with counts.
+
+**Custom list card.** Name, description and book count on the surface color, with Move up / Move down (44px icon buttons, disabled at the ends), Rename and Delete; books are a simple list with a remove button, and *Add a book from your library* below.
+
+**Saving states.** Buttons that save to Supabase say what they're doing ("Adding…", "Saving your plan…", "Logging in…") and are disabled meanwhile; a failed save shows a plain-words alert beside the control and the screen doesn't change.
+
 **Header on narrow phones.** Below 380px the wordmark is hidden visually (not with `display: none`), so the logo link is still announced as "BookWorm, home".
 
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
