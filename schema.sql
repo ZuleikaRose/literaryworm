@@ -12,6 +12,7 @@
 --
 -- Phases included so far:
 --   Phase 1: profiles (one per signed-in user), plans, subscriptions
+--   Phase 2: reader_profiles (household profiles), parental_consents
 -- =============================================================================
 
 
@@ -155,3 +156,127 @@ create policy "Users read their own subscription"
 -- No insert/update/delete policies for members: plan changes, pauses and
 -- cancellations go through an Edge Function using the service role, so the
 -- browser can never set its own plan or status.
+
+
+-- -----------------------------------------------------------------------------
+-- Phase 2: household reader profiles
+-- -----------------------------------------------------------------------------
+
+create type public.age_rating as enum ('kids', 'teen', 'all');
+
+-- Up to five profiles per account (fewer on smaller plans). Each profile has its
+-- own lists, history and recommendations.
+create table public.reader_profiles (
+  id                  uuid primary key default gen_random_uuid(),
+  account_id          uuid not null references auth.users (id) on delete cascade,
+  name                text not null check (char_length(btrim(name)) between 1 and 20),
+  -- Lower-cased name so two profiles on one account can't share a name.
+  name_key            text generated always as (lower(btrim(name))) stored,
+  avatar              smallint not null default 0 check (avatar between 0 and 5),
+  age_rating          public.age_rating not null default 'all',
+  -- One-way hash of the 4-digit PIN (pgcrypto crypt()); the PIN itself is never stored.
+  pin_hash            text,
+  has_pin             boolean generated always as (pin_hash is not null) stored,
+  failed_pin_attempts smallint not null default 0 check (failed_pin_attempts between 0 and 5),
+  locked_until        timestamptz,                    -- set for 15 minutes after 5 wrong PINs
+  daily_limit_minutes smallint check (daily_limit_minutes between 30 and 240),
+  favorite_genres     text[] not null default '{}',
+  -- Kids profiles exist only with a parent's consent (details in parental_consents).
+  kids_consent_at     timestamptz,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now(),
+  unique (account_id, name_key),
+  check (age_rating <> 'kids' or kids_consent_at is not null)
+);
+
+create trigger reader_profiles_set_updated_at
+  before update on public.reader_profiles
+  for each row execute function public.set_updated_at();
+
+-- No more profiles than the plan allows, and never more than five.
+create or replace function public.enforce_profile_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  allowed smallint;
+  used    integer;
+begin
+  select least(coalesce(p.max_profiles, 1), 5) into allowed
+  from public.subscriptions s
+  join public.plans p on p.id = s.plan_id
+  where s.user_id = new.account_id and s.status in ('active', 'past_due');
+
+  select count(*) into used from public.reader_profiles where account_id = new.account_id;
+
+  if used >= coalesce(allowed, 1) then
+    raise exception 'This plan allows % profile(s)', coalesce(allowed, 1)
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger reader_profiles_enforce_limit
+  before insert on public.reader_profiles
+  for each row execute function public.enforce_profile_limit();
+
+alter table public.reader_profiles enable row level security;
+
+create policy "Account holders read their own profiles"
+  on public.reader_profiles for select
+  to authenticated
+  using (account_id = auth.uid());
+
+create policy "Account holders add profiles to their own account"
+  on public.reader_profiles for insert
+  to authenticated
+  with check (account_id = auth.uid() and age_rating <> 'kids' and pin_hash is null and daily_limit_minutes is null);
+
+create policy "Account holders edit their own profiles"
+  on public.reader_profiles for update
+  to authenticated
+  using (account_id = auth.uid())
+  with check (account_id = auth.uid());
+
+create policy "Account holders delete their own profiles"
+  on public.reader_profiles for delete
+  to authenticated
+  using (account_id = auth.uid());
+
+-- Column privileges: the browser may only change everyday details. Age rating,
+-- PIN, lockout and daily limit need the account password, so they're changed by
+-- an Edge Function (service role) after it re-checks the password. Kids profiles
+-- are created the same way, together with their consent record. The PIN hash is
+-- never readable from the browser (has_pin says whether one is set).
+revoke insert, update, select on public.reader_profiles from anon, authenticated;
+grant select (id, account_id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until,
+              daily_limit_minutes, favorite_genres, kids_consent_at, created_at, updated_at)
+  on public.reader_profiles to authenticated;
+grant insert (account_id, name, avatar, age_rating, favorite_genres) on public.reader_profiles to authenticated;
+grant update (name, avatar, favorite_genres) on public.reader_profiles to authenticated;
+
+
+-- COPPA: who consented to a Kids profile, when and how. Kept after the profile
+-- is deleted (profile_id becomes null) for as long as the law requires.
+create table public.parental_consents (
+  id             uuid primary key default gen_random_uuid(),
+  account_id     uuid not null references auth.users (id) on delete cascade,
+  profile_id     uuid references public.reader_profiles (id) on delete set null,
+  method         text not null default 'account_password_confirmation',
+  notice_version text not null,                 -- version of the Children's Privacy Notice shown
+  consented_at   timestamptz not null default now(),
+  withdrawn_at   timestamptz
+);
+
+alter table public.parental_consents enable row level security;
+
+create policy "Account holders read their own consent records"
+  on public.parental_consents for select
+  to authenticated
+  using (account_id = auth.uid());
+
+-- No insert/update/delete policies: consent is recorded and withdrawn by the
+-- Edge Function that creates or changes Kids profiles, so records can't be altered.

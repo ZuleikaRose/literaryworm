@@ -33,7 +33,7 @@
         background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px);
         background-size: 22px 22px;
       }
-      #canvas { position: relative; width: 1600px; padding: 40px; }
+      #canvas { position: relative; width: 1720px; padding: 40px; }
       header { display: flex; align-items: baseline; gap: 18px; margin-bottom: 8px; }
       header h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
       header p { margin: 0; color: var(--muted); font-size: 14px; }
@@ -87,14 +87,14 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · through Phase 1 (accounts, plans, subscriptions)";
+      const subtitle = "Supabase PostgreSQL · through Phase 2 (accounts, plans, subscriptions, household profiles)";
 
-      const colors = { auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c" };
+      const colors = { auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c" };
 
       // x/y are positions on the canvas in px.
       const tables = [
         {
-          id: "auth.users", color: colors.auth, x: 0, y: 30, sub: "Supabase Auth",
+          id: "auth.users", color: colors.auth, x: 430, y: 60, sub: "Supabase Auth",
           cols: [
             ["pk", "id", "uuid"],
             ["", "email", "text"],
@@ -104,7 +104,7 @@
           note: "Managed by Supabase Auth. Passwords never leave this table.",
         },
         {
-          id: "profiles", color: colors.account, x: 470, y: 0, sub: "one per user",
+          id: "profiles", color: colors.account, x: 0, y: 0, sub: "one per user",
           cols: [
             ["pk fk", "id", "uuid"],
             ["", "display_name", "text"],
@@ -117,7 +117,7 @@
           note: "The brief's required profiles table. RLS: anyone reads display names; users insert/update only their own row. 18+ enforced by trigger.",
         },
         {
-          id: "subscriptions", color: colors.billing, x: 470, y: 400, sub: "one per user",
+          id: "subscriptions", color: colors.billing, x: 430, y: 420, sub: "one per user",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid (unique)"],
@@ -135,7 +135,7 @@
           note: "RLS: users read only their own. Writes happen server-side (Edge Function / Stripe webhook). No card data.",
         },
         {
-          id: "plans", color: colors.billing, x: 940, y: 400, sub: "catalog",
+          id: "plans", color: colors.billing, x: 0, y: 520, sub: "catalog",
           cols: [
             ["pk", "id", "text"],
             ["", "name", "text"],
@@ -149,6 +149,40 @@
           ],
           note: "RLS: readable by everyone; only the service role writes. Seeded with basic, standard, premium.",
         },
+        {
+          id: "reader_profiles", color: colors.household, x: 860, y: 0, sub: "up to 5 per account",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "account_id", "uuid"],
+            ["", "name", "text 1–20"],
+            ["", "name_key", "text (generated)"],
+            ["", "avatar", "smallint 0–5"],
+            ["", "age_rating", "age_rating"],
+            ["", "pin_hash", "text", true],
+            ["", "has_pin", "boolean (generated)"],
+            ["", "failed_pin_attempts", "smallint 0–5"],
+            ["", "locked_until", "timestamptz", true],
+            ["", "daily_limit_minutes", "smallint 30–240", true],
+            ["", "favorite_genres", "text[]"],
+            ["", "kids_consent_at", "timestamptz", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "Unique (account_id, name_key). Kids needs consent. Plan limit by trigger. RLS: own account only; browser may edit name, avatar and genres only. PIN hash never readable.",
+        },
+        {
+          id: "parental_consents", color: colors.household, x: 1290, y: 120, sub: "COPPA record",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "account_id", "uuid"],
+            ["fk", "profile_id", "uuid", true],
+            ["", "method", "text"],
+            ["", "notice_version", "text"],
+            ["", "consented_at", "timestamptz"],
+            ["", "withdrawn_at", "timestamptz", true],
+          ],
+          note: "Kept after the profile is deleted (profile_id set null). RLS: read own; written only by the Edge Function.",
+        },
       ];
 
       // [fromTable, fromColumn, toTable, toColumn, cardinality label]
@@ -156,6 +190,9 @@
         ["profiles", "id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "plan_id", "plans", "id", "N : 1"],
+        ["reader_profiles", "account_id", "auth.users", "id", "N : 1"],
+        ["parental_consents", "profile_id", "reader_profiles", "id", "N : 1"],
+        ["parental_consents", "account_id", "auth.users", "id", "N : 1"],
       ];
       // -----------------------------------------------------------------------------------
 
