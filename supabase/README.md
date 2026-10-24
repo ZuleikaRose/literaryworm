@@ -16,6 +16,7 @@ Database migrations, Edge Functions and security tests for BookWorm. The root `s
 | `0200` | `reader_profiles` (household profiles, plan limit trigger), `parental_consents` |
 | `0300` | `private.rate_limits` and the server-only functions: `check_rate_limit`, `set_profile_pin`, `verify_profile_pin`, `unlock_profile`, `create_kids_profile` |
 | `0400` | The brief's `library_items` (private) and `logs` (public; composite FK to the author's library item, cascade on delete) |
+| `0500` | `reading_progress` (one row per book, for Continue Reading) and `bookmarks`, both private and tied to a library item (composite FK, cascade on delete) |
 | `…01`, `…02` | One index each, created concurrently |
 
 **How the book page reads logs.** The browser asks PostgREST for `logs` with the publishable key (`select=id,body,rating,created_at,updated_at,author:profiles(display_name)&volume_id=eq.<id>`). The anon role may read `logs` and the `id, display_name` columns of `profiles`, and is refused on `library_items` (checked live: `permission denied`), so every reader's logs are listed without exposing anyone's library.
@@ -50,7 +51,7 @@ Set in the dashboard (Authentication) or the Management API; they aren't in the 
 | Minimum password length | 15 | Matches the app's rule (15–64 characters) |
 | Confirm email | Off | The built-in email reaches only the project team, 2 emails an hour; turn it on once an email provider (SMTP) is set up |
 
-How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_accepted` and `marketing_emails` as user metadata, and the `on_auth_user_created` trigger validates them and creates `profiles` and `account_private`. The browser then reads its own rows under RLS, writes `library_items` and `logs` directly (owner-only writes), and chooses a plan through the `checkout` function.
+How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_accepted` and `marketing_emails` as user metadata, and the `on_auth_user_created` trigger validates them and creates `profiles` and `account_private`. The browser then reads its own rows under RLS, writes `library_items`, `logs`, `reading_progress` and `bookmarks` directly (owner-only writes), and chooses a plan through the `checkout` function.
 
 ## Deploy
 
@@ -70,4 +71,4 @@ npx -y deno@2 test --allow-env supabase/functions/
 psql "$SCRATCH_DATABASE_URL" -f supabase/tests/security_test.sql   # ends with "ALL SECURITY CHECKS PASSED"
 ```
 
-The SQL checks cover sign-up validation, anonymous access, user isolation, column grants, plan limits, Kids consent, PIN lockout, rate limits, the log-needs-a-library-item rule, cascade deletes, RLS on every table and an index on every foreign key. Run them only against a scratch database: they create test users.
+The SQL checks cover sign-up validation, anonymous access, user isolation, column grants, plan limits, Kids consent, PIN lockout, rate limits, the rule that logs, progress and bookmarks need a library item, cascade deletes, RLS on every table and an index on every foreign key. Run them only against a scratch database: they create test users.
