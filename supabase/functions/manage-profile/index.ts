@@ -5,6 +5,7 @@
 //   { action: "create_kids", name, avatar, dailyLimitMinutes, noticeVersion, password }
 //   { action: "set_pin", profileId, pin | null, password }
 //   { action: "set_daily_limit", profileId, dailyLimitMinutes | null, password }
+//   { action: "set_age_rating", profileId, ageRating, noticeVersion?, password }   (noticeVersion for Kids)
 //   { action: "delete", profileId, password }
 //   { action: "unlock", profileId, password }
 //   { action: "verify_pin", profileId, pin }
@@ -17,6 +18,7 @@ import { onlyKeys, parseInt, parseText, parseUuid } from "../_shared/validate.ts
 
 const METHODS = "POST";
 const DAILY_LIMITS = [30, 60, 90, 120, 180, 240];
+const AGE_RATINGS = ["kids", "teen", "all"];
 
 function parsePin(raw: unknown, allowNull: boolean): string | null {
   if (raw === null && allowNull) return null;
@@ -104,6 +106,24 @@ Deno.serve(async (req) => {
           .eq("id", profileId).eq("account_id", user.id).select("id");
         if (error) dbError(error);
         if (!data?.length) throw new HttpError("not_found", "Profile not found.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "set_age_rating": {
+        onlyKeys(body, ["action", "profileId", "ageRating", "noticeVersion", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        if (typeof body.ageRating !== "string" || !AGE_RATINGS.includes(body.ageRating)) {
+          throw new HttpError("bad_request", "Pick Kids, Teen or All.");
+        }
+        // Moving to Kids records the parent's consent to the Children's Privacy Notice version shown.
+        const noticeVersion = body.ageRating === "kids" ? parseText(body.noticeVersion, "noticeVersion", 1, 40) : null;
+        await confirmPassword(user.email, password);
+        const { error } = await db.rpc("set_profile_age_rating", {
+          p_account_id: user.id,
+          p_profile_id: profileId,
+          p_age_rating: body.ageRating,
+          p_notice_version: noticeVersion,
+        });
+        if (error) dbError(error);
         return json(req, METHODS, { ok: true });
       }
       case "delete": {
