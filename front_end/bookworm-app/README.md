@@ -4,8 +4,11 @@ A single-page app for reading ebooks and listening to audiobooks, built from the
 `../BookWorm_web_app_wireframe` and the blueprint in `../user_journey.md` and `../../user_stories.md`.
 
 - **Stack:** React 19, TypeScript (strict), Vite, React Router DOM (`BrowserRouter`, declarative routes).
-- **Data:** everything lives in memory (React Context + `useReducer`). There are no API calls and nothing is
-  saved to the browser, so **refreshing resets the app**.
+- **Data:** app state lives in memory (React Context + `useReducer`); nothing is saved to the browser, so
+  **refreshing resets the app**. Book lists come from the `books` Supabase Edge Function (`src/lib/booksApi.ts`),
+  which is the only thing that talks to Google Books. Without `VITE_SUPABASE_URL` set, the sample catalog is used.
+- **Environment:** copy `../../.env.example` to `.env.development.local` and fill in the Supabase URL and
+  publishable key (both public). Never put a secret in a `VITE_` variable.
 - **Catalog:** 29 sample titles in `src/data/books.ts`. Covers are drawn in CSS. Narrator names, reviews and
   synopses are sample content.
 
@@ -24,13 +27,13 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 
 | Route | Page | Access |
 | --- | --- | --- |
-| `/` | Landing | Public |
+| `/`, `/?genre=…` | Landing: technology row and the infinite genre feed | Public |
 | `/plans` | Plans and pricing | Public |
 | `/signin`, `/signup` | Sign in, sign up, demo | Public |
 | `/legal/:slug` | Policies and help | Public |
-| `/book/:id` | Book details | Public (actions need a profile) |
+| `/books/:id` | Book details (catalog id or Google Books volume id); `/book/:id` redirects | Public (actions need a profile) |
 | `/profiles` | Who's reading? | Signed in |
-| `/browse` | Home rows | Profile chosen |
+| `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
 | `/search` | Search and filters | Profile chosen |
 | `/library` | Reading List, Favorites, Custom Lists | Profile chosen |
 | `/account` | Account, family, preferences | Profile chosen |
@@ -40,10 +43,11 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 
 ```
 src/
-  components/   Header, Footer, TabBar, AccessibilityMenu, ProfileMenu, Cover, BookCard, Icon, Avatar
+  components/   Header, Footer, TabBar, AccessibilityMenu, ProfileMenu, Cover, BookCard, BookTile, Shelf,
+                BookFeed, GenreNav, FeaturedCarousel, Icon, Avatar
   data/         books, plans, reviews, legal pages
   layouts/      SiteLayout, ImmersiveLayout, route guards, AppEffects
-  lib/          small hooks (usePopover, useTitle) and helpers
+  lib/          booksApi (Edge Function client), useBookFeed (load more), small hooks and helpers
   pages/        one file per route
   store/        state shape, reducer, context hooks
   styles/       tokens (from the wireframe), base, shell, covers, pages
@@ -59,7 +63,7 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 0 | Foundation: scaffold, tokens, shell, store, catalog, routes | Done |
 | 1 | Landing, Plans, Sign up / Sign in, demo | Done |
 | 2 | Who's reading? and profile management | Done |
-| 3 | Home rows and featured carousel | |
+| 3 | Home rows, featured carousel, technology and genre lists with infinite scroll | Done |
 | 4 | Book details, ratings, lists, reviews | |
 | 5 | Search, filters, Surprise Me | |
 | 6 | Library and Custom Lists | |

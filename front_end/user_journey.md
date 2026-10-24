@@ -525,9 +525,9 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 ## Part 3: Build notes (front end)
 
-The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. Data is kept in memory only, so a refresh starts the app over. The target database is in `schema.sql`, with its diagram in `drawsql.png`.
+The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–2)
+### Journey as built so far (Phases 0–3)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -547,23 +547,30 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 13. **Ask a grown-up.** If the last profile used was a Kids profile, *Manage profiles* and *Add profile* first ask for the account password.
 14. **Switching profiles.** The profile menu's *Switch profile* and *Manage profiles* always go back through *Who's reading?*, so PIN locks still apply.
 
+### Phase 3: Home
+
+15. **Public home (`/`).** Right under the hero, *Popular in technology*: books about "technology" from the `books` Edge Function (Google Books), browsable without an account. At the bottom, *Keep discovering*: the six genres from the brief (Technology, Adventure, Sci-Fi, Fiction, Non-Fiction, Horror) as links, and a grid that keeps loading as the visitor scrolls (with a *Load more books* button too). Each genre has its own URL (`/?genre=sci-fi`), so it survives a refresh.
+16. **Member Home (`/browse`).** A featured carousel with Pause, then Continue reading (with progress bars), Trending this week, the reading-room banner, Top 10, New releases, *Because you saved …*, and one row per genre. Rows scroll sideways and the genre rows load more at their end. *Keep discovering* closes the page as on the public home.
+17. **Age ratings.** Kids profiles see only the age-rated BookWorm catalog (no Google Books results). Everyone else gets Google results with mature titles left out.
+18. **When the book service fails.** Rows and the grid show "We couldn't load …" with the reason in plain words (busy, too slow, offline) and *Try again*; books already loaded stay on screen.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
 - **No real email, payments or two-step sign-in yet.** These need the backend. The UI says so where it matters (reset link, checkout).
 - **Demo accounts are not deleted after 24 hours.** Everything resets on refresh instead.
 
-### Open question: assessment brief vs. blueprint
+### Assessment brief and blueprint together
 
-The assessment brief in `README.md` asks for some things this blueprint does differently. These need a decision before Phases 3–7:
+The assessment brief in `README.md` (graded) and this blueprint differ in places. The build meets the brief in full and keeps the blueprint's experience around it:
 
-| Area | Assessment brief (README) | Blueprint (this file) |
-| --- | --- | --- |
-| Home | Books about "technology", Netflix-style | Featured carousel plus Continue Reading, Trending, New Releases, Top 10 and genre rows |
-| Search | Title only | Title, author, narrator, ISBN, keyword, with filters |
-| Genres | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction | Genres from the catalog |
-| Lists | Load more on every list (button or infinite scroll) | Horizontal rows |
-| Book route | `/books/:id` | `/book/:id` |
-| Library | One library with a reading status (want to read, reading, finished) | Reading List, Favorites and Custom Lists |
-| Reviews | "Logs": text plus optional 1–5 rating, only for books in your library, deleted with the library entry | Reviews plus Not for me / I like this / I love this |
-| Profiles | One profile per user with a display name | Up to five household profiles per account |
+| Area | Assessment brief (README) | Blueprint (this file) | As built |
+| --- | --- | --- | --- |
+| Home | Books about "technology", Netflix-style | Featured carousel plus Continue Reading, Trending, New Releases, Top 10 and genre rows | Both (Phase 3): technology row and feed on the public home; blueprint rows on member Home |
+| Search | Title only | Title, author, narrator, ISBN, keyword, with filters | Phase 5: title-only search through the Edge Function |
+| Genres | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction | Genres from the catalog | The brief's six (Phase 3) |
+| Lists | Load more on every list (button or infinite scroll) | Horizontal rows | Both: infinite scroll plus a button on grids; *Load more* at the end of rows |
+| Book route | `/books/:id` | `/book/:id` | `/books/:id`; `/book/:id` redirects |
+| Library | One library with a reading status (want to read, reading, finished) | Reading List, Favorites and Custom Lists | Phase 6: `library_items` with the three statuses |
+| Reviews | "Logs": text plus optional 1–5 rating, only for books in your library, deleted with the library entry | Reviews plus Not for me / I like this / I love this | Phase 4: logs as the brief describes (enforced in the database) |
+| Profiles | One profile per user with a display name | Up to five household profiles per account | Both: `profiles.display_name` for logs, household `reader_profiles` |

@@ -7,7 +7,8 @@ BookWorm is a reading and listening app (ebooks and audiobooks, household profil
 - `front_end/bookworm-app/`: the React app (see its `README.md` for routes and layout).
 - `front_end/BookWorm_web_app_wireframe/`: the Figma Make wireframe. Visual source of truth; don't edit.
 - `front_end/style_guide.md`: design tokens, type, components, motion, voice.
-- `schema.sql`: target Supabase schema. `drawsql.png` is its ERD, rendered from `docs/erd/erd.html`.
+- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`).
+- `schema.sql`: generated from the migrations by `supabase/build-schema.sh`; don't edit by hand. `drawsql.png` is its ERD, rendered from `docs/erd/erd.html`.
 - `prompt.md`: the build brief and phase plan.
 - `vite-project/`: an unrelated earlier scaffold. Don't use it.
 
@@ -22,7 +23,8 @@ npm run lint    # oxlint; must be clean
 ## Conventions
 
 - TypeScript strict. React Router DOM, declarative routes with `BrowserRouter`; routes live in `src/App.tsx`.
-- **State is in memory only** (`src/store`). No `localStorage`, no API calls in the front end yet. A refresh resets the app on purpose.
+- **State is in memory only** (`src/store`). No `localStorage`. A refresh resets the app on purpose.
+- **Book lists go through `src/lib/booksApi.ts`**, which calls only the `books` Edge Function. Never fetch Google Books from the browser. Kids profiles use the sample catalog only.
 - Styles are plain CSS in `src/styles/`. Use tokens from `tokens.css`; no raw hex in component CSS (book cover palettes are the exception).
 - Only export components from `.tsx` files (Fast Refresh); data and helpers go in `src/data` or `src/lib`.
 - Accessibility is required: visible labels, `aria-describedby` for errors, focus management, 44px targets, no sideways scroll on phones.
@@ -46,5 +48,7 @@ Build in phases (see `prompt.md`). At the end of each phase:
 - Never commit secrets. `.env*` files stay local; only `.env.example` (no real values) is shared. Never put a secret in a `VITE_` variable.
 - The browser must never call Google Books directly (backend phases: go through a Supabase Edge Function).
 - Don't edit, delete or rewrite anything in `prompt-records/` or the hooks in `.claude/hooks/`.
-- Every Supabase table has Row Level Security enabled.
+- Every Supabase table has Row Level Security enabled, with `(select auth.uid())` policies and column-level grants. Index every foreign key, with `CREATE INDEX CONCURRENTLY` in its own one-statement migration (the MCP `apply_migration` runs in a transaction, so apply those with `execute_sql`).
+- Edge Functions validate every input, use the CORS allowlist in `_shared/cors.ts`, and return `{ error: { code, message } }`. Test (`deno check`, `deno test`) before deploying.
+- `DELETE` statements always have a `WHERE` clause (a hook blocks the rest).
 - Don't stage unrelated files (`.cto-toolkit/`, tool folders like `.windsurf/`, `prompt-records/` edits made by hooks) in feature commits.

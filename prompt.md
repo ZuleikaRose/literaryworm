@@ -9,7 +9,8 @@ The brief given to Claude Code for the BookWorm front end, written as a reusable
 Build a front-end single-page application for **BookWorm** from the wireframes and user stories.
 
 - **Stack:** React + TypeScript (strict) + Vite, React Router DOM with `BrowserRouter`.
-- **Data:** no API calls. All data lives in the browser's memory, so refreshing resets the app.
+- **Data:** app state lives in the browser's memory, so refreshing resets the app. Book lists come only from the `books` Supabase Edge Function (Google Books); the browser never calls Google. Without Supabase configured, the sample catalog stands in.
+- **Brief first:** every requirement in `README.md` (the graded brief) must be met; the blueprint's experience is kept around it.
 - **Skills to apply:** Front-End Design, UI UX Pro Max, Taste, Design Motion Principles.
 - **Docs:** use the Context7 MCP for current React Router and Vite documentation.
 - **Supervision:** use the Playwright and Chrome DevTools MCP servers. After each page, screenshot it with Playwright and compare it with the wireframe and user stories before moving on.
@@ -35,7 +36,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 0 | Foundation: scaffold, tokens, shell, store, catalog, routes | Build and lint clean; every route renders; guards redirect; header and covers match the wireframe; no sideways scroll at 390px; refresh resets state; Lighthouse accessibility 100 |
 | 1 | Landing, Plans, Sign up / Sign in, demo | Under-18 and short or breached passwords refused; Terms required; plan, price, billing day and renewal terms shown before confirming; demo works and can't pay; auth matches the wireframe modal |
 | 2 | Who's reading? and profile management | Max 5 profiles; Kids/Teen/All; PIN prompt with lockout after 5 wrong tries; choosing a profile goes to Home |
-| 3 | Home | Matches the wireframe Discover screen; rows work by keyboard; carousel pauses; titles respect the age rating |
+| 3 | Home | Matches the wireframe Discover screen; technology books and the six genres via the Edge Function; infinite scroll with a Load more fallback; loading, error, empty and end states; rows work by keyboard; carousel pauses; titles respect the age rating |
 | 4 | Book details | Matches the wireframe detail screen; lists, ratings and reviews; blocked on Kids |
 | 5 | Search | Search, filters, sort, *Did you mean*, recent searches, Surprise Me |
 | 6 | Library | Lists and Custom Lists create, rename, delete, reorder; empty states |
@@ -59,5 +60,6 @@ At the end of each phase:
 
 ## Commit
 
-- Update `schema.sql` and `drawsql.png` for new data, and the README files and docs for the phase.
+- New data goes in a migration in `supabase/migrations/` (RLS on, `(select auth.uid())` policies, column grants, every foreign key indexed with `CREATE INDEX CONCURRENTLY` in its own migration); run `supabase/tests/security_test.sql`; regenerate `schema.sql` with `supabase/build-schema.sh` and re-render `drawsql.png`.
+- Update the README files and docs for the phase.
 - Commit only the phase's files, push to `main`, and stop for feedback before the next phase.

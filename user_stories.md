@@ -215,7 +215,7 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 
 ## Build status
 
-Tracks each story against the front-end build in `front_end/bookworm-app`. **Done** means it works in the front end with in-memory data. **UI only** means the screen and rules exist but the part that needs a server (email, Stripe, Supabase) is not built yet. Stories not listed are planned for later phases or need the backend.
+Tracks each story against the front-end build in `front_end/bookworm-app`. **Done** means it works in the front end (book lists through the Supabase Edge Function when configured, other data in memory). **UI only** means the screen and rules exist but the part that needs a server (email, Stripe, Supabase) is not built yet. Stories not listed are planned for later phases or need the backend.
 
 | Story | Phase | Status | Notes |
 | --- | --- | --- | --- |
@@ -234,6 +234,10 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 18. Choose a plan with terms first | 1 | Done | Price, what's included and auto-renewal terms shown before confirming; renewal consent required. |
 | 19. Billing day, card via Stripe | 1 | UI only | Billing day 1–28 and next charge date; no card is collected in the demo. `schema.sql` stores Stripe IDs only. |
 | 20. Confirmation email | 1 | UI only | Confirmation message on screen; no email is sent. |
+| Brief: Home | 3 | Done | Public home shows technology books from the `books` Edge Function in a row and an infinite grid; never calls Google from the browser. |
+| Brief: Genres | 3 | Done | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction, each with its own URL; mapped to Google `subject:` queries in the Edge Function. |
+| Brief: Load more | 3 | Done | Grids load more near the bottom (plus a button); Home rows end with *Load more*; loading, error (*Try again*), empty and end states. |
+| Home rows and carousel | 3 | Done | Featured carousel with Pause; Continue reading, Trending, Top 10, New releases, Because you saved, genre rows. Kids profiles see only age-rated titles. |
 | 61. Accessibility menu | 0 | Partly | Text size, theme, dyslexia-friendly font, contrast, highlighted links, stop animations. Settings survive sign-out within a session. |
 | 63. Accessibility Policy in footer | 0 | Done | Footer on every page; policy page is a placeholder summary. |
 | 70. Cookie choices | — | Planned | Footer links to Your Privacy Choices; banner not built. |
