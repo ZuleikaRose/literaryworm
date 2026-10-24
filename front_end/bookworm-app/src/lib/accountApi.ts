@@ -1,6 +1,6 @@
 import type { Account, LibraryEntry, PlanId, ReadingStatus } from "../types";
 import { SUPABASE_URL } from "./backend";
-import { supabase } from "./supabase";
+import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
 /**
  * Real accounts, through Supabase Auth and the tables' RLS. Every message here is shown to
@@ -72,16 +72,24 @@ export async function signIn(email: string, password: string): Promise<void> {
 }
 
 /**
- * Ends the session. If Supabase can't be reached, the session is still removed from this
- * browser, so the member is never left half signed in.
+ * Ends the session. If Supabase can't be reached (it still asks the server, even for a
+ * local sign-out), the stored session is removed here, so a refresh can't sign the member
+ * back in. The server-side session then simply expires.
  */
 export async function signOut(): Promise<void> {
   if (!supabase) return;
+  let failed = false;
   try {
     const { error } = await supabase.auth.signOut();
-    if (error) await supabase.auth.signOut({ scope: "local" });
+    failed = Boolean(error);
   } catch {
-    await supabase.auth.signOut({ scope: "local" });
+    failed = true;
+  }
+  if (!failed) return;
+  try {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch {
+    // Storage blocked: nothing was stored to remove.
   }
 }
 
