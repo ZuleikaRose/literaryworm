@@ -248,6 +248,7 @@ Your project will be assessed across these areas:
 - **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode, title query 1–100 characters with no search operators, genre from the six, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
 - **Shaped responses and friendly failures.** Only the fields the UI shows, with https covers, plain-text descriptions and nulls for missing data. Google's 429s, errors and timeouts (8 s) become `{ error: { code, message } }`; the UI shows *We couldn't load …* with *Try again*.
 - **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
+- **Real accounts.** Sign up, log in, log out and password reset use Supabase Auth with email and password. Sign-up sends the display name, date of birth and Terms acceptance; a database trigger checks them (18+) and creates the public `profiles` row, so logs show the display name and never the email. The browser holds only the publishable key and the member's own session.
 - **Libraries private, logs public.** `library_items` has owner-only policies. `logs` has a public read policy and a composite foreign key to the author's `library_items` row, so a log can't exist for a book outside its author's library and is deleted with it. The book page reads logs (with `profiles.display_name`) without touching anyone's library.
 - **Database authorization.** RLS on every table with `(select auth.uid())` policies, column-level grants (for example, no one can read PIN hashes or Stripe ids), every foreign key indexed, and server-only functions callable only by the service role. `supabase/tests/security_test.sql` checks all of this.
 
@@ -263,7 +264,7 @@ npm run lint
 
 With no environment variables the app runs on its sample catalog. To use the real backend, copy `.env.example` to `front_end/bookworm-app/.env.development.local` and fill in the two `VITE_` values.
 
-Use **Try the demo** on the log-in page for a ready-made household. The demo's email and password are shown on that page; the password is generated fresh on each page load, so none is stored in the code.
+Create an account with **Sign up** to use the real backend: your library and logs are saved in Supabase and you stay signed in after a refresh. Or use **Try the demo** on the log-in page for a ready-made household kept in memory. The demo's email and password are shown on that page; the password is generated fresh on each page load, so none is stored in the code.
 
 ### Secrets and environment variables
 
@@ -290,7 +291,7 @@ Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. Detai
 
 ### Build progress
 
-App state is kept in memory, so refreshing resets it. Book lists and book details come from the Edge Function; every reader's logs are read from Supabase. Library entries and logs written in the app stay in memory until Supabase Auth sign-in arrives in Phase 6.
+Accounts, libraries and logs are saved in Supabase, and a member stays signed in after a refresh. The rest of the app's state (household profiles, ratings, favourites, custom lists, recent searches, and the whole demo household) is kept in memory, so a refresh resets it. Book lists and details come from the Edge Function.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -301,8 +302,8 @@ App state is kept in memory, so refreshing resets it. Book lists and book detail
 | 3 | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows | Done |
 | 4 | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks | Done |
 | 5 | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me | Done |
-| 6 | Supabase Auth sign-in, so the library (`library_items`) and logs save to Supabase; Library page with reading status (want to read, reading, finished) | Next |
-| 7 | Reader and audiobook player | Planned |
+| 6 | Supabase Auth (sign up, log in, log out, password reset; stays signed in); plan saved by the `checkout` function; library (`library_items`) and logs saved in Supabase; Library page with reading status, Favorites and custom lists | Done |
+| 7 | Reader and audiobook player | Next |
 | 8 | Account, Kids restrictions, polish, Vercel deploy | Planned |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
