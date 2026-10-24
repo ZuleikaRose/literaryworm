@@ -1,5 +1,5 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
--- validation, plan limits, Kids consent, PIN lockout, rate limits, and the
+-- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
 -- "logs, progress and bookmarks need a library item" rule. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
@@ -72,6 +72,8 @@ select pg_temp.expect_error($$insert into public.reader_profiles (account_id, na
 select pg_temp.expect_error('select pin_hash from public.reader_profiles', 'reading PIN hashes');
 select pg_temp.expect_error($$update public.reader_profiles set locked_until = null$$, 'clearing a PIN lock from the browser');
 select pg_temp.expect_error($$delete from public.reader_profiles where name = 'Sam'$$, 'deleting a profile without the password check');
+select pg_temp.expect_error($$update public.reader_profiles set age_rating = 'teen' where name = 'Sam'$$, 'changing an age rating from the browser');
+select pg_temp.expect_error($$select public.set_profile_age_rating((select account_id from public.reader_profiles where name = 'Sam'), (select id from public.reader_profiles where name = 'Sam'), 'kids', 'v1')$$, 'calling set_profile_age_rating from the browser');
 
 insert into public.library_items (user_id, volume_id, status) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'reading');
 insert into public.logs (user_id, volume_id, body, rating) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'Great start.', 4);
@@ -126,6 +128,14 @@ select pg_temp.check(not (public.verify_profile_pin('00000000-0000-0000-0000-000
 select public.unlock_profile('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'));
 select pg_temp.check((public.verify_profile_pin('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'), '4821') ->> 'ok')::boolean, 'unlocked after the password check');
 
+select public.set_profile_age_rating('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'), 'kids', '2026-10');
+select pg_temp.check((select age_rating = 'kids' and kids_consent_at is not null from public.reader_profiles where name = 'Sam'), 'moved to Kids with consent via the server');
+select pg_temp.check((select count(*) from public.parental_consents where profile_id = (select id from public.reader_profiles where name = 'Sam') and withdrawn_at is null) = 1, 'consent recorded for the move to Kids');
+select pg_temp.expect_error($$select public.set_profile_age_rating('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Ann'), 'kids', null)$$, 'moving to Kids without consent');
+select pg_temp.expect_error($$select public.set_profile_age_rating('00000000-0000-0000-0000-00000000000b', (select id from public.reader_profiles where name = 'Sam'), 'all', null)$$, 'changing another account''s profile rating');
+select public.set_profile_age_rating('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'), 'teen', null);
+select pg_temp.check((select age_rating = 'teen' and kids_consent_at is null from public.reader_profiles where name = 'Sam'), 'moved off Kids');
+select pg_temp.check((select count(*) from public.parental_consents where profile_id = (select id from public.reader_profiles where name = 'Sam') and withdrawn_at is not null) = 1, 'consent marked withdrawn, record kept');
 select pg_temp.check(public.check_rate_limit('test:1', 2, 60) and public.check_rate_limit('test:1', 2, 60) and not public.check_rate_limit('test:1', 2, 60), 'rate limit allows 2 then refuses');
 reset role;
 

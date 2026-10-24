@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0501)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0600)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -232,7 +232,7 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Unique (account_id, name_key). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres only. PINs, limits, Kids and deletes go through manage-profile.",
+          note: "Unique (account_id, name_key). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres only. PINs, limits, age ratings, Kids and deletes go through manage-profile.",
         },
         {
           id: "parental_consents", color: colors.household, x: 1260, y: 60, sub: "COPPA record",
