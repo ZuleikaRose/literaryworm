@@ -244,6 +244,13 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 29. Book page | 4 | Done | Cover, synopsis, author, narrator, length, format, age rating and logs; the Google key stays in the Edge Function. |
 | 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |
 | 50. Display name on logs | 4 | Done | Logs show the profile's display name, never an email; Kids profiles can't post logs. |
+| Brief: Search by title | 5 | Done | Public `/search`; title only (operators refused with a plain message); BookWorm titles then Google results with infinite scroll and Load more. |
+| 23. Search | 5 | Changed | Title only, as the brief requires (not author, narrator, ISBN or keyword). |
+| 24. Filters and sorting | 5 | Partly | Source, the six genres, best match or newest; Google applies genre and sort to its results. Format, length, language and release-date filters need data Google search doesn't offer reliably. |
+| 25. Did you mean | 5 | Done | Typos corrected word by word against BookWorm titles the profile may see. |
+| 26. Recent searches | 5 | Done | Last ten per profile, newest first, remove one or clear all. In memory, so a refresh clears them. |
+| 28. Google titles below BookWorm's | 5 | Done | *From BookWorm* first, then *From Google Books*, with the same genre and sort. |
+| 34. Surprise Me | 5 | Done | On Search and on Home; picks only titles the profile may see. |
 | 61. Accessibility menu | 0 | Partly | Text size, theme, dyslexia-friendly font, contrast, highlighted links, stop animations. Settings survive sign-out within a session. |
 | 63. Accessibility Policy in footer | 0 | Done | Footer on every page; policy page is a placeholder summary. |
 | 70. Cookie choices | — | Planned | Footer links to Your Privacy Choices; banner not built. |

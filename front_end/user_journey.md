@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–4)
+### Journey as built so far (Phases 0–5)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -562,6 +562,14 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 22. **Taste and actions.** Not for me / I like this / I love this, Favorite, and for BookWorm titles *Read* and *Listen*. *More like this* shows similar titles (catalog genres, or the closest of the six genres for Google titles).
 23. **Age ratings.** Kids profiles never load Google titles and see "This book isn't on …'s shelf"; they read logs but don't post them. Teen profiles can't open titles Google rates mature, or catalog titles above their rating.
 
+### Phase 5: Search
+
+24. **Search (`/search`).** Public, by title only (the brief): visitors reach it from *Search* in the header (an icon on phones), members from the header box or the tab bar. Results show BookWorm's own titles first (*From BookWorm*, read and listen here), then Google Books titles through the `books` Edge Function (*From Google Books*), loading more as the reader scrolls, with a *Load more books* button too. The search and its filters are in the URL, so they survive a refresh and work with Back.
+25. **Filters and sorting.** Show (All results, BookWorm titles, Google Books), one of the six genres, and Best match or Newest. A sidebar on desktop; a *Filters* dialog on phones, whose button shows how many are on. Genre and sort are applied by Google, not just to the books already loaded.
+26. **Helpful mistakes.** A search with operators or symbols explains what's allowed instead of sending it. *Did you mean …?* corrects typos against BookWorm titles ("midnite libary" → *Midnight Library*). No matches says so and suggests checking the spelling, fewer words or other filters.
+27. **Recent searches and Surprise me.** An empty search box shows the profile's last ten searches (remove one or clear all) and the six genres. *Surprise me* (on Search and on Home's Trending row) opens a random title the profile may see.
+28. **Kids profiles** search BookWorm's age-rated shelf only; the page says so.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
@@ -576,7 +584,7 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 | Area | Assessment brief (README) | Blueprint (this file) | As built |
 | --- | --- | --- | --- |
 | Home | Books about "technology", Netflix-style | Featured carousel plus Continue Reading, Trending, New Releases, Top 10 and genre rows | Both (Phase 3): technology row and feed on the public home; blueprint rows on member Home |
-| Search | Title only | Title, author, narrator, ISBN, keyword, with filters | Phase 5: title-only search through the Edge Function |
+| Search | Title only, public | Title, author, narrator, ISBN, keyword, with filters | Both (Phase 5): public title-only search through the Edge Function, with the blueprint's filters (genre, sort, source), *Did you mean*, recent searches and Surprise Me |
 | Genres | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction | Genres from the catalog | The brief's six (Phase 3) |
 | Lists | Load more on every list (button or infinite scroll) | Horizontal rows | Both: infinite scroll plus a button on grids; *Load more* at the end of rows |
 | Book route | `/books/:id` | `/book/:id` | `/books/:id`; `/book/:id` redirects |

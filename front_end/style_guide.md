@@ -134,6 +134,12 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Log card.** Avatar initials, display name (with a *You* tag on your own), date, optional five gold stars (`role="img"`, "Rated 4 out of 5"), body in the reading serif. Long logs clamp to five lines with *Read full log*. Your own logs get a rust border and Edit and Delete.
 
+**Search page.** A large labelled search field (52px) with *Search* and *Surprise me* beside it and a one-line hint ("titles only"). Results are two titled sections, *From BookWorm* then *From Google Books*. Filters are radio chips grouped under small headings (Show, Genre, Sort by) in a sticky 240px sidebar; below 900px they move into a *Filters* dialog opened by a button that counts active filters.
+
+**Did you mean.** One line on the surface color with a rust left rule; the suggestion is a bold rust link that runs the corrected search.
+
+**Header on narrow phones.** Below 380px the wordmark is hidden visually (not with `display: none`), so the logo link is still announced as "BookWorm, home".
+
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
 
 ## Motion

@@ -26,6 +26,7 @@ npm run lint    # oxlint; must be clean
 - **State is in memory only** (`src/store`). No `localStorage`. A refresh resets the app on purpose.
 - **Book lists go through `src/lib/booksApi.ts`**, which calls only the `books` Edge Function. Never fetch Google Books from the browser. Kids profiles use the sample catalog only.
 - **Public logs come from `src/lib/logsApi.ts`** (the `logs` table with the publishable key, embedding only `profiles.display_name`). Public pages never read `library_items`.
+- Search is title only and public. Its state lives in the URL (`q`, `genre`, `sort`, `source`; see `src/lib/search.ts`), and the client checks queries with the same rules as the `books` function.
 - The profile's library is `ProfileData.library` (keyed by book id, with the brief's three statuses). Store actions mirror the database rules: a log needs its book in the library, and removing the book removes that profile's logs.
 - Styles are plain CSS in `src/styles/`. Use tokens from `tokens.css`; no raw hex in component CSS (book cover palettes are the exception).
 - Only export components from `.tsx` files (Fast Refresh); data and helpers go in `src/data` or `src/lib`.
