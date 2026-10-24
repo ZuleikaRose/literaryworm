@@ -18,7 +18,7 @@ export type Action =
   | { type: "signIn"; email: string }
   /** A real (Supabase) account signed in or was restored after a refresh. */
   | { type: "enterAccount"; account: Account; library: Record<string, LibraryEntry>; restored: boolean }
-  | { type: "authChecked" }
+  | { type: "authChecked"; error?: string }
   | { type: "signOut" }
   | { type: "choosePlan"; planId: PlanId; billingDay: number }
   | { type: "updateAccount"; patch: Partial<Account> }
@@ -102,7 +102,7 @@ export function reducer(state: AppState, action: Action): AppState {
     case "enterAccount": {
       if (state.account?.userId === action.account.userId) {
         // Restored again (token refresh, another tab): keep the household, update the details.
-        return { ...state, authReady: true, account: action.account, accountLibrary: action.library };
+        return { ...state, authReady: true, authError: null, account: action.account, accountLibrary: action.library };
       }
       // Household profiles stay in memory for now; the first one is named after the account holder.
       const first = makeProfile({ name: action.account.name.split(/\s+/)[0].slice(0, 20), ageRating: "all" });
@@ -116,12 +116,13 @@ export function reducer(state: AppState, action: Action): AppState {
         // Restored after a refresh: carry on as the account's one profile instead of asking again.
         activeProfileId: action.restored ? first.id : null,
         authReady: true,
+        authError: null,
         accountLibrary: action.library,
       };
     }
 
     case "authChecked":
-      return { ...state, authReady: true };
+      return { ...state, authReady: true, authError: action.error ?? null };
 
     case "signIn": {
       const household = state.households[emailKey(action.email)];

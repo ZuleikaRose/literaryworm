@@ -163,6 +163,12 @@ export default function SignIn() {
         </>
       }
     >
+      {state.authError && !formError && (
+        <div className="form-alert" role="alert">
+          <Icon name="alert" size={17} />
+          <p>{state.authError}</p>
+        </div>
+      )}
       {justConfirmed && !formError && (
         <div className="form-success" role="status">
           <Icon name="check" size={17} />

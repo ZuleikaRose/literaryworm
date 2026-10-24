@@ -45,8 +45,11 @@ export function useAuthSync() {
             if (account) dispatch({ type: "enterAccount", account, library, restored });
             else dispatch({ type: "authChecked" });
           } catch {
-            // Offline or the database is unreachable: carry on as a visitor; logging in again retries.
-            dispatch({ type: "authChecked" });
+            // Offline or the database is unreachable: carry on as a visitor and say why; logging in again retries.
+            dispatch({
+              type: "authChecked",
+              error: "We couldn't load your account. Check your connection, then log in again or refresh the page.",
+            });
           }
         }
       }, 0);

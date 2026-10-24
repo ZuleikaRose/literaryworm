@@ -18,6 +18,8 @@ export interface AppState {
    * so route guards wait instead of sending a signed-in member to the log-in page.
    */
   authReady: boolean;
+  /** Set when a saved session couldn't be restored (offline, database down), so the log-in page can say why. */
+  authError: string | null;
   /** A real account's library (library_items), shared by its household profiles. */
   accountLibrary: Record<string, LibraryEntry>;
   /** Every profile's logs plus the sample ones; public on each book's page. */
@@ -152,6 +154,7 @@ export function demoHousehold(): Household {
 
 export const initialState: AppState = {
   authReady: !usesBackend,
+  authError: null,
   accountLibrary: {},
   account: null,
   profiles: [],
