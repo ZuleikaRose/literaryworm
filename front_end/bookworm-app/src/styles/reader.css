@@ -6,10 +6,16 @@
   --paper-muted: var(--paper-sepia-muted);
   --paper-line: var(--paper-sepia-line);
   --paper-accent: var(--paper-sepia-accent);
+  --paper-mark-yellow: var(--paper-sepia-mark-yellow);
+  --paper-mark-green: var(--paper-sepia-mark-green);
+  --paper-mark-blue: var(--paper-sepia-mark-blue);
+  --paper-mark-pink: var(--paper-sepia-mark-pink);
   --reader-font: var(--font-reading);
 
   position: relative;
   display: grid;
+  /* One column that can't grow past the screen, so a long title truncates instead. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   height: 100vh;
   height: 100dvh;
@@ -25,6 +31,10 @@
   --paper-muted: var(--paper-light-muted);
   --paper-line: var(--paper-light-line);
   --paper-accent: var(--paper-light-accent);
+  --paper-mark-yellow: var(--paper-light-mark-yellow);
+  --paper-mark-green: var(--paper-light-mark-green);
+  --paper-mark-blue: var(--paper-light-mark-blue);
+  --paper-mark-pink: var(--paper-light-mark-pink);
 }
 
 .reader-theme-dark {
@@ -33,6 +43,10 @@
   --paper-muted: var(--paper-dark-muted);
   --paper-line: var(--paper-dark-line);
   --paper-accent: var(--paper-dark-accent);
+  --paper-mark-yellow: var(--paper-dark-mark-yellow);
+  --paper-mark-green: var(--paper-dark-mark-green);
+  --paper-mark-blue: var(--paper-dark-mark-blue);
+  --paper-mark-pink: var(--paper-dark-mark-pink);
   color-scheme: dark;
 }
 
@@ -745,6 +759,10 @@
 }
 
 @media (max-width: 420px) {
+  .reader-top {
+    gap: 4px;
+  }
+
   .reader-position {
     margin: 2px 0 0;
   }

@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
+import { MiniPlayer } from "../components/MiniPlayer";
 import { TabBar } from "../components/TabBar";
+import { usePlayback } from "../lib/playback";
 import { useAuthSync } from "../lib/useAuthSync";
 import { useActiveProfile, useStore } from "../store/context";
 
@@ -36,12 +38,14 @@ export function AppEffects() {
   return null;
 }
 
-/** Header, page and footer. Members also get the phone tab bar. */
+/** Header, page and footer. Members also get the phone tab bar, and the mini-player while a book plays. */
 export function SiteLayout() {
   const { state } = useStore();
   const profile = useActiveProfile();
+  const playback = usePlayback();
+  const listening = Boolean(playback.book && playback.snapshot);
   return (
-    <div className={`app${state.account && profile ? " has-tab-bar" : ""}`}>
+    <div className={`app${state.account && profile ? " has-tab-bar" : ""}${listening ? " has-mini-player" : ""}`}>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
@@ -50,6 +54,7 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <Footer />
+      <MiniPlayer />
       {state.account && profile && <TabBar />}
     </div>
   );

@@ -235,6 +235,14 @@
   font-size: 1rem;
 }
 
+/* A second group in a popover (Audio and transcripts), split from the first by a rule. */
+.popover-subtitle {
+  margin: 16px 0 10px;
+  padding: 16px 4px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.9375rem;
+}
+
 .popover-label {
   margin: 4px 8px 6px;
   color: var(--muted);
@@ -510,6 +518,14 @@
     right: 12px;
     left: 12px;
     width: auto;
+    /* Long menus scroll inside the screen instead of running off it. */
+    max-height: calc(100dvh - var(--header-h) - 18px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .has-tab-bar .popover {
+    max-height: calc(100dvh - var(--header-h) - var(--tab-h) - env(safe-area-inset-bottom) - 24px);
   }
 }
 

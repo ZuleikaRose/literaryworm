@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { PlaybackProvider } from "./components/PlaybackProvider";
 import { StoreProvider } from "./store/StoreProvider";
 import "./styles/tokens.css";
 import "./styles/base.css";
@@ -17,12 +18,15 @@ import "./styles/search.css";
 import "./styles/library.css";
 import "./styles/reader.css";
 import "./styles/account.css";
+import "./styles/study.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <StoreProvider>
-        <App />
+        <PlaybackProvider>
+          <App />
+        </PlaybackProvider>
       </StoreProvider>
     </BrowserRouter>
   </StrictMode>,

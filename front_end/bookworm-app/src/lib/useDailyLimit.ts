@@ -10,8 +10,10 @@ export const EXTRA_MINUTES = 30;
  * The profile's daily reading and listening limit (story 14). Counts time while `counting`
  * is true (the reader is open and the tab visible, or the player is playing) and reports
  * when today's time is used up. A grown-up can allow 30 more minutes with the account password.
+ * `profileId` pins the counting to one profile (the mini-player), so time still lands on the
+ * profile that was listening if someone switches profile while it plays.
  */
-export function useDailyLimit(counting: boolean) {
+export function useDailyLimit(counting: boolean, profileId?: string) {
   const { dispatch } = useStore();
   const profile = useActiveProfile();
   const data = useProfileData();
@@ -29,18 +31,18 @@ export function useDailyLimit(counting: boolean) {
       if (document.visibilityState !== "visible") return;
       unsaved.current += 1;
       if (unsaved.current >= STEP_SECONDS) {
-        dispatch({ type: "addTimeUsed", day: today(), seconds: unsaved.current });
+        dispatch({ type: "addTimeUsed", day: today(), seconds: unsaved.current, profileId });
         unsaved.current = 0;
       }
     }, 1000);
     return () => {
       window.clearInterval(id);
       if (unsaved.current > 0) {
-        dispatch({ type: "addTimeUsed", day: today(), seconds: unsaved.current });
+        dispatch({ type: "addTimeUsed", day: today(), seconds: unsaved.current, profileId });
         unsaved.current = 0;
       }
     };
-  }, [counting, reached, dispatch]);
+  }, [counting, reached, dispatch, profileId]);
 
   return {
     limitMinutes,

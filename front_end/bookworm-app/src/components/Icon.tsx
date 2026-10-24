@@ -170,6 +170,24 @@ const paths = {
       <path d="M12 10v5M12 18h.01" />
     </>
   ),
+  highlighter: (
+    <>
+      <path d="m9 11-6 6v3h9l3-3" />
+      <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+    </>
+  ),
+  dictionary: (
+    <>
+      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+      <path d="m8 13 4-7 4 7M9.2 11h5.6" />
+    </>
+  ),
+  subtitles: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M7 15h4M15 15h2M7 11h2M13 11h4" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof paths;

@@ -1,4 +1,4 @@
-import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import {
@@ -10,16 +10,20 @@ import {
   ReadingGate,
 } from "../components/ReadingParts";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
+import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar } from "../components/StudyTools";
 import { samplePage } from "../data/sampleText";
+import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
+import { usePlayback } from "../lib/playback";
 import { chapterStarts, pageForFraction, pageFraction, READER_SIZES, readerPages } from "../lib/reading";
 import { useControlsVisibility } from "../lib/useControlsVisibility";
 import { useDailyLimit } from "../lib/useDailyLimit";
+import { useHighlights } from "../lib/useHighlights";
 import { useReading } from "../lib/useReading";
 import { useTitle } from "../lib/useTitle";
 import { useProfileData } from "../store/context";
-import type { Book } from "../types";
+import type { Book, HighlightColor } from "../types";
 
-type Panel = "chapters" | "bookmarks" | "display" | null;
+type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | null;
 
 export default function Reader() {
   return <ReadingGate format="ebook">{(book) => <ReaderView key={book.id} book={book} />}</ReadingGate>;
@@ -32,7 +36,9 @@ function ReaderView({ book }: { book: Book }) {
   useTitle(`Reading ${book.title}`);
   const settings = useProfileData().readerSettings;
   const reading = useReading(book);
+  const study = useHighlights(book, reading.addToLibrary);
   const limit = useDailyLimit(true);
+  const playback = usePlayback();
   const pages = readerPages(book);
   const starts = chapterStarts(pages);
   const total = pages.length;
@@ -44,18 +50,103 @@ function ReaderView({ book }: { book: Book }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [asking, setAsking] = useState(false);
   const [finished, setFinished] = useState(false);
-  const { visible, show } = useControlsVisibility(panel === null && !asking && !finished);
+  const [selection, setSelection] = useState<(PageSelection & { rect: DOMRect }) | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
+  const [selectionBusy, setSelectionBusy] = useState(false);
+  const [editing, setEditing] = useState<{ id: string; focusNote: boolean } | null>(null);
+  const [dictionaryWord, setDictionaryWord] = useState("");
+  const { visible, show } = useControlsVisibility(panel === null && !asking && !finished && !editing && !selection);
   const pageRef = useRef<HTMLDivElement>(null);
+  const articleRef = useRef<HTMLElement>(null);
   const swipe = useRef<{ x: number; y: number } | null>(null);
+  const pointerDown = useRef(false);
+
+  // One book at a time: opening the reader pauses an audiobook playing in the mini-player.
+  const pausePlayback = playback.pause;
+  useEffect(() => {
+    pausePlayback();
+  }, [pausePlayback]);
 
   const page = pages[index];
   const chapter = book.chapters[page.chapterIndex];
   const pagesInChapter = pages.filter((p) => p.chapterIndex === page.chapterIndex).length;
   const hereLabel = `Chapter ${page.chapterIndex + 1}, page ${page.page + 1}`;
+  const paragraphs = samplePage(book.id, page.chapterIndex, page.page);
+  const offsets = paragraphOffsets(paragraphs);
+  const pageText = paragraphs.join("\n");
+  const pageHighlights = study.highlights.filter((h) => h.chapterIndex === page.chapterIndex && h.page === page.page);
+  const editingHighlight = editing ? (study.highlights.find((h) => h.id === editing.id) ?? null) : null;
+
+  // The selected words, as a range of this page's text, for the selection toolbar.
+  const pageTextRef = useRef(pageText);
+  useEffect(() => {
+    pageTextRef.current = pageText;
+  });
+  const readSelection = useCallback(() => {
+    const current = window.getSelection();
+    const article = articleRef.current;
+    if (!current || current.isCollapsed || current.rangeCount === 0 || !article) {
+      setSelection(null);
+      return;
+    }
+    const range = current.getRangeAt(0);
+    const found = selectionOnPage(article, range, pageTextRef.current);
+    setSelection(found ? { ...found, rect: range.getBoundingClientRect() } : null);
+    setSelectionError(null);
+  }, []);
+  useEffect(() => {
+    // While a finger or mouse is still dragging, wait for it to lift.
+    const onChange = () => {
+      if (!pointerDown.current) readSelection();
+    };
+    const onUp = () => {
+      if (!pointerDown.current) return;
+      pointerDown.current = false;
+      requestAnimationFrame(readSelection);
+    };
+    document.addEventListener("selectionchange", onChange);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      document.removeEventListener("selectionchange", onChange);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [readSelection]);
+
+  const clearSelection = useCallback(() => {
+    window.getSelection()?.removeAllRanges();
+    setSelection(null);
+    setSelectionError(null);
+  }, []);
+
+  const highlightSelection = async (color: HighlightColor, withNote: boolean) => {
+    if (!selection) return;
+    setSelectionBusy(true);
+    setSelectionError(null);
+    try {
+      const saved = await study.add({
+        chapterIndex: page.chapterIndex,
+        page: page.page,
+        start: selection.start,
+        end: selection.end,
+        quote: selection.quote,
+        color,
+        note: null,
+      });
+      clearSelection();
+      if (withNote) setEditing({ id: saved.id, focusNote: true });
+    } catch (err) {
+      setSelectionError(err instanceof Error ? err.message : "We couldn't save the highlight. Try again.");
+    } finally {
+      setSelectionBusy(false);
+    }
+  };
 
   const goTo = (next: number) => {
     const clamped = Math.min(total - 1, Math.max(0, next));
     setIndex(clamped);
+    clearSelection();
     pageRef.current?.scrollTo({ top: 0 });
     const target = pages[clamped];
     reading.save({ format: "ebook", fraction: pageFraction(clamped, total), chapterIndex: target.chapterIndex });
@@ -90,11 +181,18 @@ function ReaderView({ book }: { book: Book }) {
 
   const onPointerDown = (e: PointerEvent) => {
     swipe.current = { x: e.clientX, y: e.clientY };
+    pointerDown.current = true;
   };
   const onPointerUp = (e: PointerEvent) => {
     const start = swipe.current;
     swipe.current = null;
     if (!start || window.getSelection()?.toString()) return;
+    // A tap or click on a highlight opens it.
+    const mark = (e.target as Element).closest?.<HTMLElement>("mark[data-highlight]");
+    if (mark && Math.abs(e.clientX - start.x) < 10 && Math.abs(e.clientY - start.y) < 10) {
+      setEditing({ id: mark.dataset.highlight!, focusNote: false });
+      return;
+    }
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
@@ -144,9 +242,24 @@ function ReaderView({ book }: { book: Book }) {
             <Icon name="list" size={20} />
             <span className="visually-hidden">Chapters</span>
           </button>
+          <button type="button" className="icon-button" onClick={() => setPanel("highlights")}>
+            <Icon name="highlighter" size={20} />
+            <span className="visually-hidden">Notes and highlights ({study.highlights.length})</span>
+          </button>
           <button type="button" className="icon-button" onClick={() => setPanel("bookmarks")}>
             <Icon name="bookmark" size={20} filled={isHereMarked} />
             <span className="visually-hidden">Bookmarks{isHereMarked ? " (this page is bookmarked)" : ""}</span>
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => {
+              setDictionaryWord("");
+              setPanel("dictionary");
+            }}
+          >
+            <Icon name="dictionary" size={20} />
+            <span className="visually-hidden">Dictionary</span>
           </button>
           <button type="button" className="icon-button" onClick={() => setPanel("display")}>
             <Icon name="type" size={20} />
@@ -177,16 +290,37 @@ function ReaderView({ book }: { book: Book }) {
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
           >
-            <article className="reader-text" lang="en" aria-label={`${chapter.title}, page ${page.page + 1} of ${pagesInChapter}`}>
+            <article
+              ref={articleRef}
+              className="reader-text"
+              lang="en"
+              aria-label={`${chapter.title}, page ${page.page + 1} of ${pagesInChapter}`}
+            >
               {page.page === 0 && (
                 <h2 className="reader-chapter-title">
                   <span>Chapter {page.chapterIndex + 1}</span>
                   {chapter.title !== `Chapter ${page.chapterIndex + 1}` && chapter.title}
                 </h2>
               )}
-              {samplePage(book.id, page.chapterIndex, page.page).map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
-              ))}
+              {paragraphs.map((paragraph, i) => {
+                let at = offsets[i];
+                return (
+                  <p key={i} data-offset={offsets[i]}>
+                    {paragraphSegments(paragraph, offsets[i], pageHighlights).map((segment, j) => {
+                      at += segment.text.length;
+                      const h = segment.highlight;
+                      if (!h) return segment.text;
+                      // The note mark goes after the highlight's last run.
+                      const ends = at >= h.end;
+                      return (
+                        <mark key={j} className={`hl hl-${h.color}${h.note ? " hl-has-note" : ""}${ends ? " hl-end" : ""}`} data-highlight={h.id}>
+                          {segment.text}
+                        </mark>
+                      );
+                    })}
+                  </p>
+                );
+              })}
             </article>
           </div>
         )}
@@ -266,6 +400,45 @@ function ReaderView({ book }: { book: Book }) {
         onRemove={(b) => reading.removeBookmark(b.id)}
       />
       <ReaderDisplayDialog open={panel === "display"} onClose={() => setPanel(null)} />
+      <HighlightsDialog
+        open={panel === "highlights"}
+        book={book}
+        highlights={study.highlights}
+        onClose={() => setPanel(null)}
+        onGo={(h) => {
+          setPanel(null);
+          goTo(starts[h.chapterIndex] + h.page);
+        }}
+        onEdit={(h) => {
+          setPanel(null);
+          setEditing({ id: h.id, focusNote: true });
+        }}
+        onRemove={study.remove}
+      />
+      <HighlightDialog
+        highlight={editingHighlight}
+        focusNote={editing?.focusNote ?? false}
+        onClose={() => setEditing(null)}
+        onUpdate={study.update}
+        onRemove={study.remove}
+      />
+      <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} onClose={() => setPanel(null)} />
+      {selection && !finished && (
+        <SelectionToolbar
+          rect={selection.rect}
+          canDefine={singleWord(selection.quote) !== null}
+          error={selectionError}
+          busy={selectionBusy}
+          onHighlight={(color) => highlightSelection(color, false)}
+          onNote={() => highlightSelection("yellow", true)}
+          onDefine={() => {
+            setDictionaryWord(singleWord(selection.quote) ?? "");
+            clearSelection();
+            setPanel("dictionary");
+          }}
+          onDismiss={clearSelection}
+        />
+      )}
       <MarkFinishedDialog open={asking} title={book.title} onFinish={finish} onCancel={() => setAsking(false)} />
     </div>
   );

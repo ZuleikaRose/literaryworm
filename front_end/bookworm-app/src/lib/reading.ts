@@ -101,11 +101,12 @@ export const defaultReaderSettings: ReaderSettings = {
  * What removing a book from the library also deletes, as one sentence, or null when there's
  * nothing to lose (so the page can skip asking).
  */
-export function lostWithBook(logs: number, hasPlace: boolean, bookmarks: number): string | null {
+export function lostWithBook(logs: number, hasPlace: boolean, bookmarks: number, highlights = 0): string | null {
   const parts = [
     logs > 0 && (logs === 1 ? "your log" : `your ${logs} logs`),
     hasPlace && "your place in the book",
     bookmarks > 0 && (bookmarks === 1 ? "your bookmark" : `your ${bookmarks} bookmarks`),
+    highlights > 0 && (highlights === 1 ? "your highlight" : `your ${highlights} highlights and notes`),
   ].filter((part): part is string => Boolean(part));
   if (parts.length === 0) return null;
   const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;

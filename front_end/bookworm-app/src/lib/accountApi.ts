@@ -1,5 +1,17 @@
 import type { AccountReading } from "../store/state";
-import type { AgeRating, Account, Bookmark, Format, LibraryEntry, PlanId, Profile, Progress, ReadingStatus } from "../types";
+import type {
+  AgeRating,
+  Account,
+  Bookmark,
+  Format,
+  Highlight,
+  HighlightColor,
+  LibraryEntry,
+  PlanId,
+  Profile,
+  Progress,
+  ReadingStatus,
+} from "../types";
 import { SUPABASE_URL } from "./backend";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
@@ -466,7 +478,7 @@ export async function deleteLog(id: string): Promise<void> {
   if (error) throw new AccountError("We couldn't delete your log. Try again.");
 }
 
-// --- Reading progress and bookmarks (owner-only RLS) ---------------------------
+// --- Reading progress, bookmarks and highlights (owner-only RLS) ---------------
 
 interface ProgressRow {
   volume_id: string;
@@ -506,7 +518,34 @@ const toBookmark = (row: BookmarkRow): Bookmark => ({
   createdAt: Date.parse(row.created_at),
 });
 
+interface HighlightRow {
+  id: string;
+  volume_id: string;
+  chapter_index: number;
+  page: number;
+  start_offset: number;
+  end_offset: number;
+  quote: string;
+  color: HighlightColor;
+  note: string | null;
+  created_at: string;
+}
+
+const toHighlight = (row: HighlightRow): Highlight => ({
+  id: row.id,
+  bookId: row.volume_id,
+  chapterIndex: row.chapter_index,
+  page: row.page,
+  start: row.start_offset,
+  end: row.end_offset,
+  quote: row.quote,
+  color: row.color,
+  note: row.note,
+  createdAt: Date.parse(row.created_at),
+});
+
 const PROGRESS_COLUMNS = "volume_id, format, chapter_index, position, finished, updated_at";
+const HIGHLIGHT_COLUMNS = "id, volume_id, chapter_index, page, start_offset, end_offset, quote, color, note, created_at";
 const BOOKMARK_COLUMNS = "id, volume_id, format, chapter_index, position, label, created_at";
 
 /** The column's numeric(5,4): four decimal places, 0 to 1. */
@@ -514,14 +553,18 @@ const toPosition = (fraction: number) => Math.round(Math.min(1, Math.max(0, frac
 
 export async function loadReading(): Promise<AccountReading> {
   const db = client();
-  const [progress, bookmarks] = await Promise.all([
+  const [progress, bookmarks, highlights] = await Promise.all([
     db.from("reading_progress").select(PROGRESS_COLUMNS),
     db.from("bookmarks").select(BOOKMARK_COLUMNS).order("created_at"),
+    db.from("highlights").select(HIGHLIGHT_COLUMNS).order("created_at"),
   ]);
-  if (progress.error || bookmarks.error) throw new AccountError("We couldn't load your reading progress. Try again.");
+  if (progress.error || bookmarks.error || highlights.error) {
+    throw new AccountError("We couldn't load your reading progress. Try again.");
+  }
   return {
     progress: Object.fromEntries((progress.data as ProgressRow[]).map((row) => [row.volume_id, toProgress(row)])),
     bookmarks: (bookmarks.data as BookmarkRow[]).map(toBookmark),
+    highlights: (highlights.data as HighlightRow[]).map(toHighlight),
   };
 }
 
@@ -575,4 +618,36 @@ export async function addBookmark(bookmark: Omit<Bookmark, "id" | "createdAt">):
 export async function removeBookmark(id: string): Promise<void> {
   const { error } = await client().from("bookmarks").delete().eq("id", id).eq("user_id", await signedInUserId());
   if (error) throw new AccountError("We couldn't remove the bookmark. Try again.");
+}
+
+/** Saves a highlight (the book must be in the library) and returns it as stored. */
+export async function addHighlight(highlight: Omit<Highlight, "id" | "createdAt">): Promise<Highlight> {
+  const { data, error } = await client()
+    .from("highlights")
+    .insert({
+      user_id: await signedInUserId(),
+      volume_id: highlight.bookId,
+      chapter_index: highlight.chapterIndex,
+      page: highlight.page,
+      start_offset: highlight.start,
+      end_offset: highlight.end,
+      quote: highlight.quote,
+      color: highlight.color,
+      note: highlight.note,
+    })
+    .select(HIGHLIGHT_COLUMNS)
+    .single();
+  if (error) throw new AccountError("We couldn't save the highlight. Try again.");
+  return toHighlight(data as HighlightRow);
+}
+
+/** Changes a highlight's colour or note (the passage itself is fixed). */
+export async function updateHighlight(id: string, patch: Partial<Pick<Highlight, "color" | "note">>): Promise<void> {
+  const { error } = await client().from("highlights").update(patch).eq("id", id).eq("user_id", await signedInUserId());
+  if (error) throw new AccountError(patch.note !== undefined ? "We couldn't save the note. Try again." : "We couldn't change the colour. Try again.");
+}
+
+export async function removeHighlight(id: string): Promise<void> {
+  const { error } = await client().from("highlights").delete().eq("id", id).eq("user_id", await signedInUserId());
+  if (error) throw new AccountError("We couldn't remove the highlight. Try again.");
 }

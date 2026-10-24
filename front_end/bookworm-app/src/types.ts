@@ -142,6 +142,27 @@ export interface Bookmark {
   createdAt: number;
 }
 
+export type HighlightColor = "yellow" | "green" | "blue" | "pink";
+
+/**
+ * A passage marked on one reader page, with an optional note. The page is found by chapter
+ * and page within the chapter; the passage by character offsets in that page's text.
+ */
+export interface Highlight {
+  id: string;
+  bookId: string;
+  chapterIndex: number;
+  /** 0-based page within the chapter. */
+  page: number;
+  start: number;
+  end: number;
+  /** The highlighted words, kept so lists can show them without opening the page. */
+  quote: string;
+  color: HighlightColor;
+  note: string | null;
+  createdAt: number;
+}
+
 /** The reader's display choices, kept per profile for the session. */
 export interface ReaderSettings {
   font: "serif" | "sans" | "readable";
@@ -184,6 +205,7 @@ export interface ProfileData {
   /** In-memory accounts only; real accounts keep progress and bookmarks in Supabase (state.accountReading). */
   progress: Record<string, Progress>;
   bookmarks: Bookmark[];
+  highlights: Highlight[];
   recentSearches: string[];
   readerSettings: ReaderSettings;
   /** Audiobook playback speed, 0.5–3. */
@@ -217,4 +239,10 @@ export interface A11ySettings {
   reduceMotion: boolean;
   underlineLinks: boolean;
   theme: "dark" | "light";
+  /** The player's read-along transcript: shown or hidden, its size, and its language. */
+  transcript: boolean;
+  transcriptSize: "small" | "medium" | "large";
+  transcriptLanguage: TranscriptLanguage;
 }
+
+export type TranscriptLanguage = "en" | "es";

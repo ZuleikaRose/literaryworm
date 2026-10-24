@@ -6,6 +6,7 @@ import type {
   A11ySettings,
   Account,
   Bookmark,
+  Highlight,
   LibraryEntry,
   Profile,
   ProfileData,
@@ -33,7 +34,7 @@ export interface AppState {
   authError: string | null;
   /** A real account's library (library_items), shared by its household profiles. */
   accountLibrary: Record<string, LibraryEntry>;
-  /** A real account's reading progress and bookmarks (reading_progress, bookmarks), shared like the library. */
+  /** A real account's progress, bookmarks and highlights (reading_progress, bookmarks, highlights), shared like the library. */
   accountReading: AccountReading;
   /** Every profile's logs plus the sample ones; public on each book's page. */
   logs: ReadingLog[];
@@ -48,9 +49,10 @@ export interface AppState {
 export interface AccountReading {
   progress: Record<string, Progress>;
   bookmarks: Bookmark[];
+  highlights: Highlight[];
 }
 
-export const emptyReading = (): AccountReading => ({ progress: {}, bookmarks: [] });
+export const emptyReading = (): AccountReading => ({ progress: {}, bookmarks: [], highlights: [] });
 
 /** Everything that belongs to one account. */
 export interface Household {
@@ -68,6 +70,9 @@ export const defaultA11y: A11ySettings = {
   reduceMotion: false,
   underlineLinks: false,
   theme: "dark",
+  transcript: true,
+  transcriptSize: "medium",
+  transcriptLanguage: "en",
 };
 
 export const emptyProfileData = (): ProfileData => ({
@@ -77,6 +82,7 @@ export const emptyProfileData = (): ProfileData => ({
   ratings: {},
   progress: {},
   bookmarks: [],
+  highlights: [],
   recentSearches: [],
   readerSettings: defaultReaderSettings,
   playbackSpeed: 1,

@@ -12,15 +12,17 @@ type Place = Pick<Progress, "format" | "fraction" | "chapterIndex"> & { finished
 const SAVE_DELAY_MS = 1500;
 
 /**
- * Progress and bookmarks for one book in the reader or player.
+ * Progress and bookmarks for one book in the reader or player (highlights are in useHighlights).
  *
  * Opening a book puts it in the library as "Reading" (a "Want to read" book moves to
  * "Reading"), because progress and bookmarks belong to a library book, as in the database.
  * The place is kept on screen straight away and saved to Supabase a moment later (real
  * accounts), so reading never waits for the network; if a save fails, `saveError` says so and
  * the next page turn tries again. Bookmarks are saved first, then shown, like the library.
+ * `profileId` pins in-memory progress to one profile (the mini-player keeps playing while
+ * someone switches profile).
  */
-export function useReading(book: Book) {
+export function useReading(book: Book, profileId?: string) {
   const { state, dispatch } = useStore();
   const remote = Boolean(state.account?.userId);
   const reading = activeReading(state);
@@ -117,7 +119,7 @@ export function useReading(book: Book) {
         finished: place.finished ?? false,
         updatedAt: Date.now(),
       };
-      dispatch({ type: "saveProgress", progress: next });
+      dispatch({ type: "saveProgress", progress: next, profileId });
       if (!latest.current.remote) {
         if (next.finished) void ensureInLibrary(true);
         return;
@@ -127,7 +129,7 @@ export function useReading(book: Book) {
       if (next.finished) void flush();
       else timer.current = window.setTimeout(() => void flush(), SAVE_DELAY_MS);
     },
-    [book.id, dispatch, ensureInLibrary, flush],
+    [book.id, dispatch, ensureInLibrary, flush, profileId],
   );
 
   async function addBookmark(place: { format: Format; fraction: number; chapterIndex: number; label: string }) {
@@ -147,5 +149,8 @@ export function useReading(book: Book) {
     dispatch({ type: "removeBookmark", id });
   }
 
-  return { progress, bookmarks, save, flush, saveError, addBookmark, removeBookmark };
+  /** For other things that belong to a library book (highlights). */
+  const addToLibrary = useCallback(() => ensureInLibrary(false), [ensureInLibrary]);
+
+  return { progress, bookmarks, save, flush, saveError, addBookmark, removeBookmark, addToLibrary };
 }

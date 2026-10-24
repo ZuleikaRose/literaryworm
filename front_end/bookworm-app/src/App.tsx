@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppEffects, ImmersiveLayout, RequireAccount, RequireProfile, SiteLayout } from "./layouts/Layouts";
 import Account from "./pages/Account";
@@ -8,13 +9,15 @@ import Legal from "./pages/Legal";
 import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
 import Plans from "./pages/Plans";
-import Player from "./pages/Player";
 import Profiles from "./pages/Profiles";
-import Reader from "./pages/Reader";
 import ResetPassword from "./pages/ResetPassword";
 import Search from "./pages/Search";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+
+// The reader and player (with their study tools) load when first opened, keeping the first download small.
+const Reader = lazy(() => import("./pages/Reader"));
+const Player = lazy(() => import("./pages/Player"));
 
 /** Old /book/:id links keep working. */
 function LegacyBookRedirect() {
@@ -55,8 +58,22 @@ export default function App() {
 
         <Route element={<RequireProfile />}>
           <Route element={<ImmersiveLayout />}>
-            <Route path="read/:id" element={<Reader />} />
-            <Route path="listen/:id" element={<Player />} />
+            <Route
+              path="read/:id"
+              element={
+                <Suspense fallback={<div className="immersive" aria-busy="true" />}>
+                  <Reader />
+                </Suspense>
+              }
+            />
+            <Route
+              path="listen/:id"
+              element={
+                <Suspense fallback={<div className="immersive" aria-busy="true" />}>
+                  <Player />
+                </Suspense>
+              }
+            />
           </Route>
         </Route>
       </Routes>

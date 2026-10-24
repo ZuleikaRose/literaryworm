@@ -185,6 +185,7 @@ function DetailPage({ view }: { view: DetailView }) {
   // Where the account stopped, for "Continue reading" / "Continue listening".
   const place = profile ? activeReading(state).progress[view.id] : undefined;
   const bookmarkCount = profile ? activeReading(state).bookmarks.filter((b) => b.bookId === view.id).length : 0;
+  const highlightCount = profile ? activeReading(state).highlights.filter((h) => h.bookId === view.id).length : 0;
   const resume = (format: "ebook" | "audiobook") =>
     place && !place.finished && place.format === format ? ` · ${Math.round(place.fraction * 100)}%` : null;
   const canWriteLogs = Boolean(profile && profile.ageRating !== "kids");
@@ -196,7 +197,7 @@ function DetailPage({ view }: { view: DetailView }) {
   const isMine = (log: ReadingLog) =>
     Boolean(profile && ((log.profileId && log.profileId === profile.id) || (userId && log.userId === userId)));
   const myLogCount = logs.filter(isMine).length;
-  const removeWarning = lostWithBook(myLogCount, Boolean(place), bookmarkCount);
+  const removeWarning = lostWithBook(myLogCount, Boolean(place), bookmarkCount, highlightCount);
   // Logs show the account's display name for real accounts (profiles.display_name), the profile's otherwise.
   const postingAs = userId ? state.account!.name : (profile?.name ?? "");
 

@@ -87,6 +87,7 @@ export function useAccount() {
       library: Object.values(activeLibrary(state)),
       readingProgress: Object.values(reading.progress),
       bookmarks: reading.bookmarks,
+      highlights: reading.highlights,
       logs,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });

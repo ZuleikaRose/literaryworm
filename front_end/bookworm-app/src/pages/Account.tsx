@@ -434,7 +434,7 @@ function PrivacySection() {
       <button type="button" className="secondary-button" disabled={busy} onClick={() => attempt(downloadData, "Your data file is downloading.")}>
         <Icon name="download" size={17} /> {busy ? "Gathering your data…" : "Download my data"}
       </button>
-      <p className="field-hint">A JSON file with your account details, profiles, library, reading progress, bookmarks and logs.</p>
+      <p className="field-hint">A JSON file with your account details, profiles, library, reading progress, bookmarks, highlights and notes, and logs.</p>
       <Feedback error={error} done={done} />
       <ul className="account-links">
         <li>
@@ -474,8 +474,8 @@ function DeleteSection({ account }: { account: AccountDetails }) {
   return (
     <Section id="delete" title="Delete account" className="danger-zone">
       <p>
-        Deleting the account cancels your plan and permanently removes your profiles, library, reading progress, bookmarks
-        and logs. It can't be undone.
+        Deleting the account cancels your plan and permanently removes your profiles, library, reading progress, bookmarks,
+        highlights, notes and logs. It can't be undone.
       </p>
       {account.isDemo ? (
         <p className="field-hint">The demo household can't be deleted; it resets when you refresh the page.</p>

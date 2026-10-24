@@ -76,6 +76,28 @@
   --paper-dark-muted: #a7a39b;
   --paper-dark-line: #2c3033;
   --paper-dark-accent: #d47652;
+
+  /* Highlight colours under the words, per paper theme (the text keeps its own colour). */
+  --paper-light-mark-yellow: #fbe49a;
+  --paper-light-mark-green: #cdeac1;
+  --paper-light-mark-blue: #cfe1f6;
+  --paper-light-mark-pink: #f7d1de;
+  --paper-sepia-mark-yellow: #f0d47a;
+  --paper-sepia-mark-green: #c6dba6;
+  --paper-sepia-mark-blue: #c3d5e0;
+  --paper-sepia-mark-pink: #ebbfc3;
+  --paper-dark-mark-yellow: #5a4814;
+  --paper-dark-mark-green: #2c4a2b;
+  --paper-dark-mark-blue: #23405f;
+  --paper-dark-mark-pink: #5b2638;
+}
+
+/* The same four colours at full strength: swatches, and the colour bar beside a quote. */
+:root {
+  --mark-yellow: #e2b53a;
+  --mark-green: #5aa863;
+  --mark-blue: #5591d4;
+  --mark-pink: #d9688a;
 }
 
 :root[data-theme="light"] {
