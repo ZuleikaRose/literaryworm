@@ -593,7 +593,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 
 ### Phase 8: Account and household
 
-44. **Profiles are saved.** A real account's household profiles live in `reader_profiles`: the first is created from the account holder's name, and adding, renaming, avatars and favourite genres save straight away. Kids profiles (with the parent's consent), PINs, daily limits, age-rating changes and deletes go through the `manage-profile` function, which checks the account password again. PINs are checked on the server, which counts wrong tries and locks the profile for 15 minutes after five.
+44. **Profiles are saved.** A real account's household profiles live in `reader_profiles`: the first is created from the account holder's name, and adding, renaming, avatars and favourite genres save straight away. Kids profiles (with the parent's consent and the account password), PINs, daily limits, age-rating changes and deletes go through the `manage-profile` function, which checks the account password again. PINs are checked on the server, which counts wrong tries and locks the profile for 15 minutes after five.
 45. **After a refresh** a member with one unguarded profile carries on; a household with more profiles (or a PIN or Kids profile) starts at *Who's reading?*, so locks still apply.
 46. **Account (`/account`).** Section links at the top, then:
     - **Plan and billing:** plan, price, status, next charge and billing day; *Change plan*, *Pause membership* / *Resume membership*, and *Cancel membership* (it runs to the next billing date with no more charges) / *Keep my membership*. Pausing and cancelling ask first.
