@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0600)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0700)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -214,6 +214,24 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; added and removed, never edited.",
         },
         {
+          id: "highlights", color: colors.reading, x: 1260, y: 1060, sub: "private · highlights and notes",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["fk", "volume_id", "text"],
+            ["", "chapter_index", "smallint 0–999"],
+            ["", "page", "smallint 0–999"],
+            ["", "start_offset", "integer"],
+            ["", "end_offset", "integer (> start)"],
+            ["", "quote", "text 1–2000"],
+            ["", "color", "highlight_color"],
+            ["", "note", "text 1–2000", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "A passage on one reader page, in yellow, green, blue or pink, with an optional note. FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; browser edits color and note only.",
+        },
+        {
           id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 5 per account",
           cols: [
             ["pk", "id", "uuid"],
@@ -272,6 +290,7 @@
         ["logs", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["reading_progress", "volume_id", "library_items", "volume_id", "1 : 1 (pair)"],
         ["bookmarks", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
+        ["highlights", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
       ];
       // -----------------------------------------------------------------------------------
 

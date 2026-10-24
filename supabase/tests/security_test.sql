@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress and bookmarks need a library item" rule. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -52,6 +52,7 @@ select pg_temp.expect_error($$select public.verify_profile_pin(gen_random_uuid()
 select pg_temp.expect_error($$insert into public.logs (user_id, volume_id, body) values ('00000000-0000-0000-0000-00000000000a', 'abc', 'hi')$$, 'anon writing a log');
 select pg_temp.expect_error('select * from public.reading_progress', 'anon reading progress');
 select pg_temp.expect_error('select * from public.bookmarks', 'anon reading bookmarks');
+select pg_temp.expect_error('select * from public.highlights', 'anon reading highlights');
 reset role;
 
 -- Ann, signed in --------------------------------------------------------------
@@ -91,6 +92,14 @@ select pg_temp.expect_error($$update public.reading_progress set position = 1.5$
 select pg_temp.expect_error($$insert into public.bookmarks (user_id, volume_id, format, chapter_index, position, label) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'ebook', 0, 0, '   ')$$, 'a blank bookmark label');
 select pg_temp.expect_error($$update public.reading_progress set user_id = '00000000-0000-0000-0000-00000000000b'$$, 'moving progress to another user');
 select pg_temp.expect_error($$update public.bookmarks set label = 'edited'$$, 'editing a bookmark');
+insert into public.highlights (user_id, volume_id, chapter_index, page, start_offset, end_offset, quote, color, note) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 2, 1, 10, 42, 'the colour of weak tea', 'yellow', null);
+update public.highlights set color = 'blue', note = 'Lovely image' where volume_id = 'zyTCAlFPjgYC';
+select pg_temp.check((select color = 'blue' and note = 'Lovely image' from public.highlights), 'highlight colour and note edited');
+select pg_temp.expect_error($$insert into public.highlights (user_id, volume_id, chapter_index, page, start_offset, end_offset, quote) values ('00000000-0000-0000-0000-00000000000a', 'notInLibrary1', 0, 0, 0, 5, 'words')$$, 'a highlight for a book not in the library');
+select pg_temp.expect_error($$insert into public.highlights (user_id, volume_id, chapter_index, page, start_offset, end_offset, quote) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 0, 0, 9, 4, 'words')$$, 'a highlight that ends before it starts');
+select pg_temp.expect_error($$update public.highlights set note = '   '$$, 'a blank note');
+select pg_temp.expect_error($$update public.highlights set start_offset = 0$$, 'moving a highlighted passage');
+select pg_temp.expect_error($$update public.highlights set user_id = '00000000-0000-0000-0000-00000000000b'$$, 'moving a highlight to another user');
 reset role;
 
 -- Ben, signed in --------------------------------------------------------------
@@ -107,6 +116,9 @@ with u as (update public.reading_progress set position = 0 returning 1)
 select pg_temp.check(count(*) = 0, 'Ben cannot change Ann''s progress') from u;
 with d as (delete from public.bookmarks where volume_id = 'zyTCAlFPjgYC' returning 1)
 select pg_temp.check(count(*) = 0, 'Ben cannot delete Ann''s bookmark') from d;
+select pg_temp.check((select count(*) from public.highlights) = 0, 'Ben cannot see Ann''s highlights');
+with u as (update public.highlights set note = 'mine now' returning 1)
+select pg_temp.check(count(*) = 0, 'Ben cannot change Ann''s highlight') from u;
 select pg_temp.expect_error($$insert into public.reading_progress (user_id, volume_id, format, chapter_index, position) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'ebook', 0, 0)$$, 'saving progress into Ann''s account');
 insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000b', 'Ben');
 select pg_temp.expect_error($$insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000b', 'Two')$$, 'a second profile with no plan');
@@ -139,13 +151,14 @@ select pg_temp.check((select count(*) from public.parental_consents where profil
 select pg_temp.check(public.check_rate_limit('test:1', 2, 60) and public.check_rate_limit('test:1', 2, 60) and not public.check_rate_limit('test:1', 2, 60), 'rate limit allows 2 then refuses');
 reset role;
 
--- Removing a book deletes its logs, progress and bookmarks -------------------
+-- Removing a book deletes its logs, progress, bookmarks and highlights -------
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.check((select position from public.reading_progress) = 0.5, 'Ann''s progress kept after Ben''s attempts');
 delete from public.library_items where volume_id = 'zyTCAlFPjgYC';
 select pg_temp.check((select count(*) from public.logs) = 0, 'logs deleted with the library item');
 select pg_temp.check((select count(*) from public.reading_progress) = 0 and (select count(*) from public.bookmarks) = 0, 'progress and bookmarks deleted with the library item');
+select pg_temp.check((select count(*) from public.highlights) = 0, 'highlights deleted with the library item');
 reset role;
 
 -- Every public table has RLS on -----------------------------------------------
