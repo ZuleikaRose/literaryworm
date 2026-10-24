@@ -13,6 +13,10 @@ interface BookFeedProps {
   ageRating?: AgeRating;
   /** Controls shown under the heading, such as genre links. */
   controls?: ReactNode;
+  /** What to suggest when the list comes back empty. */
+  emptyHint?: string;
+  /** The line under a list that has loaded everything. */
+  endText?: string;
 }
 
 /**
@@ -20,7 +24,7 @@ interface BookFeedProps {
  * discovering"). A Load more button does the same for keyboard users and browsers without
  * IntersectionObserver.
  */
-export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls }: BookFeedProps) {
+export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint = "Try another genre.", endText }: BookFeedProps) {
   const { items, status, error, loadMore, retry } = useBookFeed(query, ageRating);
   const sentinel = useRef<HTMLDivElement>(null);
   const headingId = `${id}-title`;
@@ -85,11 +89,11 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
         <div className="empty-results">
           <Icon name="search" size={28} />
           <h3>No books here yet</h3>
-          <p>Try another genre.</p>
+          <p>{emptyHint}</p>
         </div>
       )}
 
-      {status === "end" && items.length > 0 && <p className="feed-end">That's everything in {title}.</p>}
+      {status === "end" && items.length > 0 && <p className="feed-end">{endText ?? `That's everything in ${title}.`}</p>}
 
       {status === "idle" && (
         <div className="feed-more" ref={sentinel}>

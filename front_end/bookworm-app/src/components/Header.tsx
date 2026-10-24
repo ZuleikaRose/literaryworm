@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSignOut } from "../lib/useSignOut";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccessibilityMenu } from "./AccessibilityMenu";
@@ -20,10 +20,10 @@ export function Brand({ to }: { to: string }) {
   );
 }
 
-function HeaderSearch({ initialQuery }: { initialQuery: string }) {
+function HeaderSearch() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState(initialQuery);
+  const [query, setQuery] = useState("");
   const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
   // ⌘K / Ctrl+K jumps to search from anywhere.
@@ -48,7 +48,7 @@ function HeaderSearch({ initialQuery }: { initialQuery: string }) {
     <form className="search-box" role="search" onSubmit={submit}>
       <Icon name="search" size={19} />
       <label className="visually-hidden" htmlFor="header-search">
-        Search books, authors, genres
+        Search by title
       </label>
       <input
         ref={inputRef}
@@ -56,7 +56,7 @@ function HeaderSearch({ initialQuery }: { initialQuery: string }) {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search books, authors, genres"
+        placeholder="Search by title"
         autoComplete="off"
       />
       <kbd aria-hidden="true">{isMac ? "⌘ K" : "Ctrl K"}</kbd>
@@ -70,14 +70,12 @@ export function Header() {
   const signOut = useSignOut();
   const isMember = Boolean(state.account && profile);
   const location = useLocation();
-  const [params] = useSearchParams();
-  // Remounting on a new query keeps the box in step with the search page.
-  const currentQuery = location.pathname === "/search" ? (params.get("q") ?? "") : "";
 
   return (
     <header className="topbar">
       <Brand to={isMember ? "/browse" : "/"} />
-      {isMember && <HeaderSearch key={currentQuery} initialQuery={currentQuery} />}
+      {/* The search page has its own, larger box, so the header's steps aside there. */}
+      {isMember && location.pathname !== "/search" && <HeaderSearch />}
       <nav className="desktop-nav" aria-label="Primary">
         {isMember ? (
           <>
@@ -89,11 +87,18 @@ export function Header() {
             <NavLink to="/" end>
               Home
             </NavLink>
+            <NavLink to="/search">Search</NavLink>
             <NavLink to="/plans">Plans</NavLink>
           </>
         )}
       </nav>
       <div className="header-actions">
+        {!isMember && (
+          <Link className="icon-button header-search-link" to="/search">
+            <Icon name="search" size={20} />
+            <span className="visually-hidden">Search</span>
+          </Link>
+        )}
         <AccessibilityMenu />
         {isMember ? (
           <ProfileMenu />

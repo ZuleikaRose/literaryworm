@@ -45,7 +45,10 @@ export interface VolumeDetail extends Omit<BookSummary, "local"> {
   mature: boolean;
 }
 
-export type FeedQuery = { mode: "home" } | { mode: "genre"; genre: BrowseGenre } | { mode: "search"; q: string };
+export type FeedQuery =
+  | { mode: "home" }
+  | { mode: "genre"; genre: BrowseGenre }
+  | { mode: "search"; q: string; genre?: BrowseGenre | null; sort?: "relevance" | "newest" };
 
 export class BooksApiError extends Error {
   readonly code: string;
@@ -62,7 +65,9 @@ export const MAX_PAGE = 19;
 export { usesBackend };
 
 export function feedKey(query: FeedQuery): string {
-  return query.mode === "genre" ? `genre:${query.genre}` : query.mode === "search" ? `search:${query.q}` : "home";
+  if (query.mode === "genre") return `genre:${query.genre}`;
+  if (query.mode === "search") return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}`;
+  return "home";
 }
 
 export function fromLocal(book: Book): BookSummary {
@@ -93,7 +98,11 @@ const pageCache = new Map<string, Promise<BookPage>>();
 function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
   const params = new URLSearchParams({ mode: query.mode, page: String(page) });
   if (query.mode === "genre") params.set("genre", query.genre);
-  if (query.mode === "search") params.set("q", query.q);
+  if (query.mode === "search") {
+    params.set("q", query.q);
+    if (query.genre) params.set("genre", query.genre);
+    if (query.sort === "newest") params.set("sort", "newest");
+  }
   const url = `${SUPABASE_URL}/functions/v1/books?${params}`;
 
   let pending = pageCache.get(url);

@@ -519,12 +519,47 @@
     padding: 0 12px;
   }
 
+  /* Hidden visually only, so the link is still announced as "BookWorm, home". */
   .has-tab-bar .brand > strong {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .login-button,
   .signup-button {
     padding: 0 11px;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+}
+
+/* Visitors' search: a nav link on desktop, this icon once the nav folds away. */
+.header-search-link {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .header-search-link {
+    display: grid;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* The narrowest phones (360px): the logo mark stands alone, keeping its name for screen readers. */
+@media (max-width: 380px) {
+  .brand > strong {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }

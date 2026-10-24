@@ -31,7 +31,10 @@ export type Action =
   | { type: "rateBook"; bookId: string; rating: RatingValue | null }
   | { type: "addLog"; bookId: string; body: string; rating: number | null }
   | { type: "updateLog"; id: string; body: string; rating: number | null }
-  | { type: "deleteLog"; id: string };
+  | { type: "deleteLog"; id: string }
+  | { type: "addRecentSearch"; q: string }
+  | { type: "removeRecentSearch"; q: string }
+  | { type: "clearRecentSearches" };
 
 /** Swap the signed-in household in, starting with no profile chosen. */
 function enter(state: AppState, household: Household): AppState {
@@ -210,6 +213,24 @@ export function reducer(state: AppState, action: Action): AppState {
             : l,
         ),
       };
+
+    case "addRecentSearch": {
+      // Newest first, no repeats (ignoring case), at most ten per profile.
+      const key = action.q.toLowerCase();
+      return withProfileData(state, (data) => ({
+        ...data,
+        recentSearches: [action.q, ...data.recentSearches.filter((s) => s.toLowerCase() !== key)].slice(0, 10),
+      }));
+    }
+
+    case "removeRecentSearch":
+      return withProfileData(state, (data) => ({
+        ...data,
+        recentSearches: data.recentSearches.filter((s) => s !== action.q),
+      }));
+
+    case "clearRecentSearches":
+      return withProfileData(state, (data) => ({ ...data, recentSearches: [] }));
 
     case "deleteLog":
       return {

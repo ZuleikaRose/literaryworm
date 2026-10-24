@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookFeed } from "../components/BookFeed";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
 import { GenreNav } from "../components/GenreNav";
@@ -7,6 +7,7 @@ import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
+import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useProfileData } from "../store/context";
@@ -43,6 +44,7 @@ export default function Browse() {
   const profile = useActiveProfile()!;
   const data = useProfileData();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const genreParam = params.get("genre");
   const genre: BrowseGenre = isBrowseGenre(genreParam) ? genreParam : "technology";
 
@@ -85,7 +87,21 @@ export default function Browse() {
             progress={progress}
           />
         )}
-        <Shelf id="trending" eyebrow="Curated for you" title="Trending this week" items={trending.map(fromLocal)} />
+        <Shelf
+          id="trending"
+          eyebrow="Curated for you"
+          title="Trending this week"
+          items={trending.map(fromLocal)}
+          action={
+            <button
+              type="button"
+              className="secondary-button surprise-button"
+              onClick={() => navigate(`/books/${surpriseBook(profile.ageRating).id}`)}
+            >
+              <Icon name="shuffle" size={16} /> Surprise me
+            </button>
+          }
+        />
 
         <section className="community-banner" aria-labelledby="reading-room-title">
           <span className="community-icon" aria-hidden="true">

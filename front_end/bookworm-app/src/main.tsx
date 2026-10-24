@@ -13,6 +13,7 @@ import "./styles/public.css";
 import "./styles/profiles.css";
 import "./styles/home.css";
 import "./styles/detail.css";
+import "./styles/search.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

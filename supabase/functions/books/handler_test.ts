@@ -49,14 +49,50 @@ Deno.test("home asks Google for technology with the key server-side and shapes t
   assertEquals(Object.keys(body.items[0]).sort(), ["authors", "categories", "cover", "id", "publishedYear", "title"]);
 });
 
+Deno.test("an empty first page is asked for once more, then believed", async () => {
+  let calls = 0;
+  const flaky = (() => {
+    calls++;
+    return Promise.resolve(new Response(JSON.stringify(calls === 1 ? { totalItems: 0 } : fullPage), { status: 200 }));
+  }) as typeof fetch;
+  let res = await handle(get("mode=search&q=hobbit"), { fetcher: flaky, emptyRetryMs: 0 });
+  assertEquals((await res.json()).items.length, 20);
+  assertEquals(calls, 2);
+
+  const empty = stub(200, { totalItems: 0 });
+  res = await handle(get("mode=search&q=zzzz"), { ...empty, emptyRetryMs: 0 });
+  assertEquals((await res.json()).items, []);
+  assertEquals(empty.calls.length, 2, "one retry only");
+
+  const later = stub(200, { totalItems: 0 });
+  res = await handle(get("mode=search&q=zzzz&page=3"), { ...later, emptyRetryMs: 0 });
+  await res.body?.cancel();
+  assertEquals(later.calls.length, 1, "later pages that run out are just the end");
+});
+
 Deno.test("search is title-only", async () => {
   const { calls, fetcher } = stub(200, { totalItems: 0 });
-  const res = await handle(get("mode=search&q=" + encodeURIComponent("  the  hobbit ")), { fetcher });
+  const res = await handle(get("mode=search&q=" + encodeURIComponent("  the  hobbit ")), { fetcher, emptyRetryMs: 0 });
   assertEquals(res.status, 200);
   assertEquals(calls[0].url.searchParams.get("q"), "intitle:the intitle:hobbit");
   const body = await res.json();
   assertEquals(body.items, []);
   assertFalse(body.hasMore);
+});
+
+Deno.test("search can narrow to a genre and sort by newest, and stays title-only", async () => {
+  const { calls, fetcher } = stub(200, fullPage);
+  const res = await handle(get("mode=search&q=dune&genre=sci-fi&sort=newest&page=2"), { fetcher });
+  assertEquals(res.status, 200);
+  await res.body?.cancel();
+  assertEquals(calls[0].url.searchParams.get("q"), 'intitle:dune subject:"science fiction"');
+  assertEquals(calls[0].url.searchParams.get("orderBy"), "newest");
+  assertEquals(calls[0].url.searchParams.get("startIndex"), "40");
+
+  const plain = stub(200, fullPage);
+  const res2 = await handle(get("mode=search&q=dune"), plain);
+  await res2.body?.cancel();
+  assertEquals(plain.calls[0].url.searchParams.get("orderBy"), null);
 });
 
 Deno.test("each genre maps to a subject query", async () => {
@@ -90,6 +126,10 @@ Deno.test("rejects bad input before calling Google", async () => {
     "mode=nope",
     "mode=home&key=abc",                             // unexpected parameter
     "mode=home&page=1&page=2",                       // repeated parameter
+    "mode=search&q=dune&sort=oldest",                // unknown sort
+    "mode=search&q=dune&genre=romance",              // genre outside the six
+    "mode=genre&genre=horror&sort=newest",           // sort only applies to search
+    "mode=home&genre=horror",                        // genre not allowed on home
   ];
   for (const query of cases) {
     const { calls, fetcher } = stub(200, fullPage);

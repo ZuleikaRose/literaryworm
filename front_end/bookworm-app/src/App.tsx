@@ -35,6 +35,8 @@ export default function App() {
           {/* Book details are public (the brief's /books/:id); actions ask visitors to sign in. */}
           <Route path="books/:id" element={<BookDetail />} />
           <Route path="book/:id" element={<LegacyBookRedirect />} />
+          {/* Search is public too (the brief); Kids profiles get the catalog only. */}
+          <Route path="search" element={<Search />} />
 
           <Route element={<RequireAccount />}>
             <Route path="profiles" element={<Profiles />} />
@@ -42,7 +44,6 @@ export default function App() {
 
           <Route element={<RequireProfile />}>
             <Route path="browse" element={<Browse />} />
-            <Route path="search" element={<Search />} />
             <Route path="library" element={<Library />} />
             <Route path="account" element={<Account />} />
           </Route>

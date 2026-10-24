@@ -4,6 +4,7 @@
 //
 //   ?mode=home&page=0                 books about "technology"
 //   ?mode=search&q=dune&page=0        title-only search
+//     &genre=sci-fi&sort=newest         optional: narrow to a genre, newest first
 //   ?mode=genre&genre=sci-fi&page=0   one of the six required genres
 //   ?mode=volume&id=zyTCAlFPjgYC      one book's details
 
@@ -19,12 +20,12 @@ import {
   titleQuery,
   volumeUrl,
 } from "../_shared/googleBooks.ts";
-import { parseGenre, parsePage, parseQuery, parseVolumeId } from "../_shared/validate.ts";
+import { parseGenre, parsePage, parseQuery, parseSort, parseVolumeId } from "../_shared/validate.ts";
 
 const METHODS = "GET";
 const ALLOWED_PARAMS: Record<string, string[]> = {
   home: ["mode", "page"],
-  search: ["mode", "q", "page"],
+  search: ["mode", "q", "page", "genre", "sort"],
   genre: ["mode", "genre", "page"],
   volume: ["mode", "id"],
 };
@@ -33,7 +34,14 @@ export type Deps = {
   fetcher?: typeof fetch;
   apiKey?: string;
   rateLimit?: (req: Request) => Promise<void>;
+  /** Pause before re-asking after an empty first page (tests use 0). */
+  emptyRetryMs?: number;
 };
+
+function isEmptyList(body: unknown): boolean {
+  const raw = body as { totalItems?: unknown; items?: unknown } | null;
+  return !raw || ((raw.totalItems ?? 0) === 0 && !Array.isArray(raw.items));
+}
 
 export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
   const early = preflight(req, METHODS);
@@ -59,12 +67,23 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     }
 
     const page = parsePage(params.get("page"));
-    const q = mode === "search"
-      ? titleQuery(parseQuery(params.get("q")))
-      : mode === "genre"
-      ? GENRE_QUERIES[parseGenre(params.get("genre"))]
-      : HOME_QUERY;
-    const body = await callGoogle(listUrl(q, page, deps.apiKey), deps.fetcher);
+    let q = HOME_QUERY;
+    if (mode === "search") {
+      q = titleQuery(parseQuery(params.get("q")));
+      // Still a title search: the genre only narrows it, through the same subject: query as genre mode.
+      if (params.has("genre")) q += ` ${GENRE_QUERIES[parseGenre(params.get("genre"))]}`;
+    } else if (mode === "genre") {
+      q = GENRE_QUERIES[parseGenre(params.get("genre"))];
+    }
+    const sort = mode === "search" ? parseSort(params.get("sort")) : "relevance";
+    const url = listUrl(q, page, deps.apiKey, sort);
+    let body = await callGoogle(url, deps.fetcher);
+    // When Google is struggling it sometimes answers 200 with no results at all. A real
+    // "nothing found" is rare for a first page, so ask once more before believing it.
+    if (page === 0 && isEmptyList(body)) {
+      await new Promise((resolve) => setTimeout(resolve, deps.emptyRetryMs ?? 600));
+      body = await callGoogle(url, deps.fetcher);
+    }
     return json(req, METHODS, shapePage(body, page), 200, { "Cache-Control": "public, max-age=300" });
   } catch (err) {
     return errorResponse(req, METHODS, err);

@@ -42,6 +42,16 @@ export function parseGenre(raw: string | null): Genre {
   return g as Genre;
 }
 
+export const SORTS = ["relevance", "newest"] as const;
+export type Sort = (typeof SORTS)[number];
+
+/** Optional sort for search results; Google's own orderBy values. */
+export function parseSort(raw: string | null): Sort {
+  if (raw === null || raw === "") return "relevance";
+  if (!(SORTS as readonly string[]).includes(raw)) throw new HttpError("bad_request", "sort must be relevance or newest.");
+  return raw as Sort;
+}
+
 export function parseVolumeId(raw: unknown): string {
   if (typeof raw !== "string" || !VOLUME_ID.test(raw)) throw new HttpError("bad_request", "That isn't a valid book id.");
   return raw;

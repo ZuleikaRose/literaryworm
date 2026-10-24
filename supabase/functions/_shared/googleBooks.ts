@@ -3,7 +3,7 @@
 // GOOGLE_BOOKS_API_KEY function secret and never appears in a response.
 
 import { HttpError } from "./http.ts";
-import { type Genre, PAGE_SIZE } from "./validate.ts";
+import { type Genre, PAGE_SIZE, type Sort } from "./validate.ts";
 
 const API = "https://www.googleapis.com/books/v1/volumes";
 const TIMEOUT_MS = 8000;
@@ -66,12 +66,13 @@ export function titleQuery(q: string): string {
     .join(" ");
 }
 
-export function listUrl(q: string, page: number, key: string | undefined): URL {
+export function listUrl(q: string, page: number, key: string | undefined, sort: Sort = "relevance"): URL {
   const url = new URL(API);
   url.searchParams.set("q", q);
   url.searchParams.set("startIndex", String(page * PAGE_SIZE));
   url.searchParams.set("maxResults", String(PAGE_SIZE));
   url.searchParams.set("printType", "books");
+  if (sort === "newest") url.searchParams.set("orderBy", "newest");
   // The home page is public and Teen profiles use it too: leave out mature titles.
   url.searchParams.set("maxAllowedMaturityRating", "not-mature");
   if (key) url.searchParams.set("key", key);
