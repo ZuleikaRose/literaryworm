@@ -290,7 +290,7 @@ Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. Detai
 
 ### Build progress
 
-App state is kept in memory, so refreshing resets it. Book lists come from the Edge Function.
+App state is kept in memory, so refreshing resets it. Book lists and book details come from the Edge Function; every reader's logs are read from Supabase. Library entries and logs written in the app stay in memory until Supabase Auth sign-in arrives in Phase 6.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -299,10 +299,10 @@ App state is kept in memory, so refreshing resets it. Book lists come from the E
 | 2 | Who's reading? (PIN locks with lockout, Kids consent, plan limits, *Ask a grown-up*), profile management, genre picking | Done |
 | — | Supabase: migrations with RLS, indexes and grants; `books`, `manage-profile` and `checkout` Edge Functions; security tests; deployed | Done |
 | 3 | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows | Done |
-| 4 | Book details (`/books/:id`) with Google Books data and public logs | Next |
-| 5 | Title-only search, Surprise Me | Planned |
-| 6 | Library with reading status (want to read, reading, finished) | Planned |
+| 4 | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks | Done |
+| 5 | Title-only search, Surprise Me | Next |
+| 6 | Supabase Auth sign-in, so the library (`library_items`) and logs save to Supabase; Library page with reading status (want to read, reading, finished) | Planned |
 | 7 | Reader and audiobook player | Planned |
-| 8 | Supabase Auth in the UI, Account, Kids restrictions, polish, Vercel deploy | Planned |
+| 8 | Account, Kids restrictions, polish, Vercel deploy | Planned |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.

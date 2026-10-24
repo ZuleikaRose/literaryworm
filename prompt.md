@@ -39,7 +39,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 3 | Home | Matches the wireframe Discover screen; technology books and the six genres via the Edge Function; infinite scroll with a Load more fallback; loading, error, empty and end states; rows work by keyboard; carousel pauses; titles respect the age rating |
 | 4 | Book details | Matches the wireframe detail screen; `/books/:id` works on refresh; Google data with at least two extra fields; every reader's logs with display name and date; library statuses; logs only for books in the library, removed with the book; ratings; blocked on Kids, mature titles blocked on Teen |
 | 5 | Search | Search, filters, sort, *Did you mean*, recent searches, Surprise Me |
-| 6 | Library | Lists and Custom Lists create, rename, delete, reorder; empty states |
+| 6 | Library and sign-in | Supabase Auth email and password sign-in; library (`library_items`) and logs saved to Supabase under RLS; Library page with the three statuses; Lists and Custom Lists create, rename, delete, reorder; empty states |
 | 7 | Reader and player | Reader controls, chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer; progress feeds Continue Reading |
 | 8 | Account and polish | *Ask a grown-up* gate on Kids; cancel and delete flows; accessibility and motion pass |
 
