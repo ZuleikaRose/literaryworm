@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0402)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0501)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -187,6 +187,33 @@
           note: "Unique (user_id, volume_id). Status: want_to_read, reading, finished. RLS: owner only for every operation; browser may update status only.",
         },
         {
+          id: "reading_progress", color: colors.reading, x: 1260, y: 700, sub: "private · one per book",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["pk fk", "volume_id", "text"],
+            ["", "format", "book_format"],
+            ["", "chapter_index", "smallint 0–999"],
+            ["", "position", "numeric 0–1"],
+            ["", "finished", "boolean"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
+        },
+        {
+          id: "bookmarks", color: colors.reading, x: 840, y: 960, sub: "private",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["fk", "volume_id", "text"],
+            ["", "format", "book_format"],
+            ["", "chapter_index", "smallint 0–999"],
+            ["", "position", "numeric 0–1"],
+            ["", "label", "text 1–120"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; added and removed, never edited.",
+        },
+        {
           id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 5 per account",
           cols: [
             ["pk", "id", "uuid"],
@@ -243,6 +270,8 @@
         ["library_items", "user_id", "auth.users", "id", "N : 1"],
         ["logs", "user_id", "profiles", "id", "N : 1"],
         ["logs", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
+        ["reading_progress", "volume_id", "library_items", "volume_id", "1 : 1 (pair)"],
+        ["bookmarks", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
       ];
       // -----------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent, PIN lockout, rate limits, and the
--- "logs need a library item" rule. Run against a scratch database after the
+-- "logs, progress and bookmarks need a library item" rule. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -50,6 +50,8 @@ select pg_temp.expect_error('select * from public.reader_profiles', 'anon readin
 select pg_temp.expect_error($$select public.check_rate_limit('x', 1, 60)$$, 'anon calling check_rate_limit');
 select pg_temp.expect_error($$select public.verify_profile_pin(gen_random_uuid(), gen_random_uuid(), '1234')$$, 'anon calling verify_profile_pin');
 select pg_temp.expect_error($$insert into public.logs (user_id, volume_id, body) values ('00000000-0000-0000-0000-00000000000a', 'abc', 'hi')$$, 'anon writing a log');
+select pg_temp.expect_error('select * from public.reading_progress', 'anon reading progress');
+select pg_temp.expect_error('select * from public.bookmarks', 'anon reading bookmarks');
 reset role;
 
 -- Ann, signed in --------------------------------------------------------------
@@ -77,6 +79,16 @@ select pg_temp.expect_error($$insert into public.logs (user_id, volume_id, body)
 select pg_temp.expect_error($$insert into public.logs (user_id, volume_id, body, rating) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'x', 6)$$, 'a rating of 6');
 select pg_temp.expect_error($$insert into public.library_items (user_id, volume_id) values ('00000000-0000-0000-0000-00000000000a', 'bad id; drop')$$, 'a malformed volume id');
 select pg_temp.expect_error($$update public.logs set user_id = '00000000-0000-0000-0000-00000000000b'$$, 'moving a log to another user');
+
+insert into public.reading_progress (user_id, volume_id, format, chapter_index, position) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'ebook', 2, 0.25);
+update public.reading_progress set position = 0.5, chapter_index = 4, format = 'audiobook' where volume_id = 'zyTCAlFPjgYC';
+insert into public.bookmarks (user_id, volume_id, format, chapter_index, position, label) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'ebook', 2, 0.25, 'Chapter 3, page 2');
+select pg_temp.expect_error($$insert into public.reading_progress (user_id, volume_id, format, chapter_index, position) values ('00000000-0000-0000-0000-00000000000a', 'notInLibrary1', 'ebook', 0, 0)$$, 'progress for a book not in the library');
+select pg_temp.expect_error($$insert into public.bookmarks (user_id, volume_id, format, chapter_index, position, label) values ('00000000-0000-0000-0000-00000000000a', 'notInLibrary1', 'ebook', 0, 0, 'x')$$, 'a bookmark for a book not in the library');
+select pg_temp.expect_error($$update public.reading_progress set position = 1.5$$, 'a position past the end');
+select pg_temp.expect_error($$insert into public.bookmarks (user_id, volume_id, format, chapter_index, position, label) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'ebook', 0, 0, '   ')$$, 'a blank bookmark label');
+select pg_temp.expect_error($$update public.reading_progress set user_id = '00000000-0000-0000-0000-00000000000b'$$, 'moving progress to another user');
+select pg_temp.expect_error($$update public.bookmarks set label = 'edited'$$, 'editing a bookmark');
 reset role;
 
 -- Ben, signed in --------------------------------------------------------------
@@ -88,6 +100,12 @@ select pg_temp.check((select count(*) from public.reader_profiles) = 0, 'Ben can
 with d as (delete from public.logs where user_id = '00000000-0000-0000-0000-00000000000a' returning 1)
 select pg_temp.check(count(*) = 0, 'Ben cannot delete Ann''s log') from d;
 select pg_temp.expect_error($$insert into public.logs (user_id, volume_id, body) values ('00000000-0000-0000-0000-00000000000b', 'zyTCAlFPjgYC', 'piggyback on Ann''s library')$$, 'a log against someone else''s library item');
+select pg_temp.check((select count(*) from public.reading_progress) = 0 and (select count(*) from public.bookmarks) = 0, 'Ben cannot see Ann''s progress or bookmarks');
+with u as (update public.reading_progress set position = 0 returning 1)
+select pg_temp.check(count(*) = 0, 'Ben cannot change Ann''s progress') from u;
+with d as (delete from public.bookmarks where volume_id = 'zyTCAlFPjgYC' returning 1)
+select pg_temp.check(count(*) = 0, 'Ben cannot delete Ann''s bookmark') from d;
+select pg_temp.expect_error($$insert into public.reading_progress (user_id, volume_id, format, chapter_index, position) values ('00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC', 'ebook', 0, 0)$$, 'saving progress into Ann''s account');
 insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000b', 'Ben');
 select pg_temp.expect_error($$insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000b', 'Two')$$, 'a second profile with no plan');
 reset role;
@@ -111,11 +129,13 @@ select pg_temp.check((public.verify_profile_pin('00000000-0000-0000-0000-0000000
 select pg_temp.check(public.check_rate_limit('test:1', 2, 60) and public.check_rate_limit('test:1', 2, 60) and not public.check_rate_limit('test:1', 2, 60), 'rate limit allows 2 then refuses');
 reset role;
 
--- Removing a book deletes its logs --------------------------------------------
+-- Removing a book deletes its logs, progress and bookmarks -------------------
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select position from public.reading_progress) = 0.5, 'Ann''s progress kept after Ben''s attempts');
 delete from public.library_items where volume_id = 'zyTCAlFPjgYC';
 select pg_temp.check((select count(*) from public.logs) = 0, 'logs deleted with the library item');
+select pg_temp.check((select count(*) from public.reading_progress) = 0 and (select count(*) from public.bookmarks) = 0, 'progress and bookmarks deleted with the library item');
 reset role;
 
 -- Every public table has RLS on -----------------------------------------------
