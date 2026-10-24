@@ -150,6 +150,10 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Player.** Cover beside the controls on desktop, stacked on phones. A 76px rust play button between 56px outlined ±15 buttons, with previous and next chapter beside them; Speed and Sleep timer are labelled native selects. The sleep timer's state reads as one line of rust text under them.
 
+**Account page.** Section links as 44px pills under the title. Each section is a row split by a thin rule: heading and one-line intro on the left (a third), controls on the right; stacked on phones. Plan facts sit in a 2×2 grid of cells divided by 1px lines, with a coloured dot for the status (green active, amber paused, red ending). Saves report beside their control with the success or error alert.
+
+**Danger zone.** The last section, with a red rule and red heading: one paragraph that says what goes, then a red *Delete account* button that opens a small dialog (password, a confirmation tick, *Delete my account* / *Keep my account*).
+
 **Mark as finished? and daily limit.** Small dialogs and full-screen messages use the empty-state pattern (icon in a rust circle, title, one sentence, actions). The finished state pops its check icon in once.
 
 **Header on narrow phones.** Below 380px the wordmark is hidden visually (not with `display: none`), so the logo link is still announced as "BookWorm, home".

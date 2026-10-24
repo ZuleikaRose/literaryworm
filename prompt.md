@@ -41,7 +41,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 5 | Search | Public title-only search (BookWorm titles, then Google through the Edge Function); filters and sort applied server-side; Load more; *Did you mean*; recent searches; Surprise Me; Kids see the catalog only |
 | 6 | Library and sign-in | Supabase Auth sign-up, log-in, log-out and password reset; session survives a refresh; plan saved by the `checkout` function; library (`library_items`) and logs saved to Supabase under RLS; Library page with the three statuses; Favorites; custom lists create, rename, delete, reorder; empty states |
 | 7 | Reader and player | Reader display (theme, font, size, spacing, margins), chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer, credit skips; progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue Reading; daily limit enforced; keyboard-operable |
-| 8 | Account and polish | *Ask a grown-up* gate on Kids; cancel and delete flows; accessibility and motion pass |
+| 8 | Account and polish | Household profiles saved to Supabase (`reader_profiles`, `manage-profile`); Account page (plan and billing, sign-in, preferences, family, privacy with Download my data, help); pause, cancel and restart online and Delete account through a `manage-account` function; *Ask a grown-up* gate on Kids; paused or ended memberships stop reading; accessibility and motion pass |
 
 ## Code
 

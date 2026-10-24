@@ -225,10 +225,13 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 4. Forgot password | 6 | Partly | Supabase sends a reset link to `/reset-password`; the page never says whether an email has an account. The built-in email reaches only the project team until an email provider is added. |
 | 5. Stay signed in | 6 | Done | The Supabase session survives a refresh (the only thing kept in browser storage); everything else still resets. |
 | 8. Demo account | 0–1 | Done | *Try the demo*, or log in with the demo email; the demo can't make payments. It resets on refresh rather than after 24 hours. |
-| 10. Up to five profiles | 2 | Done | Add, edit and delete on *Who's reading?*; limited by plan (Basic 1, Standard 3, Premium 5). Deleting a profile leaves the account and other profiles alone. |
-| 11. Parental consent for Kids | 2 | Done | Consent checkbox with a link to the Children's Privacy Notice is required to create a Kids profile. `parental_consents` keeps the record. |
-| 12. PIN lock | 2 | Done | 4-digit PIN set or removed with the account password; 5 wrong tries lock the profile for 15 minutes; the account password unlocks it. |
-| 13. Ask a grown-up | 2 | Partly | After leaving a Kids profile, managing or adding profiles needs the account password. The Account page gate comes in Phase 8. |
+| 10. Up to five profiles | 2, 8 | Done | Add, edit and delete on *Who's reading?*; limited by plan (Basic 1, Standard 3, Premium 5, enforced by the database). Saved in `reader_profiles` for real accounts. Deleting a profile leaves the account and other profiles alone. |
+| 11. Parental consent for Kids | 2, 8 | Done | Consent checkbox with a link to the Children's Privacy Notice is required to create a Kids profile or move one to Kids. `parental_consents` keeps the record; moving off Kids marks it withdrawn. |
+| 12. PIN lock | 2, 8 | Done | 4-digit PIN set or removed with the account password; checked on the server (bcrypt hash) for real accounts; 5 wrong tries lock the profile for 15 minutes; the account password unlocks it. |
+| 13. Ask a grown-up | 2, 8 | Done | On or just after a Kids profile, Account and managing or adding profiles need the account password. |
+| 21. Pause, cancel or restart online | 8 | Done | Account → Plan and billing: pause and resume, cancel (runs to the next billing date, no more charges) and keep the membership, through the `manage-account` function. No card is taken yet, so there's nothing to refund. |
+| 72. Delete account | 8 | Partly | Danger zone with the password and a confirmation; the plan is cancelled, then the account and everything it owns are deleted at once. No confirmation email yet. |
+| Download my data | 8 | Done | Account → Privacy: a JSON file of the account, profiles, library, progress, bookmarks and logs (no password or PINs). |
 | 14. Daily limit | 2, 7 | Done | Limit (30 minutes to 4 hours) set with the account password; the reader and player stop when it's used up, and the account password allows 30 more minutes. Time used is kept in memory, so a refresh resets it. |
 | 17. Age ratings on titles | 0 | Done | Every title is Kids, Teen or All; a profile sees titles at or below its rating (Kids sees 10 of 29). |
 | 18. Choose a plan with terms first | 1 | Done | Price, what's included and auto-renewal terms shown before confirming; renewal consent required. |

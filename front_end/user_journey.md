@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–7)
+### Journey as built so far (Phases 0–8)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -591,13 +591,30 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 42. **Daily limit.** A profile with a daily limit (set with the account password in Phase 2) counts reading time while the reader is open and listening time while playing. When it's used up, the reader and player stop with *That's today's reading time*; *Ask a grown-up for more time* takes the account password and allows 30 more minutes. The demo's Kids profile, Mia, has a one-hour limit.
 43. **Saved for real accounts.** Progress and bookmarks save to `reading_progress` and `bookmarks` in Supabase, private to the account and tied to a library book (removing the book removes them). If a save fails, the reader says so and keeps going; the next page turn tries again. The demo keeps them in memory.
 
+### Phase 8: Account and household
+
+44. **Profiles are saved.** A real account's household profiles live in `reader_profiles`: the first is created from the account holder's name, and adding, renaming, avatars and favourite genres save straight away. Kids profiles (with the parent's consent), PINs, daily limits, age-rating changes and deletes go through the `manage-profile` function, which checks the account password again. PINs are checked on the server, which counts wrong tries and locks the profile for 15 minutes after five.
+45. **After a refresh** a member with one unguarded profile carries on; a household with more profiles (or a PIN or Kids profile) starts at *Who's reading?*, so locks still apply.
+46. **Account (`/account`).** Section links at the top, then:
+    - **Plan and billing:** plan, price, status, next charge and billing day; *Change plan*, *Pause membership* / *Resume membership*, and *Cancel membership* (it runs to the next billing date with no more charges) / *Keep my membership*. Pausing and cancelling ask first.
+    - **Sign-in:** the display name shown on logs, the email (read only for now) and *Change password* (current password first; the same 15–64 character rules as sign-up).
+    - **Preferences:** marketing emails on or off; a pointer to the accessibility menu.
+    - **Family:** each profile with its age rating, PIN and daily limit, and *Manage profiles*.
+    - **Privacy:** *Download my data* (a JSON file of the account, profiles, library, progress, bookmarks and logs; never the password or PINs) and the privacy notices.
+    - **Help** links, and the **Delete account** danger zone.
+47. **Paused or ended.** While paused, or after a cancelled plan's end date, the reader and player say so and link to *Resume in Account* or *Choose a plan*; the library and progress stay.
+48. **Delete account.** Asks for the account password and a tick to confirm, then the `manage-account` function cancels the plan and deletes the user, which removes the profiles, library, logs, progress and bookmarks with it. The home page confirms it. The demo can't be deleted.
+49. **Ask a grown-up.** On a Kids profile, Account and *Manage profiles* ask for the account password before showing anything.
+50. **Accessibility pass.** Dialog close buttons and *Show password* toggles are now 44px; Lighthouse accessibility is 100 on every page checked.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
 - **No real email, payments or two-step sign-in yet.** These need the backend. The UI says so where it matters (reset link, checkout).
 - **Demo accounts are not deleted after 24 hours.** Everything resets on refresh instead.
 - **One library per account.** The brief gives each user one library and shows logs with that user's display name, so the household's profiles share the account's library and logs. Kids profiles see only Kids-rated titles in it and don't post logs.
-- **Household profiles, ratings, favourites, custom lists and recent searches are still in memory.** They reset on refresh (a restored member starts with one profile named after the account holder). Saving profiles to `reader_profiles` comes with the Account work in Phase 8.
+- **Ratings, favourites, custom lists, recent searches, reader display settings and daily time used are still in memory**, per profile. They reset on refresh. Household profiles themselves are saved (Phase 8).
+- **No email change, two-step sign-in, signed-in devices, promo codes or billing history yet.** These need an email provider and Stripe. Deleting an account happens straight away rather than within a legal deadline, and no confirmation email is sent.
 - **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. Highlights, notes, the dictionary, read-along transcripts and the mini-player are not built.
 - **No email confirmation.** Supabase's built-in email reaches only the project team (2 emails an hour), so sign-ups are confirmed automatically so that anyone can test the app. Password-reset emails have the same limit until an email provider is added in Supabase.
 
