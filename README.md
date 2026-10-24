@@ -251,7 +251,7 @@ npm run build    # type-check and production build
 npm run lint
 ```
 
-Use **Try the demo** on the log-in page for a ready-made household, or log in with `demo@bookworm.example` / `bookworm-demo`.
+Use **Try the demo** on the log-in page for a ready-made household. The demo's email and password are shown on that page; the password is generated fresh on each page load, so none is stored in the code.
 
 ### Secrets and environment variables
 

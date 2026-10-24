@@ -51,10 +51,13 @@ export const emptyProfileData = (): ProfileData => ({
 export const newId = () => crypto.randomUUID();
 
 /**
- * Not a secret: the demo household is public sample data that only exists in memory.
- * It's shown to demo users wherever the app asks for the account password ("Ask a grown-up").
+ * The demo household's password, generated fresh on every page load so no fixed credential
+ * lives in the source. The app shows it to demo users wherever it asks for the account
+ * password (log-in note, "Ask a grown-up", protected profile changes).
  */
-export const DEMO_ACCOUNT_PASSWORD = "bookworm-demo";
+export const DEMO_ACCOUNT_PASSWORD = `demo-${Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) =>
+  b.toString(16).padStart(2, "0"),
+).join("")}`;
 export const DEMO_EMAIL = "demo@bookworm.example";
 
 export const emailKey = (email: string) => email.trim().toLowerCase();
