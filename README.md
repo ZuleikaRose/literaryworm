@@ -232,14 +232,24 @@ Your project will be assessed across these areas:
 | Path | What it is |
 |---|---|
 | `front_end/bookworm-app/` | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/bookworm-app/README.md) for routes and source layout. |
+| `supabase/` | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`) and security tests. See [supabase/README.md](supabase/README.md). |
+| `schema.sql` | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table. |
+| `drawsql.png` | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md). |
 | `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from. |
 | `front_end/style_guide.md` | Design tokens, type, components, motion and voice. |
-| `front_end/user_journey.md` | Product blueprint, user journey and build notes. |
+| `front_end/user_journey.md` | Product blueprint, user journey, build notes, and how the brief and blueprint are both met. |
 | `user_stories.md` | User stories with a build-status table. |
-| `schema.sql` | Target Supabase schema, with Row Level Security on every table. |
-| `drawsql.png` | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md). |
 | `CLAUDE.md` | Conventions and rules for Claude Code. |
 | `prompt.md` | The build brief and phase plan. |
+
+### How the brief's hard parts are handled
+
+- **The API key never reaches the browser.** The front end calls only the `books` Edge Function (`front_end/bookworm-app/src/lib/booksApi.ts`). The function adds `GOOGLE_BOOKS_API_KEY` from Supabase's function secrets; the key is in no file in this repo and no `VITE_` variable.
+- **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode, title query 1–100 characters with no search operators, genre from the six, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
+- **Shaped responses and friendly failures.** Only the fields the UI shows, with https covers, plain-text descriptions and nulls for missing data. Google's 429s, errors and timeouts (8 s) become `{ error: { code, message } }`; the UI shows *We couldn't load …* with *Try again*.
+- **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
+- **Libraries private, logs public.** `library_items` has owner-only policies. `logs` has a public read policy and a composite foreign key to the author's `library_items` row, so a log can't exist for a book outside its author's library and is deleted with it. The book page reads logs (with `profiles.display_name`) without touching anyone's library.
+- **Database authorization.** RLS on every table with `(select auth.uid())` policies, column-level grants (for example, no one can read PIN hashes or Stripe ids), every foreign key indexed, and server-only functions callable only by the service role. `supabase/tests/security_test.sql` checks all of this.
 
 ### Run it locally
 
@@ -251,36 +261,48 @@ npm run build    # type-check and production build
 npm run lint
 ```
 
+With no environment variables the app runs on its sample catalog. To use the real backend, copy `.env.example` to `front_end/bookworm-app/.env.development.local` and fill in the two `VITE_` values.
+
 Use **Try the demo** on the log-in page for a ready-made household. The demo's email and password are shown on that page; the password is generated fresh on each page load, so none is stored in the code.
 
 ### Secrets and environment variables
 
-The front end currently runs entirely in the browser with sample data and needs **no environment variables**. When the Supabase backend is connected, copy `.env.example` to a local `.env.development.local` and fill in:
+`.env.example` lists every variable with no values. `.env` files are gitignored.
 
-| Variable | Where it comes from | Safe in the browser? |
+| Variable | Where it goes | Safe in the browser? |
 |---|---|---|
-| `VITE_SUPABASE_URL` | Supabase dashboard → Connect | Yes |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase dashboard → Connect (publishable / anon key) | Yes |
-| `GOOGLE_BOOKS_API_KEY` | Google Cloud Console | **No.** Set it only as a Supabase Edge Function secret, never in a `VITE_` variable or a committed file. |
+| `VITE_SUPABASE_URL` | `front_end/bookworm-app/.env.development.local`, Vercel | Yes |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key) | Yes |
+| `GOOGLE_BOOKS_API_KEY` | Supabase → Edge Functions → Secrets only | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
+| `ALLOWED_ORIGINS` | Supabase → Edge Functions → Secrets | Not secret; lists the origins allowed by CORS |
 
-`.env` files are gitignored; `.env.example` holds names only.
+### Supabase
+
+Project `bookworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the three Edge Functions are deployed. To set it up from scratch:
+
+```bash
+supabase link --project-ref <ref>
+supabase db push
+supabase functions deploy books manage-profile checkout
+```
+
+Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. Details and tests: [supabase/README.md](supabase/README.md).
 
 ### Build progress
 
-Data is kept in memory for now, so refreshing resets the app.
+App state is kept in memory, so refreshing resets it. Book lists come from the Edge Function.
 
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Foundation: scaffold, design tokens, header/footer/accessibility menu, in-memory store, 29-title sample catalog, routes and guards | Done |
 | 1 | Landing, Plans and checkout, Sign up (18+, password rules, Terms), Log in, forgot password, demo | Done |
 | 2 | Who's reading? (PIN locks with lockout, Kids consent, plan limits, *Ask a grown-up*), profile management, genre picking | Done |
-| 3 | Home rows and featured carousel | Next |
-| 4 | Book details, ratings, lists, reviews | Planned |
-| 5 | Search, filters, Surprise Me | Planned |
-| 6 | Library and Custom Lists | Planned |
+| — | Supabase: migrations with RLS, indexes and grants; `books`, `manage-profile` and `checkout` Edge Functions; security tests; deployed | Done |
+| 3 | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows | Done |
+| 4 | Book details (`/books/:id`) with Google Books data and public logs | Next |
+| 5 | Title-only search, Surprise Me | Planned |
+| 6 | Library with reading status (want to read, reading, finished) | Planned |
 | 7 | Reader and audiobook player | Planned |
-| 8 | Account, Kids restrictions, accessibility and motion polish | Planned |
+| 8 | Supabase Auth in the UI, Account, Kids restrictions, polish, Vercel deploy | Planned |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
-
-**Still to come for the brief:** the Supabase project (Auth, PostgREST, RLS), the Google Books Edge Function, `library_items` and `logs`, and deployment to Vercel. Where the brief and the blueprint differ (home topic, title-only search, the six genres, load more, library statuses, logs), see *Open question* in `front_end/user_journey.md`.
