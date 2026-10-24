@@ -106,14 +106,29 @@ Deno.test("maps upstream 429, 5xx and timeouts to friendly errors", async () => 
   assertEquals(res.headers.get("Retry-After"), "12");
   assertEquals((await res.json()).error.code, "rate_limited");
 
-  res = await handle(get("mode=home"), stub(503, {}));
+  const down = stub(503, {});
+  res = await handle(get("mode=home"), down);
   assertEquals(res.status, 502);
+  assert(down.calls.length >= 2, "retries a 5xx while time remains");
   assertEquals((await res.json()).error.code, "upstream_error");
 
   const timeout = (() => Promise.reject(new DOMException("timed out", "TimeoutError"))) as typeof fetch;
   res = await handle(get("mode=home"), { fetcher: timeout });
   assertEquals(res.status, 504);
   assertEquals((await res.json()).error.code, "upstream_timeout");
+});
+
+Deno.test("a 5xx from Google is retried", async () => {
+  let calls = 0;
+  const flaky = (() => {
+    calls++;
+    const body = calls === 1 ? { error: { code: 503 } } : fullPage;
+    return Promise.resolve(new Response(JSON.stringify(body), { status: calls === 1 ? 503 : 200 }));
+  }) as typeof fetch;
+  const res = await handle(get("mode=home"), { fetcher: flaky });
+  assertEquals(res.status, 200);
+  assertEquals(calls, 2);
+  await res.body?.cancel();
 });
 
 Deno.test("volume details strip HTML and handle missing cover and description", async () => {

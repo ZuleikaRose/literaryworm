@@ -82,12 +82,26 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
 
   let pending = pageCache.get(url);
   if (!pending) {
-    pending = requestPage(url, page);
+    pending = requestPageWithRetry(url, page);
     pageCache.set(url, pending);
     // Failures aren't cached, so Try again really tries again.
     pending.catch(() => pageCache.delete(url));
   }
   return pending;
+}
+
+const RETRY_AFTER_MS = 1500;
+
+/** Google Books has short outages; ask once more by ourselves before showing the error. */
+async function requestPageWithRetry(url: string, page: number): Promise<BookPage> {
+  try {
+    return await requestPage(url, page);
+  } catch (err) {
+    const transient = err instanceof BooksApiError && (err.code === "upstream_error" || err.code === "upstream_timeout");
+    if (!transient) throw err;
+    await new Promise((resolve) => setTimeout(resolve, RETRY_AFTER_MS));
+    return requestPage(url, page);
+  }
 }
 
 async function requestPage(url: string, page: number): Promise<BookPage> {

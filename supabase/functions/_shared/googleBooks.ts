@@ -70,7 +70,6 @@ export function listUrl(q: string, page: number, key: string | undefined): URL {
   url.searchParams.set("startIndex", String(page * PAGE_SIZE));
   url.searchParams.set("maxResults", String(PAGE_SIZE));
   url.searchParams.set("printType", "books");
-  url.searchParams.set("projection", "lite");
   // The home page is public and Teen profiles use it too: leave out mature titles.
   url.searchParams.set("maxAllowedMaturityRating", "not-mature");
   if (key) url.searchParams.set("key", key);
@@ -85,15 +84,33 @@ export function volumeUrl(id: string, key: string | undefined): URL {
 
 // --- Calling Google ----------------------------------------------------------
 
+const MAX_ATTEMPTS = 6;
+const RETRY_DELAY_MS = 500;
+
+/**
+ * Calls Google with an 8-second budget. Google's list search often answers 503
+ * "backendFailed" for a few seconds, so a 5xx is retried (waiting a little
+ * longer each time, up to 6 attempts) while at least 1.5 seconds of the budget remain.
+ */
 export async function callGoogle(url: URL, fetcher: Fetcher = fetch): Promise<unknown> {
+  const deadline = Date.now() + TIMEOUT_MS;
   let res: Response;
-  try {
-    res = await fetcher(url, { signal: AbortSignal.timeout(TIMEOUT_MS), headers: { Accept: "application/json" } });
-  } catch (err) {
-    if (err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError")) {
-      throw new HttpError("upstream_timeout", "The book service took too long to answer. Try again.");
+  for (let attempt = 1; ; attempt++) {
+    try {
+      res = await fetcher(url, {
+        signal: AbortSignal.timeout(Math.max(deadline - Date.now(), 1)),
+        headers: { Accept: "application/json" },
+      });
+    } catch (err) {
+      if (err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError")) {
+        throw new HttpError("upstream_timeout", "The book service took too long to answer. Try again.");
+      }
+      throw new HttpError("upstream_error", "We couldn't reach the book service. Try again.");
     }
-    throw new HttpError("upstream_error", "We couldn't reach the book service. Try again.");
+    const canRetry = res.status >= 500 && attempt < MAX_ATTEMPTS && deadline - Date.now() > 1500;
+    if (!canRetry) break;
+    await res.body?.cancel();
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * attempt));
   }
   if (res.status === 429) {
     const retry = Number(res.headers.get("Retry-After")) || 30;
@@ -105,7 +122,9 @@ export async function callGoogle(url: URL, fetcher: Fetcher = fetch): Promise<un
     throw new HttpError("not_found", "We couldn't find that book.");
   }
   if (!res.ok) {
-    await res.body?.cancel();
+    // Log Google's status and reason for the function logs. Never log the URL: it holds the key.
+    const reason = await res.text().then((t) => t.slice(0, 300)).catch(() => "");
+    console.error("google books error", res.status, reason);
     // 400 from Google on a bad id is a not-found for our purposes.
     if (res.status === 400) throw new HttpError("not_found", "We couldn't find that book.");
     throw new HttpError("upstream_error", "The book service had a problem. Try again.");
