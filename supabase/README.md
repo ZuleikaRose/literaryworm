@@ -16,13 +16,15 @@ Database migrations, Edge Functions and security tests for BookWorm. The root `s
 | `0200` | `reader_profiles` (household profiles, plan limit trigger), `parental_consents` |
 | `0300` | `private.rate_limits` and the server-only functions: `check_rate_limit`, `set_profile_pin`, `verify_profile_pin`, `unlock_profile`, `create_kids_profile` |
 | `0400` | The brief's `library_items` (private) and `logs` (public; composite FK to the author's library item, cascade on delete) |
+
+**How the book page reads logs.** The browser asks PostgREST for `logs` with the publishable key (`select=id,body,rating,created_at,updated_at,author:profiles(display_name)&volume_id=eq.<id>`). The anon role may read `logs` and the `id, display_name` columns of `profiles`, and is refused on `library_items` (checked live: `permission denied`), so every reader's logs are listed without exposing anyone's library.
 | `…01`, `…02` | One index each, created concurrently |
 
 ## Edge Functions
 
 | Function | Who can call | What it does |
 |---|---|---|
-| `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors and returns only the fields the UI shows, with https covers. |
+| `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors and returns only the fields the UI shows, with https covers. `volume` also returns `mature` (Google's MATURE rating), which the app uses to keep those titles from Teen and Kids profiles. |
 | `manage-profile` | Signed-in accounts | Kids profiles with consent, PINs, daily limits, unlocking and deleting profiles. Re-checks the account password; checks the profile belongs to the caller. |
 | `checkout` | Signed-in accounts | Validates and records the plan choice. (Payment isn't taken yet.) |
 
