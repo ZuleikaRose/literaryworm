@@ -42,6 +42,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 6 | Library and sign-in | Supabase Auth sign-up, log-in, log-out and password reset; session survives a refresh; plan saved by the `checkout` function; library (`library_items`) and logs saved to Supabase under RLS; Library page with the three statuses; Favorites; custom lists create, rename, delete, reorder; empty states |
 | 7 | Reader and player | Reader display (theme, font, size, spacing, margins), chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer, credit skips; progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue Reading; daily limit enforced; keyboard-operable |
 | 8 | Account and polish | Household profiles saved to Supabase (`reader_profiles`, `manage-profile`); Account page (plan and billing, sign-in, preferences, family, privacy with Download my data, help); pause, cancel and restart online and Delete account through a `manage-account` function; *Ask a grown-up* gate on Kids; paused or ended memberships stop reading; accessibility and motion pass |
+| 9 | Study tools and listening | Highlights in four colours with notes, saved to Supabase (`highlights`) and listed by chapter; dictionary through a `dictionary` Edge Function (Free Dictionary API, server side); read-along transcript in the player (follows the narration, English or Spanish, size in the accessibility menu); a mini-player that keeps playing while browsing; keyboard-operable throughout |
 
 ## Code
 

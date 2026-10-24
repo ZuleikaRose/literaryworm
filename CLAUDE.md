@@ -7,7 +7,7 @@ BookWorm is a reading and listening app (ebooks and audiobooks, household profil
 - `front_end/bookworm-app/`: the React app (see its `README.md` for routes and layout).
 - `front_end/BookWorm_web_app_wireframe/`: the Figma Make wireframe. Visual source of truth; don't edit.
 - `front_end/style_guide.md`: design tokens, type, components, motion, voice.
-- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`).
+- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`).
 - `schema.sql`: generated from the migrations by `supabase/build-schema.sh`; don't edit by hand. `drawsql.png` is its ERD, rendered from `docs/erd/erd.html`.
 - `prompt.md`: the build brief and phase plan.
 - `vite-project/`: an unrelated earlier scaffold. Don't use it.
@@ -30,6 +30,10 @@ npm run lint    # oxlint; must be clean
 - **Reading progress and bookmarks go through `src/lib/useReading.ts`.** Opening a book adds it to the library as Reading; the place is dispatched straight away and saved to Supabase (`reading_progress`) a moment later, so reading never waits for the network; bookmarks save first, then show. Real accounts keep them in `state.accountReading`, in-memory accounts in `ProfileData`; `activeReading()` picks the right one. Positions are fractions of the whole book (`src/lib/reading.ts`), shared by the reader and the player.
 - **Household profiles go through `src/lib/useProfiles.ts`.** Real accounts save name, avatar and genres to `reader_profiles` directly; Kids profiles, PINs, limits, age ratings and deletes through the `manage-profile` function (which re-checks the password); PINs are verified on the server. After a change the profiles are read back (`setProfiles`). A real profile has `hasPin`, never the PIN.
 - **Account changes go through `src/lib/useAccount.ts`**: membership (pause, resume, cancel, restart) and deleting through the `manage-account` function; display name and marketing emails straight to their tables; Download my data builds a JSON file in the browser.
+- **Highlights and notes go through `src/lib/useHighlights.ts`**, like bookmarks: real accounts save to `highlights` first, then show; in-memory accounts keep them in `ProfileData`. A highlight is found by chapter, page and character offsets in the page's text (`src/lib/highlights.ts`).
+- **Definitions come from `src/lib/dictionaryApi.ts`**, which calls only the `dictionary` Edge Function (the Free Dictionary API is asked on the server).
+- **Audiobook playback lives in `src/lib/playback.tsx`** (`PlaybackProvider`, `usePlayback`), above the routes, so a book keeps playing in the mini-player (`src/components/MiniPlayer.tsx`) while the member browses. The player page is a view of it. Opening the reader pauses it; switching profile or signing out stops it.
+- The read-along transcript is built from the sample text (`src/data/sampleText.ts`, English and Spanish) and timed to the chapter (`src/lib/transcript.ts`). Its settings are accessibility settings.
 - The reader text (`src/data/sampleText.ts`) and the player's audio are samples, and the pages say so. The daily limit is `src/lib/useDailyLimit.ts`.
 - Search is title only and public. Its state lives in the URL (`q`, `genre`, `sort`, `source`; see `src/lib/search.ts`), and the client checks queries with the same rules as the `books` function.
 - The library is the account's for real accounts (`state.accountLibrary`, from `library_items`) and the profile's for in-memory accounts (`ProfileData.library`); `activeLibrary()` picks the right one. Store actions mirror the database rules: a log needs its book in the library, and removing the book removes that profile's logs.

@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–8)
+### Journey as built so far (Phases 0–9)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -607,6 +607,15 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 49. **Ask a grown-up.** On a Kids profile, Account and *Manage profiles* ask for the account password before showing anything.
 50. **Accessibility pass.** Dialog close buttons and *Show password* toggles are now 44px; Lighthouse accessibility is 100 on every page checked.
 
+### Phase 9: Study tools, read-along and the mini-player
+
+51. **Highlights.** Selecting words on a reader page brings up a small toolbar: four highlight colours (yellow, green, blue, pink), *Add note* and *Define*. The passage is marked in that colour straight away for in-memory accounts, and after it saves for members (`highlights`, private to the account, deleted with the book). Selecting a highlight again opens it to change the colour, write or edit the note, or remove it.
+52. **Notes.** A note belongs to a highlight. Highlights with a note show a small note mark; the note opens from the highlight. *Notes and highlights* (a reader toolbar button) lists every one in the book by chapter, with its colour, the words and the note, and goes to the page, edits or removes it. The list is how keyboard users reach their highlights.
+53. **Dictionary.** *Define* on a single selected word, or *Dictionary* in the reader toolbar (a search field, so it works by keyboard), shows the word, its pronunciation and up to three meanings with examples. Definitions come from the `dictionary` Edge Function, which asks the Free Dictionary API (Wiktionary, CC BY-SA) on the server; the browser never calls it. Kids profiles can use it too. Unknown words get *No definition found*, with a spelling hint.
+54. **Read-along transcript.** The player shows the chapter's transcript under the controls, with the sentence being read marked and kept in view as the narration moves (*Follow the narration* can be turned off to read ahead). Selecting a sentence jumps there. Transcript on or off, its size (small, medium, large) and its language (English or Spanish) are in the accessibility menu under *Audio and transcripts*, kept with the other accessibility settings, and in the player's *Transcript* menu. The transcript is sample text timed to the sample clock and says so.
+55. **Mini-player.** Leaving the player keeps the book playing. A mini-player sits at the bottom of every page (above the tab bar on phones) with the cover, title, chapter, a thin progress line, *Back 15 seconds*, *Play/Pause* and *Close*; the title opens the full player. The place keeps saving as it plays. Opening the reader pauses it (one book at a time); closing it, switching profile, signing out or reaching the daily limit stops it and saves the place.
+56. **Download my data and removing a book** now include highlights and notes.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
@@ -615,7 +624,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 - **One library per account.** The brief gives each user one library and shows logs with that user's display name, so the household's profiles share the account's library and logs. Kids profiles see only Kids-rated titles in it and don't post logs.
 - **Ratings, favourites, custom lists, recent searches, reader display settings and daily time used are still in memory**, per profile. They reset on refresh. Household profiles themselves are saved (Phase 8).
 - **No email change, two-step sign-in, signed-in devices, promo codes or billing history yet.** These need an email provider and Stripe. Deleting an account happens straight away rather than within a legal deadline, and no confirmation email is sent.
-- **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. Highlights, notes, the dictionary, read-along transcripts and the mini-player are not built.
+- **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. The read-along transcript is the same sample text, in English or Spanish, timed to that clock.
 - **No email confirmation.** Supabase's built-in email reaches only the project team (2 emails an hour), so sign-ups are confirmed automatically so that anyone can test the app. Password-reset emails have the same limit until an email provider is added in Supabase.
 
 ### Assessment brief and blueprint together

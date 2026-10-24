@@ -150,6 +150,18 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Player.** Cover beside the controls on desktop, stacked on phones. A 76px rust play button between 56px outlined ±15 buttons, with previous and next chapter beside them; Speed and Sleep timer are labelled native selects. The sleep timer's state reads as one line of rust text under them.
 
+**Highlights.** Four colours, as `--mark-yellow`, `--mark-green`, `--mark-blue` and `--mark-pink` tokens set per paper theme so the text keeps its contrast on light, sepia and dark pages. A highlight is a soft background under the words, never a colour change of the text; one with a note also gets a dotted underline and a small note icon after it, so the difference doesn't rely on colour.
+
+**Selection toolbar.** A dark floating bar above the selection (below it when there's no room): four 44px colour swatches with names for screen readers, then *Add note* and *Define*. It appears with a 140ms fade and scale from 0.96 and closes when the selection goes or on Escape.
+
+**Notes and highlights list.** A dialog grouped by chapter: a colour bar on the left of each item, the words in the reading serif (clamped to three lines), the note below in the UI font, then *Go to page*, *Edit* and *Remove*.
+
+**Dictionary.** A small dialog: the word in the display face with its pronunciation beside it, then meanings grouped by part of speech (an italic label), numbered definitions and examples in muted italic. A search field at the top looks up another word. The source credit sits at the bottom in small muted text.
+
+**Read-along transcript.** Under the player controls on phones, beside the cover column on desktop: the reading serif at three sizes (17, 20, 24px), the current sentence on the rust wash with a rust left rule, the rest at full ink. Each sentence is a button-like target that jumps there. It scrolls the current sentence into the middle smoothly (instantly with reduced motion).
+
+**Mini-player.** A 64px bar fixed to the bottom of the page (above the tab bar on phones), raised surface with the floating shadow and a 2px rust progress line along its top edge: small cover, title and chapter (truncated), then *Back 15 seconds*, a rust *Play/Pause* and *Close*, all 44px. It slides up 16px and fades in once when it first appears, and pages get bottom padding so it never covers content.
+
 **Account page.** Section links as 44px pills under the title. Each section is a row split by a thin rule: heading and one-line intro on the left (a third), controls on the right; stacked on phones. Plan facts sit in a 2×2 grid of cells divided by 1px lines, with a coloured dot for the status (green active, amber paused, red ending). Saves report beside their control with the success or error alert.
 
 **Danger zone.** The last section, with a red rule and red heading: one paragraph that says what goes, then a red *Delete account* button that opens a small dialog (password, a confirmation tick, *Delete my account* / *Keep my account*).
@@ -167,6 +179,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 - One orchestrated moment per page at most (the landing hero covers settle into their fan).
 - Carousel slides fade up 12px over 420ms; loading dots pulse; skeletons shimmer. All stop with reduced motion.
 - Motion answers an action: opening, toggling, confirming. No scroll-triggered fades on every section.
+- The mini-player rises in once (16px, 220ms); the selection toolbar fades and scales in (140ms); the transcript glides to the current sentence. None of these move with reduced motion.
 - `prefers-reduced-motion` and the *Stop animations* setting both turn motion off.
 
 ---

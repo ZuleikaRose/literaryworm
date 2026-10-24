@@ -257,11 +257,12 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 28. Google titles below BookWorm's | 5 | Done | *From BookWorm* first, then *From Google Books*, with the same genre and sort. |
 | 34. Surprise Me | 5 | Done | On Search and on Home; picks only titles the profile may see. |
 | 36. Reader display | 7 | Done | Light, sepia and dark themes; Literata, DM Sans or Lexend; six text sizes; line spacing; margins. Kept per profile until refresh. The text is placeholder prose until real book files are licensed. |
-| 37. Bookmarks, highlights, notes, dictionary | 7 | Partly | Bookmarks in the reader and player, saved to Supabase for real accounts. Highlights, notes and the dictionary are not built. |
+| 37. Bookmarks, highlights, notes, dictionary | 7, 9 | Done | Bookmarks in the reader and player; highlights in four colours with optional notes, and a *Notes and highlights* list; all saved to Supabase for real accounts. Dictionary through the `dictionary` Edge Function (Free Dictionary API, Wiktionary data). |
 | 38. Progress and Continue Reading | 7 | Done | Saved to `reading_progress` (one position per book, shared by the reader and player) as you read and listen; Continue reading reopens the last format at that place, most recent first. |
 | 39. Player remembers speed | 7 | Partly | Speed kept per profile for the session; the browser's own volume applies. |
-| 40. Player controls | 7 | Partly | ±15 seconds, Skip Opening/Closing Credits, chapter list, chapter marks and a sleep timer. No mini-player yet; the audio is a silent sample. |
+| 40. Player controls | 7, 9 | Done | ±15 seconds, Skip Opening/Closing Credits, chapter list, chapter marks, sleep timer, and a mini-player that keeps playing while browsing. The audio is a silent sample. |
 | 41. Mark as finished? | 7 | Done | Dragging to the end or turning past the last page asks first; finishing moves the book to Finished. |
-| 61. Accessibility menu | 0 | Partly | Text size, theme, dyslexia-friendly font, contrast, highlighted links, stop animations. Settings survive sign-out within a session. |
+| 61. Accessibility menu | 0, 9 | Partly | Text size, theme, dyslexia-friendly font, contrast, highlighted links, stop animations, and *Audio and transcripts* (transcript on or off, size, English or Spanish). Settings survive sign-out within a session. |
+| 66. Read-along transcripts | 9 | Partly | The player's transcript marks the sentence being read and follows it; size and English or Spanish are kept with the accessibility settings. The transcript is sample text until publishers' transcripts are licensed. |
 | 63. Accessibility Policy in footer | 0 | Done | Footer on every page; policy page is a placeholder summary. |
 | 70. Cookie choices | — | Planned | Footer links to Your Privacy Choices; banner not built. |
