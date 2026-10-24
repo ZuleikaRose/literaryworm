@@ -220,3 +220,67 @@ Your project will be assessed across these areas:
 - The deployed site does not work
 - The prompt-recording hooks or records were tampered with, disabled, or are missing
 - A secret appears in `prompt-records/` or in committed MCP configuration
+
+---
+
+## Project status and setup
+
+*This section tracks the build. Everything above it is the assessment brief.*
+
+### What's in the repo
+
+| Path | What it is |
+|---|---|
+| `front_end/bookworm-app/` | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/bookworm-app/README.md) for routes and source layout. |
+| `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from. |
+| `front_end/style_guide.md` | Design tokens, type, components, motion and voice. |
+| `front_end/user_journey.md` | Product blueprint, user journey and build notes. |
+| `user_stories.md` | User stories with a build-status table. |
+| `schema.sql` | Target Supabase schema, with Row Level Security on every table. |
+| `drawsql.png` | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md). |
+| `CLAUDE.md` | Conventions and rules for Claude Code. |
+| `prompt.md` | The build brief and phase plan. |
+
+### Run it locally
+
+```bash
+cd front_end/bookworm-app
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # type-check and production build
+npm run lint
+```
+
+Use **Try the demo** on the log-in page for a ready-made household, or log in with `demo@bookworm.example` / `bookworm-demo`.
+
+### Secrets and environment variables
+
+The front end currently runs entirely in the browser with sample data and needs **no environment variables**. When the Supabase backend is connected, copy `.env.example` to a local `.env.development.local` and fill in:
+
+| Variable | Where it comes from | Safe in the browser? |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Supabase dashboard → Connect | Yes |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase dashboard → Connect (publishable / anon key) | Yes |
+| `GOOGLE_BOOKS_API_KEY` | Google Cloud Console | **No.** Set it only as a Supabase Edge Function secret, never in a `VITE_` variable or a committed file. |
+
+`.env` files are gitignored; `.env.example` holds names only.
+
+### Build progress
+
+Data is kept in memory for now, so refreshing resets the app.
+
+| Phase | Scope | Status |
+|---|---|---|
+| 0 | Foundation: scaffold, design tokens, header/footer/accessibility menu, in-memory store, 29-title sample catalog, routes and guards | Done |
+| 1 | Landing, Plans and checkout, Sign up (18+, password rules, Terms), Log in, forgot password, demo | Done |
+| 2 | Who's reading? and profile management | In progress |
+| 3 | Home rows and featured carousel | Planned |
+| 4 | Book details, ratings, lists, reviews | Planned |
+| 5 | Search, filters, Surprise Me | Planned |
+| 6 | Library and Custom Lists | Planned |
+| 7 | Reader and audiobook player | Planned |
+| 8 | Account, Kids restrictions, accessibility and motion polish | Planned |
+
+Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
+
+**Still to come for the brief:** the Supabase project (Auth, PostgREST, RLS), the Google Books Edge Function, `library_items` and `logs`, and deployment to Vercel. Where the brief and the blueprint differ (home topic, title-only search, the six genres, load more, library statuses, logs), see *Open question* in `front_end/user_journey.md`.
