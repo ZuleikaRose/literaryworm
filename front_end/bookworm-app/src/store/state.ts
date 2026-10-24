@@ -1,7 +1,18 @@
 import { getBook } from "../data/books";
 import { seedLogs } from "../data/logs";
 import { usesBackend } from "../lib/backend";
-import type { A11ySettings, Account, LibraryEntry, Profile, ProfileData, ReadingLog, ReadingStatus } from "../types";
+import { defaultReaderSettings, today } from "../lib/reading";
+import type {
+  A11ySettings,
+  Account,
+  Bookmark,
+  LibraryEntry,
+  Profile,
+  ProfileData,
+  Progress,
+  ReadingLog,
+  ReadingStatus,
+} from "../types";
 
 /**
  * All app state lives in memory. Nothing is written to localStorage, so a refresh starts over.
@@ -22,6 +33,8 @@ export interface AppState {
   authError: string | null;
   /** A real account's library (library_items), shared by its household profiles. */
   accountLibrary: Record<string, LibraryEntry>;
+  /** A real account's reading progress and bookmarks (reading_progress, bookmarks), shared like the library. */
+  accountReading: AccountReading;
   /** Every profile's logs plus the sample ones; public on each book's page. */
   logs: ReadingLog[];
   a11y: A11ySettings;
@@ -31,6 +44,13 @@ export interface AppState {
    */
   households: Record<string, Household>;
 }
+
+export interface AccountReading {
+  progress: Record<string, Progress>;
+  bookmarks: Bookmark[];
+}
+
+export const emptyReading = (): AccountReading => ({ progress: {}, bookmarks: [] });
 
 /** Everything that belongs to one account. */
 export interface Household {
@@ -58,6 +78,9 @@ export const emptyProfileData = (): ProfileData => ({
   progress: {},
   bookmarks: [],
   recentSearches: [],
+  readerSettings: defaultReaderSettings,
+  playbackSpeed: 1,
+  timeUsed: { day: today(), seconds: 0, extraMinutes: 0 },
 });
 
 export const newId = () => crypto.randomUUID();
@@ -98,7 +121,7 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
 export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
-  const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"] });
+  const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60 });
   const now = Date.now();
   const averyData: ProfileData = {
     ...emptyProfileData(),
@@ -124,6 +147,7 @@ export function demoHousehold(): Household {
   };
   const miaData: ProfileData = {
     ...emptyProfileData(),
+    library: Object.fromEntries([catalogEntry("the-wild-robot", "reading", now - 2 * 86_400_000)]),
     progress: {
       "the-wild-robot": {
         bookId: "the-wild-robot",
@@ -156,6 +180,7 @@ export const initialState: AppState = {
   authReady: !usesBackend,
   authError: null,
   accountLibrary: {},
+  accountReading: emptyReading(),
   account: null,
   profiles: [],
   activeProfileId: null,

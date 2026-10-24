@@ -7,11 +7,13 @@ interface BookCardProps {
   book: Book;
   /** 0–1 reading progress, shown as a bar under the cover. */
   progress?: number;
+  /** Where the card goes; the book page unless set (Continue reading opens the reader or player). */
+  to?: string;
 }
 
-export function BookCard({ book, progress }: BookCardProps) {
+export function BookCard({ book, progress, to }: BookCardProps) {
   return (
-    <Link className="book-card" to={`/books/${book.id}`}>
+    <Link className="book-card" to={to ?? `/books/${book.id}`}>
       <span className="book-card-cover">
         <Cover book={book} />
         {progress !== undefined && (
@@ -26,7 +28,7 @@ export function BookCard({ book, progress }: BookCardProps) {
         <span className="rating">
           <Icon name="star" size={13} filled /> {book.rating.toFixed(1)}
           <span className="visually-hidden"> out of 5</span>
-          {progress !== undefined && <span className="card-progress-label">{Math.round(progress * 100)}% read</span>}
+          {progress !== undefined && <span className="card-progress-label">{Math.round(progress * 100)}% {to?.startsWith("/listen") ? "listened" : "read"}</span>}
         </span>
       </span>
     </Link>

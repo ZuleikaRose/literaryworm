@@ -11,7 +11,8 @@ import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
-import { useActiveProfile, useProfileData } from "../store/context";
+import { useActiveProfile, useStore } from "../store/context";
+import { activeReading } from "../store/reducer";
 import type { AgeRating, Book } from "../types";
 
 /** One of the brief's six genres as a Home row, loading more at its end. */
@@ -43,7 +44,7 @@ function GenreShelf({ genre, ageRating }: { genre: BrowseGenre; ageRating: AgeRa
 export default function Browse() {
   useTitle("Home");
   const profile = useActiveProfile()!;
-  const data = useProfileData();
+  const reading = activeReading(useStore().state);
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const library = useLibrary();
@@ -53,12 +54,13 @@ export default function Browse() {
   const visible = (b: Book | undefined): b is Book => !!b && isAllowed(b.ageRating, profile.ageRating);
   const catalog = books.filter(visible);
 
-  const continueReading = Object.values(data?.progress ?? {})
+  // Most recent first; each card reopens the format used last, at the saved place.
+  const started = Object.values(reading.progress)
     .filter((p) => !p.finished)
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .map((p) => getBook(p.bookId))
-    .filter(visible);
-  const progress = Object.fromEntries(Object.values(data?.progress ?? {}).map((p) => [p.bookId, p.fraction]));
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+  const continueReading = started.map((p) => getBook(p.bookId)).filter(visible);
+  const progress = Object.fromEntries(started.map((p) => [p.bookId, p.fraction]));
+  const resumeLinks = Object.fromEntries(started.map((p) => [p.bookId, `/${p.format === "audiobook" ? "listen" : "read"}/${p.bookId}`]));
 
   const featured = catalog.filter((b) => b.featured);
   const trending = catalog.filter((b) => b.trendingRank).sort((a, b) => a.trendingRank! - b.trendingRank!);
@@ -87,6 +89,7 @@ export default function Browse() {
             title="Continue reading"
             items={continueReading.map(fromLocal)}
             progress={progress}
+            links={resumeLinks}
           />
         )}
         <Shelf

@@ -1,4 +1,5 @@
-import type { Account, LibraryEntry, PlanId, ReadingStatus } from "../types";
+import type { AccountReading } from "../store/state";
+import type { Account, Bookmark, Format, LibraryEntry, PlanId, Progress, ReadingStatus } from "../types";
 import { SUPABASE_URL } from "./backend";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
@@ -30,6 +31,19 @@ function authMessage(error: { message?: string; status?: number; code?: string }
   return "Something went wrong on our side. Try again in a moment.";
 }
 
+/**
+ * Set while this tab is signing in or signing up, so the auth listener can tell a fresh
+ * sign-in (start at Who's reading?) from a session restored after a refresh (carry on).
+ */
+let signingInHere = false;
+
+/** True once after a sign-in or sign-up started in this tab. */
+export function takeFreshSignIn(): boolean {
+  const fresh = signingInHere;
+  signingInHere = false;
+  return fresh;
+}
+
 export interface SignUpInput {
   name: string;
   email: string;
@@ -43,6 +57,7 @@ export interface SignUpInput {
  * date of birth and the Terms acceptance again, and creates the public profile.
  */
 export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: boolean }> {
+  signingInHere = true;
   const { data, error } = await client().auth.signUp({
     email: input.email.trim(),
     password: input.password,
@@ -56,6 +71,7 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
       },
     },
   });
+  if (error || !data.session) signingInHere = false;
   if (error) {
     if ((error.message ?? "").toLowerCase().includes("database error"))
       throw new AccountError("We couldn't create the account. Check your name and date of birth (18 or older), then try again.");
@@ -67,8 +83,12 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
 }
 
 export async function signIn(email: string, password: string): Promise<void> {
+  signingInHere = true;
   const { error } = await client().auth.signInWithPassword({ email: email.trim(), password });
-  if (error) throw new AccountError(authMessage(error));
+  if (error) {
+    signingInHere = false;
+    throw new AccountError(authMessage(error));
+  }
 }
 
 /**
@@ -264,4 +284,115 @@ export async function updateLog(id: string, body: string, rating: number | null)
 export async function deleteLog(id: string): Promise<void> {
   const { error } = await client().from("logs").delete().eq("id", id).eq("user_id", await signedInUserId());
   if (error) throw new AccountError("We couldn't delete your log. Try again.");
+}
+
+// --- Reading progress and bookmarks (owner-only RLS) ---------------------------
+
+interface ProgressRow {
+  volume_id: string;
+  format: Format;
+  chapter_index: number;
+  position: number | string;
+  finished: boolean;
+  updated_at: string;
+}
+
+interface BookmarkRow {
+  id: string;
+  volume_id: string;
+  format: Format;
+  chapter_index: number;
+  position: number | string;
+  label: string;
+  created_at: string;
+}
+
+const toProgress = (row: ProgressRow): Progress => ({
+  bookId: row.volume_id,
+  format: row.format,
+  chapterIndex: row.chapter_index,
+  fraction: Number(row.position),
+  finished: row.finished,
+  updatedAt: Date.parse(row.updated_at),
+});
+
+const toBookmark = (row: BookmarkRow): Bookmark => ({
+  id: row.id,
+  bookId: row.volume_id,
+  format: row.format,
+  chapterIndex: row.chapter_index,
+  fraction: Number(row.position),
+  label: row.label,
+  createdAt: Date.parse(row.created_at),
+});
+
+const PROGRESS_COLUMNS = "volume_id, format, chapter_index, position, finished, updated_at";
+const BOOKMARK_COLUMNS = "id, volume_id, format, chapter_index, position, label, created_at";
+
+/** The column's numeric(5,4): four decimal places, 0 to 1. */
+const toPosition = (fraction: number) => Math.round(Math.min(1, Math.max(0, fraction)) * 10_000) / 10_000;
+
+export async function loadReading(): Promise<AccountReading> {
+  const db = client();
+  const [progress, bookmarks] = await Promise.all([
+    db.from("reading_progress").select(PROGRESS_COLUMNS),
+    db.from("bookmarks").select(BOOKMARK_COLUMNS).order("created_at"),
+  ]);
+  if (progress.error || bookmarks.error) throw new AccountError("We couldn't load your reading progress. Try again.");
+  return {
+    progress: Object.fromEntries((progress.data as ProgressRow[]).map((row) => [row.volume_id, toProgress(row)])),
+    bookmarks: (bookmarks.data as BookmarkRow[]).map(toBookmark),
+  };
+}
+
+/**
+ * Saves where the account stopped in a book. The book must already be in the library (the
+ * table's foreign key). Updates the row, or creates it the first time.
+ */
+export async function saveProgress(progress: Progress): Promise<void> {
+  const db = client();
+  const userId = await signedInUserId();
+  const fields = {
+    format: progress.format,
+    chapter_index: progress.chapterIndex,
+    position: toPosition(progress.fraction),
+    finished: progress.finished,
+  };
+  const failed = new AccountError("We couldn't save your place. We'll try again as you read.");
+  try {
+    const updated = await db
+      .from("reading_progress")
+      .update(fields)
+      .eq("user_id", userId)
+      .eq("volume_id", progress.bookId)
+      .select("volume_id");
+    if (updated.error) throw failed;
+    if (updated.data.length > 0) return;
+    const inserted = await db.from("reading_progress").insert({ user_id: userId, volume_id: progress.bookId, ...fields });
+    if (inserted.error) throw failed;
+  } catch (err) {
+    throw err instanceof AccountError ? err : failed;
+  }
+}
+
+export async function addBookmark(bookmark: Omit<Bookmark, "id" | "createdAt">): Promise<Bookmark> {
+  const { data, error } = await client()
+    .from("bookmarks")
+    .insert({
+      user_id: await signedInUserId(),
+      volume_id: bookmark.bookId,
+      format: bookmark.format,
+      chapter_index: bookmark.chapterIndex,
+      position: toPosition(bookmark.fraction),
+      label: bookmark.label.trim(),
+    })
+    .select(BOOKMARK_COLUMNS)
+    .single();
+  if (error) throw new AccountError("We couldn't add the bookmark. Try again.");
+  return toBookmark(data as BookmarkRow);
+}
+
+export async function removeBookmark(id: string): Promise<void> {
+  const { error } = await client().from("bookmarks").delete().eq("id", id).eq("user_id", await signedInUserId());
+  if (error) throw new AccountError("We couldn't remove the bookmark. Try again.");
 }

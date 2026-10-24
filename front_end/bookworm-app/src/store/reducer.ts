@@ -1,10 +1,24 @@
 import { LOG_MAX } from "../data/logs";
-import type { A11ySettings, Account, LibraryEntry, PlanId, Profile, ProfileData, RatingValue, ReadingStatus } from "../types";
+import type {
+  A11ySettings,
+  Account,
+  Bookmark,
+  LibraryEntry,
+  PlanId,
+  Profile,
+  ProfileData,
+  Progress,
+  RatingValue,
+  ReaderSettings,
+  ReadingStatus,
+} from "../types";
 import {
+  type AccountReading,
   type AppState,
   DEMO_EMAIL,
   emailKey,
   emptyProfileData,
+  emptyReading,
   type Household,
   initialState,
   MAX_PROFILES,
@@ -17,7 +31,13 @@ export type Action =
   | { type: "createAccount"; account: Account; firstProfile: Profile }
   | { type: "signIn"; email: string }
   /** A real (Supabase) account signed in or was restored after a refresh. */
-  | { type: "enterAccount"; account: Account; library: Record<string, LibraryEntry>; restored: boolean }
+  | {
+      type: "enterAccount";
+      account: Account;
+      library: Record<string, LibraryEntry>;
+      reading: AccountReading;
+      restored: boolean;
+    }
   | { type: "authChecked"; error?: string }
   | { type: "signOut" }
   | { type: "choosePlan"; planId: PlanId; billingDay: number }
@@ -44,7 +64,15 @@ export type Action =
   | { type: "removeFromList"; id: string; bookId: string }
   | { type: "addRecentSearch"; q: string }
   | { type: "removeRecentSearch"; q: string }
-  | { type: "clearRecentSearches" };
+  | { type: "clearRecentSearches" }
+  // Reader and player
+  | { type: "saveProgress"; progress: Progress }
+  | { type: "addBookmark"; bookmark: Bookmark }
+  | { type: "removeBookmark"; id: string }
+  | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
+  | { type: "setPlaybackSpeed"; speed: number }
+  | { type: "addTimeUsed"; day: string; seconds: number }
+  | { type: "allowExtraTime"; day: string; minutes: number };
 
 /** Swap the signed-in household in, starting with no profile chosen. */
 function enter(state: AppState, household: Household): AppState {
@@ -76,6 +104,21 @@ export function activeLibrary(state: AppState): Record<string, LibraryEntry> {
   return (state.activeProfileId && state.profileData[state.activeProfileId]?.library) || {};
 }
 
+/** Progress and bookmarks: the account's for real accounts, the profile's otherwise (like the library). */
+function withReading(state: AppState, change: (reading: AccountReading) => AccountReading): AppState {
+  if (state.account?.userId) return { ...state, accountReading: change(state.accountReading) };
+  return withProfileData(state, (data) => {
+    const next = change({ progress: data.progress, bookmarks: data.bookmarks });
+    return { ...data, progress: next.progress, bookmarks: next.bookmarks };
+  });
+}
+
+export function activeReading(state: AppState): AccountReading {
+  if (state.account?.userId) return state.accountReading;
+  const data = state.activeProfileId ? state.profileData[state.activeProfileId] : undefined;
+  return data ? { progress: data.progress, bookmarks: data.bookmarks } : emptyReading();
+}
+
 /** The same rules as the logs table: 1–5000 characters after trimming, rating 1–5 or none. */
 function validLog(body: string, rating: number | null): boolean {
   const length = body.trim().length;
@@ -102,7 +145,14 @@ export function reducer(state: AppState, action: Action): AppState {
     case "enterAccount": {
       if (state.account?.userId === action.account.userId) {
         // Restored again (token refresh, another tab): keep the household, update the details.
-        return { ...state, authReady: true, authError: null, account: action.account, accountLibrary: action.library };
+        return {
+          ...state,
+          authReady: true,
+          authError: null,
+          account: action.account,
+          accountLibrary: action.library,
+          accountReading: action.reading,
+        };
       }
       // Household profiles stay in memory for now; the first one is named after the account holder.
       const first = makeProfile({ name: action.account.name.split(/\s+/)[0].slice(0, 20), ageRating: "all" });
@@ -118,6 +168,7 @@ export function reducer(state: AppState, action: Action): AppState {
         authReady: true,
         authError: null,
         accountLibrary: action.library,
+        accountReading: action.reading,
       };
     }
 
@@ -201,10 +252,16 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "removeFromLibrary": {
       const profileId = state.activeProfileId;
-      const next = withLibrary(state, (library) => {
+      const withoutBook = withLibrary(state, (library) => {
         const rest = { ...library };
         delete rest[action.bookId];
         return rest;
+      });
+      // Progress and bookmarks go with the book too (on delete cascade in the database).
+      const next = withReading(withoutBook, (reading) => {
+        const progress = { ...reading.progress };
+        delete progress[action.bookId];
+        return { progress, bookmarks: reading.bookmarks.filter((b) => b.bookId !== action.bookId) };
       });
       // Removing a book deletes the profile's logs about it, as the database's foreign key does
       // (for real accounts the database does it, and the page reloads the logs).
@@ -331,5 +388,39 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         logs: state.logs.filter((l) => !(l.id === action.id && l.profileId !== null && l.profileId === state.activeProfileId)),
       };
+
+    case "saveProgress":
+      return withReading(state, (reading) => ({
+        ...reading,
+        progress: { ...reading.progress, [action.progress.bookId]: action.progress },
+      }));
+
+    case "addBookmark":
+      return withReading(state, (reading) => ({ ...reading, bookmarks: [...reading.bookmarks, action.bookmark] }));
+
+    case "removeBookmark":
+      return withReading(state, (reading) => ({
+        ...reading,
+        bookmarks: reading.bookmarks.filter((b) => b.id !== action.id),
+      }));
+
+    case "updateReaderSettings":
+      return withProfileData(state, (data) => ({ ...data, readerSettings: { ...data.readerSettings, ...action.patch } }));
+
+    case "setPlaybackSpeed":
+      return withProfileData(state, (data) => ({ ...data, playbackSpeed: action.speed }));
+
+    case "addTimeUsed":
+      return withProfileData(state, (data) => {
+        // A new day starts from zero, with no extra time.
+        const used = data.timeUsed.day === action.day ? data.timeUsed : { day: action.day, seconds: 0, extraMinutes: 0 };
+        return { ...data, timeUsed: { ...used, seconds: used.seconds + action.seconds } };
+      });
+
+    case "allowExtraTime":
+      return withProfileData(state, (data) => {
+        const used = data.timeUsed.day === action.day ? data.timeUsed : { day: action.day, seconds: 0, extraMinutes: 0 };
+        return { ...data, timeUsed: { ...used, extraMinutes: used.extraMinutes + action.minutes } };
+      });
   }
 }

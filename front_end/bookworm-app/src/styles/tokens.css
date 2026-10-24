@@ -59,6 +59,25 @@
   color-scheme: dark;
 }
 
+/* Reader page themes. They belong to the book, not the app theme, so they sit apart from it. */
+:root {
+  --paper-light: #fbf8f2;
+  --paper-light-ink: #1d1c1a;
+  --paper-light-muted: #5b5750;
+  --paper-light-line: #e0d9cc;
+  --paper-light-accent: #a24e2f;
+  --paper-sepia: #f1e4cb;
+  --paper-sepia-ink: #36291c;
+  --paper-sepia-muted: #65523d;
+  --paper-sepia-line: #d8c49f;
+  --paper-sepia-accent: #9a4a2c;
+  --paper-dark: #121416;
+  --paper-dark-ink: #e8e3d9;
+  --paper-dark-muted: #a7a39b;
+  --paper-dark-line: #2c3033;
+  --paper-dark-accent: #d47652;
+}
+
 :root[data-theme="light"] {
   --bg: #f3f1ed;
   --bg-deep: #ebe8e2;

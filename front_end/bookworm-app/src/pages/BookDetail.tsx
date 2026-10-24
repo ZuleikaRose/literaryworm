@@ -17,8 +17,10 @@ import { usePublicLogs } from "../lib/usePublicLogs";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
 import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
+import { lostWithBook } from "../lib/reading";
 import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
+import { activeReading } from "../store/reducer";
 import type { AgeRating, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
 import NotFound from "./NotFound";
 
@@ -180,6 +182,11 @@ function DetailPage({ view }: { view: DetailView }) {
   const entry = profile ? library.entries[view.id] : undefined;
   const rating = profile ? data.ratings[view.id] : undefined;
   const favorite = profile ? data.favorites.includes(view.id) : false;
+  // Where the account stopped, for "Continue reading" / "Continue listening".
+  const place = profile ? activeReading(state).progress[view.id] : undefined;
+  const bookmarkCount = profile ? activeReading(state).bookmarks.filter((b) => b.bookId === view.id).length : 0;
+  const resume = (format: "ebook" | "audiobook") =>
+    place && !place.finished && place.format === format ? ` · ${Math.round(place.fraction * 100)}%` : null;
   const canWriteLogs = Boolean(profile && profile.ageRating !== "kids");
   const author = view.authors.join(", ") || "Unknown author";
 
@@ -189,6 +196,7 @@ function DetailPage({ view }: { view: DetailView }) {
   const isMine = (log: ReadingLog) =>
     Boolean(profile && ((log.profileId && log.profileId === profile.id) || (userId && log.userId === userId)));
   const myLogCount = logs.filter(isMine).length;
+  const removeWarning = lostWithBook(myLogCount, Boolean(place), bookmarkCount);
   // Logs show the account's display name for real accounts (profiles.display_name), the profile's otherwise.
   const postingAs = userId ? state.account!.name : (profile?.name ?? "");
 
@@ -337,12 +345,12 @@ function DetailPage({ view }: { view: DetailView }) {
             <div className="detail-actions">
               {view.local.formats.includes("ebook") && (
                 <Link className="primary-button" to={`/read/${view.id}`}>
-                  <Icon name="bookOpen" size={18} /> Read
+                  <Icon name="bookOpen" size={18} /> {resume("ebook") ? `Continue reading${resume("ebook")}` : "Read"}
                 </Link>
               )}
               {view.local.formats.includes("audiobook") && (
                 <Link className="secondary-button" to={`/listen/${view.id}`}>
-                  <Icon name="headphones" size={18} /> Listen
+                  <Icon name="headphones" size={18} /> {resume("audiobook") ? `Continue listening${resume("audiobook")}` : "Listen"}
                 </Link>
               )}
             </div>
@@ -380,7 +388,7 @@ function DetailPage({ view }: { view: DetailView }) {
                 <button
                   type="button"
                   className="ghost-button"
-                  onClick={() => (myLogCount ? setPending({ kind: "remove" }) : removeFromLibrary())}
+                  onClick={() => (removeWarning ? setPending({ kind: "remove" }) : removeFromLibrary())}
                 >
                   <Icon name="trash" size={16} /> Remove from library
                 </button>
@@ -472,7 +480,7 @@ function DetailPage({ view }: { view: DetailView }) {
         </section>
       )}
 
-      <section className="logs-section" aria-labelledby="logs-title">
+      <section className="logs-section" id="logs" aria-labelledby="logs-title">
         <div className="logs-intro">
           <p className="eyebrow">Community notes</p>
           <h2 id="logs-title" tabIndex={-1}>
@@ -549,9 +557,7 @@ function DetailPage({ view }: { view: DetailView }) {
         title={pending?.kind === "remove" ? `Remove ${view.title}?` : "Delete this log?"}
         description={
           <p>
-            {pending?.kind === "remove"
-              ? `Your ${myLogCount === 1 ? "log" : `${myLogCount} logs`} about this book will be deleted too. This can't be undone.`
-              : "It will disappear from this book's page. This can't be undone."}
+            {pending?.kind === "remove" ? removeWarning : "It will disappear from this book's page. This can't be undone."}
           </p>
         }
       >
@@ -564,7 +570,7 @@ function DetailPage({ view }: { view: DetailView }) {
               if (pending?.kind === "deleteLog") return removeLog(pending.log);
             }}
           >
-            {pending?.kind === "remove" ? "Remove book and logs" : "Delete log"}
+            {pending?.kind === "remove" ? "Remove book" : "Delete log"}
           </button>
           <button type="button" className="secondary-button" onClick={() => setPending(null)}>
             Keep it

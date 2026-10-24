@@ -11,12 +11,14 @@ interface BookTileProps {
   priority?: boolean;
   /** 0–1 reading progress (Continue Reading). */
   progress?: number;
+  /** Overrides where a catalog card links (Continue reading). */
+  to?: string;
 }
 
 /** A book from a list: the drawn BookWorm card for catalog titles, the Google cover otherwise. */
-export function BookTile({ book, priority = false, progress }: BookTileProps) {
+export function BookTile({ book, priority = false, progress, to }: BookTileProps) {
   const [broken, setBroken] = useState(false);
-  if (book.local) return <BookCard book={book.local} progress={progress} />;
+  if (book.local) return <BookCard book={book.local} progress={progress} to={to} />;
 
   const author = book.authors.length ? book.authors.join(", ") : "Unknown author";
   const drawn = { cover: fallbackCover(book.id), genres: book.categories.slice(0, 1), title: book.title, author };

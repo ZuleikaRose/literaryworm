@@ -182,7 +182,7 @@ function LibraryView({ profile }: { profile: Profile }) {
         onClose={() => setRemoving(null)}
         size="sm"
         title="Remove this book?"
-        description={<p>Any logs you wrote about it are deleted too. This can't be undone.</p>}
+        description={<p>Any logs you wrote about it, your place in it and its bookmarks are deleted too. This can't be undone.</p>}
       >
         <div className="modal-actions">
           <button type="button" className="danger-button" onClick={confirmRemove}>

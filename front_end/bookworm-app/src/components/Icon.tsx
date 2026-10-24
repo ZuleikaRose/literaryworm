@@ -42,6 +42,8 @@ const paths = {
   check: <path d="m5 12 5 5L20 7" />,
   play: <path d="M7 4v16l13-8Z" />,
   pause: <path d="M7 4h3v16H7zM14 4h3v16h-3z" />,
+  previousChapter: <path d="M6 5v14M18 5.5 8.5 12l9.5 6.5Z" />,
+  nextChapter: <path d="M18 5v14M6 5.5l9.5 6.5L6 18.5Z" />,
   headphones: (
     <>
       <path d="M3 18v-6a9 9 0 0 1 18 0v6" />

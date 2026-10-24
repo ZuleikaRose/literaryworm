@@ -117,20 +117,44 @@ export interface CustomList {
 
 export interface Progress {
   bookId: string;
+  /** The format used last, so Continue Reading reopens the reader or the player. */
   format: Format;
-  /** 0–1 */
+  /** How far through the whole book, 0–1 (pages for ebooks, time for audiobooks). */
   fraction: number;
   chapterIndex: number;
   updatedAt: number;
   finished: boolean;
 }
 
+/** A named place in a book. Bookmarks are added and removed, never edited. */
 export interface Bookmark {
   id: string;
   bookId: string;
+  format: Format;
   chapterIndex: number;
+  /** 0–1 through the whole book. */
+  fraction: number;
   label: string;
   createdAt: number;
+}
+
+/** The reader's display choices, kept per profile for the session. */
+export interface ReaderSettings {
+  font: "serif" | "sans" | "readable";
+  /** Index into READER_SIZES. */
+  size: number;
+  spacing: "compact" | "normal" | "relaxed";
+  margins: "narrow" | "normal" | "wide";
+  theme: "light" | "sepia" | "dark";
+}
+
+/** Reading and listening time used today, for the profile's daily limit. */
+export interface TimeUsed {
+  /** Local date, YYYY-MM-DD. */
+  day: string;
+  seconds: number;
+  /** Extra minutes a grown-up allowed today. */
+  extraMinutes: number;
 }
 
 /** The brief's reading statuses (the library's "update" operation). */
@@ -153,9 +177,14 @@ export interface ProfileData {
   favorites: string[];
   customLists: CustomList[];
   ratings: Record<string, RatingValue>;
+  /** In-memory accounts only; real accounts keep progress and bookmarks in Supabase (state.accountReading). */
   progress: Record<string, Progress>;
   bookmarks: Bookmark[];
   recentSearches: string[];
+  readerSettings: ReaderSettings;
+  /** Audiobook playback speed, 0.5–3. */
+  playbackSpeed: number;
+  timeUsed: TimeUsed;
 }
 
 /**

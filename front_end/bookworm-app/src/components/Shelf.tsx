@@ -18,6 +18,8 @@ interface ShelfProps {
   ranked?: boolean;
   /** Reading progress per book id (Continue Reading). */
   progress?: Record<string, number>;
+  /** Links per book id that replace the book page (Continue reading resumes the book). */
+  links?: Record<string, string>;
   action?: ReactNode;
 }
 
@@ -26,7 +28,7 @@ interface ShelfProps {
  * through the books (each card scrolls into view as it takes focus). Rows that come from the
  * books service end with a Load more card.
  */
-export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, onRetry, ranked, progress, action }: ShelfProps) {
+export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, onRetry, ranked, progress, links, action }: ShelfProps) {
   const track = useRef<HTMLUListElement>(null);
   const headingId = `${id}-title`;
 
@@ -87,7 +89,7 @@ export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, on
                 </span>
               )}
               {ranked && <span className="visually-hidden">Number {i + 1}: </span>}
-              <BookTile book={book} priority={i < 6} progress={progress?.[book.id]} />
+              <BookTile book={book} priority={i < 6} progress={progress?.[book.id]} to={links?.[book.id]} />
             </li>
           ))}
           {status === "idle" && onLoadMore && (
