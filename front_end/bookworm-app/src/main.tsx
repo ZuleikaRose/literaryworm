@@ -11,6 +11,7 @@ import "./styles/sections.css";
 import "./styles/pages.css";
 import "./styles/public.css";
 import "./styles/profiles.css";
+import "./styles/home.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

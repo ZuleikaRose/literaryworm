@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { Book } from "../types";
 
 interface CoverProps {
-  book: Book;
+  book: Pick<Book, "cover" | "genres" | "title" | "author">;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
@@ -23,7 +23,7 @@ export function Cover({ book, size = "md", className }: CoverProps) {
     <div className={`book-cover cover-${size}${className ? ` ${className}` : ""}`} style={style} aria-hidden="true">
       {/* The face sits inside the size container so its cqi units track the cover's width. */}
       <div className={`cover-face motif-${motif}`}>
-        <span className="cover-kicker">{book.genres[0]}</span>
+        {book.genres[0] && <span className="cover-kicker">{book.genres[0]}</span>}
         <strong className="cover-title">{book.title}</strong>
         <small className="cover-author">{book.author}</small>
       </div>

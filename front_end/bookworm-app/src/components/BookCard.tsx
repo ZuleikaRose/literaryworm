@@ -11,7 +11,7 @@ interface BookCardProps {
 
 export function BookCard({ book, progress }: BookCardProps) {
   return (
-    <Link className="book-card" to={`/book/${book.id}`}>
+    <Link className="book-card" to={`/books/${book.id}`}>
       <span className="book-card-cover">
         <Cover book={book} />
         {progress !== undefined && (

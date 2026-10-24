@@ -71,6 +71,8 @@ export function listUrl(q: string, page: number, key: string | undefined): URL {
   url.searchParams.set("maxResults", String(PAGE_SIZE));
   url.searchParams.set("printType", "books");
   url.searchParams.set("projection", "lite");
+  // The home page is public and Teen profiles use it too: leave out mature titles.
+  url.searchParams.set("maxAllowedMaturityRating", "not-mature");
   if (key) url.searchParams.set("key", key);
   return url;
 }

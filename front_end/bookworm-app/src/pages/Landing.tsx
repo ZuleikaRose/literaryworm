@@ -1,10 +1,15 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Avatar } from "../components/Avatar";
 import { BookCard } from "../components/BookCard";
+import { BookFeed } from "../components/BookFeed";
+import { GenreNav } from "../components/GenreNav";
+import { Shelf } from "../components/Shelf";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../data/books";
+import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
 import { formatPrice, planFaqs, plans } from "../data/plans";
+import { useBookFeed } from "../lib/useBookFeed";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { AgeRating } from "../types";
@@ -24,6 +29,11 @@ export default function Landing() {
   const freeTitles = books.filter((b) => b.publicDomain && b.featured).concat(books.filter((b) => b.publicDomain && !b.featured)).slice(0, 6);
   const dune = getBook("dune")!;
   const [circe, midnight] = [getBook("circe")!, getBook("the-midnight-library")!];
+  // The public home: books about technology from the books Edge Function (Google Books).
+  const technology = useBookFeed({ mode: "home" });
+  const [params] = useSearchParams();
+  const genreParam = params.get("genre");
+  const genre: BrowseGenre = isBrowseGenre(genreParam) ? genreParam : "technology";
 
   const tryDemo = () => {
     dispatch({ type: "startDemo" });
@@ -79,6 +89,22 @@ export default function Landing() {
       </section>
 
       <div className="page-content">
+        <Shelf
+          id="technology"
+          eyebrow="Browse without an account"
+          title="Popular in technology"
+          items={technology.items}
+          status={technology.status}
+          error={technology.error}
+          onLoadMore={technology.loadMore}
+          onRetry={technology.retry}
+          action={
+            <a className="view-all" href="#discover">
+              Browse by genre <Icon name="chevronRight" size={16} />
+            </a>
+          }
+        />
+
         <section aria-labelledby="free-title">
           <div className="section-heading">
             <div>
@@ -213,6 +239,16 @@ export default function Landing() {
             </Link>
           )}
         </section>
+
+        <div id="discover">
+          <BookFeed
+            id="discover"
+            eyebrow="Keep discovering"
+            title={`${genreLabel(genre)} books`}
+            query={genre === "technology" ? { mode: "home" } : { mode: "genre", genre }}
+            controls={<GenreNav current={genre} basePath="/" />}
+          />
+        </div>
       </div>
     </div>
   );

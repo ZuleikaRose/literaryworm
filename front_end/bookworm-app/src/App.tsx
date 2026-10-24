@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppEffects, ImmersiveLayout, RequireAccount, RequireProfile, SiteLayout } from "./layouts/Layouts";
 import Account from "./pages/Account";
 import BookDetail from "./pages/BookDetail";
@@ -15,6 +15,11 @@ import Search from "./pages/Search";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 
+/** Old /book/:id links keep working. */
+function LegacyBookRedirect() {
+  return <Navigate to={`/books/${useParams().id ?? ""}`} replace />;
+}
+
 export default function App() {
   return (
     <>
@@ -27,8 +32,9 @@ export default function App() {
           <Route path="signin" element={<SignIn />} />
           <Route path="signup" element={<SignUp />} />
           <Route path="legal/:slug" element={<Legal />} />
-          {/* Visitors can open public-domain titles; actions ask them to sign in. */}
-          <Route path="book/:id" element={<BookDetail />} />
+          {/* Book details are public (the brief's /books/:id); actions ask visitors to sign in. */}
+          <Route path="books/:id" element={<BookDetail />} />
+          <Route path="book/:id" element={<LegacyBookRedirect />} />
 
           <Route element={<RequireAccount />}>
             <Route path="profiles" element={<Profiles />} />

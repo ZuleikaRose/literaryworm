@@ -40,6 +40,7 @@ Deno.test("home asks Google for technology with the key server-side and shapes t
   assertEquals(url.searchParams.get("q"), "technology");
   assertEquals(url.searchParams.get("startIndex"), "20");
   assertEquals(url.searchParams.get("maxResults"), "20");
+  assertEquals(url.searchParams.get("maxAllowedMaturityRating"), "not-mature");
   const body = await res.json();
   assertEquals(body.items.length, 20);
   assert(body.hasMore);
