@@ -34,7 +34,9 @@ $$;
 -- Phase 1: accounts
 -- -----------------------------------------------------------------------------
 
--- One row per signed-in user, linked to the Supabase Auth user.
+-- One row per signed-in user, linked to the Supabase Auth user. This is the
+-- `profiles` table the assessment brief requires. Household reader profiles
+-- (Kids, Teen, All) will live in their own table from Phase 2.
 -- display_name is what other readers see (never the email address).
 create table public.profiles (
   id                uuid primary key references auth.users (id) on delete cascade,
@@ -92,7 +94,7 @@ create policy "Users update their own profile"
 -- No delete policy: deleting the auth user cascades to the profile.
 
 
--- Membership plans. Public catalogue data, managed by admins only.
+-- Membership plans. Public catalog data, managed by admins only.
 create table public.plans (
   id              text primary key check (id in ('basic', 'standard', 'premium')),
   name            text not null,

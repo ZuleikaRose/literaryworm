@@ -114,7 +114,7 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "RLS: anyone reads display names; users insert/update only their own row. 18+ enforced by trigger.",
+          note: "The brief's required profiles table. RLS: anyone reads display names; users insert/update only their own row. 18+ enforced by trigger.",
         },
         {
           id: "subscriptions", color: colors.billing, x: 470, y: 400, sub: "one per user",
@@ -135,7 +135,7 @@
           note: "RLS: users read only their own. Writes happen server-side (Edge Function / Stripe webhook). No card data.",
         },
         {
-          id: "plans", color: colors.billing, x: 940, y: 400, sub: "catalogue",
+          id: "plans", color: colors.billing, x: 940, y: 400, sub: "catalog",
           cols: [
             ["pk", "id", "text"],
             ["", "name", "text"],
