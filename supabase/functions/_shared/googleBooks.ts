@@ -41,6 +41,8 @@ export type BookDetail = BookSummary & {
   averageRating: number | null;
   ratingsCount: number | null;
   previewLink: string | null;
+  /** Google marks some titles MATURE; Teen and Kids profiles don't see those. */
+  mature: boolean;
 };
 
 export type BookPage = {
@@ -213,6 +215,7 @@ export function shapeDetail(item: unknown): BookDetail {
     averageRating: num(info.averageRating),
     ratingsCount: num(info.ratingsCount),
     previewLink: preview?.startsWith("https://") ? preview : preview?.replace(/^http:\/\//, "https://") ?? null,
+    mature: info.maturityRating === "MATURE",
   };
 }
 

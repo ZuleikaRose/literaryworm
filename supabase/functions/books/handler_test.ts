@@ -139,6 +139,10 @@ Deno.test("volume details strip HTML and handle missing cover and description", 
   let body = await res.json();
   assertEquals(body.description, "Hello world & more");
   assertEquals(body.pageCount, 320);
+  assertFalse(body.mature);
+
+  res = await handle(get("mode=volume&id=abc123"), stub(200, volume("abc123", { maturityRating: "MATURE" })));
+  assert((await res.json()).mature, "Google's MATURE rating is passed on");
 
   res = await handle(get("mode=volume&id=abc123"), stub(200, { id: "abc123", volumeInfo: { title: "Bare" } }));
   body = await res.json();

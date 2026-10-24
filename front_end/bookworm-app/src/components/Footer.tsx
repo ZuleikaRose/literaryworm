@@ -21,7 +21,7 @@ export function Footer() {
         </nav>
       </div>
       <p className="footer-note">
-        BookWorm is a demo. Data stays in this browser tab and resets when you refresh. Book details are sample data.
+        BookWorm is a demo. Data stays in this browser tab and resets when you refresh. BookWorm titles are sample data; other book details come from Google Books.
       </p>
     </footer>
   );

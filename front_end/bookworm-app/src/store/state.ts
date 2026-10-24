@@ -1,5 +1,6 @@
-import { seedReviews } from "../data/reviews";
-import type { A11ySettings, Account, Profile, ProfileData, Review } from "../types";
+import { getBook } from "../data/books";
+import { seedLogs } from "../data/logs";
+import type { A11ySettings, Account, LibraryEntry, Profile, ProfileData, ReadingLog, ReadingStatus } from "../types";
 
 /**
  * All app state lives in memory. Nothing is written to localStorage, so a refresh starts over.
@@ -11,7 +12,8 @@ export interface AppState {
   /** The profile used before returning to Who's reading?, so Kids can't slip into profile management. */
   lastProfileId: string | null;
   profileData: Record<string, ProfileData>;
-  reviews: Review[];
+  /** Every profile's logs plus the sample ones; public on each book's page. */
+  logs: ReadingLog[];
   a11y: A11ySettings;
   /**
    * Accounts created (or signed out of) during this session, keyed by lower-case email,
@@ -39,7 +41,7 @@ export const defaultA11y: A11ySettings = {
 };
 
 export const emptyProfileData = (): ProfileData => ({
-  readingList: [],
+  library: {},
   favorites: [],
   customLists: [],
   ratings: {},
@@ -49,6 +51,12 @@ export const emptyProfileData = (): ProfileData => ({
 });
 
 export const newId = () => crypto.randomUUID();
+
+/** A library entry for a title from the BookWorm catalog. */
+function catalogEntry(bookId: string, status: ReadingStatus, addedAt: number): [string, LibraryEntry] {
+  const book = getBook(bookId)!;
+  return [bookId, { bookId, status, addedAt, title: book.title, authors: [book.author], cover: null }];
+}
 
 /**
  * The demo household's password, generated fresh on every page load so no fixed credential
@@ -84,7 +92,13 @@ export function demoHousehold(): Household {
   const now = Date.now();
   const averyData: ProfileData = {
     ...emptyProfileData(),
-    readingList: ["babel", "sea-of-tranquility", "project-hail-mary"],
+    library: Object.fromEntries([
+      catalogEntry("babel", "want_to_read", now - 5 * 86_400_000),
+      catalogEntry("sea-of-tranquility", "want_to_read", now - 4 * 86_400_000),
+      catalogEntry("dune", "reading", now - 3 * 86_400_000),
+      catalogEntry("the-midnight-library", "reading", now - 2 * 86_400_000),
+      catalogEntry("project-hail-mary", "want_to_read", now - 86_400_000),
+    ]),
     favorites: ["circe"],
     progress: {
       dune: { bookId: "dune", format: "audiobook", fraction: 0.42, chapterIndex: 9, updatedAt: now - 3_600_000, finished: false },
@@ -134,7 +148,7 @@ export const initialState: AppState = {
   activeProfileId: null,
   lastProfileId: null,
   profileData: {},
-  reviews: seedReviews,
+  logs: seedLogs,
   a11y: defaultA11y,
   households: { [DEMO_EMAIL]: demoHousehold() },
 };

@@ -61,10 +61,12 @@ export default function Browse() {
   const newReleases = catalog.filter((b) => b.newRelease);
   const topTen = [...catalog].sort((a, b) => b.rating - a.rating || b.ratingsCount - a.ratingsCount).slice(0, 10);
 
-  const lastSaved = getBook(data?.readingList.at(-1));
+  // The catalog title most recently added to the library.
+  const saved = Object.values(data?.library ?? {}).sort((a, b) => b.addedAt - a.addedAt);
+  const lastSaved = saved.map((entry) => getBook(entry.bookId)).find(visible);
   const becauseSaved = lastSaved
     ? catalog.filter(
-        (b) => b.id !== lastSaved.id && !data?.readingList.includes(b.id) && b.genres.some((g) => lastSaved.genres.includes(g)),
+        (b) => b.id !== lastSaved.id && !data?.library[b.id] && b.genres.some((g) => lastSaved.genres.includes(g)),
       )
     : [];
 

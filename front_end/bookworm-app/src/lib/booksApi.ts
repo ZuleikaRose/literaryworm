@@ -1,6 +1,7 @@
 import { books, isAllowed } from "../data/books";
 import { type BrowseGenre, sampleCatalogGenres } from "../data/genres";
 import type { AgeRating, Book } from "../types";
+import { PUBLISHABLE_KEY, SUPABASE_URL, usesBackend } from "./backend";
 
 /**
  * Book lists for Home and the landing page.
@@ -28,6 +29,22 @@ export interface BookPage {
   hasMore: boolean;
 }
 
+/** One Google Books title, as the `books` function shapes it for the details page. */
+export interface VolumeDetail extends Omit<BookSummary, "local"> {
+  subtitle: string | null;
+  description: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  pageCount: number | null;
+  language: string | null;
+  averageRating: number | null;
+  ratingsCount: number | null;
+  /** Google's page for the title (where to preview or buy it). */
+  previewLink: string | null;
+  /** Google rates it MATURE: Teen and Kids profiles don't see it. */
+  mature: boolean;
+}
+
 export type FeedQuery = { mode: "home" } | { mode: "genre"; genre: BrowseGenre } | { mode: "search"; q: string };
 
 export class BooksApiError extends Error {
@@ -42,10 +59,7 @@ export class BooksApiError extends Error {
 export const PAGE_SIZE = 20;
 export const MAX_PAGE = 19;
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
-const PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-
-export const usesBackend = Boolean(SUPABASE_URL && PUBLISHABLE_KEY);
+export { usesBackend };
 
 export function feedKey(query: FeedQuery): string {
   return query.mode === "genre" ? `genre:${query.genre}` : query.mode === "search" ? `search:${query.q}` : "home";
@@ -68,6 +82,8 @@ const FRIENDLY: Record<string, string> = {
   upstream_timeout: "The book service took too long to answer. Try again.",
   upstream_error: "We couldn't reach the book service. Try again in a moment.",
   network: "You seem to be offline. Check your connection and try again.",
+  not_found: "We couldn't find that book. The link may be old.",
+  unavailable: "Book details need the book service, which isn't set up in this copy of the app.",
 };
 
 // Pages already fetched this session (memory only, like the rest of the app's state), so
@@ -82,7 +98,10 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
 
   let pending = pageCache.get(url);
   if (!pending) {
-    pending = requestPageWithRetry(url, page);
+    pending = withRetry(() => requestJson(url)).then((body) => {
+      const data = body as { items: BookSummary[]; page: number; hasMore: boolean };
+      return { items: data.items, page: data.page, hasMore: data.hasMore && page < MAX_PAGE };
+    });
     pageCache.set(url, pending);
     // Failures aren't cached, so Try again really tries again.
     pending.catch(() => pageCache.delete(url));
@@ -93,18 +112,18 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
 const RETRY_AFTER_MS = 1500;
 
 /** Google Books has short outages; ask once more by ourselves before showing the error. */
-async function requestPageWithRetry(url: string, page: number): Promise<BookPage> {
+async function withRetry<T>(request: () => Promise<T>): Promise<T> {
   try {
-    return await requestPage(url, page);
+    return await request();
   } catch (err) {
     const transient = err instanceof BooksApiError && (err.code === "upstream_error" || err.code === "upstream_timeout");
     if (!transient) throw err;
     await new Promise((resolve) => setTimeout(resolve, RETRY_AFTER_MS));
-    return requestPage(url, page);
+    return request();
   }
 }
 
-async function requestPage(url: string, page: number): Promise<BookPage> {
+async function requestJson(url: string): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(url, { headers: { apikey: PUBLISHABLE_KEY! } });
@@ -118,8 +137,22 @@ async function requestPage(url: string, page: number): Promise<BookPage> {
     const code = error?.code ?? "upstream_error";
     throw new BooksApiError(code, FRIENDLY[code] ?? error?.message ?? FRIENDLY.upstream_error);
   }
-  const data = body as { items: BookSummary[]; page: number; hasMore: boolean };
-  return { items: data.items, page: data.page, hasMore: data.hasMore && page < MAX_PAGE };
+  return body;
+}
+
+const volumeCache = new Map<string, Promise<VolumeDetail>>();
+
+/** A Google Books title for its details page, through the `books` Edge Function. */
+export function fetchVolume(id: string): Promise<VolumeDetail> {
+  if (!usesBackend) return Promise.reject(new BooksApiError("unavailable", FRIENDLY.unavailable));
+  let pending = volumeCache.get(id);
+  if (!pending) {
+    const url = `${SUPABASE_URL}/functions/v1/books?${new URLSearchParams({ mode: "volume", id })}`;
+    pending = withRetry(() => requestJson(url)) as Promise<VolumeDetail>;
+    volumeCache.set(id, pending);
+    pending.catch(() => volumeCache.delete(id));
+  }
+  return pending;
 }
 
 function localPage(query: FeedQuery, page: number, ageRating: AgeRating): BookPage {

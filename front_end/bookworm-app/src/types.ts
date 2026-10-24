@@ -128,8 +128,23 @@ export interface Bookmark {
   createdAt: number;
 }
 
+/** The brief's reading statuses (the library's "update" operation). */
+export type ReadingStatus = "want_to_read" | "reading" | "finished";
+
+/** A book in a profile's library. Private: only its own profile sees it. */
+export interface LibraryEntry {
+  bookId: string;
+  status: ReadingStatus;
+  addedAt: number;
+  /** What the Library page needs to show a Google Books title without asking again. */
+  title: string;
+  authors: string[];
+  cover: string | null;
+}
+
 export interface ProfileData {
-  readingList: string[];
+  /** Keyed by book id. Replaces the old Reading List: "want to read" entries are that list. */
+  library: Record<string, LibraryEntry>;
   favorites: string[];
   customLists: CustomList[];
   ratings: Record<string, RatingValue>;
@@ -138,19 +153,21 @@ export interface ProfileData {
   recentSearches: string[];
 }
 
-export interface Review {
+/**
+ * A reading log: what a reader thought of a book in their library. Logs are public on the
+ * book's page and show the writer's display name, never an email address.
+ */
+export interface ReadingLog {
   id: string;
   bookId: string;
-  /** Null for seeded community reviews. */
+  /** The profile that wrote it; null for the sample community logs. */
   profileId: string | null;
   displayName: string;
-  initials: string;
   body: string;
+  /** Optional 1–5. */
+  rating: number | null;
   createdAt: number;
-  progressLabel: string;
-  helpful: number;
-  helpfulBy: string[];
-  reportedBy: string[];
+  updatedAt: number;
 }
 
 export interface A11ySettings {

@@ -1,0 +1,529 @@
+/* Book details (/books/:id), from the wireframe's detail screen. */
+
+.detail-page {
+  max-width: 1190px;
+  margin: 0 auto;
+  padding: 32px var(--gutter) 96px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-button:hover {
+  color: var(--ink);
+}
+
+/* ---------- Hero ---------- */
+
+.book-hero {
+  display: grid;
+  grid-template-columns: 265px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 60px);
+  align-items: start;
+  padding: 20px clamp(0px, 3vw, 55px) 56px;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-cover .book-cover {
+  width: 250px;
+  aspect-ratio: 2 / 3;
+}
+
+.book-info {
+  min-width: 0;
+  padding-top: 8px;
+}
+
+.book-info h1 {
+  max-width: 670px;
+  margin: 0 0 8px;
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 5vw, 3.75rem);
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+}
+
+.book-subtitle {
+  max-width: 640px;
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+}
+
+.byline {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.byline strong {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.book-meta {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 6px;
+  margin: 0 0 22px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  list-style: none;
+}
+
+.book-meta li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 13px;
+  border-right: 1px solid var(--line-strong);
+}
+
+.book-meta li:first-child {
+  padding-left: 0;
+}
+
+.book-meta li:last-child {
+  border: 0;
+}
+
+.book-meta .meta-rating {
+  color: var(--star);
+  font-weight: 700;
+}
+
+.book-blurb {
+  max-width: 670px;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.book-blurb p {
+  margin: 0 0 12px;
+}
+
+.book-blurb.is-clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+}
+
+.icon.flip {
+  transform: rotate(180deg);
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 22px;
+}
+
+.detail-actions + .detail-actions {
+  margin-top: 11px;
+}
+
+/* Reading status: a native select dressed as a button. */
+.status-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--rust-ink);
+}
+
+.status-field > .icon {
+  position: absolute;
+  pointer-events: none;
+}
+
+.status-field > .icon:first-of-type {
+  left: 16px;
+}
+
+.status-field > .icon:last-of-type {
+  right: 14px;
+}
+
+.status-select {
+  min-height: 44px;
+  padding: 0 40px 0 42px;
+  border: 1px solid var(--rust-deep);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--rust-wash);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  appearance: none;
+  cursor: pointer;
+}
+
+.status-select:hover {
+  border-color: var(--rust-bright);
+}
+
+.taste-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.taste-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.taste-button:hover {
+  border-color: var(--faint);
+}
+
+.taste-button[aria-pressed="true"] {
+  border-color: var(--rust-bright);
+  color: var(--ink);
+  background: var(--rust-wash);
+}
+
+.privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: 600px;
+  margin: 18px 0 0;
+  color: var(--faint);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.privacy-note .icon {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* ---------- Details list ---------- */
+
+.book-facts {
+  padding: 40px clamp(0px, 3vw, 55px);
+  border-bottom: 1px solid var(--line);
+}
+
+.book-facts h2,
+.logs-intro h2 {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.book-facts dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px 32px;
+  margin: 0;
+}
+
+.book-facts .fact-wide {
+  grid-column: 1 / -1;
+}
+
+.book-facts dt {
+  margin-bottom: 4px;
+  color: var(--faint);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.book-facts dd {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.source-credit {
+  margin: 22px 0 0;
+  color: var(--faint);
+  font-size: 0.8125rem;
+}
+
+.source-credit a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  color: var(--rust-bright);
+  font-weight: 600;
+}
+
+/* ---------- Reader logs ---------- */
+
+.logs-section {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 65px);
+  padding: 52px clamp(0px, 3vw, 55px) 0;
+}
+
+.logs-intro p:not(.eyebrow) {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.logs-list {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+}
+
+.log-card {
+  padding: 21px 23px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.log-card.is-own {
+  border-color: var(--rust-deep);
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.reader-avatar {
+  display: grid;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--rust-ink);
+  background: var(--rust-wash);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.log-byline {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.reader-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.own-tag {
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--rust-ink);
+  background: var(--rust-wash);
+  font-size: 0.6875rem;
+}
+
+.log-byline small {
+  margin-top: 2px;
+  color: var(--faint);
+  font-size: 0.75rem;
+}
+
+.log-rating {
+  display: flex;
+  flex: none;
+  gap: 1px;
+  color: var(--star);
+}
+
+.log-body {
+  margin: 16px 0 6px;
+  color: var(--ink-soft);
+  font-family: var(--font-reading);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.log-body.is-clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.log-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.log-actions:empty {
+  display: none;
+}
+
+.small-button {
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 0.8125rem;
+}
+
+.logs-status,
+.logs-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.logs-status p,
+.logs-empty p {
+  margin: 0;
+}
+
+.logs-empty {
+  padding: 28px 23px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.logs-more {
+  justify-self: start;
+}
+
+.detail-more {
+  margin-top: 72px;
+}
+
+.detail-more:empty {
+  display: none;
+}
+
+/* ---------- Write a log ---------- */
+
+.log-textarea {
+  min-height: 160px;
+}
+
+.log-rating-field {
+  margin-top: 20px;
+}
+
+.log-rating-field .chip-group-lg {
+  justify-content: flex-start;
+}
+
+.log-form-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.log-form-foot > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Loading ---------- */
+
+.book-info .skeleton-line.title {
+  width: 70%;
+  height: 40px;
+}
+
+/* ---------- Tablet and phone ---------- */
+
+@media (max-width: 860px) {
+  .logs-section {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .detail-page {
+    padding-top: 16px;
+  }
+
+  .book-hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 4px 0 40px;
+  }
+
+  .detail-cover {
+    display: flex;
+    justify-content: center;
+  }
+
+  .detail-cover .book-cover {
+    width: min(200px, 56vw);
+  }
+
+  .detail-actions > * {
+    flex: 1 1 auto;
+  }
+
+  .status-field,
+  .status-select {
+    width: 100%;
+  }
+
+  .log-card {
+    padding: 18px;
+  }
+
+  .log-header {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taste-button {
+    transition: none;
+  }
+}

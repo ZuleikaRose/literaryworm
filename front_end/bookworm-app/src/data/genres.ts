@@ -30,3 +30,17 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
   "non-fiction": ["Memoir", "Self-development"],
   horror: ["Horror"],
 };
+
+/**
+ * The browse genre closest to a Google Books title's categories (for More like this), or
+ * null when none fits. Google's categories are BISAC headings such as "Fiction / Horror".
+ */
+export function genreForCategories(categories: string[]): BrowseGenre | null {
+  const text = categories.join(" ").toLowerCase();
+  if (/science fiction|sci-fi/.test(text)) return "sci-fi";
+  if (/horror/.test(text)) return "horror";
+  if (/adventure/.test(text)) return "adventure";
+  if (/computers|technology|engineering/.test(text)) return "technology";
+  if (/fiction/.test(text)) return "fiction";
+  return text ? "non-fiction" : null;
+}
