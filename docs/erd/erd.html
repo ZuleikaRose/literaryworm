@@ -1,0 +1,249 @@
+<!doctype html>
+<!--
+  Source for ../../drawsql.png (the entity relationship diagram for schema.sql).
+  To update: edit the `tables` and `relations` arrays below to match schema.sql, then
+  render this page to drawsql.png (see docs/erd/README.md).
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BookWorm ERD</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f6f5f2;
+        --dot: #dcd8d0;
+        --card: #ffffff;
+        --line: #e6e2da;
+        --ink: #1d1f21;
+        --muted: #6b7075;
+        --pk: #b8692a;
+        --fk: #2f6f9c;
+        --edge: #8d8a84;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "DM Sans", system-ui, sans-serif;
+        color: var(--ink);
+        background-color: var(--bg);
+        background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px);
+        background-size: 22px 22px;
+      }
+      #canvas { position: relative; width: 1600px; padding: 40px; }
+      header { display: flex; align-items: baseline; gap: 18px; margin-bottom: 8px; }
+      header h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+      header p { margin: 0; color: var(--muted); font-size: 14px; }
+      .legend { display: flex; gap: 22px; margin: 6px 0 28px; color: var(--muted); font-size: 13px; }
+      .legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .groups { position: relative; }
+      .group-label {
+        position: absolute; font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted);
+      }
+      .table {
+        position: absolute; width: 330px; background: var(--card); border-radius: 10px;
+        box-shadow: 0 1px 0 var(--line), 0 10px 24px #2a201814; overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      .table h2 {
+        margin: 0; padding: 11px 14px; color: #fff; font-size: 15px; font-weight: 700;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .table h2 small { font-weight: 500; opacity: 0.85; font-size: 11px; }
+      .row {
+        display: grid; grid-template-columns: 38px 1fr auto; gap: 6px; align-items: center;
+        padding: 6px 14px; border-top: 1px solid var(--line); font-size: 13px;
+      }
+      .row .k { font-size: 10px; font-weight: 700; }
+      .row .k.pk { color: var(--pk); }
+      .row .k.fk { color: var(--fk); }
+      .row .name { font-weight: 500; }
+      .row .type { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--muted); }
+      .row .null { color: #b0b4b8; }
+      .note { padding: 8px 14px 10px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); background: #faf9f6; }
+      svg#edges { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+      .edge { fill: none; stroke: var(--edge); stroke-width: 1.6; }
+      .card-label { font: 600 11px "DM Sans", sans-serif; fill: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div id="canvas">
+      <header>
+        <h1>BookWorm database</h1>
+        <p id="subtitle"></p>
+      </header>
+      <div class="legend">
+        <span><b style="color: var(--pk)">PK</b> primary key</span>
+        <span><b style="color: var(--fk)">FK</b> foreign key</span>
+        <span>? nullable</span>
+        <span>RLS enabled on every public table</span>
+      </div>
+      <div class="groups" id="groups"></div>
+    </div>
+
+    <script>
+      // ---- Keep in sync with schema.sql -------------------------------------------------
+      const subtitle = "Supabase PostgreSQL · through Phase 1 (accounts, plans, subscriptions)";
+
+      const colors = { auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c" };
+
+      // x/y are positions on the canvas in px.
+      const tables = [
+        {
+          id: "auth.users", color: colors.auth, x: 0, y: 30, sub: "Supabase Auth",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["", "email", "text"],
+            ["", "encrypted_password", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Managed by Supabase Auth. Passwords never leave this table.",
+        },
+        {
+          id: "profiles", color: colors.account, x: 470, y: 0, sub: "one per user",
+          cols: [
+            ["pk fk", "id", "uuid"],
+            ["", "display_name", "text"],
+            ["", "date_of_birth", "date"],
+            ["", "marketing_emails", "boolean"],
+            ["", "terms_accepted_at", "timestamptz"],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "RLS: anyone reads display names; users insert/update only their own row. 18+ enforced by trigger.",
+        },
+        {
+          id: "subscriptions", color: colors.billing, x: 470, y: 400, sub: "one per user",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid (unique)"],
+            ["fk", "plan_id", "text"],
+            ["", "status", "subscription_status"],
+            ["", "billing_day", "smallint 1–28"],
+            ["", "renewal_terms_accepted_at", "timestamptz"],
+            ["", "current_period_end", "timestamptz", true],
+            ["", "cancel_at_period_end", "boolean"],
+            ["", "stripe_customer_id", "text", true],
+            ["", "stripe_subscription_id", "text", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "RLS: users read only their own. Writes happen server-side (Edge Function / Stripe webhook). No card data.",
+        },
+        {
+          id: "plans", color: colors.billing, x: 940, y: 400, sub: "catalogue",
+          cols: [
+            ["pk", "id", "text"],
+            ["", "name", "text"],
+            ["", "price_cents", "integer"],
+            ["", "currency", "char(3)"],
+            ["", "max_profiles", "smallint"],
+            ["", "audio_hours", "integer", true],
+            ["", "download_devices", "smallint"],
+            ["", "summary", "text"],
+            ["", "sort_order", "smallint"],
+          ],
+          note: "RLS: readable by everyone; only the service role writes. Seeded with basic, standard, premium.",
+        },
+      ];
+
+      // [fromTable, fromColumn, toTable, toColumn, cardinality label]
+      const relations = [
+        ["profiles", "id", "auth.users", "id", "1 : 1"],
+        ["subscriptions", "user_id", "auth.users", "id", "1 : 1"],
+        ["subscriptions", "plan_id", "plans", "id", "N : 1"],
+      ];
+      // -----------------------------------------------------------------------------------
+
+      document.getElementById("subtitle").textContent = subtitle;
+      const groups = document.getElementById("groups");
+      const el = (tag, cls, text) => {
+        const n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined) n.textContent = text;
+        return n;
+      };
+
+      let maxY = 0;
+      for (const t of tables) {
+        const card = el("section", "table");
+        card.dataset.id = t.id;
+        card.style.left = t.x + "px";
+        card.style.top = t.y + "px";
+        const h = el("h2");
+        h.style.background = t.color;
+        h.append(el("span", "", t.id), el("small", "", t.sub ?? ""));
+        card.append(h);
+        for (const [key, name, type, nullable] of t.cols) {
+          const row = el("div", "row");
+          row.dataset.col = name;
+          const k = el("span", "k " + key.split(" ")[0], key.toUpperCase().replace(" ", "/"));
+          const n = el("span", "name", name);
+          if (nullable) n.append(el("span", "null", "?"));
+          row.append(k, n, el("span", "type", type));
+          card.append(row);
+        }
+        if (t.note) card.append(el("div", "note", t.note));
+        groups.append(card);
+      }
+
+      // Draw relation lines after layout.
+      requestAnimationFrame(() => {
+        const box = groups.getBoundingClientRect();
+        for (const c of groups.querySelectorAll(".table")) maxY = Math.max(maxY, c.offsetTop + c.offsetHeight);
+        groups.style.height = maxY + 40 + "px";
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.id = "edges";
+        svg.setAttribute("width", box.width);
+        svg.setAttribute("height", maxY + 40);
+        const rowRect = (table, col) => {
+          const r = groups.querySelector(`.table[data-id="${table}"] .row[data-col="${col}"]`).getBoundingClientRect();
+          return { l: r.left - box.left, r: r.right - box.left, y: r.top - box.top + r.height / 2 };
+        };
+        for (const [ft, fc, tt, tc, label] of relations) {
+          const a = rowRect(ft, fc);
+          const b = rowRect(tt, tc);
+          // Leave from the side facing the target.
+          const goLeft = b.r < a.l;
+          const sameColumn = !goLeft && b.l < a.r;
+          let x1, x2, path;
+          if (sameColumn) {
+            x1 = a.l; x2 = b.l;
+            const bend = Math.min(x1, x2) - 34;
+            path = `M${x1},${a.y} C${bend},${a.y} ${bend},${b.y} ${x2},${b.y}`;
+          } else {
+            x1 = goLeft ? a.l : a.r;
+            x2 = goLeft ? b.r : b.l;
+            const mid = (x1 + x2) / 2;
+            path = `M${x1},${a.y} C${mid},${a.y} ${mid},${b.y} ${x2},${b.y}`;
+          }
+          const p = document.createElementNS(svg.namespaceURI, "path");
+          p.setAttribute("d", path);
+          p.setAttribute("class", "edge");
+          svg.append(p);
+          // Crow's-foot-ish end markers: a bar at the "one" end, a dot at the FK end.
+          const dot = document.createElementNS(svg.namespaceURI, "circle");
+          dot.setAttribute("cx", x1); dot.setAttribute("cy", a.y); dot.setAttribute("r", 3.5);
+          dot.setAttribute("fill", "var(--fk)");
+          const bar = document.createElementNS(svg.namespaceURI, "line");
+          bar.setAttribute("x1", x2 + (goLeft ? 6 : -6)); bar.setAttribute("x2", x2 + (goLeft ? 6 : -6));
+          bar.setAttribute("y1", b.y - 7); bar.setAttribute("y2", b.y + 7);
+          bar.setAttribute("stroke", "var(--pk)"); bar.setAttribute("stroke-width", 2);
+          const t = document.createElementNS(svg.namespaceURI, "text");
+          t.setAttribute("class", "card-label");
+          t.setAttribute("x", (x1 + x2) / 2 + (sameColumn ? -60 : 0));
+          t.setAttribute("y", (a.y + b.y) / 2 - 6);
+          t.setAttribute("text-anchor", "middle");
+          t.textContent = label;
+          svg.append(dot, bar, t);
+        }
+        groups.prepend(svg);
+        document.body.dataset.ready = "true";
+      });
+    </script>
+  </body>
+</html>
