@@ -4,22 +4,25 @@ Build **BookWorm**, a Netflix-style book browsing app where anyone can discover 
 
 You will build and deploy this application yourself using **Claude Code**. You are responsible for everything that ships, including the parts Claude Code wrote for you.
 
+Deployed on Vercel athttps://vibe-coding-book-warm-app-179271177.vercel.app/
+
 <a href="https://docs.google.com/spreadsheets/d/12VXSh01Toe5lbbHTBuJ8mdwhuV3GgaMA5phU_EbEntw/edit?usp=drive_link" target="_">**RUBRIC**</a>
 
 ---
 
 ## Tech Stack (required)
 
-| Layer | Technology |
-|---|---|
-| Hosting | Vercel |
-| Frontend | Vite + React, React Router DOM |
-| Backend | Supabase |
-| Database | Supabase PostgreSQL |
-| Auth | Supabase Auth |
-| CRUD API | Supabase PostgREST (via `supabase-js`) |
-| Business logic / third-party calls | Supabase Edge Functions |
-| Third-party API | [Google Books API](https://developers.google.com/books) |
+
+| Layer                              | Technology                                              |
+| ------------------------------------ | --------------------------------------------------------- |
+| Hosting                            | Vercel                                                  |
+| Frontend                           | Vite + React, React Router DOM                          |
+| Backend                            | Supabase                                                |
+| Database                           | Supabase PostgreSQL                                     |
+| Auth                               | Supabase Auth                                           |
+| CRUD API                           | Supabase PostgREST (via`supabase-js`)                   |
+| Business logic / third-party calls | Supabase Edge Functions                                 |
+| Third-party API                    | [Google Books API](https://developers.google.com/books) |
 
 **Out of scope:** WebSockets, Supabase Realtime channels, Redis, and caching layers. Data does not need to update live; a page refresh is fine.
 
@@ -42,12 +45,15 @@ You will need to read the Google Books API documentation to figure out how to qu
 ### Public (no login required)
 
 **Home page**
+
 - Displays books related to **"technology"** in a browsable, Netflix-inspired layout (cover, title, and author(s) at minimum).
 
 **Search**
+
 - Users can search for books by **title only**. Searching by author, ISBN, or keyword is not part of this app.
 
 **Genre filtering**
+
 - Users can browse books by genre. The required genres are:
   - Adventure
   - Technology
@@ -58,9 +64,11 @@ You will need to read the Google Books API documentation to figure out how to qu
 - Figuring out how to translate each genre into a Google Books request is part of the assessment.
 
 **Load more**
+
 - Any list of books (home, search results, genre results) must support loading additional results. Implement it either as a **"Load More" button** or as **automatic loading when the user reaches the bottom of the page**. Be mindful that the API limits how many results come back per request.
 
 **Book details page**
+
 - Clicking a book navigates to its own route (for example, `/books/:id`) that shows:
   - Book details from the Google Books API (title, author(s), description, cover image, and at least two additional fields of your choice)
   - **Logs written by all users** for that book, showing the author's display name and date
@@ -69,15 +77,18 @@ You will need to read the Google Books API documentation to figure out how to qu
 ### Authenticated users
 
 **Sign up / login / logout**
+
 - Email and password via Supabase Auth.
 - Every user must have a **profile with a display name**. Logs show the display name, never the email address.
 
 **My Library**
+
 - Users can add a book to their library (from the details page or elsewhere) and remove it.
 - Each library entry has a **reading status** (`want to read`, `reading`, `finished`) that the user can change. This is the library's "update" operation.
 - A library is **private**. Users can only see and manage their own.
 
 **Logs**
+
 - From a book in their library, users can write logs about what they have read and what they think of it.
 - Each log has a body of text and an optional 1-5 rating.
 - Users have **full CRUD on their own logs** and can only **view** other users' logs.
@@ -90,11 +101,12 @@ You will need to read the Google Books API documentation to figure out how to qu
 
 You will design the exact schema, but it must include at least these tables:
 
-| Table | Purpose |
-|---|---|
-| `profiles` | One row per user. Display name, linked to the auth user. |
+
+| Table           | Purpose                                                        |
+| ----------------- | ---------------------------------------------------------------- |
+| `profiles`      | One row per user. Display name, linked to the auth user.       |
 | `library_items` | A user's saved books (Google Books volume ID, reading status). |
-| `logs` | A user's written entries about a book in their library. |
+| `logs`          | A user's written entries about a book in their library.        |
 
 **Design problem to solve:** libraries are private, but logs must be publicly readable on a book's page. Design your schema and policies so the book page can list every user's logs **without** exposing anyone's library.
 
@@ -163,11 +175,12 @@ Rules:
 
 Your repository must include working, project-level configuration that you wrote for this application:
 
-| Component | Minimum | Expectation |
-|---|---|---|
-| **Subagents** | At least 1 custom subagent | Delegates a focused task, such as reviewing RLS policies, auditing for secrets, or exploring the codebase. It has a clear description and a restricted set of tools. |
-| **Skills** | At least 1 custom skill | Encodes a repeatable procedure or convention for this project. It is invoked when relevant, not copy-pasted into prompts. |
-| **MCP servers** | At least 1 MCP server | Helps you manage the application, for example its database or deployment. Choose it deliberately and justify it. |
+
+| Component       | Minimum                    | Expectation                                                                                                                                                          |
+| ----------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Subagents**   | At least 1 custom subagent | Delegates a focused task, such as reviewing RLS policies, auditing for secrets, or exploring the codebase. It has a clear description and a restricted set of tools. |
+| **Skills**      | At least 1 custom skill    | Encodes a repeatable procedure or convention for this project. It is invoked when relevant, not copy-pasted into prompts.                                            |
+| **MCP servers** | At least 1 MCP server      | Helps you manage the application, for example its database or deployment. Choose it deliberately and justify it.                                                     |
 
 Be careful with MCP server credentials. The secrets rules above apply to them as well. Tokens must not be committed in your MCP config, repository, or prompts.
 
@@ -229,18 +242,19 @@ Your project will be assessed across these areas:
 
 ### What's in the repo
 
-| Path | What it is |
-|---|---|
-| `front_end/bookworm-app/` | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/bookworm-app/README.md) for routes and source layout. |
-| `supabase/` | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`) and security tests. See [supabase/README.md](supabase/README.md). |
-| `schema.sql` | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table. |
-| `drawsql.png` | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md). |
-| `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from. |
-| `front_end/style_guide.md` | Design tokens, type, components, motion and voice. |
-| `front_end/user_journey.md` | Product blueprint, user journey, build notes, and how the brief and blueprint are both met. |
-| `user_stories.md` | User stories with a build-status table. |
-| `CLAUDE.md` | Conventions and rules for Claude Code. |
-| `prompt.md` | The build brief and phase plan. |
+
+| Path                                    | What it is                                                                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `front_end/bookworm-app/`               | The React + TypeScript + Vite app (React Router DOM,`BrowserRouter`). See its [README](front_end/bookworm-app/README.md) for routes and source layout.                        |
+| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`) and security tests. See [supabase/README.md](supabase/README.md). |
+| `schema.sql`                            | The whole database schema, generated from`supabase/migrations/`. Row Level Security on every table.                                                                           |
+| `drawsql.png`                           | ERD for`schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md).                                                                                                 |
+| `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from.                                                                                                                                |
+| `front_end/style_guide.md`              | Design tokens, type, components, motion and voice.                                                                                                                            |
+| `front_end/user_journey.md`             | Product blueprint, user journey, build notes, and how the brief and blueprint are both met.                                                                                   |
+| `user_stories.md`                       | User stories with a build-status table.                                                                                                                                       |
+| `CLAUDE.md`                             | Conventions and rules for Claude Code.                                                                                                                                        |
+| `prompt.md`                             | The build brief and phase plan.                                                                                                                                               |
 
 ### How the brief's hard parts are handled
 
@@ -271,12 +285,13 @@ Create an account with **Sign up** to use the real backend: your library and log
 
 `.env.example` lists every variable with no values. `.env` files are gitignored.
 
-| Variable | Where it goes | Safe in the browser? |
-|---|---|---|
-| `VITE_SUPABASE_URL` | `front_end/bookworm-app/.env.development.local`, Vercel | Yes |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key) | Yes |
-| `GOOGLE_BOOKS_API_KEY` | Supabase → Edge Functions → Secrets only | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
-| `ALLOWED_ORIGINS` | Supabase → Edge Functions → Secrets | Not secret; lists the origins allowed by CORS |
+
+| Variable                        | Where it goes                                           | Safe in the browser?                                                  |
+| --------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `VITE_SUPABASE_URL`             | `front_end/bookworm-app/.env.development.local`, Vercel | Yes                                                                   |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key)                           | Yes                                                                   |
+| `GOOGLE_BOOKS_API_KEY`          | Supabase → Edge Functions → Secrets only              | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
+| `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS                         |
 
 ### Supabase
 
@@ -294,20 +309,21 @@ Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. Detai
 
 Accounts, household profiles, libraries, logs, reading progress, bookmarks, highlights and notes, and each profile's favourites, ratings, custom lists and recent searches are saved in Supabase, and a member stays signed in after a refresh. The rest of the app's state (ratings, favourites, custom lists, recent searches, reader settings, and the whole demo household) is kept in memory, so a refresh resets it. Book lists and details come from the Edge Function.
 
-| Phase | Scope | Status |
-|---|---|---|
-| 0 | Foundation: scaffold, design tokens, header/footer/accessibility menu, in-memory store, 29-title sample catalog, routes and guards | Done |
-| 1 | Landing, Plans and checkout, Sign up (18+, password rules, Terms), Log in, forgot password, demo | Done |
-| 2 | Who's reading? (PIN locks with lockout, Kids consent, plan limits, *Ask a grown-up*), profile management, genre picking | Done |
-| — | Supabase: migrations with RLS, indexes and grants; `books`, `manage-profile` and `checkout` Edge Functions; security tests; deployed | Done |
-| 3 | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows | Done |
-| 4 | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks | Done |
-| 5 | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me | Done |
-| 6 | Supabase Auth (sign up, log in, log out, password reset; stays signed in); plan saved by the `checkout` function; library (`library_items`) and logs saved in Supabase; Library page with reading status, Favorites and custom lists | Done |
-| 7 | Reader (themes, fonts, sizes, spacing, margins; chapters; bookmarks; *Mark as finished?*) and audiobook player (speed 0.5–3×, ±15 s, chapter skips, sleep timer, credit skips, keyboard shortcuts); progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue reading; daily limit enforced. Sample text and silent audio until book files are licensed | Done |
-| 8 | Household profiles saved to Supabase (`reader_profiles`; Kids, PINs, limits and age ratings through `manage-profile`, PINs checked on the server); Account page: plan and billing (pause, resume, cancel, keep), display name, change password, marketing emails, family, Download my data, help; Delete account through the `manage-account` function (cascades everything); paused or ended plans stop reading; *Ask a grown-up* on Account; accessibility pass (Lighthouse 100) | Done |
-| 9 | Highlights in four colours with notes, saved to Supabase (`highlights`) and listed by chapter; dictionary through the `dictionary` Edge Function (Free Dictionary API, Wiktionary as fallback); read-along transcript in the player (follows the narration, English or Spanish, three sizes, settings in the accessibility menu); mini-player that keeps playing while browsing | Done |
-| 10 | Favourites, ratings, custom lists and recent searches saved per profile in Supabase; share a custom list by link (public page with only the name, description, profile name and titles) | Done |
-| — | Vercel deploy | Not yet |
+
+| Phase | Scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Status  |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| 0     | Foundation: scaffold, design tokens, header/footer/accessibility menu, in-memory store, 29-title sample catalog, routes and guards                                                                                                                                                                                                                                                                                                                                                 | Done    |
+| 1     | Landing, Plans and checkout, Sign up (18+, password rules, Terms), Log in, forgot password, demo                                                                                                                                                                                                                                                                                                                                                                                   | Done    |
+| 2     | Who's reading? (PIN locks with lockout, Kids consent, plan limits,*Ask a grown-up*), profile management, genre picking                                                                                                                                                                                                                                                                                                                                                             | Done    |
+| —    | Supabase: migrations with RLS, indexes and grants;`books`, `manage-profile` and `checkout` Edge Functions; security tests; deployed                                                                                                                                                                                                                                                                                                                                                | Done    |
+| 3     | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows                                                                                                                                                                                                                                                                                                                                                | Done    |
+| 4     | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks                                                                                                                                                                                       | Done    |
+| 5     | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me                                                                                                                                                                                                                                                                           | Done    |
+| 6     | Supabase Auth (sign up, log in, log out, password reset; stays signed in); plan saved by the`checkout` function; library (`library_items`) and logs saved in Supabase; Library page with reading status, Favorites and custom lists                                                                                                                                                                                                                                                | Done    |
+| 7     | Reader (themes, fonts, sizes, spacing, margins; chapters; bookmarks;*Mark as finished?*) and audiobook player (speed 0.5–3×, ±15 s, chapter skips, sleep timer, credit skips, keyboard shortcuts); progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue reading; daily limit enforced. Sample text and silent audio until book files are licensed                                                                                    | Done    |
+| 8     | Household profiles saved to Supabase (`reader_profiles`; Kids, PINs, limits and age ratings through `manage-profile`, PINs checked on the server); Account page: plan and billing (pause, resume, cancel, keep), display name, change password, marketing emails, family, Download my data, help; Delete account through the `manage-account` function (cascades everything); paused or ended plans stop reading; *Ask a grown-up* on Account; accessibility pass (Lighthouse 100) | Done    |
+| 9     | Highlights in four colours with notes, saved to Supabase (`highlights`) and listed by chapter; dictionary through the `dictionary` Edge Function (Free Dictionary API, Wiktionary as fallback); read-along transcript in the player (follows the narration, English or Spanish, three sizes, settings in the accessibility menu); mini-player that keeps playing while browsing                                                                                                    | Done    |
+| 10    | Favourites, ratings, custom lists and recent searches saved per profile in Supabase; share a custom list by link (public page with only the name, description, profile name and titles)                                                                                                                                                                                                                                                                                            | Done    |
+| —    | Vercel deploy                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Not yet |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
