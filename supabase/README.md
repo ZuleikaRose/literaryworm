@@ -19,7 +19,10 @@ Database migrations, Edge Functions and security tests for BookWorm. The root `s
 | `0500` | `reading_progress` (one row per book, for Continue Reading) and `bookmarks`, both private and tied to a library item (composite FK, cascade on delete) |
 | `0600` | `set_profile_age_rating` (server only): moving a profile to Kids records the parent's consent in `parental_consents`; moving it off Kids marks that consent withdrawn |
 | `0700` | `highlights`: a passage on one reader page (chapter, page, character offsets and the words), a colour (`highlight_color`) and an optional note; private and tied to a library item (composite FK, cascade on delete); the browser may change only `color` and `note` |
+| `0800` | Per-profile `favorites`, `book_ratings` (`taste_rating`), `custom_lists` (up to 50, unique names, optional `share_slug`) and `custom_list_items` (up to 200 books), each tied to `reader_profiles(id, account_id)` so the profile must be the account's; `reader_profiles.recent_searches` (up to 8); `shared_list(slug)` for public shared-list pages; a profile moved to Kids stops sharing |
 | `…01`, `…02` | One index each, created concurrently |
+
+**How a shared list is read.** Visitors call `rpc/shared_list` with the link's 22-character token. It's `SECURITY DEFINER` on purpose (the advisor warns about any such function anons can call): the tables stay owner-only under RLS, and this one function returns just the list's name, description, the profile's name and its titles, or nothing for a wrong, stopped or Kids link.
 
 **How the book page reads logs.** The browser asks PostgREST for `logs` with the publishable key (`select=id,body,rating,created_at,updated_at,author:profiles(display_name)&volume_id=eq.<id>`). The anon role may read `logs` and the `id, display_name` columns of `profiles`, and is refused on `library_items` (checked live: `permission denied`), so every reader's logs are listed without exposing anyone's library.
 
@@ -75,4 +78,4 @@ npx -y deno@2 test --allow-env supabase/functions/
 psql "$SCRATCH_DATABASE_URL" -f supabase/tests/security_test.sql   # ends with "ALL SECURITY CHECKS PASSED"
 ```
 
-The SQL checks cover sign-up validation, anonymous access, user isolation, column grants, plan limits, Kids consent, PIN lockout, age-rating changes and consent records, rate limits, the rule that logs, progress, bookmarks and highlights need a library item, that a highlighted passage can't be moved, cascade deletes, RLS on every table and an index on every foreign key. Run them only against a scratch database: they create test users.
+The SQL checks cover sign-up validation, anonymous access, user isolation, column grants, plan limits, Kids consent, PIN lockout, age-rating changes and consent records, rate limits, the rule that logs, progress, bookmarks and highlights need a library item, that a highlighted passage can't be moved, per-profile lists, favourites and ratings (another account's profile or list refused, Kids can't share, moving to Kids stops sharing, deleting a profile deletes its lists), what a shared link reveals, cascade deletes, RLS on every table and an index on every foreign key. Run them only against a scratch database: they create test users.
