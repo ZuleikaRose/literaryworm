@@ -245,7 +245,11 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | Brief: Library (add, remove, status) | 4, 6 | Done | Add, remove and change status (want to read, reading, finished) on the book page and the Library page; saved to `library_items`, private to the account (owner-only RLS). |
 | Brief: Logs | 4, 6 | Done | Write, edit and delete your own logs (1–5000 characters, optional 1–5 rating) in Supabase, only for books in your library (composite foreign key); removing the book deletes them (cascade). Everyone can read them; only the writer can change them. |
 | Brief: Sign up, log in, log out | 6 | Done | Supabase Auth email and password; every account has a public display name, and logs show it, never the email. |
-| Library page (Reading List, Favorites, Custom Lists) | 6 | Done | Status filter with counts, Favorites, custom lists (create, rename, delete, reorder, add and remove books). Custom lists are kept in memory per profile. |
+| Library page (Reading List, Favorites, Custom Lists) | 6, 10 | Done | Status filter with counts, Favorites, custom lists (create, rename, delete, reorder, add and remove books). Saved per profile in Supabase for members. |
+| 32. Rate in one tap | 4, 10 | Done | Not for me / I like this / I love this on the book page, saved per profile (`book_ratings`); Not for me keeps a title out of suggestions. |
+| 44, 45. Favorites, including Google titles | 4, 10 | Done | Favorite on any book page, saved per profile (`favorites`); the Favorites view shows BookWorm and Google Books titles, with Google's details fetched on the server. |
+| 46. Custom Lists | 6, 10 | Done | Named lists with descriptions, per profile (`custom_lists`, `custom_list_items`); up to 50 lists of 200 books. |
+| 47. Share a list by link | 10 | Done | *Share* makes a private link; the public page shows only the name, description, the profile's name and the titles; *Stop sharing* turns it off. Not on Kids profiles. |
 | 29. Book page | 4 | Done | Cover, synopsis, author, narrator, length, format, age rating and logs; the Google key stays in the Edge Function. |
 | 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |
 | 50. Display name on logs | 4 | Done | Logs show the profile's display name, never an email; Kids profiles can't post logs. |

@@ -140,7 +140,11 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Library page.** Section links under the title (My library, Favorites, Lists) with a rust underline on the current one. Library rows: small cover, title link, author and the date added, then a compact status menu and *Remove*; on phones the controls wrap under the title. Status filters are radio chips with counts.
 
-**Custom list card.** Name, description and book count on the surface color, with Move up / Move down (44px icon buttons, disabled at the ends), Rename and Delete; books are a simple list with a remove button, and *Add a book from your library* below.
+**Custom list card.** Name, description and book count on the surface color, with Move up / Move down (44px icon buttons, disabled at the ends), Share, Rename and Delete; books are a simple list with a remove button, and *Add a book from your library* below. A shared list shows a small green *Shared* tag beside its name (with a link icon, not colour alone).
+
+**Share dialog.** Says who can see the list and what they see, then the link in a read-only field with *Copy link* beside it (it confirms *Copied* for two seconds, announced to screen readers) and *Stop sharing* as a danger text button. Before the first share: one paragraph and a primary *Share by link*.
+
+**Shared list page.** A public page in the site layout: eyebrow *Shared list*, the list's name as the page title, its description, "A list by Avery" and the book count, then the titles in the cover grid. A wrong or stopped link uses the empty-state pattern with *Explore BookWorm*.
 
 **Saving states.** Buttons that save to Supabase say what they're doing ("Adding…", "Saving your plan…", "Logging in…") and are disabled meanwhile; a failed save shows a plain-words alert beside the control and the screen doesn't change.
 

@@ -527,7 +527,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
 
 The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
-### Journey as built so far (Phases 0–9)
+### Journey as built so far (Phases 0–10)
 
 1. **Landing (`/`).** A visitor sees the hero from the wireframe ("Stories worth staying up for."), free public-domain titles they can open without an account, how ebooks and audiobooks work together, family profiles, the three plans and an FAQ. Calls to action: *See plans and join* and *Try the demo*.
 2. **Plans (`/plans`).** Basic $7.99, Standard $12.99 and Premium $17.99 a month, each listing profiles, audiobook hours, download devices and features. Choosing a plan as a visitor goes to sign-up with that plan remembered.
@@ -616,13 +616,20 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 55. **Mini-player.** Leaving the player keeps the book playing. A mini-player sits at the bottom of every page (above the tab bar on phones) with the cover, title, chapter and the time left in it, a thin progress line, *Back 15 seconds*, *Play/Pause* and *Close*; the title opens the full player. The place keeps saving as it plays. Opening the reader pauses it (one book at a time); closing it, switching profile, signing out or reaching the daily limit stops it and saves the place.
 56. **Download my data and removing a book** now include highlights and notes.
 
+### Phase 10: Lists and ratings that last
+
+57. **Saved per profile.** A member's favourites, ratings (Not for me / I like this / I love this), custom lists and recent searches are saved to Supabase for the profile that made them (`favorites`, `book_ratings`, `custom_lists`, `custom_list_items`, `reader_profiles.recent_searches`), so they survive a refresh and follow the member to another device. Each change saves first, then shows; a failed save says so beside the control and nothing changes. Recent searches save in the background. The demo keeps them in memory.
+58. **Favorites shows every title.** Google Books favourites appear beside BookWorm's own, with their details fetched through the `books` function.
+59. **Share a list by link.** Each custom list has *Share*: it makes a private link (a random 22-character token) to copy, and *Stop sharing* turns the link off at once. Kids profiles and the demo don't see *Share*; a profile moved to Kids stops sharing.
+60. **Shared list page (`/lists/:token`).** Public: anyone with the link sees the list's name, description, "A list by" the profile's name, and its titles (BookWorm covers or Google Books covers), never the account, library or history. A wrong or stopped link says the list isn't shared. Signed-in Kids profiles see only titles rated for them.
+
 ### Where the build differs from the blueprint, and why
 
 - **Plan before profiles.** The blueprint lists "choose a plan" then "create their first profile". The build follows that order and creates the first profile automatically from the account holder's name, so no one lands on an empty *Who's reading?* screen.
 - **No real email, payments or two-step sign-in yet.** These need the backend. The UI says so where it matters (reset link, checkout).
 - **Demo accounts are not deleted after 24 hours.** Everything resets on refresh instead.
 - **One library per account.** The brief gives each user one library and shows logs with that user's display name, so the household's profiles share the account's library and logs. Kids profiles see only Kids-rated titles in it and don't post logs.
-- **Ratings, favourites, custom lists, recent searches, reader display settings and daily time used are still in memory**, per profile. They reset on refresh. Household profiles themselves are saved (Phase 8).
+- **Reader display settings and daily time used are still in memory**, per profile. They reset on refresh. Profiles (Phase 8) and their favourites, ratings, lists and recent searches (Phase 10) are saved.
 - **No email change, two-step sign-in, signed-in devices, promo codes or billing history yet.** These need an email provider and Stripe. Deleting an account happens straight away rather than within a legal deadline, and no confirmation email is sent.
 - **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. The read-along transcript is the same sample text, in English or Spanish, timed to that clock.
 - **No email confirmation.** Supabase's built-in email reaches only the project team (2 emails an hour), so sign-ups are confirmed automatically so that anyone can test the app. Password-reset emails have the same limit until an email provider is added in Supabase.
