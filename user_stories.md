@@ -238,7 +238,7 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 19. Billing day, card via Stripe | 1 | UI only | Billing day 1–28 and next charge date; no card is collected in the demo. `schema.sql` stores Stripe IDs only. |
 | 20. Confirmation email | 1 | UI only | Confirmation message on screen; no email is sent. |
 | Brief: Home | 3 | Done | Public home shows technology books from the `books` Edge Function in a row and an infinite grid; never calls Google from the browser. |
-| Brief: Genres | 3 | Done | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction, each with its own URL; mapped to Google `subject:` queries in the Edge Function. |
+| Brief: Genres | 3 | Done | Adventure, Technology, Horror, Sci-Fi, Fiction, Non-Fiction, each with its own URL; mapped to Google `subject:` queries in the Edge Function, with the genre as plain words when Google returns nothing for `subject:`. |
 | Brief: Load more | 3 | Done | Grids load more near the bottom (plus a button); Home rows end with *Load more*; loading, error (*Try again*), empty and end states. |
 | Home rows and carousel | 3 | Done | Featured carousel with Pause; Continue reading, Trending, Top 10, New releases, Because you saved, genre rows. Kids profiles see only age-rated titles. |
 | Brief: Book details page | 4 | Done | `/books/:id` works from a link or a refresh; Google data through the `books` function (title, authors, description, cover, plus publisher, published date, pages, language, categories); every reader's logs with display name and date. |
@@ -253,7 +253,7 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | 29. Book page | 4 | Done | Cover, synopsis, author, narrator, length, format, age rating and logs; the Google key stays in the Edge Function. |
 | 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |
 | 50. Display name on logs | 4 | Done | Logs show the profile's display name, never an email; Kids profiles can't post logs. |
-| Brief: Search by title | 5 | Done | Public `/search`; title only (operators refused with a plain message); BookWorm titles then Google results with infinite scroll and Load more. |
+| Brief: Search by title | 5 | Done | Public `/search`; title only (operators refused with a plain message); BookWorm titles then Google results with infinite scroll and Load more. Google is asked with `intitle:`; if it returns nothing (a Google fault seen in October 2026), the function asks again with the plain words, which can match outside the title. |
 | 23. Search | 5 | Changed | Title only, as the brief requires (not author, narrator, ISBN or keyword). |
 | 24. Filters and sorting | 5 | Partly | Source, the six genres, best match or newest; Google applies genre and sort to its results. Format, length, language and release-date filters need data Google search doesn't offer reliably. |
 | 25. Did you mean | 5 | Done | Typos corrected word by word against BookWorm titles the profile may see. |

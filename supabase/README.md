@@ -30,7 +30,7 @@ Database migrations, Edge Functions and security tests for BookWorm. The root `s
 
 | Function | Who can call | What it does |
 |---|---|---|
-| `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only; optional `genre` from the six and `sort=newest`), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors, asks once more when Google answers a first page with no results at all (it does that when strained) and returns only the fields the UI shows, with https covers. `volume` also returns `mature` (Google's MATURE rating), which the app uses to keep those titles from Teen and Kids profiles. |
+| `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only; optional `genre` from the six and `sort=newest`), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors, asks once more when Google answers Home's first page with no results at all (it does that when strained), asks again with plain words when a `subject:` (genre) or `intitle:` (search) query comes back empty (Google has answered every such query with nothing for hours while plain searches still worked; the fallback is looser but not empty) and returns only the fields the UI shows, with https covers. `volume` also returns `mature` (Google's MATURE rating), which the app uses to keep those titles from Teen and Kids profiles. |
 | `manage-profile` | Signed-in accounts | Kids profiles with consent, PINs, daily limits, age-rating changes (`set_age_rating`), unlocking and deleting profiles. Re-checks the account password; checks the profile belongs to the caller. |
 | `dictionary` | Anyone (`verify_jwt = false`) | The reader's dictionary. `?word=` (one English word, letters with an inner apostrophe or hyphen, up to 40 characters). Asks the Free Dictionary API, and Wiktionary's REST API when that's down, slow or busy (both Wiktionary data, CC BY-SA); returns the word, pronunciation and up to three parts of speech with three definitions each. Rate limits each IP (40/min), 4 s per source, cached for a day. |
 | `checkout` | Signed-in accounts | Validates and records the plan choice. (Payment isn't taken yet.) |
@@ -44,6 +44,8 @@ All functions share `_shared/`: CORS with an origin allowlist (`ALLOWED_ORIGINS`
 supabase secrets set GOOGLE_BOOKS_API_KEY=<your key>
 supabase secrets set ALLOWED_ORIGINS=https://<your-vercel-domain>,http://localhost:5173
 ```
+
+`ALLOWED_ORIGINS` must list every site that calls the functions, including the Vercel URL (`https://vibe-coding-book-warm-app-179271177.vercel.app`). A site missing from the list gets answers the browser won't let it read, which the app shows as "You seem to be offline". Vercel preview URLs need adding separately.
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase.
 

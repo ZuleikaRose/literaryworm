@@ -552,7 +552,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 15. **Public home (`/`).** Right under the hero, *Popular in technology*: books about "technology" from the `books` Edge Function (Google Books), browsable without an account. At the bottom, *Keep discovering*: the six genres from the brief (Technology, Adventure, Sci-Fi, Fiction, Non-Fiction, Horror) as links, and a grid that keeps loading as the visitor scrolls (with a *Load more books* button too). Each genre has its own URL (`/?genre=sci-fi`), so it survives a refresh.
 16. **Member Home (`/browse`).** A featured carousel with Pause, then Continue reading (with progress bars), Trending this week, the reading-room banner, Top 10, New releases, *Because you saved …*, and one row per genre. Rows scroll sideways and the genre rows load more at their end. *Keep discovering* closes the page as on the public home.
 17. **Age ratings.** Kids profiles see only the age-rated BookWorm catalog (no Google Books results). Everyone else gets Google results with mature titles left out.
-18. **When the book service fails.** Rows and the grid show "We couldn't load …" with the reason in plain words (busy, too slow, offline) and *Try again*; books already loaded stay on screen.
+18. **When the book service fails.** Rows and the grid show "We couldn't load …" with the reason in plain words (busy, too slow, offline) and *Try again*; books already loaded stay on screen. On the deployed site the Vercel address must be in the functions' `ALLOWED_ORIGINS`, or every row says the visitor seems to be offline.
 
 ### Phase 4: Book details
 
@@ -632,6 +632,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 - **Reader display settings and daily time used are still in memory**, per profile. They reset on refresh. Profiles (Phase 8) and their favourites, ratings, lists and recent searches (Phase 10) are saved.
 - **No email change, two-step sign-in, signed-in devices, promo codes or billing history yet.** These need an email provider and Stripe. Deleting an account happens straight away rather than within a legal deadline, and no confirmation email is sent.
 - **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. The read-along transcript is the same sample text, in English or Spanish, timed to that clock.
+- **Search can match outside the title for a while.** When Google Books returns nothing for its title (`intitle:`) and genre (`subject:`) filters, as it did for hours in October 2026, the `books` function asks again with the plain words, so results stay filled but can match words elsewhere in a book. It goes back to title only by itself when Google recovers.
 - **No email confirmation.** Supabase's built-in email reaches only the project team (2 emails an hour), so sign-ups are confirmed automatically so that anyone can test the app. Password-reset emails have the same limit until an email provider is added in Supabase.
 
 ### Assessment brief and blueprint together

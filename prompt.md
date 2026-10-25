@@ -45,6 +45,8 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 9 | Study tools and listening | Highlights in four colours with notes, saved to Supabase (`highlights`) and listed by chapter; dictionary through a `dictionary` Edge Function (Free Dictionary API, server side); read-along transcript in the player (follows the narration, English or Spanish, size in the accessibility menu); a mini-player that keeps playing while browsing; keyboard-operable throughout |
 | 10 | Lists and ratings that last | Favourites, ratings, custom lists and recent searches saved per profile to Supabase (`favorites`, `book_ratings`, `custom_lists`, `custom_list_items`, `reader_profiles.recent_searches`) under RLS; Favorites shows Google titles; share a list by link with a public page that shows only the name, description, profile name and titles (`shared_list`), stop sharing at any time, never from Kids profiles |
 
+After Phase 10 the app was deployed to Vercel. Two fixes followed: the Vercel URL was added to the `ALLOWED_ORIGINS` function setting (without it every book row said "You seem to be offline"), and the `books` function now asks Google again with plain words when its genre (`subject:`) or title (`intitle:`) filters return nothing.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

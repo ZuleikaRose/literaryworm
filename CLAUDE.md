@@ -7,7 +7,7 @@ BookWorm is a reading and listening app (ebooks and audiobooks, household profil
 - `front_end/bookworm-app/`: the React app (see its `README.md` for routes and layout).
 - `front_end/BookWorm_web_app_wireframe/`: the Figma Make wireframe. Visual source of truth; don't edit.
 - `front_end/style_guide.md`: design tokens, type, components, motion, voice.
-- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`).
+- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`). The app is deployed on Vercel (`https://vibe-coding-book-warm-app-179271177.vercel.app`); that URL and `http://localhost:5173` must both be in the `ALLOWED_ORIGINS` function setting, or the browser blocks the functions' answers and the app reports "offline".
 - `schema.sql`: generated from the migrations by `supabase/build-schema.sh`; don't edit by hand. `drawsql.png` is its ERD, rendered from `docs/erd/erd.html`.
 - `prompt.md`: the build brief and phase plan.
 - `vite-project/`: an unrelated earlier scaffold. Don't use it.
@@ -36,7 +36,7 @@ npm run lint    # oxlint; must be clean
 - **Audiobook playback lives in `src/components/PlaybackProvider.tsx`** (read it with `usePlayback()` from `src/lib/playback.ts`), above the routes, so a book keeps playing in the mini-player (`src/components/MiniPlayer.tsx`) while the member browses. The player page is a view of it. Opening the reader pauses it; switching profile or signing out stops it, and its last save still goes to the profile that was listening (`saveProgress` / `addTimeUsed` take a `profileId`).
 - The read-along transcript is built from the sample text (`src/data/sampleText.ts`, English and Spanish) and timed to the chapter (`src/lib/transcript.ts`). Its settings are accessibility settings.
 - The reader text (`src/data/sampleText.ts`) and the player's audio are samples, and the pages say so. The daily limit is `src/lib/useDailyLimit.ts`.
-- Search is title only and public. Its state lives in the URL (`q`, `genre`, `sort`, `source`; see `src/lib/search.ts`), and the client checks queries with the same rules as the `books` function.
+- Search is title only and public. Its state lives in the URL (`q`, `genre`, `sort`, `source`; see `src/lib/search.ts`), and the client checks queries with the same rules as the `books` function. When Google returns nothing for a `subject:` or `intitle:` query, the `books` function asks again with plain words (looser, but not empty).
 - The library is the account's for real accounts (`state.accountLibrary`, from `library_items`) and the profile's for in-memory accounts (`ProfileData.library`); `activeLibrary()` picks the right one. Store actions mirror the database rules: a log needs its book in the library, and removing the book removes that profile's logs.
 - Styles are plain CSS in `src/styles/`. Use tokens from `tokens.css`; no raw hex in component CSS (book cover palettes are the exception).
 - Only export components from `.tsx` files (Fast Refresh); data and helpers go in `src/data` or `src/lib`.
