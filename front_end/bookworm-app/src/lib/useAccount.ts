@@ -79,11 +79,18 @@ export function useAccount() {
     const data = {
       exportedAt: new Date().toISOString(),
       account: details,
-      profiles: state.profiles.map(({ pin: _pin, ...profile }) => ({
-        ...profile,
-        // Kept on this device for this visit only: favourites, lists, ratings and recent searches.
-        onThisDevice: state.profileData[profile.id] ?? null,
-      })),
+      profiles: state.profiles.map(({ pin: _pin, ...profile }) => {
+        const data = state.profileData[profile.id];
+        return {
+          ...profile,
+          favorites: data?.favorites ?? [],
+          ratings: data?.ratings ?? {},
+          customLists: data?.customLists ?? [],
+          recentSearches: data?.recentSearches ?? [],
+          // Kept on this device for this visit only.
+          onThisDevice: data ? { readerSettings: data.readerSettings, playbackSpeed: data.playbackSpeed, timeUsed: data.timeUsed } : null,
+        };
+      }),
       library: Object.values(activeLibrary(state)),
       readingProgress: Object.values(reading.progress),
       bookmarks: reading.bookmarks,

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
-import { loadAccount, loadLibrary, loadProfiles, loadReading, takeFreshSignIn } from "./accountApi";
+import { loadAccount, loadCollections, loadLibrary, loadProfiles, loadReading, takeFreshSignIn } from "./accountApi";
 import { supabase } from "./supabase";
 
 /**
@@ -51,7 +51,9 @@ export function useAuthSync() {
               return;
             }
             const profiles = await loadProfiles(account);
-            dispatch({ type: "enterAccount", account, library, reading, profiles, restored });
+            // After the profiles: a new account's first profile is made by loadProfiles.
+            const collections = await loadCollections();
+            dispatch({ type: "enterAccount", account, library, reading, profiles, collections, restored });
           } catch {
             // Offline or the database is unreachable: carry on as a visitor and say why; logging in again retries.
             dispatch({

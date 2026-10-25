@@ -1,8 +1,10 @@
 import { LOG_MAX } from "../data/logs";
+import { type Collections, withRecentSearch } from "../lib/collections";
 import type {
   A11ySettings,
   Account,
   Bookmark,
+  CustomList,
   Highlight,
   LibraryEntry,
   PlanId,
@@ -37,6 +39,8 @@ export type Action =
       library: Record<string, LibraryEntry>;
       reading: AccountReading;
       profiles: Profile[];
+      /** Each profile's saved favourites, ratings, lists and recent searches. */
+      collections: Record<string, Collections>;
       restored: boolean;
     }
   /** A real account's profiles, reloaded from Supabase after a change. */
@@ -61,7 +65,9 @@ export type Action =
   | { type: "addLog"; bookId: string; body: string; rating: number | null }
   | { type: "updateLog"; id: string; body: string; rating: number | null }
   | { type: "deleteLog"; id: string }
-  | { type: "createList"; name: string; description: string }
+  /** `list`: as saved in Supabase (real accounts); otherwise made here. */
+  | { type: "createList"; name: string; description: string; list?: CustomList }
+  | { type: "setListShare"; id: string; shareSlug: string | null }
   | { type: "updateList"; id: string; name: string; description: string }
   | { type: "deleteList"; id: string }
   | { type: "moveList"; id: string; by: -1 | 1 }
@@ -174,8 +180,12 @@ export function reducer(state: AppState, action: Action): AppState {
     case "enterAccount": {
       if (state.account?.userId === action.account.userId) {
         // Restored again (token refresh, another tab): keep the household, update the details.
+        const kept = withProfiles(state, action.profiles);
         return {
-          ...withProfiles(state, action.profiles),
+          ...kept,
+          profileData: Object.fromEntries(
+            Object.entries(kept.profileData).map(([id, data]) => [id, { ...data, ...action.collections[id] }]),
+          ),
           authReady: true,
           authError: null,
           account: action.account,
@@ -186,7 +196,7 @@ export function reducer(state: AppState, action: Action): AppState {
       const entered = enter({ ...state, households: stash(state) }, {
         account: action.account,
         profiles: action.profiles,
-        profileData: Object.fromEntries(action.profiles.map((p) => [p.id, emptyProfileData()])),
+        profileData: Object.fromEntries(action.profiles.map((p) => [p.id, { ...emptyProfileData(), ...action.collections[p.id] }])),
       });
       // Restored after a refresh: carry on when there's only one profile and nothing guards it;
       // otherwise Who's reading? asks (PIN locks and Kids profiles still apply).
@@ -372,7 +382,7 @@ export function reducer(state: AppState, action: Action): AppState {
         ...data,
         customLists: [
           ...data.customLists,
-          { id: newId(), name: action.name.trim(), description: action.description.trim(), bookIds: [], shared: false },
+          action.list ?? { id: newId(), name: action.name.trim(), description: action.description.trim(), bookIds: [], shareSlug: null },
         ],
       }));
 
@@ -382,6 +392,12 @@ export function reducer(state: AppState, action: Action): AppState {
         customLists: data.customLists.map((l) =>
           l.id === action.id ? { ...l, name: action.name.trim(), description: action.description.trim() } : l,
         ),
+      }));
+
+    case "setListShare":
+      return withProfileData(state, (data) => ({
+        ...data,
+        customLists: data.customLists.map((l) => (l.id === action.id ? { ...l, shareSlug: action.shareSlug } : l)),
       }));
 
     case "deleteList":
@@ -413,14 +429,8 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       }));
 
-    case "addRecentSearch": {
-      // Newest first, no repeats (ignoring case), at most ten per profile.
-      const key = action.q.toLowerCase();
-      return withProfileData(state, (data) => ({
-        ...data,
-        recentSearches: [action.q, ...data.recentSearches.filter((s) => s.toLowerCase() !== key)].slice(0, 10),
-      }));
-    }
+    case "addRecentSearch":
+      return withProfileData(state, (data) => ({ ...data, recentSearches: withRecentSearch(data.recentSearches, action.q) }));
 
     case "removeRecentSearch":
       return withProfileData(state, (data) => ({

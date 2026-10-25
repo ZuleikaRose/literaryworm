@@ -305,3 +305,106 @@
     grid-row: 2;
   }
 }
+
+/* ---------- Sharing a custom list ---------- */
+
+.shared-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--success) 55%, transparent);
+  border-radius: 999px;
+  color: var(--success);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: 0.15em;
+}
+
+.share-panel {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.share-link-row {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+.share-link-row .field-input {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+.share-link-row .secondary-button {
+  flex: none;
+}
+
+.share-panel .text-button {
+  min-height: 44px;
+}
+
+@media (max-width: 480px) {
+  .share-link-row {
+    flex-direction: column;
+  }
+}
+
+/* ---------- Shared list page ---------- */
+
+.shared-list-header {
+  max-width: 760px;
+  margin-bottom: 28px;
+}
+
+.shared-list-header h1 {
+  margin: 6px 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+
+.shared-list-description {
+  margin: 0 0 10px;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.shared-list-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.shared-list-cta {
+  margin: 36px 0 0;
+  color: var(--muted);
+}
+
+.shared-list-cta a {
+  color: var(--rust-ink);
+  font-weight: 600;
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* A saved title whose details couldn't be fetched. */
+.saved-unavailable-cover {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line-strong);
+  color: var(--muted);
+  background: var(--surface);
+}

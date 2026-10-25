@@ -18,8 +18,9 @@ import {
   searchUrl,
   surpriseBook,
 } from "../lib/search";
+import { useCollections } from "../lib/useCollections";
 import { useTitle } from "../lib/useTitle";
-import { useActiveProfile, useProfileData, useStore } from "../store/context";
+import { useActiveProfile } from "../store/context";
 
 /**
  * /search, public. Title-only search (the brief): BookWorm's own titles first, then Google
@@ -43,7 +44,7 @@ export default function Search() {
 }
 
 function SearchHeader({ search, serverError }: { search: SearchParams; serverError: string | null }) {
-  const { dispatch } = useStore();
+  const collections = useCollections();
   const profile = useActiveProfile();
   const navigate = useNavigate();
   const [draft, setDraft] = useState(search.q);
@@ -60,7 +61,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
       input.current?.focus();
       return;
     }
-    if (profile) dispatch({ type: "addRecentSearch", q });
+    if (profile) collections.addRecentSearch(q);
     navigate(searchUrl({ ...search, q }));
   }
 
@@ -119,10 +120,9 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
 
 /** The empty search: recent searches for the profile, and the genres to browse. */
 function StartHere() {
-  const { dispatch } = useStore();
+  const collections = useCollections();
   const profile = useActiveProfile();
-  const data = useProfileData();
-  const recent = profile ? data.recentSearches : [];
+  const recent = profile ? collections.recentSearches : [];
   const genreBase = profile ? "/browse" : "/";
 
   return (
@@ -131,7 +131,7 @@ function StartHere() {
         <section aria-labelledby="recent-title">
           <div className="section-heading">
             <h2 id="recent-title">Recent searches</h2>
-            <button type="button" className="text-button" onClick={() => dispatch({ type: "clearRecentSearches" })}>
+            <button type="button" className="text-button" onClick={collections.clearRecentSearches}>
               Clear all<span className="visually-hidden"> recent searches</span>
             </button>
           </div>
@@ -141,7 +141,7 @@ function StartHere() {
                 <Link to={searchUrl({ q, genre: null, sort: "relevance", source: "all" })}>
                   <Icon name="clock" size={16} /> {q}
                 </Link>
-                <button type="button" className="icon-button" onClick={() => dispatch({ type: "removeRecentSearch", q })}>
+                <button type="button" className="icon-button" onClick={() => collections.removeRecentSearch(q)}>
                   <Icon name="close" size={15} />
                   <span className="visually-hidden">Remove “{q}” from recent searches</span>
                 </button>
@@ -167,7 +167,7 @@ function StartHere() {
 }
 
 function Results({ search }: { search: SearchParams }) {
-  const { dispatch } = useStore();
+  const collections = useCollections();
   const profile = useActiveProfile();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -219,7 +219,7 @@ function Results({ search }: { search: SearchParams }) {
             Did you mean{" "}
             <Link
               to={searchUrl({ ...search, q: suggestion })}
-              onClick={() => profile && dispatch({ type: "addRecentSearch", q: suggestion })}
+              onClick={() => profile && collections.addRecentSearch(suggestion)}
             >
               {suggestion}
             </Link>

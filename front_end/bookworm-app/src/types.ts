@@ -116,7 +116,8 @@ export interface CustomList {
   name: string;
   description: string;
   bookIds: string[];
-  shared: boolean;
+  /** The token in the list's public link while it's shared; null when it isn't. */
+  shareSlug: string | null;
 }
 
 export interface Progress {

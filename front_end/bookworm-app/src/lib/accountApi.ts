@@ -1,8 +1,10 @@
 import type { AccountReading } from "../store/state";
+import type { Collections } from "./collections";
 import type {
   AgeRating,
   Account,
   Bookmark,
+  CustomList,
   Format,
   Highlight,
   HighlightColor,
@@ -10,6 +12,7 @@ import type {
   PlanId,
   Profile,
   Progress,
+  RatingValue,
   ReadingStatus,
 } from "../types";
 import { SUPABASE_URL } from "./backend";
@@ -650,4 +653,143 @@ export async function updateHighlight(id: string, patch: Partial<Pick<Highlight,
 export async function removeHighlight(id: string): Promise<void> {
   const { error } = await client().from("highlights").delete().eq("id", id).eq("user_id", await signedInUserId());
   if (error) throw new AccountError("We couldn't remove the highlight. Try again.");
+}
+
+// --- Favourites, ratings, custom lists and recent searches (per profile, owner-only RLS) ---
+
+type DbRating = "not_for_me" | "like" | "love";
+const toDbRating = (r: RatingValue): DbRating => (r === "not-for-me" ? "not_for_me" : r);
+const fromDbRating = (r: DbRating): RatingValue => (r === "not_for_me" ? "not-for-me" : r);
+
+interface ListRow {
+  id: string;
+  profile_id: string;
+  name: string;
+  description: string;
+  share_slug: string | null;
+}
+
+const LIST_COLUMNS = "id, profile_id, name, description, share_slug";
+
+const emptyCollections = (): Collections => ({ favorites: [], ratings: {}, customLists: [], recentSearches: [] });
+
+/** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
+export async function loadCollections(): Promise<Record<string, Collections>> {
+  const db = client();
+  const [profiles, favorites, ratings, lists, items] = await Promise.all([
+    db.from("reader_profiles").select("id, recent_searches"),
+    db.from("favorites").select("profile_id, volume_id").order("created_at"),
+    db.from("book_ratings").select("profile_id, volume_id, rating"),
+    db.from("custom_lists").select(LIST_COLUMNS).order("position").order("created_at"),
+    db.from("custom_list_items").select("list_id, volume_id").order("added_at"),
+  ]);
+  if (profiles.error || favorites.error || ratings.error || lists.error || items.error) {
+    throw new AccountError("We couldn't load your lists and ratings. Try again.");
+  }
+  const byProfile: Record<string, Collections> = {};
+  const of = (id: string) => (byProfile[id] ??= emptyCollections());
+  for (const p of profiles.data as { id: string; recent_searches: string[] }[]) of(p.id).recentSearches = p.recent_searches;
+  for (const f of favorites.data as { profile_id: string; volume_id: string }[]) of(f.profile_id).favorites.push(f.volume_id);
+  for (const r of ratings.data as { profile_id: string; volume_id: string; rating: DbRating }[]) {
+    of(r.profile_id).ratings[r.volume_id] = fromDbRating(r.rating);
+  }
+  const books = new Map<string, string[]>();
+  for (const i of items.data as { list_id: string; volume_id: string }[]) books.set(i.list_id, [...(books.get(i.list_id) ?? []), i.volume_id]);
+  for (const l of lists.data as ListRow[]) {
+    of(l.profile_id).customLists.push({ id: l.id, name: l.name, description: l.description, bookIds: books.get(l.id) ?? [], shareSlug: l.share_slug });
+  }
+  return byProfile;
+}
+
+export async function addFavorite(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("favorites").insert({ profile_id: profileId, user_id: await signedInUserId(), volume_id: bookId });
+  // Already a favourite (another tab): nothing to do.
+  if (error && error.code !== "23505") throw new AccountError("We couldn't add it to your favorites. Try again.");
+}
+
+export async function removeFavorite(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("favorites").delete().eq("profile_id", profileId).eq("volume_id", bookId);
+  if (error) throw new AccountError("We couldn't remove it from your favorites. Try again.");
+}
+
+/** Saves a profile's rating of a book, or clears it (null). */
+export async function setRating(profileId: string, bookId: string, rating: RatingValue | null): Promise<void> {
+  const db = client();
+  const failed = new AccountError("We couldn't save your rating. Try again.");
+  if (rating === null) {
+    const { error } = await db.from("book_ratings").delete().eq("profile_id", profileId).eq("volume_id", bookId);
+    if (error) throw failed;
+    return;
+  }
+  // Update first (the browser may change only the rating), then add the row the first time.
+  const updated = await db
+    .from("book_ratings")
+    .update({ rating: toDbRating(rating) })
+    .eq("profile_id", profileId)
+    .eq("volume_id", bookId)
+    .select("volume_id");
+  if (updated.error) throw failed;
+  if (updated.data.length > 0) return;
+  const { error } = await db
+    .from("book_ratings")
+    .insert({ profile_id: profileId, user_id: await signedInUserId(), volume_id: bookId, rating: toDbRating(rating) });
+  if (error) throw failed;
+}
+
+/** Turns the database's list errors into plain words. */
+function listError(error: { code?: string; message?: string }, fallback: string): AccountError {
+  if (error.code === "23505") return new AccountError("You already have a list with this name.");
+  if (error.message?.includes("up to 50 lists")) return new AccountError("A profile can have up to 50 lists. Delete one to make room.");
+  if (error.message?.includes("up to 200 books")) return new AccountError("A list can hold up to 200 books.");
+  if (error.message?.includes("Kids profiles")) return new AccountError("Kids profiles can't share lists.");
+  return new AccountError(fallback);
+}
+
+export async function createList(profileId: string, name: string, description: string, position: number): Promise<CustomList> {
+  const { data, error } = await client()
+    .from("custom_lists")
+    .insert({ profile_id: profileId, user_id: await signedInUserId(), name: name.trim(), description: description.trim(), position })
+    .select(LIST_COLUMNS)
+    .single();
+  if (error) throw listError(error, "We couldn't create the list. Try again.");
+  const row = data as ListRow;
+  return { id: row.id, name: row.name, description: row.description, bookIds: [], shareSlug: row.share_slug };
+}
+
+export async function updateList(id: string, name: string, description: string): Promise<void> {
+  const { error } = await client().from("custom_lists").update({ name: name.trim(), description: description.trim() }).eq("id", id);
+  if (error) throw listError(error, "We couldn't save the list. Try again.");
+}
+
+export async function deleteList(id: string): Promise<void> {
+  const { error } = await client().from("custom_lists").delete().eq("id", id);
+  if (error) throw new AccountError("We couldn't delete the list. Try again.");
+}
+
+/** Saves the lists' order: each list's position is its place in `ids`. */
+export async function setListOrder(ids: string[]): Promise<void> {
+  const db = client();
+  const results = await Promise.all(ids.map((id, position) => db.from("custom_lists").update({ position }).eq("id", id)));
+  if (results.some((r) => r.error)) throw new AccountError("We couldn't save the new order. Try again.");
+}
+
+export async function addListBook(listId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("custom_list_items").insert({ list_id: listId, user_id: await signedInUserId(), volume_id: bookId });
+  if (error && error.code !== "23505") throw listError(error, "We couldn't add the book to the list. Try again.");
+}
+
+export async function removeListBook(listId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("custom_list_items").delete().eq("list_id", listId).eq("volume_id", bookId);
+  if (error) throw new AccountError("We couldn't remove the book from the list. Try again.");
+}
+
+/** Shares a list under `slug`, or stops sharing it (null): the old link stops working at once. */
+export async function setListShare(id: string, slug: string | null): Promise<void> {
+  const { error } = await client().from("custom_lists").update({ share_slug: slug }).eq("id", id);
+  if (error) throw listError(error, slug ? "We couldn't share the list. Try again." : "We couldn't stop sharing the list. Try again.");
+}
+
+export async function saveRecentSearches(profileId: string, searches: string[]): Promise<void> {
+  const { error } = await client().from("reader_profiles").update({ recent_searches: searches }).eq("id", profileId);
+  if (error) throw new AccountError("We couldn't save your recent searches.");
 }

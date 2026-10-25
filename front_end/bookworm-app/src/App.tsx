@@ -12,6 +12,7 @@ import Plans from "./pages/Plans";
 import Profiles from "./pages/Profiles";
 import ResetPassword from "./pages/ResetPassword";
 import Search from "./pages/Search";
+import SharedList from "./pages/SharedList";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 
@@ -42,6 +43,8 @@ export default function App() {
           <Route path="book/:id" element={<LegacyBookRedirect />} />
           {/* Search is public too (the brief); Kids profiles get the catalog only. */}
           <Route path="search" element={<Search />} />
+          {/* A custom list shared by link: public, shows only what its owner shared. */}
+          <Route path="lists/:slug" element={<SharedList />} />
 
           <Route element={<RequireAccount />}>
             <Route path="profiles" element={<Profiles />} />

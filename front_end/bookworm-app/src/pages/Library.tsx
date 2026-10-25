@@ -1,18 +1,20 @@
 import { type FormEvent, useId, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { BookCard } from "../components/BookCard";
 import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { Icon } from "../components/Icon";
+import { SavedBookTile } from "../components/SavedBookTile";
 import { getBook, isAllowed } from "../data/books";
 import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
+import { LIST_BOOKS_MAX, LIST_DESCRIPTION_MAX, LIST_NAME_MAX, LISTS_MAX, shareUrl } from "../lib/collections";
 import { fallbackCover } from "../lib/coverFallback";
+import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
-import { useActiveProfile, useProfileData, useStore } from "../store/context";
+import { useActiveProfile } from "../store/context";
 import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
 
 type View = "library" | "favorites" | "lists";
@@ -282,23 +284,22 @@ function LibraryRow({
 // --- Favorites ----------------------------------------------------------------
 
 function FavoritesView({ profile }: { profile: Profile }) {
-  const data = useProfileData();
-  const favorites = data.favorites.map((id) => getBook(id)).filter((b) => b && isAllowed(b.ageRating, profile.ageRating));
-  if (favorites.length === 0) {
+  const { favorites } = useCollections();
+  // Newest first; Kids profiles see only catalog titles rated for them.
+  const shown = favorites.filter((id) => visibleTo(profile, id)).reverse();
+  if (shown.length === 0) {
     return (
       <div className="library-empty">
         <Icon name="star" size={28} />
         <h3>No favorites yet</h3>
-        <p>Choose Favorite on any BookWorm title to keep it here.</p>
+        <p>Choose Favorite on any book's page, from BookWorm or Google Books, to keep it here.</p>
       </div>
     );
   }
   return (
     <ul className="catalog-grid library-grid" role="list">
-      {favorites.map((book) => (
-        <li key={book!.id}>
-          <BookCard book={book!} />
-        </li>
+      {shown.map((id) => (
+        <SavedBookTile key={id} bookId={id} ageRating={profile.ageRating} />
       ))}
     </ul>
   );
@@ -306,24 +307,39 @@ function FavoritesView({ profile }: { profile: Profile }) {
 
 // --- Custom lists -------------------------------------------------------------
 
-const LIST_NAME_MAX = 40;
-const LIST_DESCRIPTION_MAX = 200;
-
 function ListsView({ profile }: { profile: Profile }) {
-  const { dispatch } = useStore();
-  const data = useProfileData();
+  const collections = useCollections();
   const library = useLibrary();
   const [editing, setEditing] = useState<CustomList | "new" | null>(null);
   const [deleting, setDeleting] = useState<CustomList | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
-  const lists = data.customLists;
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const lists = collections.lists;
+  const sharing = lists.find((l) => l.id === sharingId) ?? null;
   const libraryBooks = Object.values(library.entries).filter((e) => visibleTo(profile, e.bookId));
 
+  /** Runs a save; a failure shows above the lists and changes nothing. */
+  async function run(work: () => Promise<void>, done: string): Promise<boolean> {
+    setBusy(true);
+    setError(null);
+    try {
+      await work();
+      setAnnouncement(done);
+      return true;
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   /** Moves a list, keeping keyboard focus on its move buttons even when one becomes disabled at an end. */
-  function move(list: CustomList, from: number, by: -1 | 1) {
+  async function move(list: CustomList, from: number, by: -1 | 1) {
     const to = from + by;
-    dispatch({ type: "moveList", id: list.id, by });
-    setAnnouncement(`${list.name} moved to position ${to + 1} of ${lists.length}.`);
+    if (!(await run(() => collections.moveList(list.id, by), `${list.name} moved to position ${to + 1} of ${lists.length}.`))) return;
     const atEnd = to === 0 || to === lists.length - 1;
     const keep = atEnd ? (by === -1 ? "down" : "up") : by === -1 ? "up" : "down";
     requestAnimationFrame(() => document.getElementById(`move-${keep}-${list.id}`)?.focus());
@@ -335,13 +351,19 @@ function ListsView({ profile }: { profile: Profile }) {
         <h2 id="lists-title" tabIndex={-1}>
           Your lists
         </h2>
-        <button type="button" className="primary-button" onClick={() => setEditing("new")}>
+        <button type="button" className="primary-button" disabled={lists.length >= LISTS_MAX} onClick={() => setEditing("new")}>
           <Icon name="plus" size={17} /> New list
         </button>
       </div>
       <p className="visually-hidden" role="status">
         {announcement}
       </p>
+      {error && (
+        <div className="form-alert" role="alert">
+          <Icon name="alert" size={17} />
+          <p>{error}</p>
+        </div>
+      )}
 
       {lists.length === 0 ? (
         <div className="library-empty">
@@ -355,7 +377,14 @@ function ListsView({ profile }: { profile: Profile }) {
             <li key={list.id} className="custom-list">
               <div className="custom-list-head">
                 <div>
-                  <h3 id={`list-${list.id}`}>{list.name}</h3>
+                  <h3 id={`list-${list.id}`}>
+                    {list.name}
+                    {list.shareSlug && (
+                      <span className="shared-tag">
+                        <Icon name="share" size={13} /> Shared
+                      </span>
+                    )}
+                  </h3>
                   {list.description && <p>{list.description}</p>}
                   <small>
                     {list.bookIds.length} {list.bookIds.length === 1 ? "book" : "books"}
@@ -366,7 +395,7 @@ function ListsView({ profile }: { profile: Profile }) {
                     type="button"
                     id={`move-up-${list.id}`}
                     className="icon-button"
-                    disabled={i === 0}
+                    disabled={i === 0 || busy}
                     onClick={() => move(list, i, -1)}
                   >
                     <Icon name="chevronDown" size={18} className="flip" />
@@ -376,12 +405,17 @@ function ListsView({ profile }: { profile: Profile }) {
                     type="button"
                     id={`move-down-${list.id}`}
                     className="icon-button"
-                    disabled={i === lists.length - 1}
+                    disabled={i === lists.length - 1 || busy}
                     onClick={() => move(list, i, 1)}
                   >
                     <Icon name="chevronDown" size={18} />
                     <span className="visually-hidden">Move {list.name} down</span>
                   </button>
+                  {collections.canShare && (
+                    <button type="button" className="ghost-button small-button" onClick={() => setSharingId(list.id)}>
+                      <Icon name="share" size={15} /> Share<span className="visually-hidden"> {list.name}</span>
+                    </button>
+                  )}
                   <button type="button" className="ghost-button small-button" onClick={() => setEditing(list)}>
                     <Icon name="edit" size={15} /> Rename<span className="visually-hidden"> {list.name}</span>
                   </button>
@@ -390,10 +424,15 @@ function ListsView({ profile }: { profile: Profile }) {
                   </button>
                 </div>
               </div>
-              <ListBooks list={list} libraryBooks={libraryBooks} onChange={setAnnouncement} />
+              <ListBooks list={list} libraryBooks={libraryBooks} busy={busy} run={run} />
             </li>
           ))}
         </ol>
+      )}
+      {lists.length > 0 && !collections.canShare && (
+        <p className="list-hint">
+          {collections.remote ? "Kids profiles can't share lists." : "Sharing a list by link needs a BookWorm account; the demo can't publish links."}
+        </p>
       )}
 
       <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "New list" : "Rename list"} size="sm">
@@ -401,9 +440,9 @@ function ListsView({ profile }: { profile: Profile }) {
           <ListForm
             initial={editing === "new" ? null : editing}
             taken={lists.filter((l) => editing === "new" || l.id !== editing.id).map((l) => l.name.toLowerCase())}
-            onSave={(name, description) => {
-              if (editing === "new") dispatch({ type: "createList", name, description });
-              else dispatch({ type: "updateList", id: editing.id, name, description });
+            onSave={async (name, description) => {
+              if (editing === "new") await collections.createList(name, description);
+              else await collections.updateList(editing.id, name, description);
               setAnnouncement(editing === "new" ? `Created ${name}.` : `Saved ${name}.`);
               setEditing(null);
             }}
@@ -416,17 +455,24 @@ function ListsView({ profile }: { profile: Profile }) {
         onClose={() => setDeleting(null)}
         size="sm"
         title={`Delete ${deleting?.name ?? "this list"}?`}
-        description={<p>The books stay in your library. This can't be undone.</p>}
+        description={
+          <p>
+            The books stay in your library.{deleting?.shareSlug ? " Its shared link stops working." : ""} This can't be undone.
+          </p>
+        }
       >
         <div className="modal-actions">
           <button
             type="button"
             className="danger-button"
-            onClick={() => {
-              if (deleting) dispatch({ type: "deleteList", id: deleting.id });
-              setAnnouncement(`Deleted ${deleting?.name}.`);
+            disabled={busy}
+            onClick={async () => {
+              if (!deleting) return;
+              const list = deleting;
               setDeleting(null);
-              requestAnimationFrame(() => document.getElementById("lists-title")?.focus());
+              if (await run(() => collections.deleteList(list.id), `Deleted ${list.name}.`)) {
+                requestAnimationFrame(() => document.getElementById("lists-title")?.focus());
+              }
             }}
           >
             Delete list
@@ -436,6 +482,13 @@ function ListsView({ profile }: { profile: Profile }) {
           </button>
         </div>
       </Dialog>
+
+      <ShareDialog
+        list={sharing}
+        onClose={() => setSharingId(null)}
+        onShare={(id) => collections.shareList(id)}
+        onStop={(id) => collections.stopSharing(id)}
+      />
     </section>
   );
 }
@@ -447,20 +500,28 @@ function ListForm({
 }: {
   initial: CustomList | null;
   taken: string[];
-  onSave: (name: string, description: string) => void;
+  onSave: (name: string, description: string) => Promise<void>;
 }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const descId = useId();
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return setError("Give the list a name.");
     if (trimmed.length > LIST_NAME_MAX) return setError(`Names can be up to ${LIST_NAME_MAX} characters.`);
     if (taken.includes(trimmed.toLowerCase())) return setError("You already have a list with this name.");
-    onSave(trimmed, description);
+    setSaving(true);
+    try {
+      await onSave(trimmed, description);
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -489,28 +550,127 @@ function ListForm({
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
-      <button type="submit" className="primary-button modal-submit">
-        {initial ? "Save list" : "Create list"}
+      <button type="submit" className="primary-button modal-submit" disabled={saving}>
+        {saving ? "Saving…" : initial ? "Save list" : "Create list"}
       </button>
     </form>
+  );
+}
+
+/** Share a list by link, copy the link, or stop sharing (the link stops working at once). */
+function ShareDialog({
+  list,
+  onClose,
+  onShare,
+  onStop,
+}: {
+  list: CustomList | null;
+  onClose: () => void;
+  onShare: (id: string) => Promise<void>;
+  onStop: (id: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const linkId = useId();
+  const link = list?.shareSlug ? shareUrl(list.shareSlug) : null;
+
+  async function attempt(work: () => Promise<void>) {
+    setBusy(true);
+    setError(null);
+    setCopied(false);
+    try {
+      await work();
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Your browser didn't allow copying. Select the link and copy it yourself.");
+    }
+  }
+
+  return (
+    <Dialog
+      open={list !== null}
+      onClose={() => {
+        setError(null);
+        setCopied(false);
+        onClose();
+      }}
+      size="sm"
+      eyebrow="Share by link"
+      title={list?.name ?? "Share list"}
+      description={
+        <p>
+          Anyone with the link can see this list's name, description, your profile's name and its books. They never see your
+          account, library or reading history.
+        </p>
+      }
+    >
+      {list && (
+        <div className="share-panel">
+          {link ? (
+            <>
+              <label className="field-label" htmlFor={linkId}>
+                Link to this list
+              </label>
+              <div className="share-link-row">
+                <input id={linkId} className="field-input" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
+                <button type="button" className="secondary-button" onClick={copy}>
+                  <Icon name={copied ? "check" : "share"} size={16} /> {copied ? "Copied" : "Copy link"}
+                </button>
+              </div>
+              <p className="visually-hidden" role="status">
+                {copied ? "Link copied." : ""}
+              </p>
+              <button type="button" className="text-button danger-text" disabled={busy} onClick={() => attempt(() => onStop(list.id))}>
+                {busy ? "Stopping…" : "Stop sharing"}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="primary-button" disabled={busy} onClick={() => attempt(() => onShare(list.id))}>
+              <Icon name="share" size={16} /> {busy ? "Making a link…" : "Share by link"}
+            </button>
+          )}
+          {error && (
+            <p className="field-error" role="alert">
+              <Icon name="alert" size={15} /> {error}
+            </p>
+          )}
+        </div>
+      )}
+    </Dialog>
   );
 }
 
 function ListBooks({
   list,
   libraryBooks,
-  onChange,
+  busy,
+  run,
 }: {
   list: CustomList;
   libraryBooks: LibraryEntry[];
-  onChange: (message: string) => void;
+  busy: boolean;
+  run: (work: () => Promise<void>, done: string) => Promise<boolean>;
 }) {
-  const { dispatch } = useStore();
+  const { addToList, removeFromList } = useCollections();
   const [picked, setChoice] = useState("");
   const selectId = useId();
   const addable = libraryBooks.filter((e) => !list.bookIds.includes(e.bookId));
   // A book since removed from the library (or added already) can't stay chosen.
   const choice = addable.some((e) => e.bookId === picked) ? picked : "";
+  const full = list.bookIds.length >= LIST_BOOKS_MAX;
 
   return (
     <div className="list-books">
@@ -521,23 +681,19 @@ function ListBooks({
               key={bookId}
               bookId={bookId}
               entry={libraryBooks.find((e) => e.bookId === bookId)}
-              onRemove={(title) => {
-                dispatch({ type: "removeFromList", id: list.id, bookId });
-                onChange(`Removed ${title} from ${list.name}.`);
-              }}
+              busy={busy}
+              onRemove={(title) => run(() => removeFromList(list.id, bookId), `Removed ${title} from ${list.name}.`)}
             />
           ))}
         </ul>
       )}
-      {addable.length > 0 ? (
+      {addable.length > 0 && !full ? (
         <form
           className="list-add"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             if (!choice) return;
-            dispatch({ type: "addToList", id: list.id, bookId: choice });
-            onChange(`Added to ${list.name}.`);
-            setChoice("");
+            if (await run(() => addToList(list.id, choice), `Added to ${list.name}.`)) setChoice("");
           }}
         >
           <label className="field-label" htmlFor={selectId}>
@@ -550,11 +706,13 @@ function ListBooks({
                 <BookOption key={e.bookId} entry={e} />
               ))}
             </select>
-            <button type="submit" className="secondary-button" disabled={!choice}>
+            <button type="submit" className="secondary-button" disabled={!choice || busy}>
               Add
             </button>
           </div>
         </form>
+      ) : full ? (
+        <p className="list-hint">This list is full: a list can hold up to {LIST_BOOKS_MAX} books.</p>
       ) : (
         list.bookIds.length === 0 && <p className="list-hint">Add books to your library first, then put them in this list.</p>
       )}
@@ -570,10 +728,12 @@ function BookOption({ entry }: { entry: LibraryEntry }) {
 function ListBookItem({
   bookId,
   entry,
+  busy,
   onRemove,
 }: {
   bookId: string;
   entry?: LibraryEntry;
+  busy: boolean;
   onRemove: (title: string) => void;
 }) {
   const details = useEntryDetails(entry ?? { bookId });
@@ -581,7 +741,7 @@ function ListBookItem({
     <li>
       <Link to={`/books/${bookId}`}>{details.title}</Link>
       <span>{details.author}</span>
-      <button type="button" className="icon-button" onClick={() => onRemove(details.title)}>
+      <button type="button" className="icon-button" disabled={busy} onClick={() => onRemove(details.title)}>
         <Icon name="close" size={15} />
         <span className="visually-hidden">Remove {details.title} from this list</span>
       </button>

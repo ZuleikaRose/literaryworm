@@ -18,6 +18,7 @@ import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
 import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
 import { lostWithBook } from "../lib/reading";
+import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
@@ -176,6 +177,7 @@ function DetailPage({ view }: { view: DetailView }) {
   });
 
   const library = useLibrary();
+  const collections = useCollections();
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const userId = state.account?.userId;
@@ -276,9 +278,16 @@ function DetailPage({ view }: { view: DetailView }) {
     }
   }
 
-  function rate(value: RatingValue) {
+  async function rate(value: RatingValue) {
     if (!requireProfile()) return;
-    dispatch({ type: "rateBook", bookId: view.id, rating: rating === value ? null : value });
+    const next = rating === value ? null : value;
+    if (await attempt(() => collections.rate(view.id, next))) setAnnouncement(next ? "Rating saved." : "Rating cleared.");
+  }
+
+  async function toggleFavorite() {
+    if (!requireProfile()) return;
+    const ok = await attempt(() => collections.toggleFavorite(view.id));
+    if (ok) setAnnouncement(favorite ? "Removed from your favorites." : "Added to your favorites.");
   }
 
   const longDescription = (view.description?.length ?? 0) > 700;
@@ -428,6 +437,7 @@ function DetailPage({ view }: { view: DetailView }) {
                   type="button"
                   className="taste-button"
                   aria-pressed={rating === value}
+                  disabled={busy}
                   onClick={() => rate(value)}
                 >
                   <Icon name={icon} size={16} filled={rating === value} /> {label}
@@ -437,7 +447,8 @@ function DetailPage({ view }: { view: DetailView }) {
                 type="button"
                 className="taste-button"
                 aria-pressed={favorite}
-                onClick={() => dispatch({ type: "toggleFavorite", bookId: view.id })}
+                disabled={busy}
+                onClick={toggleFavorite}
               >
                 <Icon name="star" size={16} filled={favorite} /> Favorite
               </button>
