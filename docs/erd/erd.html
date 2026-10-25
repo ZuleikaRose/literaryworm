@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0700)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0800)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -175,7 +175,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "library_items", color: colors.reading, x: 840, y: 600, sub: "private",
+          id: "library_items", color: colors.reading, x: 840, y: 680, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -200,7 +200,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
         },
         {
-          id: "bookmarks", color: colors.reading, x: 840, y: 960, sub: "private",
+          id: "bookmarks", color: colors.reading, x: 840, y: 1040, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -212,6 +212,53 @@
             ["", "created_at", "timestamptz"],
           ],
           note: "FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; added and removed, never edited.",
+        },
+        {
+          id: "favorites", color: colors.household, x: 0, y: 1160, sub: "per profile",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; the key is its index. RLS: owner only; added and removed.",
+        },
+        {
+          id: "book_ratings", color: colors.household, x: 0, y: 1420, sub: "per profile",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["", "rating", "taste_rating"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "Not for me, I like this, I love this. FK as favorites. RLS: owner only; browser changes rating only.",
+        },
+        {
+          id: "custom_lists", color: colors.household, x: 420, y: 1380, sub: "per profile · shareable",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "profile_id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "name", "text 1–40"],
+            ["", "name_key", "text (generated)"],
+            ["", "description", "text ≤ 200"],
+            ["", "position", "smallint 0–99"],
+            ["", "share_slug", "text (22, unique)", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "Unique (profile_id, user_id, name_key), also the FK's index. Up to 50 a profile; Kids profiles can't share. Anyone with the link reads it only through shared_list(slug): name, description, profile name, titles.",
+        },
+        {
+          id: "custom_list_items", color: colors.household, x: 840, y: 1580, sub: "books in a list",
+          cols: [
+            ["pk fk", "list_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["", "added_at", "timestamptz"],
+          ],
+          note: "FK (list_id, user_id) → custom_lists (id, user_id), on delete cascade. Up to 200 a list. RLS: owner only.",
         },
         {
           id: "highlights", color: colors.reading, x: 1260, y: 1060, sub: "private · highlights and notes",
@@ -247,10 +294,11 @@
             ["", "daily_limit_minutes", "smallint 30–240", true],
             ["", "favorite_genres", "text[]"],
             ["", "kids_consent_at", "timestamptz", true],
+            ["", "recent_searches", "text[] ≤ 8"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Unique (account_id, name_key). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres only. PINs, limits, age ratings, Kids and deletes go through manage-profile.",
+          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres and recent searches only. PINs, limits, age ratings, Kids and deletes go through manage-profile.",
         },
         {
           id: "parental_consents", color: colors.household, x: 1260, y: 60, sub: "COPPA record",
@@ -291,6 +339,10 @@
         ["reading_progress", "volume_id", "library_items", "volume_id", "1 : 1 (pair)"],
         ["bookmarks", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["highlights", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
+        ["favorites", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["book_ratings", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["custom_lists", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["custom_list_items", "list_id", "custom_lists", "id", "N : 1 (pair)"],
       ];
       // -----------------------------------------------------------------------------------
 

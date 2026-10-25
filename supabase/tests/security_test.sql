@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -159,6 +159,68 @@ delete from public.library_items where volume_id = 'zyTCAlFPjgYC';
 select pg_temp.check((select count(*) from public.logs) = 0, 'logs deleted with the library item');
 select pg_temp.check((select count(*) from public.reading_progress) = 0 and (select count(*) from public.bookmarks) = 0, 'progress and bookmarks deleted with the library item');
 select pg_temp.check((select count(*) from public.highlights) = 0, 'highlights deleted with the library item');
+reset role;
+
+-- Favourites, ratings, lists and recent searches (per profile) ----------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into public.book_ratings (profile_id, user_id, volume_id, rating) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'dune', 'like');
+update public.book_ratings set rating = 'love' where volume_id = 'dune';
+insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC');
+select pg_temp.check((select rating = 'love' from public.book_ratings) and (select count(*) from public.favorites) = 1, 'Ann rates and favourites as a profile');
+select pg_temp.expect_error($$insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC')$$, 'the same favourite twice');
+select pg_temp.expect_error($$insert into public.book_ratings (profile_id, user_id, volume_id, rating) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'bad id; drop', 'like')$$, 'a malformed volume id in a rating');
+insert into public.custom_lists (profile_id, user_id, name, description) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'Holiday stack', 'Beach books');
+select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_id, name) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', ' holiday STACK ')$$, 'a duplicate list name (case-insensitive)');
+select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_id, name) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', '   ')$$, 'a blank list name');
+insert into public.custom_list_items (list_id, user_id, volume_id) values ((select id from public.custom_lists where name = 'Holiday stack'), '00000000-0000-0000-0000-00000000000a', 'dune');
+update public.custom_lists set share_slug = 'AbCdEfGhIjKlMnOpQrStUv' where name = 'Holiday stack';
+select pg_temp.expect_error($$update public.custom_lists set share_slug = 'short' where name = 'Holiday stack'$$, 'a guessable share link');
+select pg_temp.expect_error($$update public.custom_lists set user_id = '00000000-0000-0000-0000-00000000000b'$$, 'moving a list to another account');
+select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_id, name, share_slug) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'Pre-shared', 'AbCdEfGhIjKlMnOpQrSt00')$$, 'setting a share link on insert (column grant)');
+select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_id, name) values ((select id from public.reader_profiles where name = 'Mia'), '00000000-0000-0000-0000-00000000000a', 'Kids picks'); update public.custom_lists set share_slug = 'KidsKidsKidsKidsKids00' where name = 'Kids picks'$$, 'sharing a Kids profile''s list');
+update public.reader_profiles set recent_searches = array['dune', 'circe'] where name = 'Ann';
+select pg_temp.expect_error($$update public.reader_profiles set recent_searches = array['1','2','3','4','5','6','7','8','9'] where name = 'Ann'$$, 'more than 8 recent searches');
+reset role;
+
+-- Ids Ben could only have guessed.
+select id as ann_profile from public.reader_profiles where name = 'Ann' \gset
+select id as ann_list from public.custom_lists where name = 'Holiday stack' \gset
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select count(*) from public.book_ratings) + (select count(*) from public.favorites) + (select count(*) from public.custom_lists) + (select count(*) from public.custom_list_items) = 0, 'Ben cannot see Ann''s ratings, favourites or lists');
+insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ben'), '00000000-0000-0000-0000-00000000000b', 'dune');
+select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000b', 'x'), 'a favourite on another account''s profile, as yourself');
+select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'x'), 'a favourite on another account''s profile, as them');
+select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000b', 'x'), 'adding to someone else''s list, as yourself');
+select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000a', 'x'), 'adding to someone else''s list, as them');
+with u as (update public.custom_lists set share_slug = null returning 1)
+select pg_temp.check(count(*) = 0, 'Ben cannot stop Ann''s sharing') from u;
+reset role;
+
+set role anon;
+select pg_temp.expect_error('select * from public.custom_lists', 'anon reading lists');
+select pg_temp.expect_error('select * from public.favorites', 'anon reading favourites');
+select pg_temp.check((public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ->> 'name') = 'Holiday stack'
+  and (public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ->> 'owner') = 'Ann'
+  and jsonb_array_length(public.shared_list('AbCdEfGhIjKlMnOpQrStUv') -> 'items') = 1
+  and not (public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ? 'user_id'), 'anyone with the link sees only the shared list''s name, owner and titles');
+select pg_temp.check(public.shared_list('NotARealLinkNotARealLi') is null and public.shared_list('x'' or 1=1 --') is null, 'a wrong link shows nothing');
+reset role;
+
+-- A profile that becomes Kids stops sharing; deleting a profile deletes its lists.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into public.custom_lists (profile_id, user_id, name) values ((select id from public.reader_profiles where name = 'Sam'), '00000000-0000-0000-0000-00000000000a', 'Sam''s picks');
+update public.custom_lists set share_slug = 'SamSamSamSamSamSamSam0' where name = 'Sam''s picks';
+insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Sam'), '00000000-0000-0000-0000-00000000000a', 'dune');
+reset role;
+set role service_role;
+select public.set_profile_age_rating('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'), 'kids', '2026-10');
+select pg_temp.check((select share_slug is null from public.custom_lists where name = 'Sam''s picks') and public.shared_list('SamSamSamSamSamSamSam0') is null, 'moving to Kids stops sharing');
+delete from public.reader_profiles where name = 'Sam';
+select pg_temp.check((select count(*) from public.custom_lists where name = 'Sam''s picks') = 0 and (select count(*) from public.favorites where volume_id = 'dune' and user_id = '00000000-0000-0000-0000-00000000000a') = 0, 'deleting a profile deletes its lists and favourites');
 reset role;
 
 -- Every public table has RLS on -----------------------------------------------
