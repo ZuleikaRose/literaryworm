@@ -20,6 +20,17 @@ export const GENRE_QUERIES: Record<Genre, string> = {
   "non-fiction": "subject:nonfiction",
 };
 
+// The same genres as plain words, for when Google answers a `subject:` query with
+// nothing at all (it sometimes does for hours while plain searches still work).
+export const GENRE_WORDS: Record<Genre, string> = {
+  adventure: "adventure",
+  technology: "technology",
+  horror: "horror",
+  "sci-fi": '"science fiction"',
+  fiction: "fiction",
+  "non-fiction": "nonfiction",
+};
+
 export const HOME_QUERY = "technology";
 
 export type BookSummary = {
@@ -64,6 +75,11 @@ export function titleQuery(q: string): string {
     .filter(Boolean)
     .map((word) => `intitle:${word.replace(/["]/g, "")}`)
     .join(" ");
+}
+
+/** The search words with no operators: the fallback when `intitle:` finds nothing. */
+export function plainQuery(q: string): string {
+  return q.replace(/["]/g, "").split(" ").filter(Boolean).join(" ");
 }
 
 export function listUrl(q: string, page: number, key: string | undefined, sort: Sort = "relevance"): URL {

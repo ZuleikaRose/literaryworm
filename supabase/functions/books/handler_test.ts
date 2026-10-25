@@ -49,25 +49,51 @@ Deno.test("home asks Google for technology with the key server-side and shapes t
   assertEquals(Object.keys(body.items[0]).sort(), ["authors", "categories", "cover", "id", "publishedYear", "title"]);
 });
 
-Deno.test("an empty first page is asked for once more, then believed", async () => {
+Deno.test("an empty Home first page is asked for once more, then believed", async () => {
   let calls = 0;
   const flaky = (() => {
     calls++;
     return Promise.resolve(new Response(JSON.stringify(calls === 1 ? { totalItems: 0 } : fullPage), { status: 200 }));
   }) as typeof fetch;
-  let res = await handle(get("mode=search&q=hobbit"), { fetcher: flaky, emptyRetryMs: 0 });
+  let res = await handle(get("mode=home"), { fetcher: flaky, emptyRetryMs: 0 });
   assertEquals((await res.json()).items.length, 20);
   assertEquals(calls, 2);
 
   const empty = stub(200, { totalItems: 0 });
-  res = await handle(get("mode=search&q=zzzz"), { ...empty, emptyRetryMs: 0 });
+  res = await handle(get("mode=home"), { ...empty, emptyRetryMs: 0 });
   assertEquals((await res.json()).items, []);
   assertEquals(empty.calls.length, 2, "one retry only");
 
   const later = stub(200, { totalItems: 0 });
-  res = await handle(get("mode=search&q=zzzz&page=3"), { ...later, emptyRetryMs: 0 });
+  res = await handle(get("mode=home&page=3"), { ...later, emptyRetryMs: 0 });
   await res.body?.cancel();
   assertEquals(later.calls.length, 1, "later pages that run out are just the end");
+});
+
+Deno.test("an empty filtered list is asked again with plain words, once", async () => {
+  const cases: [string, string, string][] = [
+    ["mode=genre&genre=technology", "subject:technology", "technology"],
+    ["mode=genre&genre=sci-fi&page=2", 'subject:"science fiction"', '"science fiction"'],
+    ["mode=search&q=the%20hobbit", "intitle:the intitle:hobbit", "the hobbit"],
+    ["mode=search&q=dune&genre=horror&sort=newest", "intitle:dune subject:horror", "dune horror"],
+  ];
+  for (const [query, filtered, plain] of cases) {
+    const calls: URL[] = [];
+    const fetcher = ((input: URL) => {
+      calls.push(new URL(input));
+      return Promise.resolve(new Response(JSON.stringify(calls.length === 1 ? { totalItems: 0 } : fullPage), { status: 200 }));
+    }) as typeof fetch;
+    const res = await handle(get(query), { fetcher, emptyRetryMs: 0 });
+    assertEquals((await res.json()).items.length, 20, query);
+    assertEquals(calls.map((u) => u.searchParams.get("q")), [filtered, plain], query);
+    assertEquals(calls[1].searchParams.get("startIndex"), calls[0].searchParams.get("startIndex"));
+    assertEquals(calls[1].searchParams.get("orderBy"), calls[0].searchParams.get("orderBy"));
+  }
+
+  const empty = stub(200, { totalItems: 0 });
+  const res = await handle(get("mode=search&q=zzzz"), { ...empty, emptyRetryMs: 0 });
+  assertEquals((await res.json()).items, []);
+  assertEquals(empty.calls.length, 2, "nothing either way is believed");
 });
 
 Deno.test("search is title-only", async () => {
