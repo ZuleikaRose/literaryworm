@@ -620,7 +620,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 
 57. **Saved per profile.** A member's favourites, ratings (Not for me / I like this / I love this), custom lists and recent searches are saved to Supabase for the profile that made them (`favorites`, `book_ratings`, `custom_lists`, `custom_list_items`, `reader_profiles.recent_searches`), so they survive a refresh and follow the member to another device. Each change saves first, then shows; a failed save says so beside the control and nothing changes. Recent searches save in the background. The demo keeps them in memory.
 58. **Favorites shows every title.** Google Books favourites appear beside BookWorm's own, with their details fetched through the `books` function.
-59. **Share a list by link.** Each custom list has *Share*: it makes a private link (a random 22-character token) to copy, and *Stop sharing* turns the link off at once. Kids profiles and the demo don't see *Share*; a profile moved to Kids stops sharing.
+59. **Share a list by link.** Each custom list has *Share*: it makes a private link (a random 22-character token) to copy, and *Stop sharing* turns the link off at once; sharing again makes a new link, so an old one never comes back. Kids profiles and the demo don't see *Share*; a profile moved to Kids stops sharing.
 60. **Shared list page (`/lists/:token`).** Public: anyone with the link sees the list's name, description, "A list by" the profile's name, and its titles (BookWorm covers or Google Books covers), never the account, library or history. A wrong or stopped link says the list isn't shared. Signed-in Kids profiles see only titles rated for them.
 
 ### Where the build differs from the blueprint, and why
