@@ -1,12 +1,12 @@
 # Build prompt
 
-The brief given to Claude Code for the BookWorm front end, written as a reusable prompt. It follows the prompt life cycle from the assessment: DEFINE → EXPLORE → PLAN → CODE → REVIEW → COMMIT.
+The brief given to Claude Code for the LiteraryWorm front end, written as a reusable prompt. It follows the prompt life cycle from the assessment: DEFINE → EXPLORE → PLAN → CODE → REVIEW → COMMIT.
 
 ---
 
 ## Define
 
-Build a front-end single-page application for **BookWorm** from the wireframes and user stories.
+Build a front-end single-page application for **LiteraryWorm** from the wireframes and user stories.
 
 - **Stack:** React + TypeScript (strict) + Vite, React Router DOM with `BrowserRouter`.
 - **Data:** app state lives in the browser's memory, so refreshing resets the app. Book lists come only from the `books` Supabase Edge Function (Google Books); the browser never calls Google. Without Supabase configured, the sample catalog stands in.
@@ -38,7 +38,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | 2 | Who's reading? and profile management | Max 5 profiles; Kids/Teen/All; PIN prompt with lockout after 5 wrong tries; choosing a profile goes to Home |
 | 3 | Home | Matches the wireframe Discover screen; technology books and the six genres via the Edge Function; infinite scroll with a Load more fallback; loading, error, empty and end states; rows work by keyboard; carousel pauses; titles respect the age rating |
 | 4 | Book details | Matches the wireframe detail screen; `/books/:id` works on refresh; Google data with at least two extra fields; every reader's logs with display name and date; library statuses; logs only for books in the library, removed with the book; ratings; blocked on Kids, mature titles blocked on Teen |
-| 5 | Search | Public title-only search (BookWorm titles, then Google through the Edge Function); filters and sort applied server-side; Load more; *Did you mean*; recent searches; Surprise Me; Kids see the catalog only |
+| 5 | Search | Public title-only search (LiteraryWorm titles, then Google through the Edge Function); filters and sort applied server-side; Load more; *Did you mean*; recent searches; Surprise Me; Kids see the catalog only |
 | 6 | Library and sign-in | Supabase Auth sign-up, log-in, log-out and password reset; session survives a refresh; plan saved by the `checkout` function; library (`library_items`) and logs saved to Supabase under RLS; Library page with the three statuses; Favorites; custom lists create, rename, delete, reorder; empty states |
 | 7 | Reader and player | Reader display (theme, font, size, spacing, margins), chapters, bookmarks, *Mark as finished?*; player speed, ±15s, sleep timer, credit skips; progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue Reading; daily limit enforced; keyboard-operable |
 | 8 | Account and polish | Household profiles saved to Supabase (`reader_profiles`, `manage-profile`); Account page (plan and billing, sign-in, preferences, family, privacy with Download my data, help); pause, cancel and restart online and Delete account through a `manage-account` function; *Ask a grown-up* gate on Kids; paused or ended memberships stop reading; accessibility and motion pass |

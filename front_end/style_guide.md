@@ -1,6 +1,6 @@
-# BookWorm style guide
+# LiteraryWorm style guide
 
-The visual language comes from the Figma wireframe in `BookWorm_web_app_wireframe/`. It is implemented as CSS custom properties in `bookworm-app/src/styles/tokens.css`. Components use tokens, never raw hex values (the drawn book covers are the one exception: each title carries its own palette).
+The visual language comes from the Figma wireframe in `BookWorm_web_app_wireframe/`. It is implemented as CSS custom properties in `literaryworm_app/src/styles/tokens.css`. Components use tokens, never raw hex values (the drawn book covers are the one exception: each title carries its own palette).
 
 **Character:** a late-night reading room. Dark, warm and quiet, so the book covers carry the color. One warm accent (terracotta) marks what you can act on.
 
@@ -134,7 +134,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Log card.** Avatar initials, display name (with a *You* tag on your own), date, optional five gold stars (`role="img"`, "Rated 4 out of 5"), body in the reading serif. Long logs clamp to five lines with *Read full log*. Your own logs get a rust border and Edit and Delete.
 
-**Search page.** A large labelled search field (52px) with *Search* and *Surprise me* beside it and a one-line hint ("titles only"). Results are two titled sections, *From BookWorm* then *From Google Books*. Filters are radio chips grouped under small headings (Show, Genre, Sort by) in a sticky 240px sidebar; below 900px they move into a *Filters* dialog opened by a button that counts active filters.
+**Search page.** A large labelled search field (52px) with *Search* and *Surprise me* beside it and a one-line hint ("titles only"). Results are two titled sections, *From LiteraryWorm* then *From Google Books*. Filters are radio chips grouped under small headings (Show, Genre, Sort by) in a sticky 240px sidebar; below 900px they move into a *Filters* dialog opened by a button that counts active filters.
 
 **Did you mean.** One line on the surface color with a rust left rule; the suggestion is a bold rust link that runs the corrected search.
 
@@ -144,7 +144,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Share dialog.** Says who can see the list and what they see, then the link in a read-only field with *Copy link* beside it (it confirms *Copied* for two seconds, announced to screen readers) and *Stop sharing* as a danger text button. Before the first share: one paragraph and a primary *Share by link*.
 
-**Shared list page.** A public page in the site layout: eyebrow *Shared list*, the list's name as the page title, its description, "A list by Avery" and the book count, then the titles in the cover grid. A wrong or stopped link uses the empty-state pattern with *Explore BookWorm*.
+**Shared list page.** A public page in the site layout: eyebrow *Shared list*, the list's name as the page title, its description, "A list by Avery" and the book count, then the titles in the cover grid. A wrong or stopped link uses the empty-state pattern with *Explore LiteraryWorm*.
 
 **Saving states.** Buttons that save to Supabase say what they're doing ("Adding…", "Saving your plan…", "Logging in…") and are disabled meanwhile; a failed save shows a plain-words alert beside the control and the screen doesn't change.
 
@@ -172,7 +172,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Mark as finished? and daily limit.** Small dialogs and full-screen messages use the empty-state pattern (icon in a rust circle, title, one sentence, actions). The finished state pops its check icon in once.
 
-**Header on narrow phones.** Below 380px the wordmark is hidden visually (not with `display: none`), so the logo link is still announced as "BookWorm, home".
+**Header on narrow phones.** The logo is the book mark plus the wordmark "Literary**Worm**" ("Worm" in rust). Up to 480px the wordmark is set at 1rem so the header still fits; below 390px it is hidden visually (not with `display: none`), so the logo link is still announced as "LiteraryWorm, home".
 
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
 

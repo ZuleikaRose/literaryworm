@@ -1,9 +1,9 @@
 
-# BookWorm: User Stories
+# LiteraryWorm: User Stories
 
 *A Netflix-style reading and listening app built on the Google Books catalog, for readers of all ages.*
 
-Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is pulled from `front_end/` (the user journey and each page's `user_journey.md`). Each story is one thing the app has to *remember* or *enforce*. Story 1 isn't on any single page; it's there so the database knows who owns what.
+Version 2: edited and corrected to match **LiteraryWorm_Blueprint.md**. This list is pulled from `front_end/` (the user journey and each page's `user_journey.md`). Each story is one thing the app has to *remember* or *enforce*. Story 1 isn't on any single page; it's there so the database knows who owns what.
 
 **How to read this list**
 
@@ -41,12 +41,12 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 14. **(was #60)** As a parent, I want to set a daily reading and listening limit on a profile (30 minutes to 4 hours, with the account password) so that the reader and player stop once the time is used up. I want to allow 30 more minutes with the password when I choose. Nobody reading can raise the limit or reset the time used.
 15. **(was #64)** As a parent, I want to see how long a limited profile read or listened on each of the last 7 days, with the total and daily average, so that I can tell whether the limit is right.
 16. **(new)** As a parent, I want Kids profiles to have no chat, no public reviews, no sharing, no payments or tips, and no AI assistant (unless I turn it on) so that my child isn't exposed to strangers or purchases.
-17. **(was #40)** As a parent, I want every title to carry an age rating (Kids, Teen, or All) so that each profile shows only titles within its setting. For Google Books titles, BookWorm uses Google's mature/not-mature flag plus its own review, and unrated titles stay hidden on Kids and Teen profiles.
+17. **(was #40)** As a parent, I want every title to carry an age rating (Kids, Teen, or All) so that each profile shows only titles within its setting. For Google Books titles, LiteraryWorm uses Google's mature/not-mature flag plus its own review, and unrated titles stay hidden on Kids and Teen profiles.
 
 ## 3. Membership and billing
 
 18. **(was #2)** As an account holder, I want to choose a plan (Basic, Standard, or Premium) and see its price, what's included (for example, the number of profiles, audiobook hours, and offline downloads), and the auto-renewal terms before I pay, so that I know what I'm agreeing to.
-19. **(was #3)** As an account holder, I want to save a payment method through Stripe and choose a billing day so that I'm charged on a date that suits me. BookWorm stores only the card brand, last four digits, and expiry, never the card number.
+19. **(was #3)** As an account holder, I want to save a payment method through Stripe and choose a billing day so that I'm charged on a date that suits me. LiteraryWorm stores only the card brand, last four digits, and expiry, never the card number.
 20. **(new)** As an account holder, I want an email confirming my subscription, its price, its renewal date, and how to cancel, plus receipts for each charge, so that I have a record.
 21. **(was #4)** As an account holder, I want to pause, cancel, or restart my membership online in a few clicks, with no phone call or chat required, so that I only pay when I'm reading.
 22. **(was #12, #30)** As an account holder, I want to apply a promo code and have it checked on the server against real offers and my plan, so that only valid discounts apply. I also want to see the price after the promo ends.
@@ -57,10 +57,10 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 24. **(was #6)** As a member, I want to filter by genre, format (ebook, audiobook), length, language, rating, age rating, and release date, and sort by relevance, popularity, newest, or rating, so that I can find something that interests me.
 25. **(was #49)** As a member, I want search to find titles even when I misspell them (*Did you mean…?*) so that a typo doesn't hide what I'm looking for.
 26. **(was #50)** As a member, I want my last ten searches per profile to show in an empty search box until I clear them so that I can repeat a search quickly. Nothing is saved while history is paused.
-27. **(was #33)** As a member, I want Home rows of trending and popular books from Google Books, credited to Google Books, so that I can discover titles beyond BookWorm's catalog.
-28. **(was #34)** As a member, I want my searches to include matching Google Books titles below BookWorm's own results, with the same filters, so that I can look up any book.
+27. **(was #33)** As a member, I want Home rows of trending and popular books from Google Books, credited to Google Books, so that I can discover titles beyond LiteraryWorm's catalog.
+28. **(was #34)** As a member, I want my searches to include matching Google Books titles below LiteraryWorm's own results, with the same filters, so that I can look up any book.
 29. **(was #35)** As a member, I want to open a book's page to see its cover, synopsis, author, narrator, length, format, age rating, and reviews and decide whether it's for me. As the site owner, I want the Google Books API key kept on the server so that no one can copy it from the browser.
-30. **(new)** As a member, I want a free preview of a Google Books title (using Google's Embedded Viewer, loaded only when I ask) and links to buy it, so that I can try books BookWorm doesn't carry in full.
+30. **(new)** As a member, I want a free preview of a Google Books title (using Google's Embedded Viewer, loaded only when I ask) and links to buy it, so that I can try books LiteraryWorm doesn't carry in full.
 31. **(was #39)** As a member, I want recommendations based on the titles I save (*Because You Saved* on Home, *More Like This* on a book page) so that I discover similar books. Turning off personalized recommendations hides the Home row.
 32. **(was #51)** As a member, I want to rate a title Not for me, I like this, or I love this in one tap so that recommendations follow my taste, and titles I don't want stop being suggested to my profile.
 33. **(was #57)** As a member who doesn't know what to read, I want to describe what I'm in the mood for in my own words and get up to five titles with a reason each, chosen only from titles my profile is allowed to see. I want them labeled as AI suggestions, and I want to know what's sent to the AI service (never my name, email, or account ID), so that I find something quickly without giving away who I am.
@@ -81,7 +81,7 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 
 43. **(was #7)** As a member, I want to add titles to my Reading List so that I can find them later.
 44. **(was #8)** As a member, I want to mark titles as Favorites (a title can be on both lists) so that I get recommendations based on what I love.
-45. **(was #36)** As a member, I want to add Google Books titles to my Reading List or Favorites so that they appear next to BookWorm's own titles. Their details come from Google Books on the server, not from what my browser sends.
+45. **(was #36)** As a member, I want to add Google Books titles to my Reading List or Favorites so that they appear next to LiteraryWorm's own titles. Their details come from Google Books on the server, not from what my browser sends.
 46. **(was #46)** As a member, I want my own named Custom Lists, each with a description, so that I can group titles my way.
 47. **(was #47)** As a member, I want to share a Custom List by link (anyone can open it without signing in) so that friends can see my picks. The shared page shows only the list's name, description, my profile's display name, and its titles, never my account or history, and I can stop sharing at any time. Sharing is off for Kids profiles.
 48. **(was #10, #43)** As a member, I want to set a reminder for a book that isn't out yet (or the next book in a series) so that I don't miss its release.
@@ -120,21 +120,21 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 69. **(was #14)** As a member, I want to opt out of the sale or sharing of my personal data (and have my browser's Global Privacy Control signal honored automatically) so that my privacy choice is recorded and respected.
 70. **(new)** As a visitor, I want to accept or decline non-essential cookies, with nothing optional set until I choose, so that I control tracking.
 71. **(new)** As a member, I want to download a copy of my data (account, profiles, lists, ratings, reviews, Reading Activity) so that I can see what's kept or take it elsewhere.
-72. **(was #24, #25)** As an account holder, I want to delete my account from the danger zone (it cancels my subscription first, after I confirm, and asks for my password) so that I can leave in one place. Deleting removes my access and deletes my personal data within the legal deadline, except records the law requires BookWorm to keep (such as payment records). I want an email confirming the request, with no separate support ticket needed.
+72. **(was #24, #25)** As an account holder, I want to delete my account from the danger zone (it cancels my subscription first, after I confirm, and asks for my password) so that I can leave in one place. Deleting removes my access and deletes my personal data within the legal deadline, except records the law requires LiteraryWorm to keep (such as payment records). I want an email confirming the request, with no separate support ticket needed.
 
 ## 11. Help and support
 
 73. **(was #13)** As a member, I want to send feedback or report a problem and get a ticket number so that I can follow up. I'm asked each time before device details are attached.
 74. **(was #42)** As a member, I want to read support's replies on my tickets and answer them so that problems get solved in one conversation.
 75. **(was #42)** As support staff, I want to see every member's tickets by status, reply, and change a ticket's status so that problems get solved. Only staff can see other members' tickets.
-76. **(new)** As a member, I want a Status page and a Home banner during outages so that I know when a problem is on BookWorm's side.
-77. **(new)** As a rights holder, I want to send a copyright (DMCA) notice to BookWorm's designated agent so that infringing content is reviewed and removed.
+76. **(new)** As a member, I want a Status page and a Home banner during outages so that I know when a problem is on LiteraryWorm's side.
+77. **(new)** As a rights holder, I want to send a copyright (DMCA) notice to LiteraryWorm's designated agent so that infringing content is reviewed and removed.
 
-## 12. Support BookWorm (tips): optional
+## 12. Support LiteraryWorm (tips): optional
 
 *Recommendation: for a for-profit subscription service, consider removing this section (see What changed and why, item 7).*
 
-78. **(was #58)** As an adult member, I want to leave a one-time tip by card ($1 to $10,000, from Account → Help) so that I can support the app. Each tip is recorded with its amount, date, and whether it went through. My card number never reaches BookWorm, and only I can read my tips. Payment records can't be edited, but staff can record a refund. The page says clearly that tips aren't charitable donations and aren't tax-deductible, and it's never shown on Kids or Teen profiles.
+78. **(was #58)** As an adult member, I want to leave a one-time tip by card ($1 to $10,000, from Account → Help) so that I can support the app. Each tip is recorded with its amount, date, and whether it went through. My card number never reaches LiteraryWorm, and only I can read my tips. Payment records can't be edited, but staff can record a refund. The page says clearly that tips aren't charitable donations and aren't tax-deductible, and it's never shown on Kids or Teen profiles.
 79. **(was #67)** As an adult member, I want to tip the same amount every month until I cancel (on the tip page or in Account), see the amount and next charge date before I confirm, and get a reminder before each charge, so that I can support the app regularly. A closed account is never charged again, and nothing in the browser can change a monthly tip.
 80. **(was #59)** As a member, I want to see my past tips (amount, date, and whether each went through) and get Stripe's emailed receipt so that I can keep track.
 81. **(was #65)** As billing staff, I want to see tips by month (amount paid, number paid, number failed) and the latest tips with a link to each payment in Stripe so that I can follow them and refund one when asked. Members still see only their own.
@@ -197,7 +197,7 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 2. **#24/#25: deletion only removed access, and data removal needed a support ticket.** Under CCPA/CPRA (and GDPR if you serve the EU), members must be able to request deletion directly, and the request must be honored within the legal deadline. Story 72 now does both in one flow and keeps only legally required records. Story 71 adds data download (access and portability).
 3. **#27's password rule conflicts with NIST SP 800-63B guidance**, which favors length and breach checks over forced character types. Story 3 updates it; confirm against the current NIST revision.
 4. **#29 showed reviewers' "real account names."** That publicly exposes the account holder's real name, and children's names. It now shows the profile's display name, Kids can't post public reviews, and teens never show a full real name. Authorship still comes from the session, so reviews remain trustworthy.
-5. **#40: "real U.S. maturity ratings" for books don't exist.** Books have no MPA-style rating system, and Google Books provides only a mature/not-mature flag. Story 17 adds BookWorm's own age rating, with unrated titles hidden on Kids and Teen profiles.
+5. **#40: "real U.S. maturity ratings" for books don't exist.** Books have no MPA-style rating system, and Google Books provides only a mature/not-mature flag. Story 17 adds LiteraryWorm's own age rating, with unrated titles hidden on Kids and Teen profiles.
 6. **Kids (COPPA).** Because the app is for all ages, story 11 adds verifiable parental consent and the parent's right to review, delete, or stop collection. Story 16 blocks chat, public reviews, sharing, payments, and the AI assistant (by default) on Kids profiles. #47 (public share links) and #48 (party chat with strangers) are now off for kids. Check the FTC's amended COPPA Rule (2025) compliance dates.
 7. **Donations (#58, #59, #65, #67).**
    - **"Donations":** a for-profit service calling payments "donations" can imply they're charitable or tax-deductible, so they're now **tips** with a not-tax-deductible label.
@@ -215,7 +215,7 @@ Version 2: edited and corrected to match **BookWorm_Blueprint.md**. This list is
 
 ## Build status
 
-Tracks each story against the front-end build in `front_end/bookworm-app`. **Done** means it works in the front end (book lists through the Supabase Edge Function when configured, other data in memory). **UI only** means the screen and rules exist but the part that needs a server (email, Stripe, Supabase) is not built yet. Stories not listed are planned for later phases or need the backend.
+Tracks each story against the front-end build in `front_end/literaryworm_app`. The live site is [www.literaryworm.com](https://www.literaryworm.com). **Done** means it works in the front end (book lists through the Supabase Edge Function when configured, other data in memory). **UI only** means the screen and rules exist but the part that needs a server (email, Stripe, Supabase) is not built yet. Stories not listed are planned for later phases or need the backend.
 
 | Story | Phase | Status | Notes |
 | --- | --- | --- | --- |
@@ -247,18 +247,18 @@ Tracks each story against the front-end build in `front_end/bookworm-app`. **Don
 | Brief: Sign up, log in, log out | 6 | Done | Supabase Auth email and password; every account has a public display name, and logs show it, never the email. |
 | Library page (Reading List, Favorites, Custom Lists) | 6, 10 | Done | Status filter with counts, Favorites, custom lists (create, rename, delete, reorder, add and remove books). Saved per profile in Supabase for members. |
 | 32. Rate in one tap | 4, 10 | Done | Not for me / I like this / I love this on the book page, saved per profile (`book_ratings`); Not for me keeps a title out of suggestions. |
-| 44, 45. Favorites, including Google titles | 4, 10 | Done | Favorite on any book page, saved per profile (`favorites`); the Favorites view shows BookWorm and Google Books titles, with Google's details fetched on the server. |
+| 44, 45. Favorites, including Google titles | 4, 10 | Done | Favorite on any book page, saved per profile (`favorites`); the Favorites view shows LiteraryWorm and Google Books titles, with Google's details fetched on the server. |
 | 46. Custom Lists | 6, 10 | Done | Named lists with descriptions, per profile (`custom_lists`, `custom_list_items`); up to 50 lists of 200 books. |
 | 47. Share a list by link | 10 | Done | *Share* makes a private link; the public page shows only the name, description, the profile's name and the titles; *Stop sharing* turns it off. Not on Kids profiles. |
 | 29. Book page | 4 | Done | Cover, synopsis, author, narrator, length, format, age rating and logs; the Google key stays in the Edge Function. |
 | 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |
 | 50. Display name on logs | 4 | Done | Logs show the profile's display name, never an email; Kids profiles can't post logs. |
-| Brief: Search by title | 5 | Done | Public `/search`; title only (operators refused with a plain message); BookWorm titles then Google results with infinite scroll and Load more. Google is asked with `intitle:`; if it returns nothing (a Google fault seen in October 2026), the function asks again with the plain words, which can match outside the title. |
+| Brief: Search by title | 5 | Done | Public `/search`; title only (operators refused with a plain message); LiteraryWorm titles then Google results with infinite scroll and Load more. Google is asked with `intitle:`; if it returns nothing (a Google fault seen in October 2026), the function asks again with the plain words, which can match outside the title. |
 | 23. Search | 5 | Changed | Title only, as the brief requires (not author, narrator, ISBN or keyword). |
 | 24. Filters and sorting | 5 | Partly | Source, the six genres, best match or newest; Google applies genre and sort to its results. Format, length, language and release-date filters need data Google search doesn't offer reliably. |
-| 25. Did you mean | 5 | Done | Typos corrected word by word against BookWorm titles the profile may see. |
+| 25. Did you mean | 5 | Done | Typos corrected word by word against LiteraryWorm titles the profile may see. |
 | 26. Recent searches | 5 | Done | Last ten per profile, newest first, remove one or clear all. In memory, so a refresh clears them. |
-| 28. Google titles below BookWorm's | 5 | Done | *From BookWorm* first, then *From Google Books*, with the same genre and sort. |
+| 28. Google titles below LiteraryWorm's | 5 | Done | *From LiteraryWorm* first, then *From Google Books*, with the same genre and sort. |
 | 34. Surprise Me | 5 | Done | On Search and on Home; picks only titles the profile may see. |
 | 36. Reader display | 7 | Done | Light, sepia and dark themes; Literata, DM Sans or Lexend; six text sizes; line spacing; margins. Kept per profile until refresh. The text is placeholder prose until real book files are licensed. |
 | 37. Bookmarks, highlights, notes, dictionary | 7, 9 | Done | Bookmarks in the reader and player; highlights in four colours with optional notes, and a *Notes and highlights* list; all saved to Supabase for real accounts. Dictionary through the `dictionary` Edge Function (Free Dictionary API, Wiktionary data). |

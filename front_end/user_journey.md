@@ -1,4 +1,4 @@
-# BookWorm: Product Blueprint and User Journey
+# LiteraryWorm: Product Blueprint and User Journey
 
 *A Netflix-style reading and listening app built on the Google Books catalog, for readers of all ages.*
 
@@ -10,7 +10,7 @@ Version 2: edited and corrected. A list of every change, and the compliance item
 
 ### 1. What is it?
 
-BookWorm is a Netflix-style web app for reading ebooks and listening to audiobooks. Members browse a visual, row-based home screen, search the Google Books catalog, and read or listen to licensed and public-domain titles in one place. It offers profiles for every member of a household (including kids), personalized recommendations, an AI reading assistant, offline downloads, and a responsive design that works on phones, tablets, and desktops. It installs as an app (PWA).
+LiteraryWorm is a Netflix-style web app for reading ebooks and listening to audiobooks. Members browse a visual, row-based home screen, search the Google Books catalog, and read or listen to licensed and public-domain titles in one place. It offers profiles for every member of a household (including kids), personalized recommendations, an AI reading assistant, offline downloads, and a responsive design that works on phones, tablets, and desktops. It installs as an app (PWA).
 
 ### 2. What problem does it solve? How do people solve it now?
 
@@ -18,7 +18,7 @@ Readers who want both ebooks and audiobooks juggle several paid services (one fo
 
 Families have an extra problem: there's no easy way to give kids their own age-appropriate shelf, set screen-time limits, and keep them away from adult content and strangers.
 
-BookWorm gives readers one legal, affordable place to discover, read, listen to, and track books, with family controls built in.
+LiteraryWorm gives readers one legal, affordable place to discover, read, listen to, and track books, with family controls built in.
 
 ### 3. Who are the users?
 
@@ -31,7 +31,7 @@ BookWorm gives readers one legal, affordable place to discover, read, listen to,
 | **Child reader (under 13)**  | Kids profile managed by a parent                        | A safe, simple shelf; no chat, ads, or public posting                       |
 | **Commuter / listener**      | Prefers audiobooks                                      | Playback speed, sleep timer, offline downloads                              |
 | **Reader with a disability** | Low vision, dyslexia, motor, hearing or cognitive needs | Adjustable text, read-along transcripts, keyboard and screen-reader support |
-| **Support staff**            | BookWorm employees                                      | Ticket dashboard, review moderation                                         |
+| **Support staff**            | LiteraryWorm employees                                      | Ticket dashboard, review moderation                                         |
 | **Affiliate (18+)**          | Creators and bloggers who refer readers                 | Referral links, tracking, payouts                                           |
 
 ### 4. Features: reasons to log in
@@ -79,7 +79,7 @@ BookWorm gives readers one legal, affordable place to discover, read, listen to,
 4. They create their first profile and pick a few favorite genres to start their recommendations.
 
 **Setting up the family**
-5. The account holder adds profiles: Kids (under 13), Teen (13–17), or All. Creating a Kids profile is where the parent gives consent for BookWorm to collect that child's reading data (see Q7–Q8). They can set a PIN on their own profile and a daily screen-time limit on each child's profile.
+5. The account holder adds profiles: Kids (under 13), Teen (13–17), or All. Creating a Kids profile is where the parent gives consent for LiteraryWorm to collect that child's reading data (see Q7–Q8). They can set a PIN on their own profile and a daily screen-time limit on each child's profile.
 
 **Everyday use**
 6. Each visit starts at *Who's reading?* The member picks a profile (entering a PIN if it's locked).
@@ -95,7 +95,7 @@ BookWorm gives readers one legal, affordable place to discover, read, listen to,
 **Account management, help, and leaving**
 
 - From Account the member manages billing, privacy, accessibility, and security, downloads their data, or gets help through FAQs or a support ticket.
-- To leave, they cancel online in a few clicks (no phone call or chat required). Then they can delete their account. Deleting removes their access and starts deletion of their personal data within the legal deadline, except records the law requires BookWorm to keep (such as payment records).
+- To leave, they cancel online in a few clicks (no phone call or chat required). Then they can delete their account. Deleting removes their access and starts deletion of their personal data within the legal deadline, except records the law requires LiteraryWorm to keep (such as payment records).
 
 ### 6. Screens
 
@@ -126,7 +126,7 @@ The design is clean, modern, and cover-forward. Book covers are the hero of ever
 
 ### 1. What problem does the app solve?
 
-Readers pay for several ebook and audiobook subscriptions, buy books one by one, or turn to illegal sites. BookWorm brings reading and listening into one legal, affordable app with personalized discovery and family-safe profiles. Authors and publishers get paid, and readers get a single library that follows them across devices.
+Readers pay for several ebook and audiobook subscriptions, buy books one by one, or turn to illegal sites. LiteraryWorm brings reading and listening into one legal, affordable app with personalized discovery and family-safe profiles. Authors and publishers get paid, and readers get a single library that follows them across devices.
 
 ### 2. Who are the users?
 
@@ -199,7 +199,7 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
 
 #### Public pages (no account needed)
 
-- **Landing page:** what BookWorm is, featured public-domain titles, plans and pricing, FAQs, and Sign up / Sign in.
+- **Landing page:** what LiteraryWorm is, featured public-domain titles, plans and pricing, FAQs, and Sign up / Sign in.
 - **Plans and Pricing:** each plan's price, what's included, the free trial (if any), and the auto-renewal and cancellation terms, stated plainly before checkout.
 - **Sign Up / Sign In:** create an account (email, password, date of birth; account holders must be 18+) or sign in, or try a private demo account. With two-step sign-in on, a second step asks for the six-digit code from an authenticator app. Passwords must be at least 15 characters (or at least 8 with two-step sign-in on), with no forced mix of character types; any length up to 64 is allowed, and passwords known from data breaches are refused.
 - **Forgot / Reset Password:** request a reset link by email, then choose a new password from that link. Expired links ask for a new one. The page never reveals whether an email is registered.
@@ -239,19 +239,19 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
   - **Skip buttons:** Skip Opening Credits and Skip Closing Credits appear while those parts play. At the end of a book in a series, a countdown offers the next book (if autoplay of the next title is on).
   - **Read-along:** a transcript that highlights along with the narration, where the publisher provides one. Transcript language and size are adjustable.
   - **Keyboard:** all controls work by keyboard. Playback continues on the lock screen of phones.
-- **Google Books Title page (books outside BookWorm's licensed catalog):**
+- **Google Books Title page (books outside LiteraryWorm's licensed catalog):**
 
   - **Information:** cover, description, author, publisher, published date, page count, categories, and average rating from Google Books, credited as required by Google's branding guidelines.
   - **Preview:** where Google allows it, a free preview using Google's Embedded Viewer, loaded only when the member asks.
   - **Buy links:** where to buy (from Google Books sale information).
-  - **Saving and rating:** members can add these titles to their lists, rate them, and review them, but can't read the full book in BookWorm.
+  - **Saving and rating:** members can add these titles to their lists, rate them, and review them, but can't read the full book in LiteraryWorm.
   - **Reminders:** Remind Me for books not yet published.
 - **Search:**
 
   - **Suggestions:** suggests titles, authors, narrators, and genres while typing, and shows the profile's recent searches when the box is empty.
   - **Filters and sorting:** genre, format, length, language, age rating, release date, and popularity.
   - **Did you mean:** when nothing matches exactly, shows close spellings.
-  - **Results:** BookWorm's own titles appear first, then matching Google Books titles. Results always respect the profile's age rating.
+  - **Results:** LiteraryWorm's own titles appear first, then matching Google Books titles. Results always respect the profile's age rating.
   - **Surprise Me:** a Surprise Me button (also on Home) opens a random title the profile can see.
 - **Library:**
 
@@ -259,11 +259,11 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
   - **Favorites:** titles the member loves.
   - **Custom Lists:** named lists with descriptions, each private until its owner turns on sharing by link. Sharing is off for Kids profiles.
   - **Downloads:** titles on this device for offline use, with size and a Remove button. Downloaded titles open with no connection and expire if the subscription ends, as required by publisher licenses.
-- **Author, Narrator, and Publisher pages:** photo (where licensed), bio, and their titles in BookWorm and on Google Books, with a Follow button.
+- **Author, Narrator, and Publisher pages:** photo (where licensed), bio, and their titles in LiteraryWorm and on Google Books, with a Follow button.
 - **What Should I Read? (AI assistant):**
 
   - **Asking:** a text box for a request in plain words, and example requests to tap.
-  - **Answers:** up to five titles from BookWorm's catalog, each with a reason, within the profile's age rating and leaving out titles marked Not for me.
+  - **Answers:** up to five titles from LiteraryWorm's catalog, each with a reason, within the profile's age rating and leaving out titles marked Not for me.
   - **Labels:** suggestions are clearly labeled as AI-generated, with a link to the AI Transparency page.
   - **Fallback:** when the AI service is unavailable, it matches words in titles, genres, and moods instead.
   - **Kids profiles:** off by default on Kids profiles; a parent can turn it on.
@@ -292,7 +292,7 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
   - **Help:** links to Help Center, Report a problem, Feedback, Technical Requirements, and Install the app.
   - **Danger zone (Delete account):** a red Delete account button, which first cancels any active subscription (with confirmation) and asks for the member's password. It then removes access and deletes personal data within the legal deadline, keeping only what the law requires (such as payment records). The member gets an email confirming the request.
   - **Kids profiles:** the page asks for the account password (*Ask a grown-up*) before showing anything.
-- **Support BookWorm (optional):**
+- **Support LiteraryWorm (optional):**
 
   - **Recommendation:** for a for-profit subscription business, consider removing this page (see *What changed and why*).
   - **If kept:** a one-time or monthly tip by card through Stripe ($1 to $10,000).
@@ -300,7 +300,7 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
   - **Where it lives:** opened from Account → Help only, never shown on Kids or Teen profiles.
   - **Payment states:** a thank-you naming the amount, plain-words decline messages, Try again on a dropped connection, and *being processed* while the bank confirms. No retry ever charges twice.
   - **Monthly tips:** they show the amount and next charge date with a one-click Cancel, and the member gets a reminder before each charge.
-  - **Card data:** card numbers go straight to Stripe and never reach BookWorm. Stripe emails receipts.
+  - **Card data:** card numbers go straight to Stripe and never reach LiteraryWorm. Stripe emails receipts.
 - **Help Center (FAQs + Support):** searchable FAQs, Report a problem, support tickets with in-app replies, and a link to the Status page.
 - **Feedback:** suggestions and ratings of the app experience.
 - **Technical Requirements:** supported browsers and devices, recommended connection speed for audio streaming, storage needed for downloads, and how to install the app (with a check of whether this browser can).
@@ -321,18 +321,18 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
 - **Community Guidelines:** rules for reviews and Book Club chat, and what happens when they're broken.
 - **Copyright / DMCA Policy:** how rights holders report infringement, the designated DMCA agent, counter-notices, and the repeat-infringer policy.
 - **Accessibility Policy:**
-  - **Commitment:** BookWorm's commitment to WCAG 2.2 AA.
+  - **Commitment:** LiteraryWorm's commitment to WCAG 2.2 AA.
   - **Features:** the accessibility menu, read-along transcripts in English or Spanish, keyboard-accessible reader and player controls, screen-reader support, and autoplay control.
   - **Shortcuts and limits:** the keyboard shortcuts (and that **?** shows them all), and known limitations (for example, publisher-supplied files that lack accessibility features).
   - **Help:** how to report an accessibility issue or request an accessible format.
 - **AI Transparency:**
   - **How it works:** which AI model powers the assistant and what's sent to the AI provider (the request and, with personalized recommendations on, the names of titles the profile loved or liked). Never the member's name, email, or account ID.
-  - **Limits:** suggestions come only from BookWorm's catalog. The provider is contractually barred from training on member data.
+  - **Limits:** suggestions come only from LiteraryWorm's catalog. The provider is contractually barred from training on member data.
   - **Choices:** how to turn personalized recommendations off.
 - **Affiliate Program:**
   - **Eligibility:** adults 18+ with an approved application.
   - **Earnings:** commission structure, cookie window, payment methods and thresholds, and tax forms.
-  - **Rules:** required disclosures under the FTC Endorsement Guides (#ad / "I earn a commission"), no advertising to children, no spam, and no bidding on the BookWorm brand name.
+  - **Rules:** required disclosures under the FTC Endorsement Guides (#ad / "I earn a commission"), no advertising to children, no spam, and no bidding on the LiteraryWorm brand name.
   - **Support:** marketing materials, a referral dashboard, and tips for growing referrals.
 - **Promotions:** current offers with their full terms: the price after the promo ends, when it ends, and how to cancel.
 
@@ -379,7 +379,7 @@ Only what each feature needs, for as long as it needs it. Each item below is lis
 
 **Kept only on the device:** which titles are downloaded, and offline reading progress until it syncs.
 
-**Children (Kids profiles):** BookWorm collects the minimum needed to provide the service (profile, reading progress, lists, ratings, and screen time). It does not use Kids profile data for advertising, AI training, or analytics profiling, and it doesn't share it with third parties beyond service providers needed to run the app.
+**Children (Kids profiles):** LiteraryWorm collects the minimum needed to provide the service (profile, reading progress, lists, ratings, and screen time). It does not use Kids profile data for advertising, AI training, or analytics profiling, and it doesn't share it with third parties beyond service providers needed to run the app.
 
 ### 8. What permissions exist?
 
@@ -429,7 +429,7 @@ Members can withdraw any optional consent at any time without losing access to t
   - **Kids profiles:** need the account password to open Account or manage profiles.
   - **Screen time:** only the account password sets screen-time limits or grants extra time. Nobody can lower the time already used.
 - **Server-only actions and secret keys:**
-  - **Server-only actions:** only BookWorm's server functions can create demo accounts, start payments (for the signed-in member, $1 to $10,000), record payment results from Stripe's signed webhooks, check promo codes, count referral clicks, delete accounts, and call Google Books or the AI provider with BookWorm's API keys.
+  - **Server-only actions:** only LiteraryWorm's server functions can create demo accounts, start payments (for the signed-in member, $1 to $10,000), record payment results from Stripe's signed webhooks, check promo codes, count referral clicks, delete accounts, and call Google Books or the AI provider with LiteraryWorm's API keys.
   - **Secret keys:** never reach the browser.
 - **Reviews and Book Clubs:**
   - **Reviews:** show the profile's display name (never a child's real name). A member can report another member's review once, and never their own. Only moderators see reports.
@@ -442,7 +442,7 @@ Members can withdraw any optional consent at any time without losing access to t
   - **Lists:** a list stays private until its owner shares it.
 - **History and deletion:**
   - **Paused history:** while history is paused, nothing is recorded, including searches.
-  - **Deletion:** deleting the account cancels the subscription, removes access, and deletes personal data within the legal deadline, except records the law requires BookWorm to keep.
+  - **Deletion:** deleting the account cancels the subscription, removes access, and deletes personal data within the legal deadline, except records the law requires LiteraryWorm to keep.
 
 ---
 
@@ -460,7 +460,7 @@ Members can withdraw any optional consent at any time without losing access to t
    - *closed captions* → **read-along transcripts**
    - *trailer* → **Google Books preview**
    - *most-watched title / actor seen most* → **most-read author**
-2. **TMDB, YouTube, and JustWatch removed.** They are movie/TV data sources and don't fit a book app. The TMDB Title page became a **Google Books Title page** for books outside BookWorm's licensed catalog, with Google's preview and buy links.
+2. **TMDB, YouTube, and JustWatch removed.** They are movie/TV data sources and don't fit a book app. The TMDB Title page became a **Google Books Title page** for books outside LiteraryWorm's licensed catalog, with Google's preview and buy links.
 3. **Inconsistent list names unified.** Reading List, Watch list, My List, and My Lists were used for overlapping things. Now there are three: **Reading List** (read later), **Favorites**, and **Custom Lists**.
 4. **Q4 (Features) actually lists features.** It previously restated the business model, so it now lists the reasons to log in and the create/read/update/delete actions.
 5. **Q3 (Primary goals)** said "movies and TV shows"; it's rewritten for readers and parents.
@@ -491,11 +491,11 @@ These are flagged for your legal review. Laws and rules change, and some depend 
    - **Publisher and distributor licenses:** licenses from publishers or distributors (which usually require DRM and expiring downloads)
    - **Link-outs:** links out for everything else
 
-   Also review the Google APIs Terms of Service and the Google Books branding/attribution requirements. The blueprint now separates BookWorm's licensed catalog from Google Books titles that can only be previewed and saved.
+   Also review the Google APIs Terms of Service and the Google Books branding/attribution requirements. The blueprint now separates LiteraryWorm's licensed catalog from Google Books titles that can only be previewed and saved.
 2. **Children's privacy (COPPA).** Because the app is for all ages, Kids profiles (under 13) now require verifiable parental consent, a Children's Privacy Notice, data minimization, and parent access/deletion. There are no ads, chat, public reviews, sharing, or payments for kids, and the AI assistant is off by default. The FTC's amended COPPA Rule (2025) added requirements, such as separate consent for third-party disclosures, a written data-retention policy, and a security program; confirm the compliance dates. Also check state laws on teens' data and age-appropriate design.
 3. **Account deletion and data rights.** The original design deleted only *access* and required a support ticket to remove data. Under CCPA/CPRA (and GDPR if you serve the EU), members must be able to request deletion directly, and you must honor it within the legal deadline (45 days under CCPA, one month under GDPR, each extendable). The flow now cancels the subscription and deletes personal data in one place, keeping only legally required records. A **Download my data** option was added.
 4. **"Any other relevant data" removed.** A catch-all conflicts with data-minimization and purpose-limitation rules, so every data item now has a stated purpose and retention period. "Internet speed" collection was removed. The Technical Requirements page can check it in the browser without storing it.
-5. **Donations on a for-profit subscription service.** Calling payments "donations" can mislead people into thinking they're charitable or tax-deductible. The page is renamed **Support BookWorm (tips)** with a clear "not tax-deductible" label, moved off the always-on floating button, and hidden from Kids and Teen profiles. Consider removing it entirely. Monthly tips follow the same auto-renewal rules as subscriptions.
+5. **Donations on a for-profit subscription service.** Calling payments "donations" can mislead people into thinking they're charitable or tax-deductible. The page is renamed **Support LiteraryWorm (tips)** with a clear "not tax-deductible" label, moved off the always-on floating button, and hidden from Kids and Teen profiles. Consider removing it entirely. Monthly tips follow the same auto-renewal rules as subscriptions.
 6. **Auto-renewal and cancellation.** Plans, promotions, and monthly tips must clearly disclose the price, renewal terms, and how to cancel *before* payment. Members get affirmative consent, an acknowledgment email, and **online cancellation**. Check:
 
    - **ROSCA:** the federal Restore Online Shoppers' Confidence Act
@@ -518,14 +518,14 @@ These are flagged for your legal review. Laws and rules change, and some depend 
     - **Copyright/DMCA:** added a page and a registered DMCA agent to preserve safe-harbor protection.
 11. **Affiliate program.** Limited to adults, with FTC Endorsement Guides disclosure requirements, no marketing to children, and tax forms for payouts.
 12. **Cookies and privacy choices.** Added a cookie banner and a Your Privacy Choices page that honors Global Privacy Control, as required by CCPA/CPRA for any "sharing" for targeted ads.
-13. **Netflix-style, not Netflix.** Keep the layout pattern, but use your own visual identity, colors, and wording to avoid trade-dress confusion. The rating label "Love this!" became "I love this," and you shouldn't use Netflix's red and black, typefaces, or logo shapes. Run a trademark clearance search on "BookWorm," a common name in the book space, before launch.
+13. **Netflix-style, not Netflix.** Keep the layout pattern, but use your own visual identity, colors, and wording to avoid trade-dress confusion. The rating label "Love this!" became "I love this," and you shouldn't use Netflix's red and black, typefaces, or logo shapes. Run a trademark clearance search on "LiteraryWorm," a common name in the book space, before launch.
 
 
 ---
 
 ## Part 3: Build notes (front end)
 
-The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
+The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, React Router DOM with `BrowserRouter`). It is deployed on Vercel at [www.literaryworm.com](https://www.literaryworm.com); `vercel.json` in that folder rewrites every path to `index.html`, so any page can be refreshed or opened from a link. It is built in phases; each phase is screenshotted with Playwright, checked in Chrome DevTools (console and Lighthouse), committed and pushed. App state is kept in memory only, so a refresh starts the app over. Book lists come from the `books` Supabase Edge Function (Google Books) when Supabase is configured. The database is in `supabase/migrations/` (combined in `schema.sql`, diagram in `drawsql.png`).
 
 ### Journey as built so far (Phases 0–10)
 
@@ -551,24 +551,24 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 
 15. **Public home (`/`).** Right under the hero, *Popular in technology*: books about "technology" from the `books` Edge Function (Google Books), browsable without an account. At the bottom, *Keep discovering*: the six genres from the brief (Technology, Adventure, Sci-Fi, Fiction, Non-Fiction, Horror) as links, and a grid that keeps loading as the visitor scrolls (with a *Load more books* button too). Each genre has its own URL (`/?genre=sci-fi`), so it survives a refresh.
 16. **Member Home (`/browse`).** A featured carousel with Pause, then Continue reading (with progress bars), Trending this week, the reading-room banner, Top 10, New releases, *Because you saved …*, and one row per genre. Rows scroll sideways and the genre rows load more at their end. *Keep discovering* closes the page as on the public home.
-17. **Age ratings.** Kids profiles see only the age-rated BookWorm catalog (no Google Books results). Everyone else gets Google results with mature titles left out.
-18. **When the book service fails.** Rows and the grid show "We couldn't load …" with the reason in plain words (busy, too slow, offline) and *Try again*; books already loaded stay on screen. On the deployed site the Vercel address must be in the functions' `ALLOWED_ORIGINS`, or every row says the visitor seems to be offline.
+17. **Age ratings.** Kids profiles see only the age-rated LiteraryWorm catalog (no Google Books results). Everyone else gets Google results with mature titles left out.
+18. **When the book service fails.** Rows and the grid show "We couldn't load …" with the reason in plain words (busy, too slow, offline) and *Try again*; books already loaded stay on screen. On the live site its address (`www.literaryworm.com` and `literaryworm.com`) must be in the functions' `ALLOWED_ORIGINS`, or every row says the visitor seems to be offline.
 
 ### Phase 4: Book details
 
-19. **Book page (`/books/:id`).** Public, and works when opened from a link or refreshed. BookWorm titles come from the catalog; any other id is a Google Books volume fetched through the `books` Edge Function. The page shows the cover, title, subtitle, author(s), average rating, number of ratings, pages and the description (long ones fold with *Read the full description*), then a *Book details* list: publisher, published date, pages, language and categories for Google titles; narrator, length, format, language, age rating and content notes for BookWorm titles. Google titles credit *Details from Google Books*.
+19. **Book page (`/books/:id`).** Public, and works when opened from a link or refreshed. LiteraryWorm titles come from the catalog; any other id is a Google Books volume fetched through the `books` Edge Function. The page shows the cover, title, subtitle, author(s), average rating, number of ratings, pages and the description (long ones fold with *Read the full description*), then a *Book details* list: publisher, published date, pages, language and categories for Google titles; narrator, length, format, language, age rating and content notes for LiteraryWorm titles. Google titles credit *Details from Google Books*.
 20. **Reader logs.** Every reader's logs, newest first, each with the writer's display name, date and optional 1–5 star rating; long logs fold with *Read full log*. Logs come from Supabase's `logs` table without signing in (the page never reads anyone's library), plus logs written this session. *Load more logs* fetches 20 more; if loading fails, the page says so with *Try again*.
 21. **Library and logs.** *Add to my library* (visitors are sent to log in first, then come back). Once saved, a reading-status menu (Want to read, Reading, Finished), *Write a log* and *Remove from library*. A log needs the book in the writer's library; its text is 1–5000 characters with an optional rating. Readers edit and delete only their own logs. Removing the book asks first when it has logs, then deletes them with it, as the database does.
-22. **Taste and actions.** Not for me / I like this / I love this, Favorite, and for BookWorm titles *Read* and *Listen*. *More like this* shows similar titles (catalog genres, or the closest of the six genres for Google titles).
+22. **Taste and actions.** Not for me / I like this / I love this, Favorite, and for LiteraryWorm titles *Read* and *Listen*. *More like this* shows similar titles (catalog genres, or the closest of the six genres for Google titles).
 23. **Age ratings.** Kids profiles never load Google titles and see "This book isn't on …'s shelf"; they read logs but don't post them. Teen profiles can't open titles Google rates mature, or catalog titles above their rating.
 
 ### Phase 5: Search
 
-24. **Search (`/search`).** Public, by title only (the brief): visitors reach it from *Search* in the header (an icon on phones), members from the header box or the tab bar. Results show BookWorm's own titles first (*From BookWorm*, read and listen here), then Google Books titles through the `books` Edge Function (*From Google Books*), loading more as the reader scrolls, with a *Load more books* button too. The search and its filters are in the URL, so they survive a refresh and work with Back.
-25. **Filters and sorting.** Show (All results, BookWorm titles, Google Books), one of the six genres, and Best match or Newest. A sidebar on desktop; a *Filters* dialog on phones, whose button shows how many are on. Genre and sort are applied by Google, not just to the books already loaded.
-26. **Helpful mistakes.** A search with operators or symbols explains what's allowed instead of sending it. *Did you mean …?* corrects typos against BookWorm titles ("midnite libary" → *Midnight Library*). No matches says so and suggests checking the spelling, fewer words or other filters.
+24. **Search (`/search`).** Public, by title only (the brief): visitors reach it from *Search* in the header (an icon on phones), members from the header box or the tab bar. Results show LiteraryWorm's own titles first (*From LiteraryWorm*, read and listen here), then Google Books titles through the `books` Edge Function (*From Google Books*), loading more as the reader scrolls, with a *Load more books* button too. The search and its filters are in the URL, so they survive a refresh and work with Back.
+25. **Filters and sorting.** Show (All results, LiteraryWorm titles, Google Books), one of the six genres, and Best match or Newest. A sidebar on desktop; a *Filters* dialog on phones, whose button shows how many are on. Genre and sort are applied by Google, not just to the books already loaded.
+26. **Helpful mistakes.** A search with operators or symbols explains what's allowed instead of sending it. *Did you mean …?* corrects typos against LiteraryWorm titles ("midnite libary" → *Midnight Library*). No matches says so and suggests checking the spelling, fewer words or other filters.
 27. **Recent searches and Surprise me.** An empty search box shows the profile's last ten searches (remove one or clear all) and the six genres. *Surprise me* (on Search and on Home's Trending row) opens a random title the profile may see.
-28. **Kids profiles** search BookWorm's age-rated shelf only; the page says so.
+28. **Kids profiles** search LiteraryWorm's age-rated shelf only; the page says so.
 
 ### Phase 6: Real accounts and the Library
 
@@ -582,7 +582,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 
 ### Phase 7: Reader and player
 
-36. **Reader (`/read/:id`).** Full screen and distraction-free, for BookWorm titles with an ebook. The top bar (Close, title and chapter, Chapters, Bookmarks, Display) and the bottom bar (previous and next page, a progress bar with chapter marks, the chapter name, page and percentage) fade after 4 seconds and come back on a tap, mouse move, key press or focus. Pages turn with the arrow keys or Page Up/Down, the buttons, a swipe, or a tap on the outer edges on touch screens. Each chapter opens with its name and a drop capital.
+36. **Reader (`/read/:id`).** Full screen and distraction-free, for LiteraryWorm titles with an ebook. The top bar (Close, title and chapter, Chapters, Bookmarks, Display) and the bottom bar (previous and next page, a progress bar with chapter marks, the chapter name, page and percentage) fade after 4 seconds and come back on a tap, mouse move, key press or focus. Pages turn with the arrow keys or Page Up/Down, the buttons, a swipe, or a tap on the outer edges on touch screens. Each chapter opens with its name and a drop capital.
 37. **Display.** Theme (light, sepia, dark), font (Literata, DM Sans, or Lexend for easier reading), six text sizes (which also follow the accessibility menu's text size), line spacing and margins. The choices stay with the profile until the page is refreshed.
 38. **Player (`/listen/:id`).** Cover, title, author, narrator and chapter; a progress bar with chapter marks, elapsed and remaining time; previous chapter, back 15 seconds, play/pause, forward 15 seconds, next chapter; speed from 0.5× to 3× (kept per profile); a sleep timer (5, 15, 30, 45 or 60 minutes of playing, or the end of the chapter); *Skip opening credits* and *Skip closing credits* during the first and last 30 seconds. Space plays and pauses, and the arrow keys skip 15 seconds, when focus isn't on a control.
 39. **Chapters and bookmarks** in both: the chapter list marks the current chapter; a bookmark saves the place ("Chapter 3, page 2" or "Chapter 3, 12:40") and can be opened or removed later.
@@ -619,9 +619,9 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 ### Phase 10: Lists and ratings that last
 
 57. **Saved per profile.** A member's favourites, ratings (Not for me / I like this / I love this), custom lists and recent searches are saved to Supabase for the profile that made them (`favorites`, `book_ratings`, `custom_lists`, `custom_list_items`, `reader_profiles.recent_searches`), so they survive a refresh and follow the member to another device. Each change saves first, then shows; a failed save says so beside the control and nothing changes. Recent searches save in the background. The demo keeps them in memory.
-58. **Favorites shows every title.** Google Books favourites appear beside BookWorm's own, with their details fetched through the `books` function.
+58. **Favorites shows every title.** Google Books favourites appear beside LiteraryWorm's own, with their details fetched through the `books` function.
 59. **Share a list by link.** Each custom list has *Share*: it makes a private link (a random 22-character token) to copy, and *Stop sharing* turns the link off at once; sharing again makes a new link, so an old one never comes back. Kids profiles and the demo don't see *Share*; a profile moved to Kids stops sharing.
-60. **Shared list page (`/lists/:token`).** Public: anyone with the link sees the list's name, description, "A list by" the profile's name, and its titles (BookWorm covers or Google Books covers), never the account, library or history. A wrong or stopped link says the list isn't shared. Signed-in Kids profiles see only titles rated for them.
+60. **Shared list page (`/lists/:token`).** Public: anyone with the link sees the list's name, description, "A list by" the profile's name, and its titles (LiteraryWorm covers or Google Books covers), never the account, library or history. A wrong or stopped link says the list isn't shared. Signed-in Kids profiles see only titles rated for them.
 
 ### Where the build differs from the blueprint, and why
 
@@ -631,7 +631,7 @@ The front end lives in `front_end/bookworm-app` (React + TypeScript + Vite, Reac
 - **One library per account.** The brief gives each user one library and shows logs with that user's display name, so the household's profiles share the account's library and logs. Kids profiles see only Kids-rated titles in it and don't post logs.
 - **Reader display settings and daily time used are still in memory**, per profile. They reset on refresh. Profiles (Phase 8) and their favourites, ratings, lists and recent searches (Phase 10) are saved.
 - **No email change, two-step sign-in, signed-in devices, promo codes or billing history yet.** These need an email provider and Stripe. Deleting an account happens straight away rather than within a legal deadline, and no confirmation email is sent.
-- **Sample text and silent audio.** BookWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. The read-along transcript is the same sample text, in English or Spanish, timed to that clock.
+- **Sample text and silent audio.** LiteraryWorm doesn't hold any book's text or narration yet, so the reader shows original placeholder prose and the player runs a silent clock at the chosen speed. Both say so on screen. The read-along transcript is the same sample text, in English or Spanish, timed to that clock.
 - **Search can match outside the title for a while.** When Google Books returns nothing for its title (`intitle:`) and genre (`subject:`) filters, as it did for hours in October 2026, the `books` function asks again with the plain words, so results stay filled but can match words elsewhere in a book. It goes back to title only by itself when Google recovers.
 - **No email confirmation.** Supabase's built-in email reaches only the project team (2 emails an hour), so sign-ups are confirmed automatically so that anyone can test the app. Password-reset emails have the same limit until an email provider is added in Supabase.
 

@@ -1,18 +1,18 @@
-# BookWorm: project guide for Claude Code
+# LiteraryWorm: project guide for Claude Code
 
-BookWorm is a reading and listening app (ebooks and audiobooks, household profiles). The assessment brief is `README.md`; the product blueprint is `front_end/user_journey.md`; stories are in `user_stories.md`.
+LiteraryWorm is a reading and listening app (ebooks and audiobooks, household profiles). It lives at https://www.literaryworm.com (Vercel; `literaryworm.com` redirects there). The assessment brief is `README.md`; the product blueprint is `front_end/user_journey.md`; stories are in `user_stories.md`.
 
 ## Where things are
 
-- `front_end/bookworm-app/`: the React app (see its `README.md` for routes and layout).
+- `front_end/literaryworm_app/`: the React app (see its `README.md` for routes and layout). Vercel's Root Directory is this folder, so its `vercel.json` (the rewrite that lets every route survive a refresh) lives here too.
 - `front_end/BookWorm_web_app_wireframe/`: the Figma Make wireframe. Visual source of truth; don't edit.
 - `front_end/style_guide.md`: design tokens, type, components, motion, voice.
-- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`), security tests. See `supabase/README.md`. Project: `bookworm` (ref `ldzdmrdvmacpudsbngvd`). The app is deployed on Vercel (`https://vibe-coding-book-warm-app-179271177.vercel.app`); that URL and `http://localhost:5173` must both be in the `ALLOWED_ORIGINS` function setting, or the browser blocks the functions' answers and the app reports "offline".
+- `supabase/`: migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`), security tests. See `supabase/README.md`. Project: `literaryworm` (ref `ldzdmrdvmacpudsbngvd`). The app is deployed on Vercel at `https://www.literaryworm.com`; `https://www.literaryworm.com`, `https://literaryworm.com` and `http://localhost:5173` must all be in the `ALLOWED_ORIGINS` function setting, or the browser blocks the functions' answers and the app reports "offline".
 - `schema.sql`: generated from the migrations by `supabase/build-schema.sh`; don't edit by hand. `drawsql.png` is its ERD, rendered from `docs/erd/erd.html`.
 - `prompt.md`: the build brief and phase plan.
 - `vite-project/`: an unrelated earlier scaffold. Don't use it.
 
-## Commands (run in `front_end/bookworm-app`)
+## Commands (run in `front_end/literaryworm_app`)
 
 ```bash
 npm run dev     # http://localhost:5173
@@ -23,7 +23,7 @@ npm run lint    # oxlint; must be clean
 ## Conventions
 
 - TypeScript strict. React Router DOM, declarative routes with `BrowserRouter`; routes live in `src/App.tsx`.
-- **State is in memory only** (`src/store`). No `localStorage`, with one exception: the Supabase session (`src/lib/supabase.ts`, key `bookworm-session`) so a member stays signed in. Everything else resets on refresh on purpose.
+- **State is in memory only** (`src/store`). No `localStorage`, with one exception: the Supabase session (`src/lib/supabase.ts`, key `literaryworm-session`) so a member stays signed in. Everything else resets on refresh on purpose.
 - **Real accounts go through `src/lib/accountApi.ts`** (Supabase Auth, `library_items`, `logs`, the `checkout` function) and `src/lib/useAuthSync.ts` (restores the session, follows sign-in and sign-out). Use `useLibrary()` for the library: it writes to Supabase first, then updates the store. The demo household stays in memory and never calls Supabase.
 - **Book lists go through `src/lib/booksApi.ts`**, which calls only the `books` Edge Function. Never fetch Google Books from the browser. Kids profiles use the sample catalog only.
 - **Public logs come from `src/lib/logsApi.ts`** (the `logs` table with the publishable key, embedding only `profiles.display_name`). Public pages never read `library_items`.
@@ -50,7 +50,7 @@ npm run lint    # oxlint; must be clean
 Build in phases (see `prompt.md`). At the end of each phase:
 
 1. `npm run build` and `npm run lint` clean.
-2. Playwright screenshots at 1440px and 390px, compared against the wireframe; save keepers to `front_end/bookworm-app/docs/screenshots/`.
+2. Playwright screenshots at 1440px and 390px, compared against the wireframe; save keepers to `front_end/literaryworm_app/docs/screenshots/`.
 3. Chrome DevTools: no console errors; Lighthouse accessibility 100.
 4. Update `schema.sql` and re-render `drawsql.png` for any new data.
 5. Update the docs (app README phase table, `user_stories.md` build status, `user_journey.md` build notes, root `README.md` project status).
