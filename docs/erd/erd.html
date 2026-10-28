@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0800)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0900)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -321,6 +321,17 @@
             ["", "hits", "integer"],
           ],
           note: "Per-IP / per-user request counts for the Edge Functions. Keys hashed, cleared after a day. Index: window_start. RLS on; no browser access.",
+        },
+        {
+          id: "book_summaries", color: colors.server, x: 1260, y: 1590, sub: "summaries function",
+          cols: [
+            ["pk", "volume_id", "text (book id)"],
+            ["", "short_summary", "text 1–600"],
+            ["", "detailed_summary", "text 1–8000"],
+            ["", "model", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "AI-written summaries, kept so each book is written once. Same ids as library_items.volume_id, no foreign key (any book). RLS on; no browser access: read through the function.",
         },
       ];
 
