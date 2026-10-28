@@ -29,8 +29,24 @@ export interface CoverStyle {
 
 export interface Chapter {
   title: string;
-  /** Listening length in minutes. */
+  /** Listening length in minutes (fractional for real recordings). */
   minutes: number;
+}
+
+/** One section of a recording: a chapter's MP3 and its length. */
+export interface RecordingTrack {
+  title: string;
+  url: string;
+  seconds: number;
+}
+
+/** A real narration: public-domain LibriVox recordings, streamed from the Internet Archive. */
+export interface Recording {
+  narrator: string;
+  /** The recording's LibriVox page, for the credit. */
+  page: string;
+  /** In order; each is one of the book's chapters. */
+  tracks: RecordingTrack[];
 }
 
 export interface Book {
@@ -58,6 +74,8 @@ export interface Book {
   trendingRank?: number;
   newRelease?: boolean;
   chapters: Chapter[];
+  /** Real narration, when the book has one; otherwise the player runs a silent sample clock. */
+  recording?: Recording;
 }
 
 export type PlanId = "basic" | "standard" | "premium";

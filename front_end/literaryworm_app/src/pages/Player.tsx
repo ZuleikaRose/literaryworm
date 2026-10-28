@@ -113,15 +113,17 @@ function PlayerView({ book }: { book: Book }) {
             <Icon name="bookmark" size={20} filled={isHereMarked} />
             <span className="visually-hidden">Bookmarks</span>
           </button>
-          <button
-            type="button"
-            className="icon-button"
-            aria-pressed={state.a11y.transcript}
-            onClick={() => dispatch({ type: "updateA11y", patch: { transcript: !state.a11y.transcript } })}
-          >
-            <Icon name="subtitles" size={20} />
-            <span className="visually-hidden">Read-along transcript</span>
-          </button>
+          {!book.recording && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-pressed={state.a11y.transcript}
+              onClick={() => dispatch({ type: "updateA11y", patch: { transcript: !state.a11y.transcript } })}
+            >
+              <Icon name="subtitles" size={20} />
+              <span className="visually-hidden">Read-along transcript</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -268,12 +270,26 @@ function PlayerView({ book }: { book: Book }) {
           )}
 
           <p className="reader-sample-note">
-            Sample player: this build has no narration audio, so the clock runs silently. Space plays and pauses; the left and
-            right arrows skip 15 seconds. Leave the player and the book keeps playing in the mini-player.
+            {book.recording ? (
+              <>
+                Narrated by {book.recording.narrator} for{" "}
+                <a href={book.recording.page} target="_blank" rel="noreferrer">
+                  LibriVox<span className="visually-hidden"> (opens in a new tab)</span>
+                </a>
+                : a public-domain recording, streamed from the Internet Archive. The read-along transcript is for sample
+                narration only.
+              </>
+            ) : (
+              <>Sample player: this title's narration isn't licensed yet, so the clock runs silently.</>
+            )}{" "}
+            Space plays and pauses; the left and right arrows skip 15 seconds. Leave the player and the book keeps playing in
+            the mini-player.
           </p>
         </div>
 
-        {state.a11y.transcript && !finished && <Transcript book={book} chapterIndex={chapterIndex} position={position} onSeek={seek} />}
+        {state.a11y.transcript && !finished && !book.recording && (
+          <Transcript book={book} chapterIndex={chapterIndex} position={position} onSeek={seek} />
+        )}
       </main>
 
       <ChaptersDialog

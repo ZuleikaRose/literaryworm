@@ -46,8 +46,9 @@ function publishedLabel(date: string | null): string | null {
 }
 
 function hoursLabel(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
+  const whole = Math.round(minutes);
+  const h = Math.floor(whole / 60);
+  const m = whole % 60;
   return h ? `${h} hr ${m} min` : `${m} min`;
 }
 
@@ -70,7 +71,7 @@ export function fromCatalogBook(book: Book): DetailView {
     ratingsCount: book.ratingsCount,
     pageCount: book.pages,
     facts: compact([
-      { label: "Narrator", value: book.narrator ?? null },
+      { label: "Narrator", value: book.recording ? `${book.recording.narrator} (LibriVox recording)` : (book.narrator ?? null) },
       { label: "Publisher", value: book.publisher },
       { label: "Published", value: String(book.year) },
       { label: "Length", value: `${book.pages} pages · ${hoursLabel(listenMinutes(book))} listening` },

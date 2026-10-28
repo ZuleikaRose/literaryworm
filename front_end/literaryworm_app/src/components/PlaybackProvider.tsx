@@ -108,9 +108,10 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * The sample clock for one open book: no narration audio in this build, so time simply runs at
- * the chosen speed. It stops when paused, at a sleep timer or at the daily limit, and saves the
- * place as it goes and as it stops. Renders nothing.
+ * The clock for one open book. A book with a recording plays it (one audio element, one track
+ * per chapter) and the clock follows the audio; any other book runs a silent sample clock at
+ * the chosen speed. Either way it stops when paused, at a sleep timer or at the daily limit, and
+ * saves the place as it goes and as it stops. Renders nothing.
  */
 function Engine({
   book,
@@ -125,7 +126,9 @@ function Engine({
 }) {
   const speed = useProfileData().playbackSpeed;
   const reading = useReading(book, profileId);
-  const { starts, total } = chapterTimes(book);
+  // Stable for the book, so the effects below run when something actually changes.
+  const { starts, total } = useMemo(() => chapterTimes(book), [book]);
+  const tracks = book.recording?.tracks ?? null;
 
   const [position, setPosition] = useState(() =>
     reading.progress && !reading.progress.finished ? Math.min(total, reading.progress.fraction * total) : 0,
@@ -140,6 +143,52 @@ function Engine({
   const chapterIndex = chapterAt(starts, position);
   const chapterEnd = starts[chapterIndex] + book.chapters[chapterIndex].minutes * 60;
 
+  // The recording: one audio element, playing one chapter's track at a time.
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const loadedTrack = useRef(-1);
+  useEffect(() => {
+    if (!tracks) return;
+    const element = new Audio();
+    element.preload = "auto";
+    audio.current = element;
+    return () => {
+      element.pause();
+      element.removeAttribute("src");
+      element.load();
+      audio.current = null;
+      loadedTrack.current = -1;
+    };
+  }, [tracks]);
+
+  /** Puts the recording at `seconds` into the book, loading that chapter's track if needed. */
+  const cue = useCallback(
+    (seconds: number) => {
+      const element = audio.current;
+      if (!element || !tracks) return;
+      const index = chapterAt(starts, seconds);
+      if (loadedTrack.current !== index) {
+        element.src = tracks[index].url;
+        loadedTrack.current = index;
+      }
+      // Before the track's metadata loads this sets where it starts.
+      element.currentTime = Math.max(0, seconds - starts[index]);
+    },
+    [tracks, starts],
+  );
+
+  /** Starts the audio; must run inside the click that asked for it, or browsers block it. */
+  const startAudio = useCallback(() => {
+    audio.current?.play().catch((err: unknown) => {
+      if (err instanceof DOMException && err.name === "AbortError") return; // a pause or a new track interrupted it
+      setPlaying(false);
+      setNotice(
+        err instanceof DOMException && err.name === "NotAllowedError"
+          ? "Press play to start the narration."
+          : "We couldn't play the narration. Check your connection, then press play to try again.",
+      );
+    });
+  }, []);
+
   const save = (seconds: number, finishedNow = false) =>
     reading.save({
       format: "audiobook",
@@ -152,6 +201,11 @@ function Engine({
     const next = Math.min(total, Math.max(0, seconds));
     setPosition(next);
     save(next);
+    if (audio.current) {
+      const resume = !audio.current.paused;
+      cue(next);
+      if (resume) startAudio();
+    }
   };
 
   const running = playing && !limit.reached;
@@ -159,16 +213,105 @@ function Engine({
   useEffect(() => {
     clock.current = { ...clock.current, position, speed, sleep, sleepLeft, chapterEnd, save };
   });
+
+  // The audio follows `running`: the daily limit, a sleep timer or Pause all stop it here.
+  useEffect(() => {
+    const element = audio.current;
+    if (!element) return;
+    if (!running) element.pause();
+    else if (element.paused) {
+      if (loadedTrack.current < 0) cue(clock.current.position);
+      startAudio();
+    }
+  }, [running, cue, startAudio]);
+
+  useEffect(() => {
+    if (!audio.current) return;
+    audio.current.defaultPlaybackRate = speed;
+    audio.current.playbackRate = speed;
+  }, [speed]);
+
+  // The recording's own events: the next chapter, the end of the book, loading and failures.
+  useEffect(() => {
+    const element = audio.current;
+    if (!element || !tracks) return;
+    const loading = "Loading the narration…";
+    let retried = false;
+    const onEnded = () => {
+      const c = clock.current;
+      const index = loadedTrack.current;
+      if (index >= tracks.length - 1) {
+        c.position = total;
+        setPosition(total);
+        setPlaying(false);
+        setFinished(true);
+        c.save(total, true);
+        return;
+      }
+      const nextStart = starts[index + 1];
+      c.position = nextStart;
+      setPosition(nextStart);
+      cue(nextStart);
+      if (c.sleep?.kind === "chapter") {
+        setSleep(null);
+        setPlaying(false);
+        setNotice("Sleep timer: paused at the end of the chapter.");
+        c.save(nextStart);
+        return;
+      }
+      startAudio();
+    };
+    const onWaiting = () => setNotice((n) => n ?? loading);
+    const onPlaying = () => {
+      retried = false;
+      setNotice((n) => (n === loading ? null : n));
+    };
+    const onError = () => {
+      if (loadedTrack.current < 0) return;
+      const at = clock.current.position;
+      // The Internet Archive sometimes fails a request; one quiet retry usually fixes it.
+      if (!retried) {
+        retried = true;
+        loadedTrack.current = -1;
+        cue(at);
+        startAudio();
+        return;
+      }
+      setPlaying(false);
+      setNotice("We couldn't load the narration. Check your connection, then press play to try again.");
+      loadedTrack.current = -1;
+    };
+    element.addEventListener("ended", onEnded);
+    element.addEventListener("waiting", onWaiting);
+    element.addEventListener("playing", onPlaying);
+    element.addEventListener("error", onError);
+    return () => {
+      element.removeEventListener("ended", onEnded);
+      element.removeEventListener("waiting", onWaiting);
+      element.removeEventListener("playing", onPlaying);
+      element.removeEventListener("error", onError);
+    };
+  }, [tracks, starts, total, cue, startAudio]);
+
   useEffect(() => {
     if (!running) return;
     const saveAt = (seconds: number, finishedNow?: boolean) => clock.current.save(seconds, finishedNow);
+    // Measured, not assumed: browsers slow timers in background tabs while the audio plays on.
+    let last = performance.now();
     const id = window.setInterval(() => {
       const c = clock.current;
-      const step = (TICK_MS / 1000) * c.speed;
-      const next = Math.min(total, c.position + step);
-      c.sinceSave += step;
+      const now = performance.now();
+      const elapsed = (now - last) / 1000;
+      last = now;
+      const element = audio.current;
+      const recorded = element && loadedTrack.current >= 0;
+      const next = recorded
+        ? Math.min(total, starts[loadedTrack.current] + element.currentTime)
+        : Math.min(total, c.position + elapsed * c.speed);
+      c.sinceSave += elapsed * c.speed;
 
-      if (c.sleep?.kind === "chapter" && next >= c.chapterEnd && c.position < c.chapterEnd) {
+      // A recording pauses at the end of its chapter's track (onEnded); the sample clock checks here.
+      if (!recorded && c.sleep?.kind === "chapter" && next >= c.chapterEnd && c.position < c.chapterEnd) {
         c.position = c.chapterEnd;
         setPosition(c.chapterEnd);
         setSleep(null);
@@ -177,7 +320,7 @@ function Engine({
         return;
       }
       if (c.sleep?.kind === "minutes") {
-        const left = c.sleepLeft - TICK_MS / 1000;
+        const left = c.sleepLeft - elapsed;
         if (left <= 0) {
           c.position = next;
           setPosition(next);
@@ -189,7 +332,7 @@ function Engine({
         c.sleepLeft = left;
         setSleepLeft(left);
       }
-      if (next >= total) {
+      if (!recorded && next >= total) {
         // The natural end of the book finishes it; only a drag to the end asks first.
         c.position = total;
         setPosition(total);
@@ -210,7 +353,7 @@ function Engine({
       const c = clock.current;
       if (c.position < total) saveAt(c.position);
     };
-  }, [running, total]);
+  }, [running, total, starts]);
 
   // What the views need, sent up whenever it changes.
   const saveError = reading.saveError;
@@ -240,9 +383,15 @@ function Engine({
       play: () => {
         const l = latest.current;
         setNotice(null);
+        let from = l.position;
         if (l.finished || l.position >= total) {
           setFinished(false);
           l.seek(0);
+          from = 0;
+        }
+        if (audio.current && !l.limit.reached) {
+          if (loadedTrack.current !== chapterAt(starts, from)) cue(from);
+          startAudio();
         }
         setPlaying(true);
       },
@@ -279,7 +428,7 @@ function Engine({
     return () => {
       if (engineRef.current === api) engineRef.current = null;
     };
-  }, [engineRef, total]);
+  }, [engineRef, total, starts, cue, startAudio]);
 
   return null;
 }

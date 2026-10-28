@@ -1,6 +1,11 @@
 import type { AgeRating, Book, Chapter, CoverStyle, Format } from "../types";
+import { recordings } from "./librivox";
 
-/** Sample catalog. Narrator names are placeholders; synopses are short original summaries. */
+/**
+ * Sample catalog. Synopses are short original summaries. Public-domain titles play their
+ * LibriVox recording (./librivox.ts), with its chapters and narrator; other narrator names are
+ * placeholders.
+ */
 
 function chapters(count: number, minutes: number, names?: string[]): Chapter[] {
   return Array.from({ length: count }, (_, i) => ({
@@ -20,12 +25,16 @@ type Seed = Omit<Book, "chapters" | "language" | "formats" | "source"> & {
 
 function book(seed: Seed): Book {
   const { chapterCount = 12, listenMinutes = 480, chapterNames, ...rest } = seed;
+  const recording = recordings[seed.id];
   return {
     language: "English",
     formats: ["ebook", "audiobook"],
     source: "literaryworm",
     ...rest,
-    chapters: chapters(chapterNames?.length ?? chapterCount, listenMinutes, chapterNames),
+    chapters: recording
+      ? recording.tracks.map((t) => ({ title: t.title, minutes: t.seconds / 60 }))
+      : chapters(chapterNames?.length ?? chapterCount, listenMinutes, chapterNames),
+    ...(recording && { narrator: recording.narrator, recording }),
   };
 }
 
