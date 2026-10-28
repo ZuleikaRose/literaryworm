@@ -412,7 +412,7 @@ const toEntry = (row: LibraryRow): LibraryEntry => ({
   addedAt: Date.parse(row.created_at),
 });
 
-async function signedInUserId(): Promise<string> {
+export async function signedInUserId(): Promise<string> {
   const { data } = await client().auth.getSession();
   const id = data.session?.user.id;
   if (!id) throw new AccountError("Your session has ended. Log in again.");

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppEffects, ImmersiveLayout, RequireAccount, RequireProfile, SiteLayout } from "./layouts/Layouts";
 import Account from "./pages/Account";
 import BookDetail from "./pages/BookDetail";
+import ClubPage from "./pages/Club";
 import Browse from "./pages/Browse";
 import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
@@ -53,6 +54,7 @@ export default function App() {
           <Route element={<RequireProfile />}>
             <Route path="browse" element={<Browse />} />
             <Route path="library" element={<Library />} />
+            <Route path="clubs/:id" element={<ClubPage />} />
             <Route path="account" element={<Account />} />
           </Route>
 

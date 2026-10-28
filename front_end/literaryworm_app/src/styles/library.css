@@ -528,3 +528,196 @@
 .goal-table tbody th {
   font-weight: 600;
 }
+
+/* ---------- Book clubs ---------- */
+
+.clubs {
+  display: grid;
+  gap: 20px;
+}
+
+.club-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.club-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.club-card p {
+  margin: 4px 0;
+  color: var(--ink-soft);
+}
+
+.club-card small {
+  color: var(--muted);
+}
+
+.club-card-title {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.club-card-title:hover {
+  text-decoration: underline;
+}
+
+.club-forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.club-form .field {
+  max-width: 100%;
+}
+
+.club-page {
+  display: grid;
+  gap: 28px;
+}
+
+.club-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.club-header h1 {
+  margin: 4px 0 8px;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.02em;
+}
+
+.club-header p {
+  margin: 0 0 6px;
+}
+
+.club-pace {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ink-soft);
+}
+
+.club-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.club-side {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+
+.club-side .goal-card {
+  width: 100%;
+}
+
+.club-discussion h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.club-post-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.club-posts {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.club-post {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.club-post p {
+  margin: 0 0 8px;
+  line-height: 1.6;
+}
+
+.club-post-meta {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.club-post-meta strong {
+  color: var(--ink);
+}
+
+.club-spoiler {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.club-code {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.club-code code {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-high);
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+}
+
+.club-members {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.club-members li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .club-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .club-header {
+    grid-template-columns: 1fr;
+  }
+}

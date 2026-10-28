@@ -1,6 +1,7 @@
 import { type FormEvent, useId, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BookSummary } from "../components/BookSummary";
+import { ClubsView } from "../components/ClubsView";
 import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
@@ -20,7 +21,7 @@ import { useVolume } from "../lib/useVolume";
 import { useActiveProfile } from "../store/context";
 import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
 
-type View = "library" | "favorites" | "lists" | "goals";
+type View = "library" | "favorites" | "lists" | "goals" | "clubs";
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
@@ -28,6 +29,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
   { id: "goals", label: "Goals" },
+  { id: "clubs", label: "Clubs" },
 ];
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
@@ -74,6 +76,7 @@ export default function Library() {
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
       {view === "goals" && <GoalsView profile={profile} />}
+      {view === "clubs" && <ClubsView profile={profile} />}
     </div>
   );
 }
