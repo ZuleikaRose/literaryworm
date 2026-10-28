@@ -8,6 +8,7 @@ Run from front_end/literaryworm_app:  python3 scripts/build-librivox.py
 
 import json
 import pathlib
+import urllib.error
 import urllib.request
 
 # Catalog id -> LibriVox project id. One reader where a complete solo recording exists.
@@ -38,8 +39,13 @@ OUT = pathlib.Path(__file__).resolve().parent.parent / "src" / "data" / "librivo
 def fetch(project_id: int) -> dict:
     # LibriVox refuses Python's default User-Agent.
     req = urllib.request.Request(API.format(project_id), headers={"User-Agent": "LiteraryWorm catalog builder"})
-    with urllib.request.urlopen(req, timeout=60) as res:
-        return json.load(res)["books"][0]
+    try:
+        with urllib.request.urlopen(req, timeout=60) as res:
+            return json.load(res)["books"][0]
+    except (urllib.error.URLError, TimeoutError) as err:
+        raise SystemExit(f"LibriVox project {project_id}: couldn't download ({err})") from err
+    except (ValueError, KeyError, IndexError) as err:
+        raise SystemExit(f"LibriVox project {project_id}: unexpected answer ({err})") from err
 
 
 def narrators(sections: list) -> str:

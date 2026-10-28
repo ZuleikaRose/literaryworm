@@ -13,6 +13,7 @@ import json
 import pathlib
 import re
 import sys
+import urllib.error
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -61,10 +62,23 @@ def recordings() -> dict:
 
 def fetch(ebook: int) -> str:
     req = urllib.request.Request(GUTENBERG.format(ebook), headers={"User-Agent": "LiteraryWorm text builder"})
-    with urllib.request.urlopen(req, timeout=120) as res:
-        text = res.read().decode("utf-8-sig").replace("\r", "")
-    start = text.index("\n", text.index("*** START OF"))
-    return text[start : text.index("*** END OF")]
+    try:
+        with urllib.request.urlopen(req, timeout=120) as res:
+            text = res.read().decode("utf-8-sig").replace("\r", "")
+    except (urllib.error.URLError, TimeoutError, UnicodeDecodeError) as err:
+        raise SystemExit(f"Gutenberg ebook {ebook}: couldn't download ({err})") from err
+    start, end = text.find("*** START OF"), text.find("*** END OF")
+    if start < 0 or end < 0:
+        raise SystemExit(f"Gutenberg ebook {ebook}: no START/END markers, so the book text can't be found")
+    return text[text.index("\n", start) : end]
+
+
+def cut_at(body: str, pattern: str, ebook: int) -> int:
+    """Where a start or end marker is; a clear error if this edition no longer has it."""
+    m = re.search(pattern, body, re.M)
+    if not m:
+        raise SystemExit(f"Gutenberg ebook {ebook}: marker {pattern!r} not found; the edition may have changed")
+    return m.start()
 
 
 def clean(text: str) -> str:
@@ -125,9 +139,9 @@ def build(book_id: str, conf: dict, recording: dict) -> list[str]:
     tracks = recording["tracks"]
     body = fetch(conf["ebook"])
     if conf.get("start"):
-        body = body[re.search(conf["start"], body, re.M).start() :]  # past a contents list that names every chapter
+        body = body[cut_at(body, conf["start"], conf["ebook"]) :]  # past a contents list that names every chapter
     if conf.get("end"):
-        body = body[: re.search(conf["end"], body, re.M).start()]  # notes and indexes aren't read aloud
+        body = body[: cut_at(body, conf["end"], conf["ebook"])]  # notes and indexes aren't read aloud
     pieces = units(body, conf["heading"], conf.get("split"), conf.get("min", MIN_UNIT))
     if conf.get("proportional"):
         return proportional("\n\n".join(pieces), [t["seconds"] for t in tracks])
