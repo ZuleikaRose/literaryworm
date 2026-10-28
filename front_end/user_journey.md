@@ -661,6 +661,7 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 85. **Club notifications.** A new post in one of your clubs shows up straight away: on the club page if it's open, as a count on the club's card, and as an alert (or, with LiteraryWorm in the background, a system notification). Posts about chapters you haven't reached never alert or count. Each club has *Tell me about new posts*.
 86. **Listen together.** On a club page, *Start listening together* plays the club's book; other members choose *Join* and hear the same place as the leader plays, pauses and skips. A bar says who's leading, with *Stop* or *Leave*.
 87. **Bring your own books.** My Library → *Uploads* → *Choose an EPUB*. The book opens in the reader like any other, with its place, bookmarks and highlights kept; *Delete* removes it. Not on Kids profiles.
+88. **Cookie Policy.** The footer links to a Cookie Policy (after the Privacy Policy) that says LiteraryWorm sets no cookies of its own and lists what the browser keeps and why.
 
 ### Where the build differs from the blueprint, and why
 
@@ -670,6 +671,7 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 - **One library per account.** The brief gives each user one library and shows logs with that user's display name, so the household's profiles share the account's library and logs. Kids profiles see only Kids-rated titles in it and don't post logs.
 - **Reader display settings, playback speed, narrator voice and daily time used are still in memory**, per profile. They reset on refresh. Profiles (Phase 8), their favourites, ratings, lists and recent searches (Phase 10), and their volume, skip lengths and intro and outro skipping (Phase 13) are saved.
 - **A device is one visit.** Each open copy of the app counts as a device until it's closed (the app keeps nothing in browser storage to recognise a device later), so a refreshed tab shows up as a new device and the old one drops off the list after a couple of minutes.
+- **No cookie banner.** The blueprint plans a banner for non-essential cookies; LiteraryWorm sets none (only the strictly necessary sign-in session, the app's files and books saved for offline, all described in the Cookie Policy), so there is nothing to consent to. A banner comes with the first optional cookie.
 - **Lock-screen controls need something playing.** Browsers show the media controls for a book read by its recording; a device voice or the silent sample clock may not appear on every lock screen.
 - **Installing is the browser's offer.** Chrome and Edge offer to install once a site has been used a little; until then *Install the app* says where the browser keeps the option.
 - **Recommendations are worked out on the device**, from the profile's own history, rather than by Claude: they're instant, private and the same for the demo.
