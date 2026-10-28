@@ -10,12 +10,14 @@ import type {
   HighlightColor,
   LibraryEntry,
   PlanId,
+  PlayerSettings,
   Profile,
   Progress,
   RatingValue,
   ReadingStatus,
 } from "../types";
 import { SUPABASE_URL } from "./backend";
+import { defaultPlayerSettings } from "./reading";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
 /**
@@ -671,7 +673,15 @@ interface ListRow {
 
 const LIST_COLUMNS = "id, profile_id, name, description, share_slug";
 
-const emptyCollections = (): Collections => ({ favorites: [], ratings: {}, customLists: [], recentSearches: [], readingGoals: {}, readingDays: {} });
+const emptyCollections = (): Collections => ({
+  favorites: [],
+  ratings: {},
+  customLists: [],
+  recentSearches: [],
+  readingGoals: {},
+  readingDays: {},
+  player: defaultPlayerSettings,
+});
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
 export async function loadCollections(): Promise<Record<string, Collections>> {
@@ -698,10 +708,61 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const l of lists.data as ListRow[]) {
     of(l.profile_id).customLists.push({ id: l.id, name: l.name, description: l.description, bookIds: books.get(l.id) ?? [], shareSlug: l.share_slug });
   }
+  for (const [id, player] of Object.entries(await loadPlayerSettings())) of(id).player = player;
   const { goals, days } = await loadGoals();
   for (const g of goals) of(g.profile_id).readingGoals[g.year] = g.books;
   for (const d of days) of(d.profile_id).readingDays[d.day] = { seconds: d.minutes * 60, finished: d.books_finished };
   return byProfile;
+}
+
+type PlayerRow = {
+  id: string;
+  player_volume: number;
+  player_muted: boolean;
+  skip_back_seconds: number;
+  skip_forward_seconds: number;
+  auto_skip_intro: boolean;
+  auto_skip_outro: boolean;
+};
+
+/** Every profile's player settings. Like goals, an extra: if they can't load, the player uses its defaults. */
+async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
+  const { data, error } = await client()
+    .from("reader_profiles")
+    .select("id, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro");
+  if (error) {
+    console.error("player settings: couldn't load", error.message);
+    return {};
+  }
+  return Object.fromEntries(
+    (data as PlayerRow[]).map((r) => [
+      r.id,
+      {
+        volume: r.player_volume,
+        muted: r.player_muted,
+        skipBack: r.skip_back_seconds,
+        skipForward: r.skip_forward_seconds,
+        autoSkipIntro: r.auto_skip_intro,
+        autoSkipOutro: r.auto_skip_outro,
+      },
+    ]),
+  );
+}
+
+/** Saves a profile's player settings (all of them: the latest wins). */
+export async function savePlayerSettings(profileId: string, player: PlayerSettings): Promise<void> {
+  const { error } = await client()
+    .from("reader_profiles")
+    .update({
+      player_volume: Math.round(player.volume),
+      player_muted: player.muted,
+      skip_back_seconds: player.skipBack,
+      skip_forward_seconds: player.skipForward,
+      auto_skip_intro: player.autoSkipIntro,
+      auto_skip_outro: player.autoSkipOutro,
+    })
+    .eq("id", profileId);
+  if (error) throw new AccountError("We couldn't save your player settings.");
 }
 
 type GoalRow = { profile_id: string; year: number; books: number };

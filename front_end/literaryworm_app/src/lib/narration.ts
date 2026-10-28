@@ -29,6 +29,8 @@ export interface Narrator {
   /** Seconds into the book, or null until something is cued. */
   position: () => number | null;
   setRate: (rate: number) => void;
+  /** 0–1 (0 when muted). */
+  setVolume: (volume: number) => void;
   dispose: () => void;
 }
 
@@ -113,6 +115,11 @@ export function recordingNarrator(tracks: RecordingTrack[], starts: number[], ev
       audio.defaultPlaybackRate = rate;
       audio.playbackRate = rate;
     },
+    // iPhones and iPads ignore this (their volume is the device's); muting still works there.
+    setVolume: (volume) => {
+      audio.volume = volume;
+      audio.muted = volume === 0;
+    },
     dispose: () => {
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("waiting", onWaiting);
@@ -181,6 +188,7 @@ export function speechNarrator(
   let chapter = 0;
   let part = 0;
   let rate = 1;
+  let volume = 1;
   let speaking = false;
   let spokenFrom = 0; // when the current part started, for the clock between sentences
   let generation = 0; // utterances from before a stop or a cue are ignored
@@ -205,6 +213,7 @@ export function speechNarrator(
     utterance.voice = voice;
     utterance.lang = voice.lang;
     utterance.rate = rate;
+    utterance.volume = volume;
     utterance.onstart = () => {
       if (mine !== generation) return;
       spokenFrom = performance.now();
@@ -262,6 +271,16 @@ export function speechNarrator(
     setRate: (next) => {
       rate = next;
       // Takes effect from the next sentence; restarting this one would repeat words.
+    },
+    setVolume: (next) => {
+      const was = volume;
+      volume = next;
+      // A voice can't change volume mid-sentence; muting or unmuting starts the sentence again so it's heard at once.
+      if (speaking && (was === 0) !== (next === 0)) {
+        generation += 1;
+        synth.cancel();
+        speakPart();
+      }
     },
     dispose: () => {
       stop();

@@ -494,12 +494,11 @@
   /* Above the page, below the header (and its popovers) and the tab bar. */
   z-index: 25;
   display: flex;
-  width: min(560px, calc(100vw - 32px));
+  width: min(820px, calc(100vw - 32px));
   height: 64px;
   align-items: center;
   gap: 8px;
   padding: 0 8px 0 10px;
-  overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
@@ -519,11 +518,12 @@
   }
 }
 
+/* Inset from the rounded corners: the player doesn't clip, so its More menu can open above it. */
 .mini-progress {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
+  top: -1px;
+  right: var(--radius-lg);
+  left: var(--radius-lg);
   height: 2px;
   background: linear-gradient(to right, var(--rust-bright) var(--fill), var(--line) var(--fill));
 }
@@ -606,12 +606,264 @@
   opacity: 0.4;
 }
 
+/* Previous and next chapter and the volume sit in the bar on wide screens and in More on narrow ones. */
+.mini-narrow {
+  display: none;
+}
+
+.mini-menu {
+  top: auto;
+  bottom: calc(100% + 14px);
+  width: 290px;
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;
+  transform-origin: bottom right;
+}
+
+.mini-menu .menu-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.mini-menu-volume {
+  padding: 0 4px 6px;
+}
+
+@media (max-width: 1020px) {
+  .mini-controls .mini-volume {
+    display: none;
+  }
+
+  .mini-menu .mini-menu-volume {
+    display: block;
+  }
+}
+
+@media (max-width: 720px) {
+  .mini-controls .mini-wide {
+    display: none;
+  }
+
+  /* Phones: the menu spans the player and opens above it (not under the header like other popovers). */
+  .mini-player .popover-wrap {
+    position: static;
+  }
+
+  .mini-player .mini-menu {
+    position: absolute;
+    top: auto;
+    right: 0;
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: auto;
+    max-height: calc(100dvh - var(--header-h) - var(--tab-h) - env(safe-area-inset-bottom) - 100px);
+  }
+
+  .mini-menu .mini-narrow {
+    display: block;
+  }
+}
+
+/* ---------- Shared player controls: volume, Go to, devices, sent from another device ---------- */
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.volume-range {
+  --track-ink: var(--rust-bright);
+
+  width: 96px;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.volume-control .volume-range {
+  flex: 1;
+  min-width: 80px;
+}
+
+.volume-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--track-ink) var(--fill), var(--line-strong) var(--fill));
+}
+
+.volume-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--track-ink) var(--fill), var(--line-strong) var(--fill));
+}
+
+.volume-range::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--track-ink);
+  appearance: none;
+}
+
+.volume-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--track-ink);
+}
+
+.volume-range:focus-visible {
+  outline: 2px solid var(--rust-bright);
+  outline-offset: 2px;
+}
+
+.mini-volume .volume-range {
+  flex: none;
+  width: 88px;
+}
+
+.jump-sections {
+  margin-top: 4px;
+}
+
+.index-list {
+  max-height: min(52vh, 460px);
+  overflow-y: auto;
+  margin: 10px -8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.index-list button {
+  display: grid;
+  width: 100%;
+  min-height: 48px;
+  gap: 2px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  text-align: left;
+}
+
+.index-list button:hover {
+  background: var(--surface-high);
+}
+
+.index-place {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.index-snippet {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.index-snippet mark {
+  border-radius: 2px;
+  color: var(--ink);
+  background: var(--rust-wash);
+}
+
+.jump-time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.jump-time .field {
+  flex: 1 1 220px;
+}
+
+.jump-time .primary-button {
+  margin-top: 26px;
+}
+
+.jump-references {
+  display: grid;
+  gap: 8px;
+}
+
+.jump-references .secondary-button {
+  justify-self: start;
+}
+
+.player-settings-form {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.player-settings-form .player-select {
+  justify-content: space-between;
+}
+
+.device-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.device-list li {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.device-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+/* A book sent here from another device: above the mini-player, below dialogs. */
+.handoff {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  z-index: 30;
+  display: grid;
+  width: min(520px, calc(100vw - 32px));
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
+}
+
+.handoff p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.handoff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Pages make room so the mini-player never covers their end. */
 .has-mini-player {
   padding-bottom: 96px;
 }
 
 @media (max-width: 720px) {
+  .handoff {
+    bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 84px);
+  }
+
   .mini-player {
     right: 8px;
     bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 8px);

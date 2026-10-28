@@ -87,6 +87,7 @@ export function useAccount() {
           ratings: data?.ratings ?? {},
           customLists: data?.customLists ?? [],
           recentSearches: data?.recentSearches ?? [],
+          player: data?.player ?? null,
           // Kept on this device for this visit only.
           onThisDevice: data ? { readerSettings: data.readerSettings, playbackSpeed: data.playbackSpeed, narrationVoice: data.narrationVoice, timeUsed: data.timeUsed } : null,
         };

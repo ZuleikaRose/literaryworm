@@ -2,34 +2,19 @@ import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from
 import { Link } from "react-router-dom";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
-import {
-  BookmarksDialog,
-  ChaptersDialog,
-  DailyLimitReached,
-  FinishedPanel,
-  MarkFinishedDialog,
-  ReadingGate,
-} from "../components/ReadingParts";
+import { DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "../components/PlayerControls";
+import { BookmarksDialog, DailyLimitReached, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
-import {
-  chapterAt,
-  chapterTimes,
-  CREDITS_SECONDS,
-  chapterLabel,
-  formatTime,
-  PLAYBACK_SPEEDS,
-  SKIP_SECONDS,
-  SLEEP_MINUTES,
-  spokenTime,
-} from "../lib/reading";
+import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
+import { usePlayerControls } from "../lib/usePlayerControls";
 import { useTitle } from "../lib/useTitle";
 import { useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 
-type Panel = "chapters" | "bookmarks" | null;
+type Panel = "jump" | "bookmarks" | "settings" | "devices" | null;
 
 export default function Player() {
   return <ReadingGate format="audiobook">{(book) => <PlayerView key={book.id} book={book} />}</ReadingGate>;
@@ -47,12 +32,18 @@ function PlayerView({ book }: { book: Book }) {
     .filter(([, list]) => list.length > 0);
   const playback = usePlayback();
   const { open } = playback;
-  const { starts, total } = chapterTimes(book);
+  const controls = usePlayerControls(book);
+  const { starts, total, places, player, settings } = controls;
   const bookmarks = activeReading(state)
     .bookmarks.filter((b) => b.bookId === book.id)
     .sort((a, b) => a.fraction - b.fraction);
   const [panel, setPanel] = useState<Panel>(null);
+  const [section, setSection] = useState<JumpSection>("contents");
   const [asking, setAsking] = useState(false);
+  const jump = (to: JumpSection) => {
+    setSection(to);
+    setPanel("jump");
+  };
 
   // The book plays through the app-wide engine, so it keeps playing in the mini-player after
   // this page closes.
@@ -66,16 +57,15 @@ function PlayerView({ book }: { book: Book }) {
   const finished = live?.finished ?? false;
   const sleep = live?.sleep ?? null;
 
-  const chapterIndex = chapterAt(starts, position);
+  const { chapterIndex, chapterStart } = places;
   const chapter = book.chapters[chapterIndex];
-  const chapterStart = starts[chapterIndex];
   const hereLabel = `Chapter ${chapterIndex + 1}, ${formatTime(position - chapterStart)}`;
   const seek = playback.seek;
 
-  // Space plays and pauses, arrows skip 15 seconds, unless a control that uses those keys has focus.
-  const keys = useRef({ toggle: playback.toggle, seek, position });
+  // Space plays and pauses, arrows skip, M mutes, unless a control that uses those keys has focus.
+  const keys = useRef({ toggle: playback.toggle, skipBack: controls.skipBack, skipForward: controls.skipForward, mute: settings.toggleMute });
   useEffect(() => {
-    keys.current = { toggle: playback.toggle, seek, position };
+    keys.current = { toggle: playback.toggle, skipBack: controls.skipBack, skipForward: controls.skipForward, mute: settings.toggleMute };
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -83,8 +73,9 @@ function PlayerView({ book }: { book: Book }) {
       if (target.closest("input, select, textarea, button, a, dialog, [role=button]") || e.altKey || e.ctrlKey || e.metaKey) return;
       const k = keys.current;
       if (e.key === " " || e.key === "k") k.toggle();
-      else if (e.key === "ArrowLeft" || e.key === "j") k.seek(k.position - SKIP_SECONDS);
-      else if (e.key === "ArrowRight" || e.key === "l") k.seek(k.position + SKIP_SECONDS);
+      else if (e.key === "ArrowLeft" || e.key === "j") k.skipBack();
+      else if (e.key === "ArrowRight" || e.key === "l") k.skipForward();
+      else if (e.key === "m") k.mute();
       else return;
       e.preventDefault();
     };
@@ -98,8 +89,6 @@ function PlayerView({ book }: { book: Book }) {
     return <DailyLimitReached limitMinutes={live.limitMinutes} onAllowMore={playback.allowMore} />;
   }
 
-  const inOpeningCredits = position < CREDITS_SECONDS;
-  const inClosingCredits = position >= total - CREDITS_SECONDS && position < total;
   const isHereMarked = bookmarks.some((b) => b.format === "audiobook" && Math.abs(b.fraction * total - position) < 5);
   const sleepValue = sleep === null ? "off" : sleep.kind === "chapter" ? "chapter" : String(sleep.minutes);
 
@@ -112,13 +101,25 @@ function PlayerView({ book }: { book: Book }) {
         </Link>
         <p className="player-eyebrow">Now listening</p>
         <div className="reader-tools">
-          <button type="button" className="icon-button" onClick={() => setPanel("chapters")}>
+          <button type="button" className="icon-button" onClick={() => jump("contents")}>
             <Icon name="list" size={20} />
-            <span className="visually-hidden">Chapters</span>
+            <span className="visually-hidden">Table of contents</span>
+          </button>
+          <button type="button" className="icon-button" onClick={() => jump("index")}>
+            <Icon name="search" size={20} />
+            <span className="visually-hidden">Go to: index, references or a time</span>
           </button>
           <button type="button" className="icon-button" onClick={() => setPanel("bookmarks")}>
             <Icon name="bookmark" size={20} filled={isHereMarked} />
             <span className="visually-hidden">Bookmarks</span>
+          </button>
+          <button type="button" className="icon-button" onClick={() => setPanel("devices")}>
+            <Icon name="devices" size={20} />
+            <span className="visually-hidden">Listen on another device</span>
+          </button>
+          <button type="button" className="icon-button" onClick={() => setPanel("settings")}>
+            <Icon name="settings" size={20} />
+            <span className="visually-hidden">Skip lengths, intros and outros</span>
           </button>
           {!book.recording && (
             <button
@@ -195,50 +196,47 @@ function PlayerView({ book }: { book: Book }) {
                 </span>
               </p>
 
-              {(inOpeningCredits || inClosingCredits) && (
-                <button
-                  type="button"
-                  className="secondary-button credits-button"
-                  onClick={() => seek(inOpeningCredits ? CREDITS_SECONDS : total - 1)}
-                >
-                  {inOpeningCredits ? "Skip opening credits" : "Skip closing credits"}
-                </button>
-              )}
-
               <div className="player-controls">
-                <button
-                  type="button"
-                  className="icon-button"
-                  disabled={chapterIndex === 0 && position < 3}
-                  onClick={() => seek(position - chapterStart > 3 ? chapterStart : starts[Math.max(0, chapterIndex - 1)])}
-                >
+                <button type="button" className="icon-button" disabled={!controls.previousChapter} onClick={controls.previousChapter ?? undefined}>
                   <Icon name="previousChapter" size={20} />
                   <span className="visually-hidden">Previous chapter</span>
                 </button>
-                <button type="button" className="skip-button" onClick={() => seek(position - SKIP_SECONDS)}>
+                <button type="button" className="skip-button" onClick={controls.skipBack}>
                   <Icon name="chevronLeft" size={18} />
-                  <span aria-hidden="true">15</span>
-                  <span className="visually-hidden">Back 15 seconds</span>
+                  <span aria-hidden="true">{player.skipBack}</span>
+                  <span className="visually-hidden">Back {player.skipBack} seconds</span>
                 </button>
                 <button type="button" className="play-button" onClick={playback.toggle}>
                   <Icon name={playing ? "pause" : "play"} size={30} filled />
                   <span className="visually-hidden">{playing ? "Pause" : "Play"}</span>
                 </button>
-                <button type="button" className="skip-button" onClick={() => seek(position + SKIP_SECONDS)}>
-                  <span aria-hidden="true">15</span>
+                <button type="button" className="skip-button" onClick={controls.skipForward}>
+                  <span aria-hidden="true">{player.skipForward}</span>
                   <Icon name="chevronRight" size={18} />
-                  <span className="visually-hidden">Forward 15 seconds</span>
+                  <span className="visually-hidden">Forward {player.skipForward} seconds</span>
                 </button>
-                <button
-                  type="button"
-                  className="icon-button"
-                  disabled={chapterIndex === book.chapters.length - 1}
-                  onClick={() => seek(starts[chapterIndex + 1])}
-                >
+                <button type="button" className="icon-button" disabled={!controls.nextChapter} onClick={controls.nextChapter ?? undefined}>
                   <Icon name="nextChapter" size={20} />
                   <span className="visually-hidden">Next chapter</span>
                 </button>
               </div>
+
+              <div className="player-jumps">
+                <button type="button" className="text-button" disabled={!controls.beginning} onClick={controls.beginning ?? undefined}>
+                  <Icon name="startOfBook" size={16} /> Beginning
+                </button>
+                <button type="button" className="text-button" disabled={!controls.skipIntro} onClick={controls.skipIntro ?? undefined}>
+                  Skip intro
+                </button>
+                <button type="button" className="text-button" disabled={!controls.skipOutro} onClick={controls.skipOutro ?? undefined}>
+                  Skip outro
+                </button>
+                <button type="button" className="text-button" disabled={!controls.end} onClick={controls.end ?? undefined}>
+                  End <Icon name="endOfBook" size={16} />
+                </button>
+              </div>
+
+              <VolumeControl className="player-volume" />
 
               <div className="player-settings">
                 <label className="player-select">
@@ -314,8 +312,8 @@ function PlayerView({ book }: { book: Book }) {
               (voices.length === 0
                 ? "This browser has no English voices to read aloud with."
                 : `This device has ${voices.length} English ${voices.length === 1 ? "voice" : "voices"}; Edge, Safari and phones usually offer more.`)}{" "}
-            Space plays and pauses; the left and right arrows skip 15 seconds. Leave the player and the book keeps playing in
-            the mini-player.
+            Space plays and pauses; the left and right arrows skip back {player.skipBack} and forward {player.skipForward} seconds; M
+            mutes. Leave the player and the book keeps playing in the mini-player, which has the same controls.
           </p>
         </div>
 
@@ -325,17 +323,9 @@ function PlayerView({ book }: { book: Book }) {
         )}
       </main>
 
-      <ChaptersDialog
-        open={panel === "chapters"}
-        onClose={() => setPanel(null)}
-        book={book}
-        current={chapterIndex}
-        detail={(i) => formatTime(starts[i])}
-        onPick={(i) => {
-          setPanel(null);
-          seek(starts[i]);
-        }}
-      />
+      <JumpDialog open={panel === "jump"} onClose={() => setPanel(null)} book={book} controls={controls} section={section} onSection={setSection} />
+      <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} />
+      <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
       <BookmarksDialog
         open={panel === "bookmarks"}
         onClose={() => setPanel(null)}

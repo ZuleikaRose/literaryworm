@@ -194,6 +194,34 @@ const paths = {
       <path d="M7 15h4M15 15h2M7 11h2M13 11h4" />
     </>
   ),
+  volume: (
+    <>
+      <path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4Z" />
+      <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+    </>
+  ),
+  volumeMuted: (
+    <>
+      <path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4Z" />
+      <path d="m16 9.5 5 5M21 9.5l-5 5" />
+    </>
+  ),
+  devices: (
+    <>
+      <rect x="2" y="4" width="14" height="10" rx="1.5" />
+      <path d="M6 18h6M9 14v4" />
+      <rect x="17" y="8" width="5" height="12" rx="1" />
+    </>
+  ),
+  more: (
+    <>
+      <circle cx="5" cy="12" r="1.2" />
+      <circle cx="12" cy="12" r="1.2" />
+      <circle cx="19" cy="12" r="1.2" />
+    </>
+  ),
+  startOfBook: <path d="M4 5v14M20 5.5 13 12l7 6.5ZM13 5.5 6 12l7 6.5Z" />,
+  endOfBook: <path d="M20 5v14M4 5.5l7 6.5-7 6.5ZM11 5.5l7 6.5-7 6.5Z" />,
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof paths;

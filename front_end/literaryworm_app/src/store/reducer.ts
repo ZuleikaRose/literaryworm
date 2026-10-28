@@ -8,6 +8,7 @@ import type {
   Highlight,
   LibraryEntry,
   PlanId,
+  PlayerSettings,
   Profile,
   ProfileData,
   Progress,
@@ -92,6 +93,7 @@ export type Action =
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setPlaybackSpeed"; speed: number }
   | { type: "setNarrationVoice"; voice: string | null }
+  | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
   | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string }
   | { type: "allowExtraTime"; day: string; minutes: number }
   /** The active profile's goal for a year; null clears it. */
@@ -505,6 +507,9 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "setNarrationVoice":
       return withProfileData(state, (data) => ({ ...data, narrationVoice: action.voice }));
+
+    case "updatePlayerSettings":
+      return withProfileData(state, (data) => ({ ...data, player: { ...data.player, ...action.patch } }));
 
     case "addTimeUsed":
       return withProfileData(

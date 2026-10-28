@@ -201,6 +201,19 @@ export interface TimeUsed {
   extraMinutes: number;
 }
 
+/** How a profile likes the audiobook player set up. */
+export interface PlayerSettings {
+  /** 0–100. */
+  volume: number;
+  muted: boolean;
+  /** Seconds the skip buttons move (one of SKIP_CHOICES). */
+  skipBack: number;
+  skipForward: number;
+  /** Skip each chapter's spoken introduction and closing announcement as they come. */
+  autoSkipIntro: boolean;
+  autoSkipOutro: boolean;
+}
+
 /** One day of a profile's reading and listening, for goals and streaks. */
 export interface ReadingDay {
   /** Seconds read or listened that day (members' days load from Supabase in whole minutes). */
@@ -242,6 +255,8 @@ export interface ProfileData {
    * or null for the default (the recording where there is one, else a British English voice).
    */
   narrationVoice: string | null;
+  /** Volume, skip lengths and skipping intros and outros (members save them on the profile). */
+  player: PlayerSettings;
   timeUsed: TimeUsed;
   /** Books to finish, by year. */
   readingGoals: Record<number, number>;

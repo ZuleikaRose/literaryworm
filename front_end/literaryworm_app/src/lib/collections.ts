@@ -1,9 +1,9 @@
 import type { ProfileData } from "../types";
 
-/** A profile's favourites, ratings, custom lists, recent searches, goals and reading days (saved per profile for members). */
+/** A profile's favourites, ratings, custom lists, recent searches, goals, reading days and player settings (saved per profile for members). */
 export type Collections = Pick<
   ProfileData,
-  "favorites" | "ratings" | "customLists" | "recentSearches" | "readingGoals" | "readingDays"
+  "favorites" | "ratings" | "customLists" | "recentSearches" | "readingGoals" | "readingDays" | "player"
 >;
 
 /** The same limits as the database. */

@@ -1,7 +1,7 @@
 import { getBook } from "../data/books";
 import { seedLogs } from "../data/logs";
 import { usesBackend } from "../lib/backend";
-import { defaultReaderSettings, today } from "../lib/reading";
+import { defaultPlayerSettings, defaultReaderSettings, today } from "../lib/reading";
 import type {
   A11ySettings,
   Account,
@@ -88,6 +88,7 @@ export const emptyProfileData = (): ProfileData => ({
   readerSettings: defaultReaderSettings,
   playbackSpeed: 1,
   narrationVoice: null,
+  player: defaultPlayerSettings,
   timeUsed: { day: today(), seconds: 0, extraMinutes: 0 },
   readingGoals: {},
   readingDays: {},

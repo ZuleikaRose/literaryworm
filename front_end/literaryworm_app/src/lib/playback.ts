@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Book, Format } from "../types";
+import type { Handoff, ListeningDevice } from "./devicesApi";
 import type { SleepTimer } from "./reading";
 
 /**
@@ -47,13 +48,41 @@ export interface PlaybackEngine {
   removeBookmark: (id: string) => Promise<void>;
 }
 
+/** Where to open a book, instead of the profile's saved place. */
+export interface StartAt {
+  /** Seconds from the start of the book. */
+  at: number;
+  /** Starts playing straight away (call it inside a click, or browsers may block the sound). */
+  autoplay: boolean;
+}
+
+/** Listening on another device (members only; see lib/useDeviceLink.ts). */
+export interface DeviceLink {
+  /** False for in-memory accounts and copies of the app without the backend. */
+  available: boolean;
+  /** This device's name, as other devices see it. */
+  thisDevice: string;
+  /** The account's other open devices. Rejects with a message to show. */
+  listDevices: () => Promise<ListeningDevice[]>;
+  /** Sends the open book, at its place, to `device` for the active profile, then pauses it here. */
+  sendTo: (device: ListeningDevice) => Promise<void>;
+  /** A book sent to this device, waiting to be picked up. */
+  incoming: Handoff | null;
+  /** Opens the incoming book at its place and plays it; returns it (null if this profile can't). */
+  accept: () => Book | null;
+  dismiss: () => void;
+}
+
 export interface Playback {
   /** The open book, or null when nothing is playing or paused. */
   book: Book | null;
   /** Null until the engine for `book` has started. */
   snapshot: PlaybackSnapshot | null;
-  /** Opens a book (paused). Does nothing if it's already the open book. */
-  open: (book: Book) => void;
+  /**
+   * Opens a book (paused, at the profile's place). Does nothing if it's already the open book,
+   * unless `start` says where to go.
+   */
+  open: (book: Book, start?: StartAt) => void;
   /** Pauses, saves the place and puts the book away (the mini-player goes). */
   close: () => void;
   /** Stable, so effects can depend on it. Does nothing with no book open. */
@@ -67,6 +96,7 @@ export interface Playback {
   allowMore: () => void;
   addBookmark: (place: BookmarkPlace) => Promise<void>;
   removeBookmark: (id: string) => Promise<void>;
+  link: DeviceLink;
 }
 
 export const PlaybackContext = createContext<Playback | null>(null);

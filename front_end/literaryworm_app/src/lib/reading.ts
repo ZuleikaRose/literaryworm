@@ -1,4 +1,4 @@
-import type { Book, ReaderSettings } from "../types";
+import type { Book, PlayerSettings, ReaderSettings } from "../types";
 
 /** Positions in a book, for the reader (pages) and the player (seconds). */
 
@@ -127,6 +127,17 @@ export function spokenTime(totalSeconds: number): string {
 
 export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
 export const SKIP_SECONDS = 15;
+/** What the skip buttons can be set to move, in seconds (the database allows the same). */
+export const SKIP_CHOICES = [5, 10, 15, 30, 45, 60];
+
+export const defaultPlayerSettings: PlayerSettings = {
+  volume: 100,
+  muted: false,
+  skipBack: SKIP_SECONDS,
+  skipForward: SKIP_SECONDS,
+  autoSkipIntro: false,
+  autoSkipOutro: false,
+};
 /** Opening and closing credits in the sample audiobooks. */
 export const CREDITS_SECONDS = 30;
 

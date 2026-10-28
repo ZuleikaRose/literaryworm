@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, clubs, player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -277,6 +277,44 @@ set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';
 select pg_temp.check((select count(*) from public.club_members where club_id = '00000000-0000-0000-0000-0000000000c1') = 0, 'deleting a club deletes its members and posts');
+reset role;
+
+-- Player settings, devices and handoffs: own account only --------------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+update public.reader_profiles set player_volume = 40, player_muted = true, skip_forward_seconds = 30, auto_skip_intro = true where name = 'Ann';
+select pg_temp.check((select player_volume = 40 and player_muted and skip_forward_seconds = 30 and auto_skip_intro from public.reader_profiles where name = 'Ann'), 'Ann saves her player settings');
+select pg_temp.expect_error($$update public.reader_profiles set player_volume = 101 where name = 'Ann'$$, 'a volume over 100');
+select pg_temp.expect_error($$update public.reader_profiles set skip_back_seconds = 7 where name = 'Ann'$$, 'a skip length the player doesn''t offer');
+insert into public.listening_devices (id, user_id, label) values
+  ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-00000000000a', 'Chrome on Windows'),
+  ('00000000-0000-0000-0000-0000000000d2', '00000000-0000-0000-0000-00000000000a', 'Safari on iPhone');
+select public.touch_listening_device('00000000-0000-0000-0000-0000000000d1');
+insert into public.playback_handoffs (user_id, profile_id, volume_id, position_seconds, from_label, to_device_id)
+  values ('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Ann'), 'dracula', 125, 'Chrome on Windows', '00000000-0000-0000-0000-0000000000d2');
+update public.playback_handoffs set claimed_at = now() where to_device_id = '00000000-0000-0000-0000-0000000000d2';
+select pg_temp.check((select claimed_at is not null from public.playback_handoffs), 'Ann sends a book to her other device, which picks it up');
+select pg_temp.expect_error($$insert into public.listening_devices (id, user_id, label) values (gen_random_uuid(), '00000000-0000-0000-0000-00000000000a', '')$$, 'a device with no name');
+select pg_temp.expect_error($$update public.playback_handoffs set position_seconds = 0$$, 'changing a handoff''s place (no column grant)');
+reset role;
+update public.listening_devices set last_seen_at = '2026-01-01' where id = '00000000-0000-0000-0000-0000000000d1';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select count(*) from public.listening_devices) + (select count(*) from public.playback_handoffs) = 0, 'Ben cannot see Ann''s devices or handoffs');
+insert into public.listening_devices (id, user_id, label) values ('00000000-0000-0000-0000-0000000000d3', '00000000-0000-0000-0000-00000000000b', 'Firefox on Linux');
+select pg_temp.expect_error($$insert into public.playback_handoffs (user_id, profile_id, volume_id, position_seconds, from_label, to_device_id) values ('00000000-0000-0000-0000-00000000000b', (select id from public.reader_profiles limit 1), 'dracula', 0, 'Firefox on Linux', '00000000-0000-0000-0000-0000000000d2')$$, 'sending to another account''s device');
+select pg_temp.expect_error('insert into public.playback_handoffs (user_id, profile_id, volume_id, position_seconds, from_label, to_device_id) values (''00000000-0000-0000-0000-00000000000b'', ' || quote_literal(:'ann_profile') || ', ''dracula'', 0, ''Firefox on Linux'', ''00000000-0000-0000-0000-0000000000d3'')', 'sending for another account''s profile');
+select public.touch_listening_device('00000000-0000-0000-0000-0000000000d1');
+reset role;
+select pg_temp.check((select last_seen_at = '2026-01-01' from public.listening_devices where id = '00000000-0000-0000-0000-0000000000d1') and (select count(*) from public.listening_devices where user_id = '00000000-0000-0000-0000-00000000000a') = 2, 'Ben cannot check in or clear Ann''s devices');
+set role anon;
+select pg_temp.expect_error('select * from public.playback_handoffs', 'anon reading handoffs');
+select pg_temp.expect_error($$select public.touch_listening_device(gen_random_uuid())$$, 'anon checking in a device');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+delete from public.listening_devices where id = '00000000-0000-0000-0000-0000000000d2';
+select pg_temp.check((select count(*) from public.playback_handoffs) = 0, 'clearing a device clears its handoffs');
 reset role;
 
 -- Every public table has RLS on -----------------------------------------------

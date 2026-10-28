@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { MiniPlayer } from "../components/MiniPlayer";
+import { HandoffPrompt } from "../components/PlayerControls";
 import { TabBar } from "../components/TabBar";
 import { usePlayback } from "../lib/playback";
 import { useAuthSync } from "../lib/useAuthSync";
@@ -57,6 +58,7 @@ export function SiteLayout() {
       </main>
       <Footer />
       <MiniPlayer />
+      <HandoffPrompt />
       {state.account && profile && <TabBar />}
     </div>
   );
@@ -67,6 +69,7 @@ export function ImmersiveLayout() {
   return (
     <div className="immersive">
       <Outlet />
+      <HandoffPrompt />
     </div>
   );
 }

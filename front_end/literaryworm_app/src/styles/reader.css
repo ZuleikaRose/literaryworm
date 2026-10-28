@@ -667,8 +667,26 @@
   font-variant-numeric: tabular-nums;
 }
 
-.credits-button {
-  justify-self: start;
+.player-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 20px;
+}
+
+.player-jumps .text-button {
+  min-height: 44px;
+}
+
+.player-jumps .text-button:disabled {
+  color: var(--faint);
+  text-decoration: none;
+  cursor: default;
+}
+
+.player-volume {
+  width: min(100%, 280px);
+  justify-self: center;
 }
 
 .player-controls {
@@ -788,14 +806,16 @@
     text-align: center;
   }
 
-  .credits-button {
-    justify-self: center;
-  }
 }
 
 @media (max-width: 420px) {
   .reader-top {
     gap: 4px;
+  }
+
+  /* The player's tools fill the bar; the page heading already says what's playing. */
+  .player-eyebrow {
+    visibility: hidden;
   }
 
   .reader-position {
