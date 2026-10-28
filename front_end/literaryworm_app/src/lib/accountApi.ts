@@ -709,9 +709,15 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
     of(l.profile_id).customLists.push({ id: l.id, name: l.name, description: l.description, bookIds: books.get(l.id) ?? [], shareSlug: l.share_slug });
   }
   for (const [id, player] of Object.entries(await loadPlayerSettings())) of(id).player = player;
-  const { goals, days } = await loadGoals();
+  const { goals, days, finished } = await loadGoals();
   for (const g of goals) of(g.profile_id).readingGoals[g.year] = g.books;
-  for (const d of days) of(d.profile_id).readingDays[d.day] = { seconds: d.minutes * 60, finished: d.books_finished };
+  for (const d of days) {
+    of(d.profile_id).readingDays[d.day] = { seconds: d.minutes * 60, finished: d.books_finished, listened: d.listening_minutes * 60 };
+  }
+  for (const f of finished) {
+    const day = of(f.profile_id).readingDays[f.finished_on] ?? { seconds: 0, finished: 0 };
+    of(f.profile_id).readingDays[f.finished_on] = { ...day, books: [...(day.books ?? []), f.volume_id] };
+  }
   return byProfile;
 }
 
@@ -766,27 +772,31 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
 }
 
 type GoalRow = { profile_id: string; year: number; books: number };
-type DayRow = { profile_id: string; day: string; minutes: number; books_finished: number };
+type DayRow = { profile_id: string; day: string; minutes: number; books_finished: number; listening_minutes: number };
+type FinishedRow = { profile_id: string; volume_id: string; finished_on: string };
 
-/** How far back reading days load: enough for a year's goal, streaks and monthly summaries. */
-const DAYS_KEPT = 400;
+/** How far back reading days load: this year and all of last year, for goals, streaks and Year in Review. */
+const loadFrom = () => `${new Date().getFullYear() - 1}-01-01`;
 
 /**
  * Every profile's goals and recent reading days. Goals and streaks are extras: if they can't load,
  * the account still opens without them (they show as empty) rather than failing to sign in.
  */
-async function loadGoals(): Promise<{ goals: GoalRow[]; days: DayRow[] }> {
+async function loadGoals(): Promise<{ goals: GoalRow[]; days: DayRow[]; finished: FinishedRow[] }> {
   const db = client();
-  const from = new Date(Date.now() - DAYS_KEPT * 86_400_000).toISOString().slice(0, 10);
-  const [goals, days] = await Promise.all([
+  const from = loadFrom();
+  const [goals, days, finished] = await Promise.all([
     db.from("reading_goals").select("profile_id, year, books"),
-    db.from("reading_days").select("profile_id, day, minutes, books_finished").gte("day", from),
+    db.from("reading_days").select("profile_id, day, minutes, books_finished, listening_minutes").gte("day", from),
+    db.from("finished_books").select("profile_id, volume_id, finished_on").gte("finished_on", from),
   ]);
   if (goals.error || days.error) {
     console.error("goals: couldn't load", goals.error?.message ?? days.error?.message);
-    return { goals: [], days: [] };
+    return { goals: [], days: [], finished: [] };
   }
-  return { goals: goals.data as GoalRow[], days: days.data as DayRow[] };
+  // Which books were finished is only for Year in Review: without it, the counts still show.
+  if (finished.error) console.error("goals: couldn't load finished books", finished.error.message);
+  return { goals: goals.data as GoalRow[], days: days.data as DayRow[], finished: finished.error ? [] : (finished.data as FinishedRow[]) };
 }
 
 /** Sets a profile's goal for a year, or clears it (null). */
@@ -804,9 +814,19 @@ export async function setReadingGoal(profileId: string, year: number, books: num
   if (error) throw failed;
 }
 
-/** Adds minutes read (up to 60) and a finished book (0 or 1) to a profile's day. */
-export async function recordReading(profileId: string, day: string, minutes: number, finished: number): Promise<void> {
-  const { error } = await client().rpc("record_reading", { p_profile_id: profileId, p_day: day, p_minutes: minutes, p_finished: finished });
+/**
+ * Adds minutes read or listened (up to 60, of which `listening` were listening) and a finished
+ * book (0 or 1, which book if known) to a profile's day.
+ */
+export async function recordReading(profileId: string, day: string, minutes: number, finished: number, listening = 0, bookId?: string): Promise<void> {
+  const { error } = await client().rpc("record_reading", {
+    p_profile_id: profileId,
+    p_day: day,
+    p_minutes: minutes,
+    p_finished: finished,
+    p_listening_minutes: listening,
+    p_volume_id: bookId ?? null,
+  });
   if (error) throw new AccountError("We couldn't save today's reading time.");
 }
 

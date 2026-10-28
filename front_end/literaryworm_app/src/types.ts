@@ -220,6 +220,10 @@ export interface ReadingDay {
   seconds: number;
   /** Books finished that day. */
   finished: number;
+  /** Of `seconds`, how many were spent listening (the rest is reading). */
+  listened?: number;
+  /** The books finished that day, when known (Year in Review lists them). */
+  books?: string[];
 }
 
 /** The brief's reading statuses (the library's "update" operation). */

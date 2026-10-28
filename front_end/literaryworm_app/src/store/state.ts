@@ -134,12 +134,22 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
  * A few months of sample reading for the demo's goals page: a streak up to yesterday, and books
  * finished along the way. Made from today's date, so it always looks recent.
  */
+/** The books Avery's demo days finish, in order (newest first). */
+const DEMO_FINISHED = ["circe", "pride-and-prejudice", "the-time-machine", "klara-and-the-sun", "frankenstein", "educated", "the-great-gatsby", "jane-eyre", "babel", "dracula", "atomic-habits"];
+
 function demoReadingDays(now: number): Record<string, ReadingDay> {
   const days: Record<string, ReadingDay> = {};
-  // Days ago with some reading; every third one finishes a book.
+  // Days ago with some reading; every third one finishes a book. Some of the time is listening.
   const pattern = [1, 2, 3, 4, 5, 6, 9, 11, 12, 15, 18, 20, 23, 27, 31, 34, 38, 41, 45, 52, 58, 63, 70, 77, 84, 96, 103, 117, 124, 140, 151, 163];
   pattern.forEach((ago, i) => {
-    days[today(new Date(now - ago * 86_400_000))] = { seconds: (20 + ((i * 17) % 45)) * 60, finished: i % 3 === 0 ? 1 : 0 };
+    const seconds = (20 + ((i * 17) % 45)) * 60;
+    const book = i % 3 === 0 ? DEMO_FINISHED[i / 3] : undefined;
+    days[today(new Date(now - ago * 86_400_000))] = {
+      seconds,
+      listened: i % 2 === 0 ? Math.round(seconds * 0.6) : 0,
+      finished: book ? 1 : 0,
+      ...(book ? { books: [book] } : {}),
+    };
   });
   return days;
 }

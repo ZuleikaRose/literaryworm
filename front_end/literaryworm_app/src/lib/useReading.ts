@@ -48,11 +48,11 @@ export function useReading(book: Book, profileId?: string) {
   /** Counts a newly finished book towards the profile's goal (members: in Supabase too, in the background). */
   const countFinished = useCallback(() => {
     const day = today();
-    dispatch({ type: "finishedBook", day, profileId: readerProfileId ?? undefined });
+    dispatch({ type: "finishedBook", day, profileId: readerProfileId ?? undefined, bookId: book.id });
     if (latest.current.remote && readerProfileId) {
-      accountApi.recordReading(readerProfileId, day, 0, 1).catch((err: unknown) => console.error("goals: couldn't count a finished book", err));
+      accountApi.recordReading(readerProfileId, day, 0, 1, 0, book.id).catch((err: unknown) => console.error("goals: couldn't count a finished book", err));
     }
-  }, [dispatch, readerProfileId]);
+  }, [dispatch, readerProfileId, book.id]);
 
   /** Adds the book to the library as Reading, or moves it on from Want to read / to Finished. */
   const ensureInLibrary = useCallback(

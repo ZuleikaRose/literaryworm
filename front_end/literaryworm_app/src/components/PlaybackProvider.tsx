@@ -203,7 +203,7 @@ function Engine({
   const [sleepLeft, setSleepLeft] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
-  const limit = useDailyLimit(playing, profileId);
+  const limit = useDailyLimit(playing, profileId, true);
 
   const save = (seconds: number, finishedNow = false) =>
     reading.save({

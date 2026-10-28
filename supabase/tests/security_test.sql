@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, clubs, player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -234,15 +234,26 @@ select pg_temp.expect_error($$select public.record_reading((select id from publi
 select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 5, 2)$$, 'two finished books in one call');
 select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date - 10, 5, 0)$$, 'reading on a day far from today');
 select pg_temp.expect_error($$insert into public.reading_goals (profile_id, user_id, year, books) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 2027, 0)$$, 'a goal of no books');
+-- Reading stats (Phase 17): listening minutes and which book was finished.
+select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 20, 0, 15);
+select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 0, 1, 0, 'frankenstein');
+select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 0, 1, 0, 'frankenstein');
+select pg_temp.check((select minutes = 95 and listening_minutes = 15 and books_finished = 3 from public.reading_days)
+  and (select count(*) = 1 from public.finished_books where volume_id = 'frankenstein'), 'record_reading keeps listening minutes and the finished book (once a day)');
+select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 5, 0, 6)$$, 'more listening than minutes');
+select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 0, 1, 0, 'not a volume id!')$$, 'a finished book with a bad id');
+select pg_temp.expect_error($$update public.finished_books set volume_id = 'dune'$$, 'changing a finished book');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
-select pg_temp.check((select count(*) from public.reading_goals) + (select count(*) from public.reading_days) = 0, 'Ben cannot see Ann''s goals or reading days');
+select pg_temp.check((select count(*) from public.reading_goals) + (select count(*) from public.reading_days) + (select count(*) from public.finished_books) = 0, 'Ben cannot see Ann''s goals, reading days or finished books');
+select pg_temp.expect_error('insert into public.finished_books (profile_id, user_id, volume_id, finished_on) values (' || quote_literal(:'ann_profile') || ', ''00000000-0000-0000-0000-00000000000a'', ''dune'', current_date)', 'recording a finished book on another account''s profile');
 select pg_temp.expect_error('select public.record_reading(' || quote_literal(:'ann_profile') || ', current_date, 5, 0)', 'adding reading to another account''s profile');
 select pg_temp.expect_error('insert into public.reading_goals (profile_id, user_id, year, books) values (' || quote_literal(:'ann_profile') || ', ''00000000-0000-0000-0000-00000000000a'', 2026, 5)', 'a goal on another account''s profile');
 reset role;
 set role anon;
 select pg_temp.expect_error('select * from public.reading_days', 'anon reading reading days');
+select pg_temp.expect_error('select * from public.finished_books', 'anon reading finished books');
 select pg_temp.expect_error($$select public.record_reading(gen_random_uuid(), current_date, 5, 0)$$, 'anon recording reading');
 reset role;
 

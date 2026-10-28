@@ -94,12 +94,12 @@ export type Action =
   | { type: "setPlaybackSpeed"; speed: number }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
-  | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string }
+  | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean }
   | { type: "allowExtraTime"; day: string; minutes: number }
   /** The active profile's goal for a year; null clears it. */
   | { type: "setReadingGoal"; year: number; books: number | null }
   /** A book was finished today (counts towards the profile's goal). */
-  | { type: "finishedBook"; day: string; profileId?: string };
+  | { type: "finishedBook"; day: string; profileId?: string; bookId?: string };
 
 /** Swap the signed-in household in, starting with no profile chosen. */
 function enter(state: AppState, household: Household): AppState {
@@ -521,7 +521,14 @@ export function reducer(state: AppState, action: Action): AppState {
           return {
             ...data,
             timeUsed: { ...used, seconds: used.seconds + action.seconds },
-            readingDays: { ...data.readingDays, [action.day]: { ...day, seconds: day.seconds + action.seconds } },
+            readingDays: {
+              ...data.readingDays,
+              [action.day]: {
+                ...day,
+                seconds: day.seconds + action.seconds,
+                listened: (day.listened ?? 0) + (action.listening ? action.seconds : 0),
+              },
+            },
           };
         },
         action.profileId,
@@ -540,7 +547,8 @@ export function reducer(state: AppState, action: Action): AppState {
         state,
         (data) => {
           const day = data.readingDays[action.day] ?? { seconds: 0, finished: 0 };
-          return { ...data, readingDays: { ...data.readingDays, [action.day]: { ...day, finished: day.finished + 1 } } };
+          const books = action.bookId && !day.books?.includes(action.bookId) ? [...(day.books ?? []), action.bookId] : day.books;
+          return { ...data, readingDays: { ...data.readingDays, [action.day]: { ...day, finished: day.finished + 1, books } } };
         },
         action.profileId,
       );

@@ -8,6 +8,7 @@ import { Field } from "../components/Field";
 import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
 import { SavedBookTile } from "../components/SavedBookTile";
+import { StatsView } from "../components/StatsView";
 import { getBook, isAllowed } from "../data/books";
 import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
@@ -21,7 +22,7 @@ import { useVolume } from "../lib/useVolume";
 import { useActiveProfile } from "../store/context";
 import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
 
-type View = "library" | "favorites" | "lists" | "goals" | "clubs";
+type View = "library" | "favorites" | "lists" | "goals" | "stats" | "clubs";
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
@@ -29,6 +30,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
   { id: "goals", label: "Goals" },
+  { id: "stats", label: "Stats" },
   { id: "clubs", label: "Clubs" },
 ];
 
@@ -76,6 +78,7 @@ export default function Library() {
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
       {view === "goals" && <GoalsView profile={profile} />}
+      {view === "stats" && <StatsView profile={profile} />}
       {view === "clubs" && <ClubsView profile={profile} />}
     </div>
   );

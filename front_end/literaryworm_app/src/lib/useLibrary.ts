@@ -17,11 +17,11 @@ export function useLibrary() {
   const remote = Boolean(state.account?.userId);
 
   /** Counts a newly finished book towards the active profile's goal (members: in Supabase too, in the background). */
-  function countFinished() {
+  function countFinished(bookId: string) {
     const day = today();
-    dispatch({ type: "finishedBook", day });
+    dispatch({ type: "finishedBook", day, bookId });
     if (remote && state.activeProfileId) {
-      recordReading(state.activeProfileId, day, 0, 1).catch((err: unknown) => console.error("goals: couldn't count a finished book", err));
+      recordReading(state.activeProfileId, day, 0, 1, 0, bookId).catch((err: unknown) => console.error("goals: couldn't count a finished book", err));
     }
   }
 
@@ -32,7 +32,7 @@ export function useLibrary() {
     } else {
       dispatch({ type: "addToLibrary", entry, status });
     }
-    if (status === "finished") countFinished();
+    if (status === "finished") countFinished(entry.bookId);
   }
 
   async function setStatus(bookId: string, status: ReadingStatus) {
@@ -40,7 +40,7 @@ export function useLibrary() {
     if (remote) await setLibraryStatus(bookId, status);
     dispatch({ type: "setReadingStatus", bookId, status });
     // Marking a book finished counts towards the profile's goal, like finishing it in the reader.
-    if (status === "finished" && !wasFinished) countFinished();
+    if (status === "finished" && !wasFinished) countFinished(bookId);
   }
 
   async function remove(bookId: string) {
