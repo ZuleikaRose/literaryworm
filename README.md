@@ -246,7 +246,7 @@ Your project will be assessed across these areas:
 | Path                                    | What it is                                                                                                                                                                    |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `front_end/literaryworm_app/`               | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/literaryworm_app/README.md) for routes and source layout.                        |
-| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`) and security tests. See [supabase/README.md](supabase/README.md). |
+| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`, `summaries`) and security tests. See [supabase/README.md](supabase/README.md). |
 | `schema.sql`                            | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table.                                                                           |
 | `drawsql.png`                           | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md).                                                                                                 |
 | `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from.                                                                                                                                |
@@ -258,7 +258,7 @@ Your project will be assessed across these areas:
 
 ### How the brief's hard parts are handled
 
-- **The API key never reaches the browser.** The front end calls only the `books` Edge Function (`front_end/literaryworm_app/src/lib/booksApi.ts`). The function adds `GOOGLE_BOOKS_API_KEY` from Supabase's function secrets; the key is in no file in this repo and no `VITE_` variable.
+- **The API key never reaches the browser.** The front end calls only the `books` Edge Function (`front_end/literaryworm_app/src/lib/booksApi.ts`). The function adds `GOOGLE_BOOKS_API_KEY` from Supabase's function secrets; the key is in no file in this repo and no `VITE_` variable. The Claude key for book summaries works the same way: only the `summaries` function holds it (`ANTHROPIC_API_KEY`).
 - **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode, title query 1–100 characters with no search operators, genre from the six, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
 - **Shaped responses and friendly failures.** Only the fields the UI shows, with https covers, plain-text descriptions and nulls for missing data. Google's 429s, errors and timeouts (8 s) become `{ error: { code, message } }`; the UI shows *We couldn't load …* with *Try again*.
 - **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
@@ -291,16 +291,17 @@ Create an account with **Sign up** to use the real backend: your library and log
 | `VITE_SUPABASE_URL`             | `front_end/literaryworm_app/.env.development.local`, Vercel | Yes                                                                   |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key)                           | Yes                                                                   |
 | `GOOGLE_BOOKS_API_KEY`          | Supabase → Edge Functions → Secrets only              | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
-| `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and the Vercel URL) |
+| `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and literaryworm.com) |
+| `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries` function to ask Claude. |
 
 ### Supabase
 
-Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the five Edge Functions are deployed. To set it up from scratch:
+Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the six Edge Functions are deployed. To set it up from scratch:
 
 ```bash
 supabase link --project-ref <ref>
 supabase db push
-supabase functions deploy books manage-profile checkout manage-account dictionary
+supabase functions deploy books manage-profile checkout manage-account dictionary summaries
 ```
 
 Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. `ALLOWED_ORIGINS` must include the Vercel URL as well as `http://localhost:5173`; without it the deployed site's book rows say "You seem to be offline".
@@ -309,7 +310,7 @@ If Google Books answers genre (`subject:`) or title (`intitle:`) queries with no
 
 ### Build progress
 
-Accounts, household profiles, libraries, logs, reading progress, bookmarks, highlights and notes, and each profile's favourites, ratings, custom lists and recent searches are saved in Supabase, and a member stays signed in after a refresh. The rest of the app's state (reader display settings, daily time used, and the whole demo household) is kept in memory, so a refresh resets it. Book lists and details come from the Edge Function.
+Accounts, household profiles, libraries, logs, reading progress, bookmarks, highlights and notes, and each profile's favourites, ratings, custom lists and recent searches are saved in Supabase, and a member stays signed in after a refresh. The rest of the app's state (reader display settings, daily time used, and the whole demo household) is kept in memory, so a refresh resets it. Book lists and details come from the `books` Edge Function, and book summaries (written once by Claude and kept) from the `summaries` function.
 
 
 | Phase | Scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Status  |
@@ -327,5 +328,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | 9     | Highlights in four colours with notes, saved to Supabase (`highlights`) and listed by chapter; dictionary through the `dictionary` Edge Function (Free Dictionary API, Wiktionary as fallback); read-along transcript in the player (follows the narration, English or Spanish, three sizes, settings in the accessibility menu); mini-player that keeps playing while browsing                                                                                                    | Done    |
 | 10    | Favourites, ratings, custom lists and recent searches saved per profile in Supabase; share a custom list by link (public page with only the name, description, profile name and titles)                                                                                                                                                                                                                                                                                            | Done    |
 | —    | Vercel deploy at www.literaryworm.com (Root Directory `front_end/literaryworm_app`); the site added to `ALLOWED_ORIGINS`; plain-words fallback in `books` when Google's genre and title filters return nothing | Done    |
+| 11   | Real narration for the 17 public-domain titles (LibriVox recordings, real chapters); a *Voice* list of the device's British, American and Australian English voices reading the full Project Gutenberg text (or sample text); short and detailed book summaries for members and the demo, written by Claude through the `summaries` Edge Function and kept in `book_summaries`; the app renamed LiteraryWorm; refresh works on every page; genre links open at the genre's books | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
