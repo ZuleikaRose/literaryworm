@@ -43,6 +43,11 @@ export type Action =
       collections: Record<string, Collections>;
       restored: boolean;
     }
+  /**
+   * A real account's progress, bookmarks and highlights, reloaded from Supabase (another device
+   * may have moved on). Places saved here since `since` (this device's clock) are newer, so they stay.
+   */
+  | { type: "syncReading"; reading: AccountReading; since: number }
   /** A real account's profiles, reloaded from Supabase after a change. */
   | { type: "setProfiles"; profiles: Profile[] }
   /** An in-memory account deleted itself. */
@@ -447,6 +452,15 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         logs: state.logs.filter((l) => !(l.id === action.id && l.profileId !== null && l.profileId === state.activeProfileId)),
       };
+
+    case "syncReading": {
+      if (!state.account?.userId) return state;
+      const progress = { ...action.reading.progress };
+      for (const [bookId, local] of Object.entries(state.accountReading.progress)) {
+        if (local.updatedAt >= action.since) progress[bookId] = local;
+      }
+      return { ...state, accountReading: { ...action.reading, progress } };
+    }
 
     case "saveProgress":
       return withReading(

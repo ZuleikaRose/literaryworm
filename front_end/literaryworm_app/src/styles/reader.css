@@ -239,6 +239,32 @@
   text-align: center;
 }
 
+.reader-elsewhere {
+  position: absolute;
+  z-index: 3;
+  top: 76px;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  max-width: min(600px, calc(100% - 32px));
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--paper-line, var(--line-strong));
+  border-radius: var(--radius);
+  color: var(--paper-ink, var(--ink));
+  background: var(--paper, var(--surface));
+  box-shadow: var(--shadow-float);
+  font-size: 0.875rem;
+  transform: translateX(-50%);
+}
+
+.reader-elsewhere p {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
 .reader-save-error {
   position: absolute;
   z-index: 3;

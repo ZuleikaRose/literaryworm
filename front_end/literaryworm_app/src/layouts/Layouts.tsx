@@ -6,12 +6,14 @@ import { MiniPlayer } from "../components/MiniPlayer";
 import { TabBar } from "../components/TabBar";
 import { usePlayback } from "../lib/playback";
 import { useAuthSync } from "../lib/useAuthSync";
+import { useReadingSync } from "../lib/useReadingSync";
 import { useActiveProfile, useStore } from "../store/context";
 
 /** Applies accessibility settings to <html>, resets scroll on navigation (or goes to #section) and follows Supabase Auth. */
 export function AppEffects() {
   const { state } = useStore();
   useAuthSync();
+  useReadingSync();
   const { pathname, hash } = useLocation();
   const { a11y } = state;
 

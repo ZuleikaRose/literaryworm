@@ -84,6 +84,9 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const [selectionBusy, setSelectionBusy] = useState(false);
   const [editing, setEditing] = useState<{ id: string; focusNote: boolean } | null>(null);
   const [dictionaryWord, setDictionaryWord] = useState("");
+  // The place this reader last opened at or saved. A different saved place means another device
+  // moved on (useReadingSync reloads it when the tab comes back), and the reader offers to go there.
+  const [ownFraction, setOwnFraction] = useState(() => reading.progress?.fraction ?? 0);
   const { visible, show } = useControlsVisibility(panel === null && !asking && !finished && !editing && !selection);
   const pageRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
@@ -182,6 +185,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
     clearSelection();
     pageRef.current?.scrollTo({ top: 0 });
     const target = pages[clamped];
+    setOwnFraction(pageFraction(clamped, total));
     reading.save({ format: "ebook", fraction: pageFraction(clamped, total), chapterIndex: target.chapterIndex });
   };
 
@@ -191,6 +195,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const finish = () => {
     setAsking(false);
     setFinished(true);
+    setOwnFraction(1);
     reading.save({ format: "ebook", fraction: 1, chapterIndex: book.chapters.length - 1, finished: true });
   };
 
@@ -252,6 +257,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
     "--reader-measure": MEASURES[settings.margins],
   } as CSSProperties;
   const percent = Math.round(pageFraction(index, total) * 100);
+  // Saved places are rounded to four decimals, so a difference smaller than that is this reader's own.
+  const elsewhere = reading.progress && !finished && Math.abs(reading.progress.fraction - ownFraction) > 0.0001 ? reading.progress : null;
   const isHereMarked = reading.bookmarks.some((b) => b.format === "ebook" && pageForFraction(b.fraction, total) === index);
 
   return (
@@ -305,6 +312,27 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         <p className="reader-save-error" role="alert">
           <Icon name="alert" size={15} /> {reading.saveError}
         </p>
+      )}
+
+      {elsewhere && (
+        <div className="reader-elsewhere" role="status">
+          <p>
+            On another device you {elsewhere.format === "ebook" ? "read" : "listened"} to{" "}
+            {elsewhere.finished ? "the end" : `${book.chapters[elsewhere.chapterIndex]?.title ?? "later on"} (${Math.round(elsewhere.fraction * 100)}%)`}.
+          </p>
+          <button
+            type="button"
+            className="primary-button small-button"
+            onClick={() =>
+              goTo(elsewhere.format === "ebook" || elsewhere.finished ? pageForFraction(elsewhere.fraction, total) : (starts[elsewhere.chapterIndex] ?? 0))
+            }
+          >
+            Go there
+          </button>
+          <button type="button" className="ghost-button small-button" onClick={() => setOwnFraction(elsewhere.fraction)}>
+            Stay here
+          </button>
+        </div>
       )}
 
       <main className="reader-stage">

@@ -101,6 +101,15 @@ export function useReading(book: Book, profileId?: string) {
     );
   }, [ensureInLibrary]);
 
+  // Leaving the tab saves the place straight away, so another device opened next finds it.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flush();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, [flush]);
+
   // Leaving the reader saves the last place straight away.
   useEffect(
     () => () => {
