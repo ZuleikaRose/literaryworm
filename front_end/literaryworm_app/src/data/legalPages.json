@@ -87,37 +87,94 @@
   {
     "slug": "cookies",
     "title": "Cookie Policy",
-    "summary": "LiteraryWorm doesn't use cookies for advertising or tracking, and sets none of its own. This page lists what the app does keep in your browser, and why.",
+    "summary": "This Cookie Policy explains how LiteraryWorm (\"Company,\" \"we,\" \"us,\" and \"our\") uses cookies and similar technologies to recognize you when you visit our website at https://www.literaryworm.com (\"Website\"). It explains what these technologies are and why we use them, as well as your rights to control our use of them.",
     "updated": "2026-10-28",
     "sections": [
       {
-        "heading": "Cookies",
+        "heading": "About this policy",
         "paragraphs": [
-          "LiteraryWorm sets no cookies. We don't use advertising, analytics or tracking cookies, and we don't let advertisers or social networks place them through our pages.",
+          "In some cases we may use cookies to collect personal information, or that becomes personal information if we combine it with other information."
+        ]
+      },
+      {
+        "heading": "What are cookies?",
+        "paragraphs": [
+          "Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners in order to make their websites work, or to work more efficiently, as well as to provide reporting information.",
+          "Cookies set by the website owner (in this case, LiteraryWorm) are called \"first-party cookies.\" Cookies set by parties other than the website owner are called \"third-party cookies.\" Third-party cookies enable third-party features or functionality to be provided on or through the website (e.g., advertising, interactive content, and analytics). The parties that set these third-party cookies can recognize your computer both when it visits the website in question and also when it visits certain other websites."
+        ]
+      },
+      {
+        "heading": "Why do we use cookies?",
+        "paragraphs": [
+          "Some cookies are required for technical reasons in order for our Website to operate, and we refer to these as \"essential\" or \"strictly necessary\" cookies. LiteraryWorm uses only essential cookies and similar technologies. We don't use cookies to track or target your interests, and we don't let third parties serve cookies through our Website for advertising or analytics. This is described in more detail below."
+        ]
+      },
+      {
+        "heading": "How can I control cookies?",
+        "paragraphs": [
+          "You have the right to decide whether to accept or reject cookies. Essential cookies cannot be rejected as they are strictly necessary to provide you with services.",
+          "Because we use only essential cookies, there is no cookie notification banner or Cookie Preference Center at the moment. If we ever add cookies that aren't essential, we'll ask for your choice first, in a Cookie Preference Center, and update this page.",
+          "You may also set or amend your web browser controls to accept or refuse cookies. If you choose to reject cookies, you may still use our Website though your access to some functionality and areas of our Website may be restricted.",
+          "The specific types of first- and third-party cookies served through our Website and the purposes they perform are described below (please note that the specific cookies served may vary depending on the specific Online Properties you visit)."
+        ]
+      },
+      {
+        "heading": "Essential website cookies",
+        "paragraphs": [
+          "These cookies are strictly necessary to provide you with services available through our Website and to use some of its features, such as access to secure areas.",
+          "__cf_bm. Purpose: Cloudflare places the cookie on end-user devices that access customer sites protected by Bot Management or Bot Fight Mode. Provider: .supabase.co (our backend, Supabase, which is protected by Cloudflare). Service: Cloudflare (see Cloudflare's privacy policy). Type: server cookie. Expires in: 30 minutes.",
           "Some book covers from Google Books, and the audiobook recordings streamed from the Internet Archive, load from those services. When your browser fetches them, those services may set or read their own cookies under their own policies. Blocking third-party cookies in your browser doesn't stop LiteraryWorm working."
         ]
       },
       {
-        "heading": "What we keep in your browser",
+        "heading": "Similar technologies: what we keep in your browser",
         "paragraphs": [
           "Signed in: when you log in, your browser keeps your sign-in session (in local storage, under literaryworm-session) so you stay signed in after a refresh. It's strictly necessary for your account to work, and it's removed when you log out.",
           "The app itself: so LiteraryWorm opens quickly and without a connection, your browser keeps a copy of the app's own files (its pages, code, icons and app manifest). This holds nothing about you.",
           "Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page.",
           "Books you upload: once you've opened one, its text is kept on that device so it keeps working if your connection drops. It's removed when you delete the book or log out.",
-          "Everything else, such as reader settings, playback speed, the demo household and uploads made in the demo, stays in the open tab only and is gone when you refresh or close it."
-        ]
-      },
-      {
-        "heading": "What's saved with your account instead",
-        "paragraphs": [
+          "Everything else, such as reader settings, playback speed, the demo household and uploads made in the demo, stays in the open tab only and is gone when you refresh or close it.",
           "Your library, reading progress, bookmarks, highlights, lists, ratings, reading time, player settings, club activity and uploaded books are saved with your account on our servers (Supabase), not in browser cookies. The Privacy Policy says how we use them, and Account lets you download or delete them."
         ]
       },
       {
-        "heading": "Your choices",
+        "heading": "Do my choices apply on all my devices?",
         "paragraphs": [
-          "Because LiteraryWorm uses only what's strictly necessary, there's nothing to opt into and no cookie banner. You can clear what's kept at any time in your browser's site settings; you'll be signed out, and books saved for offline will need saving again. Notifications and installing the app as an app are always your choice, asked for by your browser.",
-          "If this changes, for example if we ever add optional cookies, we'll ask you first and update this page."
+          "No. Cookie settings you make in your browser, and anything you clear there, apply to that browser on that device only. You'll need to make them again on a different device or browser, and a private or incognito window deletes what it kept when you close it.",
+          "Clearing LiteraryWorm's site data signs you out, and books saved for offline will need saving again."
+        ]
+      },
+      {
+        "heading": "How can I control cookies on my browser?",
+        "paragraphs": [
+          "As the means by which you can refuse cookies through your web browser controls vary from browser to browser, you should visit your browser's help menu for more information. This applies to the most popular browsers: Chrome, Internet Explorer, Firefox, Safari, Edge and Opera.",
+          "In addition, most advertising networks offer you a way to opt out of targeted advertising. If you would like to find out more information, please visit the Digital Advertising Alliance, the Digital Advertising Alliance of Canada or the European Interactive Digital Advertising Alliance."
+        ]
+      },
+      {
+        "heading": "What about other tracking technologies, like web beacons?",
+        "paragraphs": [
+          "Cookies are not the only way to recognize or track visitors to a website. Web beacons (sometimes called \"tracking pixels\" or \"clear gifs\") are tiny graphics files that contain a unique identifier that lets a website recognize when someone has visited it or opened an email including them.",
+          "LiteraryWorm doesn't use web beacons or tracking pixels on the Website or in its emails."
+        ]
+      },
+      {
+        "heading": "Do you serve targeted advertising?",
+        "paragraphs": [
+          "No. We don't serve advertising on our Website, and we don't allow third parties to place cookies or web beacons on your computer or mobile device through our Website to serve or measure advertising."
+        ]
+      },
+      {
+        "heading": "How often will you update this Cookie Policy?",
+        "paragraphs": [
+          "We may update this Cookie Policy from time to time in order to reflect, for example, changes to the cookies we use or for other operational, legal, or regulatory reasons. Please therefore revisit this Cookie Policy regularly to stay informed about our use of cookies and related technologies.",
+          "The date at the top of this Cookie Policy indicates when it was last updated."
+        ]
+      },
+      {
+        "heading": "Where can I get further information?",
+        "paragraphs": [
+          "If you have any questions about our use of cookies or other technologies, please email us at support@literaryworm.com."
         ]
       }
     ]
