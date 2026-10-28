@@ -2019,3 +2019,308 @@ create index concurrently if not exists uploaded_books_profile_id_user_id_idx on
 -- =============================================================================
 -- RLS on uploaded_books filters on user_id; the app loads an account's uploads by it.
 create index concurrently if not exists uploaded_books_user_id_idx on public.uploaded_books (user_id);
+
+-- =============================================================================
+-- 20261028001700_legal_pages.sql
+-- =============================================================================
+-- Staff roles, and editable legal pages (Phase 22).
+--
+-- staff_roles gives accounts access beyond being a member: admin (everything,
+-- including granting roles), editor (the legal pages), and developer, billing,
+-- customer_service and blog (recorded for the tools that will use them). An
+-- account can hold several. Roles are granted and removed only by admins,
+-- through grant_staff_role() and revoke_staff_role(); a role granted to an
+-- email with no account yet waits in staff_invites and is applied when that
+-- email signs up. A member sees only their own roles; admins see the team
+-- through staff_members().
+--
+-- legal_pages holds the live copy of each footer page (Terms, Privacy,
+-- Cookies, Copyright/DMCA, Accessibility, Children's Privacy, Privacy Choices,
+-- Help, Status): anyone reads them; editors and admins change a page's title,
+-- summary and sections. Each change stamps who made it and when and keeps the
+-- page as it was in legal_page_revisions. Pages aren't added or removed from
+-- the browser: the set is fixed with the footer.
+
+create type public.staff_role as enum ('admin', 'developer', 'editor', 'billing', 'customer_service', 'blog');
+
+create table public.staff_roles (
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  role       public.staff_role not null,
+  granted_at timestamptz not null default now(),
+  granted_by uuid references auth.users (id) on delete set null,
+  primary key (user_id, role)
+);
+
+-- Roles for emails that haven't signed up yet.
+create table public.staff_invites (
+  email      text not null check (email = lower(btrim(email)) and char_length(email) between 3 and 320),
+  role       public.staff_role not null,
+  invited_at timestamptz not null default now(),
+  invited_by uuid references auth.users (id) on delete set null,
+  primary key (email, role)
+);
+
+alter table public.staff_roles enable row level security;
+alter table public.staff_invites enable row level security;
+create policy "Members see their own roles" on public.staff_roles for select to authenticated
+  using (user_id = (select auth.uid()));
+-- No browser access to staff_invites: admins reach it through the functions below.
+revoke all on public.staff_roles, public.staff_invites from anon, authenticated;
+grant select on public.staff_roles to authenticated;
+
+-- True when the caller holds the role, or is an admin (admins can do everything).
+-- SECURITY INVOKER: it reads the caller's own rows.
+create function public.has_staff_role(p_role public.staff_role)
+returns boolean
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.staff_roles
+    where user_id = (select auth.uid()) and role in (p_role, 'admin')
+  );
+$$;
+revoke execute on function public.has_staff_role(public.staff_role) from public, anon;
+grant execute on function public.has_staff_role(public.staff_role) to authenticated;
+
+-- The team, for admins: every account with a role, and every waiting invitation.
+-- SECURITY DEFINER because it reads emails from auth.users; it checks the caller
+-- is an admin first.
+create function public.staff_members()
+returns table (user_id uuid, email text, display_name text, roles public.staff_role[], invited boolean)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.has_staff_role('admin') then
+    raise exception 'Only admins can see the team' using errcode = 'insufficient_privilege';
+  end if;
+  return query
+    select s.user_id, lower(u.email)::text, p.display_name, array_agg(s.role order by s.role), false
+      from public.staff_roles s
+      join auth.users u on u.id = s.user_id
+      left join public.profiles p on p.id = s.user_id
+     group by s.user_id, u.email, p.display_name
+    union all
+    select null::uuid, i.email, null::text, array_agg(i.role order by i.role), true
+      from public.staff_invites i
+     group by i.email
+     order by 2;
+end;
+$$;
+
+-- Gives an account a role, by email. With no account for that email yet, the
+-- role waits as an invitation. Returns 'granted' or 'invited'. Admins only.
+create function public.grant_staff_role(p_email text, p_role public.staff_role)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_email text := lower(btrim(p_email));
+  v_user uuid;
+begin
+  if not public.has_staff_role('admin') then
+    raise exception 'Only admins can grant access' using errcode = 'insufficient_privilege';
+  end if;
+  if v_email !~ '^[^@\s]+@[^@\s]+$' then
+    raise exception 'That isn''t an email address' using errcode = 'check_violation';
+  end if;
+  select id into v_user from auth.users where lower(email) = v_email;
+  if v_user is null then
+    insert into public.staff_invites (email, role, invited_by) values (v_email, p_role, (select auth.uid()))
+    on conflict do nothing;
+    return 'invited';
+  end if;
+  insert into public.staff_roles (user_id, role, granted_by) values (v_user, p_role, (select auth.uid()))
+  on conflict do nothing;
+  return 'granted';
+end;
+$$;
+
+-- Takes a role away (or withdraws an invitation, by email). Admins only; the
+-- last admin can't be removed, so the team can't lock itself out.
+create function public.revoke_staff_role(p_email text, p_role public.staff_role)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_email text := lower(btrim(p_email));
+  v_user uuid;
+begin
+  if not public.has_staff_role('admin') then
+    raise exception 'Only admins can remove access' using errcode = 'insufficient_privilege';
+  end if;
+  delete from public.staff_invites where email = v_email and role = p_role;
+  select id into v_user from auth.users where lower(email) = v_email;
+  if v_user is null then
+    return;
+  end if;
+  if p_role = 'admin' and (select count(*) from public.staff_roles where role = 'admin') <= 1
+     and exists (select 1 from public.staff_roles where user_id = v_user and role = 'admin') then
+    raise exception 'LiteraryWorm needs at least one admin' using errcode = 'check_violation';
+  end if;
+  delete from public.staff_roles where user_id = v_user and role = p_role;
+end;
+$$;
+
+revoke execute on function public.staff_members(), public.grant_staff_role(text, public.staff_role), public.revoke_staff_role(text, public.staff_role) from public, anon;
+grant execute on function public.staff_members(), public.grant_staff_role(text, public.staff_role), public.revoke_staff_role(text, public.staff_role) to authenticated;
+
+-- A new account picks up any roles waiting for its email.
+create function private.apply_staff_invites()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.staff_roles (user_id, role, granted_by)
+  select new.id, i.role, i.invited_by from public.staff_invites i where i.email = lower(new.email)
+  on conflict do nothing;
+  delete from public.staff_invites where email = lower(new.email);
+  return new;
+end;
+$$;
+revoke execute on function private.apply_staff_invites() from public, anon, authenticated;
+
+create trigger apply_staff_invites
+  after insert on auth.users
+  for each row execute function private.apply_staff_invites();
+
+create table public.legal_pages (
+  slug       text primary key check (slug ~ '^[a-z][a-z0-9-]{1,39}$'),
+  position   smallint not null check (position between 0 and 99),
+  title      text not null check (char_length(btrim(title)) between 1 and 80),
+  summary    text not null check (char_length(btrim(summary)) between 1 and 600),
+  -- Each section's shape is checked by the edit trigger below.
+  sections   jsonb not null default '[]' check (jsonb_typeof(sections) = 'array' and octet_length(sections::text) <= 200000),
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users (id) on delete set null
+);
+
+create table public.legal_page_revisions (
+  id        uuid primary key default gen_random_uuid(),
+  slug      text not null references public.legal_pages (slug) on delete cascade,
+  title     text not null,
+  summary   text not null,
+  sections  jsonb not null,
+  -- When this version was replaced, and by whom.
+  replaced_at timestamptz not null default now(),
+  replaced_by uuid references auth.users (id) on delete set null
+);
+
+alter table public.legal_pages enable row level security;
+alter table public.legal_page_revisions enable row level security;
+
+create policy "Anyone reads the legal pages" on public.legal_pages for select to anon, authenticated
+  using (true);
+create policy "Editors edit the legal pages" on public.legal_pages for update to authenticated
+  using ((select public.has_staff_role('editor'))) with check ((select public.has_staff_role('editor')));
+create policy "Editors read earlier versions" on public.legal_page_revisions for select to authenticated
+  using ((select public.has_staff_role('editor')));
+create policy "Edits record earlier versions" on public.legal_page_revisions for insert to authenticated
+  with check ((select public.has_staff_role('editor')) and replaced_by = (select auth.uid()));
+
+revoke all on public.legal_pages, public.legal_page_revisions from anon, authenticated;
+grant select on public.legal_pages to anon, authenticated;
+grant update (title, summary, sections) on public.legal_pages to authenticated;
+grant select on public.legal_page_revisions to authenticated;
+grant insert (slug, title, summary, sections, replaced_by) on public.legal_page_revisions to authenticated;
+
+-- Each edit: check the sections, keep the page as it was, then stamp who
+-- changed it and when. (The check is here rather than in a constraint so it
+-- runs without editors needing the private schema.)
+create function private.record_legal_edit()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  -- An array of up to 40 { heading, paragraphs[] }: a heading of 1-120 characters and 1-60
+  -- paragraphs of 1-5000 characters each.
+  if jsonb_array_length(new.sections) > 40 or exists (
+    select 1 from jsonb_array_elements(new.sections) sec
+    where jsonb_typeof(sec) <> 'object'
+       or jsonb_typeof(sec -> 'heading') is distinct from 'string'
+       or char_length(btrim(sec ->> 'heading')) not between 1 and 120
+       or jsonb_typeof(sec -> 'paragraphs') is distinct from 'array'
+       or jsonb_array_length(sec -> 'paragraphs') not between 1 and 60
+       or exists (
+         select 1 from jsonb_array_elements(sec -> 'paragraphs') para
+         where jsonb_typeof(para) <> 'string' or char_length(btrim(para #>> '{}')) not between 1 and 5000
+       )
+  ) then
+    raise exception 'Each section needs a heading (up to 120 characters) and 1 to 60 paragraphs of up to 5000 characters; up to 40 sections'
+      using errcode = 'check_violation';
+  end if;
+  if (new.title, new.summary, new.sections) is not distinct from (old.title, old.summary, old.sections) then
+    return new;
+  end if;
+  insert into public.legal_page_revisions (slug, title, summary, sections, replaced_by)
+  values (old.slug, old.title, old.summary, old.sections, (select auth.uid()));
+  new.updated_at := now();
+  new.updated_by := (select auth.uid());
+  return new;
+end;
+$$;
+revoke execute on function private.record_legal_edit() from public, anon, authenticated;
+
+create trigger legal_pages_record_edit
+  before update on public.legal_pages
+  for each row execute function private.record_legal_edit();
+
+-- =============================================================================
+-- 20261028001701_index_legal_pages_updated_by.sql
+-- =============================================================================
+-- Index for the foreign key on legal_pages (updated_by).
+create index concurrently if not exists legal_pages_updated_by_idx on public.legal_pages (updated_by);
+
+-- =============================================================================
+-- 20261028001702_index_legal_page_revisions_slug.sql
+-- =============================================================================
+-- Index for the foreign key on legal_page_revisions (slug).
+create index concurrently if not exists legal_page_revisions_slug_idx on public.legal_page_revisions (slug, replaced_at);
+
+-- =============================================================================
+-- 20261028001703_index_legal_page_revisions_replaced_by.sql
+-- =============================================================================
+-- Index for the foreign key on legal_page_revisions (replaced_by).
+create index concurrently if not exists legal_page_revisions_replaced_by_idx on public.legal_page_revisions (replaced_by);
+
+-- =============================================================================
+-- 20261028001704_seed_legal_pages.sql
+-- =============================================================================
+-- The legal pages' first copy, from the app's built-in text (generated by
+-- supabase/build-legal-seed.py; don't edit by hand). Admins edit them afterwards.
+
+insert into public.legal_pages (slug, position, title, summary, sections) values
+  ($lw$accessibility$lw$, 0, $lw$Accessibility Policy$lw$, $lw$LiteraryWorm aims to meet the Web Content Accessibility Guidelines (WCAG) 2.2 at level AA, so everyone at home can read and listen. This page says what we've built in, what we know isn't perfect yet, and how to tell us about a problem.$lw$, $lw$[{"heading": "What's built in", "paragraphs": ["The accessibility menu at the top of every page changes text size, theme (dark or light), an easier-to-read font, high contrast, underlined links and reduced motion. Your choices last for the visit.", "Every page works with a keyboard alone, and the player has keyboard shortcuts, listed under its controls. Buttons and links are at least 44 pixels square, focus is always visible, and dialogs keep focus inside them and return it when they close.", "Screen readers hear labelled controls, headings that outline each page, and announcements when something changes, such as a saved setting or a new club post. Pictures that carry meaning, like shared quote cards, have text alternatives; decorative covers are hidden from screen readers and their titles are always written nearby.", "In the reader you can choose the font, size, spacing, margins and theme. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration."]}, {"heading": "What we know isn't perfect yet", "paragraphs": ["The read-along transcript for some titles is sample text rather than the exact recording, and is hidden while a real recording plays.", "Book details and covers from Google Books, and the LibriVox recordings, come from other services; we can't always fix problems in their content.", "Books you upload show their text only; images and tables in the original EPUB aren't shown."]}, {"heading": "How we check", "paragraphs": ["Every change is tested with a keyboard, at phone and desktop sizes, and with automated accessibility checks (Lighthouse accessibility scores of 100) before it's released."]}, {"heading": "Tell us about a problem", "paragraphs": ["If something is hard to use with your setup, tell us what you were trying to do, which page it was on, and the browser and assistive technology you use. We aim to reply within five working days and to fix problems that block reading or listening first. Contact details are on the Help page."]}]$lw$::jsonb),
+  ($lw$privacy$lw$, 1, $lw$Privacy Policy$lw$, $lw$What we collect, why we collect it, who helps us run the service, how long we keep it, and how to download or delete it. We don't sell or license your personal information to anyone.$lw$, $lw$[{"heading": "What we collect", "paragraphs": ["Your account: your email address, display name, date of birth (to confirm you're 18 or over), whether you'd like marketing emails, when you accepted the Terms, and your plan. Your password is handled by our sign-in provider; we never see it.", "Your household: each profile's name, avatar, age rating, favourite genres, daily limit and player settings. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent.", "Your reading: your library, reading progress, bookmarks, highlights and notes, ratings, favourites and lists, recent searches, reading goals, time read and listened each day, and the books you finish.", "Things you share or add: reading logs (public, with your display name), book club posts (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text only).", "Devices: while you're signed in, a short label for each open copy of the app (such as “Chrome on Windows”) so you can send a book to another device."]}, {"heading": "Who helps us run LiteraryWorm", "paragraphs": ["Supabase stores the data above and runs our server functions. Vercel hosts the website. Neither may use your data for their own purposes.", "Anthropic (Claude) writes book summaries, and answers Ask the book questions. For Ask the book, we send your question and the book's public-domain text up to your chapter; we don't send your name, email or account details.", "Google Books answers searches and book details through our server, which sends only the search words and book ids, never who's asking. LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser."]}, {"heading": "Licensing and selling your information", "paragraphs": ["We don't sell, rent or license your personal information, and we don't share it for advertising. We use it only to run LiteraryWorm for you.", "Content you post (reading logs and club posts) stays yours. The Terms of Service explain the limited licence you give us to show it where you posted it.", "We don't use your reading history, notes, uploads or posts to train AI models."]}, {"heading": "How long we keep it", "paragraphs": ["We keep your data while your account is open. Deleting a profile deletes its data, including its uploaded books. Deleting your account deletes everything at once, including your uploads; public logs and club posts go with it.", "To protect the service from abuse, we keep short-lived counts of requests, keyed by a one-way hash of your account or network address, and clear them within a day."]}, {"heading": "Your choices and rights", "paragraphs": ["In Account you can download a copy of your data, change your display name and marketing emails, and delete profiles or your whole account. You can remove any log, post, highlight or upload yourself.", "We honour Global Privacy Control. Children's data is covered by the Children's Privacy Notice, and what we keep in your browser by the Cookie Policy."]}]$lw$::jsonb),
+  ($lw$cookies$lw$, 2, $lw$Cookie Policy$lw$, $lw$LiteraryWorm doesn't use cookies for advertising or tracking, and sets none of its own. This page lists what the app does keep in your browser, and why.$lw$, $lw$[{"heading": "Cookies", "paragraphs": ["LiteraryWorm sets no cookies. We don't use advertising, analytics or tracking cookies, and we don't let advertisers or social networks place them through our pages.", "Some book covers from Google Books, and the audiobook recordings streamed from the Internet Archive, load from those services. When your browser fetches them, those services may set or read their own cookies under their own policies. Blocking third-party cookies in your browser doesn't stop LiteraryWorm working."]}, {"heading": "What we keep in your browser", "paragraphs": ["Signed in: when you log in, your browser keeps your sign-in session (in local storage, under literaryworm-session) so you stay signed in after a refresh. It's strictly necessary for your account to work, and it's removed when you log out.", "The app itself: so LiteraryWorm opens quickly and without a connection, your browser keeps a copy of the app's own files (its pages, code, icons and app manifest). This holds nothing about you.", "Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page.", "Books you upload: once you've opened one, its text is kept on that device so it keeps working if your connection drops. It's removed when you delete the book or log out.", "Everything else, such as reader settings, playback speed, the demo household and uploads made in the demo, stays in the open tab only and is gone when you refresh or close it."]}, {"heading": "What's saved with your account instead", "paragraphs": ["Your library, reading progress, bookmarks, highlights, lists, ratings, reading time, player settings, club activity and uploaded books are saved with your account on our servers (Supabase), not in browser cookies. The Privacy Policy says how we use them, and Account lets you download or delete them."]}, {"heading": "Your choices", "paragraphs": ["Because LiteraryWorm uses only what's strictly necessary, there's nothing to opt into and no cookie banner. You can clear what's kept at any time in your browser's site settings; you'll be signed out, and books saved for offline will need saving again. Notifications and installing the app as an app are always your choice, asked for by your browser.", "If this changes, for example if we ever add optional cookies, we'll ask you first and update this page."]}]$lw$::jsonb),
+  ($lw$childrens-privacy$lw$, 3, $lw$Children's Privacy Notice$lw$, $lw$For parents and guardians: what a Kids profile collects, why, who can see it, and how you stay in control. Kids profiles collect only what the service needs, and only after you consent.$lw$, $lw$[{"heading": "Your consent comes first", "paragraphs": ["Only the account holder, who must be 18 or older, can create a Kids profile or move a profile to Kids, and only after reading this notice and confirming with the account password. We keep a record of that consent: when it was given, how, and which version of this notice it was for."]}, {"heading": "What a Kids profile collects", "paragraphs": ["The profile's first name or nickname and avatar, its age rating and any daily reading limit you set, and its reading: the books in its library, where it is in each book, bookmarks, highlights and notes, ratings, favourites and lists, reading time and goals.", "We don't ask a child for their email, full name, address, photo, location or any other contact details."]}, {"heading": "What a Kids profile can't do", "paragraphs": ["Kids profiles see only books rated for children. They can't write public reading logs, join or start book clubs, share lists by link, upload books, ask the book's AI assistant, make purchases or change account settings. A grown-up's password is needed to open Account or to allow extra time past a daily limit."]}, {"heading": "Who sees it", "paragraphs": ["A Kids profile's reading is private to your account. It isn't shown to other members, isn't used for advertising, and is never sold, rented or licensed. Our hosting providers (Supabase and Vercel) store it only to run LiteraryWorm for you."]}, {"heading": "Your choices as a parent", "paragraphs": ["From Account you can see and download the profile's data, change its limits, add a PIN to other profiles so a child can't open them, move the profile to another age rating, or delete it, which deletes everything it collected. You can withdraw consent at any time by deleting the profile."]}]$lw$::jsonb),
+  ($lw$privacy-choices$lw$, 4, $lw$Your Privacy Choices$lw$, $lw$LiteraryWorm doesn't sell or share personal information for advertising and uses no non-essential cookies (see the Cookie Policy), so there's nothing to opt out of there. Global Privacy Control is honoured. Here are the choices you do have.$lw$, $lw$[{"heading": "Selling and sharing", "paragraphs": ["We don't sell, rent or license your personal information, and we don't share it for cross-context behavioural advertising. If your browser sends a Global Privacy Control signal, we treat it as a request to opt out, and nothing changes because we already don't do either."]}, {"heading": "Cookies and browser storage", "paragraphs": ["We set no cookies of our own and no advertising or analytics cookies. The Cookie Policy lists the strictly necessary things your browser keeps, such as your sign-in session, and how to clear them."]}, {"heading": "Emails and notifications", "paragraphs": ["Turn emails about new releases and offers on or off in Account → Preferences. Service emails, like password resets, always arrive. Book club alerts can be turned off for each club on its page, and browser notifications only appear if you allow them."]}, {"heading": "Your data", "paragraphs": ["In Account you can download a copy of your data, correct your display name, and delete profiles or your whole account. Reading logs, club posts, highlights and uploads can each be deleted whenever you like. The Privacy Policy explains what we keep and for how long."]}]$lw$::jsonb),
+  ($lw$terms$lw$, 5, $lw$Terms of Service$lw$, $lw$The agreement between you and LiteraryWorm: who can have an account, how membership works, what you may do with the books, who owns what, and the licence you give us for what you post.$lw$, $lw$[{"heading": "Your account", "paragraphs": ["Account holders must be 18 or older. You may add profiles for people in your household, including Kids profiles with your consent, and you're responsible for how they're used.", "Keep your password private. You can change it, and delete your account, from Account at any time."]}, {"heading": "Membership", "paragraphs": ["Plans renew automatically each month until you cancel, which you can do online at any time; reading continues until the end of the period you've paid for. You can pause and resume from Account.", "LiteraryWorm is currently a demonstration: choosing a plan saves it to your account, but no payment is taken."]}, {"heading": "Your licence to read and listen", "paragraphs": ["While your membership is active, we give you a personal, non-exclusive, non-transferable, revocable licence to read and listen to the books in LiteraryWorm for your own and your household's non-commercial use, in the app.", "You may not copy, sell, share, broadcast or publicly perform the books, remove or get around any protection on them, or use them to train AI models. Books saved for offline reading stay in the app on your device.", "This licence doesn't apply to public-domain works themselves, which anyone may use freely; it covers our app, our edition and our service."]}, {"heading": "Who owns the books and the app", "paragraphs": ["Public-domain titles: the texts come from Project Gutenberg and the recordings from LibriVox, whose volunteers release their recordings into the public domain. These works are in the public domain in the United States; they may not be everywhere, so check your country's rules before using them outside LiteraryWorm.", "Other LiteraryWorm titles show sample pages, not the published books. Book details and covers from Google Books belong to their publishers and rights holders and are shown under Google's terms.", "Summaries and Ask the book answers are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.", "The LiteraryWorm name, logo, design and software belong to LiteraryWorm. Using the service doesn't give you any rights in them beyond these Terms."]}, {"heading": "What you post, and the licence you give us", "paragraphs": ["You own what you write: reading logs, club posts, list names and descriptions, notes and highlights.", "So we can run the features you use, you give LiteraryWorm a worldwide, non-exclusive, royalty-free licence to store, copy and display what you post, only where and to whom you posted it (logs on the book's public page with your display name, club posts to the club, shared lists to anyone with the link). The licence ends when you delete the content or your account, except for copies already made by others, such as someone else's screenshot.", "Notes, highlights and private lists are never shown to anyone else."]}, {"heading": "Books you upload", "paragraphs": ["Upload only books you have the right to read in this way, such as DRM-free books you've bought or works in the public domain. Don't upload books you don't have rights to, and don't remove DRM to upload them.", "Your uploads stay private to the profile that added them. We store their text only to show it to you, claim no rights in them, and delete them when you do or when you delete the profile or account."]}, {"heading": "Rules, changes and ending", "paragraphs": ["Don't post anything unlawful, hateful, harassing or infringing, impersonate others, spam clubs, or try to break or overload the service. We may remove content that breaks these rules and suspend accounts that keep doing so, including repeat copyright infringers (see Copyright/DMCA).", "LiteraryWorm is provided as is. We'll tell you before changing these Terms in ways that matter, and you can cancel or delete your account at any time."]}]$lw$::jsonb),
+  ($lw$copyright$lw$, 6, $lw$Copyright/DMCA$lw$, $lw$How LiteraryWorm respects copyright, which works are in the public domain, and how a rights holder can report content they believe infringes, under the Digital Millennium Copyright Act (DMCA).$lw$, $lw$[{"heading": "Our books and their licences", "paragraphs": ["Public-domain titles use texts from Project Gutenberg and recordings from LibriVox, which LibriVox volunteers release into the public domain. These works are in the public domain in the United States, where LiteraryWorm operates. Our copies leave out Project Gutenberg's own header, footer and licence text.", "Other titles show sample pages written for LiteraryWorm, not the published books, and book details and covers come from Google Books under Google's terms.", "If you believe any of this is wrong, for example that a work isn't in the public domain, tell us using the steps below and we'll look into it promptly."]}, {"heading": "What people post or upload", "paragraphs": ["Reading logs, club posts and shared lists are written by members, who keep their rights in them. Books members upload are private to their own profile and aren't shown to anyone else; members must have the right to read them that way (see the Terms of Service)."]}, {"heading": "Reporting infringement", "paragraphs": ["If you believe something on LiteraryWorm infringes your copyright, send our designated agent a written notice that includes: your physical or electronic signature; the work you believe is infringed; the material on LiteraryWorm you want removed and where it is (a link helps); your name, address, phone number and email; a statement that you believe in good faith the use isn't authorised by the copyright owner, its agent or the law; and a statement, under penalty of perjury, that the notice is accurate and that you are, or are authorised to act for, the owner.", "Our designated agent's name, postal address, phone number and email, as registered with the U.S. Copyright Office, will be listed here before launch.", "We remove or disable access to the material, tell the member who posted it, and keep a record of the notice."]}, {"heading": "Counter-notices", "paragraphs": ["If your content was removed and you believe that was a mistake or that you had the right to post it, you may send a counter-notice with: your signature; what was removed and where it was; a statement, under penalty of perjury, that you believe in good faith it was removed by mistake or misidentification; your name, address and phone number; and your consent to the jurisdiction of the federal court for your address (or, outside the United States, any district where LiteraryWorm may be found) and to accept service from the person who sent the notice.", "We forward it to the person who sent the notice and may restore the content in 10 to 14 business days unless they tell us they've filed a court action."]}, {"heading": "Repeat infringers and false claims", "paragraphs": ["We close the accounts of members who repeatedly infringe copyright.", "Knowingly misrepresenting that material infringes, or that it was removed by mistake, can make you liable for damages under the DMCA, so please be sure before you send a notice or counter-notice."]}]$lw$::jsonb),
+  ($lw$help$lw$, 7, $lw$Help$lw$, $lw$Answers to common questions about reading, listening, your library and your account, and how to report a problem.$lw$, $lw$[{"heading": "Where do the books come from?", "paragraphs": ["LiteraryWorm uses the Google Books API to show book details and covers when you browse and search, so you can find almost any book, save it to your library and write about it.", "The books you can read and listen to in full are public-domain classics: texts from Project Gutenberg and recordings from LibriVox. Other LiteraryWorm titles show sample pages."]}, {"heading": "Can I read my own books?", "paragraphs": ["Yes. In My Library → Uploads, add an EPUB you own that has no DRM. For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.", "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service)."]}, {"heading": "Reading and listening", "paragraphs": ["Open a book from its page with Read or Listen. Your place is shared between the two and across your devices. The mini-player keeps a book playing while you browse, and its controls also work from your lock screen and headphones.", "To read or listen without a connection, choose Read offline on a public-domain book's page."]}, {"heading": "Your account and household", "paragraphs": ["Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time."]}, {"heading": "Report a problem", "paragraphs": ["Tell us what you were doing, the page you were on, and your device and browser. Contact details for support will be published here before launch; until then, LiteraryWorm is a demonstration."]}]$lw$::jsonb),
+  ($lw$status$lw$, 8, $lw$Status$lw$, $lw$All systems are working normally.$lw$, $lw$[{"heading": "Services", "paragraphs": ["Website and app: working normally.", "Accounts, libraries and reading progress: working normally.", "Book search and details (Google Books): working normally.", "Audiobook recordings (Internet Archive): working normally.", "Summaries and Ask the book (AI): working normally."]}, {"heading": "If something isn't working", "paragraphs": ["Your reading progress is saved on your device first and sent when the connection returns, so you won't lose your place. Books saved for offline keep working without a connection."]}]$lw$::jsonb)
+on conflict (slug) do nothing;
+
+-- =============================================================================
+-- 20261028001705_index_staff_roles_granted_by.sql
+-- =============================================================================
+-- Index for the foreign key on staff_roles (granted_by).
+create index concurrently if not exists staff_roles_granted_by_idx on public.staff_roles (granted_by);
+
+-- =============================================================================
+-- 20261028001706_index_staff_invites_invited_by.sql
+-- =============================================================================
+-- Index for the foreign key on staff_invites (invited_by).
+create index concurrently if not exists staff_invites_invited_by_idx on public.staff_invites (invited_by);

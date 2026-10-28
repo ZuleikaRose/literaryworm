@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1600)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1700)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -466,6 +466,52 @@
           ],
           note: "FK club_id → book_clubs and (club_id, host_id) → club_members, on delete cascade; indexed. Sent by Realtime. RLS: members read; the host moves it; any member takes over one left for two minutes; the host or owner ends it.",
         },
+        {
+          id: "staff_roles", color: colors.account, x: 0, y: 3330, sub: "access beyond membership",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "role", "staff_role"],
+            ["", "granted_at", "timestamptz"],
+            ["fk", "granted_by", "uuid", true],
+          ],
+          note: "Roles: admin, developer, editor, billing, customer_service, blog (admins can do everything). Granted and removed only by admins through grant_staff_role() / revoke_staff_role(); the last admin stays. RLS: members see their own roles; admins see the team through staff_members(). Index: granted_by.",
+        },
+        {
+          id: "staff_invites", color: colors.account, x: 420, y: 3330, sub: "roles waiting for sign-up",
+          cols: [
+            ["pk", "email", "text (lower case)"],
+            ["pk", "role", "staff_role"],
+            ["", "invited_at", "timestamptz"],
+            ["fk", "invited_by", "uuid", true],
+          ],
+          note: "A role given to an email with no account yet; applied and cleared when that email signs up (trigger on auth.users). No browser access. Index: invited_by.",
+        },
+        {
+          id: "legal_pages", color: colors.server, x: 840, y: 3330, sub: "footer policies · editable",
+          cols: [
+            ["pk", "slug", "text"],
+            ["", "position", "smallint"],
+            ["", "title", "text 1–80"],
+            ["", "summary", "text 1–600"],
+            ["", "sections", "jsonb (heading, paragraphs[])"],
+            ["", "updated_at", "timestamptz"],
+            ["fk", "updated_by", "uuid", true],
+          ],
+          note: "The live Terms, Privacy, Cookies, Copyright/DMCA, Accessibility, Children's Privacy, Privacy Choices, Help and Status. RLS: anyone reads; editors and admins edit title, summary and sections. Each edit is checked, stamped and its old version kept. Index: updated_by.",
+        },
+        {
+          id: "legal_page_revisions", color: colors.server, x: 1260, y: 3330, sub: "earlier versions",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "slug", "text"],
+            ["", "title", "text"],
+            ["", "summary", "text"],
+            ["", "sections", "jsonb"],
+            ["", "replaced_at", "timestamptz"],
+            ["fk", "replaced_by", "uuid", true],
+          ],
+          note: "Written by the edit trigger. RLS: editors and admins read. Indexes: (slug, replaced_at), replaced_by.",
+        },
       ];
 
       // [fromTable, fromColumn, toTable, toColumn, cardinality label]
@@ -500,6 +546,8 @@
         ["uploaded_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["club_listening", "club_id", "book_clubs", "id", "1 : 1"],
         ["club_listening", "host_id", "club_members", "user_id", "N : 1 (pair)"],
+        ["staff_roles", "user_id", "auth.users", "id", "N : 1"],
+        ["legal_page_revisions", "slug", "legal_pages", "slug", "N : 1"],
       ];
       // -----------------------------------------------------------------------------------
 
