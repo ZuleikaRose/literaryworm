@@ -246,7 +246,7 @@ Your project will be assessed across these areas:
 | Path                                    | What it is                                                                                                                                                                    |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `front_end/literaryworm_app/`               | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/literaryworm_app/README.md) for routes and source layout.                        |
-| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`, `summaries`) and security tests. See [supabase/README.md](supabase/README.md). |
+| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`, `summaries`, `ask`) and security tests. See [supabase/README.md](supabase/README.md). |
 | `schema.sql`                            | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table.                                                                           |
 | `drawsql.png`                           | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md).                                                                                                 |
 | `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from.                                                                                                                                |
@@ -296,12 +296,12 @@ Create an account with **Sign up** to use the real backend: your library and log
 
 ### Supabase
 
-Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the six Edge Functions are deployed. To set it up from scratch:
+Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the seven Edge Functions are deployed. To set it up from scratch:
 
 ```bash
 supabase link --project-ref <ref>
 supabase db push
-supabase functions deploy books manage-profile checkout manage-account dictionary summaries
+supabase functions deploy books manage-profile checkout manage-account dictionary summaries ask --project-ref <ref>
 ```
 
 Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. `ALLOWED_ORIGINS` must include the Vercel URL as well as `http://localhost:5173`; without it the deployed site's book rows say "You seem to be offline".
@@ -329,6 +329,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | 10    | Favourites, ratings, custom lists and recent searches saved per profile in Supabase; share a custom list by link (public page with only the name, description, profile name and titles)                                                                                                                                                                                                                                                                                            | Done    |
 | —    | Vercel deploy at www.literaryworm.com (Root Directory `front_end/literaryworm_app`); the site added to `ALLOWED_ORIGINS`; plain-words fallback in `books` when Google's genre and title filters return nothing | Done    |
 | 11   | Real narration for the 17 public-domain titles (LibriVox recordings, real chapters); a *Voice* list of the device's British, American and Australian English voices reading the full Project Gutenberg text (or sample text); short and detailed book summaries for members and the demo, written by Claude through the `summaries` Edge Function and kept in `book_summaries`; the app renamed LiteraryWorm; refresh works on every page; genre links open at the genre's books | Done    |
-| 12   | The reader shows the full Project Gutenberg text of the 17 public-domain titles (sample pages for the rest); a *Summary* button on each My Library row opens the book's summary in a dialog; summaries are written by Claude Haiku 5.5 to keep the cost to a fraction of a cent each | Done    |
+| 12   | The reader shows the full Project Gutenberg text of the public-domain titles (sample pages for the rest); a *Summary* button on each My Library row opens the book's summary in a dialog; summaries are written by Claude Haiku 5.5 to keep the cost to a fraction of a cent each; your place follows you to another device; a follow-along transcript for device voices; reading goals and streaks (*Goals*); book clubs with invite codes and spoiler-safe discussion (*Clubs*); *Ask the book* (the `ask` Edge Function, Claude Haiku 5.5, answers from the text read so far); read and listen offline (service worker); four more public-domain titles (21 in all); migrations 1000–1104 | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
