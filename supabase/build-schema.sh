@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 {
-  echo "-- BookWorm database schema (Supabase Postgres)."
+  echo "-- LiteraryWorm database schema (Supabase Postgres)."
   echo "-- GENERATED from supabase/migrations by supabase/build-schema.sh. Edit the migrations, not this file."
   echo "-- Row Level Security is on for every table; supabase/tests/security_test.sql checks the policies."
   for f in migrations/*.sql; do

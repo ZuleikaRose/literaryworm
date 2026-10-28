@@ -1,4 +1,4 @@
--- BookWorm database schema (Supabase Postgres).
+-- LiteraryWorm database schema (Supabase Postgres).
 -- GENERATED from supabase/migrations by supabase/build-schema.sh. Edit the migrations, not this file.
 -- Row Level Security is on for every table; supabase/tests/security_test.sql checks the policies.
 
