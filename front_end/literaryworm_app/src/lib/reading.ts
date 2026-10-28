@@ -6,6 +6,52 @@ export interface ReaderPage {
   chapterIndex: number;
   /** 0-based page within the chapter. */
   page: number;
+  /** The page's paragraphs, for a book with real text; sample pages make theirs from the position. */
+  paragraphs?: string[];
+}
+
+/** Characters on a page of real text: about a phone screen at the default size. */
+export const PAGE_CHARS = 1600;
+
+/** A paragraph too long for one page, cut between sentences (a sentence longer than a page stays whole). */
+function pieces(paragraph: string): string[] {
+  if (paragraph.length <= PAGE_CHARS) return [paragraph];
+  const sentences = paragraph.match(/[^.!?]*[.!?]+["'”’)\]]*\s*|[^.!?]+$/g) ?? [paragraph];
+  const out: string[] = [];
+  let current = "";
+  for (const sentence of sentences) {
+    if (current && current.length + sentence.length > PAGE_CHARS) {
+      out.push(current.trim());
+      current = "";
+    }
+    current += sentence;
+  }
+  if (current.trim()) out.push(current.trim());
+  return out;
+}
+
+/**
+ * Pages of a book's real text (one string per chapter, paragraphs separated by a blank line):
+ * whole paragraphs, filled up to about PAGE_CHARS. The same text always makes the same pages,
+ * which highlights rely on.
+ */
+export function textPages(chapters: string[]): ReaderPage[] {
+  return chapters.flatMap((text, chapterIndex) => {
+    const pages: string[][] = [];
+    let current: string[] = [];
+    let length = 0;
+    for (const paragraph of text.split("\n\n").flatMap(pieces)) {
+      if (current.length > 0 && length + paragraph.length > PAGE_CHARS) {
+        pages.push(current);
+        current = [];
+        length = 0;
+      }
+      current.push(paragraph);
+      length += paragraph.length;
+    }
+    if (current.length > 0 || pages.length === 0) pages.push(current);
+    return pages.map((paragraphs, page) => ({ chapterIndex, page, paragraphs }));
+  });
 }
 
 /** Pages per chapter in the sample text: about one page per six minutes of listening, 3 to 8. */

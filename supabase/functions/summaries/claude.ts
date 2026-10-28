@@ -5,7 +5,8 @@ import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { HttpError } from "../_shared/http.ts";
 import { type BookFacts, checkSummaries, type Summaries } from "./handler.ts";
 
-export const MODEL = "claude-opus-5-5";
+// Haiku: a summary is short, well-known material, and Haiku keeps each one to a fraction of a cent.
+export const MODEL = "claude-haiku-5-5";
 
 const SYSTEM = `You write book summaries for LiteraryWorm, an app where households read ebooks and listen to audiobooks.
 
@@ -45,12 +46,10 @@ const client = new Anthropic({ timeout: 90_000, maxRetries: 1 });
 export async function writeSummaries(book: BookFacts): Promise<Summaries & { model: string }> {
   let response;
   try {
-    response = await client.beta.messages.create({
+    // Haiku has no server-side fallback, so a declined request ends as a "refusal" (handled below).
+    response = await client.messages.create({
       model: MODEL,
       max_tokens: 16000,
-      // If a safety classifier declines, Anthropic's recommended fallback model answers instead.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
       output_config: { effort: "medium", format: { type: "json_schema", schema: SCHEMA } },
       system: SYSTEM,
       messages: [{ role: "user", content: describeBook(book) }],
@@ -80,6 +79,5 @@ export async function writeSummaries(book: BookFacts): Promise<Summaries & { mod
   } catch {
     throw new HttpError("upstream_error", "We couldn't write a summary for this book. Try again later.");
   }
-  // response.model is the model that answered, which is the fallback if one ran.
   return { ...checkSummaries(parsed), model: response.model };
 }

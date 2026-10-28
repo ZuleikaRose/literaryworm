@@ -32,7 +32,7 @@ function deps(overrides: Partial<Deps> = {}) {
     },
     write: () => {
       calls.write++;
-      return Promise.resolve({ ...written, model: "claude-opus-5-5" });
+      return Promise.resolve({ ...written, model: "claude-haiku-5-5" });
     },
     store: (id, s) => {
       calls.stored.push(id);

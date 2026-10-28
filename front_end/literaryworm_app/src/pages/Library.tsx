@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { BookSummary } from "../components/BookSummary";
 import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
@@ -8,6 +9,7 @@ import { SavedBookTile } from "../components/SavedBookTile";
 import { getBook, isAllowed } from "../data/books";
 import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
+import { usesBackend } from "../lib/backend";
 import { LIST_BOOKS_MAX, LIST_DESCRIPTION_MAX, LIST_NAME_MAX, LISTS_MAX, shareUrl } from "../lib/collections";
 import { fallbackCover } from "../lib/coverFallback";
 import { useCollections } from "../lib/useCollections";
@@ -240,6 +242,7 @@ function LibraryRow({
   const details = useEntryDetails(entry);
   const selectId = useId();
   const [saving, setSaving] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   return (
     <li className="library-row" aria-busy={details.loading}>
       <Link to={`/books/${entry.bookId}`} className="library-row-cover" tabIndex={-1} aria-hidden="true">
@@ -273,10 +276,21 @@ function LibraryRow({
             </option>
           ))}
         </select>
+        {usesBackend && (
+          <button type="button" className="ghost-button small-button" onClick={() => setSummaryOpen(true)}>
+            <Icon name="bookOpen" size={15} /> Summary<span className="visually-hidden"> of {details.title}</span>
+          </button>
+        )}
         <button type="button" className="ghost-button small-button" onClick={onRemove}>
           <Icon name="trash" size={15} /> Remove<span className="visually-hidden"> {details.title}</span>
         </button>
       </div>
+      {usesBackend && (
+        <Dialog open={summaryOpen} onClose={() => setSummaryOpen(false)} eyebrow="Written by AI" title={`${details.title}: summary`}>
+          {/* Mounted only while open, so a summary is asked for only when someone wants it. */}
+          {summaryOpen && <BookSummary bookId={entry.bookId} title={details.title} inDialog />}
+        </Dialog>
+      )}
     </li>
   );
 }

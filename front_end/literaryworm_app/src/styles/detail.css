@@ -243,6 +243,11 @@
   letter-spacing: -0.02em;
 }
 
+.book-summary.in-dialog {
+  padding: 0;
+  border-bottom: 0;
+}
+
 .summary-body {
   max-width: 72ch;
   margin-top: 20px;

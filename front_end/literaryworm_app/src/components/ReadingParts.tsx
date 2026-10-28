@@ -11,7 +11,7 @@ import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
 /** A full-screen message in place of the reader or player. */
-function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock"; children: ReactNode; action: ReactNode }) {
+export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock"; children: ReactNode; action?: ReactNode }) {
   useTitle(title);
   return (
     <main className="page empty-state reading-message">

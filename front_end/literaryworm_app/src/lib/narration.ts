@@ -272,10 +272,17 @@ export function bookText(book: Book): Promise<string[]> {
   let text = textCache.get(book.id);
   if (!text) {
     text = book.recording
-      ? fetch(`/texts/${book.id}.json`).then(async (res) => {
-          if (!res.ok) throw new Error("We couldn't load this book's text. Try again.");
-          return ((await res.json()) as { chapters: string[] }).chapters;
-        })
+      ? fetch(`/texts/${book.id}.json`)
+          .then(async (res) => {
+            if (!res.ok) throw new Error();
+            const chapters = ((await res.json()) as { chapters?: unknown }).chapters;
+            if (!Array.isArray(chapters) || !chapters.every((c) => typeof c === "string")) throw new Error();
+            return chapters as string[];
+          })
+          // Offline, a failed download or a damaged file all read the same to the reader.
+          .catch(() => {
+            throw new Error("We couldn't load this book's text. Check your connection and try again.");
+          })
       : Promise.resolve(
           book.chapters.map((_, chapterIndex) =>
             readerPages(book)

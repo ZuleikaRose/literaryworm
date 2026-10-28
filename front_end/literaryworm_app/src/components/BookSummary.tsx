@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type BookSummaries, getSummaries } from "../lib/summaryApi";
 import { Icon } from "./Icon";
 
@@ -9,10 +9,12 @@ type Load = { status: "idle" } | { status: "loading" } | { status: "ready"; summ
 /**
  * A book's AI-written summaries, short or detailed. Nothing is asked for until the reader picks
  * one: the first reader of a book waits while it's written, everyone after gets it at once.
+ * In a dialog (`inDialog`), the dialog carries the heading and the short summary opens at once.
  */
-export function BookSummary({ bookId, title }: { bookId: string; title: string }) {
-  const [length, setLength] = useState<Length | null>(null);
-  const [load, setLoad] = useState<Load>({ status: "idle" });
+export function BookSummary({ bookId, title, inDialog = false }: { bookId: string; title: string; inDialog?: boolean }) {
+  // Opening the summary from a dialog is already the choice to read it: start with the short one.
+  const [length, setLength] = useState<Length | null>(inDialog ? "short" : null);
+  const [load, setLoad] = useState<Load>({ status: inDialog ? "loading" : "idle" });
 
   const show = (next: Length) => {
     setLength(next);
@@ -24,10 +26,27 @@ export function BookSummary({ bookId, title }: { bookId: string; title: string }
     );
   };
 
+  const [opened] = useState(inDialog);
+  useEffect(() => {
+    if (!opened) return;
+    let live = true;
+    getSummaries(bookId).then(
+      (summaries) => live && setLoad({ status: "ready", summaries }),
+      (err: Error) => live && setLoad({ status: "error", message: err.message }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [opened, bookId]);
+
   return (
-    <section className="book-summary" aria-labelledby="summary-title">
-      <p className="eyebrow">Written by AI</p>
-      <h2 id="summary-title">Summary</h2>
+    <section className={inDialog ? "book-summary in-dialog" : "book-summary"} aria-labelledby={inDialog ? undefined : "summary-title"} aria-label={inDialog ? "Summary" : undefined}>
+      {!inDialog && (
+        <>
+          <p className="eyebrow">Written by AI</p>
+          <h2 id="summary-title">Summary</h2>
+        </>
+      )}
       <div className="taste-row" role="group" aria-label="Summary length">
         <button type="button" className="taste-button" aria-pressed={length === "short"} onClick={() => show("short")}>
           Short

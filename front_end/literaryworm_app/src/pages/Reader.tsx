@@ -8,13 +8,15 @@ import {
   FinishedPanel,
   MarkFinishedDialog,
   ReadingGate,
+  ReadingMessage,
 } from "../components/ReadingParts";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
 import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar } from "../components/StudyTools";
 import { samplePage } from "../data/sampleText";
 import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
 import { usePlayback } from "../lib/playback";
-import { chapterStarts, pageForFraction, pageFraction, READER_SIZES, readerPages } from "../lib/reading";
+import { chapterStarts, pageForFraction, pageFraction, READER_SIZES, type ReaderPage } from "../lib/reading";
+import { useBookPages } from "../lib/useBookPages";
 import { useControlsVisibility } from "../lib/useControlsVisibility";
 import { useDailyLimit } from "../lib/useDailyLimit";
 import { useHighlights } from "../lib/useHighlights";
@@ -26,20 +28,47 @@ import type { Book, HighlightColor } from "../types";
 type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | null;
 
 export default function Reader() {
-  return <ReadingGate format="ebook">{(book) => <ReaderView key={book.id} book={book} />}</ReadingGate>;
+  return <ReadingGate format="ebook">{(book) => <ReaderPages key={book.id} book={book} />}</ReadingGate>;
+}
+
+/** Loads the book's pages (real text for public-domain titles), then opens the reader. */
+function ReaderPages({ book }: { book: Book }) {
+  const { pages, error, retry } = useBookPages(book);
+  if (error) {
+    return (
+      <ReadingMessage
+        title={`We couldn't open ${book.title}`}
+        icon="bookOpen"
+        action={
+          <button type="button" className="primary-button" onClick={retry}>
+            Try again
+          </button>
+        }
+      >
+        <p>{error}</p>
+      </ReadingMessage>
+    );
+  }
+  if (!pages) {
+    return (
+      <ReadingMessage title={`Opening ${book.title}`} icon="bookOpen">
+        <p role="status">Loading the book's text…</p>
+      </ReadingMessage>
+    );
+  }
+  return <ReaderView book={book} pages={pages} />;
 }
 
 const LINE_HEIGHTS = { compact: 1.45, normal: 1.65, relaxed: 1.9 };
 const MEASURES = { narrow: "44rem", normal: "38rem", wide: "32rem" };
 
-function ReaderView({ book }: { book: Book }) {
+function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   useTitle(`Reading ${book.title}`);
   const settings = useProfileData().readerSettings;
   const reading = useReading(book);
   const study = useHighlights(book, reading.addToLibrary);
   const limit = useDailyLimit(true);
   const playback = usePlayback();
-  const pages = readerPages(book);
   const starts = chapterStarts(pages);
   const total = pages.length;
 
@@ -71,10 +100,14 @@ function ReaderView({ book }: { book: Book }) {
   const chapter = book.chapters[page.chapterIndex];
   const pagesInChapter = pages.filter((p) => p.chapterIndex === page.chapterIndex).length;
   const hereLabel = `Chapter ${page.chapterIndex + 1}, page ${page.page + 1}`;
-  const paragraphs = samplePage(book.id, page.chapterIndex, page.page);
+  const paragraphs = page.paragraphs ?? samplePage(book.id, page.chapterIndex, page.page);
   const offsets = paragraphOffsets(paragraphs);
   const pageText = paragraphs.join("\n");
-  const pageHighlights = study.highlights.filter((h) => h.chapterIndex === page.chapterIndex && h.page === page.page);
+  // Only highlights whose words are still there: ones made on the sample pages before a book had
+  // its real text point at different words now, so they're listed but not drawn.
+  const pageHighlights = study.highlights.filter(
+    (h) => h.chapterIndex === page.chapterIndex && h.page === page.page && pageText.slice(h.start, h.end).replace(/\n/g, " ") === h.quote,
+  );
   const editingHighlight = editing ? (study.highlights.find((h) => h.id === editing.id) ?? null) : null;
 
   // The selected words, as a range of this page's text, for the selection toolbar.
@@ -366,7 +399,11 @@ function ReaderView({ book }: { book: Book }) {
             Page {index + 1} of {total} · {percent}%
           </span>
         </p>
-        <p className="reader-sample-note">Sample pages: LiteraryWorm doesn't hold this book's text yet, so the reader shows placeholder prose.</p>
+        <p className="reader-sample-note">
+          {book.recording
+            ? "Public-domain text from Project Gutenberg."
+            : "Sample pages: LiteraryWorm doesn't hold this book's text yet, so the reader shows placeholder prose."}
+        </p>
       </footer>
 
       <p className="visually-hidden" role="status">
