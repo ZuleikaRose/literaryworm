@@ -7,7 +7,7 @@ import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
-import { moreLike, recommend, seeds } from "../lib/recommend";
+import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useLibrary } from "../lib/useLibrary";
@@ -71,7 +71,7 @@ export default function Browse() {
 
   // Recommendations from what this profile finished, rated and favourited (lib/recommend.ts).
   const inLibrary = new Set(Object.keys(library.entries));
-  const taste = seeds(data, library.entries, (id) => {
+  const taste = tasteSeeds(data, library.entries, (id) => {
     const book = getBook(id);
     return visible(book) ? book : undefined;
   });

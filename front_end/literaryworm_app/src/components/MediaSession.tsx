@@ -82,9 +82,13 @@ function MediaSessionView({ book }: { book: Book }) {
     let live = true;
     const metadata = new MediaMetadata({ title: book.title, artist: book.author, album: chapterTitle });
     navigator.mediaSession.metadata = metadata;
-    coverArtUrl(book).then((src) => {
-      if (live && src) metadata.artwork = [{ src, sizes: "512x512", type: "image/png" }];
-    });
+    coverArtUrl(book).then(
+      (src) => {
+        if (live && src) metadata.artwork = [{ src, sizes: "512x512", type: "image/png" }];
+      },
+      // No artwork; the title, chapter and buttons still show.
+      (err: unknown) => console.error("media session: couldn't draw the cover:", err),
+    );
     return () => {
       live = false;
     };

@@ -91,6 +91,17 @@ function pageText(xhtml: string): { heading: string; paragraphs: string[] } {
 const words = (text: string) => (text.match(/\S+/g) ?? []).length;
 
 export async function readEpub(file: File): Promise<ParsedBook> {
+  try {
+    return await parse(file);
+  } catch (err) {
+    if (err instanceof EpubError) throw err;
+    // Corrupt compressed data, unreadable XML or a file that can't be read: one plain message.
+    console.error("epub: couldn't read the file:", err);
+    throw new EpubError("This EPUB is damaged or in a form LiteraryWorm can't read. Try another copy.");
+  }
+}
+
+async function parse(file: File): Promise<ParsedBook> {
   if (file.size > EPUB_MAX_BYTES) throw new EpubError("That file is over 50 MB. Choose a smaller EPUB.");
   if (typeof DecompressionStream === "undefined") throw new EpubError("This browser can't open EPUBs. Try a recent Chrome, Edge, Firefox or Safari.");
   const view = new DataView(await file.arrayBuffer());

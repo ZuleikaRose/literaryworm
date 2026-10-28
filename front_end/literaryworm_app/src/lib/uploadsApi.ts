@@ -92,8 +92,14 @@ export async function saveUpload(profileId: string, book: Omit<UploadedBook, "pa
 export async function loadUploadText(path: string): Promise<string[]> {
   const { data, error } = await client().storage.from(BUCKET).download(path);
   if (error || !data) throw new AccountError("We couldn't load this book's text. Check your connection and try again.");
-  const chapters = (JSON.parse(await data.text()) as { chapters?: unknown }).chapters;
-  if (!Array.isArray(chapters) || !chapters.every((c) => typeof c === "string")) throw new AccountError("This book's text is damaged. Delete it and upload it again.");
+  const damaged = new AccountError("This book's text is damaged. Delete it and upload it again.");
+  let chapters: unknown;
+  try {
+    chapters = (JSON.parse(await data.text()) as { chapters?: unknown }).chapters;
+  } catch {
+    throw damaged;
+  }
+  if (!Array.isArray(chapters) || !chapters.every((c) => typeof c === "string")) throw damaged;
   return chapters as string[];
 }
 

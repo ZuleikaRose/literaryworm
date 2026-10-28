@@ -94,7 +94,7 @@ function ClubAlertsFor({ userId }: { userId: string }) {
 
     const stop = clubsApi.watchClubPosts((event) => {
       emitClubPost(event);
-      void ready.then(() => handle(event));
+      ready.then(() => handle(event)).catch((err: unknown) => console.error("clubs: couldn't handle a new post:", err));
     });
     return () => {
       live = false;

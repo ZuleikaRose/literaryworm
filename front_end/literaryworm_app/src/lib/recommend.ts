@@ -35,7 +35,7 @@ export function similarity(a: Book, b: Book): number {
 }
 
 /** What the profile's history says it likes (and doesn't), strongest first. */
-export function seeds(data: Pick<ProfileData, "readingDays" | "ratings" | "favorites">, library: Record<string, LibraryEntry>, find: (id: string) => Book | undefined): Seed[] {
+export function tasteSeeds(data: Pick<ProfileData, "readingDays" | "ratings" | "favorites">, library: Record<string, LibraryEntry>, find: (id: string) => Book | undefined): Seed[] {
   const byId = new Map<string, Seed & { strongest: number }>();
   const add = (id: string, weight: number, reason: Seed["reason"]) => {
     const book = find(id);

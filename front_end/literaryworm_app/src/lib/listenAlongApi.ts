@@ -105,4 +105,3 @@ export function watchSession(clubId: string, onChange: (session: ListenSession |
   };
 }
 
-export const myId = signedInUserId;

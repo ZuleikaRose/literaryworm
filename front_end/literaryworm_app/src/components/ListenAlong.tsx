@@ -40,12 +40,14 @@ export function ListenAlong() {
   return session.role === "host" ? <Host key={session.clubId} session={session} book={book} /> : <Follower key={session.clubId} session={session} book={book} />;
 }
 
-function Bar({ session, onLeave }: { session: ListenAlongState; onLeave: () => void }) {
+/** `trouble`: the session can't be reached just now (it keeps trying; the bar says so). */
+function Bar({ session, trouble, onLeave }: { session: ListenAlongState; trouble: boolean; onLeave: () => void }) {
   return (
     <div className="listen-along-bar" role="status">
-      <Icon name="users" size={16} />
+      <Icon name={trouble ? "alert" : "users"} size={16} />
       <span>
         {session.role === "host" ? "You're leading" : "Listening along with"} <Link to={`/clubs/${session.clubId}`}>{session.clubName}</Link>
+        {trouble && (session.role === "host" ? ". Members may be out of step: reconnecting…" : ". Can't reach the session: reconnecting…")}
       </span>
       <button type="button" className="text-button" onClick={onLeave}>
         {session.role === "host" ? "Stop" : "Leave"}
@@ -60,13 +62,21 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
   const live = playback.book?.id === book.id ? playback.snapshot : null;
   const sent = useRef<{ position: number; playing: boolean; rate: number; at: number } | null>(null);
   const opened = useRef(false);
+  const [trouble, setTrouble] = useState(false);
 
   // The last few places sent: Realtime echoes each back, sometimes after a newer one went out.
   const recent = useRef<{ position: number; playing: boolean; rate: number }[]>([]);
   const send = (position: number, playing: boolean) => {
     sent.current = { position, playing, rate: playbackSpeed, at: Date.now() };
     recent.current = [...recent.current.slice(-4), { position, playing, rate: playbackSpeed }];
-    moveSession(session.clubId, { position, playing, rate: playbackSpeed }).catch(logFailure("update the session"));
+    // A failed move is retried by the next change or the heartbeat; until one gets through, the bar says so.
+    moveSession(session.clubId, { position, playing, rate: playbackSpeed }).then(
+      () => setTrouble(false),
+      (err: Error) => {
+        logFailure("update the session")(err);
+        setTrouble(true);
+      },
+    );
   };
   const sendRef = useRef(send);
   useEffect(() => {
@@ -75,6 +85,7 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
 
   const stop = () => {
     setListenAlong(null);
+    // Already left here; a session that can't be ended is let go after two minutes without a heartbeat.
     endSession(session.clubId).catch(logFailure("end the session"));
   };
 
@@ -125,7 +136,7 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
     }
   }, [open, session.clubId]);
 
-  return <Bar session={session} onLeave={stop} />;
+  return <Bar session={session} trouble={trouble} onLeave={stop} />;
 }
 
 function Follower({ session, book }: { session: ListenAlongState; book: Book }) {
@@ -133,12 +144,24 @@ function Follower({ session, book }: { session: ListenAlongState; book: Book }) 
   const { dispatch } = useStore();
   const { playbackSpeed } = useProfileData();
   const [host, setHost] = useState<ListenSession | null | undefined>(undefined);
+  const [trouble, setTrouble] = useState(false);
   const opened = useRef(false);
 
   useEffect(() => {
     let live = true;
-    loadSession(session.clubId).then((s) => live && setHost((now) => (now === undefined ? s : now)), logFailure("load the session"));
-    const stop = watchSession(session.clubId, (s) => live && setHost(s));
+    loadSession(session.clubId).then(
+      (s) => live && setHost((now) => (now === undefined ? s : now)),
+      (err: Error) => {
+        logFailure("load the session")(err);
+        // Realtime may still deliver the next move; until then the bar says it's reconnecting.
+        if (live) setTrouble(true);
+      },
+    );
+    const stop = watchSession(session.clubId, (s) => {
+      if (!live) return;
+      setTrouble(false);
+      setHost(s);
+    });
     return () => {
       live = false;
       stop();
@@ -181,5 +204,5 @@ function Follower({ session, book }: { session: ListenAlongState; book: Book }) 
     return () => window.clearInterval(id);
   }, [host, book, dispatch]);
 
-  return <Bar session={session} onLeave={() => setListenAlong(null)} />;
+  return <Bar session={session} trouble={trouble} onLeave={() => setListenAlong(null)} />;
 }
