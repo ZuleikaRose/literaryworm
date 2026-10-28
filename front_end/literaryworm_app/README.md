@@ -36,7 +36,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/plans` | Plans and pricing | Public |
 | `/signin`, `/signup` | Log in, sign up (Supabase Auth), demo (in memory) | Public |
 | `/reset-password` | Choose a new password from an emailed reset link | Reset link |
-| `/legal/:slug` | Policies and help | Public |
+| `/legal/:slug` | Policies and help (editors and admins can edit them here) | Public |
 | `/books/:id` | Book details (catalog id or Google Books volume id); `/book/:id` redirects | Public (actions need a profile) |
 | `/profiles` | Who's reading? | Signed in |
 | `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
@@ -97,3 +97,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 20 | Listen along in clubs (`components/ListenAlong.tsx`, `lib/listenAlong.ts`, `lib/listenAlongApi.ts`) |
 | 21 | My Library → Uploads: EPUBs read in the browser (`lib/epub.ts`), kept in Storage, opened in the reader (`lib/useUploads.ts`, `components/UploadsView.tsx`) |
 | — | Cookie Policy at `/legal/cookies`, in the footer; legal pages can be written in full (`src/data/legal.ts`) |
+| 22 | Staff roles and Account → Team access (`lib/staff.ts`, `lib/staffApi.ts`, `components/TeamAccess.tsx`); editable policies (`lib/useLegalPages.ts`, `components/LegalEditor.tsx`, built-in copy in `data/legalPages.json`); FAQ on where the books come from; offline uploads (`lib/uploadCache.ts`) |
