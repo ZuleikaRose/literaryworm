@@ -41,7 +41,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/profiles` | Who's reading? | Signed in |
 | `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=`) | Public (Kids profiles: catalog only) |
-| `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`) | Profile chosen |
+| `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`), Uploads (`?view=uploads`), Goals, Stats (`?view=stats`) and Clubs | Profile chosen |
 | `/account` | Plan and billing, sign-in, preferences, family, privacy, help, delete account (Kids profiles ask a grown-up first) | Profile chosen |
 | `/lists/:slug` | A custom list shared by link: name, description, the profile's name and its books | Public |
 | `/read/:id`, `/listen/:id` | Reader (with highlights, notes and the dictionary) and audiobook player (with the read-along transcript); full screen, loaded on demand; LiteraryWorm titles the profile may see | Profile chosen |
@@ -85,4 +85,14 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 8 | Household profiles in Supabase; Account page (plan, sign-in, preferences, family, privacy, help); pause, cancel and delete account; Ask a grown-up; accessibility pass | Done |
 | 9 | Highlights and notes (saved to Supabase), dictionary, read-along transcript (English or Spanish), mini-player; reader and player load on demand | Done |
 | 10 | Favourites, ratings, custom lists and recent searches saved per profile; Favorites with Google titles; share a list by link (`/lists/:slug`) | Done |
+| 11 | Real narration (LibriVox) for the public-domain titles with their real chapters; device voices; book summaries by Claude (`summaries` function) |
+| 12 | Full public-domain text in the reader; Summary in My Library; Ask the book; goals and streaks; book clubs; read offline; picking up on another device |
 | 13 | Fuller player: the mini-player and the full player share chapter, skip, beginning/end, skip intro/outro, Go to (contents, index, references, time), volume and mute; player settings saved per profile; listen on another device | Done |
+| 14 | Lock-screen and headphone controls (Media Session API; `components/MediaSession.tsx`, cover art from `lib/coverArt.ts`) |
+| 15 | Installable app: `public/manifest.webmanifest`, `public/icons`, *Install the app* in Account (`lib/installApp.ts`) |
+| 16 | Share a highlight as a quote card (`lib/quoteCard.ts`, `components/QuoteCardDialog.tsx`) |
+| 17 | My Library → Stats: Year in Review (`lib/stats.ts`, `components/StatsView.tsx`); listening time and finished books recorded |
+| 18 | Picked for you and Because you… rows on Home; More like this ranked (`lib/recommend.ts`) |
+| 19 | Club notifications: live posts, new-post counts, alerts and background notifications, per-club setting (`components/ClubAlerts.tsx`, `lib/clubEvents.ts`) |
+| 20 | Listen along in clubs (`components/ListenAlong.tsx`, `lib/listenAlong.ts`, `lib/listenAlongApi.ts`) |
+| 21 | My Library → Uploads: EPUBs read in the browser (`lib/epub.ts`), kept in Storage, opened in the reader (`lib/useUploads.ts`, `components/UploadsView.tsx`) |
