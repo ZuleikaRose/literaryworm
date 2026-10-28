@@ -207,5 +207,33 @@ export const CATALOG: Record<string, CatalogBook> = {
     "year": 1900,
     "synopsis": "After the fall of Troy, Odysseus spends ten years trying to get home to Ithaca, past monsters, gods and his own pride.",
     "publicDomain": true
+  },
+  "a-christmas-carol": {
+    "title": "A Christmas Carol",
+    "author": "Charles Dickens",
+    "year": 1843,
+    "synopsis": "On Christmas Eve the miser Ebenezer Scrooge is visited by his old partner's ghost and three spirits who show him his past, present and future.",
+    "publicDomain": true
+  },
+  "the-call-of-the-wild": {
+    "title": "The Call of the Wild",
+    "author": "Jack London",
+    "year": 1903,
+    "synopsis": "Buck, a big house dog stolen from California, is sold into the hard life of a sled dog in the Yukon and learns to answer the wild.",
+    "publicDomain": true
+  },
+  "the-picture-of-dorian-gray": {
+    "title": "The Picture of Dorian Gray",
+    "author": "Oscar Wilde",
+    "year": 1891,
+    "synopsis": "A beautiful young man wishes that his portrait would age instead of him, and the painting begins to show every sin he commits.",
+    "publicDomain": true
+  },
+  "the-wonderful-wizard-of-oz": {
+    "title": "The Wonderful Wizard of Oz",
+    "author": "L. Frank Baum",
+    "year": 1900,
+    "synopsis": "A Kansas cyclone carries Dorothy to the land of Oz, where she follows the yellow brick road with a Scarecrow, a Tin Woodman and a Cowardly Lion.",
+    "publicDomain": true
   }
 };

@@ -30,6 +30,10 @@ PROJECTS = {
     "the-great-gatsby": 16113,  # Kara Shallenberg
     "the-metamorphosis": 527,  # David Barnes
     "the-odyssey": 65,  # LibriVox volunteers (Samuel Butler's translation)
+    "a-christmas-carol": 9239,  # Cori Samuel
+    "the-call-of-the-wild": 9909,  # Phil Chenevert
+    "the-picture-of-dorian-gray": 6124,  # Bob Neufeld (1891 text)
+    "the-wonderful-wizard-of-oz": 5827,  # Phil Chenevert
 }
 
 API = "https://librivox.org/api/feed/audiobooks/?id={}&format=json&extended=1"

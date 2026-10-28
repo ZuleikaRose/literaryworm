@@ -2255,5 +2255,314 @@ export const recordings: Record<string, Recording> = {
         "seconds": 2328
       }
     ]
+  },
+  "a-christmas-carol": {
+    "narrator": "Cori Samuel",
+    "page": "https://librivox.org/a-christmas-carol-version-7-by-charles-dickens/",
+    "tracks": [
+      {
+        "title": "Stave 1: Marley's Ghost",
+        "url": "https://archive.org/download/christmas_carol_7_1410_librivox/christmascarol_1_dickens_64kb.mp3",
+        "seconds": 3208
+      },
+      {
+        "title": "Stave 2: The First of the Three Spirits",
+        "url": "https://archive.org/download/christmas_carol_7_1410_librivox/christmascarol_2_dickens_64kb.mp3",
+        "seconds": 2804
+      },
+      {
+        "title": "Stave 3: The Second of the Three Spirits",
+        "url": "https://archive.org/download/christmas_carol_7_1410_librivox/christmascarol_3_dickens_64kb.mp3",
+        "seconds": 3755
+      },
+      {
+        "title": "Stave 4: The Last of the Spirits",
+        "url": "https://archive.org/download/christmas_carol_7_1410_librivox/christmascarol_4_dickens_64kb.mp3",
+        "seconds": 2475
+      },
+      {
+        "title": "Stave 5: The End of It",
+        "url": "https://archive.org/download/christmas_carol_7_1410_librivox/christmascarol_5_dickens_64kb.mp3",
+        "seconds": 1065
+      }
+    ]
+  },
+  "the-call-of-the-wild": {
+    "narrator": "Phil Chenevert",
+    "page": "https://librivox.org/the-call-of-the-wild-version-4-by-jack-london/",
+    "tracks": [
+      {
+        "title": "Chapter I. Into the Primitive",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_01_london_64kb.mp3",
+        "seconds": 1592
+      },
+      {
+        "title": "Chapter II. The Law of Club and Fang",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_02_london_64kb.mp3",
+        "seconds": 1486
+      },
+      {
+        "title": "Chapter III. The Dominant Primordial Beast",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_03_london_64kb.mp3",
+        "seconds": 2274
+      },
+      {
+        "title": "Chapter IV. Who Has Won to Mastership",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_04_london_64kb.mp3",
+        "seconds": 1371
+      },
+      {
+        "title": "Chapter V. The Toil of Trace and Trail",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_05_london_64kb.mp3",
+        "seconds": 2301
+      },
+      {
+        "title": "Chapter VI. For the Love of a Man",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_06_london_64kb.mp3",
+        "seconds": 2102
+      },
+      {
+        "title": "Chapter VII. The Sounding of the Call",
+        "url": "https://archive.org/download/callofthewild_1509_librivox/callofthewildversion4_07_london_64kb.mp3",
+        "seconds": 2702
+      }
+    ]
+  },
+  "the-picture-of-dorian-gray": {
+    "narrator": "Bob Neufeld",
+    "page": "https://librivox.org/the-picture-of-dorian-gray-1891-version-by-oscar-wilde/",
+    "tracks": [
+      {
+        "title": "The Preface",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_00_wilde_64kb.mp3",
+        "seconds": 196
+      },
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_01_wilde_64kb.mp3",
+        "seconds": 2136
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_02_wilde_64kb.mp3",
+        "seconds": 2443
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_03_wilde_64kb.mp3",
+        "seconds": 1952
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_04_wilde_64kb.mp3",
+        "seconds": 2384
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_05_wilde_64kb.mp3",
+        "seconds": 1909
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_06_wilde_64kb.mp3",
+        "seconds": 1252
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_07_wilde_64kb.mp3",
+        "seconds": 1922
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_08_wilde_64kb.mp3",
+        "seconds": 2301
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_09_wilde_64kb.mp3",
+        "seconds": 1670
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_10_wilde_64kb.mp3",
+        "seconds": 1297
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_11_wilde_64kb.mp3",
+        "seconds": 3028
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_12_wilde_64kb.mp3",
+        "seconds": 1133
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_13_wilde_64kb.mp3",
+        "seconds": 1104
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_14_wilde_64kb.mp3",
+        "seconds": 2068
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_15_wilde_64kb.mp3",
+        "seconds": 1350
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_16_wilde_64kb.mp3",
+        "seconds": 1361
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_17_wilde_64kb.mp3",
+        "seconds": 847
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_18_wilde_64kb.mp3",
+        "seconds": 1428
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_19_wilde_64kb.mp3",
+        "seconds": 1584
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/picture_dorian_gray_1204_librivox/pictureofdoriangray_20_wilde_64kb.mp3",
+        "seconds": 849
+      }
+    ]
+  },
+  "the-wonderful-wizard-of-oz": {
+    "narrator": "Phil Chenevert",
+    "page": "https://librivox.org/the-wonderful-wizard-of-oz-solo-version-2-by-l-frank-baum/",
+    "tracks": [
+      {
+        "title": "01 - The Cyclone",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_01_baum_64kb.mp3",
+        "seconds": 451
+      },
+      {
+        "title": "02 - The Council with the Munchkins",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_02_baum_64kb.mp3",
+        "seconds": 728
+      },
+      {
+        "title": "03 - How Dorothy Saved the Scarecrow",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_03_baum_64kb.mp3",
+        "seconds": 723
+      },
+      {
+        "title": "04 - The Road Through the Forest",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_04_baum_64kb.mp3",
+        "seconds": 533
+      },
+      {
+        "title": "05 - The Rescue of the Tin Woodman",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_05_baum_64kb.mp3",
+        "seconds": 731
+      },
+      {
+        "title": "06 - The Cowardly Lion",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_06_baum_64kb.mp3",
+        "seconds": 566
+      },
+      {
+        "title": "07 - The Journey to the Great Oz",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_07_baum_64kb.mp3",
+        "seconds": 685
+      },
+      {
+        "title": "08 - The Deadly Poppy Field",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_08_baum_64kb.mp3",
+        "seconds": 728
+      },
+      {
+        "title": "09 - The Queen of the Field Mice",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_09_baum_64kb.mp3",
+        "seconds": 533
+      },
+      {
+        "title": "10 - The Guardian of the Gates",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_10_baum_64kb.mp3",
+        "seconds": 743
+      },
+      {
+        "title": "11 - The Emerald City of Oz",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_11_baum_64kb.mp3",
+        "seconds": 1350
+      },
+      {
+        "title": "12 - The Search for the Wicked Witch",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_12_baum_64kb.mp3",
+        "seconds": 1361
+      },
+      {
+        "title": "13 - The Rescue",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_13_baum_64kb.mp3",
+        "seconds": 434
+      },
+      {
+        "title": "14 - The Winged Monkeys",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_14_baum_64kb.mp3",
+        "seconds": 687
+      },
+      {
+        "title": "15 - The Discovery of Oz, the Terrible",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_15_baum_64kb.mp3",
+        "seconds": 1012
+      },
+      {
+        "title": "16 - The Magic Art of the Great Humbug",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_16_baum_64kb.mp3",
+        "seconds": 364
+      },
+      {
+        "title": "17 - How The Balloon Was Launched",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_17_baum_64kb.mp3",
+        "seconds": 429
+      },
+      {
+        "title": "18 - Away to the South",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_18_baum_64kb.mp3",
+        "seconds": 443
+      },
+      {
+        "title": "19 - Attacked by the Fighting Trees",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_19_baum_64kb.mp3",
+        "seconds": 387
+      },
+      {
+        "title": "20 - The Dainty China Country",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_20_baum_64kb.mp3",
+        "seconds": 579
+      },
+      {
+        "title": "21 - The Lion Becomes the King of Beasts",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_21_baum_64kb.mp3",
+        "seconds": 370
+      },
+      {
+        "title": "22 - The Country of the Quadlings",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_22_baum_64kb.mp3",
+        "seconds": 372
+      },
+      {
+        "title": "23 - Glinda The Good Witch Grants Dorothy's Wish",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_23_baum_64kb.mp3",
+        "seconds": 508
+      },
+      {
+        "title": "24 - Home Again",
+        "url": "https://archive.org/download/wizardofoz_pc_librivox/wonderfulwizardofoz_24_baum_64kb.mp3",
+        "seconds": 62
+      }
+    ]
   }
 };

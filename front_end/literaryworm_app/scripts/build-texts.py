@@ -49,6 +49,11 @@ BOOKS = {
     "the-great-gatsby": {"ebook": 64317, "heading": rf" +{ROMAN}"},
     "the-metamorphosis": {"ebook": 5200, "heading": rf"{ROMAN}"},
     "the-odyssey": {"ebook": 1727, "heading": rf"BOOK {ROMAN}", "end": r"^FOOTNOTES:"},
+    "a-christmas-carol": {"ebook": 46, "heading": rf"STAVE {ROMAN}: .*"},
+    "the-call-of-the-wild": {"ebook": 215, "heading": rf"Chapter {ROMAN}\. .*"},
+    "the-picture-of-dorian-gray": {"ebook": 174, "heading": rf"(?:THE PREFACE|CHAPTER {ROMAN}\.)"},
+    # The Introduction isn't in the recording; chapters start the text. "Home Again" is a few lines.
+    "the-wonderful-wizard-of-oz": {"ebook": 55, "heading": rf"Chapter {ROMAN}", "min": 100},
 }
 
 # Shorter than this after a heading means a table-of-contents line, not a chapter.
