@@ -943,3 +943,63 @@
 .stats-books small {
   color: var(--muted);
 }
+
+/* ---------- Club notifications ---------- */
+
+.club-new {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--rust-bright);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.club-alerts {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + var(--alerts-offset, 0px));
+  z-index: 60;
+  display: grid;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+/* Above the mini-player while a book plays. */
+body:has(.mini-player) .club-alerts {
+  --alerts-offset: 96px;
+}
+
+.club-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 8px 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-high);
+  box-shadow: var(--shadow-float);
+  pointer-events: auto;
+}
+
+.club-alert > .icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--rust-bright);
+}
+
+.club-alert p {
+  flex: 1;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 720px) {
+  .club-alerts {
+    bottom: calc(var(--tab-h) + 16px + var(--alerts-offset, 0px));
+  }
+}

@@ -14,6 +14,19 @@ export interface Club {
   memberCount: number;
 }
 
+/** This account's own settings in a club: whether new posts alert it, and posts since it last looked. */
+export interface ClubMembership {
+  notify: boolean;
+  /** Unread posts by others, per chapter (so chapters past the reader's place can be left out). */
+  unread: Record<number, number>;
+}
+
+/** A new post heard while the app is open, with the club it's in. */
+export interface ClubPostEvent {
+  clubId: string;
+  post: ClubPost;
+}
+
 export interface ClubMember {
   userId: string;
   name: string;
@@ -71,3 +84,17 @@ export const clubDate = (day: string) => dateFormat.format(new Date(`${day}T00:0
 
 /** Days from `today` to the finish date (negative once it's past). */
 export const daysLeft = (club: Pick<Club, "finishesOn">, today: string) => Math.round((toTime(club.finishesOn) - toTime(today)) / DAY_MS);
+
+/**
+ * The furthest chapter a reader can see posts about without spoilers: their place in the book
+ * (the last chapter once finished), and always the first chapter, which is open to everyone.
+ */
+export function spoilerFreeUpTo(progress: { finished: boolean; chapterIndex: number } | undefined, book: Pick<Book, "chapters">): number {
+  if (!progress) return 0;
+  return progress.finished ? book.chapters.length - 1 : Math.max(0, progress.chapterIndex);
+}
+
+/** Unread posts the reader can see now: chapters up to `upTo`. */
+export function unreadUpTo(unread: Record<number, number>, upTo: number): number {
+  return Object.entries(unread).reduce((sum, [chapter, count]) => (Number(chapter) <= upTo ? sum + count : sum), 0);
+}

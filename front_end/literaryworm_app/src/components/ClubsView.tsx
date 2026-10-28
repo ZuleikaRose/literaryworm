@@ -1,9 +1,12 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { books, getBook, isAllowed } from "../data/books";
-import { type Club, CLUB_DAYS_MAX, CLUB_NAME_MAX, clubChapterToday, clubDate, isInviteCode, newInviteCode } from "../lib/clubs";
+import { onClubPost } from "../lib/clubEvents";
+import { type Club, CLUB_DAYS_MAX, CLUB_NAME_MAX, clubChapterToday, clubDate, type ClubMembership, isInviteCode, newInviteCode, spoilerFreeUpTo, unreadUpTo } from "../lib/clubs";
 import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
+import { activeReading } from "../store/reducer";
+import { useStore } from "../store/context";
 import type { Profile } from "../types";
 import { Cover } from "./Cover";
 import { Field } from "./Field";
@@ -19,6 +22,24 @@ export function ClubsView({ profile }: { profile: Profile }) {
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
   const [starting, setStarting] = useState(false);
+  const [memberships, setMemberships] = useState<Record<string, ClubMembership>>({});
+  const progress = activeReading(useStore().state).progress;
+
+  // New posts per club: loaded with the list, and again when one arrives while this is open.
+  useEffect(() => {
+    let live = true;
+    const loadCounts = () =>
+      clubs.memberships().then(
+        (m) => live && setMemberships(m),
+        (err: Error) => console.error("clubs: couldn't count new posts:", err.message),
+      );
+    void loadCounts();
+    const stop = onClubPost(() => void loadCounts());
+    return () => {
+      live = false;
+      stop();
+    };
+  }, [clubs, attempt]);
 
   useEffect(() => {
     let live = true;
@@ -68,12 +89,15 @@ export function ClubsView({ profile }: { profile: Profile }) {
           <ul className="club-list" role="list">
             {load.clubs.map((club) => {
               const book = getBook(club.bookId);
+              // Posts about chapters past the reader's place aren't counted: the count can't spoil anything.
+              const fresh = book ? unreadUpTo(memberships[club.id]?.unread ?? {}, spoilerFreeUpTo(progress[book.id], book)) : 0;
               return (
                 <li key={club.id} className="club-card">
                   {book && <Cover book={book} size="sm" />}
                   <div>
                     <Link to={`/clubs/${club.id}`} className="club-card-title">
                       {club.name}
+                      {fresh > 0 && <span className="club-new"> {fresh} new</span>}
                     </Link>
                     <p>{book?.title ?? "A LiteraryWorm title"}</p>
                     <small>

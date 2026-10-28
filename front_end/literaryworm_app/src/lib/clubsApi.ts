@@ -1,5 +1,6 @@
 import { AccountError, signedInUserId } from "./accountApi";
-import type { Club, ClubDetail, ClubPost } from "./clubs";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "./clubs";
 import { supabase } from "./supabase";
 
 /**
@@ -130,3 +131,59 @@ export async function deletePost(id: string): Promise<void> {
 }
 
 export const myUserId = signedInUserId;
+
+/** This account's notify setting and unread posts in each of its clubs, keyed by club id. */
+export async function loadMemberships(): Promise<Record<string, ClubMembership>> {
+  const db = client();
+  const me = await signedInUserId();
+  const [members, unread] = await Promise.all([
+    db.from("club_members").select("club_id, notify").eq("user_id", me),
+    db.rpc("club_unread"),
+  ]);
+  if (members.error || unread.error) throw new AccountError("We couldn't check your clubs for new posts.");
+  const out: Record<string, ClubMembership> = {};
+  for (const m of members.data as { club_id: string; notify: boolean }[]) out[m.club_id] = { notify: m.notify, unread: {} };
+  for (const u of unread.data as { club_id: string; chapter_index: number; posts: number }[]) {
+    const membership = out[u.club_id];
+    if (membership) membership.unread[u.chapter_index] = Number(u.posts);
+  }
+  return out;
+}
+
+/** Marks a club read now (its posts so far stop counting as new). */
+export async function markClubRead(id: string): Promise<void> {
+  const { error } = await client().rpc("mark_club_read", { p_club_id: id });
+  if (error) throw new AccountError("We couldn't mark the club read.");
+}
+
+/** Turns alerts about a club's new posts on or off for this account. */
+export async function setClubNotify(id: string, notify: boolean): Promise<void> {
+  const { error } = await client().from("club_members").update({ notify }).eq("club_id", id).eq("user_id", await signedInUserId());
+  if (error) throw new AccountError("We couldn't change that setting. Try again.");
+}
+
+/**
+ * Calls `onPost` for each new post in any of this account's clubs (RLS sends only those),
+ * with its author's name. Returns a function that stops listening.
+ */
+export function watchClubPosts(onPost: (event: ClubPostEvent) => void): () => void {
+  const db = client();
+  const channel: RealtimeChannel = db
+    .channel("club-posts")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "club_posts" }, (payload) => {
+      const row = payload.new as { id: string; club_id: string };
+      // The change carries no author name: read the post back, as the discussion does.
+      db.from("club_posts")
+        .select(POST_COLUMNS)
+        .eq("id", row.id)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) console.error("clubs: couldn't read a new post", error.message);
+          else if (data) onPost({ clubId: row.club_id, post: toPost(data as unknown as PostRow) });
+        });
+    })
+    .subscribe();
+  return () => {
+    void db.removeChannel(channel);
+  };
+}

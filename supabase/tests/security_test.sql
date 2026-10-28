@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs and club notifications, player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -273,16 +273,34 @@ select pg_temp.expect_error($$insert into public.club_posts (club_id, user_id, c
 select pg_temp.check(public.join_club('WrongCode1') is null, 'a wrong code joins nothing');
 select pg_temp.check(public.join_club('AnnClub123') = '00000000-0000-0000-0000-0000000000c1', 'the right code joins the club');
 select pg_temp.check((select count(*) from public.club_posts) = 1 and (select count(*) from public.club_members) = 2, 'a member sees the posts and members');
+-- Club notifications (Phase 19): unread posts since joining, read marks, own settings only.
+select pg_temp.check((select count(*) from public.club_unread()) = 0, 'posts from before joining aren''t new');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 3, 'Chapter 4 thoughts');
+select pg_temp.check((select count(*) from public.club_unread()) = 0, 'your own posts are never new to you');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select chapter_index = 3 and posts = 1 from public.club_unread()), 'another member''s new post counts, with its chapter');
+select public.mark_club_read('00000000-0000-0000-0000-0000000000c1');
+select pg_temp.check((select count(*) from public.club_unread()) = 0, 'opening the club marks it read');
+update public.club_members set notify = false where club_id = '00000000-0000-0000-0000-0000000000c1';
+select pg_temp.check((select notify from public.club_members where user_id = '00000000-0000-0000-0000-00000000000b') = false
+  and (select notify from public.club_members where user_id = '00000000-0000-0000-0000-00000000000a'), 'a member turns off their own alerts, not anyone else''s');
+select pg_temp.expect_error($$update public.club_members set joined_at = now() - interval '1 year' where user_id = '00000000-0000-0000-0000-00000000000b'$$, 'changing when you joined');
 delete from public.club_posts where user_id = '00000000-0000-0000-0000-00000000000a';
 delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';
 delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000a';
-select pg_temp.check((select count(*) from public.club_posts) = 1 and (select count(*) from public.book_clubs) = 1 and (select count(*) from public.club_members) = 2, 'a member cannot delete others'' posts, the club, or the owner');
+select pg_temp.check((select count(*) from public.club_posts) = 2 and (select count(*) from public.book_clubs) = 1 and (select count(*) from public.club_members) = 2, 'a member cannot delete others'' posts, the club, or the owner');
 delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.book_clubs) = 0, 'a member can leave');
 reset role;
 set role anon;
 select pg_temp.expect_error('select * from public.club_posts', 'anon reading club posts');
 select pg_temp.expect_error($$select public.join_club('AnnClub123')$$, 'anon joining a club');
+select pg_temp.expect_error('select * from public.club_unread()', 'anon counting club posts');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';

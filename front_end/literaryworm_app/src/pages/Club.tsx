@@ -4,6 +4,7 @@ import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { getBook } from "../data/books";
+import { onClubPost } from "../lib/clubEvents";
 import { CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubPost, daysLeft } from "../lib/clubs";
 import { chapterLabel, today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
@@ -87,6 +88,16 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
   const left = daysLeft(club, now);
   const progress = activeReading(state).progress[book.id];
   const mine = progress ? (progress.finished ? book.chapters.length - 1 : progress.chapterIndex) : -1;
+
+  // Opening the club reads it; posts that arrive while it's open are added as they come.
+  useEffect(() => {
+    clubs.markRead(club.id).catch((err: Error) => console.error("clubs: couldn't mark the club read:", err.message));
+    return onClubPost(({ clubId, post }) => {
+      if (clubId !== club.id) return;
+      setPosts((list) => (list.some((p) => p.id === post.id) ? list : [...list, post]));
+      clubs.markRead(club.id).catch((err: Error) => console.error("clubs: couldn't mark the club read:", err.message));
+    });
+  }, [clubs, club.id]);
 
   const copyCode = async () => {
     try {
@@ -213,6 +224,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
               {copied}
             </p>
           </section>
+          <ClubNotifications clubId={club.id} />
           <section className="goal-card" aria-labelledby="members-title">
             <h2 id="members-title">
               {members.length} {members.length === 1 ? "member" : "members"}
@@ -323,5 +335,78 @@ function PostForm({ book, initialChapter, onPost }: { book: Book; initialChapter
         </button>
       </div>
     </form>
+  );
+}
+
+/** Whether new posts in this club alert this account, and (members) the browser's permission to alert in the background. */
+function ClubNotifications({ clubId }: { clubId: string }) {
+  const clubs = useClubs();
+  const [notify, setNotify] = useState<boolean | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() =>
+    "Notification" in window ? Notification.permission : "unsupported",
+  );
+  const hintId = useId();
+
+  useEffect(() => {
+    let live = true;
+    clubs.memberships().then(
+      (all) => live && setNotify(all[clubId]?.notify ?? true),
+      (err: Error) => live && setError(err.message),
+    );
+    return () => {
+      live = false;
+    };
+  }, [clubs, clubId]);
+
+  const change = async (on: boolean) => {
+    setError(null);
+    setNotify(on);
+    try {
+      await clubs.setNotify(clubId, on);
+    } catch (err) {
+      setNotify(!on);
+      setError(err instanceof Error ? err.message : "We couldn't change that setting. Try again.");
+    }
+  };
+
+  return (
+    <section className="goal-card" aria-labelledby="club-alerts-title">
+      <h2 id="club-alerts-title">Notifications</h2>
+      <label className="switch-row">
+        <span>
+          <strong>Tell me about new posts</strong>
+          <small id={hintId}>Only posts about chapters you've reached, so nothing is spoiled.</small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={hintId}
+          checked={notify ?? true}
+          disabled={notify === null}
+          onChange={(e) => change(e.target.checked)}
+        />
+      </label>
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
+      {clubs.remote && notify && permission === "default" && (
+        <button
+          type="button"
+          className="ghost-button small-button"
+          onClick={async () => setPermission(await Notification.requestPermission())}
+        >
+          <Icon name="bell" size={15} /> Also notify me when LiteraryWorm is in the background
+        </button>
+      )}
+      {clubs.remote && notify && permission === "granted" && <p className="goal-hint">You'll get a notification when LiteraryWorm is in the background.</p>}
+      {clubs.remote && notify && permission === "denied" && (
+        <p className="goal-hint">This browser blocks notifications from LiteraryWorm. You can allow them in the site's settings.</p>
+      )}
+      {!clubs.remote && <p className="goal-hint">In the demo, nobody else posts. Members hear about new posts while LiteraryWorm is open.</p>}
+    </section>
   );
 }

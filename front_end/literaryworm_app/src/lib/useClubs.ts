@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useActiveProfile, useStore } from "../store/context";
-import type { Club, ClubDetail, ClubPost } from "./clubs";
+import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
 
@@ -13,6 +13,13 @@ export const DEMO_USER = "demo-you";
  */
 type DemoClub = ClubDetail;
 let demoClubs: DemoClub[] | null = null;
+/** The demo's own settings in each club: alerts on, and last looked two days ago (so a post is new). */
+const demoMeta = new Map<string, { notify: boolean; lastReadAt: number }>();
+const demoMetaFor = (id: string) => {
+  let meta = demoMeta.get(id);
+  if (!meta) demoMeta.set(id, (meta = { notify: true, lastReadAt: Date.now() - 48 * 3_600_000 }));
+  return meta;
+};
 
 function seedDemo(you: string): DemoClub[] {
   const day = (offset: number) => today(new Date(Date.now() + offset * 86_400_000));
@@ -40,6 +47,7 @@ function seedDemo(you: string): DemoClub[] {
         { id: "p3", userId: "demo-jordan", author: "Jordan", chapterIndex: 2, body: "The ball. Darcy's 'tolerable' is such a bad first impression. Was he nervous or just rude?", createdAt: at(120) },
         { id: "p4", userId: "demo-priya", author: "Priya", chapterIndex: 5, body: "Charlotte's view of marriage is so practical it's almost shocking.", createdAt: at(30) },
         { id: "p5", userId: "demo-jordan", author: "Jordan", chapterIndex: 33, body: "I did NOT expect that proposal, or Elizabeth's answer. Talk when you get here!", createdAt: at(5) },
+        { id: "p6", userId: "demo-priya", author: "Priya", chapterIndex: 0, body: "Rereading chapter 1 out loud. The dialogue is so quick it's almost a play.", createdAt: at(3) },
       ],
     },
   ];
@@ -138,8 +146,38 @@ export function useClubs() {
     [remote, demo],
   );
 
+  /** This account's alerts setting and unread posts per club. */
+  const memberships = useCallback(async (): Promise<Record<string, ClubMembership>> => {
+    if (remote) return clubsApi.loadMemberships();
+    const out: Record<string, ClubMembership> = {};
+    for (const c of demo()) {
+      if (!c.members.some((m) => m.userId === DEMO_USER)) continue;
+      const meta = demoMetaFor(c.club.id);
+      const unread: Record<number, number> = {};
+      for (const p of c.posts) if (p.userId !== DEMO_USER && p.createdAt > meta.lastReadAt) unread[p.chapterIndex] = (unread[p.chapterIndex] ?? 0) + 1;
+      out[c.club.id] = { notify: meta.notify, unread };
+    }
+    return out;
+  }, [remote, demo]);
+
+  const markRead = useCallback(
+    async (id: string) => {
+      if (remote) return clubsApi.markClubRead(id);
+      demoMetaFor(id).lastReadAt = Date.now();
+    },
+    [remote],
+  );
+
+  const setNotify = useCallback(
+    async (id: string, notify: boolean) => {
+      if (remote) return clubsApi.setClubNotify(id, notify);
+      demoMetaFor(id).notify = notify;
+    },
+    [remote],
+  );
+
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, leave, remove, addPost, deletePost }),
-    [remote, myId, list, load, create, join, leave, remove, addPost, deletePost],
+    () => ({ remote, myId, list, load, create, join, leave, remove, addPost, deletePost, memberships, markRead, setNotify }),
+    [remote, myId, list, load, create, join, leave, remove, addPost, deletePost, memberships, markRead, setNotify],
   );
 }
