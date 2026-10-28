@@ -24,3 +24,9 @@ verify_jwt = false
 # validates the id, rate limits each IP, and limits how many new summaries
 # (Claude calls) are written per IP and per day.
 verify_jwt = false
+
+[functions.ask]
+# Public like summaries: the demo household asks without a session. The function
+# validates every field, answers only for public-domain catalog titles, and limits
+# questions (Claude calls) per IP and per day.
+verify_jwt = false

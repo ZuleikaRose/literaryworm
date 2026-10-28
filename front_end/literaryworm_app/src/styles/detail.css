@@ -576,3 +576,38 @@
   max-width: 600px;
   margin: 16px 0 0;
 }
+
+/* ---------- Ask the book ---------- */
+
+.ask-form {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.ask-form .field {
+  width: 100%;
+}
+
+.ask-answers {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ask-answers li {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  line-height: 1.6;
+}
+
+.ask-answers p {
+  margin: 0 0 8px;
+}
+
+.ask-question {
+  color: var(--ink);
+  font-weight: 700;
+}

@@ -10,6 +10,7 @@ import {
   ReadingGate,
   ReadingMessage,
 } from "../components/ReadingParts";
+import { AskDialog } from "../components/AskDialog";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
 import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar } from "../components/StudyTools";
 import { samplePage } from "../data/sampleText";
@@ -25,7 +26,7 @@ import { useTitle } from "../lib/useTitle";
 import { useProfileData } from "../store/context";
 import type { Book, HighlightColor } from "../types";
 
-type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | null;
+type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | null;
 
 export default function Reader() {
   return <ReadingGate format="ebook">{(book) => <ReaderPages key={book.id} book={book} />}</ReadingGate>;
@@ -301,6 +302,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             <Icon name="dictionary" size={20} />
             <span className="visually-hidden">Dictionary</span>
           </button>
+          {book.recording && (
+            <button type="button" className="icon-button" onClick={() => setPanel("ask")}>
+              <Icon name="ask" size={20} />
+              <span className="visually-hidden">Ask the book</span>
+            </button>
+          )}
           <button type="button" className="icon-button" onClick={() => setPanel("display")}>
             <Icon name="type" size={20} />
             <span className="visually-hidden">Display settings</span>
@@ -488,6 +495,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         onRemove={study.remove}
       />
       <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} onClose={() => setPanel(null)} />
+      {book.recording && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
       {selection && !finished && (
         <SelectionToolbar
           rect={selection.rect}
