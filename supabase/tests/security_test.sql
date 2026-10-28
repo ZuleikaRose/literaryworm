@@ -223,6 +223,29 @@ delete from public.reader_profiles where name = 'Sam';
 select pg_temp.check((select count(*) from public.custom_lists where name = 'Sam''s picks') = 0 and (select count(*) from public.favorites where volume_id = 'dune' and user_id = '00000000-0000-0000-0000-00000000000a') = 0, 'deleting a profile deletes its lists and favourites');
 reset role;
 
+-- Goals and reading days: own profiles only, bounded additions -------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into public.reading_goals (profile_id, user_id, year, books) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 2026, 24);
+select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 30, 0);
+select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 45, 1);
+select pg_temp.check((select minutes = 75 and books_finished = 1 from public.reading_days) and (select books = 24 from public.reading_goals), 'Ann sets a goal, and record_reading adds to her day');
+select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 61, 0)$$, 'more than an hour of reading in one call');
+select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date, 5, 2)$$, 'two finished books in one call');
+select pg_temp.expect_error($$select public.record_reading((select id from public.reader_profiles where name = 'Ann'), current_date - 10, 5, 0)$$, 'reading on a day far from today');
+select pg_temp.expect_error($$insert into public.reading_goals (profile_id, user_id, year, books) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 2027, 0)$$, 'a goal of no books');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select count(*) from public.reading_goals) + (select count(*) from public.reading_days) = 0, 'Ben cannot see Ann''s goals or reading days');
+select pg_temp.expect_error('select public.record_reading(' || quote_literal(:'ann_profile') || ', current_date, 5, 0)', 'adding reading to another account''s profile');
+select pg_temp.expect_error('insert into public.reading_goals (profile_id, user_id, year, books) values (' || quote_literal(:'ann_profile') || ', ''00000000-0000-0000-0000-00000000000a'', 2026, 5)', 'a goal on another account''s profile');
+reset role;
+set role anon;
+select pg_temp.expect_error('select * from public.reading_days', 'anon reading reading days');
+select pg_temp.expect_error($$select public.record_reading(gen_random_uuid(), current_date, 5, 0)$$, 'anon recording reading');
+reset role;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

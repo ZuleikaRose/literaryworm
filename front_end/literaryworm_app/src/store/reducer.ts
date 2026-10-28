@@ -93,7 +93,11 @@ export type Action =
   | { type: "setPlaybackSpeed"; speed: number }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string }
-  | { type: "allowExtraTime"; day: string; minutes: number };
+  | { type: "allowExtraTime"; day: string; minutes: number }
+  /** The active profile's goal for a year; null clears it. */
+  | { type: "setReadingGoal"; year: number; books: number | null }
+  /** A book was finished today (counts towards the profile's goal). */
+  | { type: "finishedBook"; day: string; profileId?: string };
 
 /** Swap the signed-in household in, starting with no profile chosen. */
 function enter(state: AppState, household: Household): AppState {
@@ -508,7 +512,30 @@ export function reducer(state: AppState, action: Action): AppState {
         (data) => {
           // A new day starts from zero, with no extra time.
           const used = data.timeUsed.day === action.day ? data.timeUsed : { day: action.day, seconds: 0, extraMinutes: 0 };
-          return { ...data, timeUsed: { ...used, seconds: used.seconds + action.seconds } };
+          const day = data.readingDays[action.day] ?? { seconds: 0, finished: 0 };
+          return {
+            ...data,
+            timeUsed: { ...used, seconds: used.seconds + action.seconds },
+            readingDays: { ...data.readingDays, [action.day]: { ...day, seconds: day.seconds + action.seconds } },
+          };
+        },
+        action.profileId,
+      );
+
+    case "setReadingGoal":
+      return withProfileData(state, (data) => {
+        const readingGoals = { ...data.readingGoals };
+        if (action.books === null) delete readingGoals[action.year];
+        else readingGoals[action.year] = action.books;
+        return { ...data, readingGoals };
+      });
+
+    case "finishedBook":
+      return withProfileData(
+        state,
+        (data) => {
+          const day = data.readingDays[action.day] ?? { seconds: 0, finished: 0 };
+          return { ...data, readingDays: { ...data.readingDays, [action.day]: { ...day, finished: day.finished + 1 } } };
         },
         action.profileId,
       );

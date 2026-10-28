@@ -1,7 +1,10 @@
 import type { ProfileData } from "../types";
 
-/** A profile's favourites, ratings, custom lists and recent searches (saved per profile for members). */
-export type Collections = Pick<ProfileData, "favorites" | "ratings" | "customLists" | "recentSearches">;
+/** A profile's favourites, ratings, custom lists, recent searches, goals and reading days (saved per profile for members). */
+export type Collections = Pick<
+  ProfileData,
+  "favorites" | "ratings" | "customLists" | "recentSearches" | "readingGoals" | "readingDays"
+>;
 
 /** The same limits as the database. */
 export const RECENT_SEARCHES_MAX = 8;

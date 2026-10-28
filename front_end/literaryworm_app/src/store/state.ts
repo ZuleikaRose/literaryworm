@@ -11,6 +11,7 @@ import type {
   Profile,
   ProfileData,
   Progress,
+  ReadingDay,
   ReadingLog,
   ReadingStatus,
 } from "../types";
@@ -88,6 +89,8 @@ export const emptyProfileData = (): ProfileData => ({
   playbackSpeed: 1,
   narrationVoice: null,
   timeUsed: { day: today(), seconds: 0, extraMinutes: 0 },
+  readingGoals: {},
+  readingDays: {},
 });
 
 export const newId = () => crypto.randomUUID();
@@ -126,6 +129,20 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
 }
 
 /** A ready-made household so visitors can explore without signing up. */
+/**
+ * A few months of sample reading for the demo's goals page: a streak up to yesterday, and books
+ * finished along the way. Made from today's date, so it always looks recent.
+ */
+function demoReadingDays(now: number): Record<string, ReadingDay> {
+  const days: Record<string, ReadingDay> = {};
+  // Days ago with some reading; every third one finishes a book.
+  const pattern = [1, 2, 3, 4, 5, 6, 9, 11, 12, 15, 18, 20, 23, 27, 31, 34, 38, 41, 45, 52, 58, 63, 70, 77, 84, 96, 103, 117, 124, 140, 151, 163];
+  pattern.forEach((ago, i) => {
+    days[today(new Date(now - ago * 86_400_000))] = { seconds: (20 + ((i * 17) % 45)) * 60, finished: i % 3 === 0 ? 1 : 0 };
+  });
+  return days;
+}
+
 export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
@@ -141,6 +158,8 @@ export function demoHousehold(): Household {
       catalogEntry("project-hail-mary", "want_to_read", now - 86_400_000),
     ]),
     favorites: ["circe"],
+    readingGoals: { [new Date(now).getFullYear()]: 24 },
+    readingDays: demoReadingDays(now),
     progress: {
       dune: { bookId: "dune", format: "audiobook", fraction: 0.42, chapterIndex: 9, updatedAt: now - 3_600_000, finished: false },
       "the-midnight-library": {

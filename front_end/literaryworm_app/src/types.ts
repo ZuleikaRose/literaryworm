@@ -201,6 +201,14 @@ export interface TimeUsed {
   extraMinutes: number;
 }
 
+/** One day of a profile's reading and listening, for goals and streaks. */
+export interface ReadingDay {
+  /** Seconds read or listened that day (members' days load from Supabase in whole minutes). */
+  seconds: number;
+  /** Books finished that day. */
+  finished: number;
+}
+
 /** The brief's reading statuses (the library's "update" operation). */
 export type ReadingStatus = "want_to_read" | "reading" | "finished";
 
@@ -235,6 +243,10 @@ export interface ProfileData {
    */
   narrationVoice: string | null;
   timeUsed: TimeUsed;
+  /** Books to finish, by year. */
+  readingGoals: Record<number, number>;
+  /** Keyed by local date, YYYY-MM-DD; days with nothing read aren't kept. */
+  readingDays: Record<string, ReadingDay>;
 }
 
 /**

@@ -5,6 +5,7 @@ import { newId } from "../store/state";
 import type { Book, Bookmark, Format, Progress, ReadingStatus } from "../types";
 import * as accountApi from "./accountApi";
 import { AccountError } from "./accountApi";
+import { today } from "./reading";
 
 type Place = Pick<Progress, "format" | "fraction" | "chapterIndex"> & { finished?: boolean };
 
@@ -24,6 +25,7 @@ const SAVE_DELAY_MS = 1500;
  */
 export function useReading(book: Book, profileId?: string) {
   const { state, dispatch } = useStore();
+  const readerProfileId = profileId ?? state.activeProfileId;
   const remote = Boolean(state.account?.userId);
   const reading = activeReading(state);
   const progress: Progress | undefined = reading.progress[book.id];
@@ -43,6 +45,15 @@ export function useReading(book: Book, profileId?: string) {
   const knownStatus = useRef<ReadingStatus | null | undefined>(undefined);
   const queue = useRef<Promise<void>>(Promise.resolve());
 
+  /** Counts a newly finished book towards the profile's goal (members: in Supabase too, in the background). */
+  const countFinished = useCallback(() => {
+    const day = today();
+    dispatch({ type: "finishedBook", day, profileId: readerProfileId ?? undefined });
+    if (latest.current.remote && readerProfileId) {
+      accountApi.recordReading(readerProfileId, day, 0, 1).catch((err: unknown) => console.error("goals: couldn't count a finished book", err));
+    }
+  }, [dispatch, readerProfileId]);
+
   /** Adds the book to the library as Reading, or moves it on from Want to read / to Finished. */
   const ensureInLibrary = useCallback(
     (finished: boolean) => {
@@ -60,17 +71,19 @@ export function useReading(book: Book, profileId?: string) {
             dispatch({ type: "addToLibrary", entry, status });
           }
           knownStatus.current = status;
+          if (finished) countFinished();
         } else if (known !== status && (finished || known === "want_to_read")) {
           if (isRemote) await accountApi.setLibraryStatus(book.id, status);
           dispatch({ type: "setReadingStatus", bookId: book.id, status });
           knownStatus.current = status;
+          if (finished) countFinished();
         }
       };
       const next = queue.current.then(run, run);
       queue.current = next.catch(() => undefined);
       return next;
     },
-    [book, dispatch],
+    [book, dispatch, countFinished],
   );
 
   /** Sends the latest place to Supabase. */

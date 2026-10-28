@@ -4,6 +4,7 @@ import { BookSummary } from "../components/BookSummary";
 import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
+import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
 import { SavedBookTile } from "../components/SavedBookTile";
 import { getBook, isAllowed } from "../data/books";
@@ -19,13 +20,14 @@ import { useVolume } from "../lib/useVolume";
 import { useActiveProfile } from "../store/context";
 import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
 
-type View = "library" | "favorites" | "lists";
+type View = "library" | "favorites" | "lists" | "goals";
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "library", label: "My library" },
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
+  { id: "goals", label: "Goals" },
 ];
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
@@ -71,6 +73,7 @@ export default function Library() {
       {view === "library" && <LibraryView profile={profile} />}
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
+      {view === "goals" && <GoalsView profile={profile} />}
     </div>
   );
 }

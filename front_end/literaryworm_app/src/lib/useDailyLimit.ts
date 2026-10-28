@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
+import { addReadingSeconds } from "./readingActivity";
 import { today } from "./reading";
 
 /** Time is added to the store in steps this long, so the whole app doesn't re-render every second. */
@@ -14,8 +15,11 @@ export const EXTRA_MINUTES = 30;
  * profile that was listening if someone switches profile while it plays.
  */
 export function useDailyLimit(counting: boolean, profileId?: string) {
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const profile = useActiveProfile();
+  // Members' reading time also goes to Supabase, for goals and streaks.
+  const remote = Boolean(state.account?.userId);
+  const countedProfile = profileId ?? profile?.id ?? null;
   const data = useProfileData();
   const day = today();
   const used = data.timeUsed.day === day ? data.timeUsed : { day, seconds: 0, extraMinutes: 0 };
@@ -27,22 +31,27 @@ export function useDailyLimit(counting: boolean, profileId?: string) {
 
   useEffect(() => {
     if (!counting || reached) return;
+    const add = (seconds: number) => {
+      const day = today();
+      dispatch({ type: "addTimeUsed", day, seconds, profileId });
+      if (remote && countedProfile) addReadingSeconds(countedProfile, day, seconds);
+    };
     const id = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       unsaved.current += 1;
       if (unsaved.current >= STEP_SECONDS) {
-        dispatch({ type: "addTimeUsed", day: today(), seconds: unsaved.current, profileId });
+        add(unsaved.current);
         unsaved.current = 0;
       }
     }, 1000);
     return () => {
       window.clearInterval(id);
       if (unsaved.current > 0) {
-        dispatch({ type: "addTimeUsed", day: today(), seconds: unsaved.current, profileId });
+        add(unsaved.current);
         unsaved.current = 0;
       }
     };
-  }, [counting, reached, dispatch, profileId]);
+  }, [counting, reached, dispatch, profileId, remote, countedProfile]);
 
   return {
     limitMinutes,

@@ -671,7 +671,7 @@ interface ListRow {
 
 const LIST_COLUMNS = "id, profile_id, name, description, share_slug";
 
-const emptyCollections = (): Collections => ({ favorites: [], ratings: {}, customLists: [], recentSearches: [] });
+const emptyCollections = (): Collections => ({ favorites: [], ratings: {}, customLists: [], recentSearches: [], readingGoals: {}, readingDays: {} });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
 export async function loadCollections(): Promise<Record<string, Collections>> {
@@ -698,7 +698,55 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const l of lists.data as ListRow[]) {
     of(l.profile_id).customLists.push({ id: l.id, name: l.name, description: l.description, bookIds: books.get(l.id) ?? [], shareSlug: l.share_slug });
   }
+  const { goals, days } = await loadGoals();
+  for (const g of goals) of(g.profile_id).readingGoals[g.year] = g.books;
+  for (const d of days) of(d.profile_id).readingDays[d.day] = { seconds: d.minutes * 60, finished: d.books_finished };
   return byProfile;
+}
+
+type GoalRow = { profile_id: string; year: number; books: number };
+type DayRow = { profile_id: string; day: string; minutes: number; books_finished: number };
+
+/** How far back reading days load: enough for a year's goal, streaks and monthly summaries. */
+const DAYS_KEPT = 400;
+
+/**
+ * Every profile's goals and recent reading days. Goals and streaks are extras: if they can't load,
+ * the account still opens without them (they show as empty) rather than failing to sign in.
+ */
+async function loadGoals(): Promise<{ goals: GoalRow[]; days: DayRow[] }> {
+  const db = client();
+  const from = new Date(Date.now() - DAYS_KEPT * 86_400_000).toISOString().slice(0, 10);
+  const [goals, days] = await Promise.all([
+    db.from("reading_goals").select("profile_id, year, books"),
+    db.from("reading_days").select("profile_id, day, minutes, books_finished").gte("day", from),
+  ]);
+  if (goals.error || days.error) {
+    console.error("goals: couldn't load", goals.error?.message ?? days.error?.message);
+    return { goals: [], days: [] };
+  }
+  return { goals: goals.data as GoalRow[], days: days.data as DayRow[] };
+}
+
+/** Sets a profile's goal for a year, or clears it (null). */
+export async function setReadingGoal(profileId: string, year: number, books: number | null): Promise<void> {
+  const db = client();
+  const failed = new AccountError("We couldn't save your goal. Try again.");
+  if (books === null) {
+    const { error } = await db.from("reading_goals").delete().eq("profile_id", profileId).eq("year", year);
+    if (error) throw failed;
+    return;
+  }
+  const { error } = await db
+    .from("reading_goals")
+    .upsert({ profile_id: profileId, user_id: await signedInUserId(), year, books }, { onConflict: "profile_id,user_id,year" });
+  if (error) throw failed;
+}
+
+/** Adds minutes read (up to 60) and a finished book (0 or 1) to a profile's day. */
+export async function recordReading(profileId: string, day: string, minutes: number, finished: number): Promise<void> {
+  const { error } = await client().rpc("record_reading", { p_profile_id: profileId, p_day: day, p_minutes: minutes, p_finished: finished });
+  if (error) throw new AccountError("We couldn't save today's reading time.");
 }
 
 export async function addFavorite(profileId: string, bookId: string): Promise<void> {

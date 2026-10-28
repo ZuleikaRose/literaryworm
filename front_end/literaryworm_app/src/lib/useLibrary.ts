@@ -1,7 +1,8 @@
 import { useStore } from "../store/context";
 import { activeLibrary } from "../store/reducer";
 import type { LibraryEntry, ReadingStatus } from "../types";
-import { addLibraryItem, removeLibraryItem, setLibraryStatus } from "./accountApi";
+import { addLibraryItem, recordReading, removeLibraryItem, setLibraryStatus } from "./accountApi";
+import { today } from "./reading";
 
 type NewEntry = Pick<LibraryEntry, "bookId"> & Partial<Pick<LibraryEntry, "title" | "authors" | "cover">>;
 
@@ -15,6 +16,15 @@ export function useLibrary() {
   const { state, dispatch } = useStore();
   const remote = Boolean(state.account?.userId);
 
+  /** Counts a newly finished book towards the active profile's goal (members: in Supabase too, in the background). */
+  function countFinished() {
+    const day = today();
+    dispatch({ type: "finishedBook", day });
+    if (remote && state.activeProfileId) {
+      recordReading(state.activeProfileId, day, 0, 1).catch((err: unknown) => console.error("goals: couldn't count a finished book", err));
+    }
+  }
+
   async function add(entry: NewEntry, status: ReadingStatus = "want_to_read") {
     if (remote) {
       const saved = await addLibraryItem(entry.bookId, status);
@@ -22,11 +32,15 @@ export function useLibrary() {
     } else {
       dispatch({ type: "addToLibrary", entry, status });
     }
+    if (status === "finished") countFinished();
   }
 
   async function setStatus(bookId: string, status: ReadingStatus) {
+    const wasFinished = activeLibrary(state)[bookId]?.status === "finished";
     if (remote) await setLibraryStatus(bookId, status);
     dispatch({ type: "setReadingStatus", bookId, status });
+    // Marking a book finished counts towards the profile's goal, like finishing it in the reader.
+    if (status === "finished" && !wasFinished) countFinished();
   }
 
   async function remove(bookId: string) {
