@@ -5,7 +5,7 @@ import { GenreNav } from "../components/GenreNav";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
-import { type BrowseGenre, browseGenres, genreLabel, isBrowseGenre } from "../data/genres";
+import { type BrowseGenre, browseGenres, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
@@ -31,7 +31,7 @@ function GenreShelf({ genre, ageRating }: { genre: BrowseGenre; ageRating: AgeRa
       action={
         <Link
           className="view-all"
-          to={genre === "technology" ? "/browse" : `/browse?genre=${genre}`}
+          to={genreHref("/browse", genre)}
           onClick={() => document.getElementById("discover")?.scrollIntoView({ block: "start" })}
         >
           See all<span className="visually-hidden"> {genreLabel(genre)}</span> <Icon name="chevronRight" size={16} />

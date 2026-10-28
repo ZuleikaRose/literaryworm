@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { type BrowseGenre, browseGenres } from "../data/genres";
+import { type BrowseGenre, browseGenres, genreHref } from "../data/genres";
 
 interface GenreNavProps {
   current: BrowseGenre;
-  /** Where the links point; the genre is added as ?genre=. */
+  /** Where the links point; the genre is added as ?genre=, and #discover takes the page to the feed. */
   basePath: string;
 }
 
@@ -18,7 +18,7 @@ export function GenreNav({ current, basePath }: GenreNavProps) {
         {browseGenres.map((g) => (
           <li key={g.id}>
             <Link
-              to={g.id === "technology" ? basePath : `${basePath}?genre=${g.id}`}
+              to={genreHref(basePath, g.id)}
               aria-current={g.id === current ? "page" : undefined}
             >
               {g.label}

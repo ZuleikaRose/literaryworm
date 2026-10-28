@@ -19,6 +19,15 @@ export function genreLabel(id: BrowseGenre): string {
 }
 
 /**
+ * A genre's place in the home feed: `/?genre=horror#discover` (technology, the default, has
+ * no parameter). The #discover hash takes the page to the feed instead of the top, and keeps
+ * it there while switching genres.
+ */
+export function genreHref(basePath: string, id: BrowseGenre): string {
+  return `${basePath}${id === "technology" ? "" : `?genre=${id}`}#discover`;
+}
+
+/**
  * How each genre matches the sample catalog's own genres, used only when no backend is
  * configured. With Supabase, the books Edge Function maps genres to Google Books queries.
  */

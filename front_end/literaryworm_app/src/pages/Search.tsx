@@ -5,7 +5,7 @@ import { BookFeed } from "../components/BookFeed";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { SearchFilters } from "../components/SearchFilters";
-import { browseGenres, genreLabel } from "../data/genres";
+import { browseGenres, genreHref, genreLabel } from "../data/genres";
 import { usesBackend } from "../lib/booksApi";
 import {
   catalogMatches,
@@ -156,7 +156,7 @@ function StartHere() {
           <ul role="list">
             {browseGenres.map((g) => (
               <li key={g.id}>
-                <Link to={g.id === "technology" ? genreBase : `${genreBase}?genre=${g.id}`}>{g.label}</Link>
+                <Link to={genreHref(genreBase, g.id)}>{g.label}</Link>
               </li>
             ))}
           </ul>
