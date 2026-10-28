@@ -246,6 +246,39 @@ select pg_temp.expect_error('select * from public.reading_days', 'anon reading r
 select pg_temp.expect_error($$select public.record_reading(gen_random_uuid(), current_date, 5, 0)$$, 'anon recording reading');
 reset role;
 
+-- Book clubs: members only, joined by code ------------------------------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into public.book_clubs (id, owner_id, name, volume_id, starts_on, finishes_on, invite_code)
+  values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'Ann''s club', 'dracula', current_date, current_date + 30, 'AnnClub123');
+insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 0, 'Welcome');
+select pg_temp.check((select count(*) from public.club_members where club_id = '00000000-0000-0000-0000-0000000000c1') = 1, 'the owner joins their own club');
+select pg_temp.expect_error($$insert into public.book_clubs (owner_id, name, volume_id, starts_on, finishes_on, invite_code) values ('00000000-0000-0000-0000-00000000000a', 'Too long', 'dracula', current_date, current_date + 400, 'AnnClub999')$$, 'a club over a year long');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select count(*) from public.book_clubs) + (select count(*) from public.club_posts) = 0, 'Ben cannot see a club he isn''t in');
+select pg_temp.expect_error($$insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', 0, 'Hi')$$, 'posting in a club you aren''t in');
+select pg_temp.check(public.join_club('WrongCode1') is null, 'a wrong code joins nothing');
+select pg_temp.check(public.join_club('AnnClub123') = '00000000-0000-0000-0000-0000000000c1', 'the right code joins the club');
+select pg_temp.check((select count(*) from public.club_posts) = 1 and (select count(*) from public.club_members) = 2, 'a member sees the posts and members');
+delete from public.club_posts where user_id = '00000000-0000-0000-0000-00000000000a';
+delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';
+delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) from public.club_posts) = 1 and (select count(*) from public.book_clubs) = 1 and (select count(*) from public.club_members) = 2, 'a member cannot delete others'' posts, the club, or the owner');
+delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select count(*) from public.book_clubs) = 0, 'a member can leave');
+reset role;
+set role anon;
+select pg_temp.expect_error('select * from public.club_posts', 'anon reading club posts');
+select pg_temp.expect_error($$select public.join_club('AnnClub123')$$, 'anon joining a club');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';
+select pg_temp.check((select count(*) from public.club_members where club_id = '00000000-0000-0000-0000-0000000000c1') = 0, 'deleting a club deletes its members and posts');
+reset role;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
