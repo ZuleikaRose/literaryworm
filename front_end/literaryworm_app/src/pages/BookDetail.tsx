@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
 import { BookSummary } from "../components/BookSummary";
+import { OfflineBook } from "../components/OfflineBook";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { LogCard } from "../components/LogCard";
@@ -472,6 +473,9 @@ function DetailPage({ view }: { view: DetailView }) {
 
       {/* Members and the demo household; the summaries come from the backend. */}
       {profile && usesBackend && <BookSummary bookId={view.id} title={view.title} />}
+
+      {/* Public-domain titles only: their text and audio may be kept on the device. */}
+      {profile && view.local?.recording && <OfflineBook book={view.local} />}
 
       {view.facts.length > 0 && (
         <section className="book-facts" aria-labelledby="facts-title">

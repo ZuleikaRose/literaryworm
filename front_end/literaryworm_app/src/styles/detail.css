@@ -611,3 +611,16 @@
   color: var(--ink);
   font-weight: 700;
 }
+
+/* ---------- Read offline ---------- */
+
+.offline-book {
+  padding: 32px clamp(0px, 3vw, 55px);
+  border-bottom: 1px solid var(--line);
+}
+
+.offline-book h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
