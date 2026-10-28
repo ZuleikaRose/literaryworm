@@ -14,7 +14,7 @@ const WIKTIONARY = "https://en.wiktionary.org/api/rest_v1/page/definition/";
 /** Each source gets this long, so a fallback still answers within the function's budget. */
 const TIMEOUT_MS = 4000;
 // Wikimedia asks API clients to say who they are.
-const USER_AGENT = "BookWorm-dictionary/1.0 (Supabase Edge Function; reading app demo)";
+const USER_AGENT = "LiteraryWorm-dictionary/1.0 (Supabase Edge Function; reading app demo)";
 
 /** Up to this many parts of speech, each with up to this many definitions. */
 export const MAX_MEANINGS = 3;

@@ -1,0 +1,250 @@
+/* Search (/search): title search, filters, LiteraryWorm then Google Books results. */
+
+.search-page {
+  padding-top: 36px;
+  padding-bottom: 96px;
+}
+
+.search-header h1 {
+  margin: 0 0 20px;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.03em;
+}
+
+.search-form {
+  max-width: 860px;
+}
+
+.search-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 320px;
+  align-items: center;
+  min-width: 0;
+}
+
+.search-input-wrap > .icon {
+  position: absolute;
+  left: 16px;
+  color: var(--faint);
+  pointer-events: none;
+}
+
+.search-input {
+  min-height: 52px;
+  padding-left: 48px;
+  font-size: 1.0625rem;
+}
+
+.search-input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.search-form-row .primary-button,
+.search-form-row .secondary-button {
+  min-height: 52px;
+}
+
+/* ---------- Empty search ---------- */
+
+.search-start {
+  display: grid;
+  gap: 44px;
+  max-width: 860px;
+  margin-top: 44px;
+}
+
+.search-start h2 {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+}
+
+.search-start .section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.recent-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.recent-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.recent-list a {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.recent-list a:hover {
+  color: var(--ink);
+}
+
+.recent-list .icon-button {
+  width: 44px;
+  height: 44px;
+}
+
+/* ---------- Results ---------- */
+
+.search-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: 36px;
+}
+
+.search-sidebar {
+  position: sticky;
+  top: calc(var(--header-h) + 20px);
+  align-self: start;
+}
+
+.search-sidebar h2 {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+}
+
+.search-filters {
+  display: grid;
+  gap: 24px;
+}
+
+.filter-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filter-group legend {
+  margin-bottom: 10px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.filter-group .chip span {
+  min-height: 44px;
+}
+
+.results-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.results-summary {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}
+
+.filters-button {
+  display: none;
+}
+
+.did-you-mean {
+  margin: 18px 0 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--rust-bright);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--ink-soft);
+  background: var(--surface);
+  font-size: 1rem;
+}
+
+.did-you-mean a {
+  color: var(--rust-bright);
+  font-weight: 700;
+}
+
+.catalog-results {
+  margin-top: 32px;
+}
+
+.catalog-results .section-heading,
+.search-results .book-feed .section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.catalog-results h2,
+.search-results .book-feed h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+
+.catalog-results .catalog-grid {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-results .book-feed {
+  margin-top: 56px;
+}
+
+.search-empty,
+.search-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 900px) {
+  .search-layout {
+    grid-template-columns: 1fr;
+    margin-top: 24px;
+  }
+
+  .search-sidebar {
+    display: none;
+  }
+
+  .filters-button {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-form-row .primary-button {
+    flex: 1 1 auto;
+  }
+
+  .search-form-row .secondary-button {
+    flex: 1 1 auto;
+  }
+}
