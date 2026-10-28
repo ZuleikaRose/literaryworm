@@ -7,11 +7,12 @@ import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
+import { moreLike, recommend, seeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
-import { useActiveProfile, useStore } from "../store/context";
+import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { AgeRating, Book } from "../types";
 
@@ -48,6 +49,7 @@ export default function Browse() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const library = useLibrary();
+  const data = useProfileData();
   const genreParam = params.get("genre");
   const genre: BrowseGenre = isBrowseGenre(genreParam) ? genreParam : "technology";
 
@@ -67,9 +69,29 @@ export default function Browse() {
   const newReleases = catalog.filter((b) => b.newRelease);
   const topTen = [...catalog].sort((a, b) => b.rating - a.rating || b.ratingsCount - a.ratingsCount).slice(0, 10);
 
-  // The catalog title most recently added to the library.
+  // Recommendations from what this profile finished, rated and favourited (lib/recommend.ts).
+  const inLibrary = new Set(Object.keys(library.entries));
+  const taste = seeds(data, library.entries, (id) => {
+    const book = getBook(id);
+    return visible(book) ? book : undefined;
+  });
+  // Up to two "Because you…" rows from the strongest likes, then "Picked for you" from
+  // everything the profile did, leaving out books those rows already show.
+  const shown = new Set<string>();
+  const because = taste
+    .filter((s) => s.weight > 0)
+    .slice(0, 2)
+    .map((seed) => {
+      const items = moreLike(seed.book, catalog, inLibrary, 8).filter((b) => !shown.has(b.id) && !taste.some((t) => t.book.id === b.id));
+      items.forEach((b) => shown.add(b.id));
+      return { seed, items };
+    })
+    .filter((row) => row.items.length >= 3);
+  const picked = recommend(catalog, taste, profile.favoriteGenres, new Set([...inLibrary, ...because.flatMap((r) => r.items.map((b) => b.id))]));
+
+  // With nothing to go on yet: the catalog title most recently added to the library.
   const saved = Object.values(library.entries).sort((a, b) => b.addedAt - a.addedAt);
-  const lastSaved = saved.map((entry) => getBook(entry.bookId)).find(visible);
+  const lastSaved = taste.length ? undefined : saved.map((entry) => getBook(entry.bookId)).find(visible);
   const becauseSaved = lastSaved
     ? catalog.filter(
         (b) => b.id !== lastSaved.id && !library.entries[b.id] && b.genres.some((g) => lastSaved.genres.includes(g)),
@@ -128,6 +150,24 @@ export default function Browse() {
         {newReleases.length > 0 && (
           <Shelf id="new" eyebrow="Just added" title="New releases" items={newReleases.map(fromLocal)} />
         )}
+        {/* With no history yet, the "Because you saved" row below says the same thing. */}
+        {picked.length >= 3 && (taste.length > 0 || becauseSaved.length === 0) && (
+          <Shelf
+            id="picked"
+            eyebrow={`Based on what ${profile.name} reads`}
+            title="Picked for you"
+            items={picked.map((r) => fromLocal(r.book))}
+          />
+        )}
+        {because.map(({ seed, items }) => (
+          <Shelf
+            key={seed.book.id}
+            id={`because-${seed.book.id}`}
+            eyebrow="Find something new"
+            title={`Because you ${seed.reason} ${seed.book.title}`}
+            items={items.map(fromLocal)}
+          />
+        ))}
         {lastSaved && becauseSaved.length > 0 && (
           <Shelf
             id="because-saved"

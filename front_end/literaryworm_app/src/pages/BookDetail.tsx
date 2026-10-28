@@ -9,6 +9,7 @@ import { LogCard } from "../components/LogCard";
 import { LogDialog } from "../components/LogDialog";
 import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
+import { moreLike } from "../lib/recommend";
 import { type BrowseGenre, genreForCategories } from "../data/genres";
 import { readingStatusLabel } from "../data/logs";
 import { type DetailView, fromCatalogBook, fromVolume } from "../lib/bookDetail";
@@ -603,10 +604,10 @@ function DetailPage({ view }: { view: DetailView }) {
 }
 
 function CatalogMoreLikeThis({ view, ageRating }: { view: DetailView; ageRating: AgeRating }) {
-  const similar = books
-    .filter((b) => b.id !== view.id && isAllowed(b.ageRating, ageRating) && b.genres.some((g) => view.categories.includes(g)))
-    .slice(0, 12)
-    .map(fromLocal);
+  const book = getBook(view.id);
+  const allowed = books.filter((b) => isAllowed(b.ageRating, ageRating));
+  // Closest first: shared genres, then the same author or series (lib/recommend.ts).
+  const similar = (book ? moreLike(book, allowed, new Set()) : allowed.filter((b) => b.id !== view.id && b.genres.some((g) => view.categories.includes(g))).slice(0, 12)).map(fromLocal);
   if (!similar.length) return null;
   return <Shelf id="more-like-this" title="More like this" items={similar} />;
 }
