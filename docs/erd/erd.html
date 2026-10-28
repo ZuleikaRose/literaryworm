@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–0900)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1100)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -333,6 +333,65 @@
           ],
           note: "AI-written summaries, kept so each book is written once. Same ids as library_items.volume_id, no foreign key (any book). RLS on; no browser access: read through the function.",
         },
+        {
+          id: "reading_goals", color: colors.household, x: 0, y: 1900, sub: "per profile · goals",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "year", "smallint 2020–2100"],
+            ["", "books", "smallint 1–365"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "A profile's book goal for a year. FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade. Index: user_id. RLS: owner only; browser changes books only.",
+        },
+        {
+          id: "reading_days", color: colors.household, x: 420, y: 1900, sub: "per profile · streaks",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "day", "date"],
+            ["", "minutes", "smallint 0–1440"],
+            ["", "books_finished", "smallint 0–100"],
+          ],
+          note: "Time read or listened and books finished per day. FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today). RLS: owner only.",
+        },
+        {
+          id: "book_clubs", color: colors.reading, x: 840, y: 1900, sub: "members only",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "owner_id", "uuid"],
+            ["", "name", "text 1–60"],
+            ["", "volume_id", "text"],
+            ["", "starts_on", "date"],
+            ["", "finishes_on", "date (≤ 366 days on)"],
+            ["", "invite_code", "text (10, unique)"],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "Index: owner_id. Up to 20 an account; the owner joins by trigger. RLS: owner and members read; owner edits name, finish date, code, and deletes. Others join only through join_club(code).",
+        },
+        {
+          id: "club_members", color: colors.reading, x: 1260, y: 1900, sub: "up to 50 a club",
+          cols: [
+            ["pk fk", "club_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["", "joined_at", "timestamptz"],
+          ],
+          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited).",
+        },
+        {
+          id: "club_posts", color: colors.reading, x: 1260, y: 2180, sub: "discussion by chapter",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "club_id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "chapter_index", "smallint 0–999"],
+            ["", "body", "text 1–2000"],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "FK (club_id, user_id) → club_members, on delete cascade: leaving deletes your posts. Indexes: (club_id, user_id), user_id. Up to 60 an hour. RLS: members read; authors edit; authors or the owner delete.",
+        },
       ];
 
       // [fromTable, fromColumn, toTable, toColumn, cardinality label]
@@ -354,6 +413,12 @@
         ["book_ratings", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_lists", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_list_items", "list_id", "custom_lists", "id", "N : 1 (pair)"],
+        ["reading_goals", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["reading_days", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["book_clubs", "owner_id", "profiles", "id", "N : 1"],
+        ["club_members", "club_id", "book_clubs", "id", "N : 1"],
+        ["club_members", "user_id", "profiles", "id", "N : 1"],
+        ["club_posts", "club_id", "club_members", "club_id", "N : 1 (pair)"],
       ];
       // -----------------------------------------------------------------------------------
 
