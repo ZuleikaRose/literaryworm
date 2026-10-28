@@ -29,8 +29,12 @@ export function InstallApp() {
           type="button"
           className="secondary-button"
           onClick={async () => {
-            const done = await install();
-            setMessage(done ? "Installed. You'll find LiteraryWorm with your other apps." : null);
+            try {
+              const done = await install();
+              setMessage(done ? "Installed. You'll find LiteraryWorm with your other apps." : null);
+            } catch (err) {
+              setMessage(err instanceof Error ? err.message : "Your browser couldn't install LiteraryWorm just now.");
+            }
           }}
         >
           <Icon name="download" size={18} /> Install the app

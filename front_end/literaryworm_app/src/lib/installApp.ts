@@ -60,15 +60,22 @@ function subscribe(listener: () => void) {
 /** Whether LiteraryWorm can be installed here, and `install()` to ask (resolves true if it was). */
 export function useInstallApp() {
   const state = useSyncExternalStore(subscribe, current, () => "unavailable" as InstallState);
+  /** Asks the browser to install. Resolves true if installed; rejects with a message to show if the browser couldn't ask. */
   const install = async (): Promise<boolean> => {
     const prompt = deferred;
     if (!prompt) return false;
-    await prompt.prompt();
-    const { outcome } = await prompt.userChoice;
-    // The event can only be used once; the browser fires a new one if it can ask again.
-    deferred = null;
-    notify();
-    return outcome === "accepted";
+    try {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      return outcome === "accepted";
+    } catch (err) {
+      console.error("install: the browser couldn't show its install prompt:", err);
+      throw new Error("Your browser couldn't install LiteraryWorm just now. Use Install in the browser's menu instead.");
+    } finally {
+      // The event can only be used once; the browser fires a new one if it can ask again.
+      deferred = null;
+      notify();
+    }
   };
   return { state, install };
 }

@@ -75,13 +75,19 @@ function ClubAlertsFor({ userId }: { userId: string }) {
       const chapter = post.chapterIndex + 1;
       if (document.visibilityState === "hidden" && "Notification" in window && Notification.permission === "granted") {
         // The author and chapter only: the post itself stays inside the app.
-        const note = new Notification(`New post in ${club.name}`, { body: `${post.author} wrote about chapter ${chapter}.`, icon: "/icons/icon-192.png", tag: post.id });
-        note.onclick = () => {
-          window.focus();
-          go(`/clubs/${clubId}`);
-          note.close();
-        };
-        return;
+        try {
+          const note = new Notification(`New post in ${club.name}`, { body: `${post.author} wrote about chapter ${chapter}.`, icon: "/icons/icon-192.png", tag: post.id });
+          note.onclick = () => {
+            window.focus();
+            go(`/clubs/${clubId}`);
+            note.close();
+          };
+          return;
+        } catch (err) {
+          // Some browsers (Android Chrome) only show notifications from a service worker: fall
+          // back to the alert in the corner, which the member sees when they come back.
+          console.error("clubs: couldn't show a system notification:", err);
+        }
       }
       setAlerts((list) => [...list.slice(-2), { id: post.id, clubId, clubName: club.name, author: post.author, chapter }]);
     };

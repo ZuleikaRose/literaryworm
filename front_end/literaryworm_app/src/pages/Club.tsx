@@ -6,7 +6,7 @@ import { Icon } from "../components/Icon";
 import { getBook } from "../data/books";
 import { onClubPost } from "../lib/clubEvents";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
-import { endSession, isLeft, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
+import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
 import { usePlayback } from "../lib/playback";
 import { type Club, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft } from "../lib/clubs";
 import { chapterAt, chapterLabel, chapterTimes, today } from "../lib/reading";
@@ -401,7 +401,14 @@ function ClubNotifications({ clubId }: { clubId: string }) {
         <button
           type="button"
           className="ghost-button small-button"
-          onClick={async () => setPermission(await Notification.requestPermission())}
+          onClick={async () => {
+            try {
+              setPermission(await Notification.requestPermission());
+            } catch (err) {
+              console.error("clubs: couldn't ask for notification permission:", err);
+              setError("Your browser couldn't ask about notifications. You can allow them in the site's settings.");
+            }
+          }}
         >
           <Icon name="bell" size={15} /> Also notify me when LiteraryWorm is in the background
         </button>
@@ -457,7 +464,7 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
     );
   }
 
-  const going = session && !isLeft(session, now) ? session : null;
+  const going = session && !isAbandoned(session, now) ? session : null;
   const hostName = going ? (going.hostId === me ? "You" : (members.find((m) => m.userId === going.hostId)?.name ?? "A member")) : null;
   const { starts, total } = chapterTimes(book);
   const hostChapter = going ? chapterAt(starts, Math.min(total, livePosition(going, now))) : 0;

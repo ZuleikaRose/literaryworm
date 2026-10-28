@@ -26,7 +26,7 @@ export interface ListenSession {
 }
 
 /** A session not moved for this long has been left (the host's heartbeat is every 30 seconds). */
-export const SESSION_LEFT_MS = 120_000;
+export const SESSION_ABANDONED_MS = 120_000;
 
 type Row = { club_id: string; host_id: string; position_seconds: number; playing: boolean; rate: number; updated_at: string };
 const COLUMNS = "club_id, host_id, position_seconds, playing, rate, updated_at";
@@ -47,7 +47,7 @@ export function livePosition(session: ListenSession, now = Date.now()): number {
 }
 
 /** Whether the session has been left (nobody has moved it for two minutes). */
-export const isLeft = (session: ListenSession, now = Date.now()) => now - session.updatedAt > SESSION_LEFT_MS;
+export const isAbandoned = (session: ListenSession, now = Date.now()) => now - session.updatedAt > SESSION_ABANDONED_MS;
 
 /** The club's session, or null. On first load the database's time stands in for when it was heard. */
 export async function loadSession(clubId: string): Promise<ListenSession | null> {

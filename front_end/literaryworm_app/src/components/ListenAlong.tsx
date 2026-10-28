@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBook } from "../data/books";
 import { type ListenAlongState, setListenAlong, useListenAlong } from "../lib/listenAlong";
-import { endSession, isLeft, type ListenSession, livePosition, loadSession, moveSession, watchSession } from "../lib/listenAlongApi";
+import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, moveSession, watchSession } from "../lib/listenAlongApi";
 import { usePlayback } from "../lib/playback";
 import { useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
@@ -154,7 +154,7 @@ function Follower({ session, book }: { session: ListenAlongState; book: Book }) 
     const follow = () => {
       const { playback: p, playbackSpeed: speed, host: h } = latest.current;
       if (h === undefined) return;
-      if (h === null || isLeft(h)) {
+      if (h === null || isAbandoned(h)) {
         // The host stopped (or left): carry on alone, paused.
         p.pause();
         setListenAlong(null);
