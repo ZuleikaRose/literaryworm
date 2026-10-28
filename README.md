@@ -339,5 +339,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | 19   | Club notifications: new posts arrive live (Supabase Realtime), are counted on club cards and alert members, never about chapters they haven't reached; a setting per club | Done    |
 | 20   | Listen along: a club member leads a listening session and others hear the same place as they play, pause and skip (`club_listening`, Realtime) | Done    |
 | 21   | Bring your own books: upload an EPUB (no DRM); its text is kept in a private Storage bucket and opens in the reader with progress, bookmarks and highlights; not on Kids profiles | Done    |
+| —    | Cookie Policy in the footer: LiteraryWorm sets no cookies of its own; the page lists what the browser keeps (sign-in session, the app's files, books saved for offline) and why | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

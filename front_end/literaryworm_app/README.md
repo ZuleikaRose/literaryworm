@@ -96,3 +96,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 19 | Club notifications: live posts, new-post counts, alerts and background notifications, per-club setting (`components/ClubAlerts.tsx`, `lib/clubEvents.ts`) |
 | 20 | Listen along in clubs (`components/ListenAlong.tsx`, `lib/listenAlong.ts`, `lib/listenAlongApi.ts`) |
 | 21 | My Library → Uploads: EPUBs read in the browser (`lib/epub.ts`), kept in Storage, opened in the reader (`lib/useUploads.ts`, `components/UploadsView.tsx`) |
+| — | Cookie Policy at `/legal/cookies`, in the footer; legal pages can be written in full (`src/data/legal.ts`) |
