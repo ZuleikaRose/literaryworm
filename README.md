@@ -1,10 +1,10 @@
-# BookWorm
+# LiteraryWorm
 
-Build **BookWorm**, a Netflix-style book browsing app where anyone can discover books and read other readers' logs, and signed-in users can build a personal library and write logs about what they read.
+Build **LiteraryWorm**, a Netflix-style book browsing app where anyone can discover books and read other readers' logs, and signed-in users can build a personal library and write logs about what they read.
 
 You will build and deploy this application yourself using **Claude Code**. You are responsible for everything that ships, including the parts Claude Code wrote for you.
 
-Deployed on Vercel at <https://vibe-coding-book-warm-app-179271177.vercel.app/>
+Deployed on Vercel at <https://www.literaryworm.com/> (LiteraryWorm is the name of the business and the app; `literaryworm.com` redirects to `www`).
 
 <a href="https://docs.google.com/spreadsheets/d/12VXSh01Toe5lbbHTBuJ8mdwhuV3GgaMA5phU_EbEntw/edit?usp=drive_link" target="_">**RUBRIC**</a>
 
@@ -156,7 +156,7 @@ You must create **your own** Google Books API key in Google Cloud Console. Do no
 
 ## Claude Code Workflow (also evaluated)
 
-You must build BookWorm with Claude Code, and **how you use it is graded alongside the application itself.** The finished app is not enough; we are evaluating your process.
+You must build LiteraryWorm with Claude Code, and **how you use it is graded alongside the application itself.** The finished app is not enough; we are evaluating your process.
 
 ### Prompt records (automatic)
 
@@ -245,7 +245,7 @@ Your project will be assessed across these areas:
 
 | Path                                    | What it is                                                                                                                                                                    |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `front_end/bookworm-app/`               | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/bookworm-app/README.md) for routes and source layout.                        |
+| `front_end/literaryworm_app/`               | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/literaryworm_app/README.md) for routes and source layout.                        |
 | `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`) and security tests. See [supabase/README.md](supabase/README.md). |
 | `schema.sql`                            | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table.                                                                           |
 | `drawsql.png`                           | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md).                                                                                                 |
@@ -258,7 +258,7 @@ Your project will be assessed across these areas:
 
 ### How the brief's hard parts are handled
 
-- **The API key never reaches the browser.** The front end calls only the `books` Edge Function (`front_end/bookworm-app/src/lib/booksApi.ts`). The function adds `GOOGLE_BOOKS_API_KEY` from Supabase's function secrets; the key is in no file in this repo and no `VITE_` variable.
+- **The API key never reaches the browser.** The front end calls only the `books` Edge Function (`front_end/literaryworm_app/src/lib/booksApi.ts`). The function adds `GOOGLE_BOOKS_API_KEY` from Supabase's function secrets; the key is in no file in this repo and no `VITE_` variable.
 - **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode, title query 1–100 characters with no search operators, genre from the six, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
 - **Shaped responses and friendly failures.** Only the fields the UI shows, with https covers, plain-text descriptions and nulls for missing data. Google's 429s, errors and timeouts (8 s) become `{ error: { code, message } }`; the UI shows *We couldn't load …* with *Try again*.
 - **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
@@ -270,14 +270,14 @@ Your project will be assessed across these areas:
 ### Run it locally
 
 ```bash
-cd front_end/bookworm-app
+cd front_end/literaryworm_app
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # type-check and production build
 npm run lint
 ```
 
-With no environment variables the app runs on its sample catalog. To use the real backend, copy `.env.example` to `front_end/bookworm-app/.env.development.local` and fill in the two `VITE_` values.
+With no environment variables the app runs on its sample catalog. To use the real backend, copy `.env.example` to `front_end/literaryworm_app/.env.development.local` and fill in the two `VITE_` values.
 
 Create an account with **Sign up** to use the real backend: your library and logs are saved in Supabase and you stay signed in after a refresh. Or use **Try the demo** on the log-in page for a ready-made household kept in memory. The demo's email and password are shown on that page; the password is generated fresh on each page load, so none is stored in the code.
 
@@ -288,14 +288,14 @@ Create an account with **Sign up** to use the real backend: your library and log
 
 | Variable                        | Where it goes                                           | Safe in the browser?                                                  |
 | --------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `VITE_SUPABASE_URL`             | `front_end/bookworm-app/.env.development.local`, Vercel | Yes                                                                   |
+| `VITE_SUPABASE_URL`             | `front_end/literaryworm_app/.env.development.local`, Vercel | Yes                                                                   |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key)                           | Yes                                                                   |
 | `GOOGLE_BOOKS_API_KEY`          | Supabase → Edge Functions → Secrets only              | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
 | `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and the Vercel URL) |
 
 ### Supabase
 
-Project `bookworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the five Edge Functions are deployed. To set it up from scratch:
+Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the five Edge Functions are deployed. To set it up from scratch:
 
 ```bash
 supabase link --project-ref <ref>
@@ -320,12 +320,12 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Supabase: migrations with RLS, indexes and grants; `books`, `manage-profile` and `checkout` Edge Functions; security tests; deployed                                                                                                                                                                                                                                                                                                                                                | Done    |
 | 3     | Home: technology books and the six genres from the Edge Function, infinite scroll with Load more, featured carousel, blueprint rows                                                                                                                                                                                                                                                                                                                                                | Done    |
 | 4     | Book details (`/books/:id`): Google Books data (publisher, published date, pages, language, categories), every reader's logs from Supabase with display names, library statuses, write/edit/delete logs only for books in the library, ratings, More like this; Kids and mature-title blocks                                                                                                                                                                                       | Done    |
-| 5     | Public title-only search: BookWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me                                                                                                                                                                                                                                                                           | Done    |
+| 5     | Public title-only search: LiteraryWorm titles then Google results with infinite scroll and Load more; filters (source, genre, sort) applied by the Edge Function; Did you mean; recent searches; Surprise Me                                                                                                                                                                                                                                                                           | Done    |
 | 6     | Supabase Auth (sign up, log in, log out, password reset; stays signed in); plan saved by the `checkout` function; library (`library_items`) and logs saved in Supabase; Library page with reading status, Favorites and custom lists                                                                                                                                                                                                                                                | Done    |
 | 7     | Reader (themes, fonts, sizes, spacing, margins; chapters; bookmarks; *Mark as finished?*) and audiobook player (speed 0.5–3×, ±15 s, chapter skips, sleep timer, credit skips, keyboard shortcuts); progress and bookmarks saved to Supabase (`reading_progress`, `bookmarks`) and feeding Continue reading; daily limit enforced. Sample text and silent audio until book files are licensed                                                                                    | Done    |
 | 8     | Household profiles saved to Supabase (`reader_profiles`; Kids, PINs, limits and age ratings through `manage-profile`, PINs checked on the server); Account page: plan and billing (pause, resume, cancel, keep), display name, change password, marketing emails, family, Download my data, help; Delete account through the `manage-account` function (cascades everything); paused or ended plans stop reading; *Ask a grown-up* on Account; accessibility pass (Lighthouse 100) | Done    |
 | 9     | Highlights in four colours with notes, saved to Supabase (`highlights`) and listed by chapter; dictionary through the `dictionary` Edge Function (Free Dictionary API, Wiktionary as fallback); read-along transcript in the player (follows the narration, English or Spanish, three sizes, settings in the accessibility menu); mini-player that keeps playing while browsing                                                                                                    | Done    |
 | 10    | Favourites, ratings, custom lists and recent searches saved per profile in Supabase; share a custom list by link (public page with only the name, description, profile name and titles)                                                                                                                                                                                                                                                                                            | Done    |
-| —    | Vercel deploy; the Vercel URL added to `ALLOWED_ORIGINS`; plain-words fallback in `books` when Google's genre and title filters return nothing | Done    |
+| —    | Vercel deploy at www.literaryworm.com (Root Directory `front_end/literaryworm_app`); the site added to `ALLOWED_ORIGINS`; plain-words fallback in `books` when Google's genre and title filters return nothing | Done    |
 
-Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/bookworm-app/docs/screenshots/`.
+Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
