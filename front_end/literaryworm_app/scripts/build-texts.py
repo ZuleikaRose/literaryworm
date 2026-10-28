@@ -86,6 +86,8 @@ def clean(text: str) -> str:
     text = re.sub(r"\[Illustration[^\]]*\]", "", text, flags=re.S)
     text = re.sub(r"\[\d+\]", "", text)
     text = text.replace("_", "").replace(".]", ".")
+    # Gutenberg types a dash as two hyphens.
+    text = re.sub(r"\s*-{2,}\s*", "\u2014", text)
     paragraphs = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n\s*\n", text)]
     return "\n\n".join(p for p in paragraphs if p and not re.fullmatch(r"[*\s.]+", p))
 
@@ -93,6 +95,8 @@ def clean(text: str) -> str:
 def units(body: str, heading: str, split: str | None, min_unit: int = MIN_UNIT) -> list[str]:
     starts = [m.start() for m in re.finditer(rf"^{heading}$", body, re.M)]
     pieces = [body[a:b] for a, b in zip(starts, starts[1:] + [len(body)])]
+    # The app shows its own chapter heading, so the book's ("CHAPTER I.") is left out.
+    pieces = [p[re.match(rf"{heading}\n?", p).end():] for p in pieces]
     pieces = [p for p in pieces if len(clean(p)) >= min_unit]
     if split:
         last = pieces[-1]
