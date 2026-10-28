@@ -24,7 +24,7 @@ import { useDailyLimit } from "../lib/useDailyLimit";
 import { useHighlights } from "../lib/useHighlights";
 import { useReading } from "../lib/useReading";
 import { useTitle } from "../lib/useTitle";
-import { useProfileData } from "../store/context";
+import { useActiveProfile, useProfileData } from "../store/context";
 import type { Book, Highlight, HighlightColor } from "../types";
 
 type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | null;
@@ -67,6 +67,7 @@ const MEASURES = { narrow: "44rem", normal: "38rem", wide: "32rem" };
 function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   useTitle(`Reading ${book.title}`);
   const settings = useProfileData().readerSettings;
+  const profile = useActiveProfile();
   const reading = useReading(book);
   const study = useHighlights(book, reading.addToLibrary);
   const limit = useDailyLimit(true);
@@ -304,7 +305,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             <Icon name="dictionary" size={20} />
             <span className="visually-hidden">Dictionary</span>
           </button>
-          {book.recording && (
+          {/* Not on Kids profiles: a child's question would go to an AI service. */}
+          {book.recording && profile?.ageRating !== "kids" && (
             <button type="button" className="icon-button" onClick={() => setPanel("ask")}>
               <Icon name="ask" size={20} />
               <span className="visually-hidden">Ask the book</span>
@@ -506,7 +508,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       />
       <QuoteCardDialog book={book} highlight={sharing} onClose={() => setSharing(null)} />
       <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} onClose={() => setPanel(null)} />
-      {book.recording && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
+      {book.recording && profile?.ageRating !== "kids" && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
       {selection && !finished && (
         <SelectionToolbar
           rect={selection.rect}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { samplePageSentences } from "../data/sampleText";
 import { loadUploadText } from "./uploadsApi";
 import { tabTexts } from "./uploads";
+import { keepUploadOffline, offlineUploadText } from "./uploadCache";
 import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
 
@@ -297,12 +298,23 @@ const textCache = new Map<string, Promise<string[]>>();
  * What a voice reads for each chapter: the full public-domain text where the book has a
  * recording (public/texts, from Project Gutenberg), otherwise the reader's sample text.
  */
-/** An uploaded book's text: from this tab (the demo), else from Storage. */
-function uploadText(id: string, path: string | null): Promise<string[]> {
+/**
+ * An uploaded book's text: from this tab (the demo), else from Storage, kept on the device as it
+ * loads; without a connection, the copy kept on the device.
+ */
+async function uploadText(id: string, path: string | null): Promise<string[]> {
   const kept = tabTexts.get(id);
-  if (kept) return Promise.resolve(kept);
-  if (!path) return Promise.reject(new Error("This book was uploaded in another tab. Upload it again here."));
-  return loadUploadText(path);
+  if (kept) return kept;
+  if (!path) throw new Error("This book was uploaded in another tab. Upload it again here.");
+  try {
+    const chapters = await loadUploadText(path);
+    keepUploadOffline(id, chapters).catch((err: unknown) => console.error("uploads: couldn't keep a copy for offline:", err));
+    return chapters;
+  } catch (err) {
+    const offline = await offlineUploadText(id).catch(() => null);
+    if (offline) return offline;
+    throw err;
+  }
 }
 
 export function bookText(book: Book): Promise<string[]> {

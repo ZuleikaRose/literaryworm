@@ -196,3 +196,43 @@
   font-size: 0.875rem;
   font-weight: 600;
 }
+
+/* Editing a legal page (editors and admins) */
+.legal-edit-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+}
+
+.legal-edit-bar .form-success {
+  margin: 0;
+}
+
+.legal-editor {
+  display: grid;
+  gap: 16px;
+}
+
+.legal-editor-sections {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal-editor-section {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.legal-editor .field-error:focus {
+  outline: 2px solid var(--danger);
+  outline-offset: 4px;
+}

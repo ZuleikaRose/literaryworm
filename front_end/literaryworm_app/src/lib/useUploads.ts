@@ -2,6 +2,7 @@ import { activeLibrary } from "../store/reducer";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { UploadedBook } from "../types";
 import { countWords, readEpub } from "./epub";
+import { forgetUploadOffline } from "./uploadCache";
 import { newUploadId, tabTexts } from "./uploads";
 import { deleteUpload, saveUpload } from "./uploadsApi";
 import { useLibrary } from "./useLibrary";
@@ -43,6 +44,8 @@ export function useUploads() {
     if (activeLibrary(state)[upload.id]) await library.remove(upload.id);
     if (remote) await deleteUpload(upload);
     else tabTexts.delete(upload.id);
+    // Deleted: no copy stays on the device either.
+    forgetUploadOffline(upload.id).catch((err: unknown) => console.error("uploads: couldn't remove the offline copy:", err));
     dispatch({ type: "removeUpload", id: upload.id });
   }
 

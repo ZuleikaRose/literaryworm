@@ -43,8 +43,12 @@ export const planFaqs = [
     a: "Kids profiles show only Kids-rated titles, with no chat, public reviews, sharing, payments or AI assistant. You can lock other profiles with a PIN and set daily reading limits.",
   },
   {
+    q: "Where do the books come from?",
+    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox. To read a book you own, upload it: for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads. It opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
+  },
+  {
     q: "Can I read without a connection?",
-    a: "Yes. Download licensed titles to read or listen offline. Downloads expire if your membership ends, as publishers require.",
+    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device. Books you upload keep working if your connection drops, once you've opened them on that device.",
   },
   {
     q: "Which devices work?",

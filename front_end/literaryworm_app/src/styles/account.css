@@ -332,3 +332,100 @@
 .install-app .install-done:empty {
   display: none;
 }
+
+/* Team access (staff roles) */
+.team-access {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+.team-access > p {
+  margin: 0;
+}
+
+.team-roles {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.team-roles span {
+  color: var(--muted);
+}
+
+.team-heading {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+}
+
+.team-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.team-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.team-who {
+  display: grid;
+  min-width: 0;
+}
+
+.team-who strong,
+.team-who small {
+  overflow-wrap: anywhere;
+}
+
+.team-who small {
+  color: var(--muted);
+}
+
+.team-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.team-grant {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.team-grant .goal-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .team-grant {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

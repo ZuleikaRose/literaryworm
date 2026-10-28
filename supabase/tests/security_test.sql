@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -411,6 +411,51 @@ reset role;
 set role anon;
 select pg_temp.expect_error('select * from public.uploaded_books', 'anon reading uploads');
 reset role;
+
+-- Staff roles and legal pages ------------------------------------------------
+set role anon;
+select pg_temp.check((select count(*) from public.legal_pages) = 9, 'anyone reads the legal pages');
+select pg_temp.expect_error($$update public.legal_pages set title = 'Hacked' where slug = 'terms'$$, 'anon editing a legal page');
+select pg_temp.expect_error('select * from public.staff_roles', 'anon reading staff roles');
+select pg_temp.expect_error($$select public.grant_staff_role('a@test', 'admin')$$, 'anon granting a role');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+update public.legal_pages set title = 'Not an editor' where slug = 'terms';
+select pg_temp.check((select title from public.legal_pages where slug = 'terms') = 'Terms of Service' and not public.has_staff_role('editor'), 'a member without a role can''t edit');
+select pg_temp.expect_error($$insert into public.staff_roles (user_id, role) values ('00000000-0000-0000-0000-00000000000a', 'admin')$$, 'giving yourself a role');
+select pg_temp.expect_error($$select public.grant_staff_role('a@test', 'admin')$$, 'a non-admin granting a role');
+select pg_temp.expect_error('select * from public.staff_members()', 'a non-admin listing the team');
+reset role;
+insert into public.staff_roles (user_id, role) values ('00000000-0000-0000-0000-00000000000a', 'admin');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check(public.grant_staff_role('B@Test', 'editor') = 'granted' and public.grant_staff_role('new.person@test', 'blog') = 'invited', 'an admin grants a role by email, or invites an email with no account');
+select pg_temp.check((select count(*) = 2 from public.staff_members() where not invited) and (select roles = '{blog}' from public.staff_members() where invited), 'admins see the team and the invitations');
+select pg_temp.expect_error($$select public.revoke_staff_role('a@test', 'admin')$$, 'removing the last admin');
+update public.legal_pages set summary = 'Updated summary.' where slug = 'terms';
+select pg_temp.check((select summary = 'Updated summary.' and updated_by = '00000000-0000-0000-0000-00000000000a' from public.legal_pages where slug = 'terms')
+  and (select count(*) = 1 and bool_and(summary <> 'Updated summary.') from public.legal_page_revisions where slug = 'terms'), 'an admin edits a page; the old version is kept and the editor stamped');
+select pg_temp.expect_error($$update public.legal_pages set sections = '[{"heading": "", "paragraphs": ["x"]}]' where slug = 'terms'$$, 'a section with no heading');
+select pg_temp.expect_error($$update public.legal_pages set sections = '{"not": "a list"}' where slug = 'terms'$$, 'sections that aren''t a list');
+select pg_temp.expect_error($$update public.legal_pages set slug = 'renamed' where slug = 'terms'$$, 'renaming a page');
+select pg_temp.expect_error($$insert into public.legal_pages (slug, position, title, summary) values ('new', 9, 'New', 'New')$$, 'adding a page from the browser');
+select pg_temp.expect_error($$delete from public.legal_pages where slug = 'terms'$$, 'deleting a page from the browser');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+update public.legal_pages set summary = 'Edited by Ben.' where slug = 'help';
+select pg_temp.check((select summary = 'Edited by Ben.' from public.legal_pages where slug = 'help') and (select count(*) = 1 from public.staff_roles), 'an editor edits pages and sees only their own role');
+select pg_temp.expect_error($$select public.grant_staff_role('c@test', 'admin')$$, 'an editor granting a role');
+reset role;
+insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-00000000000e', 'New.Person@test', '{"display_name":"Nell","date_of_birth":"1990-01-01","terms_accepted":true}');
+select pg_temp.check((select role = 'blog' from public.staff_roles where user_id = '00000000-0000-0000-0000-00000000000e') and (select count(*) = 0 from public.staff_invites), 'signing up picks up a waiting role');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.revoke_staff_role('b@test', 'editor');
+select pg_temp.check((select count(*) = 0 from public.staff_members() where email = 'b@test'), 'an admin removes a role');
+reset role;
+delete from auth.users where id = '00000000-0000-0000-0000-00000000000e';
 
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (

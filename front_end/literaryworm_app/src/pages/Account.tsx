@@ -6,6 +6,8 @@ import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { GrownUpDialog } from "../components/GrownUpDialog";
 import { InstallApp } from "../components/InstallApp";
+import { TeamAccess } from "../components/TeamAccess";
+import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
 import { formatPrice, planById } from "../data/plans";
@@ -79,6 +81,7 @@ const SECTIONS = [
   ["preferences", "Preferences"],
   ["family", "Family"],
   ["privacy", "Privacy"],
+  ["team", "Team access"],
   ["help", "Help"],
   ["delete", "Delete account"],
 ] as const;
@@ -89,6 +92,7 @@ export default function Account() {
   const navigate = useNavigate();
   const [grownUpOk, setGrownUpOk] = useState(false);
   const { account } = useAccount();
+  const roles = useStaffRoles();
 
   // Kids profiles need the account password before anything here shows.
   if (profile?.ageRating === "kids" && !grownUpOk) {
@@ -111,7 +115,7 @@ export default function Account() {
       </p>
       <nav className="account-nav" aria-label="Account sections">
         <ul>
-          {SECTIONS.map(([id, label]) => (
+          {SECTIONS.filter(([id]) => id !== "team" || roles.length > 0).map(([id, label]) => (
             <li key={id}>
               <a href={`#${id}`}>{label}</a>
             </li>
@@ -123,6 +127,11 @@ export default function Account() {
       <PreferencesSection account={account} />
       <FamilySection />
       <PrivacySection />
+      {roles.length > 0 && (
+        <Section id="team" title="Team access" intro="Access to LiteraryWorm beyond being a member.">
+          <TeamAccess roles={roles} />
+        </Section>
+      )}
       <Section id="help" title="Help">
         <ul className="account-links">
           <li>

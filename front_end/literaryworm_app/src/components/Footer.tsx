@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { legalPages } from "../data/legal";
+import { useLegalPages } from "../lib/useLegalPages";
 import { Brand } from "./Header";
 
 export function Footer() {
+  const legalPages = useLegalPages();
   return (
     <footer className="site-footer">
       <div className="footer-inner">

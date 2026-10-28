@@ -18,6 +18,7 @@ import type {
 } from "../types";
 import { SUPABASE_URL } from "./backend";
 import { defaultPlayerSettings } from "./reading";
+import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
@@ -115,6 +116,8 @@ export async function signIn(email: string, password: string): Promise<void> {
  * back in. The server-side session then simply expires.
  */
 export async function signOut(): Promise<void> {
+  // Uploaded books kept for offline are private: none stay on a shared device.
+  await forgetAllUploadsOffline().catch((err: unknown) => console.error("uploads: couldn't clear offline copies at sign-out:", err));
   if (!supabase) return;
   let failed = false;
   try {
