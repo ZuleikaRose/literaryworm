@@ -5,6 +5,7 @@ import { Avatar } from "../components/Avatar";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { GrownUpDialog } from "../components/GrownUpDialog";
+import { InstallApp } from "../components/InstallApp";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
 import { formatPrice, planById } from "../data/plans";
@@ -381,6 +382,7 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
         />
       </label>
       <Feedback error={error} done={done} />
+      <InstallApp />
       <p className="account-note">
         <Icon name="accessibility" size={18} /> Text size, theme, the easier-reading font, contrast and motion are in the
         accessibility menu at the top of every page.

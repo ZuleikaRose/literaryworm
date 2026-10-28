@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { registerServiceWorker } from "./lib/offline";
+// Listens for the browser's install offer before anything renders.
+import "./lib/installApp";
 import { PlaybackProvider } from "./components/PlaybackProvider";
 import { StoreProvider } from "./store/StoreProvider";
 import "./styles/tokens.css";

@@ -295,3 +295,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Install the app (Preferences) */
+.install-app {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.install-app > span {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 260px;
+}
+
+.install-app strong {
+  font-size: 0.9375rem;
+}
+
+.install-app small {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.install-app .install-done {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--success);
+  font-size: 0.875rem;
+}
+
+.install-app .install-done:empty {
+  display: none;
+}

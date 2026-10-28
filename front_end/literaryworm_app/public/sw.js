@@ -6,7 +6,7 @@
 //   lw-shell-<version>  the page and its hashed /assets files, refreshed whenever online
 //   lw-books            texts and audio the reader chose to save (src/lib/offline.ts writes it)
 
-const SHELL = "lw-shell-v1";
+const SHELL = "lw-shell-v2";
 const BOOKS = "lw-books";
 
 self.addEventListener("install", (event) => {
@@ -56,7 +56,8 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Built files never change under the same name: keep each one the first time it loads.
-  if (url.pathname.startsWith("/assets/") || url.pathname === "/favicon.svg") {
+  // (The manifest and icons too, so the installed app opens offline with its icon.)
+  if (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/icons/") || url.pathname === "/favicon.svg" || url.pathname === "/manifest.webmanifest") {
     event.respondWith(
       caches.match(request, { cacheName: SHELL }).then(
         (hit) =>
