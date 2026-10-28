@@ -129,16 +129,24 @@ export function recordingNarrator(tracks: RecordingTrack[], starts: number[], ev
 const CHARS_PER_SECOND = 14;
 /** Long sentences are spoken in parts: some browsers cut off a long utterance. */
 const MAX_PART = 220;
+const ABBREVIATION = /(?:^|\s)(?:Mr|Mrs|Ms|Dr|St|Mt|Jr|Sr|Messrs|Capt|Col|Gen|Rev|Prof|Lt|Sgt|No)\.\s*$/;
 
-interface Part {
+export interface Part {
   text: string;
   /** Characters before it in its chapter. */
   offset: number;
 }
 
 /** A chapter's text in the pieces a voice speaks: sentences, long ones split at commas. */
-function speakingParts(text: string): Part[] {
-  const sentences = text.replace(/\s+/g, " ").match(/[^.!?…]+(?:[.!?…]+["”’)]*\s*|$)/g) ?? [];
+export function speakingParts(text: string): Part[] {
+  const split = text.replace(/\s+/g, " ").match(/[^.!?…]+(?:[.!?…]+["”’)]*\s*|$)/g) ?? [];
+  // "Mr." and the like end a word, not a sentence: keep them with what follows.
+  const sentences: string[] = [];
+  for (const piece of split) {
+    const previous = sentences[sentences.length - 1];
+    if (previous !== undefined && ABBREVIATION.test(previous)) sentences[sentences.length - 1] = previous + piece;
+    else sentences.push(piece);
+  }
   const parts: Part[] = [];
   let offset = 0;
   for (const sentence of sentences) {

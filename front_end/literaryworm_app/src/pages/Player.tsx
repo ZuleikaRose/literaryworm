@@ -319,8 +319,9 @@ function PlayerView({ book }: { book: Book }) {
           </p>
         </div>
 
-        {state.a11y.transcript && !finished && !book.recording && (
-          <Transcript book={book} chapterIndex={chapterIndex} position={position} onSeek={seek} />
+        {/* A real recording has no sentence timings, so its book shows no transcript; a device voice reading the real text does. */}
+        {state.a11y.transcript && !finished && (!book.recording || narration.kind === "speech") && (
+          <Transcript book={book} chapterIndex={chapterIndex} position={position} onSeek={seek} realText={Boolean(book.recording)} />
         )}
       </main>
 

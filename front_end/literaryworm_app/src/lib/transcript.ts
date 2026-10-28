@@ -1,5 +1,6 @@
 import { samplePageSentences } from "../data/sampleText";
 import type { A11ySettings, Book, TranscriptLanguage } from "../types";
+import { speakingParts } from "./narration";
 import { chapterTimes, readerPages } from "./reading";
 
 export const TRANSCRIPT_SIZES: { value: A11ySettings["transcriptSize"]; label: string }[] = [
@@ -49,6 +50,32 @@ export function chapterTranscript(book: Book, chapterIndex: number, language: Tr
     });
   });
   return lines;
+}
+
+/**
+ * A chapter of real text as a transcript, for a device voice reading it: the same pieces the
+ * voice speaks (speakingParts), timed the way the voice's clock runs (evenly by character over
+ * the chapter's length), so the marked piece is the one being spoken.
+ */
+export function textTranscript(book: Book, chapterIndex: number, text: string): TranscriptLine[] {
+  const parts = speakingParts(text);
+  const last = parts[parts.length - 1];
+  const size = last ? last.offset + last.text.length : 1;
+  const start = chapterTimes(book).starts[chapterIndex];
+  const length = book.chapters[chapterIndex].minutes * 60;
+  // Where each paragraph starts once whitespace is collapsed, as speakingParts counts it.
+  const opens = new Set<number>();
+  let at = 0;
+  for (const paragraph of text.split(/\n\s*\n/)) {
+    opens.add(at);
+    at += paragraph.replace(/\s+/g, " ").length + 1;
+  }
+  return parts.map((part) => ({
+    text: part.text.trim(),
+    start: start + (part.offset / size) * length,
+    end: start + ((part.offset + part.text.length) / size) * length,
+    opensParagraph: opens.has(part.offset),
+  }));
 }
 
 /** The line being read at `seconds`, or -1 before the first. */

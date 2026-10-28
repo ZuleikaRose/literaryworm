@@ -89,7 +89,8 @@ def clean(text: str) -> str:
     # Gutenberg types a dash as two hyphens.
     text = re.sub(r"\s*-{2,}\s*", "\u2014", text)
     paragraphs = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n\s*\n", text)]
-    return "\n\n".join(p for p in paragraphs if p and not re.fullmatch(r"[*\s.]+", p))
+    # Lines of only stars, dots or brackets are dividers and the ends of illustration captions.
+    return "\n\n".join(p for p in paragraphs if p and not re.fullmatch(r"[*\s.\[\]]+", p))
 
 
 def units(body: str, heading: str, split: str | None, min_unit: int = MIN_UNIT) -> list[str]:

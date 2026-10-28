@@ -1,19 +1,52 @@
 import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
-import { chapterTranscript, lineAt, TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
+import { bookText } from "../lib/narration";
+import { chapterTranscript, lineAt, textTranscript, TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
 import { useStore } from "../store/context";
 import type { A11ySettings, Book } from "../types";
 
 const prefersStill = () =>
   matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.hasAttribute("data-reduce-motion");
 
+/** A public-domain book's chapter texts (the ones its device voices read), or null while loading or after a failure. */
+function useChapterTexts(book: Book, enabled: boolean): { texts: string[] | null; failed: boolean } {
+  const [loaded, setLoaded] = useState<{ bookId: string; texts: string[] | null } | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let live = true;
+    bookText(book).then(
+      (texts) => live && setLoaded({ bookId: book.id, texts }),
+      () => live && setLoaded({ bookId: book.id, texts: null }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [book, enabled]);
+  const current = loaded?.bookId === book.id ? loaded : null;
+  return { texts: current?.texts ?? null, failed: current !== null && current.texts === null };
+}
+
 /**
- * The read-along transcript for the chapter that's playing. The sentence being read is marked
+ * The read-along transcript for the chapter that's playing. With `realText` (a public-domain
+ * title read by a device voice) it's the book's own text, in English, marked as it's spoken;
+ * otherwise it's the sample text, in English or Spanish. The sentence being read is marked
  * and kept in view (unless *Follow the narration* is off); choosing a sentence jumps there.
  * Only the current sentence is in the Tab order; the up and down arrows move between sentences,
  * and Enter or Space jumps there. Sentences are inline spans with the button role (a real
  * <button> can't flow as running text), so they keep the paragraph's shape.
  */
-export function Transcript({ book, chapterIndex, position, onSeek }: { book: Book; chapterIndex: number; position: number; onSeek: (seconds: number) => void }) {
+export function Transcript({
+  book,
+  chapterIndex,
+  position,
+  onSeek,
+  realText = false,
+}: {
+  book: Book;
+  chapterIndex: number;
+  position: number;
+  onSeek: (seconds: number) => void;
+  realText?: boolean;
+}) {
   const { state, dispatch } = useStore();
   const { transcriptSize: size, transcriptLanguage: language } = state.a11y;
   const set = (patch: Partial<A11ySettings>) => dispatch({ type: "updateA11y", patch });
@@ -21,7 +54,17 @@ export function Transcript({ book, chapterIndex, position, onSeek }: { book: Boo
   const headingId = useId();
   const scroller = useRef<HTMLDivElement>(null);
 
-  const lines = useMemo(() => chapterTranscript(book, chapterIndex, language), [book, chapterIndex, language]);
+  const { texts, failed } = useChapterTexts(book, realText);
+  const chapterText = texts?.[chapterIndex];
+  const lines = useMemo(
+    () =>
+      realText
+        ? chapterText === undefined
+          ? []
+          : textTranscript(book, chapterIndex, chapterText)
+        : chapterTranscript(book, chapterIndex, language),
+    [book, chapterIndex, language, realText, chapterText],
+  );
   const current = lineAt(lines, position);
 
   // Keep the sentence being read in the middle of the box.
@@ -61,16 +104,18 @@ export function Transcript({ book, chapterIndex, position, onSeek }: { book: Boo
           <input type="checkbox" role="switch" className="switch" checked={follow} onChange={(e) => setFollow(e.target.checked)} />
           <span>Follow the narration</span>
         </label>
-        <label className="player-select transcript-select">
-          <span>Language</span>
-          <select value={language} onChange={(e) => set({ transcriptLanguage: e.target.value as A11ySettings["transcriptLanguage"] })}>
-            {TRANSCRIPT_LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value} lang={l.value}>
-                {l.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!realText && (
+          <label className="player-select transcript-select">
+            <span>Language</span>
+            <select value={language} onChange={(e) => set({ transcriptLanguage: e.target.value as A11ySettings["transcriptLanguage"] })}>
+              {TRANSCRIPT_LANGUAGES.map((l) => (
+                <option key={l.value} value={l.value} lang={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="player-select transcript-select">
           <span>Size</span>
           <select value={size} onChange={(e) => set({ transcriptSize: e.target.value as A11ySettings["transcriptSize"] })}>
@@ -82,7 +127,12 @@ export function Transcript({ book, chapterIndex, position, onSeek }: { book: Boo
           </select>
         </label>
       </div>
-      <div ref={scroller} className="transcript-box" lang={language}>
+      <div ref={scroller} className="transcript-box" lang={realText ? "en" : language}>
+        {realText && lines.length === 0 && (
+          <p className="transcript-note" role={failed ? "alert" : "status"}>
+            {failed ? "We couldn't load this book's text. Leave the player and come back to try again." : "Loading the text…"}
+          </p>
+        )}
         {paragraphs.map((indexes) => (
           <p key={indexes[0]}>
             {indexes.map((i) => (
@@ -102,7 +152,11 @@ export function Transcript({ book, chapterIndex, position, onSeek }: { book: Boo
           </p>
         ))}
       </div>
-      <p className="transcript-note">Sample transcript: placeholder text timed to the sample clock. Choose a sentence to jump there.</p>
+      <p className="transcript-note">
+        {realText
+          ? "The book's public-domain text, marked as your device's voice reads it. Choose a sentence to jump there."
+          : "Sample transcript: placeholder text timed to the sample clock. Choose a sentence to jump there."}
+      </p>
     </section>
   );
 }
