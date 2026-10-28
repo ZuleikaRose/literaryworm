@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs and club notifications, player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -290,6 +290,30 @@ update public.club_members set notify = false where club_id = '00000000-0000-000
 select pg_temp.check((select notify from public.club_members where user_id = '00000000-0000-0000-0000-00000000000b') = false
   and (select notify from public.club_members where user_id = '00000000-0000-0000-0000-00000000000a'), 'a member turns off their own alerts, not anyone else''s');
 select pg_temp.expect_error($$update public.club_members set joined_at = now() - interval '1 year' where user_id = '00000000-0000-0000-0000-00000000000b'$$, 'changing when you joined');
+-- Listen along (Phase 20): the host moves a session; members see it; a left one can be taken over.
+insert into public.club_listening (club_id, host_id, position_seconds, playing) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', 120, true);
+update public.club_listening set position_seconds = 300, rate = 1.5 where club_id = '00000000-0000-0000-0000-0000000000c1';
+select pg_temp.check((select position_seconds = 300 and rate = 1.5 from public.club_listening), 'Ben leads a session and moves it');
+select pg_temp.expect_error($$insert into public.club_listening (club_id, host_id, position_seconds) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 0)$$, 'starting a session as someone else');
+select pg_temp.expect_error($$update public.club_listening set rate = 5$$, 'a speed the player doesn''t offer');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) from public.club_listening) = 1, 'other members see the session');
+update public.club_listening set host_id = '00000000-0000-0000-0000-00000000000a', position_seconds = 0;
+select pg_temp.check((select host_id = '00000000-0000-0000-0000-00000000000b' from public.club_listening), 'a member can''t take over a session that''s still going');
+reset role;
+-- (As the service role, make the session look left: nobody has moved it for three minutes.)
+alter table public.club_listening disable trigger club_listening_set_updated_at;
+update public.club_listening set updated_at = now() - interval '3 minutes';
+alter table public.club_listening enable trigger club_listening_set_updated_at;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+update public.club_listening set host_id = '00000000-0000-0000-0000-00000000000a', position_seconds = 0;
+select pg_temp.check((select host_id = '00000000-0000-0000-0000-00000000000a' from public.club_listening), 'a member takes over a left session');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 delete from public.club_posts where user_id = '00000000-0000-0000-0000-00000000000a';
 delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';
 delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000a';
@@ -301,6 +325,7 @@ set role anon;
 select pg_temp.expect_error('select * from public.club_posts', 'anon reading club posts');
 select pg_temp.expect_error($$select public.join_club('AnnClub123')$$, 'anon joining a club');
 select pg_temp.expect_error('select * from public.club_unread()', 'anon counting club posts');
+select pg_temp.expect_error('select * from public.club_listening', 'anon reading listening sessions');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';

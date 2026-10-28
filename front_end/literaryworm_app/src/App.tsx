@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppEffects, ImmersiveLayout, RequireAccount, RequireProfile, SiteLayout } from "./layouts/Layouts";
 import { ClubAlerts } from "./components/ClubAlerts";
+import { ListenAlong } from "./components/ListenAlong";
 import { MediaSession } from "./components/MediaSession";
 import Account from "./pages/Account";
 import BookDetail from "./pages/BookDetail";
@@ -34,6 +35,7 @@ export default function App() {
       <AppEffects />
       <MediaSession />
       <ClubAlerts />
+      <ListenAlong />
       <Routes>
         <Route element={<SiteLayout />}>
           {/* Public */}

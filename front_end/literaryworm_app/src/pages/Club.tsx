@@ -5,12 +5,15 @@ import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { getBook } from "../data/books";
 import { onClubPost } from "../lib/clubEvents";
-import { CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubPost, daysLeft } from "../lib/clubs";
-import { chapterLabel, today } from "../lib/reading";
+import { setListenAlong, useListenAlong } from "../lib/listenAlong";
+import { endSession, isLeft, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
+import { usePlayback } from "../lib/playback";
+import { type Club, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft } from "../lib/clubs";
+import { chapterAt, chapterLabel, chapterTimes, today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { useTitle } from "../lib/useTitle";
 import { activeReading } from "../store/reducer";
-import { useActiveProfile, useStore } from "../store/context";
+import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
 
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
@@ -211,6 +214,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         </section>
 
         <aside className="club-side">
+          <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <section className="goal-card" aria-labelledby="invite-title">
             <h2 id="invite-title">Invite</h2>
             <p className="goal-hint">Share this code. Members join from My Library → Clubs.</p>
@@ -407,6 +411,139 @@ function ClubNotifications({ clubId }: { clubId: string }) {
         <p className="goal-hint">This browser blocks notifications from LiteraryWorm. You can allow them in the site's settings.</p>
       )}
       {!clubs.remote && <p className="goal-hint">In the demo, nobody else posts. Members hear about new posts while LiteraryWorm is open.</p>}
+    </section>
+  );
+}
+
+/**
+ * Listen together: one member leads, playing the club's book; others join and hear the same
+ * place (components/ListenAlong.tsx keeps them in step). Members only.
+ */
+function ListenTogether({ club, book, members, me, mine }: { club: Club; book: Book; members: ClubMember[]; me: string; mine: number }) {
+  const clubs = useClubs();
+  const playback = usePlayback();
+  const { state } = useStore();
+  const { playbackSpeed } = useProfileData();
+  const joined = useListenAlong();
+  const [session, setSession] = useState<ListenSession | null | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  const inThis = joined?.clubId === club.id ? joined : null;
+
+  useEffect(() => {
+    if (!clubs.remote) return;
+    let live = true;
+    loadSession(club.id).then(
+      (s) => live && setSession(s),
+      (err: Error) => live && setError(err.message),
+    );
+    const stop = watchSession(club.id, (s) => live && setSession(s));
+    // The host's place moves while it plays, and a left session needs noticing.
+    const id = window.setInterval(() => setNow(Date.now()), 5000);
+    return () => {
+      live = false;
+      stop();
+      window.clearInterval(id);
+    };
+  }, [clubs.remote, club.id]);
+
+  if (!clubs.remote) {
+    return (
+      <section className="goal-card" aria-labelledby="listen-together-title">
+        <h2 id="listen-together-title">Listen together</h2>
+        <p className="goal-hint">Members can lead a listening session that everyone in the club hears at the same place. In the demo, nobody else can join.</p>
+      </section>
+    );
+  }
+
+  const going = session && !isLeft(session, now) ? session : null;
+  const hostName = going ? (going.hostId === me ? "You" : (members.find((m) => m.userId === going.hostId)?.name ?? "A member")) : null;
+  const { starts, total } = chapterTimes(book);
+  const hostChapter = going ? chapterAt(starts, Math.min(total, livePosition(going, now))) : 0;
+
+  const start = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const progress = activeReading(state).progress[book.id];
+      const at = progress && !progress.finished ? progress.fraction * total : 0;
+      // Inside the click, so the browser lets it play.
+      playback.open(book, { at, autoplay: true });
+      await startSession(club.id, { position: at, playing: true, rate: playbackSpeed });
+      setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role: "host" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't start the session. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const join = () => {
+    if (!going) return;
+    // Open it here, inside the click, so the browser lets it play; ListenAlong keeps it in step.
+    playback.open(book, { at: livePosition(going), autoplay: going.playing });
+    setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role: "follower" });
+  };
+
+  return (
+    <section className="goal-card" aria-labelledby="listen-together-title">
+      <h2 id="listen-together-title">Listen together</h2>
+      {session === undefined && !error ? (
+        <p className="goal-hint" role="status">
+          Checking for a session…
+        </p>
+      ) : going ? (
+        <>
+          <p className="goal-hint">
+            <strong>{hostName}</strong> {going.hostId === me ? "are" : "is"} {going.playing ? "playing" : "paused at"} {chapterLabel(book, hostChapter)}.
+          </p>
+          {inThis ? (
+            <button
+              type="button"
+              className="ghost-button small-button"
+              onClick={() => {
+                setListenAlong(null);
+                if (inThis.role === "host") endSession(club.id).catch((err: Error) => setError(err.message));
+              }}
+            >
+              {inThis.role === "host" ? "Stop leading" : "Leave"}
+            </button>
+          ) : going.hostId === me ? (
+            // Led from another tab or before a refresh: pick it up here.
+            <button
+              type="button"
+              className="ghost-button small-button"
+              onClick={() => {
+                playback.open(book, { at: livePosition(going), autoplay: going.playing });
+                setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role: "host" });
+              }}
+            >
+              Carry on leading here
+            </button>
+          ) : (
+            <>
+              {hostChapter > Math.max(0, mine) && <p className="goal-hint">Joining takes you to a chapter you haven't reached yet.</p>}
+              <button type="button" className="primary-button small-button" onClick={join}>
+                <Icon name="headphones" size={15} /> Join
+              </button>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="goal-hint">Lead a session and everyone who joins hears {book.title} at your place, as you play, pause and skip.</p>
+          <button type="button" className="primary-button small-button" disabled={busy || !book.recording} onClick={start}>
+            <Icon name="headphones" size={15} /> Start listening together
+          </button>
+          {!book.recording && <p className="goal-hint">This book has no recording to listen to together.</p>}
+        </>
+      )}
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
     </section>
   );
 }

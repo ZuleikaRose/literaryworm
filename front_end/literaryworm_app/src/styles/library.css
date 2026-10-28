@@ -1003,3 +1003,47 @@ body:has(.mini-player) .club-alerts {
     bottom: calc(var(--tab-h) + 16px + var(--alerts-offset, 0px));
   }
 }
+
+/* ---------- Listen along ---------- */
+
+.listen-along-bar {
+  position: fixed;
+  left: 16px;
+  bottom: calc(16px + var(--alerts-offset, 0px));
+  z-index: 59;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface-high);
+  box-shadow: var(--shadow-float);
+  font-size: 0.875rem;
+}
+
+.listen-along-bar > .icon {
+  flex: none;
+  color: var(--rust-bright);
+}
+
+.listen-along-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listen-along-bar .text-button {
+  min-height: 44px;
+}
+
+body:has(.mini-player) .listen-along-bar {
+  --alerts-offset: 96px;
+}
+
+@media (max-width: 720px) {
+  .listen-along-bar {
+    bottom: calc(var(--tab-h) + 16px + var(--alerts-offset, 0px));
+  }
+}
