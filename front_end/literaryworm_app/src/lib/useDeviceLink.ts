@@ -14,6 +14,9 @@ import { supabase } from "./supabase";
 /** How often an open device checks in while its tab is showing. */
 const CHECK_IN_MS = 60_000;
 
+/** Background device calls never interrupt listening; a failure is logged and the next check-in tries again. */
+const logFailure = (what: string) => (err: Error) => console.error(`devices: couldn't ${what}:`, err.message);
+
 /** This visit's id for each member signed in during it (a new visit is a new device). */
 const deviceIds = new Map<string, string>();
 const THIS_DEVICE = typeof navigator === "undefined" ? "This device" : deviceLabel();
@@ -39,12 +42,12 @@ export function useDeviceLink(userId: string | null) {
     const offer = (handoff: Handoff | null) => {
       if (live && handoff && Date.now() - handoff.createdAt < HANDOFF_FRESH_MS) setIncoming(handoff);
     };
-    const check = () => latestHandoff(deviceId).then(offer, () => {});
-    registerDevice(deviceId, THIS_DEVICE).then(check, (err: Error) => console.error("devices:", err.message));
+    const check = () => latestHandoff(deviceId).then(offer, logFailure("check for books sent here"));
+    registerDevice(deviceId, THIS_DEVICE).then(check, logFailure("add this device"));
     const stop = watchHandoffs(deviceId, offer);
 
     const checkIn = () => {
-      if (document.visibilityState === "visible") touchDevice(deviceId).catch(() => {});
+      if (document.visibilityState === "visible") touchDevice(deviceId).catch(logFailure("check in"));
     };
     const id = window.setInterval(checkIn, CHECK_IN_MS);
     const onVisibility = () => {
@@ -64,7 +67,7 @@ export function useDeviceLink(userId: string | null) {
 
   /** Marks the waiting handoff dealt with (picked up or turned down). */
   const settle = useCallback(() => {
-    if (incoming) claimHandoff(incoming.id).catch(() => {});
+    if (incoming) claimHandoff(incoming.id).catch(logFailure("mark the book sent here as dealt with"));
     setIncoming(null);
   }, [incoming]);
 
