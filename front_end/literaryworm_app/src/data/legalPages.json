@@ -2,15 +2,29 @@
   {
     "slug": "accessibility",
     "title": "Accessibility Policy",
-    "summary": "LiteraryWorm aims to meet the Web Content Accessibility Guidelines (WCAG) 2.2 at level AA, so everyone at home can read and listen. This page says what we've built in, what we know isn't perfect yet, and how to tell us about a problem.",
+    "summary": "This statement applies to the https://www.literaryworm.com website. LiteraryWorm is committed to ensuring our services are accessible to people with disabilities, so everyone at home can read and listen. We aim to conform with the Web Content Accessibility Guidelines (WCAG) 2.2 at Level AA.",
     "sections": [
       {
-        "heading": "What's built in",
+        "heading": "Accessibility features",
         "paragraphs": [
+          "You should be able to change colors, contrast levels, and fonts; zoom in up to 200% without loss of information or functionality; navigate the website with just a keyboard, including keyboard shortcuts in the player; listen to the website using a screen reader, with labelled controls; use the read-along transcript with audiobooks; stop moving images with reduced motion; and turn on underlined links.",
           "The accessibility menu at the top of every page changes text size, theme (dark or light), an easier-to-read font, high contrast, underlined links and reduced motion. Your choices last for the visit.",
           "Every page works with a keyboard alone, and the player has keyboard shortcuts, listed under its controls. Buttons and links are at least 44 pixels square, focus is always visible, and dialogs keep focus inside them and return it when they close.",
           "Screen readers hear labelled controls, headings that outline each page, and announcements when something changes, such as a saved setting or a new club post. Pictures that carry meaning, like shared quote cards, have text alternatives; decorative covers are hidden from screen readers and their titles are always written nearby.",
           "In the reader you can choose the font, size, spacing, margins and theme. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration."
+        ]
+      },
+      {
+        "heading": "Compatibility with assistive technology",
+        "paragraphs": [
+          "Our website is designed to be compatible with screen readers and other assistive technologies, using standard HTML and ARIA, in current versions of Chrome, Edge, Firefox and Safari. We haven't yet completed testing with each screen reader; if yours has trouble, please tell us."
+        ]
+      },
+      {
+        "heading": "Conformance status",
+        "paragraphs": [
+          "Status: partially conformant with WCAG 2.2 Level AA. Partially conformant means that most of the website conforms, with the exceptions listed under \"What we know isn't perfect yet\".",
+          "We conducted our most recent accessibility evaluation in October 2026. For more information, see \"How we test\"."
         ]
       },
       {
@@ -22,15 +36,30 @@
         ]
       },
       {
-        "heading": "How we check",
+        "heading": "How we test",
         "paragraphs": [
           "Every change is tested with a keyboard, at phone and desktop sizes, and with automated accessibility checks (Lighthouse accessibility scores of 100) before it's released."
         ]
       },
       {
-        "heading": "Tell us about a problem",
+        "heading": "Feedback and contact information",
         "paragraphs": [
-          "If something is hard to use with your setup, tell us what you were trying to do, which page it was on, and the browser and assistive technology you use. We aim to reply within five working days and to fix problems that block reading or listening first. Contact details are on the Help page."
+          "Please let us know if you experience accessibility barriers using our services or need information in an alternative format. Tell us what you were trying to do, which page it was on, and the browser and assistive technology you use.",
+          "Email: accessibility@literaryworm.com (mark the subject line \"Accessibility\").",
+          "We aim to reply within five working days, and always within 15 business days, and to fix problems that block reading or listening first. We keep a record of accessibility feedback and our replies."
+        ]
+      },
+      {
+        "heading": "Enforcement",
+        "paragraphs": [
+          "If you're not satisfied with our response, you can contact the enforcement authority in your country: Germany: BFIT-Bund. France: Défenseur des droits. Ireland: National Disability Authority. Spain: OADIS. Italy: AgID. For other EU countries, contact your national consumer protection authority."
+        ]
+      },
+      {
+        "heading": "Preparation of this statement",
+        "paragraphs": [
+          "This statement was prepared on 28 October 2026 and is reviewed annually or when we make significant service changes.",
+          "For questions about accessibility or this statement, email us at accessibility@literaryworm.com."
         ]
       }
     ],
