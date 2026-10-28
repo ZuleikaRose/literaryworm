@@ -229,6 +229,11 @@ export interface ProfileData {
   readerSettings: ReaderSettings;
   /** Audiobook playback speed, 0.5–3. */
   playbackSpeed: number;
+  /**
+   * Who reads the audiobooks: "librivox" (the recording), "silent", a device voice's voiceURI,
+   * or null for the default (the recording where there is one, else a British English voice).
+   */
+  narrationVoice: string | null;
   timeUsed: TimeUsed;
 }
 

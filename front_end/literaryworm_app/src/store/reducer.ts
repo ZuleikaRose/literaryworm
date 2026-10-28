@@ -86,6 +86,7 @@ export type Action =
   | { type: "removeHighlight"; id: string }
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setPlaybackSpeed"; speed: number }
+  | { type: "setNarrationVoice"; voice: string | null }
   | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string }
   | { type: "allowExtraTime"; day: string; minutes: number };
 
@@ -483,6 +484,9 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "setPlaybackSpeed":
       return withProfileData(state, (data) => ({ ...data, playbackSpeed: action.speed }));
+
+    case "setNarrationVoice":
+      return withProfileData(state, (data) => ({ ...data, narrationVoice: action.voice }));
 
     case "addTimeUsed":
       return withProfileData(

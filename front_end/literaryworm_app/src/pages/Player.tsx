@@ -11,6 +11,7 @@ import {
   ReadingGate,
 } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
+import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
 import {
   chapterAt,
@@ -37,7 +38,13 @@ export default function Player() {
 function PlayerView({ book }: { book: Book }) {
   useTitle(`Listening to ${book.title}`);
   const { state, dispatch } = useStore();
-  const speed = useProfileData().playbackSpeed;
+  const { playbackSpeed: speed, narrationVoice } = useProfileData();
+  const voices = useVoices();
+  const narration = resolveNarration(book, narrationVoice, voices);
+  const voiceValue = narration.kind === "speech" ? narration.voice.voiceURI : narration.kind === "recording" ? LIBRIVOX_VOICE : SILENT_VOICE;
+  const accents = (["British", "American", "Australian"] as const)
+    .map((accent) => [accent, voices.filter((v) => accentOf(v) === accent)] as const)
+    .filter(([, list]) => list.length > 0);
   const playback = usePlayback();
   const { open } = playback;
   const { starts, total } = chapterTimes(book);
@@ -256,6 +263,22 @@ function PlayerView({ book }: { book: Book }) {
                     <option value="chapter">End of chapter</option>
                   </select>
                 </label>
+                <label className="player-select player-voice">
+                  <span>Voice</span>
+                  <select value={voiceValue} onChange={(e) => dispatch({ type: "setNarrationVoice", voice: e.target.value })}>
+                    {book.recording && <option value={LIBRIVOX_VOICE}>Original narrator: {book.recording.narrator}</option>}
+                    {accents.map(([accent, list]) => (
+                      <optgroup key={accent} label={`${accent} English`}>
+                        {list.map((v) => (
+                          <option key={v.voiceURI} value={v.voiceURI}>
+                            {voiceLabel(v)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                    {!book.recording && <option value={SILENT_VOICE}>No voice (silent sample)</option>}
+                  </select>
+                </label>
               </div>
 
               <p className="player-status" role="status">
@@ -270,18 +293,27 @@ function PlayerView({ book }: { book: Book }) {
           )}
 
           <p className="reader-sample-note">
-            {book.recording ? (
+            {narration.kind === "recording" && book.recording ? (
               <>
                 Narrated by {book.recording.narrator} for{" "}
                 <a href={book.recording.page} target="_blank" rel="noreferrer">
                   LibriVox<span className="visually-hidden"> (opens in a new tab)</span>
                 </a>
-                : a public-domain recording, streamed from the Internet Archive. The read-along transcript is for sample
-                narration only.
+                : a public-domain recording, streamed from the Internet Archive.
               </>
+            ) : narration.kind === "speech" ? (
+              book.recording ? (
+                <>Read aloud by your device's {voiceLabel(narration.voice)} voice from the full public-domain text (Project Gutenberg).</>
+              ) : (
+                <>Read aloud by your device's {voiceLabel(narration.voice)} voice from sample text: this title's narration isn't licensed yet.</>
+              )
             ) : (
               <>Sample player: this title's narration isn't licensed yet, so the clock runs silently.</>
             )}{" "}
+            {voices.length < 10 &&
+              (voices.length === 0
+                ? "This browser has no English voices to read aloud with."
+                : `This device has ${voices.length} English ${voices.length === 1 ? "voice" : "voices"}; Edge, Safari and phones usually offer more.`)}{" "}
             Space plays and pauses; the left and right arrows skip 15 seconds. Leave the player and the book keeps playing in
             the mini-player.
           </p>

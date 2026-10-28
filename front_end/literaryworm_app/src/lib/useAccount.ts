@@ -88,7 +88,7 @@ export function useAccount() {
           customLists: data?.customLists ?? [],
           recentSearches: data?.recentSearches ?? [],
           // Kept on this device for this visit only.
-          onThisDevice: data ? { readerSettings: data.readerSettings, playbackSpeed: data.playbackSpeed, timeUsed: data.timeUsed } : null,
+          onThisDevice: data ? { readerSettings: data.readerSettings, playbackSpeed: data.playbackSpeed, narrationVoice: data.narrationVoice, timeUsed: data.timeUsed } : null,
         };
       }),
       library: Object.values(activeLibrary(state)),

@@ -726,6 +726,15 @@
   font-weight: 600;
 }
 
+/* Device voice names can be long; keep the list inside a phone's width. */
+.player-voice {
+  max-width: 100%;
+}
+
+.player-voice select {
+  max-width: min(100%, 300px);
+}
+
 .player-status {
   min-height: 1.4em;
   margin: 0;

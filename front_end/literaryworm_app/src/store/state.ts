@@ -86,6 +86,7 @@ export const emptyProfileData = (): ProfileData => ({
   recentSearches: [],
   readerSettings: defaultReaderSettings,
   playbackSpeed: 1,
+  narrationVoice: null,
   timeUsed: { day: today(), seconds: 0, extraMinutes: 0 },
 });
 
