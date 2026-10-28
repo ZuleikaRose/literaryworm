@@ -1701,3 +1701,321 @@ create index concurrently if not exists playback_handoffs_to_device_id_user_id_i
 -- =============================================================================
 -- Indexes the (profile_id, user_id) foreign key, so deleting a profile finds its handoffs quickly.
 create index concurrently if not exists playback_handoffs_profile_id_user_id_idx on public.playback_handoffs (profile_id, user_id);
+
+-- =============================================================================
+-- 20261028001300_reading_stats.sql
+-- =============================================================================
+-- Reading stats and Year in Review (Phase 17).
+--
+-- reading_days.listening_minutes: of a day's minutes, how many were spent
+-- listening to an audiobook (the rest is reading). Never more than the minutes.
+--
+-- finished_books: which book a profile finished on which day, so Year in Review
+-- can list the year's books, their genres and authors. One row per book and day
+-- (finishing a book again on another day is another row). Written only through
+-- record_reading(), which now takes the listening minutes and the book.
+
+alter table public.reading_days
+  add column listening_minutes smallint not null default 0
+    check (listening_minutes between 0 and 1440 and listening_minutes <= minutes);
+
+grant insert (listening_minutes) on public.reading_days to authenticated;
+grant update (listening_minutes) on public.reading_days to authenticated;
+
+create table public.finished_books (
+  profile_id  uuid not null,
+  user_id     uuid not null,
+  -- A catalog id or a Google Books volume id, in the format library_items uses.
+  volume_id   text not null check (volume_id ~ '^[A-Za-z0-9_-]{1,40}$'),
+  finished_on date not null check (finished_on >= date '2020-01-01'),
+  created_at  timestamptz not null default now(),
+  primary key (profile_id, user_id, volume_id, finished_on),
+  foreign key (profile_id, user_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+alter table public.finished_books enable row level security;
+
+create policy "Readers see their own finished books" on public.finished_books for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Readers record their own finished books" on public.finished_books for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Readers clear their own finished books" on public.finished_books for delete to authenticated
+  using (user_id = (select auth.uid()));
+
+revoke all on public.finished_books from anon, authenticated;
+grant select, delete on public.finished_books to authenticated;
+grant insert (profile_id, user_id, volume_id, finished_on) on public.finished_books to authenticated;
+
+-- The old four-argument version is replaced: callers that leave out the new
+-- arguments (older copies of the app) still work, through the defaults.
+drop function public.record_reading(uuid, date, integer, integer);
+
+-- Adds a little reading to a profile's day: at most an hour (of which some may
+-- be listening) and one finished book per call, for a day within two days of
+-- the database's date. With a finished book's id, also records which book.
+-- SECURITY INVOKER: RLS and the grants apply, so a caller can only add to their
+-- own profiles' days.
+create function public.record_reading(
+  p_profile_id uuid,
+  p_day date,
+  p_minutes integer,
+  p_finished integer,
+  p_listening_minutes integer default 0,
+  p_volume_id text default null
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if p_minutes is null or p_minutes not between 0 and 60 then
+    raise exception 'minutes must be 0 to 60' using errcode = 'check_violation';
+  end if;
+  if p_listening_minutes is null or p_listening_minutes not between 0 and p_minutes then
+    raise exception 'listening minutes must be 0 to the minutes' using errcode = 'check_violation';
+  end if;
+  if p_finished is null or p_finished not between 0 and 1 then
+    raise exception 'finished must be 0 or 1' using errcode = 'check_violation';
+  end if;
+  if p_day is null or p_day not between current_date - 2 and current_date + 2 then
+    raise exception 'day must be within two days of today' using errcode = 'check_violation';
+  end if;
+  insert into public.reading_days as d (profile_id, user_id, day, minutes, books_finished, listening_minutes)
+  values (p_profile_id, (select auth.uid()), p_day, p_minutes, p_finished, p_listening_minutes)
+  on conflict (profile_id, user_id, day) do update
+    set minutes = least(1440, d.minutes + excluded.minutes),
+        books_finished = least(100, d.books_finished + excluded.books_finished),
+        listening_minutes = least(least(1440, d.minutes + excluded.minutes), d.listening_minutes + excluded.listening_minutes);
+  if p_finished = 1 and p_volume_id is not null then
+    insert into public.finished_books (profile_id, user_id, volume_id, finished_on)
+    values (p_profile_id, (select auth.uid()), p_volume_id, p_day)
+    on conflict do nothing;
+  end if;
+end;
+$$;
+
+revoke execute on function public.record_reading(uuid, date, integer, integer, integer, text) from public, anon;
+grant execute on function public.record_reading(uuid, date, integer, integer, integer, text) to authenticated;
+
+-- =============================================================================
+-- 20261028001301_index_finished_books_user_id.sql
+-- =============================================================================
+-- RLS on finished_books filters on user_id; the app loads an account's finished books by it, newest first.
+create index concurrently if not exists finished_books_user_id_finished_on_idx on public.finished_books (user_id, finished_on);
+
+-- =============================================================================
+-- 20261028001400_club_notifications.sql
+-- =============================================================================
+-- Club notifications (Phase 19).
+--
+-- club_members gains each member's last_read_at (when they last opened the
+-- club, set by mark_club_read()) and notify (whether new posts alert them).
+-- club_unread() counts the posts other members wrote since then, by chapter, so
+-- the app can leave out chapters the reader hasn't reached (no spoilers in a
+-- count or an alert). New posts reach open copies of the app through Supabase
+-- Realtime; RLS means each member hears only their own clubs' posts.
+
+alter table public.club_members
+  add column last_read_at timestamptz not null default now(),
+  add column notify       boolean     not null default true;
+
+create policy "Members change their own membership" on public.club_members for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+
+grant update (notify, last_read_at) on public.club_members to authenticated;
+
+-- Marks a club read for the caller, at the database's time.
+create function public.mark_club_read(p_club_id uuid)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  update public.club_members
+     set last_read_at = now()
+   where club_id = p_club_id and user_id = (select auth.uid());
+$$;
+
+-- The caller's unread posts in each of their clubs, by chapter.
+create function public.club_unread()
+returns table (club_id uuid, chapter_index smallint, posts bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select p.club_id, p.chapter_index, count(*)
+    from public.club_posts p
+    join public.club_members m on m.club_id = p.club_id and m.user_id = (select auth.uid())
+   where p.created_at > m.last_read_at
+     and p.user_id <> (select auth.uid())
+   group by p.club_id, p.chapter_index;
+$$;
+
+revoke execute on function public.mark_club_read(uuid), public.club_unread() from public, anon;
+grant execute on function public.mark_club_read(uuid), public.club_unread() to authenticated;
+
+alter publication supabase_realtime add table public.club_posts;
+
+-- =============================================================================
+-- 20261028001401_index_club_posts_club_id_created_at.sql
+-- =============================================================================
+-- club_unread() and each club's discussion read posts by club, newest after a time.
+create index concurrently if not exists club_posts_club_id_created_at_idx on public.club_posts (club_id, created_at);
+
+-- =============================================================================
+-- 20261028001500_listen_along.sql
+-- =============================================================================
+-- Listen along (Phase 20).
+--
+-- A club member leads a listening session of the club's book; other members
+-- join and hear the same place. club_listening holds one session per club: who
+-- leads it, where they are and whether they're playing, and the speed. The host
+-- updates it as they play, pause and skip (and every half minute, so a
+-- session whose host has gone can be told apart); members hear each change
+-- through Supabase Realtime and follow.
+--
+-- A session nobody has updated for two minutes has been left (the host closed
+-- the app): any member may take it over by becoming its host. Only the host
+-- moves it; the host or the club's owner can end it. Leaving the club, or
+-- deleting it, ends the sessions that depended on it.
+
+create table public.club_listening (
+  club_id          uuid primary key references public.book_clubs (id) on delete cascade,
+  host_id          uuid not null,
+  position_seconds double precision not null check (position_seconds >= 0 and position_seconds < 1000000),
+  playing          boolean not null default false,
+  rate             real not null default 1 check (rate between 0.5 and 3),
+  updated_at       timestamptz not null default now(),
+  -- The host must be a member: leaving the club ends a session they lead.
+  foreign key (club_id, host_id) references public.club_members (club_id, user_id) on delete cascade
+);
+
+create trigger club_listening_set_updated_at
+  before update on public.club_listening
+  for each row execute function public.set_updated_at();
+
+alter table public.club_listening enable row level security;
+
+create policy "Members see their clubs' sessions" on public.club_listening for select to authenticated
+  using (public.is_club_member(club_id));
+create policy "Members start a session as its host" on public.club_listening for insert to authenticated
+  with check (host_id = (select auth.uid()) and public.is_club_member(club_id));
+-- The host moves it; any member may take over a session left for two minutes.
+create policy "Hosts move their session, members take over a left one" on public.club_listening for update to authenticated
+  using (
+    host_id = (select auth.uid())
+    or (public.is_club_member(club_id) and updated_at < now() - interval '2 minutes')
+  )
+  with check (host_id = (select auth.uid()) and public.is_club_member(club_id));
+create policy "Hosts and club owners end a session" on public.club_listening for delete to authenticated
+  using (
+    host_id = (select auth.uid())
+    or exists (select 1 from public.book_clubs c where c.id = club_id and c.owner_id = (select auth.uid()))
+  );
+
+revoke all on public.club_listening from anon, authenticated;
+grant select, delete on public.club_listening to authenticated;
+grant insert (club_id, host_id, position_seconds, playing, rate) on public.club_listening to authenticated;
+grant update (host_id, position_seconds, playing, rate) on public.club_listening to authenticated;
+
+alter publication supabase_realtime add table public.club_listening;
+
+-- =============================================================================
+-- 20261028001501_index_club_listening_club_id_host_id.sql
+-- =============================================================================
+-- Index for the foreign key on club_listening (club_id, host_id) to club_members.
+create index concurrently if not exists club_listening_club_id_host_id_idx on public.club_listening (club_id, host_id);
+
+-- =============================================================================
+-- 20261028001600_uploaded_books.sql
+-- =============================================================================
+-- Bring your own books (Phase 21).
+--
+-- A member uploads an EPUB they own. The browser reads it and keeps only its
+-- text, chapter by chapter, as a JSON file in the private user-books bucket,
+-- in a folder named after the account (so a member can only ever reach their
+-- own files). uploaded_books lists them for the profile that uploaded them,
+-- with the chapter titles and word counts the reader needs before the text
+-- loads. Its id ("u-" and 32 hex digits) is a valid volume id, so the library,
+-- reading progress, bookmarks and highlights work on uploads as on any book.
+--
+-- Kids profiles can't upload (the content isn't rated). A profile keeps up to
+-- 50 uploads; each text file is at most 15 MB.
+
+create table public.uploaded_books (
+  id             text primary key check (id ~ '^u-[0-9a-f]{32}$'),
+  profile_id     uuid not null,
+  user_id        uuid not null,
+  title          text not null check (char_length(btrim(title)) between 1 and 200),
+  author         text not null default '' check (char_length(author) <= 200),
+  chapter_titles text[] not null check (cardinality(chapter_titles) between 1 and 500),
+  chapter_words  integer[] not null check (cardinality(chapter_words) = cardinality(chapter_titles)),
+  words          integer not null check (words between 1 and 5000000),
+  -- The text's place in the user-books bucket: <user_id>/<id>.json.
+  storage_path   text not null unique,
+  created_at     timestamptz not null default now(),
+  check (storage_path = user_id::text || '/' || id || '.json'),
+  foreign key (profile_id, user_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+alter table public.uploaded_books enable row level security;
+
+create policy "Readers see their own uploads" on public.uploaded_books for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Readers upload to their own profiles" on public.uploaded_books for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Readers delete their own uploads" on public.uploaded_books for delete to authenticated
+  using (user_id = (select auth.uid()));
+
+revoke all on public.uploaded_books from anon, authenticated;
+grant select, delete on public.uploaded_books to authenticated;
+grant insert (id, profile_id, user_id, title, author, chapter_titles, chapter_words, words, storage_path) on public.uploaded_books to authenticated;
+
+-- Not on Kids profiles, and up to 50 a profile.
+create function private.enforce_upload_rules()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if (select age_rating from public.reader_profiles where id = new.profile_id) = 'kids' then
+    raise exception 'Kids profiles can''t upload books' using errcode = 'check_violation';
+  end if;
+  if (select count(*) from public.uploaded_books where profile_id = new.profile_id) >= 50 then
+    raise exception 'A profile can have up to 50 uploaded books' using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function private.enforce_upload_rules() from public, anon, authenticated;
+
+create trigger uploaded_books_rules
+  before insert on public.uploaded_books
+  for each row execute function private.enforce_upload_rules();
+
+-- The bucket: private, JSON only, 15 MB a file.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('user-books', 'user-books', false, 15728640, array['application/json'])
+on conflict (id) do nothing;
+
+-- Members read, add and remove files only in their own folder.
+create policy "Members read their own book files" on storage.objects for select to authenticated
+  using (bucket_id = 'user-books' and (storage.foldername(name))[1] = (select auth.uid())::text);
+create policy "Members add their own book files" on storage.objects for insert to authenticated
+  with check (bucket_id = 'user-books' and (storage.foldername(name))[1] = (select auth.uid())::text);
+create policy "Members remove their own book files" on storage.objects for delete to authenticated
+  using (bucket_id = 'user-books' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- =============================================================================
+-- 20261028001601_index_uploaded_books_profile_id_user_id.sql
+-- =============================================================================
+-- Index for the foreign key on uploaded_books (profile_id, user_id); also the profile's list.
+create index concurrently if not exists uploaded_books_profile_id_user_id_idx on public.uploaded_books (profile_id, user_id);
+
+-- =============================================================================
+-- 20261028001602_index_uploaded_books_user_id.sql
+-- =============================================================================
+-- RLS on uploaded_books filters on user_id; the app loads an account's uploads by it.
+create index concurrently if not exists uploaded_books_user_id_idx on public.uploaded_books (user_id);

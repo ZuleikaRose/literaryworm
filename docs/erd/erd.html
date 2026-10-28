@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1200)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1600)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -358,8 +358,9 @@
             ["pk", "day", "date"],
             ["", "minutes", "smallint 0–1440"],
             ["", "books_finished", "smallint 0–100"],
+            ["", "listening_minutes", "smallint ≤ minutes"],
           ],
-          note: "Time read or listened and books finished per day. FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today). RLS: owner only.",
+          note: "Time read or listened (and how much of it was listening) and books finished per day. FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today), which also records which book. RLS: owner only.",
         },
         {
           id: "book_clubs", color: colors.reading, x: 840, y: 2050, sub: "members only",
@@ -382,11 +383,13 @@
             ["pk fk", "club_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
             ["", "joined_at", "timestamptz"],
+            ["", "last_read_at", "timestamptz"],
+            ["", "notify", "boolean"],
           ],
-          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited).",
+          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited). Members change only their own notify; mark_club_read() and club_unread() keep and count new posts.",
         },
         {
-          id: "club_posts", color: colors.reading, x: 1260, y: 2330, sub: "discussion by chapter",
+          id: "club_posts", color: colors.reading, x: 1260, y: 2400, sub: "discussion by chapter",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "club_id", "uuid"],
@@ -396,10 +399,10 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "FK (club_id, user_id) → club_members, on delete cascade: leaving deletes your posts. Indexes: (club_id, user_id), user_id. Up to 60 an hour. RLS: members read; authors edit; authors or the owner delete.",
+          note: "FK (club_id, user_id) → club_members, on delete cascade: leaving deletes your posts. Indexes: (club_id, user_id), user_id, (club_id, created_at). Up to 60 an hour. Sent by Realtime. RLS: members read; authors edit; authors or the owner delete.",
         },
         {
-          id: "listening_devices", color: colors.account, x: 0, y: 2350, sub: "open copies of the app",
+          id: "listening_devices", color: colors.account, x: 0, y: 2420, sub: "open copies of the app",
           cols: [
             ["pk", "id", "uuid (made by the browser)"],
             ["fk", "user_id", "uuid"],
@@ -410,7 +413,7 @@
           note: "Unique (id, user_id). Index: (user_id, last_seen_at). Checks in every minute through touch_listening_device(); 20 kept an account. RLS: owner only; browser sets id, user_id and label.",
         },
         {
-          id: "playback_handoffs", color: colors.household, x: 420, y: 2350, sub: "listen on another device",
+          id: "playback_handoffs", color: colors.household, x: 420, y: 2420, sub: "listen on another device",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -423,6 +426,45 @@
             ["", "claimed_at", "timestamptz", true],
           ],
           note: "FK (to_device_id, user_id) → listening_devices and (profile_id, user_id) → reader_profiles, on delete cascade; both indexed. Sent by Realtime. RLS: owner only; browser sets claimed_at only after sending.",
+        },
+        {
+          id: "finished_books", color: colors.household, x: 0, y: 2850, sub: "per profile · year in review",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text (book id)"],
+            ["pk", "finished_on", "date"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Which book a profile finished on which day. FK as reading_goals. Index: (user_id, finished_on). Written through record_reading(). RLS: owner only.",
+        },
+        {
+          id: "uploaded_books", color: colors.household, x: 420, y: 2850, sub: "EPUBs a profile added",
+          cols: [
+            ["pk", "id", "text (u- + 32 hex)"],
+            ["fk", "profile_id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "title", "text 1–200"],
+            ["", "author", "text ≤ 200"],
+            ["", "chapter_titles", "text[] 1–500"],
+            ["", "chapter_words", "integer[]"],
+            ["", "words", "integer"],
+            ["", "storage_path", "text (unique)"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "The text is JSON in the private user-books bucket, at <user_id>/<id>.json (Storage RLS: own folder only, 15 MB). The id is a valid volume id, so the library, progress and highlights work. FK (profile_id, user_id) → reader_profiles, on delete cascade; indexed, and user_id. Not on Kids profiles; up to 50. RLS: owner only.",
+        },
+        {
+          id: "club_listening", color: colors.reading, x: 1260, y: 2850, sub: "listen along · one a club",
+          cols: [
+            ["pk fk", "club_id", "uuid"],
+            ["fk", "host_id", "uuid"],
+            ["", "position_seconds", "double precision"],
+            ["", "playing", "boolean"],
+            ["", "rate", "real 0.5–3"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "FK club_id → book_clubs and (club_id, host_id) → club_members, on delete cascade; indexed. Sent by Realtime. RLS: members read; the host moves it; any member takes over one left for two minutes; the host or owner ends it.",
         },
       ];
 
@@ -454,6 +496,10 @@
         ["listening_devices", "user_id", "auth.users", "id", "N : 1"],
         ["playback_handoffs", "to_device_id", "listening_devices", "id", "N : 1 (pair)"],
         ["playback_handoffs", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["finished_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["uploaded_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["club_listening", "club_id", "book_clubs", "id", "1 : 1"],
+        ["club_listening", "host_id", "club_members", "user_id", "N : 1 (pair)"],
       ];
       // -----------------------------------------------------------------------------------
 
