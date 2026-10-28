@@ -20,6 +20,7 @@ Database migrations, Edge Functions and security tests for LiteraryWorm. The roo
 | `0600` | `set_profile_age_rating` (server only): moving a profile to Kids records the parent's consent in `parental_consents`; moving it off Kids marks that consent withdrawn |
 | `0700` | `highlights`: a passage on one reader page (chapter, page, character offsets and the words), a colour (`highlight_color`) and an optional note; private and tied to a library item (composite FK, cascade on delete); the browser may change only `color` and `note` |
 | `0800` | Per-profile `favorites`, `book_ratings` (`taste_rating`), `custom_lists` (up to 50, unique names, optional `share_slug`) and `custom_list_items` (up to 200 books), each tied to `reader_profiles(id, account_id)` so the profile must be the account's; `reader_profiles.recent_searches` (up to 8); `shared_list(slug)` for public shared-list pages; a profile moved to Kids stops sharing |
+| `0900` | `book_summaries`: a short and a detailed AI-written summary per book (catalog or Google id), the model that wrote them and when; RLS on with no browser access at all (only the `summaries` function reads and writes it). No foreign key, so no index beyond the primary key |
 | `…01`, `…02` | One index each, created concurrently |
 
 **How a shared list is read.** Visitors call `rpc/shared_list` with the link's 22-character token. It's `SECURITY DEFINER` on purpose (the advisor warns about any such function anons can call): the tables stay owner-only under RLS, and this one function returns just the list's name, description, the profile's name and its titles, or nothing for a wrong, stopped or Kids link.
@@ -33,6 +34,7 @@ Database migrations, Edge Functions and security tests for LiteraryWorm. The roo
 | `books` | Anyone (`verify_jwt = false`) | The only path to Google Books. `mode=home` (technology), `search` (title only; optional `genre` from the six and `sort=newest`), `genre` (the six required genres), `volume` (one book). Validates every parameter, rejects unknown ones, rate limits each IP (60/min), times out after 8 s, maps Google's 429/5xx/timeouts to friendly errors, asks once more when Google answers Home's first page with no results at all (it does that when strained), asks again with plain words when a `subject:` (genre) or `intitle:` (search) query comes back empty (Google has answered every such query with nothing for hours while plain searches still worked; the fallback is looser but not empty) and returns only the fields the UI shows, with https covers. `volume` also returns `mature` (Google's MATURE rating), which the app uses to keep those titles from Teen and Kids profiles. |
 | `manage-profile` | Signed-in accounts | Kids profiles with consent, PINs, daily limits, age-rating changes (`set_age_rating`), unlocking and deleting profiles. Re-checks the account password; checks the profile belongs to the caller. |
 | `dictionary` | Anyone (`verify_jwt = false`) | The reader's dictionary. `?word=` (one English word, letters with an inner apostrophe or hyphen, up to 40 characters). Asks the Free Dictionary API, and Wiktionary's REST API when that's down, slow or busy (both Wiktionary data, CC BY-SA); returns the word, pronunciation and up to three parts of speech with three definitions each. Rate limits each IP (40/min), 4 s per source, cached for a day. |
+| `summaries` | Anyone (`verify_jwt = false`) | A book's short and detailed summaries. `?id=` (a catalog id or Google volume id). Returns the kept summaries from `book_summaries`; the first time a book is asked for, looks it up (the catalog list in `_shared/catalog.ts`, or Google Books), asks Claude (`claude-opus-5-5`, structured JSON output, server-side refusal fallback; the book's details go in as data) and keeps the answer. Rate limits each IP (60/min) and new summaries (10 an hour per IP, 300 a day in all), so the Claude bill stays bounded. Cached for a day. |
 | `checkout` | Signed-in accounts | Validates and records the plan choice. (Payment isn't taken yet.) |
 | `manage-account` | Signed-in accounts | `pause` / `resume` the membership, `cancel` (runs to the next billing date) / `restart`, and `delete` (needs the account password and `confirm: true`; marks the plan cancelled, then deletes the user, which cascades to every row they own). Rate limited per user (10/min). |
 
@@ -43,6 +45,7 @@ All functions share `_shared/`: CORS with an origin allowlist (`ALLOWED_ORIGINS`
 ```bash
 supabase secrets set GOOGLE_BOOKS_API_KEY=<your key>
 supabase secrets set ALLOWED_ORIGINS=https://literaryworm.com,https://www.literaryworm.com,http://localhost:5173
+supabase secrets set ANTHROPIC_API_KEY=<your Claude API key>   # used only by the summaries function
 ```
 
 `ALLOWED_ORIGINS` must list every site that calls the functions, including the live site (`https://www.literaryworm.com` and `https://literaryworm.com`). A site missing from the list gets answers the browser won't let it read, which the app shows as "You seem to be offline". Vercel preview URLs need adding separately.
@@ -67,13 +70,13 @@ How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_ac
 ```bash
 supabase link --project-ref <ref>
 supabase db push                      # applies migrations/
-supabase functions deploy books manage-profile checkout manage-account dictionary
+supabase functions deploy books manage-profile checkout manage-account dictionary summaries
 ```
 
 ## Tests
 
 ```bash
-# Edge Function unit tests (offline; Google is stubbed)
+# Edge Function unit tests (offline; Google and Claude are stubbed)
 npx -y deno@2 test --allow-env supabase/functions/
 
 # Database security checks: apply the migrations to a scratch database, then
