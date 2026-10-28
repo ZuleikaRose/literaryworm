@@ -168,6 +168,18 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Reader text.** Public-domain titles show their real text in whole paragraphs, about 1,600 characters a page; the note under the progress bar reads *Public-domain text from Project Gutenberg.* Other titles keep the sample-pages note.
 
+**Another device.** A floating card under the reader's top bar, on the page's own paper colour: one sentence (*On another device you read to Chapter 12 (40%).*), a primary *Go there* and a ghost *Stay here*. Polite live region; nothing moves until the reader chooses.
+
+**Ask the book.** A speech-bubble icon in the reader's tools (public-domain titles only) opens a dialog: eyebrow *Written by AI*, title *Ask the book*, a line saying answers come from the text up to the current chapter, a two-line question box and *Ask*. Answers stack newest first, the question in bold above its answer; a credit underneath says Claude can make mistakes.
+
+**Goals.** My Library's *Goals* tab: cards on the raised surface. The goal card shows the count large in the display face (*11 of 24 books finished*), a thin rust progress bar and a pace line; the streak card a clock icon and the day count; then a full-width *Month by month* table (month, time, days read, books finished) that scrolls sideways on its own if a phone is too narrow.
+
+**Clubs.** My Library's *Clubs* tab lists clubs as cards (small cover, name, book, members, finish date, today's chapter), then *Start a club* and *Join a club* cards. A club page has the cover beside its name and pace, *Read* and *Listen*, the discussion (chapter select, post box, posts newest first, spoilers replaced by an italic line with *Show it anyway*), and a side column with the invite code (*Copy*), members (*Started it* tag) and *Leave club* / *Delete club*, which asks first. On phones the side column drops below.
+
+**Read offline.** A section on public-domain book pages after the summary: a status line, then ghost buttons *Save the text (small)*, *Save text and audio (about N MB)* / *Add the audio*, and *Remove from this device*. Progress replaces the status line (*Saving the audio: chapter 3 of 21…*).
+
+**Read-along with real text.** The same transcript box; with a device voice on a public-domain title it shows the book's text, has no Language list (English only), and its note says the text is marked as the voice reads it.
+
 **Read-along transcript.** Full width under the cover and controls, in a scrolling box on the surface colour, with *Follow the narration*, Language and Size beside its heading: the reading serif at three sizes (17, 20, 24px), the current sentence on the rust wash with a rust left rule, the rest at full ink. Each sentence is an inline target (button role) that jumps there, so the paragraphs keep their shape. It scrolls the current sentence into the middle smoothly (instantly with reduced motion).
 
 **Mini-player.** A 64px bar fixed to the bottom of the page (above the tab bar on phones), raised surface with the floating shadow and a 2px rust progress line along its top edge: small cover, title, then the chapter and the time left in it as "Chapter 10 · −43:57" (truncated), then *Back 15 seconds*, a rust *Play/Pause* and *Close*, all 44px. It slides up 16px and fades in once when it first appears, and pages get bottom padding so it never covers content. It sits under the header and tab bar, so their menus open over it.
