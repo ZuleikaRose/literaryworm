@@ -24,8 +24,9 @@ export function usePlayerSettings() {
     if (!p) return;
     window.clearTimeout(p.timer);
     pending.current = null;
-    accountApi.savePlayerSettings(p.profileId, p.player).catch(() => {
+    accountApi.savePlayerSettings(p.profileId, p.player).catch((err: Error) => {
       // Kept for this visit; the next change tries again.
+      console.error("player settings: couldn't save:", err.message);
     });
   };
   const flushRef = useRef(flush);
