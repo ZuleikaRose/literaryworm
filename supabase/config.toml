@@ -18,3 +18,9 @@ verify_jwt = true
 # Public like books: the demo household reads without a session. The function
 # validates the word and rate limits each IP.
 verify_jwt = false
+
+[functions.summaries]
+# Public like books: the demo household reads without a session. The function
+# validates the id, rate limits each IP, and limits how many new summaries
+# (Claude calls) are written per IP and per day.
+verify_jwt = false

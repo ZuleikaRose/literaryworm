@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
+import { BookSummary } from "../components/BookSummary";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { LogCard } from "../components/LogCard";
@@ -10,6 +11,7 @@ import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, genreForCategories } from "../data/genres";
 import { readingStatusLabel } from "../data/logs";
 import { type DetailView, fromCatalogBook, fromVolume } from "../lib/bookDetail";
+import { usesBackend } from "../lib/backend";
 import { fromLocal } from "../lib/booksApi";
 import { fallbackCover } from "../lib/coverFallback";
 import { useBookFeed } from "../lib/useBookFeed";
@@ -467,6 +469,9 @@ function DetailPage({ view }: { view: DetailView }) {
           </p>
         </div>
       </section>
+
+      {/* Members and the demo household; the summaries come from the backend. */}
+      {profile && usesBackend && <BookSummary bookId={view.id} title={view.title} />}
 
       {view.facts.length > 0 && (
         <section className="book-facts" aria-labelledby="facts-title">

@@ -231,6 +231,45 @@
   border-bottom: 1px solid var(--line);
 }
 
+.book-summary {
+  padding: 40px clamp(0px, 3vw, 55px);
+  border-bottom: 1px solid var(--line);
+}
+
+.book-summary h2 {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.summary-body {
+  max-width: 72ch;
+  margin-top: 20px;
+  line-height: 1.7;
+}
+
+.summary-body p {
+  margin: 0 0 1em;
+}
+
+.summary-hint {
+  color: var(--muted);
+}
+
+.summary-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+}
+
+.summary-spoiler {
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .book-facts h2,
 .logs-intro h2 {
   margin: 0 0 18px;
