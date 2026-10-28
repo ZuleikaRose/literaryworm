@@ -12,6 +12,7 @@ import {
 } from "../components/ReadingParts";
 import { AskDialog } from "../components/AskDialog";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
+import { QuoteCardDialog } from "../components/QuoteCardDialog";
 import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar } from "../components/StudyTools";
 import { samplePage } from "../data/sampleText";
 import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
@@ -24,7 +25,7 @@ import { useHighlights } from "../lib/useHighlights";
 import { useReading } from "../lib/useReading";
 import { useTitle } from "../lib/useTitle";
 import { useProfileData } from "../store/context";
-import type { Book, HighlightColor } from "../types";
+import type { Book, Highlight, HighlightColor } from "../types";
 
 type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | null;
 
@@ -84,6 +85,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const [selectionError, setSelectionError] = useState<string | null>(null);
   const [selectionBusy, setSelectionBusy] = useState(false);
   const [editing, setEditing] = useState<{ id: string; focusNote: boolean } | null>(null);
+  const [sharing, setSharing] = useState<Highlight | null>(null);
   const [dictionaryWord, setDictionaryWord] = useState("");
   // The place this reader last opened at or saved. A different saved place means another device
   // moved on (useReadingSync reloads it when the tab comes back), and the reader offers to go there.
@@ -486,6 +488,10 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
           setEditing({ id: h.id, focusNote: true });
         }}
         onRemove={study.remove}
+        onShare={(h) => {
+          setPanel(null);
+          setSharing(h);
+        }}
       />
       <HighlightDialog
         highlight={editingHighlight}
@@ -493,7 +499,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         onClose={() => setEditing(null)}
         onUpdate={study.update}
         onRemove={study.remove}
+        onShare={(h) => {
+          setEditing(null);
+          setSharing(h);
+        }}
       />
+      <QuoteCardDialog book={book} highlight={sharing} onClose={() => setSharing(null)} />
       <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} onClose={() => setPanel(null)} />
       {book.recording && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
       {selection && !finished && (

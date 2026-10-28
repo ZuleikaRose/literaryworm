@@ -114,17 +114,27 @@ export function HighlightDialog({
   onClose,
   onUpdate,
   onRemove,
+  onShare,
 }: {
   highlight: Highlight | null;
   focusNote: boolean;
   onClose: () => void;
   onUpdate: (id: string, patch: Partial<Pick<Highlight, "color" | "note">>) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
+  onShare: (h: Highlight) => void;
 }) {
   return (
     <Dialog open={highlight !== null} onClose={onClose} eyebrow={highlight ? highlightPlace(highlight) : undefined} title="Highlight">
       {highlight && (
-        <HighlightEditor key={highlight.id} highlight={highlight} focusNote={focusNote} onClose={onClose} onUpdate={onUpdate} onRemove={onRemove} />
+        <HighlightEditor
+          key={highlight.id}
+          highlight={highlight}
+          focusNote={focusNote}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          onRemove={onRemove}
+          onShare={onShare}
+        />
       )}
     </Dialog>
   );
@@ -136,12 +146,14 @@ function HighlightEditor({
   onClose,
   onUpdate,
   onRemove,
+  onShare,
 }: {
   highlight: Highlight;
   focusNote: boolean;
   onClose: () => void;
   onUpdate: (id: string, patch: Partial<Pick<Highlight, "color" | "note">>) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
+  onShare: (h: Highlight) => void;
 }) {
   const [note, setNote] = useState(highlight.note ?? "");
   const [saved, setSaved] = useState<string | null>(null);
@@ -238,6 +250,9 @@ function HighlightEditor({
           >
             <Icon name="trash" size={16} /> Remove highlight
           </button>
+          <button type="button" className="ghost-button" onClick={() => onShare(highlight)}>
+            <Icon name="share" size={16} /> Share as a picture
+          </button>
         </div>
       </form>
     </div>
@@ -253,6 +268,7 @@ export function HighlightsDialog({
   onGo,
   onEdit,
   onRemove,
+  onShare,
 }: {
   open: boolean;
   book: Book;
@@ -261,6 +277,7 @@ export function HighlightsDialog({
   onGo: (h: Highlight) => void;
   onEdit: (h: Highlight) => void;
   onRemove: (id: string) => Promise<void>;
+  onShare: (h: Highlight) => void;
 }) {
   const { busy, error, attempt } = useAttempt();
   const chapters = [...new Set(highlights.map((h) => h.chapterIndex))];
@@ -307,6 +324,9 @@ export function HighlightsDialog({
                     <button type="button" className="text-button" onClick={() => onEdit(h)}>
                       {h.note ? "Edit" : "Add note"}
                       <span className="visually-hidden"> for the highlight on {highlightPlace(h).toLowerCase()}</span>
+                    </button>
+                    <button type="button" className="text-button" onClick={() => onShare(h)}>
+                      Share<span className="visually-hidden"> the highlight on {highlightPlace(h).toLowerCase()} as a picture</span>
                     </button>
                     <button type="button" className="text-button danger-text" disabled={busy} onClick={() => attempt(() => onRemove(h.id))}>
                       Remove<span className="visually-hidden"> the highlight on {highlightPlace(h).toLowerCase()}</span>

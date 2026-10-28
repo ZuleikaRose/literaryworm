@@ -879,3 +879,43 @@
     width: 100%;
   }
 }
+
+/* Share a quote (QuoteCardDialog) */
+.quote-card {
+  display: grid;
+  gap: 16px;
+}
+
+.quote-card-preview {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  max-height: min(56vh, 520px);
+  margin-inline: auto;
+  width: 100%;
+  max-width: calc(min(56vh, 520px) * 0.8);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.quote-card-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.quote-card-loading {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.quote-card .modal-actions {
+  flex-wrap: wrap;
+}
+
+.quote-card-status:empty {
+  display: none;
+}
