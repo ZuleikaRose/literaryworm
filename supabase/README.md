@@ -1,6 +1,6 @@
 # Supabase backend
 
-Database migrations, Edge Functions and security tests for BookWorm. The root `schema.sql` is generated from `migrations/` by `build-schema.sh`; `drawsql.png` is its ERD (`docs/erd/`).
+Database migrations, Edge Functions and security tests for LiteraryWorm. The root `schema.sql` is generated from `migrations/` by `build-schema.sh`; `drawsql.png` is its ERD (`docs/erd/`).
 
 ## Rules every migration follows
 
@@ -42,10 +42,10 @@ All functions share `_shared/`: CORS with an origin allowlist (`ALLOWED_ORIGINS`
 
 ```bash
 supabase secrets set GOOGLE_BOOKS_API_KEY=<your key>
-supabase secrets set ALLOWED_ORIGINS=https://<your-vercel-domain>,http://localhost:5173
+supabase secrets set ALLOWED_ORIGINS=https://literaryworm.com,https://www.literaryworm.com,http://localhost:5173
 ```
 
-`ALLOWED_ORIGINS` must list every site that calls the functions, including the Vercel URL (`https://vibe-coding-book-warm-app-179271177.vercel.app`). A site missing from the list gets answers the browser won't let it read, which the app shows as "You seem to be offline". Vercel preview URLs need adding separately.
+`ALLOWED_ORIGINS` must list every site that calls the functions, including the live site (`https://www.literaryworm.com` and `https://literaryworm.com`). A site missing from the list gets answers the browser won't let it read, which the app shows as "You seem to be offline". Vercel preview URLs need adding separately.
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase.
 
@@ -55,8 +55,8 @@ Set in the dashboard (Authentication) or the Management API; they aren't in the 
 
 | Setting | Value | Why |
 |---|---|---|
-| Site URL | `http://localhost:5173` (add the Vercel URL when deployed) | Where reset links return |
-| Redirect URLs | `http://localhost:5173/**` | Allows `/reset-password` and `/signin` |
+| Site URL | `https://www.literaryworm.com` | Where reset links return |
+| Redirect URLs | `https://www.literaryworm.com/**`, `https://literaryworm.com/**`, `http://localhost:5173/**` | Allows `/reset-password` and `/signin` on the live site and in development |
 | Minimum password length | 15 | Matches the app's rule (15–64 characters) |
 | Confirm email | Off | The built-in email reaches only the project team, 2 emails an hour; turn it on once an email provider (SMTP) is set up |
 
