@@ -91,11 +91,13 @@ export async function registerDevice(id: string, label: string): Promise<void> {
   // Already there (signed in again in the same visit): checking in is enough.
   if (error && error.code !== "23505") throw new AccountError("We couldn't add this device to your account.");
   if (error) await touchDevice(id);
-  await db
+  const stale = await db
     .from("listening_devices")
     .delete()
     .lt("last_seen_at", new Date(Date.now() - DEVICE_KEPT_MS).toISOString())
     .neq("id", id);
+  // Only housekeeping (the list shows recent devices anyway, and the database keeps 20): log it and carry on.
+  if (stale.error) console.error("devices: couldn't clear old devices", stale.error.message);
 }
 
 /** Says this device is still open (the database stamps the time). */
