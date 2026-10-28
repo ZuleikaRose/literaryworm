@@ -85,3 +85,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 8 | Household profiles in Supabase; Account page (plan, sign-in, preferences, family, privacy, help); pause, cancel and delete account; Ask a grown-up; accessibility pass | Done |
 | 9 | Highlights and notes (saved to Supabase), dictionary, read-along transcript (English or Spanish), mini-player; reader and player load on demand | Done |
 | 10 | Favourites, ratings, custom lists and recent searches saved per profile; Favorites with Google titles; share a list by link (`/lists/:slug`) | Done |
+| 13 | Fuller player: the mini-player and the full player share chapter, skip, beginning/end, skip intro/outro, Go to (contents, index, references, time), volume and mute; player settings saved per profile; listen on another device | Done |
