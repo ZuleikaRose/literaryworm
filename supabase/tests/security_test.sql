@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -369,6 +369,47 @@ set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 delete from public.listening_devices where id = '00000000-0000-0000-0000-0000000000d2';
 select pg_temp.check((select count(*) from public.playback_handoffs) = 0, 'clearing a device clears its handoffs');
+reset role;
+
+-- Uploaded books (Phase 21): own account only, not on Kids profiles ------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into public.uploaded_books (id, profile_id, user_id, title, author, chapter_titles, chapter_words, words, storage_path)
+values ('u-0123456789abcdef0123456789abcdef', (select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a',
+        'My novel', 'Ann', array['One', 'Two'], array[1200, 900], 2100, '00000000-0000-0000-0000-00000000000a/u-0123456789abcdef0123456789abcdef.json');
+select pg_temp.check((select count(*) from public.uploaded_books) = 1, 'Ann uploads a book to her profile');
+select pg_temp.expect_error($$insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path)
+  values ('u-1123456789abcdef0123456789abcdef', (select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'Elsewhere', array['One'], array[10], 10,
+  '00000000-0000-0000-0000-00000000000b/u-1123456789abcdef0123456789abcdef.json')$$, 'an upload whose file is in another account''s folder');
+select pg_temp.expect_error($$insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path)
+  values ('not-an-upload-id', (select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'Bad id', array['One'], array[10], 10,
+  '00000000-0000-0000-0000-00000000000a/not-an-upload-id.json')$$, 'an upload id in the wrong format');
+select pg_temp.expect_error($$insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path)
+  values ('u-2123456789abcdef0123456789abcdef', (select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'Mismatch', array['One', 'Two'], array[10], 10,
+  '00000000-0000-0000-0000-00000000000a/u-2123456789abcdef0123456789abcdef.json')$$, 'chapter titles and word counts that don''t match');
+select pg_temp.expect_error($$update public.uploaded_books set title = 'Renamed'$$, 'changing an upload');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select count(*) from public.uploaded_books) = 0, 'Ben cannot see Ann''s uploads');
+select pg_temp.expect_error('insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path) values (''u-3123456789abcdef0123456789abcdef'', ' || quote_literal(:'ann_profile')
+  || ', ''00000000-0000-0000-0000-00000000000a'', ''Sneaky'', array[''One''], array[10], 10, ''00000000-0000-0000-0000-00000000000a/u-3123456789abcdef0123456789abcdef.json'')', 'uploading to another account''s profile');
+delete from public.uploaded_books where id = 'u-0123456789abcdef0123456789abcdef';
+reset role;
+select pg_temp.check((select count(*) from public.uploaded_books) = 1, 'Ben cannot delete Ann''s upload');
+insert into public.reader_profiles (account_id, name, age_rating, kids_consent_at) values ('00000000-0000-0000-0000-00000000000a', 'Kit', 'kids', now());
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.expect_error($$insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path)
+  values ('u-4123456789abcdef0123456789abcdef', (select id from public.reader_profiles where name = 'Kit'), '00000000-0000-0000-0000-00000000000a', 'Kit''s book', array['One'], array[10], 10,
+  '00000000-0000-0000-0000-00000000000a/u-4123456789abcdef0123456789abcdef.json')$$, 'uploading to a Kids profile');
+reset role;
+delete from public.reader_profiles where name = 'Kit';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+reset role;
+set role anon;
+select pg_temp.expect_error('select * from public.uploaded_books', 'anon reading uploads');
 reset role;
 
 -- Every public table has RLS on -----------------------------------------------

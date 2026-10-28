@@ -7,14 +7,15 @@ type Loaded = { bookId: string; pages: ReaderPage[] } | { bookId: string; error:
 
 /**
  * The reader's pages. A public-domain title with a recording has its full Project Gutenberg text
- * (public/texts, the same text the device voices read), fetched once; other titles have sample pages.
+ * (public/texts, the same text the device voices read), fetched once; so does a book the member
+ * uploaded (lib/uploads.ts); other titles have sample pages.
  */
 export function useBookPages(book: Book): { pages: ReaderPage[] | null; error: string | null; retry: () => void } {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!book.recording) return;
+    if (!book.recording && !book.upload) return;
     let live = true;
     bookText(book).then(
       (chapters) => {
@@ -30,7 +31,7 @@ export function useBookPages(book: Book): { pages: ReaderPage[] | null; error: s
     };
   }, [book, attempt]);
 
-  if (!book.recording) return { pages: readerPages(book), error: null, retry: () => {} };
+  if (!book.recording && !book.upload) return { pages: readerPages(book), error: null, retry: () => {} };
   const current = loaded?.bookId === book.id ? loaded : null;
   return {
     pages: current && "pages" in current ? current.pages : null,

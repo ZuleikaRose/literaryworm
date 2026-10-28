@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { samplePageSentences } from "../data/sampleText";
+import { loadUploadText } from "./uploadsApi";
+import { tabTexts } from "./uploads";
 import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
 
@@ -295,10 +297,20 @@ const textCache = new Map<string, Promise<string[]>>();
  * What a voice reads for each chapter: the full public-domain text where the book has a
  * recording (public/texts, from Project Gutenberg), otherwise the reader's sample text.
  */
+/** An uploaded book's text: from this tab (the demo), else from Storage. */
+function uploadText(id: string, path: string | null): Promise<string[]> {
+  const kept = tabTexts.get(id);
+  if (kept) return Promise.resolve(kept);
+  if (!path) return Promise.reject(new Error("This book was uploaded in another tab. Upload it again here."));
+  return loadUploadText(path);
+}
+
 export function bookText(book: Book): Promise<string[]> {
   let text = textCache.get(book.id);
   if (!text) {
-    text = book.recording
+    text = book.upload
+      ? uploadText(book.id, book.upload.path)
+      : book.recording
       ? fetch(`/texts/${book.id}.json`)
           .then(async (res) => {
             if (!res.ok) throw new Error();

@@ -1,7 +1,7 @@
 /** Age ratings are ordered: a profile sees every title at or below its own rating. */
 export type AgeRating = "kids" | "teen" | "all";
 export type Format = "ebook" | "audiobook";
-export type BookSource = "literaryworm" | "google";
+export type BookSource = "literaryworm" | "google" | "upload";
 
 export type CoverMotif =
   | "dot-slash"
@@ -76,6 +76,8 @@ export interface Book {
   chapters: Chapter[];
   /** Real narration, when the book has one; otherwise the player runs a silent sample clock. */
   recording?: Recording;
+  /** A book the member uploaded (source "upload"): where its text is kept (null: this tab only). */
+  upload?: { path: string | null };
 }
 
 export type PlanId = "basic" | "standard" | "premium";
@@ -240,6 +242,20 @@ export interface LibraryEntry {
   cover?: string | null;
 }
 
+/** An EPUB a member uploaded: what the reader needs before its text loads. */
+export interface UploadedBook {
+  /** "u-" and 32 hex digits: a valid volume id, so library, progress and highlights work. */
+  id: string;
+  title: string;
+  author: string;
+  chapterTitles: string[];
+  chapterWords: number[];
+  words: number;
+  /** The text's place in the user-books bucket; null for in-memory accounts (kept in this tab). */
+  path: string | null;
+  createdAt: number;
+}
+
 export interface ProfileData {
   /** Keyed by book id. Replaces the old Reading List: "want to read" entries are that list. */
   library: Record<string, LibraryEntry>;
@@ -266,6 +282,8 @@ export interface ProfileData {
   readingGoals: Record<number, number>;
   /** Keyed by local date, YYYY-MM-DD; days with nothing read aren't kept. */
   readingDays: Record<string, ReadingDay>;
+  /** Books this profile uploaded, newest first. */
+  uploads: UploadedBook[];
 }
 
 /**

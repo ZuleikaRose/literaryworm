@@ -14,8 +14,7 @@ import type {
   Progress,
   RatingValue,
   ReaderSettings,
-  ReadingStatus,
-} from "../types";
+  ReadingStatus, UploadedBook } from "../types";
 import {
   type AccountReading,
   type AppState,
@@ -99,7 +98,10 @@ export type Action =
   /** The active profile's goal for a year; null clears it. */
   | { type: "setReadingGoal"; year: number; books: number | null }
   /** A book was finished today (counts towards the profile's goal). */
-  | { type: "finishedBook"; day: string; profileId?: string; bookId?: string };
+  | { type: "finishedBook"; day: string; profileId?: string; bookId?: string }
+  /** The active profile uploaded a book (saved first for members). */
+  | { type: "addUpload"; upload: UploadedBook }
+  | { type: "removeUpload"; id: string };
 
 /** Swap the signed-in household in, starting with no profile chosen. */
 function enter(state: AppState, household: Household): AppState {
@@ -552,6 +554,12 @@ export function reducer(state: AppState, action: Action): AppState {
         },
         action.profileId,
       );
+
+    case "addUpload":
+      return withProfileData(state, (data) => ({ ...data, uploads: [action.upload, ...data.uploads.filter((u) => u.id !== action.upload.id)] }));
+
+    case "removeUpload":
+      return withProfileData(state, (data) => ({ ...data, uploads: data.uploads.filter((u) => u.id !== action.id) }));
 
     case "allowExtraTime":
       return withProfileData(state, (data) => {

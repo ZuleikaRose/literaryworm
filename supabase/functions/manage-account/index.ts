@@ -26,9 +26,18 @@ Deno.serve((req) =>
       return data as Subscription;
     },
     async deleteUser(userId) {
+      const db = serviceClient();
+      // Uploaded books' text lives in Storage, in a folder named after the account: delete it
+      // first, so nothing is left behind once the account has gone.
+      const { data: files, error: listError } = await db.storage.from("user-books").list(userId, { limit: 1000 });
+      if (listError) throw listError;
+      if (files.length) {
+        const { error: removeError } = await db.storage.from("user-books").remove(files.map((f) => `${userId}/${f.name}`));
+        if (removeError) throw removeError;
+      }
       // Every table the account owns references auth.users (directly or through
       // library_items and profiles) with on delete cascade.
-      const { error } = await serviceClient().auth.admin.deleteUser(userId);
+      const { error } = await db.auth.admin.deleteUser(userId);
       if (error) throw error;
     },
   })

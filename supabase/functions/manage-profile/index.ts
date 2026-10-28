@@ -135,10 +135,19 @@ Deno.serve(async (req) => {
           .eq("account_id", user.id);
         if (countError) dbError(countError);
         if (count === null || count <= 1) throw new HttpError("bad_request", "An account keeps at least one profile.");
+        // The profile's uploaded books go with it; their text files are in Storage.
+        const { data: uploads, error: uploadsError } = await db.from("uploaded_books")
+          .select("storage_path").eq("profile_id", profileId).eq("user_id", user.id);
+        if (uploadsError) dbError(uploadsError);
         const { data, error } = await db.from("reader_profiles").delete()
           .eq("id", profileId).eq("account_id", user.id).select("id");
         if (error) dbError(error);
         if (!data?.length) throw new HttpError("not_found", "Profile not found.");
+        if (uploads?.length) {
+          const { error: removeError } = await db.storage.from("user-books").remove(uploads.map((u) => u.storage_path));
+          // The profile is gone and nothing lists the files; log it rather than fail the delete.
+          if (removeError) console.error("manage-profile: couldn't remove uploaded book files", removeError.message);
+        }
         return json(req, METHODS, { ok: true });
       }
       default:

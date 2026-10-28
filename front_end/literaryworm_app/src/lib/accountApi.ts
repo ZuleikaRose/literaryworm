@@ -18,6 +18,7 @@ import type {
 } from "../types";
 import { SUPABASE_URL } from "./backend";
 import { defaultPlayerSettings } from "./reading";
+import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
 /**
@@ -681,6 +682,7 @@ const emptyCollections = (): Collections => ({
   readingGoals: {},
   readingDays: {},
   player: defaultPlayerSettings,
+  uploads: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
@@ -718,6 +720,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
     const day = of(f.profile_id).readingDays[f.finished_on] ?? { seconds: 0, finished: 0 };
     of(f.profile_id).readingDays[f.finished_on] = { ...day, books: [...(day.books ?? []), f.volume_id] };
   }
+  for (const u of await loadUploads()) of(u.profileId).uploads.push(u.book);
   return byProfile;
 }
 

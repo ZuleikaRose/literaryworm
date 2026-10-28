@@ -1,5 +1,6 @@
 import { type FormEvent, type ReactNode, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useUploadedBook } from "../lib/uploads";
 import { getBook, isAllowed } from "../data/books";
 import { EXTRA_MINUTES } from "../lib/useDailyLimit";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
@@ -31,7 +32,8 @@ export function ReadingMessage({ title, icon, children, action }: { title: strin
  */
 export function ReadingGate({ format, children }: { format: Format; children: (book: Book) => ReactNode }) {
   const { id } = useParams();
-  const book = getBook(id);
+  const uploaded = useUploadedBook(id);
+  const book = getBook(id) ?? uploaded;
   const profile = useActiveProfile();
   const { account } = useStore().state;
   // When the page opened; enough to tell whether a cancelled plan's end date has passed.

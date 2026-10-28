@@ -92,6 +92,7 @@ export const emptyProfileData = (): ProfileData => ({
   timeUsed: { day: today(), seconds: 0, extraMinutes: 0 },
   readingGoals: {},
   readingDays: {},
+  uploads: [],
 });
 
 export const newId = () => crypto.randomUUID();

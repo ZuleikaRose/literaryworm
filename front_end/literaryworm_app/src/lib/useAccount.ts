@@ -88,6 +88,8 @@ export function useAccount() {
           customLists: data?.customLists ?? [],
           recentSearches: data?.recentSearches ?? [],
           player: data?.player ?? null,
+          // What was uploaded (the books' text stays in the app; it's the member's own file).
+          uploads: (data?.uploads ?? []).map(({ id, title, author, chapterTitles, words, createdAt }) => ({ id, title, author, chapters: chapterTitles, words, uploadedAt: new Date(createdAt).toISOString() })),
           // Kept on this device for this visit only.
           onThisDevice: data ? { readerSettings: data.readerSettings, playbackSpeed: data.playbackSpeed, narrationVoice: data.narrationVoice, timeUsed: data.timeUsed } : null,
         };

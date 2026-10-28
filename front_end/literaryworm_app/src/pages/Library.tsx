@@ -9,12 +9,14 @@ import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
 import { SavedBookTile } from "../components/SavedBookTile";
 import { StatsView } from "../components/StatsView";
+import { UploadsView } from "../components/UploadsView";
 import { getBook, isAllowed } from "../data/books";
 import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
 import { LIST_BOOKS_MAX, LIST_DESCRIPTION_MAX, LIST_NAME_MAX, LISTS_MAX, shareUrl } from "../lib/collections";
 import { fallbackCover } from "../lib/coverFallback";
+import { isUploadId } from "../lib/uploads";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
@@ -22,13 +24,14 @@ import { useVolume } from "../lib/useVolume";
 import { useActiveProfile } from "../store/context";
 import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
 
-type View = "library" | "favorites" | "lists" | "goals" | "stats" | "clubs";
+type View = "library" | "favorites" | "lists" | "uploads" | "goals" | "stats" | "clubs";
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "library", label: "My library" },
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
+  { id: "uploads", label: "Uploads" },
   { id: "goals", label: "Goals" },
   { id: "stats", label: "Stats" },
   { id: "clubs", label: "Clubs" },
@@ -77,6 +80,7 @@ export default function Library() {
       {view === "library" && <LibraryView profile={profile} />}
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
+      {view === "uploads" && <UploadsView profile={profile} />}
       {view === "goals" && <GoalsView profile={profile} />}
       {view === "stats" && <StatsView profile={profile} />}
       {view === "clubs" && <ClubsView profile={profile} />}
@@ -97,7 +101,8 @@ function LibraryView({ profile }: { profile: Profile }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const entries = Object.values(library.entries)
-    .filter((e) => visibleTo(profile, e.bookId))
+    // Uploaded books have their own tab, with Read and Delete.
+    .filter((e) => visibleTo(profile, e.bookId) && !isUploadId(e.bookId))
     .sort((a, b) => b.addedAt - a.addedAt);
   const counts = {
     all: entries.length,
