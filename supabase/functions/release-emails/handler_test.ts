@@ -59,6 +59,14 @@ Deno.test("refuses everything when the Vault secret is missing", async () => {
   assertEquals(state.sent.length, 0);
 });
 
+Deno.test("a failed secret lookup is a 500 in the usual error shape, and sends nothing", async () => {
+  const { deps, state } = setup([reminder()], { secret: () => Promise.reject(new Error("vault unreachable")) });
+  const res = await handle(post(`Bearer ${SECRET}`), deps);
+  assertEquals(res.status, 500);
+  assertEquals(await res.json(), { error: { code: "server_error", message: "Something went wrong. Try again." } });
+  assertEquals(state.sent.length, 0);
+});
+
 Deno.test("only POST", async () => {
   const { deps } = setup([]);
   const res = await handle(new Request("http://localhost/release-emails", { method: "GET" }), deps);

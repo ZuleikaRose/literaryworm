@@ -42,12 +42,12 @@ const reply = (status: number, body: unknown) => Response.json(body, { status })
 export async function handle(req: Request, deps: Deps): Promise<Response> {
   if (req.method !== "POST") return reply(405, { error: { code: "method_not_allowed", message: "Use POST." } });
   const given = req.headers.get("Authorization")?.match(/^Bearer (.+)$/)?.[1];
-  const secret = await deps.secret();
-  if (!secret || !given || !sameSecret(given, secret)) {
-    return reply(401, { error: { code: "unauthorized", message: "Not allowed." } });
-  }
 
   try {
+    const secret = await deps.secret();
+    if (!secret || !given || !sameSecret(given, secret)) {
+      return reply(401, { error: { code: "unauthorized", message: "Not allowed." } });
+    }
     const due = await deps.claim(BATCH);
     let sent = 0;
     let failed = 0;
