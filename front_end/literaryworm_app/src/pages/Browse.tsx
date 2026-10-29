@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookFeed } from "../components/BookFeed";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
 import { GenreNav } from "../components/GenreNav";
+import { OutNow } from "../components/RemindersView";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
@@ -116,6 +117,7 @@ export default function Browse() {
             links={resumeLinks}
           />
         )}
+        <OutNow />
         {followed.length > 0 && (
           <Shelf
             id="following"

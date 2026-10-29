@@ -15,6 +15,7 @@ import type {
   Profile,
   Progress,
   RatingValue,
+  Reminder,
   ReadingStatus,
 } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
@@ -800,6 +801,14 @@ interface ListRow {
   share_slug: string | null;
 }
 
+interface ReminderRow {
+  profile_id: string;
+  volume_id: string;
+  title: string;
+  author: string | null;
+  release_date: string;
+}
+
 const LIST_COLUMNS = "id, profile_id, name, description, share_slug";
 
 const emptyCollections = (): Collections => ({
@@ -812,20 +821,22 @@ const emptyCollections = (): Collections => ({
   player: defaultPlayerSettings,
   uploads: [],
   follows: [],
+  reminders: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
 export async function loadCollections(): Promise<Record<string, Collections>> {
   const db = client();
-  const [profiles, favorites, ratings, lists, items, follows] = await Promise.all([
+  const [profiles, favorites, ratings, lists, items, follows, reminders] = await Promise.all([
     db.from("reader_profiles").select("id, recent_searches"),
     db.from("favorites").select("profile_id, volume_id").order("created_at"),
     db.from("book_ratings").select("profile_id, volume_id, rating"),
     db.from("custom_lists").select(LIST_COLUMNS).order("position").order("created_at"),
     db.from("custom_list_items").select("list_id, volume_id").order("added_at"),
     db.from("follows").select("profile_id, kind, name").order("created_at"),
+    db.from("release_reminders").select("profile_id, volume_id, title, author, release_date").order("release_date"),
   ]);
-  if (profiles.error || favorites.error || ratings.error || lists.error || items.error || follows.error) {
+  if (profiles.error || favorites.error || ratings.error || lists.error || items.error || follows.error || reminders.error) {
     throw new AccountError("We couldn't load your lists and ratings. Try again.");
   }
   const byProfile: Record<string, Collections> = {};
@@ -833,6 +844,9 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const p of profiles.data as { id: string; recent_searches: string[] }[]) of(p.id).recentSearches = p.recent_searches;
   for (const f of favorites.data as { profile_id: string; volume_id: string }[]) of(f.profile_id).favorites.push(f.volume_id);
   for (const f of follows.data as ({ profile_id: string } & Follow)[]) of(f.profile_id).follows.push({ kind: f.kind, name: f.name });
+  for (const r of reminders.data as ReminderRow[]) {
+    of(r.profile_id).reminders.push({ bookId: r.volume_id, title: r.title, author: r.author, releaseDate: r.release_date });
+  }
   for (const r of ratings.data as { profile_id: string; volume_id: string; rating: DbRating }[]) {
     of(r.profile_id).ratings[r.volume_id] = fromDbRating(r.rating);
   }
@@ -971,6 +985,31 @@ export async function addFavorite(profileId: string, bookId: string): Promise<vo
   const { error } = await client().from("favorites").insert({ profile_id: profileId, user_id: await signedInUserId(), volume_id: bookId });
   // Already a favourite (another tab): nothing to do.
   if (error && error.code !== "23505") throw new AccountError("We couldn't add it to your favorites. Try again.");
+}
+
+export async function addReminder(profileId: string, r: Reminder): Promise<void> {
+  const { error } = await client().from("release_reminders").insert({
+    profile_id: profileId,
+    user_id: await signedInUserId(),
+    volume_id: r.bookId,
+    title: r.title,
+    author: r.author,
+    release_date: r.releaseDate,
+  });
+  // Already set (another tab): nothing to do.
+  if (error && error.code !== "23505") {
+    const message = error.message.includes("up to 100")
+      ? "A profile can have up to 100 reminders. Remove one first."
+      : error.message.includes("already out")
+        ? "That book is already out, so there's nothing to remind you about."
+        : "We couldn't set the reminder. Try again.";
+    throw new AccountError(message);
+  }
+}
+
+export async function removeReminder(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("release_reminders").delete().eq("profile_id", profileId).eq("volume_id", bookId);
+  if (error) throw new AccountError("We couldn't remove the reminder. Try again.");
 }
 
 export async function follow(profileId: string, { kind, name }: Follow): Promise<void> {

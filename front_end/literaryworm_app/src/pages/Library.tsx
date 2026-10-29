@@ -7,6 +7,7 @@ import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
+import { RemindersView } from "../components/RemindersView";
 import { SavedBookTile } from "../components/SavedBookTile";
 import { StatsView } from "../components/StatsView";
 import { UploadsView } from "../components/UploadsView";
@@ -25,13 +26,14 @@ import { useVolume } from "../lib/useVolume";
 import { useActiveProfile } from "../store/context";
 import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
 
-type View = "library" | "favorites" | "lists" | "uploads" | "goals" | "stats" | "clubs";
+type View = "library" | "favorites" | "lists" | "reminders" | "uploads" | "goals" | "stats" | "clubs";
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "library", label: "My library" },
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
+  { id: "reminders", label: "Reminders" },
   { id: "uploads", label: "Uploads" },
   { id: "goals", label: "Goals" },
   { id: "stats", label: "Stats" },
@@ -81,6 +83,7 @@ export default function Library() {
       {view === "library" && <LibraryView profile={profile} />}
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
+      {view === "reminders" && <RemindersView />}
       {view === "uploads" && <UploadsView profile={profile} />}
       {view === "goals" && <GoalsView profile={profile} />}
       {view === "stats" && <StatsView profile={profile} />}

@@ -4,6 +4,7 @@ import { Cover } from "../components/Cover";
 import { BackLink } from "../components/BackLink";
 import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
+import { RemindMe } from "../components/RemindMe";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { LogCard } from "../components/LogCard";
@@ -25,6 +26,7 @@ import { useVolume } from "../lib/useVolume";
 import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
 import { personName, personPath } from "../lib/people";
 import { lostWithBook } from "../lib/reading";
+import { isOut } from "../lib/release";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
@@ -417,6 +419,8 @@ function DetailPage({ view }: { view: DetailView }) {
               </button>
             )}
           </div>
+
+          {profile && view.release && !isOut(view.release.date) && <RemindMe view={view} release={view.release} />}
 
           {actionError && (
             <div className="form-alert detail-error" role="alert">

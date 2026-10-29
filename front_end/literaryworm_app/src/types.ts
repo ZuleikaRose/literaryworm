@@ -270,6 +270,15 @@ export interface Follow {
   name: string;
 }
 
+/** Remind Me: a book that isn't out yet, as its page showed it. */
+export interface Reminder {
+  bookId: string;
+  title: string;
+  author: string | null;
+  /** YYYY-MM-DD: the first day it's out. */
+  releaseDate: string;
+}
+
 export interface ProfileData {
   /** Keyed by book id. Replaces the old Reading List: "want to read" entries are that list. */
   library: Record<string, LibraryEntry>;
@@ -298,6 +307,8 @@ export interface ProfileData {
   uploads: UploadedBook[];
   /** Authors and narrators this profile follows, oldest first. */
   follows: Follow[];
+  /** Books not out yet that this profile asked to hear about, soonest first. */
+  reminders: Reminder[];
 }
 
 /**

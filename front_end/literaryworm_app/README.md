@@ -42,7 +42,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
 | `/authors/:name`, `/narrators/:name` | An author's or narrator's titles on LiteraryWorm (and an author's on Google Books), with Follow | Public (Follow needs a profile) |
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=`) | Public (Kids profiles: catalog only) |
-| `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`), Uploads (`?view=uploads`), Goals, Stats (`?view=stats`) and Clubs | Profile chosen |
+| `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`), Reminders (`?view=reminders`), Uploads (`?view=uploads`), Goals, Stats (`?view=stats`) and Clubs | Profile chosen |
 | `/account` | Plan and billing, sign-in, preferences, family, privacy, help, delete account (Kids profiles ask a grown-up first) | Profile chosen |
 | `/lists/:slug` | A custom list shared by link: name, description, the profile's name and its books | Public |
 | `/read/:id`, `/listen/:id` | Reader (with highlights, notes and the dictionary) and audiobook player (with the read-along transcript); full screen, loaded on demand; LiteraryWorm titles the profile may see | Profile chosen |
@@ -109,3 +109,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Playback speed saved per profile with the other player settings (`reader_profiles.playback_speed`, migration 2000) |
 | — | Two-step sign-in: Account → Sign-in turns it on or off (authenticator app, QR code or key); the log-in page asks for the code (`lib/accountApi.ts`, `pages/SignIn.tsx`); the database and functions refuse a password-only session (migration 2100) |
 | — | Author and narrator pages with Follow (`pages/Person.tsx`, `lib/people.ts`, `lib/useFollows.ts`); names on a book page link to them; Home's *New from people you follow*; follows saved per profile (`follows`, migration 2200); the `books` function's `author` mode |
+| — | Remind me for books not out yet (`components/RemindMe.tsx`, `lib/release.ts`, `lib/useReminders.ts`): on Google Books titles with a future release day; Home's *Out now* and My Library → Reminders (`components/RemindersView.tsx`); saved per profile (`release_reminders`, migration 2300) |

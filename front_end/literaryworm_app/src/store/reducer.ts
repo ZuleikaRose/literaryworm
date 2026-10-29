@@ -1,6 +1,7 @@
 import { LOG_MAX } from "../data/logs";
 import { type Collections, withRecentSearch } from "../lib/collections";
 import { isFollowing } from "../lib/people";
+import { sortReminders } from "../lib/release";
 import type {
   A11ySettings,
   Account,
@@ -15,6 +16,7 @@ import type {
   ProfileData,
   Progress,
   RatingValue,
+  Reminder,
   ReaderSettings,
   ReadingStatus, UploadedBook } from "../types";
 import {
@@ -69,6 +71,8 @@ export type Action =
   | { type: "removeFromLibrary"; bookId: string }
   | { type: "toggleFavorite"; bookId: string }
   | { type: "toggleFollow"; follow: Follow }
+  | { type: "addReminder"; reminder: Reminder }
+  | { type: "removeReminder"; bookId: string }
   | { type: "rateBook"; bookId: string; rating: RatingValue | null }
   | { type: "addLog"; bookId: string; body: string; rating: number | null }
   | { type: "updateLog"; id: string; body: string; rating: number | null }
@@ -361,6 +365,15 @@ export function reducer(state: AppState, action: Action): AppState {
           : [...data.follows, { kind, name }],
       }));
     }
+
+    case "addReminder":
+      return withProfileData(state, (data) => ({
+        ...data,
+        reminders: sortReminders([...data.reminders.filter((r) => r.bookId !== action.reminder.bookId), action.reminder]),
+      }));
+
+    case "removeReminder":
+      return withProfileData(state, (data) => ({ ...data, reminders: data.reminders.filter((r) => r.bookId !== action.bookId) }));
 
     case "rateBook":
       return withProfileData(state, (data) => {

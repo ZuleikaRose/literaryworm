@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–2200, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–2300, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -235,6 +235,19 @@
             ["", "created_at", "timestamptz"],
           ],
           note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed.",
+        },
+        {
+          id: "release_reminders", color: colors.household, x: 840, y: 3790, sub: "per profile · Remind me",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["", "title", "text 1–200"],
+            ["", "author", "text ≤ 200"],
+            ["", "release_date", "date"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "FK as favorites; the key is its index. Only for books not out yet, up to 100 a profile (trigger). RLS: owner only; set and removed.",
         },
         {
           id: "book_ratings", color: colors.household, x: 0, y: 1570, sub: "per profile",
@@ -566,6 +579,7 @@
         ["highlights", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["favorites", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_ratings", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_lists", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_list_items", "list_id", "custom_lists", "id", "N : 1 (pair)"],

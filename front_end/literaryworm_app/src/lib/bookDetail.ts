@@ -1,4 +1,5 @@
 import { ageRatingLabel, listenMinutes } from "../data/books";
+import { releaseDay, releaseLabel } from "./release";
 import type { Book } from "../types";
 import type { VolumeDetail } from "./booksApi";
 
@@ -10,6 +11,11 @@ export interface DetailView {
   authors: string[];
   /** https cover from Google Books; null draws one. */
   coverUrl: string | null;
+  /**
+   * When the book is first out, from Google Books: the day (YYYY-MM-DD), how to say it, and
+   * whether Google gave the exact day (Remind Me needs one). Null when there's no date.
+   */
+  release: { date: string; label: string; exact: boolean } | null;
   /** Set for LiteraryWorm catalog titles (drawn cover, Read and Listen). */
   local?: Book;
   description: string | null;
@@ -50,6 +56,12 @@ function hoursLabel(minutes: number): string {
   const h = Math.floor(whole / 60);
   const m = whole % 60;
   return h ? `${h} hr ${m} min` : `${m} min`;
+}
+
+function releaseOf(published: string | null): DetailView["release"] {
+  const date = releaseDay(published);
+  if (!date || !published) return null;
+  return { date, label: releaseLabel(date, published.slice(0, 10)), exact: /^\d{4}-\d{2}-\d{2}/.test(published) };
 }
 
 /** A line of Book details. A narrator's value starts with their name, which links to their page. */
@@ -93,6 +105,7 @@ export function fromCatalogBook(book: Book): DetailView {
       { label: "Content notes", value: book.contentNotes?.join(", ") ?? null, wide: true },
     ]),
     googleLink: null,
+    release: null,
   };
 }
 
@@ -117,6 +130,7 @@ export function fromVolume(volume: VolumeDetail): DetailView {
       { label: "Categories", value: volume.categories.join(" · ") || null, wide: true },
     ]),
     googleLink: volume.previewLink,
+    release: releaseOf(volume.publishedDate),
   };
 }
 

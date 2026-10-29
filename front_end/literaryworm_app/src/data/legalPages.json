@@ -301,7 +301,7 @@
         "paragraphs": [
           "Your account: your email address, display name, password, date of birth (to confirm you're 18 or over), whether you'd like marketing emails, when you accepted the Terms, and your plan. Your password is handled by our sign-in provider and kept only as a one-way hash; we never see it.",
           "Your household: each profile's name, avatar, age rating, favourite genres, daily limit and player settings. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent.",
-          "Your reading: your library, reading progress, bookmarks, highlights and notes, ratings, favourites and lists, the authors and narrators you follow, recent searches, reading goals, time read and listened each day, and the books you finish.",
+          "Your reading: your library, reading progress, bookmarks, highlights and notes, ratings, favourites and lists, the authors and narrators you follow, release reminders, recent searches, reading goals, time read and listened each day, and the books you finish.",
           "Things you share or add: reading logs (public, with your display name), book club posts (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text only).",
           "Devices: while you're signed in, a short label for each open copy of the app (such as \"Chrome on Windows\") so you can send a book to another device."
         ]
@@ -438,7 +438,7 @@
       {
         "heading": "What a Kids profile collects",
         "paragraphs": [
-          "The profile's first name or nickname and avatar, its age rating and any daily reading limit you set, and its reading: the books in its library, where it is in each book, bookmarks, highlights and notes, ratings, favourites and lists, the authors and narrators it follows, reading time and goals.",
+          "The profile's first name or nickname and avatar, its age rating and any daily reading limit you set, and its reading: the books in its library, where it is in each book, bookmarks, highlights and notes, ratings, favourites and lists, the authors and narrators it follows, release reminders, reading time and goals.",
           "We don't ask a child for their email, full name, address, photo, location or any other contact details."
         ]
       },
