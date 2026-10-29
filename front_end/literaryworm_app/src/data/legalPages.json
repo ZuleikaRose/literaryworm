@@ -69,7 +69,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-10-28",
+    "updated": "2026-10-29",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -99,7 +99,7 @@
           "Personal Information Provided by You. The personal information that we collect depends on the context of your interactions with us and the Services, the choices you make, and the products and features you use. It includes your email address, display name, password, date of birth, contact preferences (marketing emails) and authentication data, and what you read, save and share in the app.",
           "Section 18 lists exactly what we keep.",
           "Sensitive Information. We do not collect biometric data, financial data, or other special categories of personal information.",
-          "Payment Data. LiteraryWorm doesn't take payment yet, so we don't collect payment card numbers or billing addresses. If we add paid plans, payment data will be handled and stored by Stripe (https://stripe.com/privacy), and we'll update this notice before we do.",
+          "Payment Data. Payments are handled by Stripe (https://stripe.com/privacy), which collects and stores your card details; we never see or store your full card number. We keep the plan you chose, your billing day, Stripe's ids for your customer record and subscription, and whether each payment succeeded.",
           "Social Media Login Data. We don't offer registration or log in with social media accounts.",
           "All personal information that you provide to us must be true, complete, and accurate, and you must notify us of any changes to such personal information.",
           "Information automatically collected. In Short: Some information — such as your Internet Protocol (IP) address and browser and device characteristics — is collected automatically when you visit our Services.",
@@ -143,6 +143,7 @@
         "paragraphs": [
           "In Short: We share information only with the service providers that help us run LiteraryWorm, and in the situations described in this section.",
           "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website. Neither may use your data for their own purposes.",
+          "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
           "Anthropic (Claude) writes book summaries and answers Ask the book questions (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words and book ids, never who's asking. LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. Lists you share can be read by anyone with the link. Staff with the right access can see account details to run the service and help you.",
@@ -232,7 +233,7 @@
           "A. Identifiers (such as name, alias, online identifier, Internet Protocol address, email address, and account name): YES. Your email address, display name, account id, and IP address in our providers' logs.",
           "B. Personal information as defined in the California Customer Records statute (name, contact information, education, employment, employment history, and financial information): YES, your display name and email address only.",
           "C. Protected classification characteristics under state or federal law (gender, age, date of birth, race and ethnicity, national origin, marital status, and other demographic data): YES, your date of birth only, to confirm you're 18 or over.",
-          "D. Commercial information (transaction information, purchase history, financial details, and payment information): NO. We record which plan you chose, but we take no payment.",
+          "D. Commercial information (transaction information, purchase history, financial details, and payment information): YES. Your plan, billing day and payment history (amounts, dates and whether each payment succeeded), with Stripe's ids for your customer record and subscription. Card details are held by Stripe, not us.",
           "E. Biometric information (fingerprints and voiceprints): NO.",
           "F. Internet or other similar network activity (browsing history, search history, online behavior, interest data, and interactions with our and other websites, applications, systems, and advertisements): YES, within LiteraryWorm only: your searches and reading activity on our Services. Not your activity on other websites.",
           "G. Geolocation data (device location): NO.",
@@ -495,7 +496,7 @@
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-10-28",
+    "updated": "2026-10-29",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
@@ -547,8 +548,8 @@
       {
         "heading": "5. Purchases and payment",
         "paragraphs": [
-          "LiteraryWorm doesn't take payment yet: choosing a plan saves it to your account, but no one is charged. This section will apply once paid plans start, and we'll tell you before they do.",
-          "When paid plans start, we expect to accept the following forms of payment: PayPal, Discover, American Express, Mastercard and Visa.",
+          "LiteraryWorm is a live service: when you choose a plan, you're billed monthly through Stripe until you cancel. Add a payment method in Account → Plan and billing to continue your membership.",
+          "We accept the following forms of payment: Visa, Mastercard, American Express and Discover.",
           "You agree to provide current, complete, and accurate purchase and account information for all purchases made via the Services. You further agree to promptly update account and payment information, including email address, payment method, and payment card expiration date, so that we can complete your transactions and contact you as needed. Sales tax will be added to the price of purchases as deemed required by us. We may change prices at any time. All payments shall be in US dollars.",
           "You agree to pay all charges at the prices then in effect for your purchases, and you authorize us to charge your chosen payment provider for any such amounts upon placing your order. We reserve the right to correct any errors or mistakes in pricing, even if we have already requested or received payment.",
           "We reserve the right to refuse any order placed through the Services. We may, in our sole discretion, limit or cancel quantities purchased per person, per household, or per order. These restrictions may include orders placed by or under the same customer account or the same payment method. We reserve the right to limit or prohibit orders that, in our sole judgment, appear to be placed by dealers, resellers, or distributors."
@@ -557,8 +558,8 @@
       {
         "heading": "6. Subscriptions",
         "paragraphs": [
-          "Billing and renewal. Your subscription will continue and automatically renew each month unless canceled. Once paid plans start, you consent to our charging your payment method on a recurring basis without requiring your prior approval for each recurring charge, until such time as you cancel.",
-          "Cancellation. You can cancel your subscription at any time from Account. Your cancellation will take effect at the end of the current paid term. If you have any questions or are unsatisfied with our Services, please email us at support@literaryworm.com.",
+          "Billing and renewal. Your subscription will continue and automatically renew each month on your billing day unless canceled. You consent to our charging your payment method on a recurring basis without requiring your prior approval for each recurring charge, until such time as you cancel. You can change your billing day to any day from the 1st to the 28th in Account.",
+          "Cancellation and pausing. You can pause, resume or cancel your subscription at any time from Account. A pause stops billing until you resume. Your cancellation will take effect at the end of the current paid term. If you have any questions or are unsatisfied with our Services, please email us at support@literaryworm.com.",
           "Fee changes. We may, from time to time, make changes to the subscription fee and will communicate any price changes to you in accordance with applicable law."
         ]
       },
@@ -753,8 +754,8 @@
       {
         "heading": "30. Membership",
         "paragraphs": [
-          "Plans renew automatically each month until you cancel, which you can do online at any time; reading continues until the end of the period you've paid for. You can pause and resume from Account.",
-          "LiteraryWorm is currently a demonstration: choosing a plan saves it to your account, but no payment is taken."
+          "Plans renew automatically each month on your billing day until you cancel, which you can do online at any time; reading continues until the end of the period you've paid for. You can change your billing day (the 1st to the 28th), and pause and resume, from Account.",
+          "This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly until you cancel. Add a payment method in Account → Plan and billing to continue your membership. You can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account."
         ]
       },
       {
@@ -808,7 +809,7 @@
     "slug": "eula",
     "title": "End User License Agreement",
     "summary": "LiteraryWorm is licensed to You (End-User) by LiteraryWorm (\"Licensor\"), for use only under the terms of this License Agreement. By using the Licensed Application at https://www.literaryworm.com, or installing it on a device from your browser, and any update to it, You agree to be bound by all of the terms and conditions of this License Agreement. It sits alongside our Terms of Service; where they cover the same thing, the Terms of Service apply.",
-    "updated": "2026-10-28",
+    "updated": "2026-10-29",
     "sections": [
       {
         "heading": "1. The application",
@@ -896,7 +897,7 @@
           "9.2 No warranty is provided for the Licensed Application that is not executable on the Device, that has been unauthorizedly modified, handled inappropriately or culpably, combined or installed with inappropriate hardware or software, used with inappropriate accessories, regardless if by Yourself or by third parties, or if there are any other reasons outside of LiteraryWorm's sphere of influence that affect the executability of the Licensed Application.",
           "9.3 Please notify LiteraryWorm about issues You discover without delay by email at support@literaryworm.com. The defect report will be taken into consideration and further investigated if it has been emailed within a period of seven (7) days after discovery.",
           "9.4 If we confirm that the Licensed Application is defective, LiteraryWorm reserves a choice to remedy the situation either by means of solving the defect or substitute delivery.",
-          "9.5 LiteraryWorm doesn't take payment yet, so there is no purchase price to refund. If paid memberships are added, the Terms of Service will say how refunds work.",
+          "9.5 Payments for LiteraryWorm memberships are non-refundable, as our Return Policy explains (https://www.literaryworm.com/legal/returns).",
           "9.6 If the user is an entrepreneur, any claim based on faults expires after a statutory period of limitation amounting to twelve (12) months after the Licensed Application was made available to the user. The statutory periods of limitation given by law apply for users who are consumers."
         ]
       },
@@ -1137,8 +1138,8 @@
       {
         "heading": "Refunds",
         "paragraphs": [
-          "LiteraryWorm doesn't take payment yet: choosing a plan saves it to your account, but no one is charged, so there is nothing to refund at the moment.",
-          "Once paid plans start, all sales are final and no refund will be issued. You can cancel at any time from Account; your plan stays active until the end of the period you've paid for, and you won't be charged again.",
+          "This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly until you cancel. Add a payment method in Account → Plan and billing to continue your membership. You can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account.",
+          "All sales are final and no refund will be issued. You can cancel at any time from Account; your plan stays active until the end of the period you've paid for, and you won't be charged again. You can also pause your membership, which stops billing until you resume.",
           "This doesn't affect any rights you have under the law where you live."
         ]
       },
@@ -1266,11 +1267,11 @@
       {
         "heading": "Report a problem",
         "paragraphs": [
-          "Tell us what you were doing, the page you were on, and your device and browser. Contact details for support will be published here before launch; until then, LiteraryWorm is a demonstration."
+          "Tell us what you were doing, the page you were on, and your device and browser, by email to support@literaryworm.com."
         ]
       }
     ],
-    "updated": "2026-10-28"
+    "updated": "2026-10-29"
   },
   {
     "slug": "status",
