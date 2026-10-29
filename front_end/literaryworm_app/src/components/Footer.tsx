@@ -31,6 +31,17 @@ export function Footer() {
                 Consent Preferences
               </a>
             </li>
+            {/* Termly's request forms for the Privacy Policy. */}
+            <li>
+              <a href="https://app.termly.io/notify/871fc8a4-8e3f-473b-95eb-6dc83ebcd4da">
+                Do Not Sell or Share My Personal information
+              </a>
+            </li>
+            <li>
+              <a href="https://app.termly.io/notify/871fc8a4-8e3f-473b-95eb-6dc83ebcd4da">
+                Limit the Use Of My Sensitive Personal Information
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
