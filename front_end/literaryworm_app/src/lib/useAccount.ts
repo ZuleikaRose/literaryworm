@@ -43,6 +43,11 @@ export function useAccount() {
     dispatch({ type: "updateAccount", patch: { marketingEmails: on } });
   }
 
+  async function setReleaseEmails(on: boolean) {
+    if (userId) await accountApi.setReleaseEmails(userId, on);
+    dispatch({ type: "updateAccount", patch: { releaseEmails: on } });
+  }
+
   async function changePassword(current: string, next: string) {
     if (!account) return;
     if (userId) {
@@ -109,5 +114,5 @@ export function useAccount() {
     URL.revokeObjectURL(url);
   }
 
-  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, changePassword, deleteAccount, downloadData };
+  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, setReleaseEmails, changePassword, deleteAccount, downloadData };
 }

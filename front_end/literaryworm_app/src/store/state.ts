@@ -214,6 +214,7 @@ export function demoHousehold(): Household {
       planId: "premium",
       billingDay: 1,
       marketingEmails: false,
+      releaseEmails: true,
       isDemo: true,
       status: "active",
       endsAt: null,

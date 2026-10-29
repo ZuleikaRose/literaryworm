@@ -25,7 +25,7 @@ export function RemindMe({ view, release }: { view: DetailView; release: NonNull
         setAnnouncement("Reminder removed.");
       } else {
         await reminders.add({ bookId: view.id, title: view.title, author: view.authors[0] ?? null, releaseDate: release.date });
-        setAnnouncement(`We'll remind you on Home when it's out on ${release.label}.`);
+        setAnnouncement(`We'll remind you on Home${reminders.emails ? " and by email" : ""} when it's out on ${release.label}.`);
       }
     } catch (err) {
       setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
@@ -57,8 +57,11 @@ export function RemindMe({ view, release }: { view: DetailView; release: NonNull
           <p className="remind-me-hint" id="remind-hint">
             {set ? (
               <>
-                It's on Home on the day, and in <Link to="/library?view=reminders">My Library → Reminders</Link>.
+                It's on Home on the day{reminders.emails ? ", and we'll email you" : ""}. Until then it's in{" "}
+                <Link to="/library?view=reminders">My Library → Reminders</Link>.
               </>
+            ) : reminders.emails ? (
+              "We'll show it on Home and email you on the day it's out."
             ) : (
               "We'll show it on Home on the day it's out."
             )}

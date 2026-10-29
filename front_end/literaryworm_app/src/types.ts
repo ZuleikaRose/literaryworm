@@ -107,6 +107,8 @@ export interface Account {
   planId: PlanId | null;
   billingDay: number | null;
   marketingEmails: boolean;
+  /** Email when a book a profile set Remind me on comes out (members only; on by default). */
+  releaseEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */

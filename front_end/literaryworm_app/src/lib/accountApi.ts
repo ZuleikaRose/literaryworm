@@ -299,7 +299,7 @@ export async function loadAccount(): Promise<Account | null> {
   if (!user) return null;
   const [profile, details, subscription] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    db.from("account_private").select("date_of_birth, marketing_emails").eq("user_id", user.id).maybeSingle(),
+    db.from("account_private").select("date_of_birth, marketing_emails, release_emails").eq("user_id", user.id).maybeSingle(),
     db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
@@ -310,6 +310,7 @@ export async function loadAccount(): Promise<Account | null> {
     password: "",
     dob: details.data?.date_of_birth ?? "",
     marketingEmails: details.data?.marketing_emails ?? false,
+    releaseEmails: details.data?.release_emails ?? true,
     isDemo: false,
     ...fromSubscription(subscription.data as SubscriptionRow | null),
   };
@@ -533,6 +534,12 @@ export async function setDisplayName(userId: string, name: string): Promise<void
 
 export async function setMarketingEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ marketing_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** Emails when a reminded book comes out (account_private.release_emails, sent by the release-emails function). */
+export async function setReleaseEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ release_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
 }
 

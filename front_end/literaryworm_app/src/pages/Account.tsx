@@ -695,9 +695,10 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
-  const { setMarketingEmails } = useAccount();
+  const { remote, setMarketingEmails, setReleaseEmails } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
+  const releaseHintId = useId();
   return (
     <Section id="preferences" title="Preferences">
       <label className="switch-row">
@@ -715,6 +716,31 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
           onChange={(e) => {
             const on = e.target.checked;
             void attempt(() => setMarketingEmails(on), on ? "You'll get emails about new releases." : "No more marketing emails.");
+          }}
+        />
+      </label>
+      <label className="switch-row">
+        <span>
+          <strong>Email me when a book I'm waiting for comes out</strong>
+          <small id={releaseHintId}>
+            {remote
+              ? "For books any profile set Remind me on. It's on Home on the day either way."
+              : "The demo doesn't send emails. Members get one on the day, as well as the Home card."}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={releaseHintId}
+          checked={account.releaseEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setReleaseEmails(on),
+              on ? "We'll email you when a book you're waiting for comes out." : "No more emails about reminded books.",
+            );
           }}
         />
       </label>

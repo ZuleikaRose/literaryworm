@@ -52,6 +52,7 @@ Database migrations, Edge Functions and security tests for LiteraryWorm. The roo
 | `checkout` | Signed-in accounts | `{ planId, billingDay, renewalTermsAccepted: true, setup? }`. Refuses admins (never billed). A new membership: finds or creates the account's Stripe Customer (`stripe_customers`) and returns `{ url }` for Stripe Checkout (hosted; subscription mode; the first charge covers the days until the billing day, then the full price on it each month; the renewal terms shown before paying); Stripe sends the member back to `/plans?checkout=success`. A member already billed through Stripe changes plan in place from the next renewal (no partial charges or credits). Prices are found by lookup key (`literaryworm_<plan>_monthly`). Rate limited per user (10/min). |
 | `manage-account` | Signed-in accounts | `pause` / `resume` the membership (Stripe stops collecting payment, voiding invoices while paused), `cancel` (runs to the end of the paid period) / `restart`, `billing_day` (1–28: the days until the new date are free), `payment_method` (returns `{ url }` for Stripe's Customer Portal, to add or change the card), `billing_history` (the last 24 finalised invoices, newest first, as date, amount, currency, status, promo saving and Stripe's hosted receipt link, plus the membership's current discount; empty for complimentary memberships and accounts with no Stripe customer), `promo_code` (`code`: 3–40 letters, numbers, `-` or `_`; looked up among active Stripe promotion codes and applied to the subscription, replacing any discount; 400 if Stripe has no such code or won't apply it) and `delete` (needs the account password and `confirm: true`; cancels the Stripe subscription at once, marks the plan cancelled, then deletes the user, which cascades to every row they own). Responses show `stripe_linked`, never Stripe's ids. Complimentary (admin) memberships can't be paused, cancelled or billed. Rate limited per user (10/min). Deleting an account first removes its folder in the `user-books` bucket. |
 | `stripe-webhook` | Stripe (`verify_jwt = false`; every request's `Stripe-Signature` is checked with `STRIPE_WEBHOOK_SECRET`) | The only writer of paid memberships. Maps each event to an account through the Stripe Customer (`stripe_customers`), handles it once (`stripe_events`, recorded only after it's handled so failures are retried) and keeps `subscriptions` in step: `checkout.session.completed` / `.async_payment_succeeded` (start, with the renewal consent time), `customer.subscription.*` and `invoice.paid` / `.payment_failed` (status, plan, billing day, period end; a failed payment shows as past due). A subscription reaching an admin is cancelled at once, and `invoice.created` deletes an admin's draft renewal before it's charged. `charge.dispute.created`, `charge.refunded` and `radar.early_fraud_warning.created` are kept with `needs_review` for the team. |
+| `release-emails` | pg_cron, every hour at :15 (`verify_jwt = false`; the `Authorization` header must be the `release_emails_secret` kept in Vault, checked through `release_emails_secret()`) | Emails each account once about reminded books that came out. `claim_release_emails()` marks up to 200 due reminders as emailed (`release_reminders.emailed_at`: out today or in the last week, accounts that left `account_private.release_emails` on, confirmed addresses only) and returns them with the address; one email per account goes through Mailgun's API (no open or click tracking, `List-Unsubscribe` to Account → Preferences). Reminders whose email Mailgun refuses are handed back for the next hour. The job (`private.call_release_emails()`) does nothing until the project's URL is in Vault as `project_url`. |
 
 All functions share `_shared/`: CORS with an origin allowlist (`ALLOWED_ORIGINS`, plus `Vary: Origin` and preflight), JSON error shape `{ error: { code, message } }`, a 4 KB body limit, strict field lists and the rate limiter.
 
@@ -63,7 +64,18 @@ supabase secrets set ALLOWED_ORIGINS=https://literaryworm.com,https://www.litera
 supabase secrets set ANTHROPIC_API_KEY=<your Claude API key>   # used only by the summaries and ask functions
 supabase secrets set STRIPE_SECRET_KEY=<a restricted key, rk_>  # checkout, manage-account, stripe-webhook
 supabase secrets set STRIPE_WEBHOOK_SECRET=<whsec_ from the webhook endpoint>   # stripe-webhook only
+supabase secrets set MAILGUN_API_KEY=<a Mailgun sending key>   # release-emails only
+supabase secrets set MAILGUN_DOMAIN=<the sending domain, e.g. mg.literaryworm.com>   # release-emails only
+# Optional: MAILGUN_API_BASE=https://api.eu.mailgun.net for an EU domain; MAILGUN_FROM (default "LiteraryWorm <reminders@MAILGUN_DOMAIN>")
 ```
+
+Once per project, so the hourly book-out email job knows where to call (in the SQL editor; it's the project's URL, not a secret):
+
+```sql
+select vault.create_secret('https://<ref>.supabase.co', 'project_url');
+```
+
+The secret the job sends is made in Vault by migration 2900 (`release_emails_secret`); nobody needs to copy it.
 
 Stripe: use a restricted key (`rk_`) with only what the functions use (Customers, Checkout Sessions, Subscriptions, Invoices, Prices read, Promotion Codes read, Coupons read, Customer Portal sessions: write). Create the products and prices with lookup keys `literaryworm_basic_monthly`, `literaryworm_standard_monthly` and `literaryworm_premium_monthly`; add a webhook endpoint at `https://<ref>.supabase.co/functions/v1/stripe-webhook` for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `.updated`, `.deleted`, `invoice.created`, `invoice.paid`, `invoice.payment_failed`, `charge.dispute.created`, `charge.refunded` and `radar.early_fraud_warning.created`; turn on Smart Retries, failed-payment emails and the Customer Portal (payment method updates). Promo codes are Stripe promotion codes (Products → Coupons): Checkout shows a box for them (`allow_promotion_codes`). Test in a sandbox first: put its keys in `supabase/functions/.env` (git-ignored) for local runs. `STRIPE_PUBLISHABLE_KEY` isn't needed: Checkout and the portal are Stripe-hosted.
 
@@ -94,7 +106,7 @@ How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_ac
 ```bash
 supabase link --project-ref <ref>
 supabase db push                      # applies migrations/
-supabase functions deploy books manage-profile checkout manage-account stripe-webhook dictionary summaries ask --project-ref <ref>
+supabase functions deploy books manage-profile checkout manage-account stripe-webhook release-emails dictionary summaries ask --project-ref <ref>
 ```
 
 ## Tests

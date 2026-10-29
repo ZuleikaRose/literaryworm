@@ -34,6 +34,8 @@ export function useReminders() {
     upcoming: data.reminders.filter((r) => !isOut(r.releaseDate)),
     released: data.reminders.filter((r) => isOut(r.releaseDate)),
     has: (bookId: string) => data.reminders.some((r) => r.bookId === bookId),
+    /** Whether the account holder also gets an email on the day (members who left it on in Account). */
+    emails: remote && Boolean(state.account?.releaseEmails),
     add,
     remove,
   };

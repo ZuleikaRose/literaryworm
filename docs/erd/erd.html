@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–2800, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3000, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -112,11 +112,12 @@
             ["pk fk", "user_id", "uuid"],
             ["", "date_of_birth", "date (18+ trigger)"],
             ["", "marketing_emails", "boolean"],
+            ["", "release_emails", "boolean (on)"],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Private sign-up details. RLS: read own; browser may change marketing_emails only (column grant).",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails and release_emails only (column grants).",
         },
         {
           id: "plans", color: colors.billing, x: 0, y: 770, sub: "catalog",
@@ -247,8 +248,9 @@
             ["", "author", "text ≤ 200"],
             ["", "release_date", "date"],
             ["", "created_at", "timestamptz"],
+            ["", "emailed_at", "timestamptz?"],
           ],
-          note: "FK as favorites; the key is its index. Only for books not out yet, up to 100 a profile (trigger). RLS: owner only; set and removed.",
+          note: "FK as favorites; the key is its index. Only for books not out yet, up to 100 a profile (trigger). RLS: owner only; set and removed. emailed_at: set by the release-emails function only (claim_release_emails, hourly via pg_cron).",
         },
         {
           id: "book_ratings", color: colors.household, x: 0, y: 1570, sub: "per profile",

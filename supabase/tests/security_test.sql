@@ -553,6 +553,24 @@ reset role;
 reset request.jwt.claims;
 delete from public.gift_codes where stripe_checkout_session_id in ('cs_test_gift_a', 'cs_test_gift_b');
 
+-- Book-out emails: only the release-emails function claims reminders or reads its secret ----
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+select pg_temp.expect_error('select * from public.claim_release_emails(10)', 'claiming reminders to email from the browser');
+select pg_temp.expect_error('select public.release_emails_secret()', 'reading the release-emails secret from the browser');
+select pg_temp.expect_error($$update public.release_reminders set emailed_at = null$$, 'marking a reminder as not emailed from the browser');
+update public.account_private set release_emails = false where user_id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select bool_and(not release_emails) from public.account_private), 'Ann turns off book-out emails');
+update public.account_private set release_emails = true where user_id = '00000000-0000-0000-0000-00000000000a';
+reset role;
+reset request.jwt.claims;
+set role anon;
+select pg_temp.expect_error('select * from public.claim_release_emails(10)', 'anon claiming reminders to email');
+select pg_temp.expect_error('select public.release_emails_secret()', 'anon reading the release-emails secret');
+reset role;
+select pg_temp.check(not has_function_privilege('authenticated', 'private.call_release_emails()', 'execute'), 'only the cron job calls the release-emails function');
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
