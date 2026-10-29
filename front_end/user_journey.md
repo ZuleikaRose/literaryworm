@@ -344,7 +344,7 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
   - **Display:** contrast, saturation, highlighted links and headings, strong focus outline, big cursor, reading guide, hiding images, and stopping animations.
   - **Audio and transcripts:** transcript display, transcript size, and transcript language (English or Spanish), plus autoplay.
   - **Keyboard shortcuts:** a Keyboard shortcuts button. Pressing **?** on any page (except while typing) opens the shortcut list.
-- **Footer links:** Accessibility Policy, Privacy Policy, Your Privacy Choices, Terms, Copyright/DMCA, Help, and Status.
+- **Footer links:** Accessibility Policy, Privacy Policy, Cookie Policy, Children's Privacy Notice, Your Privacy Choices, Terms of Service, End User License Agreement, Acceptable Use Policy, Return Policy, Copyright/DMCA, Disclaimer, Help, Status, Consent Preferences, and Termly's request forms (Do Not Sell or Share My Personal information; Limit the Use Of My Sensitive Personal Information).
 
 ### 7. What data must be collected?
 
@@ -664,6 +664,12 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 88. **Cookie Policy.** The footer links to a Cookie Policy (after the Privacy Policy) that says LiteraryWorm sets no cookies of its own and lists what the browser keeps and why.
 89. **Team access.** An admin opens Account → *Team access*, sees the team, and gives an email a role (Admin, Editor, Developer, Billing, Customer service or Blog); someone without an account yet gets it when they sign up. Every staff member sees their own access there.
 90. **Editing a policy.** An editor or admin opens any footer page and chooses *Edit page*: the title, summary and each section (a heading and its paragraphs) can be changed, added, moved or removed, then *Save and publish* puts it live at once. Earlier versions are kept.
+
+### After Phase 22: the policies from Termly, and a consent banner
+
+91. **The policies in full.** The Cookie, Privacy and Accessibility policies, the Terms of Service and a new End User License Agreement, Acceptable Use Policy, Return Policy and Disclaimer come from Termly, adapted so every statement is true of the app (no payment yet, no ads, no social login, Claude as the only AI). The Copyright/DMCA page says where to report content: report@literaryworm.com.
+92. **Cookie choices.** On a first visit, Termly's banner asks for a choice; *Consent Preferences* in the footer changes it at any time. LiteraryWorm sets only essential cookies, so declining changes nothing: covers, audio and accounts work either way.
+93. **Privacy requests.** The footer links Termly's request form for *Do Not Sell or Share My Personal information* and *Limit the Use Of My Sensitive Personal Information*.
 
 ### Where the build differs from the blueprint, and why
 
