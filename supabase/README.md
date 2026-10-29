@@ -78,10 +78,11 @@ Set in the dashboard (Authentication) or the Management API; they aren't in the 
 | Setting | Value | Why |
 |---|---|---|
 | Site URL | `https://www.literaryworm.com` | Where reset links return |
-| Redirect URLs | `https://www.literaryworm.com/**`, `https://literaryworm.com/**`, `http://localhost:5173/**` | Allows `/reset-password` and `/signin` on the live site and in development |
+| Redirect URLs | `https://www.literaryworm.com/**`, `https://literaryworm.com/**`, `http://localhost:5173/**` (plus `https://*.literaryworm.com`) | Allows `/reset-password` and `/signin` on the live site and in development |
+| Email OTP expiration | 3600 s | Confirmation and reset links last 1 hour; the sign-up and reset pages say so |
 | Minimum password length | 15 | Matches the app's rule (15–64 characters) |
 | SMTP | Mailgun | Auth emails go through Mailgun's SMTP server (host, port, user and password set in the dashboard, never in the repo), from a LiteraryWorm sender |
-| Email templates | `supabase/templates/confirmation.html`, `recovery.html` | Paste each into Authentication → Email Templates (*Confirm signup*, *Reset password*), with the subjects in `config.toml`; the local stack reads them from there |
+| Email templates | `supabase/templates/confirmation.html`, `recovery.html` | Set as *Confirm signup* and *Reset password* in Authentication → Emails, with the subjects in `config.toml` (sent with the Management API's `PATCH /v1/projects/<ref>/config/auth`: `mailer_templates_confirmation_content`, `mailer_templates_recovery_content`, `mailer_subjects_*`); the local stack reads them from the files. Change both together |
 | Confirm email | On | New addresses are confirmed by a link (Mailgun delivers it); the app shows *Check your email* and can send the link again |
 
 Locally, `config.toml` turns on confirmations, uses the same templates and lets links return to `localhost:5173` or `5180`; the emails land in Mailpit (`http://127.0.0.1:54324`), not a real inbox.

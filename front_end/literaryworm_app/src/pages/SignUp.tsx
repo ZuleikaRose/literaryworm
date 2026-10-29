@@ -119,7 +119,7 @@ export default function SignUp() {
         intro={
           <p>
             We've sent a link to <strong>{sentTo}</strong>. Open it to confirm your address, then log in to choose your
-            plan. The link works for 24 hours.
+            plan. The link works for 1 hour.
           </p>
         }
         footer={
