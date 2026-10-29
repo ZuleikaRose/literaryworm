@@ -138,6 +138,23 @@
   gap: 10px;
 }
 
+/* Plan and billing: the billing-day picker, and the button inside a payment notice. */
+.billing-day-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+}
+
+.billing-day-form .field {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+.account-section-body .form-alert .primary-button {
+  margin-top: 10px;
+}
+
 .account-form {
   display: grid;
   width: 100%;

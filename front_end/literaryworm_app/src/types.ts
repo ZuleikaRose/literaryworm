@@ -113,6 +113,10 @@ export interface Account {
   endsAt: string | null;
   /** An admin's membership: complimentary, never billed (set by the database from the admin role). */
   complimentary: boolean;
+  /** Billed through Stripe (a payment method is on file). */
+  stripeLinked: boolean;
+  /** The last payment failed: the member should update their payment method. */
+  pastDue: boolean;
 }
 
 export interface Profile {

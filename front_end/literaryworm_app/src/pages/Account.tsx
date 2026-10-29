@@ -11,7 +11,7 @@ import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
 import { formatPrice, planById } from "../data/plans";
-import { AccountError, type MembershipAction } from "../lib/accountApi";
+import { AccountError, changeBillingDay, choosePlan, type MembershipAction, paymentMethodUrl } from "../lib/accountApi";
 import { endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { useAccount } from "../lib/useAccount";
@@ -159,7 +159,27 @@ function PlanSection({ account }: { account: AccountDetails }) {
   const { changeMembership } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
   const [confirming, setConfirming] = useState<MembershipAction | null>(null);
+  const { dispatch } = useStore();
+  const [newDay, setNewDay] = useState(account.billingDay ?? 1);
   const plan = account.planId ? planById.get(account.planId) : undefined;
+  // Real (not demo) accounts are billed through Stripe; one without a card yet adds it through Checkout.
+  const billed = Boolean(account.userId) && !account.isDemo;
+
+  const openPaymentPage = () =>
+    attempt(async () => {
+      window.location.assign(await paymentMethodUrl());
+    });
+  const addPaymentMethod = () =>
+    attempt(async () => {
+      const { url } = await choosePlan(account.planId!, account.billingDay ?? Math.min(new Date().getDate(), 28));
+      if (url) window.location.assign(url);
+    });
+  const saveBillingDay = (e: FormEvent) => {
+    e.preventDefault();
+    void attempt(async () => {
+      dispatch({ type: "updateAccount", patch: await changeBillingDay(newDay) });
+    }, `Your billing day is now the ${ordinal(newDay)}. The days until your next charge are free.`);
+  };
   const nextCharge = account.billingDay ? longDate(nextBillingDate(account.billingDay)) : null;
   const endsOn = account.endsAt ? endDate(account.endsAt) : null;
 
@@ -209,8 +229,15 @@ function PlanSection({ account }: { account: AccountDetails }) {
     );
   }
 
-  const statusText =
-    account.status === "paused" ? "Paused" : endsOn ? `Cancelled: ends ${endsOn}` : account.status === "cancelled" ? "Ended" : "Active";
+  const statusText = account.pastDue
+    ? "Payment failed"
+    : account.status === "paused"
+      ? "Paused"
+      : endsOn
+        ? `Cancelled: ends ${endsOn}`
+        : account.status === "cancelled"
+          ? "Ended"
+          : "Active";
 
   return (
     <Section id="plan" title="Plan and billing" intro="Change, pause or cancel online at any time. No phone call needed.">
@@ -244,7 +271,54 @@ function PlanSection({ account }: { account: AccountDetails }) {
       </dl>
       {account.isDemo && <p className="field-hint">The demo can't take payments, so no card is on file.</p>}
 
+      {billed && !account.stripeLinked && (
+        <div className="form-alert">
+          <Icon name="alert" size={17} />
+          <div>
+            <p>
+              This is a live account: you'll be billed monthly until you cancel. Add a payment method to continue your
+              membership.
+            </p>
+            <button type="button" className="primary-button" disabled={busy} onClick={addPaymentMethod}>
+              Add a payment method
+            </button>
+          </div>
+        </div>
+      )}
+      {billed && account.pastDue && (
+        <div className="form-alert">
+          <Icon name="alert" size={17} />
+          <p>Your last payment didn't go through. Update your payment method to keep reading and listening.</p>
+        </div>
+      )}
+
+      {billed && account.stripeLinked && account.status === "active" && !endsOn && (
+        <form className="billing-day-form" onSubmit={saveBillingDay}>
+          <div className="field">
+            <label className="field-label" htmlFor="new-billing-day">
+              Change billing day
+            </label>
+            <select id="new-billing-day" className="field-input" value={newDay} onChange={(e) => setNewDay(Number(e.target.value))}>
+              {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>
+                  The {ordinal(d)} of each month
+                </option>
+              ))}
+            </select>
+            <p className="field-hint">Nothing is charged twice: the days until your new billing day are free.</p>
+          </div>
+          <button type="submit" className="secondary-button" disabled={busy || newDay === account.billingDay}>
+            Save billing day
+          </button>
+        </form>
+      )}
+
       <div className="account-actions">
+        {billed && account.stripeLinked && (
+          <button type="button" className="secondary-button" disabled={busy} onClick={openPaymentPage}>
+            Update payment method
+          </button>
+        )}
         <Link className="secondary-button" to="/plans">
           Change plan
         </Link>

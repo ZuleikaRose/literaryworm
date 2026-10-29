@@ -1,0 +1,124 @@
+// POST /functions/v1/stripe-webhook — Stripe's events, the only way a paid membership is written.
+//
+// Every event's signature is checked first (STRIPE_WEBHOOK_SECRET). Events are mapped to an
+// account through the Stripe Customer (stripe_customers), never through metadata, and each is
+// handled once (stripe_events). Admins are never billed: a subscription that reaches an admin's
+// customer is cancelled at once, and a renewal invoice drafted for one is deleted before it's paid.
+//
+// Handled: checkout.session.completed and .async_payment_succeeded (start the membership),
+// customer.subscription.created/.updated/.deleted and invoice.paid/.payment_failed (keep it in
+// step), invoice.created (admins), and charge.dispute.created, charge.refunded and
+// radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
+
+import type { Stripe } from "../_shared/stripe.ts";
+import { subscriptionRow } from "../_shared/stripe.ts";
+
+export type SubscriptionFields = ReturnType<typeof subscriptionRow>;
+
+export interface Deps {
+  verify: (body: string, signature: string) => Promise<Stripe.Event>;
+  alreadyHandled: (eventId: string) => Promise<boolean>;
+  markHandled: (event: Stripe.Event, needsReview: boolean) => Promise<void>;
+  userForCustomer: (customerId: string) => Promise<string | null>;
+  isAdmin: (userId: string) => Promise<boolean>;
+  getSubscription: (id: string) => Promise<Stripe.Subscription>;
+  /** Creates or replaces the membership; consentAt records when auto-renewal was agreed. */
+  startMembership: (userId: string, fields: SubscriptionFields, consentAt: string) => Promise<void>;
+  /** Updates an existing membership; false when the account has none yet. */
+  updateMembership: (userId: string, fields: SubscriptionFields) => Promise<boolean>;
+  cancelNow: (subscriptionId: string) => Promise<void>;
+  deleteDraftInvoice: (invoiceId: string) => Promise<void>;
+}
+
+const REVIEW = new Set(["charge.dispute.created", "charge.refunded", "radar.early_fraud_warning.created"]);
+
+const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : v?.id ?? null);
+
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  return idOf(invoice.parent?.subscription_details?.subscription);
+}
+
+async function syncSubscription(deps: Deps, sub: Stripe.Subscription): Promise<void> {
+  const userId = await deps.userForCustomer(idOf(sub.customer)!);
+  if (!userId) {
+    console.warn(`stripe-webhook: subscription ${sub.id} has no LiteraryWorm account`);
+    return;
+  }
+  if (await deps.isAdmin(userId)) {
+    if (sub.status !== "canceled" && sub.status !== "incomplete_expired") await deps.cancelNow(sub.id);
+    return;
+  }
+  // A membership is created only by a completed Checkout (which records the renewal consent);
+  // events that arrive before it simply wait for it.
+  await deps.updateMembership(userId, subscriptionRow(sub));
+}
+
+async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
+  switch (event.type) {
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded": {
+      const session = event.data.object;
+      if (session.mode !== "subscription" || !session.subscription) return;
+      if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") return;
+      const sub = await deps.getSubscription(idOf(session.subscription)!);
+      const userId = await deps.userForCustomer(idOf(sub.customer)!);
+      if (!userId) {
+        console.warn(`stripe-webhook: checkout ${session.id} has no LiteraryWorm account`);
+        return;
+      }
+      if (await deps.isAdmin(userId)) {
+        await deps.cancelNow(sub.id);
+        return;
+      }
+      await deps.startMembership(userId, subscriptionRow(sub), new Date(session.created * 1000).toISOString());
+      return;
+    }
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      return syncSubscription(deps, event.data.object);
+    case "invoice.paid":
+    case "invoice.payment_failed": {
+      const subId = invoiceSubscriptionId(event.data.object);
+      if (subId) await syncSubscription(deps, await deps.getSubscription(subId));
+      return;
+    }
+    case "invoice.created": {
+      const invoice = event.data.object;
+      const subId = invoiceSubscriptionId(invoice);
+      const userId = invoice.customer ? await deps.userForCustomer(idOf(invoice.customer)!) : null;
+      if (subId && userId && (await deps.isAdmin(userId))) {
+        await deps.cancelNow(subId);
+        if (invoice.status === "draft" && invoice.id) await deps.deleteDraftInvoice(invoice.id);
+      }
+      return;
+    }
+    default:
+      return; // Disputes, refunds and fraud warnings are recorded for review; nothing else is used.
+  }
+}
+
+export async function handle(req: Request, deps: Deps): Promise<Response> {
+  if (req.method !== "POST") return new Response("Use POST.", { status: 405 });
+  const signature = req.headers.get("Stripe-Signature");
+  if (!signature) return new Response("Missing Stripe-Signature.", { status: 400 });
+  const body = await req.text();
+
+  let event: Stripe.Event;
+  try {
+    event = await deps.verify(body, signature);
+  } catch {
+    return new Response("Bad signature.", { status: 400 });
+  }
+
+  try {
+    if (await deps.alreadyHandled(event.id)) return Response.json({ received: true, duplicate: true });
+    await handleEvent(deps, event);
+    // Recorded only once handled, so a failure is retried by Stripe instead of being lost.
+    await deps.markHandled(event, REVIEW.has(event.type));
+    return Response.json({ received: true });
+  } catch (err) {
+    console.error(`stripe-webhook: ${event.type} ${event.id} failed`, err);
+    return new Response("Failed; Stripe will retry.", { status: 500 });
+  }
+}

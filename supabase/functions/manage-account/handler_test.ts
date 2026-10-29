@@ -8,7 +8,11 @@ const USER = { id: "00000000-0000-0000-0000-00000000000a", email: "ann@example.c
 const NOW = new Date("2026-10-24T12:00:00Z");
 
 function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
-  const state = { sub, deleted: false, passwordChecks: 0 };
+  const state = { sub, deleted: false, passwordChecks: 0, stripe: [] as string[] };
+  const record = (call: string) => {
+    state.stripe.push(call);
+    return Promise.resolve();
+  };
   const deps: Deps = {
     requireUser: () => Promise.resolve(USER),
     confirmPassword: (_email, password) => {
@@ -25,6 +29,18 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       state.deleted = true;
       return Promise.resolve();
     },
+    billing: {
+      pause: (id) => record(`pause ${id}`),
+      resume: (id) => record(`resume ${id}`),
+      setCancelAtPeriodEnd: (id, cancel) => record(`cancel_at_period_end ${id} ${cancel}`),
+      cancelNow: (id) => record(`cancel ${id}`),
+      moveRenewal: (id, until) => record(`renew ${id} ${new Date(until * 1000).toISOString().slice(0, 10)}`),
+      paymentMethodUrl: (customer, returnUrl) => {
+        state.stripe.push(`portal ${customer} ${returnUrl}`);
+        return Promise.resolve("https://billing.stripe.com/p/session/test_1");
+      },
+    },
+    siteOrigin: () => ORIGIN,
     now: () => NOW,
     ...overrides,
   };
@@ -38,6 +54,16 @@ const active = (): Subscription => ({
   cancel_at_period_end: false,
   current_period_end: null,
   complimentary: false,
+  stripe_subscription_id: null,
+  stripe_customer_id: null,
+});
+
+/** A membership paid through Stripe, paid up to 5 Nov 2026. */
+const paid = (): Subscription => ({
+  ...active(),
+  current_period_end: "2026-11-05T00:00:00.000Z",
+  stripe_subscription_id: "sub_1",
+  stripe_customer_id: "cus_1",
 });
 
 const complimentary = (): Subscription => ({
@@ -47,6 +73,8 @@ const complimentary = (): Subscription => ({
   cancel_at_period_end: false,
   current_period_end: null,
   complimentary: true,
+  stripe_subscription_id: null,
+  stripe_customer_id: null,
 });
 
 function post(body: unknown, origin = ORIGIN) {
@@ -172,4 +200,61 @@ Deno.test("unexpected database errors don't leak details", async () => {
   const res = await call(deps, { action: "pause" });
   assertEquals(res.status, 500);
   assertEquals(res.body.error.message, "Something went wrong. Try again.");
+});
+
+Deno.test("a Stripe membership is paused, resumed, cancelled and restarted in Stripe too", async () => {
+  const { state, deps } = setup(paid());
+  await call(deps, { action: "pause" });
+  await call(deps, { action: "resume" });
+  const cancel = await call(deps, { action: "cancel" });
+  assertEquals(cancel.body.current_period_end, "2026-11-05T00:00:00.000Z");
+  await call(deps, { action: "restart" });
+  assertEquals(state.stripe, ["pause sub_1", "resume sub_1", "cancel_at_period_end sub_1 true", "cancel_at_period_end sub_1 false"]);
+  assertEquals(state.sub!.current_period_end, "2026-11-05T00:00:00.000Z");
+});
+
+Deno.test("moving the billing day gives free days up to the new date, never a second charge", async () => {
+  const later = setup(paid());
+  const res = await call(later.deps, { action: "billing_day", billingDay: 20 });
+  assertEquals(res.status, 200);
+  assertEquals(later.state.stripe, ["renew sub_1 2026-11-20"]);
+  assertEquals(later.state.sub!.billing_day, 20);
+  const earlier = setup(paid());
+  await call(earlier.deps, { action: "billing_day", billingDay: 2 });
+  assertEquals(earlier.state.stripe, ["renew sub_1 2026-12-02"]);
+});
+
+Deno.test("the billing day can't move to the same day, out of range, or while ending or paused", async () => {
+  const { deps } = setup(paid());
+  for (const day of [5, 0, 29]) assertEquals((await call(deps, { action: "billing_day", billingDay: day })).status, 400, String(day));
+  const ending = setup({ ...paid(), cancel_at_period_end: true });
+  assertEquals((await call(ending.deps, { action: "billing_day", billingDay: 9 })).status, 400);
+  const paused = setup({ ...paid(), status: "paused" });
+  assertEquals((await call(paused.deps, { action: "billing_day", billingDay: 9 })).status, 400);
+});
+
+Deno.test("updating the payment method opens Stripe's page for this member's customer", async () => {
+  const { state, deps } = setup(paid());
+  const res = await call(deps, { action: "payment_method" });
+  assertEquals(res.body.url, "https://billing.stripe.com/p/session/test_1");
+  assertEquals(state.stripe, [`portal cus_1 ${ORIGIN}/account#plan`]);
+  const unlinked = setup(active());
+  assertEquals((await call(unlinked.deps, { action: "payment_method" })).status, 400);
+  const admin = setup(complimentary());
+  assertEquals((await call(admin.deps, { action: "payment_method" })).status, 400);
+});
+
+Deno.test("deleting the account cancels the Stripe subscription first", async () => {
+  const { state, deps } = setup(paid());
+  const res = await call(deps, { action: "delete", password: "right password", confirm: true });
+  assertEquals(res.status, 200);
+  assertEquals(state.stripe, ["cancel sub_1"]);
+  assert(state.deleted);
+});
+
+Deno.test("responses never include Stripe's ids, only whether the membership is linked", async () => {
+  const { deps } = setup(paid());
+  const res = await call(deps, { action: "pause" });
+  assertEquals(res.body.stripe_linked, true);
+  assertEquals("stripe_subscription_id" in res.body || "stripe_customer_id" in res.body, false);
 });

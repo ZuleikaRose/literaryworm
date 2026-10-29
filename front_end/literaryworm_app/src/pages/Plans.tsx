@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { formatPrice, planById, planFaqs, plans } from "../data/plans";
-import { AccountError, choosePlan } from "../lib/accountApi";
+import { AccountError, choosePlan, loadAccount } from "../lib/accountApi";
 import { longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
@@ -24,7 +24,8 @@ export default function Plans() {
   const [selected, setSelected] = useState<PlanId | null>(
     account && !complimentary && initialPlan && planById.has(initialPlan) && initialPlan !== account.planId ? initialPlan : null,
   );
-  const [billingDay, setBillingDay] = useState(() => Math.min(new Date().getDate(), 28));
+  const [today] = useState(() => new Date().getDate());
+  const [billingDay, setBillingDay] = useState(() => Math.min(today, 28));
   const [agreed, setAgreed] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
   const [confirmed, setConfirmed] = useState<PlanId | null>(null);
@@ -33,6 +34,38 @@ export default function Plans() {
   useEffect(() => {
     if (selected) checkoutRef.current?.focus();
   }, [selected]);
+
+  // Back from Stripe Checkout: Stripe tells the stripe-webhook function, which writes the membership
+  // a moment later, so look for it every couple of seconds, then carry on.
+  const checkoutResult = params.get("checkout");
+  const [waiting, setWaiting] = useState<"waiting" | "slow" | null>(checkoutResult === "success" ? "waiting" : null);
+  useEffect(() => {
+    if (checkoutResult !== "success" || !account?.userId) return;
+    let tries = 0;
+    let stopped = false;
+    const look = async () => {
+      if (stopped) return;
+      tries += 1;
+      try {
+        const fresh = await loadAccount();
+        if (fresh?.planId && fresh.stripeLinked) {
+          const { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue } = fresh;
+          dispatch({ type: "updateAccount", patch: { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue } });
+          navigate(setup ? "/profiles?setup=1" : "/account#plan", { replace: true });
+          return;
+        }
+      } catch {
+        // Offline for a moment: keep looking.
+      }
+      if (tries >= 15) setWaiting("slow");
+      else window.setTimeout(look, 2000);
+    };
+    void look();
+    return () => {
+      stopped = true;
+    };
+    // Runs once on the way back from Stripe.
+  }, [checkoutResult, account?.userId, setup, dispatch, navigate]);
 
   const choose = (plan: Plan) => {
     if (!account) {
@@ -53,13 +86,18 @@ export default function Plans() {
       return;
     }
     if (account?.userId) {
-      // Real accounts: the checkout Edge Function writes the subscription (never the browser).
+      // Real accounts: a new membership is paid on Stripe's Checkout page, and Stripe tells the
+      // stripe-webhook function, which writes it (never the browser). A plan change is made in place.
       setSaving(true);
       setSaveError(null);
       try {
-        await choosePlan(selected, billingDay);
+        const { url } = await choosePlan(selected, billingDay, setup && !account.planId);
+        if (url) {
+          window.location.assign(url);
+          return;
+        }
       } catch (err) {
-        setSaveError(err instanceof AccountError ? err.message : "We couldn't save your plan. Try again.");
+        setSaveError(err instanceof AccountError ? err.message : "We couldn't start your plan. Try again.");
         setSaving(false);
         return;
       }
@@ -73,6 +111,9 @@ export default function Plans() {
 
   const plan = selected ? planById.get(selected)! : null;
   const isDemo = Boolean(account?.isDemo);
+  // A member already paying through Stripe switches plan from their next billing date.
+  const changingPaid = Boolean(account?.userId && account.stripeLinked && account.status !== "cancelled");
+  const billsToday = billingDay === today;
 
   return (
     <div className="plans-page">
@@ -91,6 +132,24 @@ export default function Plans() {
           </>
         )}
       </header>
+
+      {waiting && (
+        <div className={waiting === "slow" ? "form-alert" : "form-success"} role="status">
+          <Icon name={waiting === "slow" ? "alert" : "check"} size={18} />
+          <p>
+            {waiting === "slow"
+              ? "Your payment went through, but your membership is taking longer than usual to appear. Refresh this page in a minute, or email support@literaryworm.com if it doesn't."
+              : "Payment received. Setting up your membership…"}
+          </p>
+        </div>
+      )}
+
+      {checkoutResult === "cancelled" && (
+        <div className="form-alert" role="status">
+          <Icon name="alert" size={18} />
+          <p>You left the payment page, so nothing was charged. Choose a plan when you're ready.</p>
+        </div>
+      )}
 
       {complimentary && (
         <div className="form-success" role="status">
@@ -186,17 +245,27 @@ export default function Plans() {
                   <dt>Price</dt>
                   <dd>{formatPrice(plan.price)} a month, plus any applicable tax</dd>
                 </div>
-                <div>
-                  <dt>First charge</dt>
-                  <dd>Today</dd>
-                </div>
-                <div>
-                  <dt>Next charge</dt>
-                  <dd>{longDate(nextBillingDate(billingDay))}</dd>
-                </div>
+                {changingPaid ? (
+                  <div>
+                    <dt>When it changes</dt>
+                    <dd>From your next billing date. Nothing is charged today.</dd>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <dt>First charge</dt>
+                      <dd>{billsToday ? "Today" : "Today, for the days until your billing day"}</dd>
+                    </div>
+                    <div>
+                      <dt>Next charge</dt>
+                      <dd>{longDate(nextBillingDate(billingDay))}</dd>
+                    </div>
+                  </>
+                )}
               </dl>
 
               <div className="checkout-fields">
+                {!changingPaid && (
                 <div className="field">
                   <label className="field-label" htmlFor="billing-day">
                     Billing day
@@ -215,14 +284,17 @@ export default function Plans() {
                   </select>
                   <p className="field-hint">You can change this later in Account.</p>
                 </div>
+                )}
 
-                <div className="card-note">
-                  <Icon name="lock" size={17} />
-                  <p>
-                    Card details go straight to our payment provider, Stripe, and never reach LiteraryWorm. In this demo, no card
-                    is asked for or charged.
-                  </p>
-                </div>
+                {!changingPaid && (
+                  <div className="card-note">
+                    <Icon name="lock" size={17} />
+                    <p>
+                      Next, you'll enter your card on Stripe's secure payment page. Card details go straight to Stripe and never
+                      reach LiteraryWorm.
+                    </p>
+                  </div>
+                )}
 
                 <p className="renewal-terms">
                   Your membership renews automatically every month on the {ordinal(billingDay)} at{" "}
@@ -258,7 +330,13 @@ export default function Plans() {
                 )}
                 <div className="checkout-actions">
                   <button type="submit" className="primary-button" disabled={saving}>
-                    {saving ? "Saving your plan…" : `Start ${plan.name} for ${formatPrice(plan.price)}/month`}
+                    {saving
+                      ? changingPaid
+                        ? "Switching your plan…"
+                        : "Opening the payment page…"
+                      : changingPaid
+                        ? `Switch to ${plan.name} for ${formatPrice(plan.price)}/month`
+                        : `Continue to payment: ${plan.name}, ${formatPrice(plan.price)}/month`}
                   </button>
                   <button type="button" className="ghost-button" onClick={() => setSelected(null)}>
                     Cancel

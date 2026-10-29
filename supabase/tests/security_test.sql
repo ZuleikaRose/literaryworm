@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; admins' memberships are complimentary and never billed) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; admins' memberships are complimentary and never billed; Stripe customers and events are server-only) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -46,6 +46,8 @@ select pg_temp.check((select count(*) from public.plans) = 3, 'anon can read pla
 select pg_temp.expect_error('select date_of_birth from public.account_private', 'anon reading account_private');
 select pg_temp.expect_error('select * from public.library_items', 'anon reading libraries');
 select pg_temp.expect_error('select * from public.subscriptions', 'anon reading subscriptions');
+select pg_temp.expect_error('select * from public.stripe_customers', 'anon reading Stripe customers');
+select pg_temp.expect_error('select * from public.stripe_events', 'anon reading Stripe events');
 select pg_temp.expect_error('select * from public.reader_profiles', 'anon reading reader profiles');
 select pg_temp.expect_error($$select public.check_rate_limit('x', 1, 60)$$, 'anon calling check_rate_limit');
 select pg_temp.expect_error($$select public.verify_profile_pin(gen_random_uuid(), gen_random_uuid(), '1234')$$, 'anon calling verify_profile_pin');
@@ -62,6 +64,10 @@ select pg_temp.check((select count(*) from public.account_private) = 1, 'Ann see
 select pg_temp.expect_error($$update public.account_private set date_of_birth = '2010-01-01'$$, 'changing date of birth from the browser');
 select pg_temp.expect_error('select stripe_customer_id from public.subscriptions', 'reading Stripe ids');
 select pg_temp.expect_error($$update public.subscriptions set plan_id = 'premium'$$, 'changing plan from the browser');
+select pg_temp.check((select stripe_linked = false from public.subscriptions), 'a member sees whether their membership is billed through Stripe');
+select pg_temp.expect_error('select * from public.stripe_customers', 'a member reading Stripe customers');
+select pg_temp.expect_error('select * from public.stripe_events', 'a member reading Stripe events');
+select pg_temp.expect_error($$insert into public.stripe_customers (user_id, customer_id) values ('00000000-0000-0000-0000-00000000000a', 'cus_x')$$, 'a member linking a Stripe customer');
 with u as (update public.profiles set display_name = 'Hacked' where id = '00000000-0000-0000-0000-00000000000b' returning 1)
 select pg_temp.check(count(*) = 0, 'renaming someone else changes nothing (RLS)') from u;
 

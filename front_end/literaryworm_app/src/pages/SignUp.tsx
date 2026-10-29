@@ -100,6 +100,8 @@ export default function SignUp() {
         status: "active",
         endsAt: null,
         complimentary: false,
+        stripeLinked: false,
+        pastDue: false,
       },
       firstProfile: makeProfile({ name: firstName, ageRating: "all" }),
     });

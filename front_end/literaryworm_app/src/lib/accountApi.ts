@@ -207,14 +207,15 @@ interface SubscriptionRow {
   cancel_at_period_end: boolean;
   current_period_end: string | null;
   complimentary: boolean;
+  stripe_linked: boolean;
 }
 
-const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, complimentary";
+const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, complimentary, stripe_linked";
 
 /** The account's plan fields from a subscriptions row (or none yet). */
 function fromSubscription(
   row: SubscriptionRow | null,
-): Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary"> {
+): Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue"> {
   const status = row?.status;
   return {
     planId: (row?.plan_id as PlanId | undefined) ?? null,
@@ -222,6 +223,8 @@ function fromSubscription(
     status: status === "paused" || status === "cancelled" ? status : "active",
     endsAt: row?.cancel_at_period_end ? row.current_period_end : null,
     complimentary: row?.complimentary ?? false,
+    stripeLinked: row?.stripe_linked ?? false,
+    pastDue: status === "past_due",
   };
 }
 
@@ -252,9 +255,17 @@ async function callFunction<T>(name: string, body: Record<string, unknown>, fall
   return payload as T;
 }
 
-/** Chooses or changes the plan through the `checkout` Edge Function (subscriptions are server-written). */
-export async function choosePlan(planId: PlanId, billingDay: number): Promise<void> {
-  await callFunction("checkout", { planId, billingDay, renewalTermsAccepted: true }, "We couldn't save your plan. Try again.");
+/**
+ * Starts or changes the plan through the `checkout` Edge Function (subscriptions are server-written).
+ * A new membership returns Stripe Checkout's `url` to send the member to; a member already paying
+ * through Stripe changes plan in place and gets no url.
+ */
+export async function choosePlan(planId: PlanId, billingDay: number, setup = false): Promise<{ url?: string }> {
+  return callFunction<{ url?: string }>(
+    "checkout",
+    { planId, billingDay, renewalTermsAccepted: true, ...(setup ? { setup: true } : {}) },
+    "We couldn't start your plan. Try again.",
+  );
 }
 
 // --- Membership and the account (manage-account function) ------------------
@@ -265,6 +276,26 @@ export type MembershipAction = "pause" | "resume" | "cancel" | "restart";
 export async function changeMembership(action: MembershipAction) {
   const row = await callFunction<SubscriptionRow>("manage-account", { action }, "We couldn't change your membership. Try again.");
   return fromSubscription(row);
+}
+
+/** Moves the billing day (1–28); the days until the new date are free. Returns the new plan fields. */
+export async function changeBillingDay(billingDay: number) {
+  const row = await callFunction<SubscriptionRow>(
+    "manage-account",
+    { action: "billing_day", billingDay },
+    "We couldn't change your billing day. Try again.",
+  );
+  return fromSubscription(row);
+}
+
+/** Stripe's page for adding or changing the card (a Customer Portal link). */
+export async function paymentMethodUrl(): Promise<string> {
+  const { url } = await callFunction<{ url: string }>(
+    "manage-account",
+    { action: "payment_method" },
+    "We couldn't open the payment page. Try again.",
+  );
+  return url;
 }
 
 /** Deletes the account and everything it owns, after the function re-checks the password. */

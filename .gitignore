@@ -1,3 +1,8 @@
 node_modules/
 dist/
 *.local
+
+# Local settings and keys (such as Stripe test keys for supabase/functions/.env) stay on this machine.
+.env
+.env.*
+!.env.example

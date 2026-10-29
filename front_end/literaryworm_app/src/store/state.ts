@@ -211,6 +211,8 @@ export function demoHousehold(): Household {
       status: "active",
       endsAt: null,
       complimentary: false,
+      stripeLinked: false,
+      pastDue: false,
     },
     profiles: [avery, sam, mia],
     profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },

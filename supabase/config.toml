@@ -30,3 +30,8 @@ verify_jwt = false
 # validates every field, answers only for public-domain catalog titles, and limits
 # questions (Claude calls) per IP and per day.
 verify_jwt = false
+
+[functions.stripe-webhook]
+# Called by Stripe, which sends no Supabase token: every request's Stripe-Signature is
+# checked against STRIPE_WEBHOOK_SECRET instead, and unsigned or forged events are refused.
+verify_jwt = false

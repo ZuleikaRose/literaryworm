@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1800, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1902, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -157,10 +157,11 @@
             ["", "stripe_customer_id", "text", true],
             ["", "stripe_subscription_id", "text", true],
             ["", "complimentary", "boolean (admins)"],
+            ["", "stripe_linked", "boolean (generated)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function. complimentary is set by a trigger from the admin role: Premium, active, no billing day or Stripe subscription, never billed; a paid row needs a billing day and renewal consent.",
+          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function. Paid rows are written by the stripe-webhook function from Stripe (stripe_subscription_id unique); stripe_linked tells the member a card is on file without showing Stripe's ids. complimentary is set by a trigger from the admin role: Premium, active, no billing day or Stripe subscription, never billed; a paid row needs a billing day and renewal consent.",
         },
         {
           id: "logs", color: colors.reading, x: 420, y: 1000, sub: "public",
@@ -513,6 +514,27 @@
           ],
           note: "Written by the edit trigger. RLS: editors and admins read. Indexes: (slug, replaced_at), replaced_by.",
         },
+        {
+          id: "stripe_customers", color: colors.billing, x: 0, y: 3790, sub: "server only",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["", "customer_id", "text (cus_…, unique)"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Which Stripe Customer belongs to which account, written by the checkout function. Stripe events are mapped to accounts through it, not metadata. RLS on; no browser access.",
+        },
+        {
+          id: "stripe_events", color: colors.billing, x: 420, y: 3790, sub: "webhook log · server only",
+          cols: [
+            ["pk", "id", "text (evt_…)"],
+            ["", "type", "text"],
+            ["", "object_id", "text", true],
+            ["", "livemode", "boolean"],
+            ["", "needs_review", "boolean"],
+            ["", "received_at", "timestamptz"],
+          ],
+          note: "Each Stripe webhook event once (repeats skipped), written by stripe-webhook after it's handled. Disputes, refunds and fraud warnings need_review. Index: received_at where needs_review. RLS on; no browser access.",
+        },
       ];
 
       // [fromTable, fromColumn, toTable, toColumn, cardinality label]
@@ -548,6 +570,7 @@
         ["club_listening", "club_id", "book_clubs", "id", "1 : 1"],
         ["club_listening", "host_id", "club_members", "user_id", "N : 1 (pair)"],
         ["staff_roles", "user_id", "auth.users", "id", "N : 1"],
+        ["stripe_customers", "user_id", "auth.users", "id", "1 : 1"],
         ["legal_page_revisions", "slug", "legal_pages", "slug", "N : 1"],
       ];
       // -----------------------------------------------------------------------------------
