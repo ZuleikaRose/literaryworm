@@ -596,6 +596,37 @@
     ]
   },
   {
+    "slug": "disclaimer",
+    "title": "Disclaimer",
+    "summary": "The information provided by LiteraryWorm (\"we,\" \"us,\" or \"our\") on https://www.literaryworm.com (the \"Site\") is for general informational purposes only. This page explains what we can and can't promise about it, and about the other websites the Site links to.",
+    "updated": "2026-10-28",
+    "sections": [
+      {
+        "heading": "Website disclaimer",
+        "paragraphs": [
+          "All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site. This includes book details and covers from Google Books, and summaries and answers written by AI, which are labelled as such.",
+          "UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE. YOUR USE OF THE SITE AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE IS SOLELY AT YOUR OWN RISK."
+        ]
+      },
+      {
+        "heading": "External links disclaimer",
+        "paragraphs": [
+          "The Site may contain (or you may be sent through the Site) links to other websites or content belonging to or originating from third parties, such as Google Books, the Internet Archive, LibriVox and Project Gutenberg. The Site doesn't show advertising. Such external links are not investigated, monitored, or checked for accuracy, adequacy, validity, reliability, availability, or completeness by us.",
+          "WE DO NOT WARRANT, ENDORSE, GUARANTEE, OR ASSUME RESPONSIBILITY FOR THE ACCURACY OR RELIABILITY OF ANY INFORMATION OFFERED BY THIRD-PARTY WEBSITES LINKED THROUGH THE SITE. WE WILL NOT BE A PARTY TO OR IN ANY WAY BE RESPONSIBLE FOR MONITORING ANY TRANSACTION BETWEEN YOU AND THIRD-PARTY PROVIDERS OF PRODUCTS OR SERVICES."
+        ]
+      },
+      {
+        "heading": "Testimonials disclaimer",
+        "paragraphs": [
+          "The Site doesn't show testimonials at the moment. Reading logs and book club posts are written by members and belong to them; they don't reflect our views and opinions.",
+          "If we add testimonials by users of our products and/or services, they will reflect the real-life experiences and opinions of such users. However, the experiences are personal to those particular users, and may not necessarily be representative of all users of our products and/or services. We do not claim, and you should not assume, that all users will have the same experiences. YOUR INDIVIDUAL RESULTS MAY VARY.",
+          "Testimonials will be reviewed by us before being posted, and will appear on the Site verbatim as given by the users, except for the correction of grammar or typing errors. Some testimonials may be shortened for the sake of brevity where the full testimonial contained extraneous information not relevant to the general public.",
+          "The views and opinions contained in testimonials belong solely to the individual user and do not reflect our views and opinions. Users will not be paid or otherwise compensated for their testimonials, and we'll say so if anyone who gives one is connected to us."
+        ]
+      }
+    ]
+  },
+  {
     "slug": "help",
     "title": "Help",
     "summary": "Answers to common questions about reading, listening, your library and your account, and how to report a problem.",

@@ -98,3 +98,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 21 | My Library → Uploads: EPUBs read in the browser (`lib/epub.ts`), kept in Storage, opened in the reader (`lib/useUploads.ts`, `components/UploadsView.tsx`) |
 | — | Cookie Policy at `/legal/cookies`, in the footer; legal pages can be written in full (`src/data/legal.ts`) |
 | 22 | Staff roles and Account → Team access (`lib/staff.ts`, `lib/staffApi.ts`, `components/TeamAccess.tsx`); editable policies (`lib/useLegalPages.ts`, `components/LegalEditor.tsx`, built-in copy in `data/legalPages.json`); FAQ on where the books come from; offline uploads (`lib/uploadCache.ts`) |
+| — | Disclaimer at `/legal/disclaimer`, in the footer; the Cookie, Privacy and Accessibility policies rewritten from Termly's |
