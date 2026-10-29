@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1700)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1706, plus the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -497,7 +497,7 @@
             ["", "updated_at", "timestamptz"],
             ["fk", "updated_by", "uuid", true],
           ],
-          note: "The live Terms, Privacy, Cookies, Copyright/DMCA, Accessibility, Children's Privacy, Privacy Choices, Help and Status. RLS: anyone reads; editors and admins edit title, summary and sections. Each edit is checked, stamped and its old version kept. Index: updated_by.",
+          note: "The thirteen live footer pages: Accessibility, Privacy, Cookies, Children's Privacy, Privacy Choices, Terms, EULA, Acceptable Use, Returns, Copyright/DMCA, Disclaimer, Help and Status (ordered by position). RLS: anyone reads; editors and admins edit title, summary and sections. Each edit is checked, stamped and its old version kept. Index: updated_by.",
         },
         {
           id: "legal_page_revisions", color: colors.server, x: 1260, y: 3330, sub: "earlier versions",
