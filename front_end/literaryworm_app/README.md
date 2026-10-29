@@ -102,3 +102,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | End User License Agreement at `/legal/eula`, in the footer after the Terms of Service, from Termly's, adapted to a web app |
 | — | Terms of Service rewritten from Termly's, keeping our own sections and their narrow licence for what members post |
 | — | Acceptable Use Policy at `/legal/acceptable-use`, in the footer after the EULA, from Termly's; reports go to report@literaryworm.com |
+| — | Termly consent banner (first script in `index.html`), *Consent Preferences* in the footer; Google Books covers marked essential so they load when visitors decline |

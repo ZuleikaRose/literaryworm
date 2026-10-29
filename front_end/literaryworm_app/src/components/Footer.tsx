@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { openConsentPreferences } from "../lib/consent";
 import { useLegalPages } from "../lib/useLegalPages";
 import { Brand } from "./Header";
 
@@ -18,6 +19,18 @@ export function Footer() {
                 <Link to={`/legal/${p.slug}`}>{p.title}</Link>
               </li>
             ))}
+            <li>
+              <a
+                href="#"
+                className="termly-display-preferences"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openConsentPreferences();
+                }}
+              >
+                Consent Preferences
+              </a>
+            </li>
           </ul>
         </nav>
       </div>

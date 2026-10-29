@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { BookSummary } from "../lib/booksApi";
+import { ESSENTIAL } from "../lib/consent";
 import { fallbackCover } from "../lib/coverFallback";
 import { BookCard } from "./BookCard";
 import { Cover } from "./Cover";
@@ -30,6 +31,7 @@ export function BookTile({ book, priority = false, progress, to }: BookTileProps
           <span className="book-cover cover-md cover-photo">
             {/* Decorative: the title and author are repeated as text below. */}
             <img
+              {...ESSENTIAL}
               src={book.cover}
               alt=""
               loading={priority ? "eager" : "lazy"}

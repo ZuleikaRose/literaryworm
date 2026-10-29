@@ -15,6 +15,7 @@ import { readingStatusLabel } from "../data/logs";
 import { type DetailView, fromCatalogBook, fromVolume } from "../lib/bookDetail";
 import { usesBackend } from "../lib/backend";
 import { fromLocal } from "../lib/booksApi";
+import { ESSENTIAL } from "../lib/consent";
 import { fallbackCover } from "../lib/coverFallback";
 import { useBookFeed } from "../lib/useBookFeed";
 import { usePublicLogs } from "../lib/usePublicLogs";
@@ -146,7 +147,7 @@ function DetailCover({ view }: { view: DetailView }) {
     return (
       <span className="book-cover cover-xl cover-photo">
         {/* Decorative: the title is the page heading. */}
-        <img src={view.coverUrl} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />
+        <img {...ESSENTIAL} src={view.coverUrl} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />
       </span>
     );
   }

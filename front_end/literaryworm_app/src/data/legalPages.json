@@ -328,7 +328,7 @@
     "slug": "cookies",
     "title": "Cookie Policy",
     "summary": "This Cookie Policy explains how LiteraryWorm (\"Company,\" \"we,\" \"us,\" and \"our\") uses cookies and similar technologies to recognize you when you visit our website at https://www.literaryworm.com (\"Website\"). It explains what these technologies are and why we use them, as well as your rights to control our use of them.",
-    "updated": "2026-10-28",
+    "updated": "2026-10-29",
     "sections": [
       {
         "heading": "About this policy",
@@ -353,7 +353,7 @@
         "heading": "How can I control cookies?",
         "paragraphs": [
           "You have the right to decide whether to accept or reject cookies. Essential cookies cannot be rejected as they are strictly necessary to provide you with services.",
-          "Because we use only essential cookies, there is no cookie notification banner or Cookie Preference Center at the moment. If we ever add cookies that aren't essential, we'll ask for your choice first, in a Cookie Preference Center, and update this page.",
+          "When you first visit, a banner from Termly, our consent provider, asks for your choice, and you can change it at any time with Consent Preferences at the bottom of every page. LiteraryWorm uses only essential cookies, so declining changes nothing about how the site works: book covers, audiobooks and your account work either way. If we ever add cookies that aren't essential, they'll only be used with your consent, and we'll update this page.",
           "You may also set or amend your web browser controls to accept or refuse cookies. If you choose to reject cookies, you may still use our Website though your access to some functionality and areas of our Website may be restricted.",
           "The specific types of first- and third-party cookies served through our Website and the purposes they perform are described below (please note that the specific cookies served may vary depending on the specific Online Properties you visit)."
         ]
@@ -370,6 +370,7 @@
         "heading": "Similar technologies: what we keep in your browser",
         "paragraphs": [
           "Signed in: when you log in, your browser keeps your sign-in session (in local storage, under literaryworm-session) so you stay signed in after a refresh. It's strictly necessary for your account to work, and it's removed when you log out.",
+          "Your cookie choice: Termly keeps the choice you make in the banner, a random identifier for this browser and a count of visits in local storage (under TERMLY_API_CACHE), for up to 12 months, so the banner doesn't ask again on every visit. It sets no cookies. Your browser loads the banner from Termly (app.termly.io) on each visit, so Termly receives those requests, including your IP address, under its own privacy policy.",
           "The app itself: so LiteraryWorm opens quickly and without a connection, your browser keeps a copy of the app's own files (its pages, code, icons and app manifest). This holds nothing about you.",
           "Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page.",
           "Books you upload: once you've opened one, its text is kept on that device so it keeps working if your connection drops. It's removed when you delete the book or log out.",

@@ -345,5 +345,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | End User License Agreement in the footer, from Termly's, adapted to a web app with no app store or payment |
 | —    | Terms of Service rewritten from Termly's, adapted to what the app does |
 | —    | Acceptable Use Policy in the footer, from Termly's, adapted to what the app does |
+| —    | Termly consent banner and a *Consent Preferences* link in the footer; the Cookie Policy describes them |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

@@ -15,6 +15,7 @@ import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
 import { LIST_BOOKS_MAX, LIST_DESCRIPTION_MAX, LIST_NAME_MAX, LISTS_MAX, shareUrl } from "../lib/collections";
+import { ESSENTIAL } from "../lib/consent";
 import { fallbackCover } from "../lib/coverFallback";
 import { isUploadId } from "../lib/uploads";
 import { useCollections } from "../lib/useCollections";
@@ -237,7 +238,7 @@ function SmallCover({ bookId, details }: { bookId: string; details: ReturnType<t
   if (details.cover && !broken) {
     return (
       <span className="book-cover cover-sm cover-photo">
-        <img src={details.cover} alt="" referrerPolicy="no-referrer" loading="lazy" onError={() => setBroken(true)} />
+        <img {...ESSENTIAL} src={details.cover} alt="" referrerPolicy="no-referrer" loading="lazy" onError={() => setBroken(true)} />
       </span>
     );
   }
