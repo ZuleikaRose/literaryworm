@@ -246,7 +246,7 @@ Your project will be assessed across these areas:
 | Path                                    | What it is                                                                                                                                                                    |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `front_end/literaryworm_app/`               | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/literaryworm_app/README.md) for routes and source layout.                        |
-| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `dictionary`, `summaries`, `ask`) and security tests. See [supabase/README.md](supabase/README.md). |
+| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `stripe-webhook`, `dictionary`, `summaries`, `ask`), Auth email templates and security tests. See [supabase/README.md](supabase/README.md). |
 | `schema.sql`                            | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table.                                                                           |
 | `drawsql.png`                           | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md).                                                                                                 |
 | `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from.                                                                                                                                |
@@ -262,7 +262,7 @@ Your project will be assessed across these areas:
 - **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode, title query 1–100 characters with no search operators, genre from the six, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
 - **Shaped responses and friendly failures.** Only the fields the UI shows, with https covers, plain-text descriptions and nulls for missing data. Google's 429s, errors and timeouts (8 s) become `{ error: { code, message } }`; the UI shows *We couldn't load …* with *Try again*.
 - **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
-- **Real accounts.** Sign up, log in, log out and password reset use Supabase Auth with email and password. Sign-up sends the display name, date of birth and Terms acceptance; a database trigger checks them (18+) and creates the public `profiles` row, so logs show the display name and never the email. The browser holds only the publishable key and the member's own session.
+- **Real accounts.** Sign up, log in, log out and password reset use Supabase Auth with email and password; new addresses are confirmed by an emailed link and reset links are emailed too (Mailgun, through Auth's SMTP setting), and members can turn on two-step sign-in with an authenticator app. Sign-up sends the display name, date of birth and Terms acceptance; a database trigger checks them (18+) and creates the public `profiles` row, so logs show the display name and never the email. The browser holds only the publishable key and the member's own session.
 - **Libraries private, logs public.** `library_items` has owner-only policies. `logs` has a public read policy and a composite foreign key to the author's `library_items` row, so a log can't exist for a book outside its author's library and is deleted with it. The book page reads logs (with `profiles.display_name`) without touching anyone's library.
 - **Reading progress stays private too.** `reading_progress` (one row per book) and `bookmarks` are owner-only and tied to the reader's own `library_items` row by the same kind of composite foreign key, so removing a book removes its place and bookmarks. Opening a book adds it to the library as *Reading*; finishing it moves it to *Finished*.
 - **Database authorization.** RLS on every table with `(select auth.uid())` policies, column-level grants (for example, no one can read PIN hashes or Stripe ids), every foreign key indexed, and server-only functions callable only by the service role. `supabase/tests/security_test.sql` checks all of this.
@@ -292,19 +292,22 @@ Create an account with **Sign up** to use the real backend: your library and log
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key)                           | Yes                                                                   |
 | `GOOGLE_BOOKS_API_KEY`          | Supabase → Edge Functions → Secrets only              | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
 | `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and literaryworm.com) |
-| `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries` function to ask Claude. |
+| `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries` and `ask` functions to ask Claude. |
+| `STRIPE_SECRET_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** A restricted Stripe key for `checkout`, `manage-account` and `stripe-webhook`. |
+| `STRIPE_WEBHOOK_SECRET`         | Supabase → Edge Functions → Secrets only              | **No.** Checks the signature on Stripe's webhook calls. |
+| Mailgun SMTP (host, user, password) | Supabase → Authentication → SMTP settings only    | **No.** Not an environment variable: Supabase Auth sends its emails with it; nothing in the repo or the functions. |
 
 ### Supabase
 
-Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied and the seven Edge Functions are deployed. To set it up from scratch:
+Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations are applied (checked against the live database: every table and column matches `schema.sql`) and the eight Edge Functions are deployed. Auth sends its emails through Mailgun with the templates in `supabase/templates`. To set it up from scratch:
 
 ```bash
 supabase link --project-ref <ref>
 supabase db push
-supabase functions deploy books manage-profile checkout manage-account dictionary summaries ask --project-ref <ref>
+supabase functions deploy books manage-profile checkout manage-account stripe-webhook dictionary summaries ask --project-ref <ref>
 ```
 
-Then set `GOOGLE_BOOKS_API_KEY` and `ALLOWED_ORIGINS` as function secrets. `ALLOWED_ORIGINS` must include the Vercel URL as well as `http://localhost:5173`; without it the deployed site's book rows say "You seem to be offline".
+Then set `GOOGLE_BOOKS_API_KEY`, `ALLOWED_ORIGINS`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` as function secrets, and Mailgun's SMTP details, the email templates and the redirect URLs in Authentication (see [supabase/README.md](supabase/README.md)). `ALLOWED_ORIGINS` must include the Vercel URL as well as `http://localhost:5173`; without it the deployed site's book rows say "You seem to be offline".
 
 If Google Books answers genre (`subject:`) or title (`intitle:`) queries with no results, as it has for hours at a time, the `books` function asks again with plain words, so genre rows and search stay filled (with looser matches) until Google recovers. Details and tests: [supabase/README.md](supabase/README.md).
 
@@ -360,5 +363,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Search filters for language and length, for LiteraryWorm titles and Google Books results alike | Done    |
 | —    | Billing history and promo codes: Account lists each Stripe charge with its receipt, shows the promo code on the membership and takes a new one; Stripe Checkout takes promo codes too | Done    |
 | —    | Email through Mailgun: sign-up confirmation and password reset in LiteraryWorm's own templates, *Send the email again*, and the Privacy Policy and EULA name Mailgun (migration 2500) | Done    |
+| —    | `drawsql.png` re-rendered for migrations up to 2500 (no table or column changes since 2300); `schema.sql` regenerated unchanged; live Supabase checked against both (all 244 columns, every migration); docs, style guide and phase plan cover the eight feature stages | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
