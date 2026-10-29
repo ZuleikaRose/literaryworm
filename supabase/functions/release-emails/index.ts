@@ -1,5 +1,5 @@
 // Deploy with JWT verification off (pg_cron sends the Vault secret, not a Supabase token).
-// Mailgun's API key and sending domain come from the MAILGUN_API_KEY and MAILGUN_DOMAIN function
+// Mailgun's API key and sending domain come from the SEND_MAILGUN_EMAIL and MAILGUN_DOMAIN function
 // settings; MAILGUN_API_BASE is https://api.eu.mailgun.net for an EU domain. Nothing is hard-coded.
 import { allowedOrigins } from "../_shared/cors.ts";
 import { serviceClient } from "../_shared/supabase.ts";
@@ -39,7 +39,7 @@ async function sendWithMailgun(email: Email): Promise<void> {
   form.set("h:List-Unsubscribe", `<${siteOrigin()}/account#preferences>`);
   const res = await fetch(`${base}/v3/${encodeURIComponent(domain)}/messages`, {
     method: "POST",
-    headers: { Authorization: `Basic ${btoa(`api:${env("MAILGUN_API_KEY")}`)}` },
+    headers: { Authorization: `Basic ${btoa(`api:${env("SEND_MAILGUN_EMAIL")}`)}` },
     body: form,
     signal: AbortSignal.timeout(15_000),
   });

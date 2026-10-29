@@ -64,7 +64,7 @@ supabase secrets set ALLOWED_ORIGINS=https://literaryworm.com,https://www.litera
 supabase secrets set ANTHROPIC_API_KEY=<your Claude API key>   # used only by the summaries and ask functions
 supabase secrets set STRIPE_SECRET_KEY=<a restricted key, rk_>  # checkout, manage-account, stripe-webhook
 supabase secrets set STRIPE_WEBHOOK_SECRET=<whsec_ from the webhook endpoint>   # stripe-webhook only
-supabase secrets set MAILGUN_API_KEY=<a Mailgun sending key>   # release-emails only
+supabase secrets set SEND_MAILGUN_EMAIL=<a Mailgun sending API key (not the SMTP password)>   # release-emails only
 supabase secrets set MAILGUN_DOMAIN=<the sending domain, e.g. mg.literaryworm.com>   # release-emails only
 # Optional: MAILGUN_API_BASE=https://api.eu.mailgun.net for an EU domain; MAILGUN_FROM (default "LiteraryWorm <reminders@MAILGUN_DOMAIN>")
 ```

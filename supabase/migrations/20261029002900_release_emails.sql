@@ -1,7 +1,7 @@
 -- Book-out emails (new request): when a book a profile set Remind me on comes
 -- out, the account holder gets one email listing it (and any others out the
 -- same day), as well as the Home card. Sent by the release-emails function
--- through Mailgun's API (MAILGUN_API_KEY and MAILGUN_DOMAIN function settings),
+-- through Mailgun's API (SEND_MAILGUN_EMAIL and MAILGUN_DOMAIN function settings),
 -- which pg_cron calls every hour.
 --
 -- * account_private.release_emails: on unless the account holder turns it off
