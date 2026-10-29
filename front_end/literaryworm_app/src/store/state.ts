@@ -94,6 +94,7 @@ export const emptyProfileData = (): ProfileData => ({
   readingGoals: {},
   readingDays: {},
   uploads: [],
+  follows: [],
 });
 
 export const newId = () => crypto.randomUUID();
@@ -171,6 +172,10 @@ export function demoHousehold(): Household {
       catalogEntry("project-hail-mary", "want_to_read", now - 86_400_000),
     ]),
     favorites: ["circe"],
+    follows: [
+      { kind: "author", name: "Matt Haig" },
+      { kind: "narrator", name: "Imogen Hale" },
+    ],
     readingGoals: { [new Date(now).getFullYear()]: 24 },
     readingDays: demoReadingDays(now),
     progress: {

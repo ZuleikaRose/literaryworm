@@ -76,6 +76,7 @@ Deno.test("an empty filtered list is asked again with plain words, once", async 
     ["mode=genre&genre=sci-fi&page=2", 'subject:"science fiction"', '"science fiction"'],
     ["mode=search&q=the%20hobbit", "intitle:the intitle:hobbit", "the hobbit"],
     ["mode=search&q=dune&genre=horror&sort=newest", "intitle:dune subject:horror", "dune horror"],
+    ["mode=author&name=Matt%20Haig", 'inauthor:"Matt Haig"', '"Matt Haig"'],
   ];
   for (const [query, filtered, plain] of cases) {
     const calls: URL[] = [];
@@ -156,6 +157,9 @@ Deno.test("rejects bad input before calling Google", async () => {
     "mode=search&q=dune&genre=romance",              // genre outside the six
     "mode=genre&genre=horror&sort=newest",           // sort only applies to search
     "mode=home&genre=horror",                        // genre not allowed on home
+    "mode=author",                                   // missing name
+    "mode=author&name=x%3Ay%22",                     // operator injection
+    "mode=author&name=Haig&q=dune",                  // q not allowed on author
   ];
   for (const query of cases) {
     const { calls, fetcher } = stub(200, fullPage);

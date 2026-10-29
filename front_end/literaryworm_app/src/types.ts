@@ -264,6 +264,12 @@ export interface UploadedBook {
   createdAt: number;
 }
 
+/** An author or narrator a profile follows, by the name shown on their books. */
+export interface Follow {
+  kind: "author" | "narrator";
+  name: string;
+}
+
 export interface ProfileData {
   /** Keyed by book id. Replaces the old Reading List: "want to read" entries are that list. */
   library: Record<string, LibraryEntry>;
@@ -290,6 +296,8 @@ export interface ProfileData {
   readingDays: Record<string, ReadingDay>;
   /** Books this profile uploaded, newest first. */
   uploads: UploadedBook[];
+  /** Authors and narrators this profile follows, oldest first. */
+  follows: Follow[];
 }
 
 /**

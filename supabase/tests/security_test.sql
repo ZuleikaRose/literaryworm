@@ -175,6 +175,11 @@ update public.book_ratings set rating = 'love' where volume_id = 'dune';
 insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC');
 select pg_temp.check((select rating = 'love' from public.book_ratings) and (select count(*) from public.favorites) = 1, 'Ann rates and favourites as a profile');
 select pg_temp.expect_error($$insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'zyTCAlFPjgYC')$$, 'the same favourite twice');
+insert into public.follows (profile_id, user_id, kind, name) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'author', 'Matt Haig');
+select pg_temp.check((select count(*) from public.follows) = 1, 'Ann follows an author as a profile');
+select pg_temp.expect_error($$insert into public.follows (profile_id, user_id, kind, name) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'actor', 'X')$$, 'following something that isn''t an author or narrator');
+select pg_temp.expect_error($$insert into public.follows (profile_id, user_id, kind, name) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'author', ' padded ')$$, 'a followed name with spaces around it');
+select pg_temp.expect_error($$update public.follows set name = 'Someone else'$$, 'renaming a follow');
 select pg_temp.expect_error($$insert into public.book_ratings (profile_id, user_id, volume_id, rating) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'bad id; drop', 'like')$$, 'a malformed volume id in a rating');
 insert into public.custom_lists (profile_id, user_id, name, description) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'Holiday stack', 'Beach books');
 select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_id, name) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', ' holiday STACK ')$$, 'a duplicate list name (case-insensitive)');
@@ -199,6 +204,8 @@ select pg_temp.check((select count(*) from public.book_ratings) + (select count(
 insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ben'), '00000000-0000-0000-0000-00000000000b', 'dune');
 select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000b', 'x'), 'a favourite on another account''s profile, as yourself');
 select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'x'), 'a favourite on another account''s profile, as them');
+select pg_temp.check((select count(*) from public.follows) = 0, 'Ben cannot see who Ann follows');
+select pg_temp.expect_error(format('insert into public.follows (profile_id, user_id, kind, name) values (%L, %L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'author', 'X'), 'a follow on another account''s profile');
 select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000b', 'x'), 'adding to someone else''s list, as yourself');
 select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000a', 'x'), 'adding to someone else''s list, as them');
 with u as (update public.custom_lists set share_slug = null returning 1)
@@ -208,6 +215,7 @@ reset role;
 set role anon;
 select pg_temp.expect_error('select * from public.custom_lists', 'anon reading lists');
 select pg_temp.expect_error('select * from public.favorites', 'anon reading favourites');
+select pg_temp.expect_error('select * from public.follows', 'anon reading follows');
 select pg_temp.check((public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ->> 'name') = 'Holiday stack'
   and (public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ->> 'owner') = 'Ann'
   and jsonb_array_length(public.shared_list('AbCdEfGhIjKlMnOpQrStUv') -> 'items') = 1

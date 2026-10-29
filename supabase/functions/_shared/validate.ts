@@ -34,6 +34,15 @@ export function parseQuery(raw: string | null): string {
   return q;
 }
 
+/** An author's name, for their page: the same characters and length as a search. */
+export function parseName(raw: string | null): string {
+  const name = (raw ?? "").normalize("NFC").replace(/\s+/g, " ").trim();
+  if (!name) throw new HttpError("bad_request", "Send the author's name.");
+  if (name.length > MAX_QUERY_LENGTH) throw new HttpError("bad_request", `name is limited to ${MAX_QUERY_LENGTH} characters.`);
+  if (!QUERY_CHARS.test(name)) throw new HttpError("bad_request", "name can use letters, numbers and basic punctuation.");
+  return name;
+}
+
 export function parseGenre(raw: string | null): Genre {
   const g = (raw ?? "").toLowerCase();
   if (!(GENRES as readonly string[]).includes(g)) {

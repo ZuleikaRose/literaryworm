@@ -20,7 +20,7 @@ export interface DetailView {
   ratingsCount: number | null;
   pageCount: number | null;
   /** The extra fields the brief asks for, as a definition list. */
-  facts: { label: string; value: string; wide?: boolean }[];
+  facts: Fact[];
   /** Google's page for the title, credited on the page. */
   googleLink: string | null;
 }
@@ -52,8 +52,16 @@ function hoursLabel(minutes: number): string {
   return h ? `${h} hr ${m} min` : `${m} min`;
 }
 
-function compact(facts: { label: string; value: string | null; wide?: boolean }[]) {
-  return facts.filter((f): f is { label: string; value: string; wide?: boolean } => Boolean(f.value));
+/** A line of Book details. A narrator's value starts with their name, which links to their page. */
+export interface Fact {
+  label: string;
+  value: string;
+  wide?: boolean;
+  narrator?: string;
+}
+
+function compact(facts: (Omit<Fact, "value"> & { value: string | null })[]) {
+  return facts.filter((f): f is Fact => Boolean(f.value));
 }
 
 export function fromCatalogBook(book: Book): DetailView {
@@ -71,7 +79,11 @@ export function fromCatalogBook(book: Book): DetailView {
     ratingsCount: book.ratingsCount,
     pageCount: book.pages,
     facts: compact([
-      { label: "Narrator", value: book.recording ? `${book.recording.narrator} (LibriVox recording)` : (book.narrator ?? null) },
+      {
+        label: "Narrator",
+        value: book.recording ? `${book.recording.narrator} (LibriVox recording)` : (book.narrator ?? null),
+        narrator: book.recording?.narrator ?? book.narrator,
+      },
       { label: "Publisher", value: book.publisher },
       { label: "Published", value: String(book.year) },
       { label: "Length", value: `${book.pages} pages · ${hoursLabel(listenMinutes(book))} listening` },

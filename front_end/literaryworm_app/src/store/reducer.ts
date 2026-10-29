@@ -1,10 +1,12 @@
 import { LOG_MAX } from "../data/logs";
 import { type Collections, withRecentSearch } from "../lib/collections";
+import { isFollowing } from "../lib/people";
 import type {
   A11ySettings,
   Account,
   Bookmark,
   CustomList,
+  Follow,
   Highlight,
   LibraryEntry,
   PlanId,
@@ -66,6 +68,7 @@ export type Action =
   | { type: "setReadingStatus"; bookId: string; status: ReadingStatus }
   | { type: "removeFromLibrary"; bookId: string }
   | { type: "toggleFavorite"; bookId: string }
+  | { type: "toggleFollow"; follow: Follow }
   | { type: "rateBook"; bookId: string; rating: RatingValue | null }
   | { type: "addLog"; bookId: string; body: string; rating: number | null }
   | { type: "updateLog"; id: string; body: string; rating: number | null }
@@ -348,6 +351,16 @@ export function reducer(state: AppState, action: Action): AppState {
           ? data.favorites.filter((id) => id !== action.bookId)
           : [...data.favorites, action.bookId],
       }));
+
+    case "toggleFollow": {
+      const { kind, name } = action.follow;
+      return withProfileData(state, (data) => ({
+        ...data,
+        follows: isFollowing(data.follows, kind, name)
+          ? data.follows.filter((f) => !(f.kind === kind && f.name === name))
+          : [...data.follows, { kind, name }],
+      }));
+    }
 
     case "rateBook":
       return withProfileData(state, (data) => {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
+import { BackLink } from "../components/BackLink";
 import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { Dialog } from "../components/Dialog";
@@ -22,6 +23,7 @@ import { usePublicLogs } from "../lib/usePublicLogs";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
 import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
+import { personName, personPath } from "../lib/people";
 import { lostWithBook } from "../lib/reading";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
@@ -59,28 +61,6 @@ export default function BookDetail() {
   }
   if (volume.volume.mature && profile && profile.ageRating !== "all") return <NotOnShelf profile={profile} />;
   return <DetailPage key={id} view={fromVolume(volume.volume)} />;
-}
-
-function BackLink() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { state } = useStore();
-  const home = state.activeProfileId ? "/browse" : "/";
-  // Go back when there's somewhere in the app to go back to; otherwise (opened from a link) go home.
-  const canGoBack = location.key !== "default";
-  return (
-    <Link
-      className="back-button"
-      to={home}
-      onClick={(e) => {
-        if (!canGoBack) return;
-        e.preventDefault();
-        navigate(-1);
-      }}
-    >
-      <Icon name="arrowLeft" size={18} /> Back
-    </Link>
-  );
 }
 
 function NotOnShelf({ profile }: { profile: Profile }) {
@@ -314,7 +294,24 @@ function DetailPage({ view }: { view: DetailView }) {
           <h1 id="book-title">{view.title}</h1>
           {view.subtitle && <p className="book-subtitle">{view.subtitle}</p>}
           <p className="byline">
-            by <strong>{author}</strong>
+            by{" "}
+            {view.authors.length ? (
+              view.authors.map((name, i) => (
+                <span key={name}>
+                  {i > 0 && ", "}
+                  {/* Names the books function can't search for (unusual characters) aren't linked. */}
+                  {personName(name) === name ? (
+                    <Link className="byline-link" to={personPath("author", name)}>
+                      {name}
+                    </Link>
+                  ) : (
+                    <strong>{name}</strong>
+                  )}
+                </span>
+              ))
+            ) : (
+              <strong>{author}</strong>
+            )}
           </p>
           <ul className="book-meta" aria-label="At a glance">
             {view.averageRating !== null && (
@@ -486,7 +483,16 @@ function DetailPage({ view }: { view: DetailView }) {
             {view.facts.map((fact) => (
               <div key={fact.label} className={fact.wide ? "fact-wide" : undefined}>
                 <dt>{fact.label}</dt>
-                <dd>{fact.value}</dd>
+                <dd>
+                  {fact.narrator && fact.value.startsWith(fact.narrator) ? (
+                    <>
+                      <Link to={personPath("narrator", fact.narrator)}>{fact.narrator}</Link>
+                      {fact.value.slice(fact.narrator.length)}
+                    </>
+                  ) : (
+                    fact.value
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

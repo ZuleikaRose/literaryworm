@@ -77,6 +77,11 @@ export function titleQuery(q: string): string {
     .join(" ");
 }
 
+/** Books by one author: the whole name as a phrase, so "Matt Haig" doesn't match every Matt. */
+export function authorQuery(name: string): string {
+  return `inauthor:"${name.replace(/["]/g, "")}"`;
+}
+
 /** The search words with no operators: the fallback when `intitle:` finds nothing. */
 export function plainQuery(q: string): string {
   return q.replace(/["]/g, "").split(" ").filter(Boolean).join(" ");

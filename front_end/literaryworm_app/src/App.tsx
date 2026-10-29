@@ -12,6 +12,7 @@ import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
 import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
+import Person from "./pages/Person";
 import Plans from "./pages/Plans";
 import Profiles from "./pages/Profiles";
 import ResetPassword from "./pages/ResetPassword";
@@ -48,6 +49,8 @@ export default function App() {
           {/* Book details are public (the brief's /books/:id); actions ask visitors to sign in. */}
           <Route path="books/:id" element={<BookDetail />} />
           <Route path="book/:id" element={<LegacyBookRedirect />} />
+          <Route path="authors/:name" element={<Person kind="author" />} />
+          <Route path="narrators/:name" element={<Person kind="narrator" />} />
           {/* Search is public too (the brief); Kids profiles get the catalog only. */}
           <Route path="search" element={<Search />} />
           {/* A custom list shared by link: public, shows only what its owner shared. */}

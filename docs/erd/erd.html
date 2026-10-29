@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–2100, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–2200, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -224,6 +224,17 @@
             ["", "created_at", "timestamptz"],
           ],
           note: "FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; the key is its index. RLS: owner only; added and removed.",
+        },
+        {
+          id: "follows", color: colors.household, x: 840, y: 2850, sub: "per profile · authors and narrators",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "kind", "text author | narrator"],
+            ["pk", "name", "text 1–100"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed.",
         },
         {
           id: "book_ratings", color: colors.household, x: 0, y: 1570, sub: "per profile",
@@ -554,6 +565,7 @@
         ["bookmarks", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["highlights", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["favorites", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_ratings", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_lists", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_list_items", "list_id", "custom_lists", "id", "N : 1 (pair)"],

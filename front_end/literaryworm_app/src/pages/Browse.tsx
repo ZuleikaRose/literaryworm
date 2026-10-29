@@ -7,6 +7,7 @@ import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
+import { fromFollowed } from "../lib/people";
 import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
@@ -71,6 +72,7 @@ export default function Browse() {
 
   // Recommendations from what this profile finished, rated and favourited (lib/recommend.ts).
   const inLibrary = new Set(Object.keys(library.entries));
+  const followed = fromFollowed(data.follows, profile.ageRating, (id) => inLibrary.has(id));
   const taste = tasteSeeds(data, library.entries, (id) => {
     const book = getBook(id);
     return visible(book) ? book : undefined;
@@ -112,6 +114,14 @@ export default function Browse() {
             items={continueReading.map(fromLocal)}
             progress={progress}
             links={resumeLinks}
+          />
+        )}
+        {followed.length > 0 && (
+          <Shelf
+            id="following"
+            eyebrow="Authors and narrators you follow"
+            title="New from people you follow"
+            items={followed.map(fromLocal)}
           />
         )}
         <Shelf

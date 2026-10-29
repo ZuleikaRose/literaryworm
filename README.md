@@ -354,5 +354,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Stripe billing: monthly memberships paid on Stripe Checkout, a signed `stripe-webhook` that writes paid memberships, pause, cancel, billing-day changes and the card through `manage-account`; migrations 1900–1902; the policies now say LiteraryWorm is a live account billed monthly until cancelled | Done    |
 | —    | Playback speed saved per profile, like volume and skip lengths, so it follows the member to every device (migration 2000) | Done    |
 | —    | Two-step sign-in with an authenticator app: turned on and off in Account (off needs a current code), asked for after the password; until the code is given the database and the Edge Functions refuse everything of the member's (migration 2100) | Done    |
+| —    | Author and narrator pages: their titles on LiteraryWorm and (authors) Google Books, with Follow saved per profile; Home shows new titles from the people a profile follows (migration 2200) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

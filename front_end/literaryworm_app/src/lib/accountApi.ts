@@ -5,6 +5,7 @@ import type {
   Account,
   Bookmark,
   CustomList,
+  Follow,
   Format,
   Highlight,
   HighlightColor,
@@ -810,25 +811,28 @@ const emptyCollections = (): Collections => ({
   readingDays: {},
   player: defaultPlayerSettings,
   uploads: [],
+  follows: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
 export async function loadCollections(): Promise<Record<string, Collections>> {
   const db = client();
-  const [profiles, favorites, ratings, lists, items] = await Promise.all([
+  const [profiles, favorites, ratings, lists, items, follows] = await Promise.all([
     db.from("reader_profiles").select("id, recent_searches"),
     db.from("favorites").select("profile_id, volume_id").order("created_at"),
     db.from("book_ratings").select("profile_id, volume_id, rating"),
     db.from("custom_lists").select(LIST_COLUMNS).order("position").order("created_at"),
     db.from("custom_list_items").select("list_id, volume_id").order("added_at"),
+    db.from("follows").select("profile_id, kind, name").order("created_at"),
   ]);
-  if (profiles.error || favorites.error || ratings.error || lists.error || items.error) {
+  if (profiles.error || favorites.error || ratings.error || lists.error || items.error || follows.error) {
     throw new AccountError("We couldn't load your lists and ratings. Try again.");
   }
   const byProfile: Record<string, Collections> = {};
   const of = (id: string) => (byProfile[id] ??= emptyCollections());
   for (const p of profiles.data as { id: string; recent_searches: string[] }[]) of(p.id).recentSearches = p.recent_searches;
   for (const f of favorites.data as { profile_id: string; volume_id: string }[]) of(f.profile_id).favorites.push(f.volume_id);
+  for (const f of follows.data as ({ profile_id: string } & Follow)[]) of(f.profile_id).follows.push({ kind: f.kind, name: f.name });
   for (const r of ratings.data as { profile_id: string; volume_id: string; rating: DbRating }[]) {
     of(r.profile_id).ratings[r.volume_id] = fromDbRating(r.rating);
   }
@@ -967,6 +971,21 @@ export async function addFavorite(profileId: string, bookId: string): Promise<vo
   const { error } = await client().from("favorites").insert({ profile_id: profileId, user_id: await signedInUserId(), volume_id: bookId });
   // Already a favourite (another tab): nothing to do.
   if (error && error.code !== "23505") throw new AccountError("We couldn't add it to your favorites. Try again.");
+}
+
+export async function follow(profileId: string, { kind, name }: Follow): Promise<void> {
+  const { error } = await client().from("follows").insert({ profile_id: profileId, user_id: await signedInUserId(), kind, name });
+  // Already followed (another tab): nothing to do.
+  if (error && error.code !== "23505") {
+    throw new AccountError(
+      error.message.includes("up to 200") ? "A profile can follow up to 200 authors and narrators." : "We couldn't follow them. Try again.",
+    );
+  }
+}
+
+export async function unfollow(profileId: string, { kind, name }: Follow): Promise<void> {
+  const { error } = await client().from("follows").delete().eq("profile_id", profileId).eq("kind", kind).eq("name", name);
+  if (error) throw new AccountError("We couldn't unfollow them. Try again.");
 }
 
 export async function removeFavorite(profileId: string, bookId: string): Promise<void> {

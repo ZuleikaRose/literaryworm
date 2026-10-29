@@ -48,7 +48,9 @@ export interface VolumeDetail extends Omit<BookSummary, "local"> {
 export type FeedQuery =
   | { mode: "home" }
   | { mode: "genre"; genre: BrowseGenre }
-  | { mode: "search"; q: string; genre?: BrowseGenre | null; sort?: "relevance" | "newest" };
+  | { mode: "search"; q: string; genre?: BrowseGenre | null; sort?: "relevance" | "newest" }
+  /** One author's books on Google Books (their page). */
+  | { mode: "author"; name: string };
 
 export class BooksApiError extends Error {
   readonly code: string;
@@ -66,6 +68,7 @@ export { usesBackend };
 
 export function feedKey(query: FeedQuery): string {
   if (query.mode === "genre") return `genre:${query.genre}`;
+  if (query.mode === "author") return `author:${query.name}`;
   if (query.mode === "search") return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}`;
   return "home";
 }
@@ -98,6 +101,7 @@ const pageCache = new Map<string, Promise<BookPage>>();
 function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
   const params = new URLSearchParams({ mode: query.mode, page: String(page) });
   if (query.mode === "genre") params.set("genre", query.genre);
+  if (query.mode === "author") params.set("name", query.name);
   if (query.mode === "search") {
     params.set("q", query.q);
     if (query.genre) params.set("genre", query.genre);
@@ -109,7 +113,13 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
   if (!pending) {
     pending = withRetry(() => requestJson(url)).then((body) => {
       const data = body as { items: BookSummary[]; page: number; hasMore: boolean };
-      return { items: data.items, page: data.page, hasMore: data.hasMore && page < MAX_PAGE };
+      // Google's author search also finds study guides and summaries that name the author in
+      // their title: keep only books credited to them.
+      const items =
+        query.mode === "author"
+          ? data.items.filter((b) => b.authors.some((a) => a.toLowerCase() === query.name.toLowerCase()))
+          : data.items;
+      return { items, page: data.page, hasMore: data.hasMore && page < MAX_PAGE };
     });
     pageCache.set(url, pending);
     // Failures aren't cached, so Try again really tries again.
@@ -170,7 +180,9 @@ function localPage(query: FeedQuery, page: number, ageRating: AgeRating): BookPa
   const genre = query.mode === "home" ? "technology" : query.mode === "genre" ? query.genre : null;
   const matching = genre
     ? allowed.filter((b) => b.genres.some((g) => sampleCatalogGenres[genre].includes(g)))
-    : allowed.filter((b) => query.mode === "search" && b.title.toLowerCase().includes(query.q.toLowerCase()));
+    : query.mode === "author"
+      ? allowed.filter((b) => b.author.toLowerCase() === query.name.toLowerCase())
+      : allowed.filter((b) => query.mode === "search" && b.title.toLowerCase().includes(query.q.toLowerCase()));
   const start = page * PAGE_SIZE;
   return {
     items: matching.slice(start, start + PAGE_SIZE).map(fromLocal),

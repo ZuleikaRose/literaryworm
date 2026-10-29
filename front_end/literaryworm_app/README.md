@@ -40,6 +40,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/books/:id` | Book details (catalog id or Google Books volume id); `/book/:id` redirects | Public (actions need a profile) |
 | `/profiles` | Who's reading? | Signed in |
 | `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
+| `/authors/:name`, `/narrators/:name` | An author's or narrator's titles on LiteraryWorm (and an author's on Google Books), with Follow | Public (Follow needs a profile) |
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=`) | Public (Kids profiles: catalog only) |
 | `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`), Uploads (`?view=uploads`), Goals, Stats (`?view=stats`) and Clubs | Profile chosen |
 | `/account` | Plan and billing, sign-in, preferences, family, privacy, help, delete account (Kids profiles ask a grown-up first) | Profile chosen |
@@ -107,3 +108,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Termly consent banner (first script in `index.html`), *Consent Preferences* in the footer; Google Books covers marked essential so they load when visitors decline |
 | — | Playback speed saved per profile with the other player settings (`reader_profiles.playback_speed`, migration 2000) |
 | — | Two-step sign-in: Account → Sign-in turns it on or off (authenticator app, QR code or key); the log-in page asks for the code (`lib/accountApi.ts`, `pages/SignIn.tsx`); the database and functions refuse a password-only session (migration 2100) |
+| — | Author and narrator pages with Follow (`pages/Person.tsx`, `lib/people.ts`, `lib/useFollows.ts`); names on a book page link to them; Home's *New from people you follow*; follows saved per profile (`follows`, migration 2200); the `books` function's `author` mode |
