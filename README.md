@@ -353,6 +353,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Copyright/DMCA page: report content, copyright infringement and Acceptable Use questions to report@literaryworm.com | Done    |
 | —    | Termly's *Do Not Sell or Share My Personal information* and *Limit the Use Of My Sensitive Personal Information* links in the footer | Done    |
 | —    | `drawsql.png` re-rendered and `schema.sql` regenerated; live Supabase checked against both (every table, column, index and migration) | Done    |
+| —    | Staff dashboard at `/dashboard` for billing staff and admins: totals only (accounts, memberships by plan, monthly revenue, reading, clubs, Stripe events to review) from `staff_dashboard()` (migration 2600) | Done    |
 | —    | Admin accounts are never billed: a complimentary Premium membership set by the database from the admin role (`subscriptions.complimentary`, migration 1800); `checkout` refuses admins and Account shows *Complimentary* | Done    |
 | —    | Stripe billing: monthly memberships paid on Stripe Checkout, a signed `stripe-webhook` that writes paid memberships, pause, cancel, billing-day changes and the card through `manage-account`; migrations 1900–1902; the policies now say LiteraryWorm is a live account billed monthly until cancelled | Done    |
 | —    | Playback speed saved per profile, like volume and skip lengths, so it follows the member to every device (migration 2000) | Done    |

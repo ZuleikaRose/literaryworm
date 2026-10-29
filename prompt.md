@@ -67,6 +67,7 @@ Work in phases. Each phase has its own passing conditions and ends with a review
 | — | More search filters | Language (en, es, fr, de, it, pt; Google's `langRestrict`, the `books` function's `lang`) and length (under 200, 200–400, over 400 pages, checked against each edition's page count) for LiteraryWorm and Google results |
 | — | Billing history and promo codes | Account lists the last 24 Stripe charges with receipts; the promo code on the membership, and a box to apply a Stripe promotion code (`manage-account` `billing_history`, `promo_code`); Checkout takes promo codes; nothing copied to the database |
 | — | Email | Supabase Auth's confirmation and reset emails sent through Mailgun's SMTP in LiteraryWorm's templates (`supabase/templates`); *Send the email again*; links last 1 hour; the Privacy Policy and EULA name Mailgun (migration 2500) |
+| — | Staff dashboard | `/dashboard` for billing staff and admins (`pages/Dashboard.tsx`, `loadDashboard()`): totals only from `staff_dashboard()` (security definer, checks the role); migration 2600 |
 
 After Phase 10 the app was deployed to Vercel. Two fixes followed: the Vercel URL was added to the `ALLOWED_ORIGINS` function setting (without it every book row said "You seem to be offline"), and the `books` function now asks Google again with plain words when its genre (`subject:`) or title (`intitle:`) filters return nothing.
 

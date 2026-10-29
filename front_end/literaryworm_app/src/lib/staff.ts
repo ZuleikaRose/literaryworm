@@ -5,7 +5,7 @@ export const STAFF_ROLES: { value: StaffRole; label: string; description: string
   { value: "admin", label: "Admin", description: "Everything, including giving and removing access.", inUse: true },
   { value: "editor", label: "Editor", description: "Edits the policy and help pages in the footer.", inUse: true },
   { value: "developer", label: "Developer", description: "For developer tools. None in LiteraryWorm use it yet.", inUse: false },
-  { value: "billing", label: "Billing", description: "For billing tools. None in LiteraryWorm use it yet.", inUse: false },
+  { value: "billing", label: "Billing", description: "Sees the dashboard: totals for accounts, memberships and reading.", inUse: true },
   { value: "customer_service", label: "Customer service", description: "For support tools. None in LiteraryWorm use it yet.", inUse: false },
   { value: "blog", label: "Blog", description: "For the blog. None in LiteraryWorm use it yet.", inUse: false },
 ];

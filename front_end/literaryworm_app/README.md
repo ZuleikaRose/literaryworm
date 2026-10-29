@@ -44,6 +44,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=&lang=&length=`) | Public (Kids profiles: catalog only) |
 | `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`), Reminders (`?view=reminders`), Uploads (`?view=uploads`), Goals, Stats (`?view=stats`) and Clubs | Profile chosen |
 | `/account` | Plan and billing, sign-in, preferences, family, privacy, help, delete account (Kids profiles ask a grown-up first) | Profile chosen |
+| `/dashboard` | Staff dashboard: totals for accounts, memberships, reading and clubs | Profile chosen; billing staff and admins |
 | `/lists/:slug` | A custom list shared by link: name, description, the profile's name and its books | Public |
 | `/read/:id`, `/listen/:id` | Reader (with highlights, notes and the dictionary) and audiobook player (with the read-along transcript); full screen, loaded on demand; LiteraryWorm titles the profile may see | Profile chosen |
 
@@ -114,3 +115,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Search filters for language (Google's `langRestrict`, the `books` function's `lang`) and length (page count, checked in `lib/booksApi.ts`) (`lib/search.ts`, `components/SearchFilters.tsx`) |
 | — | Email through Mailgun (Supabase Auth's SMTP): confirmation and reset emails from `supabase/templates`; *Send the email again* on sign-up and log-in (`components/ResendConfirmation.tsx`, `resendConfirmation()` in `lib/accountApi.ts`); Privacy Policy and EULA updated (migration 2500) |
 | — | Billing history and promo codes in Account → Plan and billing (`components/BillingHistory.tsx`; `billingHistory()` and `redeemPromoCode()` in `lib/accountApi.ts`, through `manage-account`); promo codes on Stripe Checkout |
+| — | Staff dashboard (`pages/Dashboard.tsx` at `/dashboard`, `loadDashboard()` in `lib/staffApi.ts`): totals for billing staff and admins from `staff_dashboard()` (migration 2600); *Open the dashboard* in Account → Team access |

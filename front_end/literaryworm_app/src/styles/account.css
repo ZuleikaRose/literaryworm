@@ -582,3 +582,86 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Dashboard (staff): reuses the Stats tiles and cards from library.css. */
+.dashboard-page {
+  max-width: 1040px;
+}
+
+/* minmax(0, …) so the wide table scrolls in its card instead of widening the page. */
+.dashboard-page .stats {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dashboard-page .stats-card {
+  min-width: 0;
+}
+
+.dashboard-page .stats-card h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+}
+
+.dashboard-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-bottom: 20px;
+}
+
+.dashboard-bar .account-sub {
+  margin: 0;
+}
+
+.dashboard-warn {
+  border-color: var(--rust-bright);
+}
+
+/* The table scrolls inside its card on phones, never the page. */
+.dashboard-table-wrap {
+  overflow-x: auto;
+}
+
+.dashboard-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-table th:first-child {
+  text-align: left;
+}
+
+.dashboard-table thead th {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.dashboard-table tbody th span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.dashboard-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-soft);
+}

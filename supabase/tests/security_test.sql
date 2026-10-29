@@ -440,6 +440,7 @@ select pg_temp.check((select count(*) from public.legal_pages) = 13, 'anyone rea
 select pg_temp.expect_error($$update public.legal_pages set title = 'Hacked' where slug = 'terms'$$, 'anon editing a legal page');
 select pg_temp.expect_error('select * from public.staff_roles', 'anon reading staff roles');
 select pg_temp.expect_error($$select public.grant_staff_role('a@test', 'admin')$$, 'anon granting a role');
+select pg_temp.expect_error('select public.staff_dashboard()', 'anon opening the dashboard');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
@@ -448,6 +449,7 @@ select pg_temp.check((select title from public.legal_pages where slug = 'terms')
 select pg_temp.expect_error($$insert into public.staff_roles (user_id, role) values ('00000000-0000-0000-0000-00000000000a', 'admin')$$, 'giving yourself a role');
 select pg_temp.expect_error($$select public.grant_staff_role('a@test', 'admin')$$, 'a non-admin granting a role');
 select pg_temp.expect_error('select * from public.staff_members()', 'a non-admin listing the team');
+select pg_temp.expect_error('select public.staff_dashboard()', 'a member without a role opening the dashboard');
 reset role;
 insert into public.staff_roles (user_id, role) values ('00000000-0000-0000-0000-00000000000a', 'admin');
 set role authenticated;
@@ -455,6 +457,8 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.check(public.grant_staff_role('B@Test', 'editor') = 'granted' and public.grant_staff_role('new.person@test', 'blog') = 'invited', 'an admin grants a role by email, or invites an email with no account');
 select pg_temp.check((select count(*) = 2 from public.staff_members() where not invited) and (select roles = '{blog}' from public.staff_members() where invited), 'admins see the team and the invitations');
 select pg_temp.expect_error($$select public.revoke_staff_role('a@test', 'admin')$$, 'removing the last admin');
+select pg_temp.check((select (d->'accounts'->>'total')::int = 2 and jsonb_array_length(d->'memberships') = 3 and jsonb_array_length(d->'weekly_sign_ups') = 12
+  and not (d::text ~* '@test') from public.staff_dashboard() d), 'admins see the dashboard: totals only, no emails');
 update public.legal_pages set summary = 'Updated summary.' where slug = 'terms';
 select pg_temp.check((select summary = 'Updated summary.' and updated_by = '00000000-0000-0000-0000-00000000000a' from public.legal_pages where slug = 'terms')
   and (select count(*) = 1 and bool_and(summary <> 'Updated summary.') from public.legal_page_revisions where slug = 'terms'), 'an admin edits a page; the old version is kept and the editor stamped');
@@ -469,6 +473,7 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 update public.legal_pages set summary = 'Edited by Ben.' where slug = 'help';
 select pg_temp.check((select summary = 'Edited by Ben.' from public.legal_pages where slug = 'help') and (select count(*) = 1 from public.staff_roles), 'an editor edits pages and sees only their own role');
 select pg_temp.expect_error($$select public.grant_staff_role('c@test', 'admin')$$, 'an editor granting a role');
+select pg_temp.expect_error('select public.staff_dashboard()', 'an editor opening the dashboard');
 reset role;
 insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-00000000000e', 'New.Person@test', '{"display_name":"Nell","date_of_birth":"1990-01-01","terms_accepted":true}');
 select pg_temp.check((select role = 'blog' from public.staff_roles where user_id = '00000000-0000-0000-0000-00000000000e') and (select count(*) = 0 from public.staff_invites), 'signing up picks up a waiting role');

@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useId, useState } from "react";
-import { roleLabel, STAFF_ROLES, type StaffMember, type StaffRole } from "../lib/staff";
+import { Link } from "react-router-dom";
+import { hasRole, roleLabel, STAFF_ROLES, type StaffMember, type StaffRole } from "../lib/staff";
 import { grantStaffRole, loadStaff, revokeStaffRole } from "../lib/staffApi";
 import { Icon } from "./Icon";
 
@@ -22,6 +23,13 @@ export function TeamAccess({ roles }: { roles: StaffRole[] }) {
           </li>
         ))}
       </ul>
+      {hasRole(roles, "billing") && (
+        <p>
+          <Link className="secondary-button" to="/dashboard">
+            Open the dashboard
+          </Link>
+        </p>
+      )}
       {isAdmin && <TeamManager />}
     </div>
   );

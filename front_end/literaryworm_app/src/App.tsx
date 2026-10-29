@@ -24,6 +24,8 @@ import SignUp from "./pages/SignUp";
 // The reader and player (with their study tools) load when first opened, keeping the first download small.
 const Reader = lazy(() => import("./pages/Reader"));
 const Player = lazy(() => import("./pages/Player"));
+// Staff only, so most members never download it.
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 /** Old /book/:id links keep working. */
 function LegacyBookRedirect() {
@@ -65,6 +67,14 @@ export default function App() {
             <Route path="library" element={<Library />} />
             <Route path="clubs/:id" element={<ClubPage />} />
             <Route path="account" element={<Account />} />
+            <Route
+              path="dashboard"
+              element={
+                <Suspense fallback={null}>
+                  <Dashboard />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="*" element={<NotFound />} />
