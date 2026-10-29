@@ -341,11 +341,14 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | 21   | Bring your own books: upload an EPUB (no DRM); its text is kept in a private Storage bucket and opens in the reader with progress, bookmarks and highlights; not on Kids profiles | Done    |
 | —    | Cookie Policy in the footer: LiteraryWorm sets no cookies of its own; the page lists what the browser keeps (sign-in session, the app's files, books saved for offline) and why | Done    |
 | 22   | Staff roles (admin, editor, developer, billing, customer service, blog) managed by admins in Account → Team access; every footer policy written in full and editable in the app by editors and admins, with earlier versions kept; a FAQ answer on the Google Books API, public-domain books and uploading DRM-free EPUBs; uploads keep working offline once opened | Done    |
-| —    | Disclaimer in the footer; the Cookie, Privacy and Accessibility policies rewritten from Termly's, adapted to what the app does |
-| —    | End User License Agreement in the footer, from Termly's, adapted to a web app with no app store or payment |
-| —    | Terms of Service rewritten from Termly's, adapted to what the app does |
-| —    | Acceptable Use Policy in the footer, from Termly's, adapted to what the app does |
-| —    | Termly consent banner and a *Consent Preferences* link in the footer; the Cookie Policy describes them |
-| —    | Return Policy in the footer, from Termly's, adapted to say no payment is taken yet |
+| —    | Disclaimer in the footer; the Cookie, Privacy and Accessibility policies rewritten from Termly's, adapted to what the app does | Done    |
+| —    | End User License Agreement in the footer, from Termly's, adapted to a web app with no app store or payment | Done    |
+| —    | Terms of Service rewritten from Termly's, adapted to what the app does | Done    |
+| —    | Acceptable Use Policy in the footer, from Termly's, adapted to what the app does | Done    |
+| —    | Termly consent banner and a *Consent Preferences* link in the footer; the Cookie Policy describes them | Done    |
+| —    | Return Policy in the footer, from Termly's, adapted to say no payment is taken yet | Done    |
+| —    | Copyright/DMCA page: report content, copyright infringement and Acceptable Use questions to report@literaryworm.com | Done    |
+| —    | Termly's *Do Not Sell or Share My Personal information* and *Limit the Use Of My Sensitive Personal Information* links in the footer | Done    |
+| —    | `drawsql.png` re-rendered and `schema.sql` regenerated; live Supabase checked against both (every table, column, index and migration) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
