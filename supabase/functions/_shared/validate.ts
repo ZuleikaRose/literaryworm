@@ -99,6 +99,16 @@ export function parseText(raw: unknown, field: string, min: number, max: number)
   return value;
 }
 
+/** A Stripe promotion code as a member types it: letters, numbers, - and _ (3–40 characters). */
+export function parsePromoCode(raw: unknown): string {
+  if (typeof raw !== "string") throw new HttpError("bad_request", "Enter a promo code.");
+  const code = raw.trim();
+  if (!/^[A-Za-z0-9_-]{3,40}$/.test(code)) {
+    throw new HttpError("bad_request", "Enter the code as it was given: 3 to 40 letters, numbers, - or _.");
+  }
+  return code;
+}
+
 /** Rejects fields the endpoint doesn't expect, so typos and probes fail loudly. */
 export function onlyKeys(body: Record<string, unknown>, allowed: string[]): void {
   const extra = Object.keys(body).filter((k) => !allowed.includes(k));

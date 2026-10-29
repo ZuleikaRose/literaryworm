@@ -68,6 +68,67 @@ export function statusFor(sub: Stripe.Subscription): "active" | "paused" | "canc
   return "active";
 }
 
+/** A promo code on a membership, as the member sees it (no Stripe ids). */
+export interface DiscountView {
+  code: string | null;
+  percentOff: number | null;
+  /** In the currency's smallest unit (cents). */
+  amountOff: number | null;
+  currency: string | null;
+  duration: (typeof DURATIONS)[number];
+  /** When a repeating discount stops; null for once and forever. */
+  ends: string | null;
+}
+
+const DURATIONS = ["once", "repeating", "forever"] as const;
+const INVOICE_STATUSES = ["paid", "open", "void", "uncollectible"] as const;
+
+/** The subscription's discount, from `discounts` expanded with `.source.coupon` and `.promotion_code`. */
+export function discountView(discounts: Array<string | Stripe.Discount>): DiscountView | null {
+  const discount = discounts.find((d): d is Stripe.Discount => typeof d !== "string");
+  const coupon = discount?.source.coupon;
+  if (!discount || !coupon || typeof coupon === "string") return null;
+  const duration = DURATIONS.find((d) => d === coupon.duration);
+  if (!duration) return null;
+  const promo = discount.promotion_code;
+  return {
+    code: promo && typeof promo !== "string" ? promo.code : null,
+    percentOff: coupon.percent_off,
+    amountOff: coupon.amount_off,
+    currency: coupon.currency,
+    duration,
+    ends: discount.end ? new Date(discount.end * 1000).toISOString() : null,
+  };
+}
+
+/** One charge in the billing history: amounts in the currency's smallest unit (cents). */
+export interface InvoiceView {
+  date: string;
+  amount: number;
+  currency: string;
+  status: (typeof INVOICE_STATUSES)[number];
+  /** How much promo codes took off this charge. */
+  discount: number;
+  /** Stripe's hosted page for the invoice and its receipt. */
+  url: string | null;
+}
+
+/** A finalised invoice as the member sees it; drafts (not yet sent) are left out. */
+export function invoiceView(invoice: Stripe.Invoice): InvoiceView | null {
+  // Drafts aren't sent yet; anything Stripe adds later is left out too.
+  const status = INVOICE_STATUSES.find((s) => s === invoice.status);
+  if (!status) return null;
+  const paidAt = invoice.status_transitions?.paid_at;
+  return {
+    date: new Date((paidAt ?? invoice.created) * 1000).toISOString(),
+    amount: status === "paid" ? invoice.amount_paid : invoice.amount_due,
+    currency: invoice.currency,
+    status,
+    discount: (invoice.total_discount_amounts ?? []).reduce((sum, d) => sum + d.amount, 0),
+    url: invoice.hosted_invoice_url ?? null,
+  };
+}
+
 /** The fields public.subscriptions keeps for a Stripe subscription. */
 export function subscriptionRow(sub: Stripe.Subscription) {
   const item = sub.items.data[0];

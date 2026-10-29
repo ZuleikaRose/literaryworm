@@ -291,7 +291,7 @@ export default function Plans() {
                     <Icon name="lock" size={17} />
                     <p>
                       Next, you'll enter your card on Stripe's secure payment page. Card details go straight to Stripe and never
-                      reach LiteraryWorm.
+                      reach LiteraryWorm. Have a promo code? Add it there.
                     </p>
                   </div>
                 )}

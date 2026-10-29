@@ -12,6 +12,10 @@
 //   { action: "billing_day", billingDay }    move the billing day (1-28): the days until the new
 //                                            date are free, so nothing is charged twice or lost
 //   { action: "payment_method" }             returns { url }: Stripe's page to add or change the card
+//   { action: "billing_history" }            returns { invoices, discount }: the last 24 charges
+//                                            (newest first) and the promo code on the membership
+//   { action: "promo_code", code }           applies a Stripe promotion code to the membership
+//                                            (replacing any it has); returns { discount }
 //   { action: "delete", password, confirm: true }
 //                                            cancels the plan, then deletes the user (and,
 //                                            by cascade, everything the account owns)
@@ -21,8 +25,8 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { nextBillingDay } from "../_shared/stripe.ts";
-import { onlyKeys, parseInt, parseText } from "../_shared/validate.ts";
+import { type DiscountView, type InvoiceView, nextBillingDay } from "../_shared/stripe.ts";
+import { onlyKeys, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 
 const METHODS = "POST";
 
@@ -51,6 +55,11 @@ export interface Billing {
   /** Moves the renewal to `until` (unix seconds), with no charge for the days before it. */
   moveRenewal: (subscriptionId: string, until: number) => Promise<void>;
   paymentMethodUrl: (customerId: string, returnUrl: string) => Promise<string>;
+  /** The customer's latest invoices, newest first. */
+  invoices: (customerId: string) => Promise<InvoiceView[]>;
+  discount: (subscriptionId: string) => Promise<DiscountView | null>;
+  /** Applies an active promotion code; null when there's no such code or Stripe won't apply it. */
+  redeem: (subscriptionId: string, code: string) => Promise<DiscountView | null>;
 }
 
 export interface Deps {
@@ -137,7 +146,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         return json(
           req,
           METHODS,
-          await deps.updateSubscription(user.id, { status: "active", cancel_at_period_end: true, current_period_end: ends }),
+          view(await deps.updateSubscription(user.id, { status: "active", cancel_at_period_end: true, current_period_end: ends })),
         );
       }
       case "restart": {
@@ -178,6 +187,28 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         }
         const url = await deps.billing.paymentMethodUrl(sub.stripe_customer_id, `${deps.siteOrigin(req)}/account#plan`);
         return json(req, METHODS, { url });
+      }
+      case "billing_history": {
+        onlyKeys(body, ["action"]);
+        const sub = await requireSubscription(deps, user.id);
+        if (sub.complimentary || !sub.stripe_customer_id) return json(req, METHODS, { invoices: [], discount: null });
+        const live = sub.stripe_subscription_id && sub.status !== "cancelled" ? sub.stripe_subscription_id : null;
+        const [invoices, discount] = await Promise.all([
+          deps.billing.invoices(sub.stripe_customer_id),
+          live ? deps.billing.discount(live) : null,
+        ]);
+        return json(req, METHODS, { invoices, discount });
+      }
+      case "promo_code": {
+        onlyKeys(body, ["action", "code"]);
+        const code = parsePromoCode(body.code);
+        const sub = await requirePaidSubscription(deps, user.id);
+        if (!sub.stripe_subscription_id || sub.status === "cancelled") {
+          throw new HttpError("bad_request", "Add a payment method first. You can also enter a code on Stripe's payment page.");
+        }
+        const discount = await deps.billing.redeem(sub.stripe_subscription_id, code);
+        if (!discount) throw new HttpError("bad_request", "That code isn't valid, has expired or can't be used on this membership.");
+        return json(req, METHODS, { discount });
       }
       case "delete": {
         onlyKeys(body, ["action", "password", "confirm"]);

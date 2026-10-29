@@ -1,6 +1,7 @@
 import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AccountPasswordField } from "../components/AccountPasswordField";
+import { BillingHistory } from "../components/BillingHistory";
 import { Avatar } from "../components/Avatar";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
@@ -358,6 +359,8 @@ function PlanSection({ account }: { account: AccountDetails }) {
         )}
       </div>
       <Feedback error={error} done={done} />
+
+      {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} />}
 
       <Dialog
         open={confirming !== null}

@@ -1,11 +1,21 @@
 // deno test --allow-env supabase/functions/manage-account — runs offline with stubbed auth and database.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
+import type { DiscountView, InvoiceView } from "../_shared/stripe.ts";
 import { type Deps, handle, nextBillingDate, type Subscription } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
 const USER = { id: "00000000-0000-0000-0000-00000000000a", email: "ann@example.com" };
 const NOW = new Date("2026-10-24T12:00:00Z");
+const INVOICE: InvoiceView = {
+  date: "2026-10-05T00:00:00.000Z",
+  amount: 1039,
+  currency: "usd",
+  status: "paid",
+  discount: 260,
+  url: "https://invoice.stripe.com/i/test_1",
+};
+const SPRING: DiscountView = { code: "SPRING20", percentOff: 20, amountOff: null, currency: null, duration: "repeating", ends: "2027-01-05T00:00:00.000Z" };
 
 function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
   const state = { sub, deleted: false, passwordChecks: 0, stripe: [] as string[] };
@@ -38,6 +48,18 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       paymentMethodUrl: (customer, returnUrl) => {
         state.stripe.push(`portal ${customer} ${returnUrl}`);
         return Promise.resolve("https://billing.stripe.com/p/session/test_1");
+      },
+      invoices: (customer) => {
+        state.stripe.push(`invoices ${customer}`);
+        return Promise.resolve([INVOICE]);
+      },
+      discount: (id) => {
+        state.stripe.push(`discount ${id}`);
+        return Promise.resolve(null);
+      },
+      redeem: (id, code) => {
+        state.stripe.push(`redeem ${id} ${code}`);
+        return Promise.resolve(code.toUpperCase() === "SPRING20" ? SPRING : null);
       },
     },
     siteOrigin: () => ORIGIN,
@@ -255,6 +277,59 @@ Deno.test("deleting the account cancels the Stripe subscription first", async ()
 Deno.test("responses never include Stripe's ids, only whether the membership is linked", async () => {
   const { deps } = setup(paid());
   const res = await call(deps, { action: "pause" });
+  assertEquals(res.body.stripe_linked, true);
+  assertEquals("stripe_subscription_id" in res.body || "stripe_customer_id" in res.body, false);
+});
+
+Deno.test("billing history lists the customer's charges and the promo code on the membership", async () => {
+  const { state, deps } = setup(paid());
+  const res = await call(deps, { action: "billing_history" });
+  assertEquals(res.status, 200);
+  assertEquals(res.body, { invoices: [INVOICE], discount: null });
+  assertEquals(state.stripe, ["invoices cus_1", "discount sub_1"]);
+  assertEquals((await call(deps, { action: "billing_history", extra: 1 })).status, 400);
+});
+
+Deno.test("billing history is empty with no Stripe customer or a complimentary membership, and still lists an ended one", async () => {
+  for (const sub of [active(), complimentary()]) {
+    const { state, deps } = setup(sub);
+    assertEquals((await call(deps, { action: "billing_history" })).body, { invoices: [], discount: null });
+    assertEquals(state.stripe, []);
+  }
+  const ended = setup({ ...paid(), status: "cancelled" });
+  assertEquals((await call(ended.deps, { action: "billing_history" })).body.invoices, [INVOICE]);
+  assertEquals(ended.state.stripe, ["invoices cus_1"]);
+  assertEquals((await call(setup(null).deps, { action: "billing_history" })).status, 404);
+});
+
+Deno.test("a promo code is applied to the Stripe subscription", async () => {
+  const { state, deps } = setup(paid());
+  const res = await call(deps, { action: "promo_code", code: "  spring20 " });
+  assertEquals(res.status, 200);
+  assertEquals(res.body, { discount: SPRING });
+  assertEquals(state.stripe, ["redeem sub_1 spring20"]);
+});
+
+Deno.test("unknown codes, bad input and memberships without Stripe are refused", async () => {
+  const { state, deps } = setup(paid());
+  const unknown = await call(deps, { action: "promo_code", code: "NOPE99" });
+  assertEquals(unknown.status, 400);
+  assertEquals(unknown.body.error.code, "bad_request");
+  for (const code of [undefined, 42, "ab", "x".repeat(41), "SPRING 20", "<script>"]) {
+    assertEquals((await call(deps, { action: "promo_code", code })).status, 400);
+  }
+  assertEquals((await call(deps, { action: "promo_code", code: "SPRING20", extra: true })).status, 400);
+  assertEquals(state.stripe, ["redeem sub_1 NOPE99"]);
+  for (const sub of [active(), complimentary(), { ...paid(), status: "cancelled" as const }]) {
+    const other = setup(sub);
+    assertEquals((await call(other.deps, { action: "promo_code", code: "SPRING20" })).status, 400);
+    assertEquals(other.state.stripe, []);
+  }
+});
+
+Deno.test("cancelling never sends Stripe's ids either", async () => {
+  const { deps } = setup(paid());
+  const res = await call(deps, { action: "cancel" });
   assertEquals(res.body.stripe_linked, true);
   assertEquals("stripe_subscription_id" in res.body || "stripe_customer_id" in res.body, false);
 });

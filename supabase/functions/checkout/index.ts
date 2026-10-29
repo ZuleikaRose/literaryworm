@@ -54,6 +54,8 @@ Deno.serve((req) =>
         customer: input.customerId,
         client_reference_id: input.userId,
         line_items: [{ price: await priceId(input.planId), quantity: 1 }],
+        // A box for Stripe promotion codes on the payment page.
+        allow_promotion_codes: true,
         subscription_data: {
           ...(input.billingCycleAnchor ? { billing_cycle_anchor: input.billingCycleAnchor, proration_behavior: "create_prorations" as const } : {}),
           metadata: { plan_id: input.planId },

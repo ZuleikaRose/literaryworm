@@ -155,6 +155,106 @@
   margin-top: 10px;
 }
 
+/* Plan and billing: promo code and billing history (components/BillingHistory.tsx). */
+.billing-history {
+  display: grid;
+  gap: 28px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.billing-history h3 {
+  margin: 16px 0 10px;
+  font-size: 1rem;
+}
+
+.promo-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--success);
+}
+
+.promo-current strong {
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+.promo-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 14px;
+}
+
+.promo-form .field {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+/* The button lines up with the input, below the label. */
+.promo-form .secondary-button {
+  margin-top: 26px;
+}
+
+.promo-code .form-success {
+  margin-top: 12px;
+}
+
+.invoice-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.invoice-row {
+  display: grid;
+  /* A fixed last column, so rows without a receipt line up with the rest. */
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: 8px 16px;
+  min-height: 56px;
+  padding: 8px 16px;
+  background: var(--surface);
+}
+
+.invoice-row + .invoice-row {
+  border-top: 1px solid var(--line);
+}
+
+.invoice-amount {
+  display: grid;
+  font-weight: 600;
+}
+
+.invoice-amount small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.invoice-open::before {
+  background: var(--star);
+}
+
+.invoice-void::before {
+  background: var(--faint);
+}
+
+.invoice-uncollectible::before {
+  background: var(--danger);
+}
+
+.invoice-row .text-button {
+  justify-self: end;
+  min-height: 44px;
+}
+
 .account-form {
   display: grid;
   width: 100%;
@@ -333,6 +433,19 @@
 
   .account-facts {
     grid-template-columns: 1fr;
+  }
+
+  .invoice-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invoice-amount {
+    justify-self: end;
+    text-align: end;
+  }
+
+  .promo-form .secondary-button {
+    margin-top: 0;
   }
 }
 

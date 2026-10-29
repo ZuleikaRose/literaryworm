@@ -673,8 +673,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 ### After Phase 22: paying with Stripe
 
-94. **Paying for a plan.** Choosing a plan shows the price, the billing day and the renewal terms, then *Continue to payment* opens Stripe's secure page. The first charge covers the days until the billing day; then the full price on that day each month. Back on LiteraryWorm, Plans waits a moment for the membership, then carries on to setting up profiles.
-95. **Plan and billing.** Account shows the plan, status and next charge, with *Update payment method* (Stripe's page), *Change billing day* (the days until the new date are free), *Pause*, *Resume*, *Cancel* and *Keep my membership*. A failed payment shows *Payment failed*. A member who chose a plan before billing started sees *Add a payment method* to continue.
+94. **Paying for a plan.** Choosing a plan shows the price, the billing day and the renewal terms, then *Continue to payment* opens Stripe's secure page, which also takes a promo code. The first charge covers the days until the billing day; then the full price on that day each month. Back on LiteraryWorm, Plans waits a moment for the membership, then carries on to setting up profiles.
+95. **Plan and billing.** Account shows the plan, status and next charge, with *Update payment method* (Stripe's page), *Change billing day* (the days until the new date are free), *Pause*, *Resume*, *Cancel* and *Keep my membership*. A failed payment shows *Payment failed*. A member who chose a plan before billing started sees *Add a payment method* to continue. Below them, *Promo code* shows the code on the membership and how long it lasts, with a box to add one (a new code replaces the old), and *Billing history* lists each charge from Stripe with its amount, any promo saving, whether it was paid, and a link to Stripe's receipt.
 96. **Staff.** Admin accounts have a complimentary membership and are never charged; Account says *Complimentary*.
 
 ### Where the build differs from the blueprint, and why

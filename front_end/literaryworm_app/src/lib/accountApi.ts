@@ -389,6 +389,43 @@ export async function paymentMethodUrl(): Promise<string> {
   return url;
 }
 
+/** One charge in the billing history; amounts in cents. */
+export interface BillingInvoice {
+  date: string;
+  amount: number;
+  currency: string;
+  status: "paid" | "open" | "void" | "uncollectible";
+  /** How much promo codes took off. */
+  discount: number;
+  /** Stripe's page for the invoice and receipt. */
+  url: string | null;
+}
+
+/** The promo code on the membership. */
+export interface MembershipDiscount {
+  code: string | null;
+  percentOff: number | null;
+  amountOff: number | null;
+  currency: string | null;
+  duration: "once" | "repeating" | "forever";
+  ends: string | null;
+}
+
+/** The last 24 charges (newest first) and the promo code on the membership, from Stripe. */
+export async function billingHistory(): Promise<{ invoices: BillingInvoice[]; discount: MembershipDiscount | null }> {
+  return callFunction("manage-account", { action: "billing_history" }, "We couldn't load your billing history. Try again.");
+}
+
+/** Applies a Stripe promotion code to the membership, replacing any it has. */
+export async function redeemPromoCode(code: string): Promise<MembershipDiscount> {
+  const { discount } = await callFunction<{ discount: MembershipDiscount }>(
+    "manage-account",
+    { action: "promo_code", code },
+    "We couldn't apply that code. Try again.",
+  );
+  return discount;
+}
+
 /** Deletes the account and everything it owns, after the function re-checks the password. */
 export async function deleteAccount(password: string): Promise<void> {
   await callFunction("manage-account", { action: "delete", password, confirm: true }, "We couldn't delete the account. Try again.");

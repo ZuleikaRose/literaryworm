@@ -1,8 +1,11 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { stripeClient } from "../_shared/stripe.ts";
+import { discountView, type InvoiceView, invoiceView, Stripe, stripeClient } from "../_shared/stripe.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
 import { handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
+
+// Enough of each discount to show it: the coupon's terms and the code the member typed.
+const DISCOUNT_EXPAND = ["discounts.source.coupon", "discounts.promotion_code"];
 
 const COLUMNS =
   "plan_id, status, billing_day, cancel_at_period_end, current_period_end, complimentary, stripe_subscription_id, stripe_customer_id";
@@ -27,6 +30,30 @@ Deno.serve((req) =>
           flow_data: { type: "payment_method_update" },
         });
         return session.url;
+      },
+      async invoices(customerId) {
+        const { data } = await stripeClient().invoices.list({ customer: customerId, limit: 24 });
+        return data.map(invoiceView).filter((i): i is InvoiceView => i !== null);
+      },
+      async discount(subscriptionId) {
+        const sub = await stripeClient().subscriptions.retrieve(subscriptionId, { expand: DISCOUNT_EXPAND });
+        return discountView(sub.discounts);
+      },
+      async redeem(subscriptionId, code) {
+        const stripe = stripeClient();
+        const { data } = await stripe.promotionCodes.list({ code, active: true, limit: 1 });
+        if (!data[0]) return null;
+        try {
+          const sub = await stripe.subscriptions.update(subscriptionId, {
+            discounts: [{ promotion_code: data[0].id }],
+            expand: DISCOUNT_EXPAND,
+          });
+          return discountView(sub.discounts);
+        } catch (err) {
+          // Expired, used up, first-time-only or minimum-amount codes: Stripe refuses them here.
+          if (err instanceof Stripe.errors.StripeInvalidRequestError) return null;
+          throw err;
+        }
       },
     },
     siteOrigin(req) {
