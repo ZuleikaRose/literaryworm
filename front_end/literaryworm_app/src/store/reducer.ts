@@ -52,7 +52,7 @@ export type Action =
   | { type: "setProfiles"; profiles: Profile[] }
   /** An in-memory account deleted itself. */
   | { type: "deleteAccount" }
-  | { type: "authChecked"; error?: string }
+  | { type: "authChecked"; error?: string; secondStep?: boolean }
   | { type: "signOut" }
   | { type: "choosePlan"; planId: PlanId; billingDay: number }
   | { type: "updateAccount"; patch: Partial<Account> }
@@ -201,6 +201,7 @@ export function reducer(state: AppState, action: Action): AppState {
           ),
           authReady: true,
           authError: null,
+          secondStep: false,
           account: action.account,
           accountLibrary: action.library,
           accountReading: action.reading,
@@ -220,6 +221,7 @@ export function reducer(state: AppState, action: Action): AppState {
         activeProfileId: carryOn ? only.id : null,
         authReady: true,
         authError: null,
+        secondStep: false,
         accountLibrary: action.library,
         accountReading: action.reading,
       };
@@ -236,7 +238,7 @@ export function reducer(state: AppState, action: Action): AppState {
     }
 
     case "authChecked":
-      return { ...state, authReady: true, authError: action.error ?? null };
+      return { ...state, authReady: true, authError: action.error ?? null, secondStep: action.secondStep ?? false };
 
     case "signIn": {
       const household = state.households[emailKey(action.email)];

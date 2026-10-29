@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; admins' memberships are complimentary and never billed; Stripe customers and events are server-only) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; admins' memberships are complimentary and never billed; Stripe customers and events are server-only) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs, and two-step sign-in (a password-only session reaches nothing of a member who turned it on). Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -485,6 +485,31 @@ select public.revoke_staff_role('b@test', 'admin');
 reset role;
 select pg_temp.check(not exists (select 1 from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'removing admin ends the complimentary membership: a plan must be chosen again');
 delete from auth.users where id = '00000000-0000-0000-0000-00000000000e';
+
+-- Two-step sign-in: with a verified factor, a password-only session reaches nothing of Ann's
+insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at)
+values ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-00000000000a', 'Authenticator app', 'totp', 'verified', now(), now());
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal1"}';
+select pg_temp.check(not public.second_step_done(), 'a password-only session isn''t enough once two-step sign-in is on');
+select pg_temp.check((select count(*) from public.reader_profiles) = 0, 'without the code, Ann sees none of her profiles');
+select pg_temp.check((select count(*) from public.library_items) = 0, 'without the code, Ann sees none of her library');
+select pg_temp.check((select count(*) from public.subscriptions) = 0, 'without the code, Ann can''t see her membership');
+select pg_temp.check((select count(*) from public.profiles) > 0, 'display names stay public without the code');
+select pg_temp.expect_error($$insert into public.logs (user_id, volume_id, body) values ('00000000-0000-0000-0000-00000000000a', 'abc', 'hi')$$, 'writing a log without the code');
+select pg_temp.expect_error($$select public.join_club('ABCDEFGHIJ')$$, 'joining a club without the code');
+select pg_temp.check(not public.has_staff_role('admin'), 'staff roles need the code too');
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+select pg_temp.check(public.second_step_done(), 'the code completes sign-in');
+select pg_temp.check((select count(*) from public.reader_profiles) > 0, 'with the code, Ann sees her profiles');
+reset role;
+reset request.jwt.claims;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check(public.second_step_done(), 'members without two-step sign-in are unaffected');
+reset role;
+delete from auth.mfa_factors where id = '00000000-0000-0000-0000-0000000000f1';
 
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (

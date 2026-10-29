@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useId, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AccountPasswordField } from "../components/AccountPasswordField";
 import { Avatar } from "../components/Avatar";
@@ -11,7 +11,19 @@ import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
 import { formatPrice, planById } from "../data/plans";
-import { AccountError, changeBillingDay, choosePlan, type MembershipAction, paymentMethodUrl } from "../lib/accountApi";
+import {
+  AccountError,
+  cancelTwoStep,
+  changeBillingDay,
+  choosePlan,
+  finishTwoStep,
+  type MembershipAction,
+  paymentMethodUrl,
+  startTwoStep,
+  turnOffTwoStep,
+  type TwoStepSetup,
+  twoStepIsOn,
+} from "../lib/accountApi";
 import { endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { useAccount } from "../lib/useAccount";
@@ -458,7 +470,206 @@ function SignInSection({ account }: { account: AccountDetails }) {
         </button>
         <Feedback error={password.error} done={password.done} />
       </form>
+
+      <TwoStepSignIn account={account} />
     </Section>
+  );
+}
+
+/** Groups the set-up key in fours so it's easier to type into an app. */
+const groupKey = (key: string) => key.replace(/(.{4})/g, "$1 ").trim();
+
+function TwoStepSignIn({ account }: { account: AccountDetails }) {
+  const { remote } = useAccount();
+  const [on, setOn] = useState<boolean | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [setup, setSetup] = useState<TwoStepSetup | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [offOpen, setOffOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [offCode, setOffCode] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const start = useAttempt();
+  const turnOff = useAttempt();
+  const codeRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!remote) return;
+    let live = true;
+    twoStepIsOn().then(
+      (value) => live && setOn(value),
+      () => live && setLoadError("We couldn't check your two-step sign-in. Refresh the page to try again."),
+    );
+    return () => {
+      live = false;
+    };
+  }, [remote]);
+
+  if (!remote) {
+    return (
+      <div className="account-form">
+        <h3>Two-step sign-in</h3>
+        <p className="field-hint">
+          {account.isDemo ? "The demo household can't turn on two-step sign-in." : "Two-step sign-in needs a LiteraryWorm account."}
+        </p>
+      </div>
+    );
+  }
+
+  const openSetup = async () => {
+    setNotice(null);
+    setCode("");
+    setCodeError(null);
+    setSetupOpen(true);
+    await start.attempt(async () => setSetup(await startTwoStep()));
+  };
+
+  const closeSetup = () => {
+    setSetupOpen(false);
+    // An unfinished set-up changes nothing; tidy it away (the next set-up clears it if this fails).
+    if (setup) cancelTwoStep(setup.factorId).catch((err: Error) => console.error("two-step:", err.message));
+    setSetup(null);
+  };
+
+  const confirmCode = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!setup) return;
+    const digits = code.replace(/\s/g, "");
+    if (!/^\d{6}$/.test(digits)) {
+      setCodeError("Enter the 6-digit code from your authenticator app.");
+      codeRef.current?.focus();
+      return;
+    }
+    setCodeError(null);
+    const ok = await start.attempt(() => finishTwoStep(setup.factorId, digits));
+    if (ok) {
+      setSetup(null);
+      setSetupOpen(false);
+      setOn(true);
+      setNotice("Two-step sign-in is on. You'll enter a code from the app each time you log in.");
+    } else {
+      codeRef.current?.focus();
+    }
+  };
+
+  const confirmOff = async (e: FormEvent) => {
+    e.preventDefault();
+    const digits = offCode.replace(/\s/g, "");
+    if (!/^\d{6}$/.test(digits)) {
+      turnOff.setError("Enter the 6-digit code from your authenticator app.");
+      return;
+    }
+    const ok = await turnOff.attempt(() => turnOffTwoStep(digits));
+    if (ok) {
+      setOffOpen(false);
+      setOffCode("");
+      setOn(false);
+      setNotice("Two-step sign-in is off. Your password alone logs you in.");
+    }
+  };
+
+  return (
+    <div className="account-form">
+      <h3>Two-step sign-in</h3>
+      <p className="field-hint">
+        After your password, enter a code from an authenticator app on your phone (such as Google Authenticator, Microsoft
+        Authenticator or 1Password), so your password alone can't open your account.
+      </p>
+      {on !== null && (
+        <div className="account-fact-row">
+          <span>Status</span>
+          <strong>{on ? "On" : "Off"}</strong>
+        </div>
+      )}
+      {on === false && (
+        <button type="button" className="secondary-button" onClick={openSetup}>
+          Turn on two-step sign-in
+        </button>
+      )}
+      {on && (
+        <button type="button" className="secondary-button" onClick={() => setOffOpen(true)}>
+          Turn off two-step sign-in
+        </button>
+      )}
+      <Feedback error={loadError} done={notice} />
+
+      <Dialog
+        open={setupOpen}
+        onClose={closeSetup}
+        size="sm"
+        eyebrow="Two-step sign-in"
+        title="Set up your authenticator app"
+        description={<p>Scan the QR code with the app, then enter the 6-digit code it shows.</p>}
+      >
+        {!setup ? (
+          start.error ? <Feedback error={start.error} done={null} /> : <p aria-busy="true">Getting your QR code…</p>
+        ) : (
+          <form noValidate onSubmit={confirmCode} className="two-step-form">
+            <img className="two-step-qr" src={setup.qrCode} width={180} height={180} alt="QR code to add LiteraryWorm to your authenticator app" />
+            <p className="field-hint">
+              Can't scan it? Choose to enter a key in the app, and type: <code className="two-step-key">{groupKey(setup.key)}</code>
+            </p>
+            <Field
+              ref={codeRef}
+              label="6-digit code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={7}
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setCodeError(null);
+              }}
+              error={codeError ?? start.error}
+            />
+            <div className="modal-actions">
+              <button type="submit" className="primary-button" disabled={start.busy}>
+                {start.busy ? "Checking…" : "Turn on"}
+              </button>
+              <button type="button" className="secondary-button" onClick={closeSetup}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </Dialog>
+
+      <Dialog
+        open={offOpen}
+        onClose={() => {
+          setOffOpen(false);
+          turnOff.setError(null);
+        }}
+        size="sm"
+        eyebrow="Two-step sign-in"
+        title="Turn off two-step sign-in?"
+        description={<p>Enter a current code from your authenticator app. Your password alone will then log you in. You can turn it back on at any time.</p>}
+      >
+        <form noValidate onSubmit={confirmOff} className="two-step-form">
+          <Field
+            label="6-digit code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={7}
+            value={offCode}
+            onChange={(e) => {
+              setOffCode(e.target.value);
+              turnOff.setError(null);
+            }}
+            error={turnOff.error}
+          />
+          <div className="modal-actions">
+            <button type="submit" className="danger-button" disabled={turnOff.busy}>
+              {turnOff.busy ? "Turning off…" : "Turn off"}
+            </button>
+            <button type="button" className="secondary-button" onClick={() => setOffOpen(false)}>
+              Keep it on
+            </button>
+          </div>
+        </form>
+      </Dialog>
+    </div>
   );
 }
 

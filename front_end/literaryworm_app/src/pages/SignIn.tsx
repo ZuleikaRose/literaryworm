@@ -34,6 +34,9 @@ export default function SignIn() {
   if (state.account)
     return <Navigate to={state.account.planId ? "/profiles" : "/plans?setup=1"} replace state={from ? { from } : undefined} />;
 
+  // The password was right; two-step sign-in asks for the code before the account loads.
+  if (state.secondStep) return <SecondStep />;
+
   const afterSignIn = () => navigate("/profiles", { replace: true, state: from ? { from } : undefined });
 
   // Real accounts sign in through Supabase; the demo (and every account without a backend) stays in memory.
@@ -216,6 +219,76 @@ export default function SignIn() {
       <p className="auth-note">
         Opens a sample household with three profiles. You can also log in with <strong>{DEMO_EMAIL}</strong> and{" "}
         <strong>{DEMO_ACCOUNT_PASSWORD}</strong>. The demo can't make payments.
+      </p>
+    </AuthCard>
+  );
+}
+
+/** The second step of logging in: a 6-digit code from the member's authenticator app. */
+function SecondStep() {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const codeRef = useRef<HTMLInputElement>(null);
+  useTitle("Enter your code");
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const digits = code.replace(/\s/g, "");
+    if (!/^\d{6}$/.test(digits)) {
+      setError("Enter the 6-digit code from your authenticator app.");
+      codeRef.current?.focus();
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await accountApi.verifySecondStep(digits);
+      // useAuthSync loads the account; the log-in page then moves on.
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setBusy(false);
+      codeRef.current?.focus();
+    }
+  };
+
+  return (
+    <AuthCard
+      eyebrow="Two-step sign-in"
+      title="Enter your code"
+      intro={<p>Open your authenticator app and enter the 6-digit code it shows for LiteraryWorm.</p>}
+      footer={
+        <>
+          <span>Not you, or no access to the app?</span>
+          <button type="button" onClick={() => void accountApi.signOut()}>
+            Log out
+          </button>
+        </>
+      }
+    >
+      <form className="auth-form" noValidate onSubmit={submit}>
+        <Field
+          ref={codeRef}
+          label="6-digit code"
+          hint="The code changes every 30 seconds. Use the newest one."
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={7}
+          autoFocus
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value);
+            setError(null);
+          }}
+          error={error}
+        />
+        <button type="submit" className="primary-button auth-submit" disabled={busy}>
+          {busy ? "Checking…" : "Log in"}
+        </button>
+      </form>
+      <p className="auth-note">
+        Lost the phone with your app? Write to <a href="mailto:support@literaryworm.com">support@literaryworm.com</a> from
+        your account's email and we'll help you back in.
       </p>
     </AuthCard>
   );

@@ -106,3 +106,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Admin accounts never billed: Account → Plan and billing shows a complimentary membership with no next charge; Plans offers admins no paid plan |
 | — | Termly consent banner (first script in `index.html`), *Consent Preferences* in the footer; Google Books covers marked essential so they load when visitors decline |
 | — | Playback speed saved per profile with the other player settings (`reader_profiles.playback_speed`, migration 2000) |
+| — | Two-step sign-in: Account → Sign-in turns it on or off (authenticator app, QR code or key); the log-in page asks for the code (`lib/accountApi.ts`, `pages/SignIn.tsx`); the database and functions refuse a password-only session (migration 2100) |

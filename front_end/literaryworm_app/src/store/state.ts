@@ -33,6 +33,8 @@ export interface AppState {
   authReady: boolean;
   /** Set when a saved session couldn't be restored (offline, database down), so the log-in page can say why. */
   authError: string | null;
+  /** A session has the password but still needs the code from the member's authenticator app. */
+  secondStep: boolean;
   /** A real account's library (library_items), shared by its household profiles. */
   accountLibrary: Record<string, LibraryEntry>;
   /** A real account's progress, bookmarks and highlights (reading_progress, bookmarks, highlights), shared like the library. */
@@ -221,6 +223,7 @@ export function demoHousehold(): Household {
 export const initialState: AppState = {
   authReady: !usesBackend,
   authError: null,
+  secondStep: false,
   accountLibrary: {},
   accountReading: emptyReading(),
   account: null,

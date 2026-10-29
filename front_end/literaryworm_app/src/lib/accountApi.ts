@@ -16,7 +16,7 @@ import type {
   RatingValue,
   ReadingStatus,
 } from "../types";
-import { SUPABASE_URL } from "./backend";
+import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { defaultPlayerSettings } from "./reading";
 import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
@@ -161,19 +161,108 @@ export async function setNewPassword(password: string): Promise<void> {
  * Checks the account password again (grown-up gates). The same account stays signed in.
  * Resolves false for a wrong password; throws an AccountError when the check couldn't run
  * (offline, rate limited), so the gate can say so instead of "wrong password".
+ *
+ * Asks Auth directly and drops the session it returns: signing in on the app's client would
+ * replace the member's session with a password-only one, undoing two-step sign-in.
  */
 export async function verifyPassword(email: string, password: string): Promise<boolean> {
   if (!password) return false;
-  let error: Parameters<typeof authMessage>[0] | null;
+  if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new AccountError(OFFLINE);
+  let res: Response;
   try {
-    ({ error } = await client().auth.signInWithPassword({ email, password }));
+    res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: { apikey: PUBLISHABLE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
   } catch {
     throw new AccountError(OFFLINE);
   }
-  if (!error) return true;
+  if (res.ok) return true;
   // 400 is Supabase's answer for a wrong email or password.
-  if (error.status === 400 || (error.message ?? "").toLowerCase().includes("invalid login")) return false;
-  throw new AccountError(authMessage(error));
+  if (res.status === 400) return false;
+  throw new AccountError(authMessage({ status: res.status }));
+}
+
+// --- Two-step sign-in (Supabase Auth MFA: an authenticator app's 6-digit codes) ---
+
+/** True when this session has the password but still needs the code from the authenticator app. */
+export async function secondStepNeeded(): Promise<boolean> {
+  const { data, error } = await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error) throw new AccountError(OFFLINE);
+  return data.currentLevel === "aal1" && data.nextLevel === "aal2";
+}
+
+function codeMessage(error: { message?: string; status?: number; code?: string }): string {
+  if (error.status === 429) return "Too many tries in a short time. Wait a few minutes, then try again.";
+  if (error.code === "mfa_verification_failed" || error.status === 422 || error.status === 400)
+    return "That code isn't right. Check the app and enter the newest code.";
+  if ((error.message ?? "").toLowerCase().includes("fetch")) return OFFLINE;
+  return "We couldn't check the code. Try again in a moment.";
+}
+
+async function verifiedFactors() {
+  const { data, error } = await client().auth.mfa.listFactors();
+  if (error) throw new AccountError("We couldn't check your two-step sign-in. Try again.");
+  return data.totp.filter((f) => f.status === "verified");
+}
+
+/** Finishes logging in with a code from the authenticator app. */
+export async function verifySecondStep(code: string): Promise<void> {
+  const [factor] = await verifiedFactors();
+  if (!factor) throw new AccountError("Two-step sign-in isn't set up for this account. Log in again.");
+  const { error } = await client().auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+  if (error) throw new AccountError(codeMessage(error));
+}
+
+/** Whether two-step sign-in is on for this account. */
+export async function twoStepIsOn(): Promise<boolean> {
+  return (await verifiedFactors()).length > 0;
+}
+
+export interface TwoStepSetup {
+  factorId: string;
+  /** The QR code to scan, as an SVG data URL. */
+  qrCode: string;
+  /** The same key, for typing into the app by hand. */
+  key: string;
+}
+
+/** Starts setting up an authenticator app. Nothing changes until finishTwoStep() checks a code from it. */
+export async function startTwoStep(): Promise<TwoStepSetup> {
+  const db = client();
+  // A set-up left unfinished blocks a new one with the same name: clear it first. If that fails,
+  // enroll() below fails too and says so.
+  const { data: listed, error: listError } = await db.auth.mfa.listFactors();
+  if (listError) console.error("two-step: couldn't list factors:", listError.message);
+  for (const f of listed?.all ?? []) {
+    if (f.factor_type !== "totp" || f.status !== "unverified") continue;
+    const { error } = await db.auth.mfa.unenroll({ factorId: f.id });
+    if (error) console.error("two-step: couldn't clear an unfinished set-up:", error.message);
+  }
+  const { data, error } = await db.auth.mfa.enroll({ factorType: "totp", friendlyName: "Authenticator app", issuer: "LiteraryWorm" });
+  if (error || !data) throw new AccountError("We couldn't start two-step sign-in. Try again in a moment.");
+  return { factorId: data.id, qrCode: data.totp.qr_code, key: data.totp.secret };
+}
+
+export async function finishTwoStep(factorId: string, code: string): Promise<void> {
+  const { error } = await client().auth.mfa.challengeAndVerify({ factorId, code });
+  if (error) throw new AccountError(codeMessage(error));
+}
+
+/** Drops a set-up that wasn't finished (the next startTwoStep() clears it otherwise). */
+export async function cancelTwoStep(factorId: string): Promise<void> {
+  const { error } = await client().auth.mfa.unenroll({ factorId });
+  if (error) throw new AccountError("We couldn't clear the unfinished set-up.");
+}
+
+/** Turns two-step sign-in off after checking a current code from the app. */
+export async function turnOffTwoStep(code: string): Promise<void> {
+  await verifySecondStep(code);
+  for (const f of await verifiedFactors()) {
+    const { error } = await client().auth.mfa.unenroll({ factorId: f.id });
+    if (error) throw new AccountError("We couldn't turn off two-step sign-in. Try again.");
+  }
 }
 
 /** The signed-in account: public display name, private details and plan. */

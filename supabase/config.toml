@@ -35,3 +35,8 @@ verify_jwt = false
 # Called by Stripe, which sends no Supabase token: every request's Stripe-Signature is
 # checked against STRIPE_WEBHOOK_SECRET instead, and unsigned or forged events are refused.
 verify_jwt = false
+
+# Two-step sign-in with an authenticator app (on by default on hosted projects; the CLI's default is off).
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true

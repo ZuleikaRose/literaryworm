@@ -295,6 +295,29 @@
   margin-top: 4px;
 }
 
+.two-step-form {
+  display: grid;
+  gap: 16px;
+}
+
+/* A light square in every theme, so authenticator apps can read the dark modules. */
+.two-step-qr {
+  justify-self: center;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--paper-light);
+}
+
+.two-step-key {
+  display: block;
+  margin-top: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.9375rem;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 .landing-notice {
   max-width: var(--content-max);
   margin: 20px auto 0;
