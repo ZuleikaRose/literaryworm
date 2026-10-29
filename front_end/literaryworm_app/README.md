@@ -100,3 +100,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | 22 | Staff roles and Account → Team access (`lib/staff.ts`, `lib/staffApi.ts`, `components/TeamAccess.tsx`); editable policies (`lib/useLegalPages.ts`, `components/LegalEditor.tsx`, built-in copy in `data/legalPages.json`); FAQ on where the books come from; offline uploads (`lib/uploadCache.ts`) |
 | — | Disclaimer at `/legal/disclaimer`, in the footer; the Cookie, Privacy and Accessibility policies rewritten from Termly's |
 | — | End User License Agreement at `/legal/eula`, in the footer after the Terms of Service, from Termly's, adapted to a web app |
+| — | Terms of Service rewritten from Termly's, keeping our own sections and their narrow licence for what members post |
