@@ -99,7 +99,7 @@
           "Personal Information Provided by You. The personal information that we collect depends on the context of your interactions with us and the Services, the choices you make, and the products and features you use. It includes your email address, display name, password, date of birth, contact preferences (marketing emails) and authentication data, and what you read, save and share in the app.",
           "Section 18 lists exactly what we keep.",
           "Sensitive Information. We do not collect biometric data, financial data, or other special categories of personal information.",
-          "Payment Data. Payments are handled by Stripe (https://stripe.com/privacy), which collects and stores your card details; we never see or store your full card number. We keep the plan you chose, your billing day, Stripe's ids for your customer record and subscription, and whether each payment succeeded.",
+          "Payment Data. Payments are handled by Stripe (https://stripe.com/privacy), which collects and stores your card details; we never see or store your full card number. We keep the plan you chose, your billing day, Stripe's ids for your customer record and subscription, and whether each payment succeeded. If you buy a gift membership, we keep its code, plan, number of months and price, and whether and when it was redeemed; only the buyer can see the code, and we record which account redeemed it.",
           "Social Media Login Data. We don't offer registration or log in with social media accounts.",
           "All personal information that you provide to us must be true, complete, and accurate, and you must notify us of any changes to such personal information.",
           "Information automatically collected. In Short: Some information — such as your Internet Protocol (IP) address and browser and device characteristics — is collected automatically when you visit our Services.",
@@ -235,7 +235,7 @@
           "A. Identifiers (such as name, alias, online identifier, Internet Protocol address, email address, and account name): YES. Your email address, display name, account id, and IP address in our providers' logs.",
           "B. Personal information as defined in the California Customer Records statute (name, contact information, education, employment, employment history, and financial information): YES, your display name and email address only.",
           "C. Protected classification characteristics under state or federal law (gender, age, date of birth, race and ethnicity, national origin, marital status, and other demographic data): YES, your date of birth only, to confirm you're 18 or over.",
-          "D. Commercial information (transaction information, purchase history, financial details, and payment information): YES. Your plan, billing day and payment history (amounts, dates and whether each payment succeeded), with Stripe's ids for your customer record and subscription. Card details are held by Stripe, not us.",
+          "D. Commercial information (transaction information, purchase history, financial details, and payment information): YES. Your plan, billing day and payment history (amounts, dates and whether each payment succeeded), gift memberships you bought or redeemed (plan, months, price and when redeemed), with Stripe's ids for your customer record and subscription. Card details are held by Stripe, not us.",
           "E. Biometric information (fingerprints and voiceprints): NO.",
           "F. Internet or other similar network activity (browsing history, search history, online behavior, interest data, and interactions with our and other websites, applications, systems, and advertisements): YES, within LiteraryWorm only: your searches and reading activity on our Services. Not your activity on other websites.",
           "G. Geolocation data (device location): NO.",
@@ -1142,7 +1142,7 @@
         "heading": "Refunds",
         "paragraphs": [
           "This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly until you cancel. Add a payment method in Account → Plan and billing to continue your membership. You can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account.",
-          "All sales are final and no refund will be issued. You can cancel at any time from Account; your plan stays active until the end of the period you've paid for, and you won't be charged again. You can also pause your membership, which stops billing until you resume.",
+          "All sales are final and no refund will be issued. You can cancel at any time from Account; your plan stays active until the end of the period you've paid for, and you won't be charged again. You can also pause your membership, which stops billing until you resume.", "Gift memberships are paid once and are final too. A gift code doesn't expire, works once, and can't be exchanged for cash or refunded. Redeeming one gives its months free on the gift's plan; when they end, the membership ends unless a card has been added, and then it renews monthly until you cancel.",
           "This doesn't affect any rights you have under the law where you live."
         ]
       },

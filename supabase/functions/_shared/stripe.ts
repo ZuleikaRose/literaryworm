@@ -18,6 +18,36 @@ export const PRICE_LOOKUP_KEY: Record<PlanId, string> = {
   premium: "literaryworm_premium_monthly",
 };
 
+/** How many months a gift can be bought for. */
+export const GIFT_MONTHS = [1, 3, 6, 12] as const;
+export type GiftMonths = (typeof GIFT_MONTHS)[number];
+
+/** Plan names as members see them. */
+export const PLAN_NAMES: Record<PlanId, string> = { basic: "Basic", standard: "Standard", premium: "Premium" };
+
+// 32 letters and digits with no 0/O or 1/I, so a code read aloud or copied by hand stays right.
+const GIFT_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+/** A new gift code: 16 characters, 80 random bits (each byte maps evenly onto the 32 characters). */
+export function giftCode(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => GIFT_ALPHABET[b % 32]).join("");
+}
+
+/**
+ * `months` after `from` (midnight UTC), as the date the gift's free months run to. Billing days
+ * run 1–28, so a date on the 29th to 31st moves on to the 1st of the next month (a few days more,
+ * never fewer).
+ */
+export function addGiftMonths(from: Date, months: number): Date {
+  const date = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + months, from.getUTCDate()));
+  // Date.UTC rolls an overlong day into the next month (31 January + 1 month is 3 March).
+  const intended = (from.getUTCMonth() + months) % 12;
+  if (date.getUTCMonth() !== intended || date.getUTCDate() > 28) {
+    return new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + months + 1, 1));
+  }
+  return date;
+}
+
 export function planForLookupKey(key: string | null | undefined): PlanId | null {
   return (Object.keys(PRICE_LOOKUP_KEY) as PlanId[]).find((p) => PRICE_LOOKUP_KEY[p] === key) ?? null;
 }
@@ -135,9 +165,12 @@ export function subscriptionRow(sub: Stripe.Subscription) {
   const plan = planForLookupKey(item?.price.lookup_key);
   if (!plan) throw new Error(`Subscription ${sub.id} has a price with no LiteraryWorm plan`);
   const periodEnd = item.current_period_end;
+  // Set by manage-account when a gift's free months are applied; shown only while they last.
+  const giftUntil = Number(sub.metadata?.gift_until);
   return {
     plan_id: plan,
     status: statusFor(sub),
+    gift_until: sub.status === "trialing" && giftUntil > 0 ? new Date(giftUntil * 1000).toISOString() : null,
     billing_day: new Date(sub.billing_cycle_anchor * 1000).getUTCDate(),
     cancel_at_period_end: sub.cancel_at_period_end,
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,

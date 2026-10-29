@@ -1,7 +1,12 @@
-// POST /functions/v1/checkout — start a membership or change plan.
+// POST /functions/v1/checkout — start a membership, change plan, or buy a gift.
 // Requires a signed-in account (JWT). Subscriptions are never written from the browser.
 //
 //   { planId: "basic" | "standard" | "premium", billingDay: 1-28, renewalTermsAccepted: true, setup?: true }
+//   { gift: true, planId, months: 1 | 3 | 6 | 12 }
+//
+// A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, nothing
+// recurring): this returns { url }, and once Stripe confirms payment the stripe-webhook function
+// makes the gift code, which the buyer sees in /gifts. Stripe sends them back to /gifts?checkout=success.
 //
 // Stripe sends the member back to /plans?checkout=success (with &setup=1 during sign-up), where
 // the page waits for the webhook to write the membership.
@@ -17,7 +22,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { nextBillingDay, PLANS, type PlanId } from "../_shared/stripe.ts";
+import { GIFT_MONTHS, type GiftMonths, nextBillingDay, PLANS, type PlanId } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -40,6 +45,14 @@ export interface CheckoutInput {
   setup: boolean;
 }
 
+export interface GiftCheckoutInput {
+  customerId: string;
+  userId: string;
+  planId: PlanId;
+  months: GiftMonths;
+  origin: string;
+}
+
 export interface Deps {
   requireUser: (req: Request) => Promise<{ id: string; email?: string }>;
   rateLimit: (userId: string) => Promise<void>;
@@ -48,6 +61,7 @@ export interface Deps {
   /** The account's Stripe Customer, created (and remembered) the first time. */
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
   createCheckout: (input: CheckoutInput) => Promise<string>;
+  createGiftCheckout: (input: GiftCheckoutInput) => Promise<string>;
   changePlan: (subscriptionId: string, planId: PlanId) => Promise<void>;
   /** The site to send the member back to: the request's origin when it's allowed. */
   siteOrigin: (req: Request) => string;
@@ -66,6 +80,26 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       throw new HttpError("bad_request", "Admin accounts have a complimentary membership and are never charged.");
     }
     const body = await readJsonBody(req);
+    if (body.gift !== undefined) {
+      onlyKeys(body, ["gift", "planId", "months"]);
+      if (body.gift !== true) throw new HttpError("bad_request", "gift is true when buying a gift.");
+      if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {
+        throw new HttpError("bad_request", "Pick Basic, Standard or Premium.");
+      }
+      const months = body.months;
+      if (typeof months !== "number" || !GIFT_MONTHS.includes(months as GiftMonths)) {
+        throw new HttpError("bad_request", "Pick 1, 3, 6 or 12 months.");
+      }
+      const customerId = await deps.customerFor(user.id, user.email);
+      const url = await deps.createGiftCheckout({
+        customerId,
+        userId: user.id,
+        planId: body.planId as PlanId,
+        months: months as GiftMonths,
+        origin: deps.siteOrigin(req),
+      });
+      return json(req, METHODS, { url });
+    }
     onlyKeys(body, ["planId", "billingDay", "renewalTermsAccepted", "setup"]);
     if (body.setup !== undefined && typeof body.setup !== "boolean") throw new HttpError("bad_request", "setup is true or false.");
     if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {

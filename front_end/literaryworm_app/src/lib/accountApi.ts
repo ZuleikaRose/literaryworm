@@ -323,14 +323,21 @@ interface SubscriptionRow {
   current_period_end: string | null;
   complimentary: boolean;
   stripe_linked: boolean;
+  gift_until: string | null;
 }
 
-const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, complimentary, stripe_linked";
+const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, complimentary, stripe_linked, gift_until";
+
+type PlanFields = Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil">;
+
+/** The plan fields of a freshly loaded account, to update the store with. */
+export function planFields(a: Account): PlanFields {
+  const { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil } = a;
+  return { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil };
+}
 
 /** The account's plan fields from a subscriptions row (or none yet). */
-function fromSubscription(
-  row: SubscriptionRow | null,
-): Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue"> {
+function fromSubscription(row: SubscriptionRow | null): PlanFields {
   const status = row?.status;
   return {
     planId: (row?.plan_id as PlanId | undefined) ?? null,
@@ -340,6 +347,8 @@ function fromSubscription(
     complimentary: row?.complimentary ?? false,
     stripeLinked: row?.stripe_linked ?? false,
     pastDue: status === "past_due",
+    // Only while the free months last.
+    giftUntil: row?.gift_until && new Date(row.gift_until) > new Date() ? row.gift_until : null,
   };
 }
 
@@ -448,6 +457,67 @@ export async function redeemPromoCode(code: string): Promise<MembershipDiscount>
     "We couldn't apply that code. Try again.",
   );
   return discount;
+}
+
+// --- Gifts (checkout and manage-account functions; gift_codes) ---------------------------
+
+/** Starts paying for a gift on Stripe Checkout; returns the page to send the member to. */
+export async function buyGift(planId: PlanId, months: number): Promise<string> {
+  const { url } = await callFunction<{ url: string }>("checkout", { gift: true, planId, months }, "We couldn't start the payment. Try again.");
+  return url;
+}
+
+export interface BoughtGift {
+  id: string;
+  code: string;
+  planId: PlanId;
+  months: number;
+  amountCents: number;
+  currency: string;
+  redeemedAt: string | null;
+  createdAt: string;
+}
+
+/** The gift codes this account bought, newest first (only the buyer can read them). */
+export async function myGifts(): Promise<BoughtGift[]> {
+  const { data, error } = await client()
+    .from("gift_codes")
+    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new AccountError("We couldn't load your gifts. Try again.");
+  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string }[]).map((g) => ({
+    id: g.id,
+    code: g.code,
+    planId: g.plan_id,
+    months: g.months,
+    amountCents: g.amount_cents,
+    currency: g.currency,
+    redeemedAt: g.redeemed_at,
+    createdAt: g.created_at,
+  }));
+}
+
+export interface RedeemedGift {
+  planId: PlanId;
+  months: number;
+  /** When the free months end. */
+  until: string;
+  /** The membership's new plan fields, when the gift went on an existing membership. */
+  plan: PlanFields | null;
+}
+
+/**
+ * Redeems a gift code. On a membership it moves the next charge back; without one, Stripe starts
+ * a membership free for the months (`renewalTermsAccepted`: the member agreed to what happens
+ * after), which the webhook writes a moment later (`plan` is null then).
+ */
+export async function redeemGift(code: string, renewalTermsAccepted: boolean): Promise<RedeemedGift> {
+  const res = await callFunction<{ gift: { planId: PlanId; months: number; until: string }; subscription?: SubscriptionRow }>(
+    "manage-account",
+    { action: "gift", code, ...(renewalTermsAccepted ? { renewalTermsAccepted: true } : {}) },
+    "We couldn't redeem that gift. Try again.",
+  );
+  return { ...res.gift, plan: res.subscription ? fromSubscription(res.subscription) : null };
 }
 
 /** Deletes the account and everything it owns, after the function re-checks the password. */

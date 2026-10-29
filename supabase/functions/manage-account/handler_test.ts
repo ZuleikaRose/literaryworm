@@ -2,7 +2,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
 import type { DiscountView, InvoiceView } from "../_shared/stripe.ts";
-import { type Deps, handle, nextBillingDate, type Subscription } from "./handler.ts";
+import { type Deps, type Gift, handle, nextBillingDate, type Subscription } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
 const USER = { id: "00000000-0000-0000-0000-00000000000a", email: "ann@example.com" };
@@ -15,10 +15,18 @@ const INVOICE: InvoiceView = {
   discount: 260,
   url: "https://invoice.stripe.com/i/test_1",
 };
+const GIFT_CODE = "ABCDEFGHJKLMNPQR";
 const SPRING: DiscountView = { code: "SPRING20", percentOff: 20, amountOff: null, currency: null, duration: "repeating", ends: "2027-01-05T00:00:00.000Z" };
 
 function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
-  const state = { sub, deleted: false, passwordChecks: 0, stripe: [] as string[] };
+  const state = {
+    sub,
+    deleted: false,
+    passwordChecks: 0,
+    stripe: [] as string[],
+    gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null } as Gift,
+    redeemedBy: null as string | null,
+  };
   const record = (call: string) => {
     state.stripe.push(call);
     return Promise.resolve();
@@ -61,7 +69,25 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
         state.stripe.push(`redeem ${id} ${code}`);
         return Promise.resolve(code.toUpperCase() === "SPRING20" ? SPRING : null);
       },
+      extendForGift: (id, until) => record(`gift ${id} ${new Date(until * 1000).toISOString().slice(0, 10)}`),
+      startGift: ({ giftId, customerId, planId, until }) =>
+        record(`start gift ${giftId} ${customerId} ${planId} ${new Date(until * 1000).toISOString().slice(0, 10)}`),
     },
+    gifts: {
+      find: (code) => Promise.resolve(code === GIFT_CODE ? state.gift : null),
+      claim: (_id, userId) => {
+        if (state.gift.redeemed_at) return Promise.resolve(false);
+        state.gift = { ...state.gift, redeemed_at: NOW.toISOString() };
+        state.redeemedBy = userId;
+        return Promise.resolve(true);
+      },
+      release: () => {
+        state.gift = { ...state.gift, redeemed_at: null };
+        state.redeemedBy = null;
+        return Promise.resolve();
+      },
+    },
+    customerFor: () => Promise.resolve("cus_9"),
     siteOrigin: () => ORIGIN,
     now: () => NOW,
     ...overrides,
@@ -76,6 +102,7 @@ const active = (): Subscription => ({
   cancel_at_period_end: false,
   current_period_end: null,
   complimentary: false,
+  gift_until: null,
   stripe_subscription_id: null,
   stripe_customer_id: null,
 });
@@ -95,6 +122,7 @@ const complimentary = (): Subscription => ({
   cancel_at_period_end: false,
   current_period_end: null,
   complimentary: true,
+  gift_until: null,
   stripe_subscription_id: null,
   stripe_customer_id: null,
 });
@@ -332,4 +360,80 @@ Deno.test("cancelling never sends Stripe's ids either", async () => {
   const res = await call(deps, { action: "cancel" });
   assertEquals(res.body.stripe_linked, true);
   assertEquals("stripe_subscription_id" in res.body || "stripe_customer_id" in res.body, false);
+});
+
+// --- Gifts --------------------------------------------------------------------------
+
+Deno.test("a gift on the same plan moves the next charge back by its months", async () => {
+  const { state, deps } = setup(paid());
+  const res = await call(deps, { action: "gift", code: "abcd-efgh-jklm-npqr" });
+  assertEquals(res.status, 200);
+  // Paid to 5 Nov; three months free after that.
+  assertEquals(state.stripe, ["gift sub_1 2027-02-05"]);
+  assertEquals(res.body.gift, { planId: "standard", months: 3, until: "2027-02-05T00:00:00.000Z" });
+  assertEquals(res.body.subscription.gift_until, "2027-02-05T00:00:00.000Z");
+  assertEquals(res.body.subscription.stripe_subscription_id, undefined);
+  assertEquals(state.redeemedBy, USER.id);
+});
+
+Deno.test("without a membership, a gift starts one free for its months, with the member's agreement", async () => {
+  const refused = setup(null);
+  assertEquals((await call(refused.deps, { action: "gift", code: GIFT_CODE })).status, 400);
+  assertEquals(refused.state.redeemedBy, null);
+
+  const { state, deps } = setup(null);
+  const res = await call(deps, { action: "gift", code: GIFT_CODE, renewalTermsAccepted: true });
+  assertEquals(res.status, 200);
+  // 24 Oct + 3 months is 24 Jan: a billing day, so it stays.
+  assertEquals(state.stripe, ["start gift gift_1 cus_9 standard 2027-01-24"]);
+  assertEquals(res.body.subscription, undefined);
+});
+
+Deno.test("a gift for another plan, a paused membership or an admin is refused and the code stays unused", async () => {
+  for (const [sub, words] of [
+    [{ ...paid(), plan_id: "premium" }, "This gift is for Standard and your membership is Premium"],
+    [{ ...paid(), status: "paused" as const }, "Resume your membership first"],
+    [{ ...active(), complimentary: true, billing_day: null }, "complimentary"],
+  ] as const) {
+    const { state, deps } = setup(sub as Subscription);
+    const res = await call(deps, { action: "gift", code: GIFT_CODE, renewalTermsAccepted: true });
+    assertEquals(res.status, 400);
+    assert(res.body.error.message.includes(words), res.body.error.message);
+    assertEquals(state.stripe, []);
+    assertEquals(state.gift.redeemed_at, null);
+  }
+});
+
+Deno.test("a gift code works once; unknown and badly typed codes are refused", async () => {
+  const { state, deps } = setup(paid());
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 200);
+  const again = await call(deps, { action: "gift", code: GIFT_CODE });
+  assertEquals(again.status, 400);
+  assert(again.body.error.message.includes("already been used"));
+  assertEquals((await call(deps, { action: "gift", code: "ZZZZZZZZZZZZZZZZ" })).status, 400);
+  const typo = await call(deps, { action: "gift", code: "O0I1" });
+  assert(typo.body.error.message.includes("16 letters and numbers"));
+  assertEquals(state.stripe.length, 1);
+});
+
+Deno.test("when Stripe fails, the gift is released so the code still works", async () => {
+  const { state, deps } = setup(paid());
+  deps.billing.extendForGift = () => Promise.reject(new Error("stripe down"));
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 500);
+  assertEquals(state.gift.redeemed_at, null);
+});
+
+Deno.test("the billing day can't move while a gift's free months last", async () => {
+  const { deps } = setup({ ...paid(), gift_until: "2027-02-05T00:00:00.000Z" });
+  const res = await call(deps, { action: "billing_day", billingDay: 12 });
+  assertEquals(res.status, 400);
+  assert(res.body.error.message.includes("once the gift"));
+});
+
+Deno.test("once Stripe has the gift's months, a later failure doesn't free the code for a second use", async () => {
+  const { state, deps } = setup(paid());
+  deps.updateSubscription = () => Promise.reject(new Error("db down"));
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 500);
+  assertEquals(state.stripe, ["gift sub_1 2027-02-05"]);
+  assert(state.gift.redeemed_at !== null);
 });

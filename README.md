@@ -365,5 +365,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Billing history and promo codes: Account lists each Stripe charge with its receipt, shows the promo code on the membership and takes a new one; Stripe Checkout takes promo codes too | Done    |
 | —    | Email through Mailgun: sign-up confirmation and password reset in LiteraryWorm's own templates, *Send the email again*, and the Privacy Policy and EULA name Mailgun (migration 2500) | Done    |
 | —    | `drawsql.png` re-rendered for migrations up to 2500 (no table or column changes since 2300); `schema.sql` regenerated unchanged; live Supabase checked against both (all 244 columns, every migration); docs, style guide and phase plan cover the eight feature stages | Done    |
+| —    | Gift memberships: 1, 3, 6 or 12 months of any plan bought once on Stripe Checkout; the code (`gift_codes`) is redeemed once in Account, Plans or Gifts, adding free months to a membership or starting one with no card; Privacy and Return policies updated (migrations 2700–2800) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

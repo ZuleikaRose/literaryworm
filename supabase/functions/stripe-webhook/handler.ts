@@ -5,13 +5,18 @@
 // handled once (stripe_events). Admins are never billed: a subscription that reaches an admin's
 // customer is cancelled at once, and a renewal invoice drafted for one is deleted before it's paid.
 //
-// Handled: checkout.session.completed and .async_payment_succeeded (start the membership),
+// Gifts: a paid gift Checkout (mode payment, metadata.kind "gift") makes a gift code for the buyer,
+// once per Checkout Session. A redeemed gift that starts a membership is a Stripe subscription
+// carrying metadata.gift_consent_at (the redeemer agreed to the terms for after the gift in
+// Account); its first event creates the membership with that consent.
+//
+// Handled: checkout.session.completed and .async_payment_succeeded (start the membership, or a gift),
 // customer.subscription.created/.updated/.deleted and invoice.paid/.payment_failed (keep it in
 // step), invoice.created (admins), and charge.dispute.created, charge.refunded and
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
 
 import type { Stripe } from "../_shared/stripe.ts";
-import { subscriptionRow } from "../_shared/stripe.ts";
+import { GIFT_MONTHS, type GiftMonths, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
 
 export type SubscriptionFields = ReturnType<typeof subscriptionRow>;
 
@@ -27,7 +32,18 @@ export interface Deps {
   /** Updates an existing membership; false when the account has none yet. */
   updateMembership: (userId: string, fields: SubscriptionFields) => Promise<boolean>;
   cancelNow: (subscriptionId: string) => Promise<void>;
+  /** Makes the gift code for a paid gift Checkout; does nothing if it already exists. */
+  createGift: (gift: NewGift) => Promise<void>;
   deleteDraftInvoice: (invoiceId: string) => Promise<void>;
+}
+
+export interface NewGift {
+  sessionId: string;
+  buyerId: string | null;
+  planId: PlanId;
+  months: GiftMonths;
+  amountCents: number;
+  currency: string;
 }
 
 const REVIEW = new Set(["charge.dispute.created", "charge.refunded", "radar.early_fraud_warning.created"]);
@@ -48,9 +64,14 @@ async function syncSubscription(deps: Deps, sub: Stripe.Subscription): Promise<v
     if (sub.status !== "canceled" && sub.status !== "incomplete_expired") await deps.cancelNow(sub.id);
     return;
   }
-  // A membership is created only by a completed Checkout (which records the renewal consent);
-  // events that arrive before it simply wait for it.
-  await deps.updateMembership(userId, subscriptionRow(sub));
+  // A membership is created only by a completed Checkout (which records the renewal consent), or
+  // by a redeemed gift (whose consent is on the subscription); other events that arrive before
+  // it simply wait for it.
+  const updated = await deps.updateMembership(userId, subscriptionRow(sub));
+  const giftConsent = sub.metadata?.gift_consent_at;
+  if (!updated && giftConsent && !Number.isNaN(Date.parse(giftConsent)) && sub.status !== "canceled" && sub.status !== "incomplete_expired") {
+    await deps.startMembership(userId, subscriptionRow(sub), new Date(giftConsent).toISOString());
+  }
 }
 
 async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
@@ -58,6 +79,25 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object;
+      if (session.mode === "payment" && session.metadata?.kind === "gift") {
+        if (session.payment_status !== "paid") return;
+        const planId = session.metadata.plan_id as PlanId;
+        const months = Number(session.metadata.months) as GiftMonths;
+        if (!PLANS.includes(planId) || !GIFT_MONTHS.includes(months) || !session.amount_total) {
+          throw new Error(`gift checkout ${session.id} has bad metadata`);
+        }
+        const buyerId = session.customer ? await deps.userForCustomer(idOf(session.customer)!) : null;
+        if (!buyerId) console.warn(`stripe-webhook: gift checkout ${session.id} has no LiteraryWorm account`);
+        await deps.createGift({
+          sessionId: session.id,
+          buyerId,
+          planId,
+          months,
+          amountCents: session.amount_total,
+          currency: (session.currency ?? "usd").toUpperCase(),
+        });
+        return;
+      }
       if (session.mode !== "subscription" || !session.subscription) return;
       if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") return;
       const sub = await deps.getSubscription(idOf(session.subscription)!);

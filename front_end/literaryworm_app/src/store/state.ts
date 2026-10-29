@@ -220,6 +220,7 @@ export function demoHousehold(): Household {
       complimentary: false,
       stripeLinked: false,
       pastDue: false,
+      giftUntil: null,
     },
     profiles: [avery, sam, mia],
     profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },

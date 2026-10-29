@@ -1,14 +1,15 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { discountView, type InvoiceView, invoiceView, Stripe, stripeClient } from "../_shared/stripe.ts";
+import { customerFor, monthlyPrice } from "../_shared/stripeCustomers.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
-import { handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
+import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
 
 // Enough of each discount to show it: the coupon's terms and the code the member typed.
 const DISCOUNT_EXPAND = ["discounts.source.coupon", "discounts.promotion_code"];
 
 const COLUMNS =
-  "plan_id, status, billing_day, cancel_at_period_end, current_period_end, complimentary, stripe_subscription_id, stripe_customer_id";
+  "plan_id, status, billing_day, cancel_at_period_end, current_period_end, complimentary, gift_until, stripe_subscription_id, stripe_customer_id";
 
 Deno.serve((req) =>
   handle(req, {
@@ -23,6 +24,27 @@ Deno.serve((req) =>
       // A free stretch until the new date, which becomes the billing day from then on.
       moveRenewal: async (id, until) =>
         void (await stripeClient().subscriptions.update(id, { trial_end: until, proration_behavior: "none" })),
+      async extendForGift(id, until) {
+        await stripeClient().subscriptions.update(id, {
+          trial_end: until,
+          proration_behavior: "none",
+          metadata: { gift_until: String(until) },
+        });
+      },
+      async startGift({ giftId, customerId, planId, until, consentAt }) {
+        await stripeClient().subscriptions.create(
+          {
+            customer: customerId,
+            items: [{ price: (await monthlyPrice(planId)).id }],
+            trial_end: until,
+            // No card is needed for the gift; without one, the membership ends when it does.
+            trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+            metadata: { plan_id: planId, gift_until: String(until), gift_consent_at: consentAt },
+          },
+          // One subscription per gift, however often the request is retried.
+          { idempotencyKey: `gift-${giftId}` },
+        );
+      },
       async paymentMethodUrl(customerId, returnUrl) {
         const session = await stripeClient().billingPortal.sessions.create({
           customer: customerId,
@@ -54,6 +76,29 @@ Deno.serve((req) =>
           if (err instanceof Stripe.errors.StripeInvalidRequestError) return null;
           throw err;
         }
+      },
+    },
+    customerFor,
+    gifts: {
+      async find(code) {
+        const { data, error } = await serviceClient().from("gift_codes").select("id, plan_id, months, redeemed_at").eq("code", code).maybeSingle();
+        if (error) throw error;
+        return data as Gift | null;
+      },
+      async claim(giftId, userId) {
+        // Only an unredeemed code changes, so two people redeeming at once can't both get it.
+        const { data, error } = await serviceClient()
+          .from("gift_codes")
+          .update({ redeemed_by: userId, redeemed_at: new Date().toISOString() })
+          .eq("id", giftId)
+          .is("redeemed_at", null)
+          .select("id");
+        if (error) throw error;
+        return data.length === 1;
+      },
+      async release(giftId) {
+        const { error } = await serviceClient().from("gift_codes").update({ redeemed_by: null, redeemed_at: null }).eq("id", giftId);
+        if (error) throw error;
       },
     },
     siteOrigin(req) {

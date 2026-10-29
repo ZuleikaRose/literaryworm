@@ -50,6 +50,7 @@ const paths = {
       <path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z" />
     </>
   ),
+  gift: <path d="M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7c-1.5-3-5-3.5-5-1.2S10 7 12 7Zm0 0c1.5-3 5-3.5 5-1.2S14 7 12 7Z" />,
   heart: <path d="M12 20s-7-4.4-9.2-9A5 5 0 0 1 12 6a5 5 0 0 1 9.2 5c-2.2 4.6-9.2 9-9.2 9Z" />,
   accessibility: (
     <>

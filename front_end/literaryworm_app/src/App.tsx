@@ -5,6 +5,7 @@ import { ClubAlerts } from "./components/ClubAlerts";
 import { ListenAlong } from "./components/ListenAlong";
 import { MediaSession } from "./components/MediaSession";
 import Account from "./pages/Account";
+import Gifts from "./pages/Gifts";
 import BookDetail from "./pages/BookDetail";
 import ClubPage from "./pages/Club";
 import Browse from "./pages/Browse";
@@ -60,6 +61,7 @@ export default function App() {
 
           <Route element={<RequireAccount />}>
             <Route path="profiles" element={<Profiles />} />
+            <Route path="gifts" element={<Gifts />} />
           </Route>
 
           <Route element={<RequireProfile />}>

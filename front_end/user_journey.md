@@ -683,6 +683,7 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 101. **Remind me.** A Google Books title that isn't out yet says when it's due and offers *Remind me*. On the day, Home shows it under *Out now* until dismissed; My Library → *Reminders* lists every reminder.
 102. **Google Books preview.** Where Google allows it, the book page has *Preview* (or *Read it on Google Books*); Google's viewer loads only when the reader opens it.
 103. **Staff dashboard.** Billing staff and admins have *Open the dashboard* in Account → Team access: accounts and new sign-ups week by week, paid memberships by plan and status, monthly revenue at list price, reading in the last 30 days, clubs, and Stripe events waiting for review. Totals only, never names or emails.
+104. **Gift memberships.** *Gifts* (profile menu, Account, Plans) sells 1, 3, 6 or 12 months of any plan, paid once on Stripe's page; the code appears under *Your gifts* with *Copy code*. Whoever has it types it into *Redeem a gift*: on a membership of the same plan, the next charge moves back by those months; with no membership, one starts today, free, with no card, and ends when the gift does unless a card is added. Account says *None until … : a gift*.
 
 ### Where the build differs from the blueprint, and why
 

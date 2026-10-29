@@ -16,6 +16,13 @@
 //                                            (newest first) and the promo code on the membership
 //   { action: "promo_code", code }           applies a Stripe promotion code to the membership
 //                                            (replacing any it has); returns { discount }
+//   { action: "gift", code, renewalTermsAccepted? }
+//                                            redeems a gift code (once). A membership on the
+//                                            gift's plan gets the months free (its next charge
+//                                            moves back); without a membership, Stripe starts one
+//                                            free for the months, which ends then unless a card
+//                                            is added (the member agrees to that: renewalTermsAccepted),
+//                                            and the webhook writes it. Returns { gift, subscription? }
 //   { action: "delete", password, confirm: true }
 //                                            cancels the plan, then deletes the user (and,
 //                                            by cascade, everything the account owns)
@@ -25,8 +32,8 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { type DiscountView, type InvoiceView, nextBillingDay } from "../_shared/stripe.ts";
-import { onlyKeys, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
+import { addGiftMonths, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
+import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 
 const METHODS = "POST";
 
@@ -39,12 +46,32 @@ export interface Subscription {
   current_period_end: string | null;
   /** An admin's membership: set by the database from the admin role, never billed. */
   complimentary: boolean;
+  /** The end of a gift's free months, while they last. */
+  gift_until: string | null;
   /** Set once the member pays through Stripe Checkout. */
   stripe_subscription_id: string | null;
   stripe_customer_id: string | null;
 }
 
-export type SubscriptionPatch = Partial<Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end" | "billing_day">>;
+export type SubscriptionPatch = Partial<
+  Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end" | "billing_day" | "gift_until">
+>;
+
+export interface Gift {
+  id: string;
+  plan_id: PlanId;
+  months: number;
+  redeemed_at: string | null;
+}
+
+/** Gift codes (gift_codes): found by code, and claimed by one account at a time. */
+export interface Gifts {
+  find: (code: string) => Promise<Gift | null>;
+  /** Marks the gift redeemed by the account; false when someone else got there first. */
+  claim: (giftId: string, userId: string) => Promise<boolean>;
+  /** Undoes a claim when Stripe couldn't apply the gift, so the code still works. */
+  release: (giftId: string) => Promise<void>;
+}
 
 /** Changes to the member's Stripe subscription. */
 export interface Billing {
@@ -60,6 +87,10 @@ export interface Billing {
   discount: (subscriptionId: string) => Promise<DiscountView | null>;
   /** Applies an active promotion code; null when there's no such code or Stripe won't apply it. */
   redeem: (subscriptionId: string, code: string) => Promise<DiscountView | null>;
+  /** Moves the next charge to `until` (unix seconds) and records it as a gift's free months. */
+  extendForGift: (subscriptionId: string, until: number) => Promise<void>;
+  /** A new subscription on the plan, free until `until`, ending then unless a card is added. */
+  startGift: (input: { giftId: string; customerId: string; planId: PlanId; until: number; consentAt: string }) => Promise<void>;
 }
 
 export interface Deps {
@@ -70,6 +101,9 @@ export interface Deps {
   updateSubscription: (userId: string, patch: SubscriptionPatch) => Promise<Subscription>;
   deleteUser: (userId: string) => Promise<void>;
   billing: Billing;
+  gifts: Gifts;
+  /** The account's Stripe Customer, created the first time. */
+  customerFor: (userId: string, email: string | undefined) => Promise<string>;
   /** The site to send the member back to: the request's origin when it's allowed. */
   siteOrigin: (req: Request) => string;
   now?: () => Date;
@@ -169,6 +203,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         if (sub.status !== "active" || sub.cancel_at_period_end) {
           throw new HttpError("bad_request", "Only an active membership that isn't ending can change its billing day.");
         }
+        if (sub.gift_until && new Date(sub.gift_until) > now) {
+          throw new HttpError("bad_request", "You can change the billing day once the gift's free months are over.");
+        }
         if (sub.stripe_subscription_id) {
           // The new day's first date on or after the end of the period already paid for: the days
           // in between are free, so the member never pays twice or loses paid days.
@@ -209,6 +246,66 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         const discount = await deps.billing.redeem(sub.stripe_subscription_id, code);
         if (!discount) throw new HttpError("bad_request", "That code isn't valid, has expired or can't be used on this membership.");
         return json(req, METHODS, { discount });
+      }
+      case "gift": {
+        onlyKeys(body, ["action", "code", "renewalTermsAccepted"]);
+        const code = parseGiftCode(body.code);
+        if (body.renewalTermsAccepted !== undefined && typeof body.renewalTermsAccepted !== "boolean") {
+          throw new HttpError("bad_request", "renewalTermsAccepted is true or false.");
+        }
+        const sub = await deps.getSubscription(user.id);
+        if (sub?.complimentary) {
+          throw new HttpError("bad_request", "Admin memberships are complimentary, so a gift adds nothing. Pass the code on to someone else.");
+        }
+        const gift = await deps.gifts.find(code);
+        if (!gift || gift.redeemed_at) throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+        const giftPlan = PLAN_NAMES[gift.plan_id];
+        // A membership billed through Stripe that hasn't ended gets the months added.
+        const live = sub && sub.stripe_subscription_id && sub.status !== "cancelled" ? sub : null;
+        if (live) {
+          if (live.status === "paused") throw new HttpError("bad_request", "Resume your membership first, then redeem the gift.");
+          if (live.status === "past_due") {
+            throw new HttpError("bad_request", "Your last payment didn't go through. Update your payment method first, then redeem the gift.");
+          }
+          if (live.plan_id !== gift.plan_id) {
+            const yours = PLAN_NAMES[live.plan_id as PlanId] ?? live.plan_id;
+            throw new HttpError("bad_request", `This gift is for ${giftPlan} and your membership is ${yours}. Change to ${giftPlan} in Plans to use it, or pass the code on.`);
+          }
+        } else if (body.renewalTermsAccepted !== true) {
+          throw new HttpError("bad_request", "Agree to what happens when the gift ends to continue.");
+        }
+        if (!(await deps.gifts.claim(gift.id, user.id))) {
+          throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+        }
+        // After everything already paid for (or already free), never before today.
+        const paidUntil = live?.current_period_end ? new Date(live.current_period_end) : now;
+        const until = addGiftMonths(live && paidUntil > now ? paidUntil : now, gift.months);
+        const given = { planId: gift.plan_id, months: gift.months, until: until.toISOString() };
+        // Only a failure before Stripe has the months gives the code back; once Stripe has them,
+        // the code stays used (the webhook brings the membership into step either way).
+        try {
+          if (live) {
+            await deps.billing.extendForGift(live.stripe_subscription_id!, Math.floor(until.getTime() / 1000));
+          } else {
+            const customerId = await deps.customerFor(user.id, user.email);
+            await deps.billing.startGift({
+              giftId: gift.id,
+              customerId,
+              planId: gift.plan_id,
+              until: Math.floor(until.getTime() / 1000),
+              consentAt: now.toISOString(),
+            });
+          }
+        } catch (err) {
+          await deps.gifts.release(gift.id);
+          throw err;
+        }
+        if (!live) {
+          // The webhook writes the membership in a moment; Account waits for it.
+          return json(req, METHODS, { gift: given });
+        }
+        const updated = await deps.updateSubscription(user.id, { current_period_end: given.until, gift_until: given.until });
+        return json(req, METHODS, { gift: given, subscription: view(updated) });
       }
       case "delete": {
         onlyKeys(body, ["action", "password", "confirm"]);

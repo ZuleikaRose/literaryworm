@@ -117,6 +117,8 @@ export interface Account {
   stripeLinked: boolean;
   /** The last payment failed: the member should update their payment method. */
   pastDue: boolean;
+  /** While a gift's free months last: when they end (ISO). Nothing is charged before then. */
+  giftUntil: string | null;
 }
 
 export interface Profile {

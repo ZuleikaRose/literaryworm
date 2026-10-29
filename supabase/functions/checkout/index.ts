@@ -1,17 +1,14 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { PRICE_LOOKUP_KEY, type PlanId, stripeClient } from "../_shared/stripe.ts";
+import { type PlanId, stripeClient } from "../_shared/stripe.ts";
+import { customerFor, monthlyPrice } from "../_shared/stripeCustomers.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
-import { type CheckoutInput, handle, type Membership } from "./handler.ts";
+import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
 
 const PRICES: Record<PlanId, string> = { basic: "$7.99", standard: "$12.99", premium: "$17.99" };
 const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th"}`;
 
-async function priceId(planId: PlanId): Promise<string> {
-  const { data } = await stripeClient().prices.list({ lookup_keys: [PRICE_LOOKUP_KEY[planId]], active: true, limit: 1 });
-  if (!data[0]) throw new Error(`No active Stripe price for ${planId}`);
-  return data[0].id;
-}
+const priceId = async (planId: PlanId) => (await monthlyPrice(planId)).id;
 
 /** Eight random letters, as Stripe asks for in an integration identifier. */
 function randomLetters(): string {
@@ -37,17 +34,7 @@ Deno.serve((req) =>
       if (error) throw error;
       return data as Membership | null;
     },
-    async customerFor(userId, email) {
-      const db = serviceClient();
-      const { data, error } = await db.from("stripe_customers").select("customer_id").eq("user_id", userId).maybeSingle();
-      if (error) throw error;
-      if (data) return data.customer_id;
-      // The idempotency key stops a double click creating two customers.
-      const customer = await stripeClient().customers.create({ email, metadata: { user_id: userId } }, { idempotencyKey: `customer-${userId}` });
-      const { error: saveError } = await db.from("stripe_customers").insert({ user_id: userId, customer_id: customer.id });
-      if (saveError) throw saveError;
-      return customer.id;
-    },
+    customerFor,
     async createCheckout(input: CheckoutInput) {
       const session = await stripeClient().checkout.sessions.create({
         mode: "subscription",
@@ -68,6 +55,25 @@ Deno.serve((req) =>
         success_url: `${input.origin}/plans?checkout=success${input.setup ? "&setup=1" : ""}`,
         cancel_url: `${input.origin}/plans?checkout=cancelled`,
         integration_identifier: `literaryworm_membership_${randomLetters()}`,
+      });
+      if (!session.url) throw new Error("Stripe returned no Checkout URL");
+      return session.url;
+    },
+    async createGiftCheckout(input: GiftCheckoutInput) {
+      const price = await monthlyPrice(input.planId);
+      const session = await stripeClient().checkout.sessions.create({
+        mode: "payment",
+        customer: input.customerId,
+        client_reference_id: input.userId,
+        // The plan's own product and monthly price, once for each month: so the page reads
+        // "LiteraryWorm Standard × 3", and a gift is taxed exactly like the membership it buys.
+        // No custom_text: accounts with Stripe Managed Payments refuse it (the Gifts page has the terms).
+        line_items: [{ quantity: input.months, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } }],
+        // Read by stripe-webhook to make the gift code.
+        metadata: { kind: "gift", plan_id: input.planId, months: String(input.months) },
+        success_url: `${input.origin}/gifts?checkout=success`,
+        cancel_url: `${input.origin}/gifts?checkout=cancelled`,
+        integration_identifier: `literaryworm_gift_${randomLetters()}`,
       });
       if (!session.url) throw new Error("Stripe returned no Checkout URL");
       return session.url;

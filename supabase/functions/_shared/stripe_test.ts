@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/_shared/stripe_test.ts — Stripe objects to what members see.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
-import { discountView, invoiceView, type Stripe } from "./stripe.ts";
+import { addGiftMonths, discountView, giftCode, invoiceView, type Stripe } from "./stripe.ts";
 
 const invoice = (fields: Partial<Stripe.Invoice>) =>
   ({
@@ -56,4 +56,18 @@ Deno.test("no discount, or one not expanded, shows nothing", () => {
   assertEquals(discountView(["di_1"]), null);
   const unexpanded = { end: null, promotion_code: "promo_1", source: { type: "coupon", coupon: "co_1" } } as unknown as Stripe.Discount;
   assertEquals(discountView([unexpanded]), null);
+});
+
+Deno.test("gift months land on a billing day: the 29th to 31st move on to the 1st", () => {
+  const day = (iso: string, months: number) => addGiftMonths(new Date(iso), months).toISOString().slice(0, 10);
+  assertEquals(day("2026-10-24T12:00:00Z", 3), "2027-01-24");
+  assertEquals(day("2026-11-05T00:00:00Z", 12), "2027-11-05");
+  assertEquals(day("2026-10-30T09:00:00Z", 1), "2026-12-01");
+  assertEquals(day("2027-01-31T00:00:00Z", 1), "2027-03-01");
+});
+
+Deno.test("gift codes are 16 easy-to-read characters", () => {
+  const codes = new Set(Array.from({ length: 200 }, giftCode));
+  assertEquals(codes.size, 200);
+  for (const code of codes) assertEquals(/^[A-HJ-NP-Z2-9]{16}$/.test(code), true, code);
 });

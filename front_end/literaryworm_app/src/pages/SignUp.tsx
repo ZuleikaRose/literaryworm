@@ -103,6 +103,7 @@ export default function SignUp() {
         complimentary: false,
         stripeLinked: false,
         pastDue: false,
+        giftUntil: null,
       },
       firstProfile: makeProfile({ name: firstName, ageRating: "all" }),
     });

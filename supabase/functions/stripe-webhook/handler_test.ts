@@ -1,7 +1,7 @@
 // deno test --allow-env supabase/functions/stripe-webhook — runs offline with stubbed Stripe and database.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import type { Stripe } from "../_shared/stripe.ts";
-import { type Deps, handle, type SubscriptionFields } from "./handler.ts";
+import { type Deps, handle, type NewGift, type SubscriptionFields } from "./handler.ts";
 
 const USER = "00000000-0000-0000-0000-00000000000a";
 const PERIOD_END = 1_798_761_600; // 2027-01-01T00:00:00Z
@@ -31,6 +31,8 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     updated: [] as SubscriptionFields[],
     cancelled: [] as string[],
     deletedInvoices: [] as string[],
+    gifts: [] as NewGift[],
+    hasMembership: true,
     sub: subscription(),
     admin: false,
   };
@@ -50,10 +52,14 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     },
     updateMembership: (_userId, fields) => {
       state.updated.push(fields);
-      return Promise.resolve(true);
+      return Promise.resolve(state.hasMembership);
     },
     cancelNow: (id) => {
       state.cancelled.push(id);
+      return Promise.resolve();
+    },
+    createGift: (gift) => {
+      state.gifts.push(gift);
       return Promise.resolve();
     },
     deleteDraftInvoice: (id) => {
@@ -164,4 +170,50 @@ Deno.test("a failure isn't recorded, so Stripe retries the event", async () => {
 Deno.test("only POST", async () => {
   const { deps } = setup(completed());
   assertEquals((await handle(new Request("http://local/stripe-webhook"), deps)).status, 405);
+});
+
+const giftPaid = (overrides: Record<string, unknown> = {}) =>
+  event("checkout.session.completed", {
+    id: "cs_gift_1",
+    mode: "payment",
+    customer: "cus_1",
+    payment_status: "paid",
+    amount_total: 3897,
+    currency: "usd",
+    metadata: { kind: "gift", plan_id: "standard", months: "3" },
+    ...overrides,
+  });
+
+Deno.test("a paid gift Checkout makes the gift for the buyer, and starts no membership", async () => {
+  const { state, deps } = setup(giftPaid());
+  assertEquals((await handle(post(), deps)).status, 200);
+  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD" }]);
+  assertEquals(state.started.length, 0);
+});
+
+Deno.test("an unpaid gift makes nothing; one with bad metadata is retried, not saved", async () => {
+  const unpaid = setup(giftPaid({ payment_status: "unpaid" }));
+  await handle(post(), unpaid.deps);
+  assertEquals(unpaid.state.gifts.length, 0);
+  const bad = setup(giftPaid({ metadata: { kind: "gift", plan_id: "standard", months: "2" } }));
+  assertEquals((await handle(post(), bad.deps)).status, 500);
+  assertEquals(bad.state.gifts.length, 0);
+});
+
+Deno.test("a redeemed gift's subscription starts the membership with the consent given in Account", async () => {
+  const sub = subscription({ status: "trialing", metadata: { gift_until: String(PERIOD_END), gift_consent_at: "2026-10-24T12:00:00.000Z" } });
+  const { state, deps } = setup(event("customer.subscription.created", sub as unknown as Record<string, unknown>));
+  state.hasMembership = false;
+  await handle(post(), deps);
+  assertEquals(state.started.length, 1);
+  assertEquals(state.started[0].consentAt, "2026-10-24T12:00:00.000Z");
+  assertEquals(state.started[0].fields.gift_until, "2027-01-01T00:00:00.000Z");
+  assertEquals(state.started[0].fields.status, "active");
+});
+
+Deno.test("a subscription with no gift consent never starts a membership by itself", async () => {
+  const { state, deps } = setup(event("customer.subscription.created", subscription() as unknown as Record<string, unknown>));
+  state.hasMembership = false;
+  await handle(post(), deps);
+  assertEquals(state.started.length, 0);
 });

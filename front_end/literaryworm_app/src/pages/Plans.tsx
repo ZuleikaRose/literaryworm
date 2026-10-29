@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
+import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, planFaqs, plans } from "../data/plans";
-import { AccountError, choosePlan, loadAccount } from "../lib/accountApi";
+import { AccountError, choosePlan, loadAccount, planFields } from "../lib/accountApi";
 import { longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
@@ -49,8 +50,7 @@ export default function Plans() {
       try {
         const fresh = await loadAccount();
         if (fresh?.planId && fresh.stripeLinked) {
-          const { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue } = fresh;
-          dispatch({ type: "updateAccount", patch: { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue } });
+          dispatch({ type: "updateAccount", patch: planFields(fresh) });
           navigate(setup ? "/profiles?setup=1" : "/account#plan", { replace: true });
           return;
         }
@@ -344,6 +344,25 @@ export default function Plans() {
                 </div>
               </div>
             </form>
+          )}
+        </section>
+      )}
+
+      {!complimentary && (
+        <section className="plans-gifts" aria-labelledby="plans-gifts-title">
+          <h2 id="plans-gifts-title">Gifts</h2>
+          <p>
+            Give months of any plan, paid once, with a code to pass on.{" "}
+            {account?.userId && !account.isDemo ? (
+              <Link to="/gifts">Buy a gift</Link>
+            ) : (
+              <>
+                <Link to="/signin">Log in</Link> or <Link to="/signup">create an account</Link> to buy one or redeem one.
+              </>
+            )}
+          </p>
+          {account?.userId && !account.isDemo && (
+            <RedeemGift account={account} onStarted={() => navigate(setup ? "/profiles?setup=1" : "/account#plan")} />
           )}
         </section>
       )}

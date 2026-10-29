@@ -74,6 +74,13 @@ export function ProfileMenu() {
                 <Icon name="settings" size={18} /> Account
               </Link>
             </li>
+            {profile.ageRating !== "kids" && (
+              <li>
+                <Link className="menu-item" to="/gifts" onClick={() => close(false)}>
+                  <Icon name="gift" size={18} /> Gifts
+                </Link>
+              </li>
+            )}
             <li>
               <button type="button" className="menu-item" onClick={signOut}>
                 <Icon name="logOut" size={18} /> Sign out

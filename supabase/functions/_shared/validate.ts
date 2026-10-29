@@ -109,6 +109,16 @@ export function parsePromoCode(raw: unknown): string {
   return code;
 }
 
+/** A gift code as a member types it: dashes, spaces and case don't matter. */
+export function parseGiftCode(raw: unknown): string {
+  if (typeof raw !== "string") throw new HttpError("bad_request", "Enter the gift code.");
+  const code = raw.replace(/[\s-]/g, "").toUpperCase();
+  if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
+    throw new HttpError("bad_request", "Enter the 16 letters and numbers of the gift code, like ABCD-EFGH-JKLM-NPQR.");
+  }
+  return code;
+}
+
 /** Rejects fields the endpoint doesn't expect, so typos and probes fail loudly. */
 export function onlyKeys(body: Record<string, unknown>, allowed: string[]): void {
   const extra = Object.keys(body).filter((k) => !allowed.includes(k));

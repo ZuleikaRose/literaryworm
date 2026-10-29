@@ -1,14 +1,20 @@
 // deno test --allow-env supabase/functions/checkout — runs offline with stubbed auth, database and Stripe.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { type CheckoutInput, type Deps, handle, type Membership } from "./handler.ts";
+import { type CheckoutInput, type Deps, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
 const USER = { id: "00000000-0000-0000-0000-00000000000a", email: "ann@example.com" };
 const NOW = new Date("2026-10-24T12:00:00Z");
 
 function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
-  const state = { checkouts: [] as CheckoutInput[], planChanges: [] as [string, string][], customers: 0, admin: false };
+  const state = {
+    checkouts: [] as CheckoutInput[],
+    gifts: [] as GiftCheckoutInput[],
+    planChanges: [] as [string, string][],
+    customers: 0,
+    admin: false,
+  };
   const deps: Deps = {
     requireUser: () => Promise.resolve(USER),
     rateLimit: () => Promise.resolve(),
@@ -21,6 +27,10 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
     createCheckout: (input) => {
       state.checkouts.push(input);
       return Promise.resolve("https://checkout.stripe.com/c/pay/cs_test_1");
+    },
+    createGiftCheckout: (input) => {
+      state.gifts.push(input);
+      return Promise.resolve("https://checkout.stripe.com/c/pay/cs_test_gift");
     },
     changePlan: (sub, plan) => {
       state.planChanges.push([sub, plan]);
@@ -105,4 +115,26 @@ Deno.test("signed-out callers get 401 with the standard error shape", async () =
   const res = await call(deps, choice());
   assertEquals(res.status, 401);
   assertEquals(res.body.error.code, "unauthorized");
+});
+
+Deno.test("a gift is a one-off Checkout for the plan and months, whatever the buyer's own membership", async () => {
+  const { state, deps } = setup({ plan_id: "basic", status: "active", stripe_subscription_id: "sub_1" });
+  const res = await call(deps, { gift: true, planId: "premium", months: 6 });
+  assertEquals(res.status, 200);
+  assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_gift");
+  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, origin: ORIGIN }]);
+  assertEquals(state.checkouts.length + state.planChanges.length, 0);
+});
+
+Deno.test("gifts are only 1, 3, 6 or 12 months of a real plan, with no other fields", async () => {
+  const { state, deps } = setup(null);
+  for (const body of [
+    { gift: true, planId: "standard", months: 2 },
+    { gift: true, planId: "gold", months: 3 },
+    { gift: true, planId: "standard", months: 3, billingDay: 5 },
+    { gift: "yes", planId: "standard", months: 3 },
+  ]) {
+    assertEquals((await call(deps, body)).status, 400, JSON.stringify(body));
+  }
+  assertEquals(state.gifts.length, 0);
 });

@@ -1,8 +1,8 @@
 // Deploy with JWT verification off (Stripe doesn't send a Supabase token); every request's
 // Stripe signature is checked instead. See handler.ts.
 import { serviceClient } from "../_shared/supabase.ts";
-import { stripeClient, verifyWebhook } from "../_shared/stripe.ts";
-import { handle, type SubscriptionFields } from "./handler.ts";
+import { giftCode, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
+import { handle, type NewGift, type SubscriptionFields } from "./handler.ts";
 
 const MEMBERSHIP_COLUMNS = "user_id";
 
@@ -47,6 +47,22 @@ Deno.serve((req) =>
     },
     async cancelNow(subscriptionId) {
       await stripeClient().subscriptions.cancel(subscriptionId, { invoice_now: false, prorate: false });
+    },
+    async createGift(gift: NewGift) {
+      // One code per Checkout Session (its id is unique), so a retried event changes nothing.
+      const { error } = await serviceClient().from("gift_codes").upsert(
+        {
+          code: giftCode(),
+          plan_id: gift.planId,
+          months: gift.months,
+          amount_cents: gift.amountCents,
+          currency: gift.currency,
+          buyer_id: gift.buyerId,
+          stripe_checkout_session_id: gift.sessionId,
+        },
+        { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true },
+      );
+      if (error) throw error;
     },
     async deleteDraftInvoice(invoiceId) {
       await stripeClient().invoices.del(invoiceId);

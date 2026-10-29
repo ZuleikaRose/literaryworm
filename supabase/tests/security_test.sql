@@ -531,6 +531,28 @@ select pg_temp.check(public.second_step_done(), 'members without two-step sign-i
 reset role;
 delete from auth.mfa_factors where id = '00000000-0000-0000-0000-0000000000f1';
 
+-- Gift codes: written only by the functions; buyers see theirs, minus the Stripe session ----
+insert into public.gift_codes (code, plan_id, months, amount_cents, buyer_id, stripe_checkout_session_id) values
+  ('ABCDEFGHJKLMNPQR', 'standard', 3, 3897, '00000000-0000-0000-0000-00000000000a', 'cs_test_gift_a'),
+  ('BCDEFGHJKLMNPQRS', 'premium', 1, 1799, '00000000-0000-0000-0000-00000000000b', 'cs_test_gift_b');
+select pg_temp.expect_error($$insert into public.gift_codes (code, plan_id, months, amount_cents, stripe_checkout_session_id) values ('ABCDEFGHJKLMNPQ0', 'basic', 1, 799, 'cs_x')$$, 'a gift code with 0 in it');
+select pg_temp.expect_error($$insert into public.gift_codes (code, plan_id, months, amount_cents, stripe_checkout_session_id) values ('CDEFGHJKLMNPQRST', 'basic', 2, 1598, 'cs_y')$$, 'a gift of 2 months');
+set role anon;
+select pg_temp.expect_error('select code from public.gift_codes', 'anon reading gift codes');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select count(*) = 1 and bool_and(code = 'ABCDEFGHJKLMNPQR') from public.gift_codes), 'a buyer sees only the gifts they bought');
+select pg_temp.expect_error('select stripe_checkout_session_id from public.gift_codes', 'reading a gift''s Stripe session');
+select pg_temp.expect_error('select redeemed_by from public.gift_codes', 'reading who redeemed a gift');
+select pg_temp.expect_error($$update public.gift_codes set redeemed_at = now()$$, 'redeeming a gift from the browser');
+select pg_temp.expect_error($$insert into public.gift_codes (code, plan_id, months, amount_cents, buyer_id, stripe_checkout_session_id) values ('CDEFGHJKLMNPQRST', 'premium', 12, 1, '00000000-0000-0000-0000-00000000000a', 'cs_free')$$, 'making a gift from the browser');
+select pg_temp.expect_error($$update public.subscriptions set gift_until = now() + interval '1 year'$$, 'giving yourself free months');
+reset role;
+reset request.jwt.claims;
+delete from public.gift_codes where stripe_checkout_session_id in ('cs_test_gift_a', 'cs_test_gift_b');
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

@@ -7,6 +7,7 @@ import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { GrownUpDialog } from "../components/GrownUpDialog";
 import { InstallApp } from "../components/InstallApp";
+import { RedeemGift } from "../components/RedeemGift";
 import { TeamAccess } from "../components/TeamAccess";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
@@ -193,7 +194,12 @@ function PlanSection({ account }: { account: AccountDetails }) {
       dispatch({ type: "updateAccount", patch: await changeBillingDay(newDay) });
     }, `Your billing day is now the ${ordinal(newDay)}. The days until your next charge are free.`);
   };
-  const nextCharge = account.billingDay ? longDate(nextBillingDate(account.billingDay)) : null;
+  // During a gift's free months, the first charge is when they end.
+  const nextCharge = account.giftUntil
+    ? endDate(account.giftUntil)
+    : account.billingDay
+      ? longDate(nextBillingDate(account.billingDay))
+      : null;
   const endsOn = account.endsAt ? endDate(account.endsAt) : null;
 
   const run = async (action: MembershipAction) => {
@@ -214,6 +220,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
         <Link className="primary-button" to="/plans?setup=1">
           Choose a plan
         </Link>
+        {billed && <RedeemGift account={account} />}
       </Section>
     );
   }
@@ -274,7 +281,9 @@ function PlanSection({ account }: { account: AccountDetails }) {
               ? "None while paused"
               : endsOn
                 ? "None: the plan ends instead"
-                : `${formatPrice(plan.price)} on ${nextCharge}`}
+                : account.giftUntil
+                  ? `None until ${nextCharge}: a gift. Then ${formatPrice(plan.price)} if a card is on file; without one, the membership ends that day.`
+                  : `${formatPrice(plan.price)} on ${nextCharge}`}
           </dd>
         </div>
         <div>
@@ -305,7 +314,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
         </div>
       )}
 
-      {billed && account.stripeLinked && account.status === "active" && !endsOn && (
+      {billed && account.stripeLinked && account.status === "active" && !endsOn && !account.giftUntil && (
         <form className="billing-day-form" onSubmit={saveBillingDay}>
           <div className="field">
             <label className="field-label" htmlFor="new-billing-day">
@@ -335,6 +344,11 @@ function PlanSection({ account }: { account: AccountDetails }) {
         <Link className="secondary-button" to="/plans">
           Change plan
         </Link>
+        {billed && (
+          <Link className="secondary-button" to="/gifts">
+            Give a gift
+          </Link>
+        )}
         {account.status === "paused" ? (
           <button type="button" className="primary-button" disabled={busy} onClick={() => run("resume")}>
             Resume membership
@@ -359,6 +373,8 @@ function PlanSection({ account }: { account: AccountDetails }) {
         )}
       </div>
       <Feedback error={error} done={done} />
+
+      {billed && <RedeemGift account={account} />}
 
       {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} />}
 
