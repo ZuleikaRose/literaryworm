@@ -52,6 +52,11 @@ export type BookDetail = BookSummary & {
   averageRating: number | null;
   ratingsCount: number | null;
   previewLink: string | null;
+  /**
+   * What Google's embedded viewer can show on our page: "full" (every page), "partial" (a
+   * sample) or null (not embeddable, or no pages to show).
+   */
+  preview: "full" | "partial" | null;
   /** Google marks some titles MATURE; Teen and Kids profiles don't see those. */
   mature: boolean;
 };
@@ -237,8 +242,16 @@ export function shapeDetail(item: unknown): BookDetail {
     averageRating: num(info.averageRating),
     ratingsCount: num(info.ratingsCount),
     previewLink: preview?.startsWith("https://") ? preview : preview?.replace(/^http:\/\//, "https://") ?? null,
+    preview: previewKind(obj(obj(item).accessInfo)),
     mature: info.maturityRating === "MATURE",
   };
+}
+
+function previewKind(access: Record<string, unknown>): BookDetail["preview"] {
+  if (access.embeddable !== true) return null;
+  if (access.viewability === "ALL_PAGES") return "full";
+  if (access.viewability === "PARTIAL") return "partial";
+  return null;
 }
 
 export function shapePage(body: unknown, page: number): BookPage {

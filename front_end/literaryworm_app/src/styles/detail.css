@@ -746,3 +746,39 @@
 .remind-me-hint a {
   color: var(--rust-ink);
 }
+
+/* ---------- Google Books preview (embedded viewer) ---------- */
+
+.book-preview {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding: 40px clamp(0px, 3vw, 55px);
+  border-bottom: 1px solid var(--line);
+}
+
+.book-preview h2 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.book-preview .eyebrow,
+.book-preview-intro {
+  margin: 0;
+}
+
+.book-preview-intro {
+  max-width: 65ch;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Google's viewer draws on white, whatever the theme. */
+.book-preview-frame {
+  width: 100%;
+  height: min(70vh, 640px);
+  min-height: 420px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper-light);
+}

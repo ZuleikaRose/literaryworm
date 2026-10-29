@@ -16,6 +16,8 @@ export interface DetailView {
    * whether Google gave the exact day (Remind Me needs one). Null when there's no date.
    */
   release: { date: string; label: string; exact: boolean } | null;
+  /** Google Books' embedded viewer: every page, a sample, or null when it can't be shown here. */
+  preview: "full" | "partial" | null;
   /** Set for LiteraryWorm catalog titles (drawn cover, Read and Listen). */
   local?: Book;
   description: string | null;
@@ -106,6 +108,7 @@ export function fromCatalogBook(book: Book): DetailView {
     ]),
     googleLink: null,
     release: null,
+    preview: null,
   };
 }
 
@@ -131,6 +134,7 @@ export function fromVolume(volume: VolumeDetail): DetailView {
     ]),
     googleLink: volume.previewLink,
     release: releaseOf(volume.publishedDate),
+    preview: volume.preview ?? null,
   };
 }
 

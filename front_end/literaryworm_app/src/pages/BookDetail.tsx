@@ -6,6 +6,7 @@ import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
 import { Dialog } from "../components/Dialog";
+import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
 import { LogCard } from "../components/LogCard";
 import { LogDialog } from "../components/LogDialog";
@@ -479,6 +480,8 @@ function DetailPage({ view }: { view: DetailView }) {
 
       {/* Public-domain titles only: their text and audio may be kept on the device. */}
       {profile && view.local?.recording && <OfflineBook book={view.local} />}
+
+      {view.preview && <GooglePreview id={view.id} title={view.title} kind={view.preview} />}
 
       {view.facts.length > 0 && (
         <section className="book-facts" aria-labelledby="facts-title">

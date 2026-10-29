@@ -211,6 +211,19 @@ Deno.test("volume details strip HTML and handle missing cover and description", 
   assertEquals(body.pageCount, 320);
   assertFalse(body.mature);
 
+  assertEquals(body.preview, null, "no accessInfo: no preview");
+
+  for (const [access, want] of [
+    [{ embeddable: true, viewability: "PARTIAL" }, "partial"],
+    [{ embeddable: true, viewability: "ALL_PAGES" }, "full"],
+    [{ embeddable: true, viewability: "NO_PAGES" }, null],
+    [{ embeddable: false, viewability: "PARTIAL" }, null],
+    [{ embeddable: "true", viewability: "PARTIAL" }, null],
+  ] as const) {
+    res = await handle(get("mode=volume&id=abc123"), stub(200, { ...volume("abc123"), accessInfo: access }));
+    assertEquals((await res.json()).preview, want, JSON.stringify(access));
+  }
+
   res = await handle(get("mode=volume&id=abc123"), stub(200, volume("abc123", { maturityRating: "MATURE" })));
   assert((await res.json()).mature, "Google's MATURE rating is passed on");
 

@@ -367,7 +367,7 @@
         "paragraphs": [
           "These cookies are strictly necessary to provide you with services available through our Website and to use some of its features, such as access to secure areas.",
           "__cf_bm. Purpose: Cloudflare places the cookie on end-user devices that access customer sites protected by Bot Management or Bot Fight Mode. Provider: .supabase.co (our backend, Supabase, which is protected by Cloudflare). Service: Cloudflare (see Cloudflare's privacy policy). Type: server cookie. Expires in: 30 minutes.",
-          "Some book covers from Google Books, and the audiobook recordings streamed from the Internet Archive, load from those services. When your browser fetches them, those services may set or read their own cookies under their own policies. Blocking third-party cookies in your browser doesn't stop LiteraryWorm working."
+          "Some book covers from Google Books, the Google Books preview on some book pages (only when you open it), and the audiobook recordings streamed from the Internet Archive, load from those services. When your browser fetches them, those services may set or read their own cookies under their own policies. Blocking third-party cookies in your browser doesn't stop LiteraryWorm working."
         ]
       },
       {

@@ -41,6 +41,8 @@ export interface VolumeDetail extends Omit<BookSummary, "local"> {
   ratingsCount: number | null;
   /** Google's page for the title (where to preview or buy it). */
   previewLink: string | null;
+  /** What Google's embedded viewer can show: every page, a sample, or nothing (null). */
+  preview?: "full" | "partial" | null;
   /** Google rates it MATURE: Teen and Kids profiles don't see it. */
   mature: boolean;
 }
