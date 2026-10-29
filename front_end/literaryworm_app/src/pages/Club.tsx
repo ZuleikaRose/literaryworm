@@ -12,6 +12,7 @@ import { type Club, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, 
 import { chapterAt, chapterLabel, chapterTimes, today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { useTitle } from "../lib/useTitle";
+import { validateEmail } from "../lib/validation";
 import { activeReading } from "../store/reducer";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
@@ -19,6 +20,76 @@ import type { Book } from "../types";
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
 
 const postTime = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+
+/** Where an invitation link goes: /clubs/join/<code> joins the club after signing in. */
+const joinPath = (code: string) => `literaryworm.com/clubs/join/${code}`;
+
+/** Invite by email: the club-invite function sends the link; members only. */
+function InviteByEmail({ clubId }: { clubId: string }) {
+  const clubs = useClubs();
+  const id = useId();
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<string | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSent(null);
+    const problem = validateEmail(email);
+    if (problem) return setError(problem === "Enter your email address." ? "Enter their email address." : problem);
+    setBusy(true);
+    setError(null);
+    try {
+      await clubs.invite(clubId, email);
+      setSent(`Invitation sent to ${email.trim()}.`);
+      setEmail("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't send the invitation. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form className="club-invite-form" onSubmit={submit} noValidate>
+      <label className="field-label" htmlFor={id}>
+        Invite by email
+      </label>
+      <div className="club-invite-row">
+        <input
+          id={id}
+          type="email"
+          className="field-input"
+          autoComplete="off"
+          value={email}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : `${id}-hint`}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(null);
+          }}
+        />
+        <button type="submit" className="secondary-button small-button" disabled={busy}>
+          {busy ? "Sending…" : "Send"}
+        </button>
+      </div>
+      {error ? (
+        <p className="field-error" id={`${id}-error`} role="alert">
+          <Icon name="alert" size={15} />
+          {error}
+        </p>
+      ) : (
+        <p className="goal-hint" id={`${id}-hint`}>
+          We email them a link to join. We don't keep the address.
+        </p>
+      )}
+      <p className="goal-hint" role="status">
+        {sent}
+      </p>
+    </form>
+  );
+}
 
 /** /clubs/:id: one book club, its pace, members and discussion (spoilers past your place stay hidden). */
 export default function ClubPage() {
@@ -217,7 +288,8 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <section className="goal-card" aria-labelledby="invite-title">
             <h2 id="invite-title">Invite</h2>
-            <p className="goal-hint">Share this code. Members join from My Library → Clubs.</p>
+            <InviteByEmail clubId={club.id} />
+            <p className="goal-hint">Or share the code. Members join from My Library → Clubs, or at {joinPath(club.inviteCode)}.</p>
             <p className="club-code">
               <code>{club.inviteCode}</code>
               <button type="button" className="ghost-button small-button" onClick={copyCode}>

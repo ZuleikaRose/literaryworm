@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3000, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3200, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -408,6 +408,17 @@
           note: "Index: owner_id. Up to 20 an account; the owner joins by trigger. RLS: owner and members read; owner edits name, finish date, code, and deletes. Others join only through join_club(code).",
         },
         {
+          id: "club_invites", color: colors.reading, x: 840, y: 4250, sub: "invite by email · server only",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "club_id", "uuid"],
+            ["fk", "invited_by", "uuid"],
+            ["", "email_hash", "text (sha256 hex)"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "A one-way fingerprint of each invited address, never the address. Written by the club-invite function through record_club_invite() (member of the club, not full, 10 a day, same address once a week). RLS on, no browser access. Removed after 30 days by pg_cron. Indexes: (club_id, email_hash, created_at), (invited_by, created_at).",
+        },
+        {
           id: "club_members", color: colors.reading, x: 1260, y: 2050, sub: "up to 50 a club",
           cols: [
             ["pk fk", "club_id", "uuid"],
@@ -607,6 +618,8 @@
         ["reading_days", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_clubs", "owner_id", "profiles", "id", "N : 1"],
         ["club_members", "club_id", "book_clubs", "id", "N : 1"],
+        ["club_invites", "club_id", "book_clubs", "id", "N : 1"],
+        ["club_invites", "invited_by", "profiles", "id", "N : 1"],
         ["club_members", "user_id", "profiles", "id", "N : 1"],
         ["club_posts", "club_id", "club_members", "club_id", "N : 1 (pair)"],
         ["listening_devices", "user_id", "auth.users", "id", "N : 1"],

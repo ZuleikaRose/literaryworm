@@ -357,7 +357,7 @@ function fromSubscription(row: SubscriptionRow | null): PlanFields {
  * Calls one of LiteraryWorm's Edge Functions as the signed-in member. A refused password comes
  * back as "forbidden", which is reported in plain words; other errors use the function's message.
  */
-async function callFunction<T>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
+export async function callFunction<T>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
   const { data } = await client().auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new AccountError("Your session has ended. Log in again.");

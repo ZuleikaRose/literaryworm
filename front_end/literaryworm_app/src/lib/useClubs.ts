@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useActiveProfile, useStore } from "../store/context";
+import { AccountError } from "./accountApi";
 import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
@@ -106,6 +107,14 @@ export function useClubs() {
     [remote, demo, you],
   );
 
+  const invite = useCallback(
+    async (clubId: string, email: string) => {
+      if (!remote) throw new AccountError("The demo can't send emails. Share the club code instead.");
+      await clubsApi.inviteByEmail(clubId, email);
+    },
+    [remote],
+  );
+
   const leave = useCallback(
     async (id: string) => {
       if (remote) return clubsApi.leaveClub(id);
@@ -177,7 +186,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, leave, remove, addPost, deletePost, memberships, markRead, setNotify }),
-    [remote, myId, list, load, create, join, leave, remove, addPost, deletePost, memberships, markRead, setNotify],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, memberships, markRead, setNotify }),
+    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, memberships, markRead, setNotify],
   );
 }

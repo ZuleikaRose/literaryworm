@@ -590,6 +590,8 @@
 
 .club-page {
   display: grid;
+  /* One column that may shrink below its content, so long lines wrap instead of scrolling sideways. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 28px;
 }
 
@@ -613,6 +615,7 @@
 
 .club-pace {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 6px;
   color: var(--ink-soft);
@@ -627,12 +630,21 @@
 
 .club-side {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   justify-items: start;
+  /* The join address is one long word: let it break on a phone. */
+  overflow-wrap: anywhere;
 }
 
 .club-side .goal-card {
   width: 100%;
+}
+
+.club-side button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
 }
 
 .club-discussion h2 {
@@ -689,6 +701,33 @@
   margin: 12px 0 0;
 }
 
+.club-invite-form {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+
+.club-invite-row {
+  display: flex;
+  gap: 8px;
+}
+
+.club-invite-row .field-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.club-invite-row button {
+  min-height: 44px;
+}
+
+.join-club-page {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+  justify-items: start;
+}
+
 .club-code code {
   padding: 6px 10px;
   border-radius: var(--radius-sm);
@@ -714,11 +753,11 @@
 
 @media (max-width: 760px) {
   .club-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .club-header {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

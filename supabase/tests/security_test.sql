@@ -339,6 +339,20 @@ delete from public.club_posts where user_id = '00000000-0000-0000-0000-000000000
 delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';
 delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.check((select count(*) from public.club_posts) = 2 and (select count(*) from public.book_clubs) = 1 and (select count(*) from public.club_members) = 2, 'a member cannot delete others'' posts, the club, or the owner');
+-- Club invites by email: only the club-invite function records them; the browser sees nothing.
+select pg_temp.expect_error($$select public.record_club_invite('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000c1', repeat('a', 64))$$, 'recording a club invite from the browser');
+select pg_temp.expect_error('select * from public.club_invites', 'reading club invites from the browser');
+select pg_temp.expect_error($$insert into public.club_invites (club_id, invited_by, email_hash) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', repeat('b', 64))$$, 'writing a club invite from the browser');
+reset role;
+set role service_role;
+select pg_temp.check(public.record_club_invite('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000c1', repeat('a', 64))->>'status' = 'ok', 'a member invites an address');
+select pg_temp.check(public.record_club_invite('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000c1', repeat('a', 64))->>'status' = 'already_invited', 'the same address isn''t invited twice in a week');
+select pg_temp.check(public.record_club_invite('00000000-0000-0000-0000-0000000000ff', '00000000-0000-0000-0000-0000000000c1', repeat('c', 64))->>'status' = 'not_member', 'someone outside the club can''t invite to it');
+select pg_temp.check((select count(*) from public.club_invites where email_hash = repeat('a', 64)) = 1, 'only the fingerprint is kept');
+reset role;
+delete from public.club_invites where club_id = '00000000-0000-0000-0000-0000000000c1';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 delete from public.club_members where user_id = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.book_clubs) = 0, 'a member can leave');
 reset role;

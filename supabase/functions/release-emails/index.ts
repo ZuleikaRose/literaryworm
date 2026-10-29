@@ -1,16 +1,10 @@
 // Deploy with JWT verification off (pg_cron sends the Vault secret, not a Supabase token).
-// Mailgun's API key and sending domain come from the SEND_MAILGUN_EMAIL and MAILGUN_DOMAIN function
-// settings; MAILGUN_API_BASE is https://api.eu.mailgun.net for an EU domain. Nothing is hard-coded.
-import { allowedOrigins } from "../_shared/cors.ts";
+// Emails go through Mailgun's API (_shared/mailgun.ts: SEND_MAILGUN_EMAIL and MAILGUN_DOMAIN
+// function settings). Nothing is hard-coded.
+import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
-import type { DueReminder, Email } from "./email.ts";
+import type { DueReminder } from "./email.ts";
 import { handle } from "./handler.ts";
-
-function env(name: string): string {
-  const value = Deno.env.get(name);
-  if (!value) throw new Error(`Missing environment variable ${name}`);
-  return value;
-}
 
 interface ClaimedRow {
   user_id: string;
@@ -24,32 +18,7 @@ interface ClaimedRow {
   release_date: string;
 }
 
-async function sendWithMailgun(email: Email): Promise<void> {
-  const domain = env("MAILGUN_DOMAIN");
-  const base = (Deno.env.get("MAILGUN_API_BASE") ?? "https://api.mailgun.net").replace(/\/$/, "");
-  const form = new FormData();
-  form.set("from", Deno.env.get("MAILGUN_FROM") ?? `LiteraryWorm <reminders@${domain}>`);
-  form.set("to", email.to);
-  form.set("subject", email.subject);
-  form.set("text", email.text);
-  form.set("html", email.html);
-  form.set("o:tag", "release-reminder");
-  // No open or click tracking: the Privacy Policy says Mailgun gets the address and the email, nothing more.
-  form.set("o:tracking", "no");
-  form.set("h:List-Unsubscribe", `<${siteOrigin()}/account#preferences>`);
-  const res = await fetch(`${base}/v3/${encodeURIComponent(domain)}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Basic ${btoa(`api:${env("SEND_MAILGUN_EMAIL")}`)}` },
-    body: form,
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) throw new Error(`Mailgun answered ${res.status}: ${(await res.text()).slice(0, 200)}`);
-}
-
-function siteOrigin(): string {
-  const origins = allowedOrigins();
-  return origins.find((o) => o.startsWith("https://www.")) ?? origins[0];
-}
+const site = publicSiteOrigin();
 
 Deno.serve((req) =>
   handle(req, {
@@ -87,7 +56,7 @@ Deno.serve((req) =>
         if (error) throw error;
       }
     },
-    send: sendWithMailgun,
-    siteOrigin: siteOrigin(),
+    send: (email) => sendWithMailgun({ ...email, tag: "release-reminder", unsubscribeUrl: `${site}/account#preferences` }),
+    siteOrigin: site,
   })
 );

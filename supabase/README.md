@@ -53,6 +53,7 @@ Database migrations, Edge Functions and security tests for LiteraryWorm. The roo
 | `manage-account` | Signed-in accounts | `pause` / `resume` the membership (Stripe stops collecting payment, voiding invoices while paused), `cancel` (runs to the end of the paid period) / `restart`, `billing_day` (1–28: the days until the new date are free), `payment_method` (returns `{ url }` for Stripe's Customer Portal, to add or change the card), `billing_history` (the last 24 finalised invoices, newest first, as date, amount, currency, status, promo saving and Stripe's hosted receipt link, plus the membership's current discount; empty for complimentary memberships and accounts with no Stripe customer), `promo_code` (`code`: 3–40 letters, numbers, `-` or `_`; looked up among active Stripe promotion codes and applied to the subscription, replacing any discount; 400 if Stripe has no such code or won't apply it) and `delete` (needs the account password and `confirm: true`; cancels the Stripe subscription at once, marks the plan cancelled, then deletes the user, which cascades to every row they own). Responses show `stripe_linked`, never Stripe's ids. Complimentary (admin) memberships can't be paused, cancelled or billed. Rate limited per user (10/min). Deleting an account first removes its folder in the `user-books` bucket. |
 | `stripe-webhook` | Stripe (`verify_jwt = false`; every request's `Stripe-Signature` is checked with `STRIPE_WEBHOOK_SECRET`) | The only writer of paid memberships. Maps each event to an account through the Stripe Customer (`stripe_customers`), handles it once (`stripe_events`, recorded only after it's handled so failures are retried) and keeps `subscriptions` in step: `checkout.session.completed` / `.async_payment_succeeded` (start, with the renewal consent time), `customer.subscription.*` and `invoice.paid` / `.payment_failed` (status, plan, billing day, period end; a failed payment shows as past due). A subscription reaching an admin is cancelled at once, and `invoice.created` deletes an admin's draft renewal before it's charged. `charge.dispute.created`, `charge.refunded` and `radar.early_fraud_warning.created` are kept with `needs_review` for the team. |
 | `release-emails` | pg_cron, every hour at :15 (`verify_jwt = false`; the `Authorization` header must be the `release_emails_secret` kept in Vault, checked through `release_emails_secret()`) | Emails each account once about reminded books that came out. `claim_release_emails()` marks up to 200 due reminders as emailed (`release_reminders.emailed_at`: out today or in the last week, accounts that left `account_private.release_emails` on, confirmed addresses only) and returns them with the address; one email per account goes through Mailgun's API (no open or click tracking, `List-Unsubscribe` to Account → Preferences). Reminders whose email Mailgun refuses are handed back for the next hour. The job (`private.call_release_emails()`) does nothing until the project's URL is in Vault as `project_url`. |
+| `club-invite` | Signed-in members (JWT; the two-step code when it's on) | Emails an invitation to join a club: `{ clubId, email }`. `record_club_invite()` checks the caller is in the club, the club isn't full, 10 invitations a day per member and one per address per club a week, and keeps only a sha256 fingerprint of the club and address in `club_invites` (removed after 30 days by pg_cron). The email (Mailgun's API, no tracking) links to `/clubs/join/<code>`; if Mailgun refuses it, the invitation is forgotten so it can be sent again. Also 5 a minute per member. |
 
 All functions share `_shared/`: CORS with an origin allowlist (`ALLOWED_ORIGINS`, plus `Vary: Origin` and preflight), JSON error shape `{ error: { code, message } }`, a 4 KB body limit, strict field lists and the rate limiter.
 
@@ -64,9 +65,9 @@ supabase secrets set ALLOWED_ORIGINS=https://literaryworm.com,https://www.litera
 supabase secrets set ANTHROPIC_API_KEY=<your Claude API key>   # used only by the summaries and ask functions
 supabase secrets set STRIPE_SECRET_KEY=<a restricted key, rk_>  # checkout, manage-account, stripe-webhook
 supabase secrets set STRIPE_WEBHOOK_SECRET=<whsec_ from the webhook endpoint>   # stripe-webhook only
-supabase secrets set SEND_MAILGUN_EMAIL=<a Mailgun sending API key (not the SMTP password)>   # release-emails only
-supabase secrets set MAILGUN_DOMAIN=<the sending domain, e.g. mg.literaryworm.com>   # release-emails only
-# Optional: MAILGUN_API_BASE=https://api.eu.mailgun.net for an EU domain; MAILGUN_FROM (default "LiteraryWorm <reminders@MAILGUN_DOMAIN>")
+supabase secrets set SEND_MAILGUN_EMAIL=<a Mailgun sending API key (not the SMTP password)>   # release-emails and club-invite
+supabase secrets set MAILGUN_DOMAIN=<the sending domain, e.g. mg.literaryworm.com>   # release-emails and club-invite
+# Optional: MAILGUN_API_BASE=https://api.eu.mailgun.net for an EU domain; MAILGUN_FROM (default "LiteraryWorm <hello@MAILGUN_DOMAIN>")
 ```
 
 Once per project, so the hourly book-out email job knows where to call (in the SQL editor; it's the project's URL, not a secret):
@@ -106,7 +107,7 @@ How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_ac
 ```bash
 supabase link --project-ref <ref>
 supabase db push                      # applies migrations/
-supabase functions deploy books manage-profile checkout manage-account stripe-webhook release-emails dictionary summaries ask --project-ref <ref>
+supabase functions deploy books manage-profile checkout manage-account stripe-webhook release-emails club-invite dictionary summaries ask --project-ref <ref>
 ```
 
 ## Tests

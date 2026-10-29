@@ -36,6 +36,9 @@ verify_jwt = false
 # checked against STRIPE_WEBHOOK_SECRET instead, and unsigned or forged events are refused.
 verify_jwt = false
 
+[functions.club-invite]
+verify_jwt = true
+
 [functions.release-emails]
 # Called every hour by pg_cron, which sends no Supabase token: the function checks the
 # Authorization header against the release_emails_secret kept in Vault instead.

@@ -8,6 +8,7 @@ import Account from "./pages/Account";
 import Gifts from "./pages/Gifts";
 import BookDetail from "./pages/BookDetail";
 import ClubPage from "./pages/Club";
+import JoinClub from "./pages/JoinClub";
 import Browse from "./pages/Browse";
 import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
@@ -67,6 +68,7 @@ export default function App() {
           <Route element={<RequireProfile />}>
             <Route path="browse" element={<Browse />} />
             <Route path="library" element={<Library />} />
+            <Route path="clubs/join/:code" element={<JoinClub />} />
             <Route path="clubs/:id" element={<ClubPage />} />
             <Route path="account" element={<Account />} />
             <Route

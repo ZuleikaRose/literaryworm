@@ -1,4 +1,4 @@
-import { AccountError, signedInUserId } from "./accountApi";
+import { AccountError, callFunction, signedInUserId } from "./accountApi";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "./clubs";
 import { supabase } from "./supabase";
@@ -89,6 +89,14 @@ export async function createClub(input: { id: string; name: string; bookId: stri
     if (error.message.includes("20 clubs")) throw new AccountError("An account can run up to 20 clubs. Delete one to start another.");
     throw new AccountError("We couldn't start the club. Try again.");
   }
+}
+
+/**
+ * Emails an invitation to join a club through the `club-invite` function, which checks the
+ * caller is in the club and keeps only a fingerprint of the address.
+ */
+export async function inviteByEmail(clubId: string, email: string): Promise<void> {
+  await callFunction<{ sent: true }>("club-invite", { clubId, email: email.trim() }, "We couldn't send the invitation. Try again.");
 }
 
 /** Joins with an invite code; returns the club's id, or null for a code that doesn't match a club. */
