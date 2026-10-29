@@ -80,7 +80,11 @@ Set in the dashboard (Authentication) or the Management API; they aren't in the 
 | Site URL | `https://www.literaryworm.com` | Where reset links return |
 | Redirect URLs | `https://www.literaryworm.com/**`, `https://literaryworm.com/**`, `http://localhost:5173/**` | Allows `/reset-password` and `/signin` on the live site and in development |
 | Minimum password length | 15 | Matches the app's rule (15–64 characters) |
-| Confirm email | Off | The built-in email reaches only the project team, 2 emails an hour; turn it on once an email provider (SMTP) is set up |
+| SMTP | Mailgun | Auth emails go through Mailgun's SMTP server (host, port, user and password set in the dashboard, never in the repo), from a LiteraryWorm sender |
+| Email templates | `supabase/templates/confirmation.html`, `recovery.html` | Paste each into Authentication → Email Templates (*Confirm signup*, *Reset password*), with the subjects in `config.toml`; the local stack reads them from there |
+| Confirm email | On | New addresses are confirmed by a link (Mailgun delivers it); the app shows *Check your email* and can send the link again |
+
+Locally, `config.toml` turns on confirmations, uses the same templates and lets links return to `localhost:5173` or `5180`; the emails land in Mailpit (`http://127.0.0.1:54324`), not a real inbox.
 
 How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_accepted` and `marketing_emails` as user metadata, and the `on_auth_user_created` trigger validates them and creates `profiles` and `account_private`. The browser then reads its own rows under RLS, writes `library_items`, `logs`, `reading_progress`, `bookmarks` and `highlights` directly (owner-only writes), saves household profiles to `reader_profiles` (name, avatar, genres) and display name and marketing emails to their own rows, and goes through `checkout`, `manage-profile` and `manage-account` for everything that needs the password or the service role.
 

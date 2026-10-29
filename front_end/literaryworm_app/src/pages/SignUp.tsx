@@ -4,6 +4,7 @@ import { AuthCard } from "../components/AuthCard";
 import { Field } from "../components/Field";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
+import { ResendConfirmation } from "../components/ResendConfirmation";
 import { planById } from "../data/plans";
 import { AccountError, signUp } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
@@ -132,6 +133,7 @@ export default function SignUp() {
           No email after a few minutes? Check your spam folder. If you already have an account with this email, log in
           or reset your password instead.
         </p>
+        <ResendConfirmation email={sentTo} />
       </AuthCard>
     );
   }

@@ -359,5 +359,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Google Books preview: Google's embedded viewer on book pages Google allows, opened only on request; the Cookie Policy now mentions it (migration 2400) | Done    |
 | —    | Search filters for language and length, for LiteraryWorm titles and Google Books results alike | Done    |
 | —    | Billing history and promo codes: Account lists each Stripe charge with its receipt, shows the promo code on the membership and takes a new one; Stripe Checkout takes promo codes too | Done    |
+| —    | Email through Mailgun: sign-up confirmation and password reset in LiteraryWorm's own templates, *Send the email again*, and the Privacy Policy and EULA name Mailgun (migration 2500) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

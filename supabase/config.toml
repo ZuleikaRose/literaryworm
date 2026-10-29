@@ -40,3 +40,22 @@ verify_jwt = false
 [auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
+
+# Auth emails, sent through Mailgun's SMTP in production (set in the dashboard, with the sender).
+# The same templates are pasted into Authentication → Email Templates there.
+[auth]
+# Where local Auth emails send people back to: the dev server (5173), or a second one on 5180.
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/**", "http://localhost:5180/**"]
+
+[auth.email]
+# Hosted projects confirm new addresses by default; the CLI's default is off.
+enable_confirmations = true
+
+[auth.email.template.confirmation]
+subject = "Confirm your email address for LiteraryWorm"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your LiteraryWorm password"
+content_path = "./supabase/templates/recovery.html"

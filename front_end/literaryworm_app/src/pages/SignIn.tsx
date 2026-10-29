@@ -4,8 +4,9 @@ import { AuthCard } from "../components/AuthCard";
 import { Field } from "../components/Field";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
+import { ResendConfirmation } from "../components/ResendConfirmation";
 import * as accountApi from "../lib/accountApi";
-import { AccountError } from "../lib/accountApi";
+import { AccountError, UnconfirmedEmailError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
 import { useTitle } from "../lib/useTitle";
 import { credentialsMatch, validateEmail } from "../lib/validation";
@@ -24,6 +25,8 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  // The address that was refused for not being confirmed yet, to send its link again.
+  const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const [params] = useSearchParams();
@@ -53,10 +56,12 @@ export default function SignIn() {
     if (!isLocal) {
       setBusy(true);
       setFormError(null);
+      setUnconfirmed(null);
       try {
         await accountApi.signIn(email, password);
         // useAuthSync loads the account; the redirect above then takes over.
       } catch (err) {
+        if (err instanceof UnconfirmedEmailError) setUnconfirmed(email);
         setFormError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
         setBusy(false);
       }
@@ -184,6 +189,7 @@ export default function SignIn() {
           <p>{formError}</p>
         </div>
       )}
+      {unconfirmed && formError && <ResendConfirmation email={unconfirmed} />}
       <form className="auth-form" noValidate onSubmit={signIn}>
         <Field
           ref={emailRef}

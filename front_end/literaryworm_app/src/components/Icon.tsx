@@ -64,6 +64,12 @@ const paths = {
       <path d="M10 21h4" />
     </>
   ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </>
+  ),
   lock: (
     <>
       <rect x="5" y="11" width="14" height="10" rx="2" />

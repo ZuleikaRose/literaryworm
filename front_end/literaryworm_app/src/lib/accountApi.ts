@@ -31,6 +31,9 @@ import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 
 export class AccountError extends Error {}
 
+/** Log-in refused because the address isn't confirmed yet: the page offers to send the link again. */
+export class UnconfirmedEmailError extends AccountError {}
+
 const OFFLINE = "We couldn't reach LiteraryWorm. Check your connection and try again.";
 
 function client() {
@@ -108,6 +111,7 @@ export async function signIn(email: string, password: string): Promise<void> {
   const { error } = await client().auth.signInWithPassword({ email: email.trim(), password });
   if (error) {
     signingInHere = false;
+    if (error.code === "email_not_confirmed") throw new UnconfirmedEmailError(authMessage(error));
     throw new AccountError(authMessage(error));
   }
 }
@@ -134,6 +138,26 @@ export async function signOut(): Promise<void> {
   } catch {
     // Storage blocked: nothing was stored to remove.
   }
+}
+
+/**
+ * Sends the sign-up confirmation link again (through Supabase Auth, so by Mailgun). Supabase
+ * answers the same way for addresses without an account, so nothing is revealed.
+ */
+export async function resendConfirmation(email: string): Promise<void> {
+  let error: Parameters<typeof authMessage>[0] | null;
+  try {
+    ({ error } = await client().auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/signin?confirmed=1` },
+    }));
+  } catch {
+    throw new AccountError(OFFLINE);
+  }
+  if (!error) return;
+  if (error.status === 429) throw new AccountError("We've just sent one. Wait a minute, then try again.");
+  throw new AccountError("We couldn't send the email just now. Try again in a moment.");
 }
 
 /**

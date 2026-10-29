@@ -553,6 +553,17 @@ select.field-input {
   margin-top: 16px;
 }
 
+/* Send the confirmation email again (components/ResendConfirmation.tsx). */
+.resend-confirmation {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.resend-confirmation .auth-submit {
+  margin-top: 0;
+}
+
 .auth-note {
   margin: 14px 0 0;
   color: var(--muted);

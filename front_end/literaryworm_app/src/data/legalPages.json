@@ -142,7 +142,7 @@
         "heading": "4. When and with whom do we share your personal information?",
         "paragraphs": [
           "In Short: We share information only with the service providers that help us run LiteraryWorm, and in the situations described in this section.",
-          "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website. Neither may use your data for their own purposes.",
+          "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website. Mailgun sends our account emails (confirming your email address and resetting your password), so it receives your email address and each email's contents. None of them may use your data for their own purposes.",
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
           "Termly provides our cookie consent banner and our privacy request forms. Your browser loads the banner from Termly on each visit, so Termly receives those requests, including your IP address, and your consent choice is kept in your browser. Termly handles this under its own privacy policy (https://termly.io/our-privacy-policy/). It never handles payment details: Stripe does.",
           "Anthropic (Claude) writes book summaries and answers Ask the book questions (see section 6).",
@@ -931,7 +931,7 @@
       {
         "heading": "14. Third-party terms of agreements",
         "paragraphs": [
-          "LiteraryWorm represents and warrants that LiteraryWorm will comply with applicable third-party terms of agreement when using the Licensed Application, including those of the services it relies on: Supabase, Vercel, Anthropic, Google Books, the Internet Archive, LibriVox and Project Gutenberg."
+          "LiteraryWorm represents and warrants that LiteraryWorm will comply with applicable third-party terms of agreement when using the Licensed Application, including those of the services it relies on: Supabase, Vercel, Mailgun, Anthropic, Google Books, the Internet Archive, LibriVox and Project Gutenberg."
         ]
       },
       {

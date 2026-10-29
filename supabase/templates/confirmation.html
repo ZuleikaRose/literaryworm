@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Confirm your email address</title>
+  </head>
+  <!-- Sent by Supabase Auth through Mailgun (SMTP). Paste into Authentication → Email Templates in the
+       dashboard; supabase/config.toml uses this file for the local stack. Inline styles only: email
+       clients drop <style> blocks and external CSS. -->
+  <body style="margin:0;padding:0;background:#f1e4cb;">
+    <div style="display:none;max-height:0;overflow:hidden;">One click to finish setting up your LiteraryWorm account.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1e4cb;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fbf8f2;border:1px solid #e0d9cc;border-radius:14px;">
+            <tr>
+              <td style="padding:32px 32px 8px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:20px;font-weight:700;color:#1d1c1a;">
+                Literary<span style="color:#a24e2f;">Worm</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 32px 0;font-family:'DM Sans',Arial,Helvetica,sans-serif;color:#1d1c1a;">
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">Confirm your email address</h1>
+                <p style="margin:0 0 24px;font-size:16px;line-height:1.55;">Thanks for joining LiteraryWorm. Confirm that <strong>{{ .Email }}</strong> is yours, then log in to choose your plan and set up your household.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="border-radius:10px;background:#a24e2f;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 24px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">Confirm my email</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0;font-size:14px;line-height:1.55;color:#5b5750;">The link works once. If it has expired, log in and choose <em>Send the email again</em>.</p>
+                <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:#5b5750;">
+                  If the button doesn't work, copy this link into your browser:<br />
+                  <a href="{{ .ConfirmationURL }}" style="color:#a24e2f;word-break:break-all;">{{ .ConfirmationURL }}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 32px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#5b5750;">
+                <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
+                You're getting this because someone signed up for LiteraryWorm with this address. If it wasn't you, ignore this email: nothing happens unless the link is opened.<br />
+                LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
