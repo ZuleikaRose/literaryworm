@@ -41,8 +41,9 @@ Deno.serve((req) =>
             trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
             metadata: { plan_id: planId, gift_until: String(until), gift_consent_at: consentAt },
           },
-          // One subscription per gift, however often the request is retried.
-          { idempotencyKey: `gift-${giftId}` },
+          // One subscription per gift and account, however often the request is retried; with the
+          // customer in the key, a code given back after a failure can still go to someone else.
+          { idempotencyKey: `gift-${giftId}-${customerId}` },
         );
       },
       async paymentMethodUrl(customerId, returnUrl) {
