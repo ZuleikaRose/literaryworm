@@ -2,6 +2,9 @@
 // Requires a signed-in account (JWT). Subscriptions are never written from the
 // browser, and deleting needs the account password again.
 //
+// An admin's membership is complimentary (never billed), so it can't be paused, resumed,
+// cancelled or restarted; deleting the account still works.
+//
 //   { action: "pause" }                      stop reading and billing until resumed
 //   { action: "resume" }
 //   { action: "cancel" }                     ends on the next billing date; no more charges
@@ -19,9 +22,12 @@ const METHODS = "POST";
 export interface Subscription {
   plan_id: string;
   status: "active" | "paused" | "cancelled" | "past_due";
-  billing_day: number;
+  /** Null only for a complimentary membership, which is never billed. */
+  billing_day: number | null;
   cancel_at_period_end: boolean;
   current_period_end: string | null;
+  /** An admin's membership: set by the database from the admin role, never billed. */
+  complimentary: boolean;
 }
 
 export type SubscriptionPatch = Partial<Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end">>;
@@ -50,6 +56,15 @@ async function requireSubscription(deps: Deps, userId: string): Promise<Subscrip
   return sub;
 }
 
+/** A paid membership, for pausing, resuming, cancelling and restarting: an admin's has nothing to change. */
+async function requirePaidSubscription(deps: Deps, userId: string): Promise<Subscription & { billing_day: number }> {
+  const sub = await requireSubscription(deps, userId);
+  if (sub.complimentary || sub.billing_day === null) {
+    throw new HttpError("bad_request", "Admin memberships are complimentary and never charged, so there's nothing to pause or cancel.");
+  }
+  return sub as Subscription & { billing_day: number };
+}
+
 export async function handle(req: Request, deps: Deps): Promise<Response> {
   const early = preflight(req, METHODS);
   if (early) return early;
@@ -64,7 +79,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     switch (body.action) {
       case "pause": {
         onlyKeys(body, ["action"]);
-        const sub = await requireSubscription(deps, user.id);
+        const sub = await requirePaidSubscription(deps, user.id);
         if (sub.status === "paused") return json(req, METHODS, sub);
         if (sub.status !== "active") throw new HttpError("bad_request", "Only an active membership can be paused.");
         if (sub.cancel_at_period_end) {
@@ -74,14 +89,14 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       }
       case "resume": {
         onlyKeys(body, ["action"]);
-        const sub = await requireSubscription(deps, user.id);
+        const sub = await requirePaidSubscription(deps, user.id);
         if (sub.status === "active") return json(req, METHODS, sub);
         if (sub.status !== "paused") throw new HttpError("bad_request", "Only a paused membership can be resumed.");
         return json(req, METHODS, await deps.updateSubscription(user.id, { status: "active" }));
       }
       case "cancel": {
         onlyKeys(body, ["action"]);
-        const sub = await requireSubscription(deps, user.id);
+        const sub = await requirePaidSubscription(deps, user.id);
         if (sub.status === "cancelled") return json(req, METHODS, sub);
         // Nothing more is charged; reading continues until the date already paid for.
         const ends = nextBillingDate(sub.billing_day, now).toISOString();
@@ -93,7 +108,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       }
       case "restart": {
         onlyKeys(body, ["action"]);
-        const sub = await requireSubscription(deps, user.id);
+        const sub = await requirePaidSubscription(deps, user.id);
         if (sub.status === "cancelled") {
           throw new HttpError("bad_request", "This membership has ended. Choose a plan to start again.");
         }
@@ -107,7 +122,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         await deps.confirmPassword(user.email, password);
         // Cancel first, so a failure part-way through never leaves a plan that keeps charging.
         const sub = await deps.getSubscription(user.id);
-        if (sub && sub.status !== "cancelled") {
+        if (sub && !sub.complimentary && sub.status !== "cancelled") {
           await deps.updateSubscription(user.id, { status: "cancelled", cancel_at_period_end: false, current_period_end: now.toISOString() });
         }
         await deps.deleteUser(user.id);

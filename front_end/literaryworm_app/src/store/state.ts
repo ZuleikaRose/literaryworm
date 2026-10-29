@@ -210,6 +210,7 @@ export function demoHousehold(): Household {
       isDemo: true,
       status: "active",
       endsAt: null,
+      complimentary: false,
     },
     profiles: [avery, sam, mia],
     profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },

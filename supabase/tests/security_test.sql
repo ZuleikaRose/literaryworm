@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs. Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; admins' memberships are complimentary and never billed) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs. Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 \set ON_ERROR_STOP on
 
@@ -454,7 +454,29 @@ set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select public.revoke_staff_role('b@test', 'editor');
 select pg_temp.check((select count(*) = 0 from public.staff_members() where email = 'b@test'), 'an admin removes a role');
+-- Admins are never billed: Ann's Standard plan became a complimentary Premium membership when she became an admin.
+select pg_temp.check((select complimentary and plan_id = 'premium' and status = 'active' and billing_day is null from public.subscriptions), 'an admin sees a complimentary membership with no billing day');
+select pg_temp.expect_error($$update public.subscriptions set complimentary = false$$, 'an admin changing their membership from the browser');
 reset role;
+update public.subscriptions set status = 'paused', billing_day = 5, cancel_at_period_end = true, stripe_subscription_id = 'sub_x'
+ where user_id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select complimentary and status = 'active' and billing_day is null and not cancel_at_period_end and stripe_subscription_id is null
+  from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000a'), 'an admin''s membership can''t be paused, cancelled or given billing, even by the server');
+insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at, complimentary)
+values ('00000000-0000-0000-0000-00000000000b', 'basic', 9, now(), true);
+select pg_temp.check((select not complimentary and billing_day = 9 from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'a member can''t be marked complimentary without the admin role');
+delete from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.expect_error($$insert into public.subscriptions (user_id, plan_id) values ('00000000-0000-0000-0000-00000000000b', 'basic')$$, 'a paid plan without a billing day or renewal consent');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.grant_staff_role('b@test', 'admin');
+reset role;
+select pg_temp.check((select complimentary and plan_id = 'premium' from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'granting admin starts a complimentary membership');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.revoke_staff_role('b@test', 'admin');
+reset role;
+select pg_temp.check(not exists (select 1 from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'removing admin ends the complimentary membership: a plan must be chosen again');
 delete from auth.users where id = '00000000-0000-0000-0000-00000000000e';
 
 -- Every public table has RLS on -----------------------------------------------

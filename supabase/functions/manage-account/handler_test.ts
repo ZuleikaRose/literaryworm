@@ -37,6 +37,16 @@ const active = (): Subscription => ({
   billing_day: 5,
   cancel_at_period_end: false,
   current_period_end: null,
+  complimentary: false,
+});
+
+const complimentary = (): Subscription => ({
+  plan_id: "premium",
+  status: "active",
+  billing_day: null,
+  cancel_at_period_end: false,
+  current_period_end: null,
+  complimentary: true,
 });
 
 function post(body: unknown, origin = ORIGIN) {
@@ -97,6 +107,30 @@ Deno.test("delete needs confirm and the right password, cancels the plan, then d
   assertEquals(ok.status, 200);
   assertEquals(ok.body, { deleted: true });
   assertEquals(state.sub!.status, "cancelled");
+  assert(state.deleted);
+});
+
+Deno.test("an admin's complimentary membership can't be paused, resumed, cancelled or restarted", async () => {
+  const { state, deps } = setup(complimentary());
+  for (const action of ["pause", "resume", "cancel", "restart"]) {
+    const res = await call(deps, { action });
+    assertEquals(res.status, 400, action);
+    assert(res.body.error.message.includes("never charged"), action);
+  }
+  assertEquals(state.sub, complimentary());
+});
+
+Deno.test("deleting an admin account leaves the complimentary membership alone, then deletes the user", async () => {
+  const updates: unknown[] = [];
+  const { state, deps } = setup(complimentary(), {
+    updateSubscription: (_id, patch) => {
+      updates.push(patch);
+      return Promise.resolve(complimentary());
+    },
+  });
+  const res = await call(deps, { action: "delete", password: "right password", confirm: true });
+  assertEquals(res.status, 200);
+  assertEquals(updates, []);
   assert(state.deleted);
 });
 

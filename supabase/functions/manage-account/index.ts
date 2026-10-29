@@ -2,7 +2,7 @@ import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
 import { handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
 
-const COLUMNS = "plan_id, status, billing_day, cancel_at_period_end, current_period_end";
+const COLUMNS = "plan_id, status, billing_day, cancel_at_period_end, current_period_end, complimentary";
 
 Deno.serve((req) =>
   handle(req, {

@@ -111,6 +111,8 @@ export interface Account {
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */
   endsAt: string | null;
+  /** An admin's membership: complimentary, never billed (set by the database from the admin role). */
+  complimentary: boolean;
 }
 
 export interface Profile {

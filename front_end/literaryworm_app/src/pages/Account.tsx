@@ -185,6 +185,30 @@ function PlanSection({ account }: { account: AccountDetails }) {
     );
   }
 
+  if (account.complimentary) {
+    return (
+      <Section id="plan" title="Plan and billing" intro="Admin accounts have a complimentary membership. They're never charged.">
+        <dl className="account-facts">
+          <div>
+            <dt>Plan</dt>
+            <dd>{plan.name}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>
+              <span className="status-pill status-active">Complimentary</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Next charge</dt>
+            <dd>None. Admin accounts aren't billed.</dd>
+          </div>
+        </dl>
+        <p className="field-hint">If the admin role is removed, the complimentary membership ends and a plan can be chosen then.</p>
+      </Section>
+    );
+  }
+
   const statusText =
     account.status === "paused" ? "Paused" : endsOn ? `Cancelled: ends ${endsOn}` : account.status === "cancelled" ? "Ended" : "Active";
 

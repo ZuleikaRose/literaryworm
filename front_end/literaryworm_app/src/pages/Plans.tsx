@@ -17,10 +17,12 @@ export default function Plans() {
   const [params] = useSearchParams();
   const setup = params.get("setup") === "1";
   const account = state.account;
+  // Admin accounts are complimentary and never charged: they have no plan to choose.
+  const complimentary = Boolean(account?.complimentary);
   const initialPlan = (params.get("plan") as PlanId | null) ?? null;
 
   const [selected, setSelected] = useState<PlanId | null>(
-    account && initialPlan && planById.has(initialPlan) && initialPlan !== account.planId ? initialPlan : null,
+    account && !complimentary && initialPlan && planById.has(initialPlan) && initialPlan !== account.planId ? initialPlan : null,
   );
   const [billingDay, setBillingDay] = useState(() => Math.min(new Date().getDate(), 28));
   const [agreed, setAgreed] = useState(false);
@@ -90,6 +92,16 @@ export default function Plans() {
         )}
       </header>
 
+      {complimentary && (
+        <div className="form-success" role="status">
+          <Icon name="check" size={18} />
+          <p>
+            Your admin account has a complimentary <strong>Premium</strong> membership. It's never charged, so
+            there's no plan to choose.
+          </p>
+        </div>
+      )}
+
       {confirmed && (
         <div className="form-success" role="status">
           <Icon name="check" size={18} />
@@ -136,7 +148,7 @@ export default function Plans() {
                 <p className="plan-current">
                   <Icon name="check" size={16} /> Your current plan
                 </p>
-              ) : (
+              ) : complimentary ? null : (
                 <button
                   type="button"
                   className={isSelected ? "primary-button is-on" : "primary-button"}
@@ -151,7 +163,7 @@ export default function Plans() {
         })}
       </ul>
 
-      {plan && account && (
+      {plan && account && !complimentary && (
         <section className="checkout" aria-labelledby="checkout-title">
           <h2 id="checkout-title" ref={checkoutRef} tabIndex={-1}>
             Confirm {plan.name}

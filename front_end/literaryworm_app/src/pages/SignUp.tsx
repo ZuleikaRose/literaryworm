@@ -99,6 +99,7 @@ export default function SignUp() {
         isDemo: false,
         status: "active",
         endsAt: null,
+        complimentary: false,
       },
       firstProfile: makeProfile({ name: firstName, ageRating: "all" }),
     });

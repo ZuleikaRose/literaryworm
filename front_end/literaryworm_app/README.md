@@ -103,4 +103,5 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Terms of Service rewritten from Termly's, keeping our own sections and their narrow licence for what members post |
 | — | Acceptable Use Policy at `/legal/acceptable-use`, in the footer after the EULA, from Termly's; reports go to report@literaryworm.com |
 | — | Return Policy at `/legal/returns`, from Termly's: no payment yet, then all sales final |
+| — | Admin accounts never billed: Account → Plan and billing shows a complimentary membership with no next charge; Plans offers admins no paid plan |
 | — | Termly consent banner (first script in `index.html`), *Consent Preferences* in the footer; Google Books covers marked essential so they load when visitors decline |

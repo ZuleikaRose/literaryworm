@@ -4,6 +4,10 @@
 // role. Payment isn't taken yet: when Stripe is added, this function creates
 // the Checkout Session and a webhook writes the subscription instead.
 //
+// Admins are never billed: their membership is complimentary (the database
+// makes it so from the admin role), so this function refuses to set up a plan
+// for them, before anything else, and must never create a Checkout Session for them.
+//
 //   { planId: "basic" | "standard" | "premium", billingDay: 1-28, renewalTermsAccepted: true }
 
 import { preflight } from "../_shared/cors.ts";
@@ -23,6 +27,17 @@ Deno.serve(async (req) => {
     requireMethod(req, ["POST"]);
     const user = await requireUser(req);
     await enforceRateLimit(`checkout:${user.id}`, 10, 60);
+    const db = serviceClient();
+    const { data: admin, error: roleError } = await db
+      .from("staff_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (roleError) throw roleError;
+    if (admin) {
+      throw new HttpError("bad_request", "Admin accounts have a complimentary membership and are never charged.");
+    }
     const body = await readJsonBody(req);
     onlyKeys(body, ["planId", "billingDay", "renewalTermsAccepted"]);
 
@@ -34,7 +49,7 @@ Deno.serve(async (req) => {
       throw new HttpError("bad_request", "Agree to the renewal terms to continue.");
     }
 
-    const { data, error } = await serviceClient()
+    const { data, error } = await db
       .from("subscriptions")
       .upsert({
         user_id: user.id,

@@ -206,18 +206,22 @@ interface SubscriptionRow {
   status: string;
   cancel_at_period_end: boolean;
   current_period_end: string | null;
+  complimentary: boolean;
 }
 
-const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end";
+const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, complimentary";
 
 /** The account's plan fields from a subscriptions row (or none yet). */
-function fromSubscription(row: SubscriptionRow | null): Pick<Account, "planId" | "billingDay" | "status" | "endsAt"> {
+function fromSubscription(
+  row: SubscriptionRow | null,
+): Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary"> {
   const status = row?.status;
   return {
     planId: (row?.plan_id as PlanId | undefined) ?? null,
     billingDay: row?.billing_day ?? null,
     status: status === "paused" || status === "cancelled" ? status : "active",
     endsAt: row?.cancel_at_period_end ? row.current_period_end : null,
+    complimentary: row?.complimentary ?? false,
   };
 }
 

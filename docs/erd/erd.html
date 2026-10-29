@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1706, plus the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1800, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -150,16 +150,17 @@
             ["fk", "user_id", "uuid (unique)"],
             ["fk", "plan_id", "text"],
             ["", "status", "subscription_status"],
-            ["", "billing_day", "smallint 1–28"],
-            ["", "renewal_terms_accepted_at", "timestamptz"],
+            ["", "billing_day", "smallint 1–28", true],
+            ["", "renewal_terms_accepted_at", "timestamptz", true],
             ["", "current_period_end", "timestamptz", true],
             ["", "cancel_at_period_end", "boolean"],
             ["", "stripe_customer_id", "text", true],
             ["", "stripe_subscription_id", "text", true],
+            ["", "complimentary", "boolean (admins)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function.",
+          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function. complimentary is set by a trigger from the admin role: Premium, active, no billing day or Stripe subscription, never billed; a paid row needs a billing day and renewal consent.",
         },
         {
           id: "logs", color: colors.reading, x: 420, y: 1000, sub: "public",
@@ -474,7 +475,7 @@
             ["", "granted_at", "timestamptz"],
             ["fk", "granted_by", "uuid", true],
           ],
-          note: "Roles: admin, developer, editor, billing, customer_service, blog (admins can do everything). Granted and removed only by admins through grant_staff_role() / revoke_staff_role(); the last admin stays. RLS: members see their own roles; admins see the team through staff_members(). Index: granted_by.",
+          note: "Roles: admin, developer, editor, billing, customer_service, blog (admins can do everything). Granted and removed only by admins through grant_staff_role() / revoke_staff_role(); the last admin stays. Granting admin starts a complimentary membership and removing it ends one. RLS: members see their own roles; admins see the team through staff_members(). Index: granted_by.",
         },
         {
           id: "staff_invites", color: colors.account, x: 420, y: 3330, sub: "roles waiting for sign-up",
