@@ -144,6 +144,7 @@
           "In Short: We share information only with the service providers that help us run LiteraryWorm, and in the situations described in this section.",
           "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website. Neither may use your data for their own purposes.",
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
+          "Termly provides our cookie consent banner and our privacy request forms. Your browser loads the banner from Termly on each visit, so Termly receives those requests, including your IP address, and your consent choice is kept in your browser. Termly handles this under its own privacy policy (https://termly.io/our-privacy-policy/). It never handles payment details: Stripe does.",
           "Anthropic (Claude) writes book summaries and answers Ask the book questions (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words and book ids, never who's asking. LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. Lists you share can be read by anyone with the link. Staff with the right access can see account details to run the service and help you.",
@@ -154,6 +155,7 @@
         "heading": "5. Do we use cookies and other tracking technologies?",
         "paragraphs": [
           "In Short: We use only essential cookies and similar technologies, described in our Cookie Policy.",
+          "When you first visit, a banner from Termly asks for your cookie choice, and you can change it at any time with Consent Preferences at the bottom of every page. Because we use only essential cookies, declining changes nothing about how the Services work.",
           "The technologies we use help us maintain the security of our Services and your account, keep you signed in, and let the app work offline.",
           "We don't permit third parties or service providers to use online tracking technologies on our Services for analytics or advertising, and we don't use Google Analytics or any other analytics or advertising service.",
           "Specific information about the technologies we use and how you can refuse certain cookies is set out in our Cookie Policy."
@@ -290,6 +292,7 @@
         "heading": "17. Your choices and rights",
         "paragraphs": [
           "In Account you can download a copy of your data, change your display name and marketing emails, and delete profiles or your whole account. You can remove any log, post, highlight or upload yourself.",
+          "You can also use the request form linked at the bottom of every page (Do Not Sell or Share My Personal information; Limit the Use Of My Sensitive Personal Information), provided by Termly.",
           "We honour Global Privacy Control. Children's data is covered by the Children's Privacy Notice, and what we keep in your browser by the Cookie Policy."
         ]
       },
