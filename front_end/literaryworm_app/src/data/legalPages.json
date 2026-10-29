@@ -1129,6 +1129,28 @@
     ]
   },
   {
+    "slug": "returns",
+    "title": "Return Policy",
+    "summary": "How refunds work for LiteraryWorm memberships, and who to contact with questions.",
+    "updated": "2026-10-29",
+    "sections": [
+      {
+        "heading": "Refunds",
+        "paragraphs": [
+          "LiteraryWorm doesn't take payment yet: choosing a plan saves it to your account, but no one is charged, so there is nothing to refund at the moment.",
+          "Once paid plans start, all sales are final and no refund will be issued. You can cancel at any time from Account; your plan stays active until the end of the period you've paid for, and you won't be charged again.",
+          "This doesn't affect any rights you have under the law where you live."
+        ]
+      },
+      {
+        "heading": "Questions",
+        "paragraphs": [
+          "If you have any questions concerning our return policy, please contact us at support@literaryworm.com."
+        ]
+      }
+    ]
+  },
+  {
     "slug": "copyright",
     "title": "Copyright/DMCA",
     "summary": "How LiteraryWorm respects copyright, which works are in the public domain, and how a rights holder can report content they believe infringes, under the Digital Millennium Copyright Act (DMCA).",

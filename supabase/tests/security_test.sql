@@ -414,7 +414,7 @@ reset role;
 
 -- Staff roles and legal pages ------------------------------------------------
 set role anon;
-select pg_temp.check((select count(*) from public.legal_pages) = 12, 'anyone reads the legal pages');
+select pg_temp.check((select count(*) from public.legal_pages) = 13, 'anyone reads the legal pages');
 select pg_temp.expect_error($$update public.legal_pages set title = 'Hacked' where slug = 'terms'$$, 'anon editing a legal page');
 select pg_temp.expect_error('select * from public.staff_roles', 'anon reading staff roles');
 select pg_temp.expect_error($$select public.grant_staff_role('a@test', 'admin')$$, 'anon granting a role');
