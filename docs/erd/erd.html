@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–1902, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–2000, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -297,6 +297,7 @@
             ["", "favorite_genres", "text[]"],
             ["", "kids_consent_at", "timestamptz", true],
             ["", "recent_searches", "text[] ≤ 8"],
+            ["", "playback_speed", "numeric 0.5–3"],
             ["", "player_volume", "smallint 0–100"],
             ["", "player_muted", "boolean"],
             ["", "skip_back_seconds", "smallint 5–60"],

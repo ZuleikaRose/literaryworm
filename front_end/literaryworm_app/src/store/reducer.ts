@@ -90,7 +90,6 @@ export type Action =
   | { type: "updateHighlight"; id: string; patch: Partial<Pick<Highlight, "color" | "note">> }
   | { type: "removeHighlight"; id: string }
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
-  | { type: "setPlaybackSpeed"; speed: number }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
   | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean }
@@ -503,9 +502,6 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "updateReaderSettings":
       return withProfileData(state, (data) => ({ ...data, readerSettings: { ...data.readerSettings, ...action.patch } }));
-
-    case "setPlaybackSpeed":
-      return withProfileData(state, (data) => ({ ...data, playbackSpeed: action.speed }));
 
     case "setNarrationVoice":
       return withProfileData(state, (data) => ({ ...data, narrationVoice: action.voice }));

@@ -105,3 +105,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Return Policy at `/legal/returns`, from Termly's: no payment yet, then all sales final |
 | — | Admin accounts never billed: Account → Plan and billing shows a complimentary membership with no next charge; Plans offers admins no paid plan |
 | — | Termly consent banner (first script in `index.html`), *Consent Preferences* in the footer; Google Books covers marked essential so they load when visitors decline |
+| — | Playback speed saved per profile with the other player settings (`reader_profiles.playback_speed`, migration 2000) |

@@ -58,7 +58,7 @@ function Bar({ session, trouble, onLeave }: { session: ListenAlongState; trouble
 
 function Host({ session, book }: { session: ListenAlongState; book: Book }) {
   const playback = usePlayback();
-  const { playbackSpeed } = useProfileData();
+  const playbackSpeed = useProfileData().player.speed;
   const live = playback.book?.id === book.id ? playback.snapshot : null;
   const sent = useRef<{ position: number; playing: boolean; rate: number; at: number } | null>(null);
   const opened = useRef(false);
@@ -142,7 +142,7 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
 function Follower({ session, book }: { session: ListenAlongState; book: Book }) {
   const playback = usePlayback();
   const { dispatch } = useStore();
-  const { playbackSpeed } = useProfileData();
+  const playbackSpeed = useProfileData().player.speed;
   const [host, setHost] = useState<ListenSession | null | undefined>(undefined);
   const [trouble, setTrouble] = useState(false);
   const opened = useRef(false);
@@ -192,7 +192,8 @@ function Follower({ session, book }: { session: ListenAlongState; book: Book }) 
         return;
       }
       opened.current = true;
-      if (h.rate !== speed) dispatch({ type: "setPlaybackSpeed", speed: h.rate });
+      // Not saved: the profile keeps its own speed unless the member changes a player setting while following.
+      if (h.rate !== speed) dispatch({ type: "updatePlayerSettings", patch: { speed: h.rate } });
       const snap = p.snapshot;
       if (!snap) return;
       if (h.playing && !snap.playing) p.play();

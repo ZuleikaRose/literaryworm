@@ -430,7 +430,7 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
   const clubs = useClubs();
   const playback = usePlayback();
   const { state } = useStore();
-  const { playbackSpeed } = useProfileData();
+  const playbackSpeed = useProfileData().player.speed;
   const joined = useListenAlong();
   const [session, setSession] = useState<ListenSession | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);

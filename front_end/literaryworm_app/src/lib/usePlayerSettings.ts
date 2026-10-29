@@ -7,7 +7,7 @@ import * as accountApi from "./accountApi";
 const SAVE_AFTER_MS = 600;
 
 /**
- * The active profile's player settings (volume, mute, skip lengths, skipping intros and outros).
+ * The active profile's player settings (speed, volume, mute, skip lengths, skipping intros and outros).
  * Changes show at once; real accounts save them to the profile in the background, like recent
  * searches: losing one is no reason to interrupt listening.
  */

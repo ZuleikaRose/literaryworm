@@ -131,6 +131,7 @@ export const SKIP_SECONDS = 15;
 export const SKIP_CHOICES = [5, 10, 15, 30, 45, 60];
 
 export const defaultPlayerSettings: PlayerSettings = {
+  speed: 1,
   volume: 100,
   muted: false,
   skipBack: SKIP_SECONDS,

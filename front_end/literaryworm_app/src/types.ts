@@ -211,6 +211,8 @@ export interface TimeUsed {
 
 /** How a profile likes the audiobook player set up. */
 export interface PlayerSettings {
+  /** One of PLAYBACK_SPEEDS, 0.5–3. */
+  speed: number;
   /** 0–100. */
   volume: number;
   muted: boolean;
@@ -274,14 +276,12 @@ export interface ProfileData {
   highlights: Highlight[];
   recentSearches: string[];
   readerSettings: ReaderSettings;
-  /** Audiobook playback speed, 0.5–3. */
-  playbackSpeed: number;
   /**
    * Who reads the audiobooks: "librivox" (the recording), "silent", a device voice's voiceURI,
    * or null for the default (the recording where there is one, else a British English voice).
    */
   narrationVoice: string | null;
-  /** Volume, skip lengths and skipping intros and outros (members save them on the profile). */
+  /** Speed, volume, skip lengths and skipping intros and outros (members save them on the profile). */
   player: PlayerSettings;
   timeUsed: TimeUsed;
   /** Books to finish, by year. */

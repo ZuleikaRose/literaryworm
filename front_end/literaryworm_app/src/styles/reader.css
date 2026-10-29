@@ -586,6 +586,8 @@
 .player {
   display: grid;
   grid-template-rows: auto 1fr;
+  /* One column no wider than the screen, whatever its content's widest line. */
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
   min-height: 100dvh;
   background:
@@ -814,8 +816,14 @@
   }
 
   /* The player's tools fill the bar; the page heading already says what's playing. */
+  .player-bar {
+    gap: 4px;
+  }
+
   .player-eyebrow {
     visibility: hidden;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .reader-position {

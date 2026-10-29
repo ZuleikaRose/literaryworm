@@ -342,8 +342,9 @@ reset role;
 -- Player settings, devices and handoffs: own account only --------------------
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
-update public.reader_profiles set player_volume = 40, player_muted = true, skip_forward_seconds = 30, auto_skip_intro = true where name = 'Ann';
-select pg_temp.check((select player_volume = 40 and player_muted and skip_forward_seconds = 30 and auto_skip_intro from public.reader_profiles where name = 'Ann'), 'Ann saves her player settings');
+update public.reader_profiles set playback_speed = 1.5, player_volume = 40, player_muted = true, skip_forward_seconds = 30, auto_skip_intro = true where name = 'Ann';
+select pg_temp.check((select playback_speed = 1.5 and player_volume = 40 and player_muted and skip_forward_seconds = 30 and auto_skip_intro from public.reader_profiles where name = 'Ann'), 'Ann saves her player settings');
+select pg_temp.expect_error($$update public.reader_profiles set playback_speed = 1.1 where name = 'Ann'$$, 'a speed the player doesn''t offer');
 select pg_temp.expect_error($$update public.reader_profiles set player_volume = 101 where name = 'Ann'$$, 'a volume over 100');
 select pg_temp.expect_error($$update public.reader_profiles set skip_back_seconds = 7 where name = 'Ann'$$, 'a skip length the player doesn''t offer');
 insert into public.listening_devices (id, user_id, label) values

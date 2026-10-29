@@ -182,7 +182,8 @@ function Engine({
   engineRef: RefObject<PlaybackEngine | null>;
   onSnapshot: (snapshot: PlaybackSnapshot) => void;
 }) {
-  const { playbackSpeed: speed, narrationVoice, player } = useProfileData();
+  const { narrationVoice, player } = useProfileData();
+  const speed = player.speed;
   const volume = player.muted ? 0 : player.volume / 100;
   const { autoSkipIntro, autoSkipOutro } = player;
   const reading = useReading(book, profileId);

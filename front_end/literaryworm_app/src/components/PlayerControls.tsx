@@ -8,7 +8,7 @@ import { chapterIntro, chapterOutro, type IndexEntry, parseTime, searchText } fr
 import { formatTime, PLAYBACK_SPEEDS, SKIP_CHOICES, SLEEP_MINUTES, spokenTime } from "../lib/reading";
 import type { PlayerControls } from "../lib/usePlayerControls";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
-import { useProfileData, useStore } from "../store/context";
+import { useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
@@ -286,8 +286,6 @@ function GoToTime({ total, onGo }: { total: number; onGo: (seconds: number) => v
  * too (the mini-player has no room for them).
  */
 export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { open: boolean; onClose: () => void; withPlayback?: boolean }) {
-  const { dispatch } = useStore();
-  const { playbackSpeed } = useProfileData();
   const { player, update } = usePlayerSettings();
   const playback = usePlayback();
   const sleep = playback.snapshot?.sleep ?? null;
@@ -300,7 +298,7 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
           <>
             <label className="player-select">
               <span>Speed</span>
-              <select value={playbackSpeed} onChange={(e) => dispatch({ type: "setPlaybackSpeed", speed: Number(e.target.value) })}>
+              <select value={player.speed} onChange={(e) => update({ speed: Number(e.target.value) })}>
                 {PLAYBACK_SPEEDS.map((s) => (
                   <option key={s} value={s}>
                     {s}×

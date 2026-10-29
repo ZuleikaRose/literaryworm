@@ -764,6 +764,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
 
 type PlayerRow = {
   id: string;
+  playback_speed: number;
   player_volume: number;
   player_muted: boolean;
   skip_back_seconds: number;
@@ -776,7 +777,7 @@ type PlayerRow = {
 async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
   const { data, error } = await client()
     .from("reader_profiles")
-    .select("id, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro");
+    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro");
   if (error) {
     console.error("player settings: couldn't load", error.message);
     return {};
@@ -785,6 +786,7 @@ async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
     (data as PlayerRow[]).map((r) => [
       r.id,
       {
+        speed: Number(r.playback_speed),
         volume: r.player_volume,
         muted: r.player_muted,
         skipBack: r.skip_back_seconds,
@@ -801,6 +803,7 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
   const { error } = await client()
     .from("reader_profiles")
     .update({
+      playback_speed: player.speed,
       player_volume: Math.round(player.volume),
       player_muted: player.muted,
       skip_back_seconds: player.skipBack,

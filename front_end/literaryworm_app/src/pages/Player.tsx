@@ -23,7 +23,7 @@ export default function Player() {
 function PlayerView({ book }: { book: Book }) {
   useTitle(`Listening to ${book.title}`);
   const { state, dispatch } = useStore();
-  const { playbackSpeed: speed, narrationVoice } = useProfileData();
+  const { narrationVoice } = useProfileData();
   const voices = useVoices();
   const narration = resolveNarration(book, narrationVoice, voices);
   const voiceValue = narration.kind === "speech" ? narration.voice.voiceURI : narration.kind === "recording" ? LIBRIVOX_VOICE : SILENT_VOICE;
@@ -241,7 +241,7 @@ function PlayerView({ book }: { book: Book }) {
               <div className="player-settings">
                 <label className="player-select">
                   <span>Speed</span>
-                  <select value={speed} onChange={(e) => dispatch({ type: "setPlaybackSpeed", speed: Number(e.target.value) })}>
+                  <select value={player.speed} onChange={(e) => settings.update({ speed: Number(e.target.value) })}>
                     {PLAYBACK_SPEEDS.map((s) => (
                       <option key={s} value={s}>
                         {s}×

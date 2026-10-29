@@ -23,7 +23,7 @@ export function MediaSession() {
 function MediaSessionView({ book }: { book: Book }) {
   const playback = usePlayback();
   const controls = usePlayerControls(book);
-  const { playbackSpeed } = useProfileData();
+  const playbackSpeed = useProfileData().player.speed;
   const { live, places, total, position } = controls;
   const chapter = book.chapters[places.chapterIndex];
 
