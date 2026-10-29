@@ -351,5 +351,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Termly's *Do Not Sell or Share My Personal information* and *Limit the Use Of My Sensitive Personal Information* links in the footer | Done    |
 | —    | `drawsql.png` re-rendered and `schema.sql` regenerated; live Supabase checked against both (every table, column, index and migration) | Done    |
 | —    | Admin accounts are never billed: a complimentary Premium membership set by the database from the admin role (`subscriptions.complimentary`, migration 1800); `checkout` refuses admins and Account shows *Complimentary* | Done    |
+| —    | Stripe billing: monthly memberships paid on Stripe Checkout, a signed `stripe-webhook` that writes paid memberships, pause, cancel, billing-day changes and the card through `manage-account`; migrations 1900–1902; the policies now say LiteraryWorm is a live account billed monthly until cancelled | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
