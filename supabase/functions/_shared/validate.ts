@@ -55,6 +55,18 @@ export const SORTS = ["relevance", "newest"] as const;
 export type Sort = (typeof SORTS)[number];
 
 /** Optional sort for search results; Google's own orderBy values. */
+/** Languages search can be narrowed to (ISO 639-1, as Google's langRestrict takes them). */
+export const LANGUAGES = ["en", "es", "fr", "de", "it", "pt"] as const;
+export type Language = (typeof LANGUAGES)[number];
+
+export function parseLanguage(raw: string | null): Language | null {
+  if (raw === null || raw === "") return null;
+  if (!(LANGUAGES as readonly string[]).includes(raw)) {
+    throw new HttpError("bad_request", `lang must be one of: ${LANGUAGES.join(", ")}.`);
+  }
+  return raw as Language;
+}
+
 export function parseSort(raw: string | null): Sort {
   if (raw === null || raw === "") return "relevance";
   if (!(SORTS as readonly string[]).includes(raw)) throw new HttpError("bad_request", "sort must be relevance or newest.");

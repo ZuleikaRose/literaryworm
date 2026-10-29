@@ -46,7 +46,7 @@ Deno.test("home asks Google for technology with the key server-side and shapes t
   assert(body.hasMore);
   assertEquals(body.items[0].cover, "https://books.google.com/books/content?id=x&zoom=1");
   assertFalse(JSON.stringify(body).includes("test-key"), "API key must never reach the browser");
-  assertEquals(Object.keys(body.items[0]).sort(), ["authors", "categories", "cover", "id", "publishedYear", "title"]);
+  assertEquals(Object.keys(body.items[0]).sort(), ["authors", "categories", "cover", "id", "pageCount", "publishedYear", "title"]);
 });
 
 Deno.test("an empty Home first page is asked for once more, then believed", async () => {
@@ -77,6 +77,7 @@ Deno.test("an empty filtered list is asked again with plain words, once", async 
     ["mode=search&q=the%20hobbit", "intitle:the intitle:hobbit", "the hobbit"],
     ["mode=search&q=dune&genre=horror&sort=newest", "intitle:dune subject:horror", "dune horror"],
     ["mode=author&name=Matt%20Haig", 'inauthor:"Matt Haig"', '"Matt Haig"'],
+    ["mode=search&q=dune&lang=es", "intitle:dune", "dune"],
   ];
   for (const [query, filtered, plain] of cases) {
     const calls: URL[] = [];
@@ -89,6 +90,8 @@ Deno.test("an empty filtered list is asked again with plain words, once", async 
     assertEquals(calls.map((u) => u.searchParams.get("q")), [filtered, plain], query);
     assertEquals(calls[1].searchParams.get("startIndex"), calls[0].searchParams.get("startIndex"));
     assertEquals(calls[1].searchParams.get("orderBy"), calls[0].searchParams.get("orderBy"));
+    assertEquals(calls[1].searchParams.get("langRestrict"), calls[0].searchParams.get("langRestrict"), "the fallback keeps the language");
+    assertEquals(calls[0].searchParams.get("langRestrict"), query.includes("lang=es") ? "es" : null);
   }
 
   const empty = stub(200, { totalItems: 0 });
@@ -157,6 +160,9 @@ Deno.test("rejects bad input before calling Google", async () => {
     "mode=search&q=dune&genre=romance",              // genre outside the six
     "mode=genre&genre=horror&sort=newest",           // sort only applies to search
     "mode=home&genre=horror",                        // genre not allowed on home
+    "mode=search&q=dune&lang=xx",                    // language outside the list
+    "mode=search&q=dune&lang=EN",                    // languages are lower case
+    "mode=genre&genre=horror&lang=es",               // lang only applies to search
     "mode=author",                                   // missing name
     "mode=author&name=x%3Ay%22",                     // operator injection
     "mode=author&name=Haig&q=dune",                  // q not allowed on author

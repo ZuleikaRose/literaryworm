@@ -9,11 +9,48 @@ const QUERY_CHARS = /^[\p{L}\p{N}\p{M} '’.,!?&()-]+$/u;
 export type SearchSort = "relevance" | "newest";
 export type SearchSource = "all" | "literaryworm" | "google";
 
+/** The languages search offers (ISO 639-1, the same list as the `books` function's `lang`). */
+export const SEARCH_LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "es", label: "Spanish" },
+  { code: "fr", label: "French" },
+  { code: "de", label: "German" },
+  { code: "it", label: "Italian" },
+  { code: "pt", label: "Portuguese" },
+] as const;
+export type SearchLanguage = (typeof SEARCH_LANGUAGES)[number]["code"];
+
+/** Length by page count. Google Books has no such filter, so results are checked here. */
+export const SEARCH_LENGTHS = [
+  { id: "short", label: "Under 200 pages", min: 1, max: 199 },
+  { id: "medium", label: "200 to 400 pages", min: 200, max: 400 },
+  { id: "long", label: "Over 400 pages", min: 401, max: Infinity },
+] as const;
+export type SearchLength = (typeof SEARCH_LENGTHS)[number]["id"];
+
 export interface SearchParams {
   q: string;
   genre: BrowseGenre | null;
   sort: SearchSort;
   source: SearchSource;
+  lang: SearchLanguage | null;
+  length: SearchLength | null;
+}
+
+const isLanguage = (v: string | null): v is SearchLanguage => SEARCH_LANGUAGES.some((l) => l.code === v);
+const isLength = (v: string | null): v is SearchLength => SEARCH_LENGTHS.some((l) => l.id === v);
+
+/** True when a book of this many pages fits the length filter; unknown lengths never do. */
+export function fitsLength(pages: number | null | undefined, length: SearchLength | null): boolean {
+  if (!length) return true;
+  if (!pages) return false;
+  const band = SEARCH_LENGTHS.find((l) => l.id === length)!;
+  return pages >= band.min && pages <= band.max;
+}
+
+/** The catalog's language names, as search's codes. */
+export function languageCode(name: string): string {
+  return SEARCH_LANGUAGES.find((l) => l.label === name)?.code ?? name.toLowerCase();
 }
 
 export function normalizeQuery(raw: string): string {
@@ -38,15 +75,19 @@ export function readSearchParams(params: URLSearchParams): SearchParams {
     genre: isBrowseGenre(genre) ? genre : null,
     sort: sort === "newest" ? "newest" : "relevance",
     source: source === "literaryworm" || source === "google" ? source : "all",
+    lang: isLanguage(params.get("lang")) ? (params.get("lang") as SearchLanguage) : null,
+    length: isLength(params.get("length")) ? (params.get("length") as SearchLength) : null,
   };
 }
 
-export function searchUrl({ q, genre, sort, source }: SearchParams): string {
+export function searchUrl({ q, genre, sort, source, lang, length }: SearchParams): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (genre) params.set("genre", genre);
   if (sort !== "relevance") params.set("sort", sort);
   if (source !== "all") params.set("source", source);
+  if (lang) params.set("lang", lang);
+  if (length) params.set("length", length);
   const query = params.toString();
   return query ? `/search?${query}` : "/search";
 }
@@ -70,12 +111,14 @@ function titleMatches(title: string, q: string): boolean {
 }
 
 /** LiteraryWorm's own titles that match, filtered and sorted like the Google results. */
-export function catalogMatches({ q, genre, sort }: SearchParams, ageRating: AgeRating): Book[] {
+export function catalogMatches({ q, genre, sort, lang, length }: SearchParams, ageRating: AgeRating): Book[] {
   const found = books.filter(
     (b) =>
       isAllowed(b.ageRating, ageRating) &&
       titleMatches(b.title, q) &&
-      (!genre || b.genres.some((g) => sampleCatalogGenres[genre].includes(g))),
+      (!genre || b.genres.some((g) => sampleCatalogGenres[genre].includes(g))) &&
+      (!lang || languageCode(b.language) === lang) &&
+      fitsLength(b.pages, length),
   );
   return sort === "newest" ? found.sort((a, b) => b.year - a.year) : found;
 }

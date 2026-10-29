@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { browseGenres } from "../data/genres";
-import type { SearchParams } from "../lib/search";
+import { SEARCH_LANGUAGES, SEARCH_LENGTHS, type SearchParams } from "../lib/search";
 
 interface SearchFiltersProps {
   value: SearchParams;
@@ -41,7 +41,7 @@ function ChipGroup<T extends string | null>({
   );
 }
 
-/** Narrow a title search: where results come from, one of the six genres, and the order. */
+/** Narrow a title search: where results come from, one of the six genres, language, length, and the order. */
 export function SearchFilters({ value, onChange, showSource }: SearchFiltersProps) {
   return (
     <div className="search-filters">
@@ -62,6 +62,18 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
         current={value.genre}
         options={[{ value: null, label: "Any genre" }, ...browseGenres.map((g) => ({ value: g.id, label: g.label }))]}
         onPick={(genre) => onChange({ ...value, genre })}
+      />
+      <ChipGroup
+        legend="Language"
+        current={value.lang}
+        options={[{ value: null, label: "Any language" }, ...SEARCH_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))]}
+        onPick={(lang) => onChange({ ...value, lang })}
+      />
+      <ChipGroup
+        legend="Length"
+        current={value.length}
+        options={[{ value: null, label: "Any length" }, ...SEARCH_LENGTHS.map((l) => ({ value: l.id, label: l.label }))]}
+        onPick={(length) => onChange({ ...value, length })}
       />
       <ChipGroup
         legend="Sort by"

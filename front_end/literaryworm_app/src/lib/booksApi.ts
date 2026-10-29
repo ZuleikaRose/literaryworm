@@ -2,6 +2,7 @@ import { books, isAllowed } from "../data/books";
 import { type BrowseGenre, sampleCatalogGenres } from "../data/genres";
 import type { AgeRating, Book } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL, usesBackend } from "./backend";
+import { fitsLength, languageCode, type SearchLanguage, type SearchLength } from "./search";
 
 /**
  * Book lists for Home and the landing page.
@@ -19,6 +20,8 @@ export interface BookSummary {
   cover: string | null;
   publishedYear: string | null;
   categories: string[];
+  /** Pages in this edition, when known (search's length filter). */
+  pageCount?: number | null;
   /** Set for titles from the LiteraryWorm catalog, which draws its own covers. */
   local?: Book;
 }
@@ -50,7 +53,15 @@ export interface VolumeDetail extends Omit<BookSummary, "local"> {
 export type FeedQuery =
   | { mode: "home" }
   | { mode: "genre"; genre: BrowseGenre }
-  | { mode: "search"; q: string; genre?: BrowseGenre | null; sort?: "relevance" | "newest" }
+  | {
+      mode: "search";
+      q: string;
+      genre?: BrowseGenre | null;
+      sort?: "relevance" | "newest";
+      lang?: SearchLanguage | null;
+      /** Checked here on each page: Google can't filter by length. */
+      length?: SearchLength | null;
+    }
   /** One author's books on Google Books (their page). */
   | { mode: "author"; name: string };
 
@@ -71,7 +82,9 @@ export { usesBackend };
 export function feedKey(query: FeedQuery): string {
   if (query.mode === "genre") return `genre:${query.genre}`;
   if (query.mode === "author") return `author:${query.name}`;
-  if (query.mode === "search") return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}`;
+  if (query.mode === "search") {
+    return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}|${query.lang ?? ""}|${query.length ?? ""}`;
+  }
   return "home";
 }
 
@@ -83,6 +96,7 @@ export function fromLocal(book: Book): BookSummary {
     cover: null,
     publishedYear: String(book.year),
     categories: book.genres,
+    pageCount: book.pages,
     local: book,
   };
 }
@@ -108,6 +122,7 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
     params.set("q", query.q);
     if (query.genre) params.set("genre", query.genre);
     if (query.sort === "newest") params.set("sort", "newest");
+    if (query.lang) params.set("lang", query.lang);
   }
   const url = `${SUPABASE_URL}/functions/v1/books?${params}`;
 
@@ -184,7 +199,13 @@ function localPage(query: FeedQuery, page: number, ageRating: AgeRating): BookPa
     ? allowed.filter((b) => b.genres.some((g) => sampleCatalogGenres[genre].includes(g)))
     : query.mode === "author"
       ? allowed.filter((b) => b.author.toLowerCase() === query.name.toLowerCase())
-      : allowed.filter((b) => query.mode === "search" && b.title.toLowerCase().includes(query.q.toLowerCase()));
+      : allowed.filter(
+          (b) =>
+            query.mode === "search" &&
+            b.title.toLowerCase().includes(query.q.toLowerCase()) &&
+            (!query.lang || languageCode(b.language) === query.lang) &&
+            fitsLength(b.pages, query.length ?? null),
+        );
   const start = page * PAGE_SIZE;
   return {
     items: matching.slice(start, start + PAGE_SIZE).map(fromLocal),
@@ -203,5 +224,7 @@ export async function fetchBookPage(
   ageRating: AgeRating = "all",
 ): Promise<BookPage> {
   if (!usesBackend || ageRating === "kids") return localPage(query, page, ageRating);
-  return fetchRemote(query, page);
+  const result = await fetchRemote(query, page);
+  if (query.mode !== "search" || !query.length) return result;
+  return { ...result, items: result.items.filter((b) => fitsLength(b.pageCount, query.length ?? null)) };
 }

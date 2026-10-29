@@ -3,7 +3,7 @@
 // GOOGLE_BOOKS_API_KEY function secret and never appears in a response.
 
 import { HttpError } from "./http.ts";
-import { type Genre, PAGE_SIZE, type Sort } from "./validate.ts";
+import { type Genre, type Language, PAGE_SIZE, type Sort } from "./validate.ts";
 
 const API = "https://www.googleapis.com/books/v1/volumes";
 const TIMEOUT_MS = 8000;
@@ -40,6 +40,8 @@ export type BookSummary = {
   cover: string | null;
   publishedYear: string | null;
   categories: string[];
+  /** Pages in this edition, when Google knows (search's length filter uses it). */
+  pageCount: number | null;
 };
 
 export type BookDetail = BookSummary & {
@@ -92,13 +94,20 @@ export function plainQuery(q: string): string {
   return q.replace(/["]/g, "").split(" ").filter(Boolean).join(" ");
 }
 
-export function listUrl(q: string, page: number, key: string | undefined, sort: Sort = "relevance"): URL {
+export function listUrl(
+  q: string,
+  page: number,
+  key: string | undefined,
+  sort: Sort = "relevance",
+  lang: Language | null = null,
+): URL {
   const url = new URL(API);
   url.searchParams.set("q", q);
   url.searchParams.set("startIndex", String(page * PAGE_SIZE));
   url.searchParams.set("maxResults", String(PAGE_SIZE));
   url.searchParams.set("printType", "books");
   if (sort === "newest") url.searchParams.set("orderBy", "newest");
+  if (lang) url.searchParams.set("langRestrict", lang);
   // The home page is public and Teen profiles use it too: leave out mature titles.
   url.searchParams.set("maxAllowedMaturityRating", "not-mature");
   if (key) url.searchParams.set("key", key);
@@ -222,6 +231,7 @@ export function shapeSummary(item: unknown): BookSummary | null {
     cover: coverUrl(info.imageLinks),
     publishedYear: published?.slice(0, 4) ?? null,
     categories: strings(info.categories, 5),
+    pageCount: num(info.pageCount),
   };
 }
 

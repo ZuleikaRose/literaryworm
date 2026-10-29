@@ -357,5 +357,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Author and narrator pages: their titles on LiteraryWorm and (authors) Google Books, with Follow saved per profile; Home shows new titles from the people a profile follows (migration 2200) | Done    |
 | —    | Remind me for books not out yet: set on the book page, listed in My Library → Reminders, shown on Home under *Out now* on the day (migration 2300) | Done    |
 | —    | Google Books preview: Google's embedded viewer on book pages Google allows, opened only on request; the Cookie Policy now mentions it (migration 2400) | Done    |
+| —    | Search filters for language and length, for LiteraryWorm titles and Google Books results alike | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

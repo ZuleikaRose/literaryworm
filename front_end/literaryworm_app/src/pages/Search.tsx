@@ -14,6 +14,8 @@ import {
   QUERY_MAX,
   queryError,
   readSearchParams,
+  SEARCH_LANGUAGES,
+  SEARCH_LENGTHS,
   type SearchParams,
   searchUrl,
   surpriseBook,
@@ -138,7 +140,7 @@ function StartHere() {
           <ul className="recent-list" role="list">
             {recent.map((q) => (
               <li key={q}>
-                <Link to={searchUrl({ q, genre: null, sort: "relevance", source: "all" })}>
+                <Link to={searchUrl({ q, genre: null, sort: "relevance", source: "all", lang: null, length: null })}>
                   <Icon name="clock" size={16} /> {q}
                 </Link>
                 <button type="button" className="icon-button" onClick={() => collections.removeRecentSearch(q)}>
@@ -178,7 +180,12 @@ function Results({ search }: { search: SearchParams }) {
 
   const catalog = source === "google" ? [] : catalogMatches(search, ageRating);
   const suggestion = catalogMatches(search, ageRating).length === 0 ? didYouMean(search.q, ageRating) : null;
-  const filterCount = (search.genre ? 1 : 0) + (search.sort !== "relevance" ? 1 : 0) + (search.source !== "all" ? 1 : 0);
+  const filterCount =
+    (search.genre ? 1 : 0) +
+    (search.sort !== "relevance" ? 1 : 0) +
+    (search.source !== "all" ? 1 : 0) +
+    (search.lang ? 1 : 0) +
+    (search.length ? 1 : 0);
 
   function update(next: SearchParams) {
     navigate(searchUrl(next), { replace: true });
@@ -187,6 +194,8 @@ function Results({ search }: { search: SearchParams }) {
   const summary = [
     `“${search.q}”`,
     search.genre && genreLabel(search.genre),
+    search.lang && SEARCH_LANGUAGES.find((l) => l.code === search.lang)?.label,
+    search.length && SEARCH_LENGTHS.find((l) => l.id === search.length)?.label.toLowerCase(),
     search.sort === "newest" && "newest first",
   ]
     .filter(Boolean)
@@ -256,13 +265,17 @@ function Results({ search }: { search: SearchParams }) {
 
         {source !== "literaryworm" && googleAllowed && (
           <BookFeed
-            key={`${search.q}|${search.genre}|${search.sort}`}
+            key={`${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`}
             id="google-results"
             eyebrow="Save, rate and write logs"
             title="From Google Books"
-            query={{ mode: "search", q: search.q, genre: search.genre, sort: search.sort }}
+            query={{ mode: "search", q: search.q, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }}
             ageRating={ageRating}
-            emptyHint="No Google Books titles match. Check the spelling, try fewer words or another genre."
+            emptyHint={
+              search.length
+                ? "No Google Books titles match. Google doesn't list the length of every edition, so the length filter leaves those out: try any length."
+                : "No Google Books titles match. Check the spelling, try fewer words or another genre."
+            }
             endText="That's every Google Books match for this search."
           />
         )}
@@ -284,7 +297,7 @@ function Results({ search }: { search: SearchParams }) {
             <button
               type="button"
               className="secondary-button"
-              onClick={() => update({ q: search.q, genre: null, sort: "relevance", source: "all" })}
+              onClick={() => update({ q: search.q, genre: null, sort: "relevance", source: "all", lang: null, length: null })}
             >
               Clear filters
             </button>
