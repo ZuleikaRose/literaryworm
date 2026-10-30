@@ -1,7 +1,11 @@
 // POST /functions/v1/checkout — start a membership, change plan, or buy a gift.
 // Requires a signed-in account (JWT). Subscriptions are never written from the browser.
 //
-//   { planId: "basic" | "standard" | "premium", billingDay: 1-28, renewalTermsAccepted: true, setup?: true }
+//   { planId: "basic" | "standard" | "premium", interval?: "month" | "year", billingDay: 1-28,
+//     renewalTermsAccepted: true, setup?: true }
+//
+// interval is "month" unless given. Yearly costs ten times the monthly price and starts the day it's
+// bought (billingDay isn't needed); it renews on that date each year.
 //   { gift: true, planId, months: 1 | 3 | 6 | 12 }
 //
 // A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, nothing
@@ -14,8 +18,13 @@
 // A new membership goes through Stripe Checkout (Stripe-hosted): this returns { url } to send the
 // member to, and the stripe-webhook function writes the membership once Stripe confirms payment.
 // The first charge covers the days until the billing day; then the full price on that day each month.
-// A member already billed through Stripe changes plan in place ({ planId }): the new price applies
-// from the next renewal, with no partial charges or credits (all sales are final).
+// A member already billed through Stripe changes plan in place ({ planId, interval }):
+//   - monthly to monthly: the new price applies from the next renewal, with no partial charges or
+//     credits (all sales are final);
+//   - monthly to yearly: the year starts today, and the unused part of the month comes off its price;
+//   - yearly to a dearer yearly plan: the difference for the rest of the year is charged today;
+//     to a cheaper one, the lower price applies from the next renewal, with no credit;
+//   - yearly to monthly isn't done in place: the member cancels and chooses monthly when the year ends.
 //
 // Staff are never billed: everyone with a staff role (Admin, Editor, Developer, Billing, Customer
 // service, Blog, Sales) has a complimentary membership while they hold it (the database makes it so
@@ -23,7 +32,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { GIFT_MONTHS, type GiftMonths, nextBillingDay, PLANS, type PlanId } from "../_shared/stripe.ts";
+import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, PLANS, type PlanId } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -31,6 +40,7 @@ export const METHODS = "POST";
 export interface Membership {
   plan_id: string;
   status: "active" | "paused" | "cancelled" | "past_due";
+  billing_interval: BillingInterval;
   stripe_subscription_id: string | null;
 }
 
@@ -38,6 +48,7 @@ export interface CheckoutInput {
   customerId: string;
   userId: string;
   planId: PlanId;
+  interval: BillingInterval;
   /** Unix seconds of the first full charge; null to bill from today. */
   billingCycleAnchor: number | null;
   billingDay: number;
@@ -64,7 +75,8 @@ export interface Deps {
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
   createCheckout: (input: CheckoutInput) => Promise<string>;
   createGiftCheckout: (input: GiftCheckoutInput) => Promise<string>;
-  changePlan: (subscriptionId: string, planId: PlanId) => Promise<void>;
+  /** Moves a Stripe subscription to the plan's price for `interval`, from `from` (its interval now). */
+  changePlan: (subscriptionId: string, planId: PlanId, interval: BillingInterval, from: BillingInterval) => Promise<void>;
   /** The site to send the member back to: the request's origin when it's allowed. */
   siteOrigin: (req: Request) => string;
   now?: () => Date;
@@ -102,31 +114,48 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       });
       return json(req, METHODS, { url });
     }
-    onlyKeys(body, ["planId", "billingDay", "renewalTermsAccepted", "setup"]);
+    onlyKeys(body, ["planId", "interval", "billingDay", "renewalTermsAccepted", "setup"]);
     if (body.setup !== undefined && typeof body.setup !== "boolean") throw new HttpError("bad_request", "setup is true or false.");
     if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {
       throw new HttpError("bad_request", "Pick Basic, Standard or Premium.");
     }
     const planId = body.planId as PlanId;
-    const billingDay = parseInt(body.billingDay, "billingDay", 1, 28);
+    if (body.interval !== undefined && !INTERVALS.includes(body.interval as BillingInterval)) {
+      throw new HttpError("bad_request", "Pick monthly or yearly billing.");
+    }
+    const interval = (body.interval ?? "month") as BillingInterval;
+    const now = deps.now?.() ?? new Date();
+    // A year starts the day it's bought; its day of the month is kept only as a label (1–28).
+    const billingDay = interval === "year" && body.billingDay === undefined
+      ? Math.min(now.getUTCDate(), 28)
+      : parseInt(body.billingDay, "billingDay", 1, 28);
     if (body.renewalTermsAccepted !== true) {
       throw new HttpError("bad_request", "Agree to the renewal terms to continue.");
     }
 
     const membership = await deps.getMembership(user.id);
     if (membership?.stripe_subscription_id && membership.status !== "cancelled") {
-      if (membership.plan_id === planId) throw new HttpError("bad_request", "That's already your plan.");
-      await deps.changePlan(membership.stripe_subscription_id, planId);
-      return json(req, METHODS, { planId });
+      const current = membership.billing_interval ?? "month";
+      if (membership.plan_id === planId && current === interval) throw new HttpError("bad_request", "That's already your plan.");
+      if (current === "year" && interval === "month") {
+        throw new HttpError(
+          "bad_request",
+          "A yearly membership can't move to monthly billing part way through the year. Cancel it in Account, then choose monthly once it ends.",
+        );
+      }
+      await deps.changePlan(membership.stripe_subscription_id, planId, interval, current);
+      return json(req, METHODS, { planId, interval });
     }
 
-    const now = deps.now?.() ?? new Date();
-    const anchor = now.getUTCDate() === billingDay ? null : Math.floor(nextBillingDay(billingDay, now).getTime() / 1000);
+    const anchor = interval === "year" || now.getUTCDate() === billingDay
+      ? null
+      : Math.floor(nextBillingDay(billingDay, now).getTime() / 1000);
     const customerId = await deps.customerFor(user.id, user.email);
     const url = await deps.createCheckout({
       customerId,
       userId: user.id,
       planId,
+      interval,
       billingCycleAnchor: anchor,
       billingDay,
       origin: deps.siteOrigin(req),

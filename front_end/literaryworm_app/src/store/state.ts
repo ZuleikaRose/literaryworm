@@ -215,6 +215,8 @@ export function demoHousehold(): Household {
       dob: "1990-01-01",
       planId: "premium",
       billingDay: 1,
+      billingInterval: "month",
+      renewsAt: null,
       marketingEmails: false,
       releaseEmails: true,
       authorEmails: true,

@@ -10,6 +10,7 @@ import type {
   Highlight,
   HighlightColor,
   LibraryEntry,
+  BillingInterval,
   PlanId,
   PlayerSettings,
   Profile,
@@ -320,6 +321,7 @@ export async function loadAccount(): Promise<Account | null> {
 
 interface SubscriptionRow {
   plan_id: string;
+  billing_interval?: string;
   billing_day: number;
   status: string;
   cancel_at_period_end: boolean;
@@ -330,14 +332,17 @@ interface SubscriptionRow {
   gift_until: string | null;
 }
 
-const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until";
+const SUBSCRIPTION_COLUMNS = "plan_id, billing_interval, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until";
 
-type PlanFields = Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil">;
+type PlanFields = Pick<
+  Account,
+  "planId" | "billingDay" | "billingInterval" | "renewsAt" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil"
+>;
 
 /** The plan fields of a freshly loaded account, to update the store with. */
 export function planFields(a: Account): PlanFields {
-  const { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil } = a;
-  return { planId, billingDay, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil };
+  const { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil } = a;
+  return { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil };
 }
 
 /** The account's plan fields from a subscriptions row (or none yet). */
@@ -346,6 +351,8 @@ function fromSubscription(row: SubscriptionRow | null): PlanFields {
   return {
     planId: (row?.plan_id as PlanId | undefined) ?? null,
     billingDay: row?.billing_day ?? null,
+    billingInterval: row?.billing_interval === "year" ? "year" : "month",
+    renewsAt: row?.current_period_end ?? null,
     status: status === "paused" || status === "cancelled" ? status : "active",
     // When an ending membership ends: a month after the period's end if it was cancelled with under 48 hours' notice.
     endsAt: row?.cancel_at_period_end ? (row.cancel_at ?? row.current_period_end) : null,
@@ -389,10 +396,16 @@ export async function callFunction<T>(name: string, body: Record<string, unknown
  * A new membership returns Stripe Checkout's `url` to send the member to; a member already paying
  * through Stripe changes plan in place and gets no url.
  */
-export async function choosePlan(planId: PlanId, billingDay: number, setup = false): Promise<{ url?: string }> {
+export async function choosePlan(
+  planId: PlanId,
+  billingDay: number,
+  setup = false,
+  interval: BillingInterval = "month",
+): Promise<{ url?: string }> {
   return callFunction<{ url?: string }>(
     "checkout",
-    { planId, billingDay, renewalTermsAccepted: true, ...(setup ? { setup: true } : {}) },
+    // A yearly membership starts the day it's paid for, so it has no billing day to send.
+    { planId, interval, ...(interval === "month" ? { billingDay } : {}), renewalTermsAccepted: true, ...(setup ? { setup: true } : {}) },
     "We couldn't start your plan. Try again.",
   );
 }

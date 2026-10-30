@@ -136,7 +136,9 @@ function MemberCard({ member: m, headingRef }: { member: MemberLookup; headingRe
                 ? `Cancelled: ends ${day(m.cancelAt)}`
                 : m.giftUntil
                   ? `A gift until ${day(m.giftUntil)}`
-                  : `Next charge ${day(m.nextBillingAt)} (billing day ${m.billingDay ?? "—"})`}
+                  : m.billingInterval === "year"
+                    ? `Yearly: renews ${day(m.nextBillingAt)}`
+                    : `Monthly: next charge ${day(m.nextBillingAt)} (billing day ${m.billingDay ?? "—"})`}
               {" · "}
               {m.cardOnFile ? "card on file" : "no card on file"}
             </dd>

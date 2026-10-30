@@ -82,3 +82,12 @@ describe("the bell", () => {
     expect(bellLabel(3)).toBe("Notifications, 3 new");
   });
 });
+
+describe("timed alerts on the bell", () => {
+  it("count once until the bell is opened after they start", () => {
+    const alert = { at: 1_000 };
+    expect(bellCount([], null, [], [], new Date(), null, [alert])).toBe(1);
+    expect(bellCount([], 999, [], [], new Date(), null, [alert])).toBe(1);
+    expect(bellCount([], 1_000, [], [], new Date(), null, [alert])).toBe(0);
+  });
+});

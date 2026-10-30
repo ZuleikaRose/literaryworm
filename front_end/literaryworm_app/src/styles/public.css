@@ -673,3 +673,26 @@ select.field-input {
     font-size: 1rem;
   }
 }
+
+/* Monthly or yearly billing on Plans: full-size targets, centred above the cards. */
+.billing-toggle {
+  max-width: 420px;
+  margin: 0 auto 24px;
+}
+
+.billing-toggle legend {
+  text-align: center;
+}
+
+.billing-toggle span {
+  min-height: 44px;
+  padding: 0 10px;
+  text-align: center;
+}
+
+.plan-price small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}

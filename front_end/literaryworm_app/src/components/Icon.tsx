@@ -171,6 +171,12 @@ const paths = {
       <path d="M12 7v5l3 2" />
     </>
   ),
+  calendar: (
+    <>
+      <rect x="4" y="5" width="16" height="16" rx="2" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </>
+  ),
   alert: (
     <>
       <path d="M12 3 2 21h20Z" />

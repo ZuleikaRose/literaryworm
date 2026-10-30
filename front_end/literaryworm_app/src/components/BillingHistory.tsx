@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { AccountError, type BillingInvoice, billingHistory, type MembershipDiscount, redeemPromoCode } from "../lib/accountApi";
 import { afterDiscountLabel, discountLabel, formatMoney, longDate, promoCodeError } from "../lib/billing";
+import type { BillingInterval } from "../types";
 import { Icon } from "./Icon";
 
 const STATUS: Record<BillingInvoice["status"], string> = {
@@ -16,7 +17,16 @@ const message = (err: unknown) => (err instanceof AccountError ? err.message : "
  * Account → Plan and billing, for members paying through Stripe: the promo code on the
  * membership (and a box to add one), then every charge with a link to Stripe's receipt.
  */
-export function BillingHistory({ canRedeem, monthlyPrice }: { canRedeem: boolean; monthlyPrice: string }) {
+export function BillingHistory({
+  canRedeem,
+  monthlyPrice,
+  interval = "month",
+}: {
+  canRedeem: boolean;
+  /** The plan's price for its billing interval. */
+  monthlyPrice: string;
+  interval?: BillingInterval;
+}) {
   const [invoices, setInvoices] = useState<BillingInvoice[] | null>(null);
   const [discount, setDiscount] = useState<MembershipDiscount | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -47,7 +57,7 @@ export function BillingHistory({ canRedeem, monthlyPrice }: { canRedeem: boolean
 
   return (
     <div className="billing-history">
-      <PromoCode discount={discount} canRedeem={canRedeem} monthlyPrice={monthlyPrice} onApplied={setDiscount} />
+      <PromoCode discount={discount} canRedeem={canRedeem} monthlyPrice={monthlyPrice} interval={interval} onApplied={setDiscount} />
 
       <section aria-labelledby="billing-history-title">
         <h3 id="billing-history-title">Billing history</h3>
@@ -103,12 +113,14 @@ function PromoCode({
   discount,
   canRedeem,
   monthlyPrice,
+  interval,
   onApplied,
 }: {
   discount: MembershipDiscount | null;
   canRedeem: boolean;
   /** The plan's price, for what's charged once the code stops applying. */
   monthlyPrice: string;
+  interval: BillingInterval;
   onApplied: (d: MembershipDiscount) => void;
 }) {
   const id = useId();
@@ -131,7 +143,7 @@ function PromoCode({
       const applied = await redeemPromoCode(code.trim());
       onApplied(applied);
       setCode("");
-      setDone(`Code applied: ${discountLabel(applied)}.${afterDiscountLabel(applied, monthlyPrice) ? ` ${afterDiscountLabel(applied, monthlyPrice)}` : ""}`);
+      setDone(`Code applied: ${discountLabel(applied)}.${afterDiscountLabel(applied, monthlyPrice, interval) ? ` ${afterDiscountLabel(applied, monthlyPrice, interval)}` : ""}`);
     } catch (err) {
       setError(message(err));
     } finally {
@@ -147,7 +159,7 @@ function PromoCode({
           <Icon name="check" size={17} />
           <span>
             {discount.code && <strong>{discount.code}</strong>} {discountLabel(discount)}
-            {afterDiscountLabel(discount, monthlyPrice) && <small className="promo-after">{afterDiscountLabel(discount, monthlyPrice)}</small>}
+            {afterDiscountLabel(discount, monthlyPrice, interval) && <small className="promo-after">{afterDiscountLabel(discount, monthlyPrice, interval)}</small>}
           </span>
         </p>
       ) : (

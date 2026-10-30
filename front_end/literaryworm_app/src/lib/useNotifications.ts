@@ -5,6 +5,7 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import * as accountApi from "./accountApi";
 import { onClubPost } from "./clubEvents";
 import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notifications";
+import { renewalReminder } from "./billing";
 import { listeningAlert } from "./planLimits";
 import { useClubs } from "./useClubs";
 
@@ -70,7 +71,11 @@ export function useNotifications() {
     () => (withClubs ? listeningAlert(planId, state.profiles.map((p) => state.profileData[p.id]?.readingDays ?? {})) : null),
     [withClubs, planId, state.profiles, state.profileData],
   );
-  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening);
+  // A yearly membership's renewal, 30 days ahead; for the grown-ups too.
+  const account = state.account;
+  const [now] = useState(() => Date.now());
+  const renewal = useMemo(() => (withClubs ? renewalReminder(account, now) : null), [withClubs, account, now]);
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, renewal ? [renewal] : []);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -83,5 +88,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, listening, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, listening, renewal, count, seenAt, withClubs, markSeen, refresh };
 }

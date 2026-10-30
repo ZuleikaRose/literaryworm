@@ -141,3 +141,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Listening heads-up (player line, 80% bell alert: `listeningAlert()` in `lib/planLimits.ts`), Member lookup at `/support` (`pages/Support.tsx`, `lookupMember()` in `lib/staffApi.ts`) for customer service, accessibility pass, `docs/qa/plan-limits-device-check.md`; migrations 4200–4204 |
 | — | Move up a plan in one tap: `nextPlanUp()` and `planCheckoutPath()` in `lib/planLimits.ts`, used by the used-up message, the bell alert, `PlanUsage` and `OfflineBook`; migration 4300 |
 | — | What's new: a *Minor* filter (every change not marked major) beside *Major* |
+| — | Yearly billing: `Plan.yearlyPrice`, `priceFor()` in `data/plans.ts`, the Monthly/Yearly choice on Plans (`?billing=yearly`), `Account.billingInterval` and `renewsAt`, `renewalReminder()` in `lib/billing.ts` on the bell; migrations 4400–4402 |

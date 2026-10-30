@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 import type { MembershipDiscount } from "./accountApi";
-import { afterDiscountLabel, cancellationEnd, CANCEL_NOTICE_HOURS, oneMonthAfter } from "./billing";
+import { afterDiscountLabel, cancellationEnd, CANCEL_NOTICE_HOURS, oneMonthAfter, oneYearAfter, renewalReminder } from "./billing";
+import { perPeriod, plans, priceFor } from "../data/plans";
 
 describe("the 48-hour cancellation rule", () => {
   const billing = new Date(2026, 10, 5, 0, 0);
@@ -47,5 +48,64 @@ describe("the price after a promo code", () => {
 
   it("says nothing for a code that lasts as long as the membership", () => {
     expect(afterDiscountLabel(code({ duration: "forever", ends: null }), "$12.99")).toBeNull();
+  });
+});
+
+describe("yearly billing", () => {
+  it("renews a year on, with 29 February becoming the 28th", () => {
+    expect(oneYearAfter(new Date(2027, 2, 10)).toDateString()).toBe(new Date(2028, 2, 10).toDateString());
+    expect(oneYearAfter(new Date(2028, 1, 29)).toDateString()).toBe(new Date(2029, 1, 28).toDateString());
+  });
+
+  it("ends a late yearly cancellation a year after the renewal, and an early one at it", () => {
+    const renewal = new Date(2027, 2, 10);
+    expect(cancellationEnd(renewal, new Date(2027, 2, 9), "year")).toEqual({ ends: new Date(2028, 2, 10), late: true });
+    expect(cancellationEnd(renewal, new Date(2027, 2, 1), "year")).toEqual({ ends: renewal, late: false });
+  });
+
+  it("prices a year at ten months, so two months are free", () => {
+    for (const plan of plans) {
+      expect(priceFor(plan, "year")).toBeCloseTo(plan.price * 10, 2);
+      expect(priceFor(plan, "month")).toBe(plan.price);
+    }
+    expect(perPeriod("year")).toBe("a year");
+  });
+
+  it("says what a yearly price becomes once a promo code ends", () => {
+    const code = { code: "X", percentOff: 10, amountOff: null, currency: null, duration: "once" as const, ends: null };
+    expect(afterDiscountLabel(code, "$79.90", "year")).toBe("Then $79.90 a year after that.");
+  });
+});
+
+describe("the yearly renewal reminder", () => {
+  const yearly = {
+    billingInterval: "year" as const,
+    renewsAt: "2027-03-10T00:00:00.000Z",
+    endsAt: null,
+    status: "active" as const,
+    complimentary: false,
+    giftUntil: null,
+  };
+  const day = 86_400_000;
+  const renews = Date.parse(yearly.renewsAt);
+
+  it("shows from 30 days before the renewal until the day", () => {
+    expect(renewalReminder(yearly, renews - 31 * day)).toBeNull();
+    expect(renewalReminder(yearly, renews - 30 * day)).toEqual({ renewsAt: yearly.renewsAt, at: renews - 30 * day });
+    expect(renewalReminder(yearly, renews - day)).not.toBeNull();
+    expect(renewalReminder(yearly, renews)).toBeNull();
+  });
+
+  it("isn't shown for monthly, ending, paused, gifted or complimentary memberships", () => {
+    const now = renews - 5 * day;
+    for (const patch of [
+      { billingInterval: "month" as const },
+      { endsAt: yearly.renewsAt },
+      { status: "paused" as const },
+      { giftUntil: yearly.renewsAt },
+      { complimentary: true },
+    ]) {
+      expect(renewalReminder({ ...yearly, ...patch }, now)).toBeNull();
+    }
   });
 });

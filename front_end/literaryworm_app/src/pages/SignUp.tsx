@@ -96,6 +96,8 @@ export default function SignUp() {
         dob,
         planId: null,
         billingDay: null,
+        billingInterval: "month",
+        renewsAt: null,
         marketingEmails: marketing,
         releaseEmails: true,
         authorEmails: true,

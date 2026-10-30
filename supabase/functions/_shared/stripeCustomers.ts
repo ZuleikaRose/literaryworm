@@ -1,6 +1,6 @@
 // The account's Stripe Customer and the plans' prices, for the billing functions.
 
-import { PRICE_LOOKUP_KEY, type PlanId, stripeClient } from "./stripe.ts";
+import { type BillingInterval, PRICE_LOOKUP_KEY, type PlanId, stripeClient } from "./stripe.ts";
 import { serviceClient } from "./supabase.ts";
 
 /** The account's Stripe Customer, created (and remembered in stripe_customers) the first time. */
@@ -16,11 +16,17 @@ export async function customerFor(userId: string, email: string | undefined): Pr
   return customer.id;
 }
 
-/** The plan's active monthly price in Stripe, found by lookup key. */
-export async function monthlyPrice(planId: PlanId): Promise<{ id: string; amount: number; currency: string; product: string }> {
-  const { data } = await stripeClient().prices.list({ lookup_keys: [PRICE_LOOKUP_KEY[planId]], active: true, limit: 1 });
+/** The plan's active monthly (or yearly) price in Stripe, found by lookup key. */
+export async function planPrice(
+  planId: PlanId,
+  interval: BillingInterval,
+): Promise<{ id: string; amount: number; currency: string; product: string }> {
+  const { data } = await stripeClient().prices.list({ lookup_keys: [PRICE_LOOKUP_KEY[interval][planId]], active: true, limit: 1 });
   const price = data[0];
-  if (!price || price.unit_amount === null) throw new Error(`No active Stripe price for ${planId}`);
+  if (!price || price.unit_amount === null) throw new Error(`No active ${interval}ly Stripe price for ${planId}`);
   const product = typeof price.product === "string" ? price.product : price.product.id;
   return { id: price.id, amount: price.unit_amount, currency: price.currency, product };
 }
+
+/** The plan's monthly price: what gifts are priced from. */
+export const monthlyPrice = (planId: PlanId) => planPrice(planId, "month");

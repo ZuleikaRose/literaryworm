@@ -5,14 +5,16 @@
 // Staff memberships are complimentary (never billed), so they can't be paused, resumed,
 // cancelled or restarted; deleting the account still works.
 //
-//   { action: "pause" }                      stop reading and billing until resumed
+//   { action: "pause" }                      stop reading and billing until resumed (monthly only)
 //   { action: "resume" }
 //   { action: "cancel" }                     ends on the next billing date with no more charges,
 //                                            given at least 48 hours' notice; with less, that charge
-//                                            still goes through and it ends a month later. No refunds
+//                                            still goes through and it ends a period (a month, or
+//                                            a year when billed yearly) later. No refunds
 //   { action: "restart" }                    undo a cancel before it takes effect
 //   { action: "billing_day", billingDay }    move the billing day (1-28): the days until the new
-//                                            date are free, so nothing is charged twice or lost
+//                                            date are free, so nothing is charged twice or lost.
+//                                            Monthly only: a year renews on the date it started
 //   { action: "payment_method" }             returns { url }: Stripe's page to add or change the card
 //   { action: "billing_history" }            returns { invoices, discount }: the last 24 charges
 //                                            (newest first) and the promo code on the membership
@@ -35,7 +37,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { addGiftMonths, cancellationEnd, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
+import { addGiftMonths, type BillingInterval, cancellationEnd, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
 import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 import { deletedEmail, type Email } from "./email.ts";
 
@@ -44,6 +46,8 @@ const METHODS = "POST";
 export interface Subscription {
   plan_id: string;
   status: "active" | "paused" | "cancelled" | "past_due";
+  /** Monthly, or yearly (a year from the day it started, at ten times the monthly price). */
+  billing_interval: BillingInterval;
   /** Null only for a complimentary membership, which is never billed. */
   billing_day: number | null;
   /** Ending: no renewal after the date it ends (cancel_at). */
@@ -167,6 +171,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         const sub = await requirePaidSubscription(deps, user.id);
         if (sub.status === "paused") return json(req, METHODS, view(sub));
         if (sub.status !== "active") throw new HttpError("bad_request", "Only an active membership can be paused.");
+        if (sub.billing_interval === "year") {
+          throw new HttpError("bad_request", "A yearly membership is already paid for the year, so it can't be paused.");
+        }
         if (sub.cancel_at_period_end) {
           throw new HttpError("bad_request", "This membership is set to end. Restart it before pausing.");
         }
@@ -191,7 +198,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         // Reading continues until the date already paid for. With under 48 hours' notice the next
         // charge still goes through, so that date is a month later; a paused membership isn't
         // charged, so it ends on the billing date whenever it's cancelled.
-        const { ends, late } = sub.status === "paused" ? { ends: nextBilling, late: false } : cancellationEnd(nextBilling, now);
+        const { ends, late } = sub.status === "paused" ? { ends: nextBilling, late: false } : cancellationEnd(nextBilling, now, sub.billing_interval);
         if (sub.stripe_subscription_id) {
           if (late) await deps.billing.cancelAt(sub.stripe_subscription_id, Math.floor(ends.getTime() / 1000));
           else await deps.billing.setCancelAtPeriodEnd(sub.stripe_subscription_id, true);
@@ -232,6 +239,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         onlyKeys(body, ["action", "billingDay"]);
         const day = parseInt(body.billingDay, "billingDay", 1, 28);
         const sub = await requirePaidSubscription(deps, user.id);
+        if (sub.billing_interval === "year") {
+          throw new HttpError("bad_request", "A yearly membership renews on the date it started, so its billing day can't be changed.");
+        }
         if (sub.billing_day === day) throw new HttpError("bad_request", "That's already your billing day.");
         if (sub.status !== "active" || sub.cancel_at_period_end) {
           throw new HttpError("bad_request", "Only an active membership that isn't ending can change its billing day.");

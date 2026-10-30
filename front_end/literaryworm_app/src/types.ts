@@ -82,10 +82,16 @@ export interface Book {
 
 export type PlanId = "basic" | "standard" | "premium";
 
+/** How often a membership is billed: monthly, or yearly at ten times the monthly price. */
+export type BillingInterval = "month" | "year";
+
 export interface Plan {
   id: PlanId;
   name: string;
+  /** The monthly price, in US dollars. */
   price: number;
+  /** The yearly price: ten months' worth, so two months are free. */
+  yearlyPrice: number;
   summary: string;
   profiles: number;
   audioHours: string;
@@ -110,6 +116,10 @@ export interface Account {
   dob: string;
   planId: PlanId | null;
   billingDay: number | null;
+  /** Monthly or yearly billing (a yearly membership renews on the date it started). */
+  billingInterval: BillingInterval;
+  /** When the period already paid for ends (ISO): a yearly membership's renewal date. */
+  renewsAt: string | null;
   marketingEmails: boolean;
   /** Email when a book a profile set Remind me on comes out (members only; on by default). */
   releaseEmails: boolean;

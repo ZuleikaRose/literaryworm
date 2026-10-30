@@ -50,7 +50,13 @@ export function clubNews(clubs: Club[], memberships: Record<string, ClubMembersh
 /** True when the household passed most of the month's listening after the bell was last opened. */
 export const isNewListeningAlert = (alert: ListeningAlert | null, seenAt: number | null) => alert !== null && (seenAt === null || alert.crossedAt > seenAt);
 
-/** The number on the bell: new releases, new books from followed authors, unread club posts and the listening heads-up. */
+/** True when an alert that started at `at` (ms) is newer than the last time the bell was opened. */
+export const isNewAlert = (at: number, seenAt: number | null) => seenAt === null || at > seenAt;
+
+/**
+ * The number on the bell: new releases, new books from followed authors, unread club posts, the
+ * listening heads-up, and other alerts (each with the time it started, such as a yearly renewal).
+ */
 export function bellCount(
   reminders: Reminder[],
   seenAt: number | null,
@@ -58,9 +64,11 @@ export function bellCount(
   authorNews: AuthorNews[] = [],
   now = new Date(),
   listening: ListeningAlert | null = null,
+  alerts: { at: number }[] = [],
 ): number {
   return (
     (isNewListeningAlert(listening, seenAt) ? 1 : 0) +
+    alerts.filter((a) => isNewAlert(a.at, seenAt)).length +
     reminders.filter((r) => isNewRelease(r, seenAt, now)).length +
     authorNews.filter((n) => isNewAuthorBook(n, seenAt)).length +
     news.reduce((sum, n) => sum + n.posts, 0)

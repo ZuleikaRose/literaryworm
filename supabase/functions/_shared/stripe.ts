@@ -11,11 +11,22 @@ export const STRIPE_API_VERSION = "2026-09-30.endive";
 export type PlanId = "basic" | "standard" | "premium";
 export const PLANS: PlanId[] = ["basic", "standard", "premium"];
 
-/** The monthly price's lookup key in Stripe, for each plan. */
-export const PRICE_LOOKUP_KEY: Record<PlanId, string> = {
-  basic: "literaryworm_basic_monthly",
-  standard: "literaryworm_standard_monthly",
-  premium: "literaryworm_premium_monthly",
+/** How often a membership is billed: monthly, or yearly at ten times the monthly price. */
+export type BillingInterval = "month" | "year";
+export const INTERVALS: BillingInterval[] = ["month", "year"];
+
+/** Each plan's price's lookup key in Stripe, monthly and yearly. */
+export const PRICE_LOOKUP_KEY: Record<BillingInterval, Record<PlanId, string>> = {
+  month: {
+    basic: "literaryworm_basic_monthly",
+    standard: "literaryworm_standard_monthly",
+    premium: "literaryworm_premium_monthly",
+  },
+  year: {
+    basic: "literaryworm_basic_yearly",
+    standard: "literaryworm_standard_yearly",
+    premium: "literaryworm_premium_yearly",
+  },
 };
 
 /** How many months a gift can be bought for. */
@@ -61,18 +72,33 @@ export function oneMonthAfter(from: Date): Date {
   );
 }
 
+/** The same day and time a year later; 29 February becomes 28 February, as Stripe renews. */
+export function oneYearAfter(from: Date): Date {
+  const year = from.getUTCFullYear() + 1;
+  const lastDay = new Date(Date.UTC(year, from.getUTCMonth() + 1, 0)).getUTCDate();
+  return new Date(
+    Date.UTC(year, from.getUTCMonth(), Math.min(from.getUTCDate(), lastDay), from.getUTCHours(), from.getUTCMinutes(), from.getUTCSeconds()),
+  );
+}
+
 /**
  * When a membership cancelled at `now` ends, given its next billing date. With at least 48 hours'
  * notice it ends then and nothing more is charged; with less, that charge still goes through and
- * the membership ends a month later, at the end of the period it paid for. No refunds either way.
+ * the membership ends a period later (a month, or a year when billed yearly), at the end of the
+ * period it paid for. No refunds either way.
  */
-export function cancellationEnd(nextBilling: Date, now: Date): { ends: Date; late: boolean } {
+export function cancellationEnd(nextBilling: Date, now: Date, interval: BillingInterval = "month"): { ends: Date; late: boolean } {
   if (nextBilling.getTime() - now.getTime() >= CANCEL_NOTICE_HOURS * 3_600_000) return { ends: nextBilling, late: false };
-  return { ends: oneMonthAfter(nextBilling), late: true };
+  return { ends: interval === "year" ? oneYearAfter(nextBilling) : oneMonthAfter(nextBilling), late: true };
 }
 
-export function planForLookupKey(key: string | null | undefined): PlanId | null {
-  return (Object.keys(PRICE_LOOKUP_KEY) as PlanId[]).find((p) => PRICE_LOOKUP_KEY[p] === key) ?? null;
+/** The plan and billing interval a price's lookup key stands for. */
+export function planForLookupKey(key: string | null | undefined): { plan: PlanId; interval: BillingInterval } | null {
+  for (const interval of INTERVALS) {
+    const plan = PLANS.find((p) => PRICE_LOOKUP_KEY[interval][p] === key);
+    if (plan) return { plan, interval };
+  }
+  return null;
 }
 
 function env(name: string): string {
@@ -185,16 +211,19 @@ export function invoiceView(invoice: Stripe.Invoice): InvoiceView | null {
 /** The fields public.subscriptions keeps for a Stripe subscription. */
 export function subscriptionRow(sub: Stripe.Subscription) {
   const item = sub.items.data[0];
-  const plan = planForLookupKey(item?.price.lookup_key);
-  if (!plan) throw new Error(`Subscription ${sub.id} has a price with no LiteraryWorm plan`);
+  const price = planForLookupKey(item?.price.lookup_key);
+  if (!price) throw new Error(`Subscription ${sub.id} has a price with no LiteraryWorm plan`);
   const periodEnd = item.current_period_end;
   // Set by manage-account when a gift's free months are applied; shown only while they last.
   const giftUntil = Number(sub.metadata?.gift_until);
   return {
-    plan_id: plan,
+    plan_id: price.plan,
+    billing_interval: price.interval,
     status: statusFor(sub),
     gift_until: sub.status === "trialing" && giftUntil > 0 ? new Date(giftUntil * 1000).toISOString() : null,
-    billing_day: new Date(sub.billing_cycle_anchor * 1000).getUTCDate(),
+    // Days run 1–28; a yearly membership that started on the 29th to 31st keeps its renewal date
+    // (current_period_end), and its billing day is only a label, as it can't be moved.
+    billing_day: Math.min(new Date(sub.billing_cycle_anchor * 1000).getUTCDate(), 28),
     // "Ending": at the period's end, or on a later date set for a cancellation with under 48 hours' notice.
     cancel_at_period_end: sub.cancel_at_period_end || Boolean(sub.cancel_at),
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,

@@ -105,6 +105,7 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
 const active = (): Subscription => ({
   plan_id: "standard",
   status: "active",
+  billing_interval: "month",
   billing_day: 5,
   cancel_at_period_end: false,
   current_period_end: null,
@@ -126,6 +127,7 @@ const paid = (): Subscription => ({
 const complimentary = (): Subscription => ({
   plan_id: "premium",
   status: "active",
+  billing_interval: "month",
   billing_day: null,
   cancel_at_period_end: false,
   current_period_end: null,
@@ -524,4 +526,19 @@ Deno.test("once Stripe has the gift's months, a later failure doesn't free the c
   assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 500);
   assertEquals(state.stripe, ["gift sub_1 2027-02-05"]);
   assert(state.gift.redeemed_at !== null);
+});
+
+Deno.test("a yearly membership can't be paused or move its billing day, and a late cancel ends a year on", async () => {
+  const yearly = (): Subscription => ({ ...paid(), billing_interval: "year" });
+  for (const body of [{ action: "pause" }, { action: "billing_day", billingDay: 9 }]) {
+    const { deps } = setup(yearly());
+    const res = await call(deps, body);
+    assertEquals(res.status, 400, JSON.stringify(body));
+    assert(res.body.error.message.includes("yearly"));
+  }
+  const { state, deps } = setup(yearly(), { now: () => new Date("2026-11-04T12:00:00Z") });
+  const res = await call(deps, { action: "cancel" });
+  assertEquals(res.status, 200);
+  assertEquals(res.body.cancel_at, "2027-11-05T00:00:00.000Z");
+  assertEquals(state.stripe.at(-1), "cancel_at sub_1 2027-11-05T00:00:00.000Z");
 });

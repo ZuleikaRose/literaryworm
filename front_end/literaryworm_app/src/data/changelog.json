@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "feature",
+    "title": "Pay yearly, two months free",
+    "body": "Every plan can now be paid yearly, at ten times the monthly price. Choose Yearly on Plans, or switch from monthly at any time: your year starts straight away, with the unused part of the month taken off. The bell reminds you 30 days before your year renews.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "update",
     "title": "Move up a plan in one tap",
     "body": "When this month's listening or your offline devices run out, the message offers the next plan up and opens its checkout straight away.",

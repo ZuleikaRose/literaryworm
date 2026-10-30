@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4300, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4402, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -127,6 +127,7 @@
             ["pk", "id", "text"],
             ["", "name", "text"],
             ["", "price_cents", "integer"],
+            ["", "yearly_price_cents", "integer"],
             ["", "currency", "char(3)"],
             ["", "max_profiles", "smallint 1–5"],
             ["", "audio_hours", "integer", true],
@@ -153,6 +154,7 @@
             ["fk", "user_id", "uuid (unique)"],
             ["fk", "plan_id", "text"],
             ["", "status", "subscription_status"],
+            ["", "billing_interval", "text month | year"],
             ["", "billing_day", "smallint 1–28", true],
             ["", "renewal_terms_accepted_at", "timestamptz", true],
             ["", "current_period_end", "timestamptz", true],
@@ -166,7 +168,7 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function. Paid rows are written by the stripe-webhook function from Stripe (stripe_subscription_id unique); stripe_linked tells the member a card is on file without showing Stripe's ids. complimentary is set by a trigger from staff_roles (any role): Premium, active, no billing day or Stripe subscription, never billed; a paid row needs a billing day and renewal consent. gift_until: the end of a redeemed gift's free months, from Stripe, while they last. cancel_at: when an ending membership ends (a period later after a cancellation with under 48 hours' notice).",
+          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Paid rows are written only by the stripe-webhook function from Stripe; stripe_linked says a card is on file. complimentary: set by a trigger from staff_roles, never billed. gift_until: a gift's free months. cancel_at: when an ending membership ends. billing_interval: monthly, or yearly at plans.yearly_price_cents.",
         },
         {
           id: "logs", color: colors.reading, x: 420, y: 1080, sub: "public",

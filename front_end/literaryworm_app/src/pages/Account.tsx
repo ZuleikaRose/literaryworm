@@ -13,7 +13,7 @@ import { TeamAccess } from "../components/TeamAccess";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
-import { formatPrice, planById } from "../data/plans";
+import { formatPrice, perPeriod, planById, priceFor } from "../data/plans";
 import {
   AccountError,
   cancelTwoStep,
@@ -189,7 +189,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
     });
   const addPaymentMethod = () =>
     attempt(async () => {
-      const { url } = await choosePlan(account.planId!, account.billingDay ?? Math.min(new Date().getDate(), 28));
+      const { url } = await choosePlan(account.planId!, account.billingDay ?? Math.min(new Date().getDate(), 28), false, account.billingInterval);
       if (url) window.location.assign(url);
     });
   const saveBillingDay = (e: FormEvent) => {
@@ -198,18 +198,25 @@ function PlanSection({ account }: { account: AccountDetails }) {
       dispatch({ type: "updateAccount", patch: await changeBillingDay(newDay) });
     }, `Your billing day is now the ${ordinal(newDay)}. The days until your next charge are free.`);
   };
-  // During a gift's free months, the first charge is when they end.
+  const yearly = account.billingInterval === "year";
+  // During a gift's free months, the first charge is when they end; a year renews on its own date.
   const nextChargeDate = account.giftUntil
     ? new Date(account.giftUntil)
-    : account.billingDay
-      ? nextBillingDate(account.billingDay)
+    : yearly && account.renewsAt
+      ? new Date(account.renewsAt)
+      : account.billingDay
+        ? nextBillingDate(account.billingDay)
+        : null;
+  const nextCharge = account.giftUntil || (yearly && account.renewsAt)
+    ? endDate(account.giftUntil ?? account.renewsAt!)
+    : nextChargeDate
+      ? longDate(nextChargeDate)
       : null;
-  const nextCharge = account.giftUntil ? endDate(account.giftUntil) : nextChargeDate ? longDate(nextChargeDate) : null;
   const endsOn = account.endsAt ? endDate(account.endsAt) : null;
-  // Cancelled with under 48 hours' notice: the next charge still goes through, and the plan ends a month later.
+  // Cancelled with under 48 hours' notice: the next charge still goes through, and the plan ends a period later.
   const chargeBeforeEnd = Boolean(endsOn && nextCharge && endsOn !== nextCharge);
   // What cancelling now would do (the manage-account function applies the same rule).
-  const cancelling = nextChargeDate ? cancellationEnd(nextChargeDate) : null;
+  const cancelling = nextChargeDate ? cancellationEnd(nextChargeDate, undefined, account.billingInterval) : null;
   const cancelLate = Boolean(cancelling?.late);
   const cancelEnds = cancelling ? longDate(cancelling.ends) : nextCharge;
 
@@ -263,6 +270,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
     );
   }
 
+  const price = formatPrice(priceFor(plan, account.billingInterval));
   const statusText = account.pastDue
     ? "Payment failed"
     : account.status === "paused"
@@ -279,7 +287,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
         <div>
           <dt>Plan</dt>
           <dd>
-            {plan.name} · {formatPrice(plan.price)} a month
+            {plan.name} · {price} {perPeriod(account.billingInterval)}
           </dd>
         </div>
         <div>
@@ -295,22 +303,31 @@ function PlanSection({ account }: { account: AccountDetails }) {
               ? "None while paused"
               : endsOn
                 ? chargeBeforeEnd
-                  ? `${formatPrice(plan.price)} on ${nextCharge}, then the plan ends on ${endsOn}`
+                  ? `${price} on ${nextCharge}, then the plan ends on ${endsOn}`
                   : "None: the plan ends instead"
                 : account.giftUntil
-                  ? `None until ${nextCharge}: a gift. Then ${formatPrice(plan.price)} if a card is on file; without one, the membership ends that day.`
-                  : `${formatPrice(plan.price)} on ${nextCharge}`}
+                  ? `None until ${nextCharge}: a gift. Then ${price} if a card is on file; without one, the membership ends that day.`
+                  : `${price} on ${nextCharge}`}
           </dd>
         </div>
         <div>
-          <dt>Billing day</dt>
-          <dd>The {ordinal(account.billingDay ?? 1)} of each month</dd>
+          <dt>{yearly ? "Billing" : "Billing day"}</dt>
+          <dd>
+            {yearly
+              ? `Yearly, renewing on ${nextCharge ?? "the date your year started"}`
+              : `The ${ordinal(account.billingDay ?? 1)} of each month`}
+          </dd>
         </div>
       </dl>
       <p className="field-hint cancel-notice">
         Cancel at least {CANCEL_NOTICE_HOURS} hours before your next billing date to stop the next charge. Cancelling later still
-        ends your membership, but after one more month. No refunds.
+        ends your membership, but after one more {yearly ? "year" : "month"}. No refunds.
       </p>
+      {!yearly && billed && account.stripeLinked && account.status === "active" && !endsOn && (
+        <p className="field-hint">
+          <Link to="/plans?billing=yearly">Pay yearly instead</Link>: {formatPrice(plan.yearlyPrice)} a year, so two months are free.
+        </p>
+      )}
       {account.isDemo && <p className="field-hint">The demo can't take payments, so no card is on file.</p>}
 
       {billed && !account.stripeLinked && (
@@ -318,7 +335,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
           <Icon name="alert" size={17} />
           <div>
             <p>
-              This is a live account: you'll be billed monthly until you cancel. Add a payment method to continue your
+              This is a live account: you'll be billed {yearly ? "yearly" : "monthly"} until you cancel. Add a payment method to continue your
               membership.
             </p>
             <button type="button" className="primary-button" disabled={busy} onClick={addPaymentMethod}>
@@ -334,7 +351,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
         </div>
       )}
 
-      {billed && account.stripeLinked && account.status === "active" && !endsOn && !account.giftUntil && (
+      {billed && account.stripeLinked && account.status === "active" && !endsOn && !account.giftUntil && !yearly && (
         <form className="billing-day-form" onSubmit={saveBillingDay}>
           <div className="field">
             <label className="field-label" htmlFor="new-billing-day">
@@ -374,7 +391,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
             Resume membership
           </button>
         ) : (
-          !endsOn && (
+          !endsOn && !yearly && (
             <button type="button" className="secondary-button" disabled={busy} onClick={() => setConfirming("pause")}>
               Pause membership
             </button>
@@ -397,7 +414,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
       {billed && <RedeemGift account={account} />}
 
       <PlanUsage planId={plan.id} />
-      {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={formatPrice(plan.price)} />}
+      {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={price} interval={account.billingInterval} />}
 
       <Dialog
         open={confirming !== null}

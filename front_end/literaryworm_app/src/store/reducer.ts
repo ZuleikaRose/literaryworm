@@ -12,6 +12,7 @@ import type {
   LibraryEntry,
   PlanId,
   PlayerSettings,
+  BillingInterval,
   Profile,
   ProfileData,
   Progress,
@@ -58,7 +59,7 @@ export type Action =
   | { type: "deleteAccount" }
   | { type: "authChecked"; error?: string; secondStep?: boolean }
   | { type: "signOut" }
-  | { type: "choosePlan"; planId: PlanId; billingDay: number }
+  | { type: "choosePlan"; planId: PlanId; billingDay: number; billingInterval: BillingInterval }
   | { type: "updateAccount"; patch: Partial<Account> }
   | { type: "addProfile"; profile: Profile }
   | { type: "updateProfile"; id: string; patch: Partial<Profile> }
@@ -259,7 +260,7 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case "choosePlan":
       return state.account
-        ? { ...state, account: { ...state.account, planId: action.planId, billingDay: action.billingDay, status: "active" } }
+        ? { ...state, account: { ...state.account, planId: action.planId, billingDay: action.billingDay, billingInterval: action.billingInterval, status: "active" } }
         : state;
 
     case "updateAccount":

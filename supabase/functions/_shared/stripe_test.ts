@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/_shared/stripe_test.ts — Stripe objects to what members see.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
-import { addGiftMonths, cancellationEnd, discountView, giftCode, invoiceView, oneMonthAfter, type Stripe, subscriptionRow } from "./stripe.ts";
+import { addGiftMonths, cancellationEnd, discountView, giftCode, invoiceView, oneMonthAfter, oneYearAfter, planForLookupKey, type Stripe, subscriptionRow } from "./stripe.ts";
 
 const invoice = (fields: Partial<Stripe.Invoice>) =>
   ({
@@ -108,4 +108,29 @@ Deno.test("a subscription's end date: cancel_at when set, the period end when en
   assertEquals([row({ cancel_at_period_end: true }).cancel_at_period_end, row({ cancel_at_period_end: true }).cancel_at], [true, "2027-01-01T00:00:00.000Z"]);
   // A late cancellation: Stripe has cancel_at a period later and cancel_at_period_end off.
   assertEquals([row({ cancel_at: 1_801_440_000 }).cancel_at_period_end, row({ cancel_at: 1_801_440_000 }).cancel_at], [true, "2027-02-01T00:00:00.000Z"]);
+});
+
+Deno.test("yearly prices: lookup keys map to plan and interval, a late cancel ends a year on", () => {
+  assertEquals(planForLookupKey("literaryworm_premium_yearly"), { plan: "premium", interval: "year" });
+  assertEquals(planForLookupKey("literaryworm_basic_monthly"), { plan: "basic", interval: "month" });
+  assertEquals(planForLookupKey("something_else"), null);
+  assertEquals(oneYearAfter(new Date("2028-02-29T10:00:00Z")).toISOString(), "2029-02-28T10:00:00.000Z");
+  const billing = new Date("2027-03-10T00:00:00Z");
+  assertEquals(cancellationEnd(billing, new Date("2027-03-09T00:00:00Z"), "year"), { ends: new Date("2028-03-10T00:00:00Z"), late: true });
+  assertEquals(cancellationEnd(billing, new Date("2027-03-01T00:00:00Z"), "year"), { ends: billing, late: false });
+});
+
+Deno.test("a yearly subscription's row says so, and a 31st start keeps its billing day within 1–28", () => {
+  const sub = {
+    id: "sub_1",
+    customer: "cus_1",
+    status: "active",
+    pause_collection: null,
+    cancel_at_period_end: false,
+    cancel_at: null,
+    billing_cycle_anchor: Date.UTC(2026, 9, 31) / 1000,
+    items: { data: [{ price: { lookup_key: "literaryworm_standard_yearly" }, current_period_end: Date.UTC(2027, 9, 31) / 1000 }] },
+  } as unknown as Stripe.Subscription;
+  const row = subscriptionRow(sub);
+  assertEquals([row.plan_id, row.billing_interval, row.billing_day], ["standard", "year", 28]);
 });

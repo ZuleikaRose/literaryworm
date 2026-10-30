@@ -1,5 +1,6 @@
 /** Billing dates, amounts and promo codes, shown on Plans and Account. */
 
+import type { Account, BillingInterval } from "../types";
 import type { MembershipDiscount } from "./accountApi";
 
 /** 1 → "1st", 22 → "22nd". */
@@ -29,14 +30,50 @@ export function oneMonthAfter(from: Date): Date {
   return next;
 }
 
+/** The same day a year later; 29 February becomes 28 February, as Stripe renews. */
+export function oneYearAfter(from: Date): Date {
+  const next = new Date(from);
+  next.setDate(1);
+  next.setFullYear(next.getFullYear() + 1);
+  const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+  next.setDate(Math.min(from.getDate(), lastDay));
+  return next;
+}
+
 /**
  * When a membership cancelled now ends, given its next billing date (the same rule as the
  * manage-account function). With at least 48 hours' notice it ends then and nothing more is
- * charged; with less, that charge still goes through and it ends a month later. No refunds.
+ * charged; with less, that charge still goes through and it ends a period (a month, or a year
+ * when billed yearly) later. No refunds.
  */
-export function cancellationEnd(nextBilling: Date, now = new Date()): { ends: Date; late: boolean } {
+export function cancellationEnd(nextBilling: Date, now = new Date(), interval: BillingInterval = "month"): { ends: Date; late: boolean } {
   if (nextBilling.getTime() - now.getTime() >= CANCEL_NOTICE_HOURS * 3_600_000) return { ends: nextBilling, late: false };
-  return { ends: oneMonthAfter(nextBilling), late: true };
+  return { ends: interval === "year" ? oneYearAfter(nextBilling) : oneMonthAfter(nextBilling), late: true };
+}
+
+/** How long before a yearly renewal the bell reminds the member (the Terms promise it). */
+export const RENEWAL_REMINDER_DAYS = 30;
+
+export interface RenewalReminder {
+  /** When the year renews (ISO). */
+  renewsAt: string;
+  /** When the reminder started showing (ms): the bell counts it as new after this. */
+  at: number;
+}
+
+/**
+ * The reminder that a yearly membership renews soon: from 30 days before until the day, while
+ * it's set to renew (not ending, paused, on a gift or complimentary). Monthly plans get none.
+ */
+export function renewalReminder(
+  account: Pick<Account, "billingInterval" | "renewsAt" | "endsAt" | "status" | "complimentary" | "giftUntil"> | null,
+  now = Date.now(),
+): RenewalReminder | null {
+  if (!account || account.billingInterval !== "year" || !account.renewsAt) return null;
+  if (account.endsAt || account.status !== "active" || account.complimentary || account.giftUntil) return null;
+  const renews = Date.parse(account.renewsAt);
+  const at = renews - RENEWAL_REMINDER_DAYS * 86_400_000;
+  return now >= at && now < renews ? { renewsAt: account.renewsAt, at } : null;
 }
 
 export const longDate = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -61,10 +98,11 @@ export function discountLabel(d: MembershipDiscount): string {
  * What the plan costs once a promo code stops applying: "Then $12.99 a month from January 5,
  * 2027." Null for a code that lasts as long as the membership.
  */
-export function afterDiscountLabel(d: MembershipDiscount, monthlyPrice: string): string | null {
+export function afterDiscountLabel(d: MembershipDiscount, price: string, interval: BillingInterval = "month"): string | null {
+  const per = interval === "year" ? "a year" : "a month";
   if (d.duration === "forever") return null;
-  if (d.duration === "repeating" && d.ends) return `Then ${monthlyPrice} a month from ${endDate(d.ends)}.`;
-  return `Then ${monthlyPrice} a month after that.`;
+  if (d.duration === "repeating" && d.ends) return `Then ${price} ${per} from ${endDate(d.ends)}.`;
+  return `Then ${price} ${per} after that.`;
 }
 
 export const PROMO_CODE_PATTERN = /^[A-Za-z0-9_-]{3,40}$/;

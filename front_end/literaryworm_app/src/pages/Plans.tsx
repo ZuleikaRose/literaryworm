@@ -3,12 +3,12 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
 import { WhatsNewLink } from "../components/WhatsNewLink";
-import { formatPrice, planById, planFaqs, plans } from "../data/plans";
+import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
 import { AccountError, choosePlan, loadAccount, planFields } from "../lib/accountApi";
-import { CANCEL_NOTICE_HOURS, longDate, nextBillingDate, ordinal } from "../lib/billing";
+import { CANCEL_NOTICE_HOURS, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
-import type { Plan, PlanId } from "../types";
+import type { BillingInterval, Plan, PlanId } from "../types";
 
 export default function Plans() {
   useTitle("Plans and pricing");
@@ -22,11 +22,17 @@ export default function Plans() {
   // Staff accounts (any staff role) are complimentary and never charged: they have no plan to choose.
   const complimentary = Boolean(account?.complimentary);
   const initialPlan = (params.get("plan") as PlanId | null) ?? null;
+  // Monthly or yearly: ?billing=yearly picks yearly, else the member's own billing.
+  const [interval, setBillingInterval] = useState<BillingInterval>(() =>
+    params.get("billing") === "yearly" ? "year" : (account?.billingInterval ?? "month"),
+  );
+  const yearlyNow = Boolean(account?.planId && account.billingInterval === "year");
 
   const [selected, setSelected] = useState<PlanId | null>(
     account && !complimentary && initialPlan && planById.has(initialPlan) && initialPlan !== account.planId ? initialPlan : null,
   );
-  const [today] = useState(() => new Date().getDate());
+  const [startsOn] = useState(() => new Date());
+  const today = startsOn.getDate();
   const [billingDay, setBillingDay] = useState(() => Math.min(today, 28));
   const [agreed, setAgreed] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
@@ -92,7 +98,7 @@ export default function Plans() {
       setSaving(true);
       setSaveError(null);
       try {
-        const { url } = await choosePlan(selected, billingDay, setup && !account.planId);
+        const { url } = await choosePlan(selected, billingDay, setup && !account.planId, interval);
         if (url) {
           window.location.assign(url);
           return;
@@ -104,7 +110,7 @@ export default function Plans() {
       }
       setSaving(false);
     }
-    dispatch({ type: "choosePlan", planId: selected, billingDay });
+    dispatch({ type: "choosePlan", planId: selected, billingDay, billingInterval: interval });
     setConfirmed(selected);
     setSelected(null);
     if (setup) navigate("/profiles?setup=1");
@@ -115,6 +121,23 @@ export default function Plans() {
   // A member already paying through Stripe switches plan from their next billing date.
   const changingPaid = Boolean(account?.userId && account.stripeLinked && account.status !== "cancelled");
   const billsToday = billingDay === today;
+  const yearly = interval === "year";
+  const price = plan ? priceFor(plan, interval) : 0;
+  const per = perPeriod(interval);
+  // Moving a paid membership: monthly to yearly starts the year today; a yearly one moves up today
+  // (paying the difference for the rest of the year) or down at renewal; yearly never goes monthly.
+  const fromYearly = changingPaid && yearlyNow;
+  const toMonthlyFromYearly = fromYearly && !yearly;
+  const yearlyUpgrade = Boolean(fromYearly && yearly && plan && account?.planId && plan.price > planById.get(account.planId)!.price);
+  const changeWhen = !changingPaid
+    ? null
+    : yearly && !fromYearly
+      ? "Today. Your year starts now, and the unused part of this month comes off the first yearly charge."
+      : yearlyUpgrade
+        ? "Today. You pay the difference for the rest of your year now, and the new price from your renewal date."
+        : fromYearly
+          ? "From your renewal date. Nothing is charged today."
+          : "From your next billing date. Nothing is charged today.";
 
   return (
     <div className="plans-page">
@@ -129,7 +152,7 @@ export default function Plans() {
           <>
             <p className="eyebrow">Plans and pricing</p>
             <h1>One membership for every reader at home</h1>
-            <p>Ebooks and audiobooks in one place. Prices are per month, in US dollars. Cancel online any time.</p>
+            <p>Ebooks and audiobooks in one place. Prices are in US dollars. Pay monthly, or yearly with two months free. Cancel online any time.</p>
           </>
         )}
       </header>
@@ -172,17 +195,40 @@ export default function Plans() {
         </div>
       )}
 
+      <fieldset className="segmented billing-toggle">
+        <legend>Billing</legend>
+        <div>
+          {(["month", "year"] as const).map((value) => (
+            <label key={value}>
+              <input
+                type="radio"
+                name="billing-interval"
+                value={value}
+                checked={interval === value}
+                onChange={() => {
+                  setBillingInterval(value);
+                  setAgreed(false);
+                }}
+              />
+              <span>{value === "month" ? "Monthly" : "Yearly: 2 months free"}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <ul className="plan-grid">
         {plans.map((p) => {
-          const current = account?.planId === p.id;
+          const current = account?.planId === p.id && account.billingInterval === interval;
+          const samePlan = account?.planId === p.id;
           const isSelected = selected === p.id;
           return (
             <li key={p.id} className={`plan-card${isSelected ? " is-selected" : ""}${current ? " is-current" : ""}`}>
               <h2>{p.name}</h2>
               <p className="plan-summary">{p.summary}</p>
               <p className="plan-price">
-                <strong>{formatPrice(p.price)}</strong>
-                <span>/month</span>
+                <strong>{formatPrice(priceFor(p, interval))}</strong>
+                <span>{yearly ? "/year" : "/month"}</span>
+                {yearly && <small>{formatPrice(p.yearlyPrice / 12)} a month, instead of {formatPrice(p.price)}</small>}
               </p>
               <ul className="plan-features">
                 <li>
@@ -215,7 +261,7 @@ export default function Plans() {
                   aria-pressed={account ? isSelected : undefined}
                   onClick={() => choose(p)}
                 >
-                  {account?.planId ? `Switch to ${p.name}` : `Choose ${p.name}`}
+                  {samePlan ? `Switch to ${yearly ? "yearly" : "monthly"}` : account?.planId ? `Switch to ${p.name}` : `Choose ${p.name}`}
                 </button>
               )}
             </li>
@@ -226,9 +272,18 @@ export default function Plans() {
       {plan && account && !complimentary && (
         <section className="checkout" aria-labelledby="checkout-title">
           <h2 id="checkout-title" ref={checkoutRef} tabIndex={-1}>
-            Confirm {plan.name}
+            Confirm {plan.name}, {yearly ? "yearly" : "monthly"}
           </h2>
-          {isDemo ? (
+          {toMonthlyFromYearly ? (
+            <div className="form-alert">
+              <Icon name="alert" size={17} />
+              <p>
+                A yearly membership can't move to monthly billing part way through the year. To pay monthly, cancel in{" "}
+                <Link to="/account#plan">Account</Link> at least {CANCEL_NOTICE_HOURS} hours before your renewal date, then choose
+                monthly once your year ends. You can move to a bigger plan on yearly billing at any time.
+              </p>
+            </div>
+          ) : isDemo ? (
             <div className="form-alert">
               <Icon name="alert" size={17} />
               <p>
@@ -244,29 +299,32 @@ export default function Plans() {
                 </div>
                 <div>
                   <dt>Price</dt>
-                  <dd>{formatPrice(plan.price)} a month, plus any applicable tax</dd>
+                  <dd>
+                    {formatPrice(price)} {per}, plus any applicable tax
+                    {yearly && ` (${formatPrice(plan.price * 12)} paid monthly)`}
+                  </dd>
                 </div>
                 {changingPaid ? (
                   <div>
                     <dt>When it changes</dt>
-                    <dd>From your next billing date. Nothing is charged today.</dd>
+                    <dd>{changeWhen}</dd>
                   </div>
                 ) : (
                   <>
                     <div>
                       <dt>First charge</dt>
-                      <dd>{billsToday ? "Today" : "Today, for the days until your billing day"}</dd>
+                      <dd>{yearly ? `Today, for the year` : billsToday ? "Today" : "Today, for the days until your billing day"}</dd>
                     </div>
                     <div>
                       <dt>Next charge</dt>
-                      <dd>{longDate(nextBillingDate(billingDay))}</dd>
+                      <dd>{longDate(yearly ? oneYearAfter(startsOn) : nextBillingDate(billingDay))}</dd>
                     </div>
                   </>
                 )}
               </dl>
 
               <div className="checkout-fields">
-                {!changingPaid && (
+                {!changingPaid && !yearly && (
                 <div className="field">
                   <label className="field-label" htmlFor="billing-day">
                     Billing day
@@ -298,10 +356,11 @@ export default function Plans() {
                 )}
 
                 <p className="renewal-terms">
-                  Your membership renews automatically every month on the {ordinal(billingDay)} at{" "}
-                  {formatPrice(plan.price)} until you cancel. Cancel online any time from Account; you'll keep access
-                  until the end of the period you've paid for. To stop a charge, cancel at least {CANCEL_NOTICE_HOURS} hours before
-                  that billing date. No refunds.
+                  {yearly
+                    ? `Your membership renews automatically every year on ${changingPaid && fromYearly && account?.renewsAt ? "your renewal date" : "the date your year starts"} at ${formatPrice(price)} until you cancel. We'll remind you 30 days before.`
+                    : `Your membership renews automatically every month on the ${ordinal(changingPaid && account?.billingDay ? account.billingDay : billingDay)} at ${formatPrice(price)} until you cancel.`}{" "}
+                  Cancel online any time from Account; you'll keep access until the end of the period you've paid for. To stop a
+                  charge, cancel at least {CANCEL_NOTICE_HOURS} hours before that billing date. No refunds.
                 </p>
 
                 <label className="check-row">
@@ -337,8 +396,8 @@ export default function Plans() {
                         ? "Switching your plan…"
                         : "Opening the payment page…"
                       : changingPaid
-                        ? `Switch to ${plan.name} for ${formatPrice(plan.price)}/month`
-                        : `Continue to payment: ${plan.name}, ${formatPrice(plan.price)}/month`}
+                        ? `Switch to ${plan.name} for ${formatPrice(price)}${yearly ? "/year" : "/month"}`
+                        : `Continue to payment: ${plan.name}, ${formatPrice(price)}${yearly ? "/year" : "/month"}`}
                   </button>
                   <button type="button" className="ghost-button" onClick={() => setSelected(null)}>
                     Cancel

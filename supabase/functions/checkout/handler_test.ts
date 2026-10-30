@@ -11,7 +11,7 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
   const state = {
     checkouts: [] as CheckoutInput[],
     gifts: [] as GiftCheckoutInput[],
-    planChanges: [] as [string, string][],
+    planChanges: [] as string[][],
     customers: 0,
     staff: false,
   };
@@ -32,8 +32,8 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
       state.gifts.push(input);
       return Promise.resolve("https://checkout.stripe.com/c/pay/cs_test_gift");
     },
-    changePlan: (sub, plan) => {
-      state.planChanges.push([sub, plan]);
+    changePlan: (sub, plan, interval, from) => {
+      state.planChanges.push([sub, plan, interval, from]);
       return Promise.resolve();
     },
     siteOrigin: () => ORIGIN,
@@ -84,18 +84,42 @@ Deno.test("choosing today's date bills from today, with no partial first charge"
 });
 
 Deno.test("a member billed through Stripe changes plan in place, without a new Checkout", async () => {
-  const { state, deps } = setup({ plan_id: "basic", status: "active", stripe_subscription_id: "sub_1" });
+  const { state, deps } = setup({ plan_id: "basic", status: "active", billing_interval: "month", stripe_subscription_id: "sub_1" });
   const res = await call(deps, choice({ planId: "premium" }));
-  assertEquals(res.body, { planId: "premium" });
-  assertEquals(state.planChanges, [["sub_1", "premium"]]);
+  assertEquals(res.body, { planId: "premium", interval: "month" });
+  assertEquals(state.planChanges, [["sub_1", "premium", "month", "month"]]);
   assertEquals(state.checkouts.length, 0);
   assertEquals((await call(deps, choice({ planId: "basic" }))).status, 400);
 });
 
+Deno.test("a new yearly membership starts today, with no billing day needed", async () => {
+  const { state, deps } = setup(null);
+  const res = await call(deps, { planId: "premium", interval: "year", renewalTermsAccepted: true });
+  assertEquals(res.status, 200);
+  assertEquals(state.checkouts[0].interval, "year");
+  assertEquals(state.checkouts[0].billingCycleAnchor, null);
+  assertEquals(state.checkouts[0].billingDay, 24);
+});
+
+Deno.test("monthly moves to yearly in place, even on the same plan; yearly never moves to monthly", async () => {
+  const monthly = setup({ plan_id: "basic", status: "active", billing_interval: "month", stripe_subscription_id: "sub_1" });
+  const res = await call(monthly.deps, choice({ planId: "basic", interval: "year" }));
+  assertEquals(res.body, { planId: "basic", interval: "year" });
+  assertEquals(monthly.state.planChanges, [["sub_1", "basic", "year", "month"]]);
+
+  const yearly = setup({ plan_id: "basic", status: "active", billing_interval: "year", stripe_subscription_id: "sub_2" });
+  const refused = await call(yearly.deps, choice({ planId: "premium", interval: "month" }));
+  assertEquals(refused.status, 400);
+  assert(refused.body.error.message.includes("part way through the year"));
+  assertEquals((await call(yearly.deps, choice({ planId: "basic", interval: "year" }))).status, 400);
+  await call(yearly.deps, choice({ planId: "premium", interval: "year" }));
+  assertEquals(yearly.state.planChanges, [["sub_2", "premium", "year", "year"]]);
+});
+
 Deno.test("a cancelled or unlinked membership starts a new Checkout", async () => {
   for (const m of [
-    { plan_id: "basic", status: "cancelled" as const, stripe_subscription_id: "sub_old" },
-    { plan_id: "basic", status: "active" as const, stripe_subscription_id: null },
+    { plan_id: "basic", status: "cancelled" as const, billing_interval: "month" as const, stripe_subscription_id: "sub_old" },
+    { plan_id: "basic", status: "active" as const, billing_interval: "month" as const, stripe_subscription_id: null },
   ]) {
     const { state, deps } = setup(m);
     await call(deps, choice());
@@ -105,7 +129,7 @@ Deno.test("a cancelled or unlinked membership starts a new Checkout", async () =
 
 Deno.test("bad input is refused", async () => {
   const { deps } = setup(null);
-  for (const body of [choice({ planId: "gold" }), choice({ billingDay: 29 }), choice({ billingDay: 0 }), choice({ renewalTermsAccepted: false }), { ...choice(), extra: 1 }]) {
+  for (const body of [choice({ planId: "gold" }), choice({ billingDay: 29 }), choice({ billingDay: 0 }), choice({ renewalTermsAccepted: false }), choice({ interval: "week" }), choice({ interval: "year", billingDay: 30 }), { ...choice(), extra: 1 }]) {
     assertEquals((await call(deps, body)).status, 400, JSON.stringify(body));
   }
 });
@@ -118,7 +142,7 @@ Deno.test("signed-out callers get 401 with the standard error shape", async () =
 });
 
 Deno.test("a gift is a one-off Checkout for the plan and months, whatever the buyer's own membership", async () => {
-  const { state, deps } = setup({ plan_id: "basic", status: "active", stripe_subscription_id: "sub_1" });
+  const { state, deps } = setup({ plan_id: "basic", status: "active", billing_interval: "month", stripe_subscription_id: "sub_1" });
   const res = await call(deps, { gift: true, planId: "premium", months: 6 });
   assertEquals(res.status, 200);
   assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_gift");

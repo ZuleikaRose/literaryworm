@@ -1,10 +1,11 @@
-import type { Plan } from "../types";
+import type { BillingInterval, Plan } from "../types";
 
 export const plans: Plan[] = [
   {
     id: "basic",
     name: "Basic",
     price: 7.99,
+    yearlyPrice: 79.9,
     summary: "Ebooks for one reader.",
     profiles: 1,
     audioHours: "5 hours of audiobooks a month",
@@ -28,6 +29,7 @@ export const plans: Plan[] = [
     id: "standard",
     name: "Standard",
     price: 12.99,
+    yearlyPrice: 129.9,
     summary: "Reading and listening for a small household.",
     profiles: 3,
     audioHours: "30 hours of audiobooks a month",
@@ -46,6 +48,7 @@ export const plans: Plan[] = [
     id: "premium",
     name: "Premium",
     price: 17.99,
+    yearlyPrice: 179.9,
     summary: "Unlimited listening for the whole family.",
     profiles: 5,
     audioHours: "Unlimited audiobooks",
@@ -63,7 +66,7 @@ export const plans: Plan[] = [
 export const planFaqs = [
   {
     q: "Can I cancel any time?",
-    a: "Yes. Cancel online from Account in a few clicks, with no phone call needed. Cancel at least 48 hours before your next billing date to stop that charge; cancelling later still ends your membership, but after one more month. You keep access until the end of the period you've paid for, and there are no refunds.",
+    a: "Yes. Cancel online from Account in a few clicks, with no phone call needed. Cancel at least 48 hours before your next billing date to stop that charge; cancelling later still ends your membership, but after one more month (or one more year, if you pay yearly). You keep access until the end of the period you've paid for, and there are no refunds.",
   },
   {
     q: "What's the difference between the plans?",
@@ -75,11 +78,15 @@ export const planFaqs = [
   },
   {
     q: "How does billing work?",
-    a: "Plans are monthly, paid by card through Stripe, so your card details never reach us. Pick any billing day from the 1st to the 28th and change it later in Account; the days until the new date are free. Promo codes can be added at checkout or in Account. Staff accounts are never charged.",
+    a: "Pay monthly or yearly, by card through Stripe, so your card details never reach us. Monthly plans let you pick any billing day from the 1st to the 28th and change it later in Account; the days until the new date are free. Promo codes can be added at checkout or in Account. Staff accounts are never charged.",
+  },
+  {
+    q: "How does yearly billing work?",
+    a: "A year costs ten times the monthly price, so two months are free. It starts the day you pay and renews on that date each year until you cancel; the bell reminds you 30 days before. Moving from monthly to yearly starts your year straight away, with the unused part of the month taken off. A yearly membership can move to a bigger plan at any time (you pay the difference for the rest of the year), can't be paused, and moves to monthly billing only when the year ends.",
   },
   {
     q: "Can I pause instead of cancelling?",
-    a: "Yes. Pause from Account and nothing is charged until you resume. Your library, profiles and progress stay as they are.",
+    a: "Yes, on monthly billing. Pause from Account and nothing is charged until you resume. Your library, profiles and progress stay as they are. A yearly membership is already paid for the year, so it can't be paused.",
   },
   {
     q: "Can I give LiteraryWorm as a gift?",
@@ -126,3 +133,9 @@ export const planFaqs = [
 export const planById = new Map(plans.map((p) => [p.id, p]));
 
 export const formatPrice = (n: number) => `$${n.toFixed(2)}`;
+
+/** What a plan costs each period: its monthly or yearly price. */
+export const priceFor = (plan: Plan, interval: BillingInterval) => (interval === "year" ? plan.yearlyPrice : plan.price);
+
+/** "a month" or "a year". */
+export const perPeriod = (interval: BillingInterval) => (interval === "year" ? "a year" : "a month");

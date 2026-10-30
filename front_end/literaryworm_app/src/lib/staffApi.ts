@@ -146,6 +146,7 @@ export interface MemberLookup {
   planName: string | null;
   status: string | null;
   billingDay: number | null;
+  billingInterval: "month" | "year";
   nextBillingAt: string | null;
   cancelAt: string | null;
   giftUntil: string | null;
@@ -173,6 +174,7 @@ interface LookupRow {
     staff: boolean;
     plan_name: string | null;
     status: string | null;
+    billing_interval: string | null;
     billing_day: number | null;
     next_billing_at: string | null;
     cancel_at: string | null;
@@ -212,6 +214,7 @@ export async function lookupMember(email: string): Promise<MemberLookup | null> 
     planName: m.plan_name,
     status: m.status,
     billingDay: m.billing_day,
+    billingInterval: m.billing_interval === "year" ? "year" : "month",
     nextBillingAt: m.next_billing_at,
     cancelAt: m.cancel_at,
     giftUntil: m.gift_until,

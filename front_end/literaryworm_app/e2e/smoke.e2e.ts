@@ -15,6 +15,19 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("switches Plans to yearly prices, two months free", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/plans`);
+    await page.getByText("$7.99").first().waitFor();
+    await page.getByRole("radio", { name: /Yearly/ }).check({ force: true });
+    await page.getByText("$79.90").first().waitFor();
+    await page.getByText(/\$6\.66 a month, instead of \$7\.99/).waitFor();
+    // ?billing=yearly opens on yearly prices.
+    await page.goto(`${BASE_URL}/plans?billing=yearly`);
+    expect(await page.getByRole("radio", { name: /Yearly/ }).isChecked()).toBe(true);
+    expect(errors()).toEqual([]);
+  });
+
   it("searches by title and opens a book's page", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/search?q=frankenstein`);

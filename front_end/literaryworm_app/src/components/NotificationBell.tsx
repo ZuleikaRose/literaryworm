@@ -1,6 +1,8 @@
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
-import { badgeText, bellLabel, isNewAuthorBook, isNewListeningAlert, isNewRelease } from "../lib/notifications";
+import { formatPrice, planById } from "../data/plans";
+import { endDate } from "../lib/billing";
+import { badgeText, bellLabel, isNewAlert, isNewAuthorBook, isNewListeningAlert, isNewRelease } from "../lib/notifications";
 import { hoursAndMinutes, nextPlanUp, planCheckoutPath } from "../lib/planLimits";
 import { releaseLabel } from "../lib/release";
 import { useNotifications } from "../lib/useNotifications";
@@ -14,7 +16,7 @@ import { Icon } from "./Icon";
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, listening, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, listening, renewal, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -30,7 +32,8 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null;
+  const plan = planId ? planById.get(planId) : undefined;
 
   return (
     <div className="popover-wrap" ref={wrapRef}>
@@ -53,10 +56,27 @@ export function NotificationBell() {
             </p>
           ) : (
             <>
-              {listening && (
+              {(listening || renewal) && (
                 <>
                   <p className="popover-label">Your plan</p>
                   <ul className="bell-list" role="list">
+                    {renewal && plan && (
+                      <li>
+                        <Link className="bell-item" to="/account#plan" onClick={() => close(false)}>
+                          <Icon name="calendar" size={18} />
+                          <span>
+                            <strong>
+                              Your yearly membership renews on {endDate(renewal.renewsAt)}
+                              {isNewAlert(renewal.at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>
+                              {plan.name} · {formatPrice(plan.yearlyPrice)}. To stop it, cancel in Account at least 48 hours before.
+                            </small>
+                          </span>
+                        </Link>
+                      </li>
+                    )}
+                    {listening && (
                     <li>
                       <Link className="bell-item" to={listeningNext ? planCheckoutPath(listeningNext) : "/account#plan"} onClick={() => close(false)}>
                         <Icon name="headphones" size={18} />
@@ -73,6 +93,7 @@ export function NotificationBell() {
                         </span>
                       </Link>
                     </li>
+                    )}
                   </ul>
                 </>
               )}

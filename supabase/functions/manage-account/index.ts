@@ -10,7 +10,7 @@ import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./
 const DISCOUNT_EXPAND = ["discounts.source.coupon", "discounts.promotion_code"];
 
 const COLUMNS =
-  "plan_id, status, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, stripe_subscription_id, stripe_customer_id";
+  "plan_id, status, billing_interval, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, stripe_subscription_id, stripe_customer_id";
 
 Deno.serve((req) =>
   handle(req, {
