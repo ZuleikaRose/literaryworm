@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "update",
+    "title": "More profiles and offline devices",
+    "body": "Standard now has 5 profiles and Read offline on 10 devices (was 3 and 3), and Premium 12 profiles and 24 devices (was 5 and 5), at the same prices. Basic is unchanged.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
     "title": "Switch to yearly from the bell",
     "body": "Paying monthly for nearly a year? The bell now shows what paying yearly would save on your plan, with a link to switch.",
     "major": false

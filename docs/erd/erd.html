@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–5701, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–5802, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -131,13 +131,13 @@
             ["", "price_cents", "integer"],
             ["", "yearly_price_cents", "integer"],
             ["", "currency", "char(3)"],
-            ["", "max_profiles", "smallint 1–5"],
+            ["", "max_profiles", "smallint 1–12"],
             ["", "audio_hours", "integer", true],
             ["", "download_devices", "smallint"],
             ["", "summary", "text"],
             ["", "sort_order", "smallint"],
           ],
-          note: "RLS: readable by everyone; no browser writes. Seeded: basic, standard, premium.",
+          note: "RLS: readable by everyone; no browser writes. Seeded: basic (1 profile, 1 offline device), standard (5, 10), premium (12, 24).",
         },
         {
           id: "auth.users", color: colors.auth, x: 420, y: 30, sub: "Supabase Auth",

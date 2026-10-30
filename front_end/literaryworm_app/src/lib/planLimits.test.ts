@@ -5,8 +5,8 @@ import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, list
 describe("plan limits", () => {
   it("matches the plan cards, and gives an account without a plan Basic's", () => {
     expect(planLimits("basic")).toEqual({ audioSeconds: 5 * 3600, offlineDevices: 1 });
-    expect(planLimits("standard")).toEqual({ audioSeconds: 30 * 3600, offlineDevices: 3 });
-    expect(planLimits("premium")).toEqual({ audioSeconds: null, offlineDevices: 5 });
+    expect(planLimits("standard")).toEqual({ audioSeconds: 30 * 3600, offlineDevices: 10 });
+    expect(planLimits("premium")).toEqual({ audioSeconds: null, offlineDevices: 24 });
     expect(planLimits(null)).toEqual(planLimits("basic"));
   });
 

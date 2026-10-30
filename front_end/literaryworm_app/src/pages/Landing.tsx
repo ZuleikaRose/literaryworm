@@ -162,7 +162,7 @@ export default function Landing() {
             <p className="eyebrow">Family profiles</p>
             <h2 id="household-title">A shelf for everyone at home</h2>
             <p>
-              Up to five profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, and set a
+              Up to 12 profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, and set a
               daily reading limit for younger readers.
             </p>
           </div>

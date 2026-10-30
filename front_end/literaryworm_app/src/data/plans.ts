@@ -31,11 +31,11 @@ export const plans: Plan[] = [
     price: 12.99,
     yearlyPrice: 129.9,
     summary: "Reading and listening for a small household.",
-    profiles: 3,
+    profiles: 5,
     audioHours: "30 hours of audiobooks a month",
     audioHoursPerMonth: 30,
-    offlineDevices: 3,
-    downloads: "Read offline on 3 devices",
+    offlineDevices: 10,
+    downloads: "Read offline on 10 devices",
     features: [
       "Everything in Basic",
       "Kids and Teen profiles that show only titles rated for them",
@@ -50,15 +50,15 @@ export const plans: Plan[] = [
     price: 17.99,
     yearlyPrice: 179.9,
     summary: "Unlimited listening for the whole family.",
-    profiles: 5,
+    profiles: 12,
     audioHours: "Unlimited audiobooks",
     audioHoursPerMonth: null,
-    offlineDevices: 5,
-    downloads: "Read offline on 5 devices",
+    offlineDevices: 24,
+    downloads: "Read offline on 24 devices",
     features: [
       "Everything in Standard",
-      "Two more profiles than Standard, for bigger households",
-      "About $3.60 a profile each month",
+      "Seven more profiles than Standard, for bigger households",
+      "About $1.50 a profile each month",
     ],
   },
 ];
@@ -70,7 +70,7 @@ export const planFaqs = [
   },
   {
     q: "What's the difference between the plans?",
-    a: "How many people can read: Basic has one profile, Standard three and Premium five, with more listening time and devices as you go up. Kids and Teen profiles, PIN locks and household challenges need room for more than one profile, so they start with Standard. Every other feature is in every plan.",
+    a: "How many people can read: Basic has one profile, Standard five and Premium twelve, with more listening time and devices as you go up. Kids and Teen profiles, PIN locks and household challenges need room for more than one profile, so they start with Standard. Every other feature is in every plan.",
   },
   {
     q: "Can I try it before I pay?",
@@ -106,7 +106,7 @@ export const planFaqs = [
   },
   {
     q: "Can I read without a connection?",
-    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device. Basic keeps offline books on 1 device, Standard on 3 and Premium on 5; free a device in Account to use another. Books you upload keep working if your connection drops, once you've opened them on that device.",
+    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device. Basic keeps offline books on 1 device, Standard on 10 and Premium on 24; free a device in Account to use another. Books you upload keep working if your connection drops, once you've opened them on that device.",
   },
   {
     q: "Are there audiobooks?",

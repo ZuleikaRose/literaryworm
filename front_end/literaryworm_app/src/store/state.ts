@@ -64,7 +64,8 @@ export interface Household {
   profileData: Record<string, ProfileData>;
 }
 
-export const MAX_PROFILES = 5;
+/** The most profiles any plan allows (Premium); the database caps it too. */
+export const MAX_PROFILES = 12;
 
 export const defaultA11y: A11ySettings = {
   textScale: 1,
