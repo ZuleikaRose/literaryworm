@@ -18,6 +18,19 @@ export const GENRE_QUERIES: Record<Genre, string> = {
   "sci-fi": 'subject:"science fiction"',
   fiction: "subject:fiction",
   "non-fiction": "subject:nonfiction",
+  fantasy: "subject:fantasy",
+  mystery: "subject:mystery",
+  thriller: "subject:thriller",
+  romance: "subject:romance",
+  classics: "subject:classics",
+  "historical-fiction": 'subject:"historical fiction"',
+  "young-adult": 'subject:"young adult fiction"',
+  children: 'subject:"juvenile fiction"',
+  biography: "subject:biography",
+  history: "subject:history",
+  science: "subject:science",
+  "self-help": 'subject:"self-help"',
+  poetry: "subject:poetry",
 };
 
 // The same genres as plain words, for when Google answers a `subject:` query with
@@ -29,6 +42,19 @@ export const GENRE_WORDS: Record<Genre, string> = {
   "sci-fi": '"science fiction"',
   fiction: "fiction",
   "non-fiction": "nonfiction",
+  fantasy: "fantasy",
+  mystery: "mystery",
+  thriller: "thriller",
+  romance: "romance",
+  classics: '"classic novels"',
+  "historical-fiction": '"historical fiction"',
+  "young-adult": '"young adult"',
+  children: '"children\'s books"',
+  biography: "biography",
+  history: "history",
+  science: "science",
+  "self-help": '"self help"',
+  poetry: "poetry",
 };
 
 export const HOME_QUERY = "technology";

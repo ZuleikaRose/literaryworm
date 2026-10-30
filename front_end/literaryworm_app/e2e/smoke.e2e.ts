@@ -24,6 +24,22 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("browses a new genre from Home, and narrows a search by it", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    const genres = page.locator("#discover").getByRole("navigation", { name: "Genres" });
+    await genres.getByRole("link", { name: "Fantasy" }).click();
+    await page.waitForURL(/genre=fantasy/);
+    await page.getByRole("heading", { name: "Fantasy books" }).waitFor();
+    await expect(genres.getByRole("link", { name: "Fantasy" }).getAttribute("aria-current")).resolves.toBe("page");
+
+    await page.goto(`${BASE_URL}/search?q=wonder&source=literaryworm&genre=fantasy`);
+    await page.getByRole("radio", { name: "Fantasy" }).waitFor();
+    await expect(page.getByRole("radio", { name: "Fantasy" }).isChecked()).resolves.toBe(true);
+    await page.getByRole("link", { name: /Alice's Adventures in Wonderland/ }).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("reads What's new from the footer, and filters it to the major changes", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);

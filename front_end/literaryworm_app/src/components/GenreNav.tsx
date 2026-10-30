@@ -8,7 +8,7 @@ interface GenreNavProps {
 }
 
 /**
- * The six genres as links, so each choice has its own URL (shareable, survives a refresh,
+ * The genres as links, so each choice has its own URL (shareable, survives a refresh,
  * works with Back). Technology is the default and has no parameter.
  */
 export function GenreNav({ current, basePath }: GenreNavProps) {

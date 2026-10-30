@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "update",
+    "title": "More genres to browse and search",
+    "body": "Alongside Technology, Adventure, Sci-Fi, Fiction, Non-Fiction and Horror, you can now browse and search Fantasy, Mystery, Thriller, Romance, Classics, Historical Fiction, Young Adult, Children's, Biography & Memoir, History, Science, Self-Help and Poetry.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "feature",
     "title": "What's new",
     "body": "This page: every new feature, fix and update, newest first. Turn on the monthly round-up of the biggest changes in Account → Preferences.",

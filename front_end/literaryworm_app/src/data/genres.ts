@@ -1,11 +1,28 @@
-/** The six genres the assessment brief requires, in the order the UI lists them. */
+/**
+ * The genres to browse and search by, in the order the UI lists them: the six the assessment
+ * brief requires first (`shelf`: each has its own row on Home), then the rest. The `books`
+ * Edge Function's GENRES list must match.
+ */
 export const browseGenres = [
-  { id: "technology", label: "Technology" },
-  { id: "adventure", label: "Adventure" },
-  { id: "sci-fi", label: "Sci-Fi" },
-  { id: "fiction", label: "Fiction" },
-  { id: "non-fiction", label: "Non-Fiction" },
-  { id: "horror", label: "Horror" },
+  { id: "technology", label: "Technology", shelf: true },
+  { id: "adventure", label: "Adventure", shelf: true },
+  { id: "sci-fi", label: "Sci-Fi", shelf: true },
+  { id: "fiction", label: "Fiction", shelf: true },
+  { id: "non-fiction", label: "Non-Fiction", shelf: true },
+  { id: "horror", label: "Horror", shelf: true },
+  { id: "fantasy", label: "Fantasy", shelf: false },
+  { id: "mystery", label: "Mystery", shelf: false },
+  { id: "thriller", label: "Thriller", shelf: false },
+  { id: "romance", label: "Romance", shelf: false },
+  { id: "classics", label: "Classics", shelf: false },
+  { id: "historical-fiction", label: "Historical Fiction", shelf: false },
+  { id: "young-adult", label: "Young Adult", shelf: false },
+  { id: "children", label: "Children's", shelf: false },
+  { id: "biography", label: "Biography & Memoir", shelf: false },
+  { id: "history", label: "History", shelf: false },
+  { id: "science", label: "Science", shelf: false },
+  { id: "self-help", label: "Self-Help", shelf: false },
+  { id: "poetry", label: "Poetry", shelf: false },
 ] as const;
 
 export type BrowseGenre = (typeof browseGenres)[number]["id"];
@@ -38,6 +55,19 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
   fiction: ["Fiction", "Literary fiction", "Classics", "Fantasy", "Romance", "Mystery", "Young adult"],
   "non-fiction": ["Memoir", "Self-development"],
   horror: ["Horror"],
+  fantasy: ["Fantasy", "Mythology"],
+  mystery: ["Mystery"],
+  thriller: ["Thriller"],
+  romance: ["Romance"],
+  classics: ["Classics"],
+  "historical-fiction": ["Historical fiction"],
+  "young-adult": ["Young adult"],
+  children: ["Children's"],
+  biography: ["Memoir", "Biography"],
+  history: ["History"],
+  science: ["Science"],
+  "self-help": ["Self-development"],
+  poetry: ["Poetry"],
 };
 
 /**
@@ -46,10 +76,23 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
  */
 export function genreForCategories(categories: string[]): BrowseGenre | null {
   const text = categories.join(" ").toLowerCase();
+  if (/juvenile/.test(text)) return "children";
+  if (/young adult/.test(text)) return "young-adult";
   if (/science fiction|sci-fi/.test(text)) return "sci-fi";
   if (/horror/.test(text)) return "horror";
+  if (/fantasy/.test(text)) return "fantasy";
+  if (/thriller|suspense/.test(text)) return "thriller";
+  if (/mystery|detective/.test(text)) return "mystery";
+  if (/romance/.test(text)) return "romance";
+  if (/historical/.test(text)) return "historical-fiction";
+  if (/classics/.test(text)) return "classics";
   if (/adventure/.test(text)) return "adventure";
+  if (/poetry/.test(text)) return "poetry";
   if (/computers|technology|engineering/.test(text)) return "technology";
   if (/fiction/.test(text)) return "fiction";
+  if (/biography|autobiography|memoir/.test(text)) return "biography";
+  if (/self-help/.test(text)) return "self-help";
+  if (/history/.test(text)) return "history";
+  if (/science|nature|mathematics/.test(text)) return "science";
   return text ? "non-fiction" : null;
 }

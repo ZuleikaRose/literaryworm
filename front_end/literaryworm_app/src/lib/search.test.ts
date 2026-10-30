@@ -1,4 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
+import { browseGenres, genreForCategories } from "../data/genres";
 import { catalogMatches, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl } from "./search";
 
 describe("queries", () => {
@@ -65,5 +66,37 @@ describe("catalog search", () => {
   it("suggests a likely typo only when the correction finds something", () => {
     expect(didYouMean("midnite libary", "all")).toBe("Midnight Library");
     expect(didYouMean("zzzzzz qqqqq", "all")).toBeNull();
+  });
+});
+
+describe("genres", () => {
+  it("keeps the brief's six as Home rows, first, and offers the rest to browse and search", () => {
+    expect(browseGenres.filter((g) => g.shelf).map((g) => g.id)).toEqual(["technology", "adventure", "sci-fi", "fiction", "non-fiction", "horror"]);
+    expect(browseGenres.slice(0, 6).every((g) => g.shelf)).toBe(true);
+    expect(browseGenres.length).toBeGreaterThan(6);
+    expect(new Set(browseGenres.map((g) => g.id)).size).toBe(browseGenres.length);
+  });
+
+  it("reads a new genre from the URL and narrows the sample catalog by it", () => {
+    expect(readSearchParams(new URLSearchParams("q=a&genre=fantasy")).genre).toBe("fantasy");
+    expect(readSearchParams(new URLSearchParams("q=a&genre=westerns")).genre).toBeNull();
+    const fantasy = catalogMatches({ ...readSearchParams(new URLSearchParams("q=wonder&genre=fantasy")) }, "all");
+    expect(fantasy.length).toBeGreaterThan(0);
+    expect(fantasy.every((b) => b.genres.some((g) => g === "Fantasy" || g === "Mythology"))).toBe(true);
+  });
+
+  it("finds the closest genre for a Google title's categories", () => {
+    expect(genreForCategories(["Juvenile Fiction / Fantasy & Magic"])).toBe("children");
+    expect(genreForCategories(["Young Adult Fiction / Romance"])).toBe("young-adult");
+    expect(genreForCategories(["Fiction / Science Fiction / General"])).toBe("sci-fi");
+    expect(genreForCategories(["Fiction / Fantasy / Epic"])).toBe("fantasy");
+    expect(genreForCategories(["Fiction / Thrillers / Suspense"])).toBe("thriller");
+    expect(genreForCategories(["Fiction / Mystery & Detective"])).toBe("mystery");
+    expect(genreForCategories(["Fiction / Historical / General"])).toBe("historical-fiction");
+    expect(genreForCategories(["Biography & Autobiography / Personal Memoirs"])).toBe("biography");
+    expect(genreForCategories(["Computers / Programming"])).toBe("technology");
+    expect(genreForCategories(["Self-Help / Personal Growth"])).toBe("self-help");
+    expect(genreForCategories(["Cooking"])).toBe("non-fiction");
+    expect(genreForCategories([])).toBeNull();
   });
 });

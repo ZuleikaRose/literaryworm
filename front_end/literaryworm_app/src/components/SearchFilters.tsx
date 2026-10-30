@@ -41,7 +41,7 @@ function ChipGroup<T extends string | null>({
   );
 }
 
-/** Narrow a title search: where results come from, one of the six genres, language, length, and the order. */
+/** Narrow a title search: where results come from, a genre, language, length, and the order. */
 export function SearchFilters({ value, onChange, showSource }: SearchFiltersProps) {
   return (
     <div className="search-filters">

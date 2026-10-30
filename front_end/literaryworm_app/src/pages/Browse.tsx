@@ -18,7 +18,7 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { AgeRating, Book } from "../types";
 
-/** One of the brief's six genres as a Home row, loading more at its end. */
+/** One of the brief's six genres as a Home row, loading more at its end (the others are in the genre links). */
 function GenreShelf({ genre, ageRating }: { genre: BrowseGenre; ageRating: AgeRating }) {
   // Technology uses the same "technology" list as the public home page.
   const feed = useBookFeed(genre === "technology" ? { mode: "home" } : { mode: "genre", genre }, ageRating);
@@ -189,7 +189,7 @@ export default function Browse() {
           />
         )}
 
-        {browseGenres.map((g) => (
+        {browseGenres.filter((g) => g.shelf).map((g) => (
           <GenreShelf key={g.id} genre={g.id} ageRating={profile.ageRating} />
         ))}
 

@@ -3,7 +3,12 @@
 
 import { HttpError } from "./http.ts";
 
-export const GENRES = ["adventure", "technology", "horror", "sci-fi", "fiction", "non-fiction"] as const;
+// The brief's six, then the rest; must match browseGenres in the app's src/data/genres.ts.
+export const GENRES = [
+  "adventure", "technology", "horror", "sci-fi", "fiction", "non-fiction",
+  "fantasy", "mystery", "thriller", "romance", "classics", "historical-fiction",
+  "young-adult", "children", "biography", "history", "science", "self-help", "poetry",
+] as const;
 export type Genre = (typeof GENRES)[number];
 
 export const MAX_QUERY_LENGTH = 100;

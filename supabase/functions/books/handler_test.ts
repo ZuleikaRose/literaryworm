@@ -133,6 +133,10 @@ Deno.test("each genre maps to a subject query", async () => {
     "sci-fi": 'subject:"science fiction"',
     fiction: "subject:fiction",
     "non-fiction": "subject:nonfiction",
+    fantasy: "subject:fantasy",
+    "historical-fiction": 'subject:"historical fiction"',
+    children: 'subject:"juvenile fiction"',
+    "self-help": 'subject:"self-help"',
   };
   for (const [genre, q] of Object.entries(expected)) {
     const { calls, fetcher } = stub(200, fullPage);
@@ -151,13 +155,13 @@ Deno.test("rejects bad input before calling Google", async () => {
     "mode=home&page=20",                             // page out of range
     "mode=home&page=-1",
     "mode=home&page=1.5",
-    "mode=genre&genre=romance",                      // not a required genre
+    "mode=genre&genre=westerns",                     // not one of the genres
     "mode=volume&id=..%2Fetc",                       // bad id
     "mode=nope",
     "mode=home&key=abc",                             // unexpected parameter
     "mode=home&page=1&page=2",                       // repeated parameter
     "mode=search&q=dune&sort=oldest",                // unknown sort
-    "mode=search&q=dune&genre=romance",              // genre outside the six
+    "mode=search&q=dune&genre=westerns",             // genre outside the list
     "mode=genre&genre=horror&sort=newest",           // sort only applies to search
     "mode=home&genre=horror",                        // genre not allowed on home
     "mode=search&q=dune&lang=xx",                    // language outside the list
