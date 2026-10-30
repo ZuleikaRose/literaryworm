@@ -399,5 +399,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Yearly to monthly at renewal: a yearly member chooses monthly on Plans; a Stripe subscription schedule keeps the year and bills monthly from the renewal date; *Keep yearly billing* in Account undoes it; cancelling drops it (Terms updated) (migrations 4900–4903) | Done    |
 | —    | Weekly reading goals for Kids profiles: set by a grown-up in the profile editor (account password, `manage-profile`), shown in the child's Goals, Account → Family and the Monday Kids report (Privacy and Children's Privacy Notice updated) (migrations 5000–5002) | Done    |
 | —    | Follow authors from search: an author search lists the matching authors above the books, with a Follow button each (migration 5100, What's new only) | Done    |
+| —    | Gift a year at the yearly price: a 12-month gift costs the plan's yearly price (two months free); shorter gifts stay monthly price × months (`checkout` function) (migration 5200, What's new only) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

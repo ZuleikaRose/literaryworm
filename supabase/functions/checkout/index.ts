@@ -71,15 +71,19 @@ Deno.serve((req) =>
       return session.url;
     },
     async createGiftCheckout(input: GiftCheckoutInput) {
-      const price = await monthlyPrice(input.planId);
+      // A whole year at the yearly price (two months free), once; shorter gifts at the monthly price per month.
+      const year = input.months === 12;
+      const price = year ? await planPrice(input.planId, "year") : await monthlyPrice(input.planId);
       const session = await stripeClient().checkout.sessions.create({
         mode: "payment",
         customer: input.customerId,
         client_reference_id: input.userId,
-        // The plan's own product and monthly price, once for each month: so the page reads
-        // "LiteraryWorm Standard × 3", and a gift is taxed exactly like the membership it buys.
+        // The plan's own product and price: so the page reads "LiteraryWorm Standard × 3", and a
+        // gift is taxed exactly like the membership it buys.
         // No custom_text: accounts with Stripe Managed Payments refuse it (the Gifts page has the terms).
-        line_items: [{ quantity: input.months, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } }],
+        line_items: [
+          { quantity: year ? 1 : input.months, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } },
+        ],
         // Read by stripe-webhook to make the gift code.
         metadata: { kind: "gift", plan_id: input.planId, months: String(input.months) },
         success_url: `${input.origin}/gifts?checkout=success`,

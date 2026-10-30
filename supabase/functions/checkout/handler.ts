@@ -8,8 +8,8 @@
 // bought (billingDay isn't needed); it renews on that date each year.
 //   { gift: true, planId, months: 1 | 3 | 6 | 12 }
 //
-// A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, nothing
-// recurring): this returns { url }, and once Stripe confirms payment the stripe-webhook function
+// A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, or the
+// yearly price for 12 months, nothing recurring): this returns { url }, and once Stripe confirms payment the stripe-webhook function
 // makes the gift code, which the buyer sees in /gifts. Stripe sends them back to /gifts?checkout=success.
 //
 // Stripe sends the member back to /plans?checkout=success (with &setup=1 during sign-up), where

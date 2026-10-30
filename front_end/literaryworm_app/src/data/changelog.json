@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "update",
+    "title": "Gift a year for the yearly price",
+    "body": "A year's gift membership now costs the yearly price, so it comes with two months free, just like paying yearly. Gifts of 1, 3 or 6 months are still the monthly price for each month.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
     "title": "Follow authors from search",
     "body": "Searching by author now lists the authors it finds above the books, with how many of the results are theirs and a Follow button, so you can follow someone without opening their page.",
     "major": false

@@ -5,7 +5,7 @@ import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, plans } from "../data/plans";
 import { AccountError, type BoughtGift, buyGift, myGifts } from "../lib/accountApi";
 import { endDate, formatMoney } from "../lib/billing";
-import { formatGiftCode, GIFT_MONTHS, monthsLabel } from "../lib/gifts";
+import { formatGiftCode, GIFT_MONTHS, GIFT_YEAR_MONTHS, giftPriceCents, monthsLabel } from "../lib/gifts";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
 import type { PlanId } from "../types";
@@ -82,7 +82,8 @@ function BuyGift() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const plan = planById.get(planId)!;
-  const total = Math.round(plan.price * 100) * months;
+  const total = giftPriceCents(plan, months);
+  const yearSaving = Math.round(plan.price * 100) * GIFT_YEAR_MONTHS - giftPriceCents(plan, GIFT_YEAR_MONTHS);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -122,14 +123,15 @@ function BuyGift() {
             {GIFT_MONTHS.map((m) => (
               <label key={m} className="chip">
                 <input type="radio" name={`${id}-months`} value={m} checked={m === months} onChange={() => setMonths(m)} />
-                <span>{monthsLabel(m)}</span>
+                <span>{m === GIFT_YEAR_MONTHS ? "A year: 2 months free" : monthsLabel(m)}</span>
               </label>
             ))}
           </div>
         </fieldset>
         <div className="gift-total">
           <p>
-            <strong>{formatMoney(total, "usd")}</strong> for {monthsLabel(months)} of {plan.name}, paid once.
+            <strong>{formatMoney(total, "usd")}</strong> for {months === GIFT_YEAR_MONTHS ? "a year" : monthsLabel(months)} of {plan.name}, paid once.
+            {months === GIFT_YEAR_MONTHS && ` That's the yearly price: ${formatMoney(yearSaving, "usd")} less than 12 months.`}
           </p>
           <p className="field-hint">
             Paid on Stripe's secure page. Your code appears below once payment goes through. All sales are final.
