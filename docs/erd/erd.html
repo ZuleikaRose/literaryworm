@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3703, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3801, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -467,6 +467,17 @@
             ["", "joined_at", "timestamptz"],
           ],
           note: "FK (challenge_id, user_id) → household_challenges and (profile_id, user_id) → reader_profiles, so both belong to the same account; on delete cascade. Kids profiles can join. RLS: owner only; joined and left. Index: (profile_id, user_id).",
+        },
+        {
+          id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
+          cols: [
+            ["pk", "volume_id", "text (book id)"],
+            ["pk", "chapter_index", "smallint 0–999"],
+            ["", "characters", "jsonb (1–40)"],
+            ["", "model", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "The characters met in a public-domain title up to a chapter, written by Claude the first time anyone asks and kept, so later readers get the same list. RLS on, no browser access; the characters function reads and writes it.",
         },
         {
           id: "club_members", color: colors.reading, x: 1260, y: 2050, sub: "up to 50 a club",

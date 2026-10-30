@@ -63,6 +63,19 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("opens Who's who in the reader, which says plainly when the backend isn't there", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.getByRole("button", { name: "Who's who" }).click();
+    const dialog = page.getByRole("dialog", { name: "Who's who" });
+    await dialog.getByText(/Written by AI from the book up to chapter 1/).waitFor();
+    // The e2e server runs without Supabase, so the function can't be reached.
+    await dialog.getByRole("alert").getByText(/needs the LiteraryWorm backend/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("opens the audiobook player with its controls", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
