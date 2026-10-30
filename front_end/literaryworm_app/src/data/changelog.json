@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Search by author",
+    "body": "Search can now find books by who wrote them: choose Author above the search box and type any part of a name, such as tolkien or le guin. Title search works as before.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Goals and streaks in the bell",
     "body": "The bell now tells you when a streak of three days or more ends tonight (from 6 pm, until you read), when you're one or two books from this year's goal, and when you reach it.",
     "major": false

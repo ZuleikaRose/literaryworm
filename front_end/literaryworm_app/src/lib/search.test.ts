@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { browseGenres, favouriteGenreId, favouriteGenreLabel, genreForCategories, inFavouriteGenre } from "../data/genres";
-import { catalogMatches, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl } from "./search";
+import { catalogMatches, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl, unfiltered } from "./search";
 
 describe("queries", () => {
   it("tidies spaces", () => {
@@ -18,7 +18,7 @@ describe("queries", () => {
 
 describe("the URL", () => {
   it("round-trips a search", () => {
-    const params = { q: "dune", genre: null, sort: "newest", source: "google", lang: "es", length: "long" } as const;
+    const params = { q: "dune", by: "title", genre: null, sort: "newest", source: "google", lang: "es", length: "long" } as const;
     const url = searchUrl(params);
     expect(url).toBe("/search?q=dune&sort=newest&source=google&lang=es&length=long");
     expect(readSearchParams(new URLSearchParams(url.split("?")[1]))).toEqual(params);
@@ -27,6 +27,7 @@ describe("the URL", () => {
   it("falls back to defaults for anything unexpected", () => {
     expect(readSearchParams(new URLSearchParams("sort=popular&source=x&lang=zz&length=huge&genre=nope"))).toEqual({
       q: "",
+      by: "title",
       genre: null,
       sort: "relevance",
       source: "all",
@@ -52,7 +53,7 @@ describe("fitsLength", () => {
 });
 
 describe("catalog search", () => {
-  const base = { genre: null, sort: "relevance", source: "all", lang: null, length: null } as const;
+  const base = { by: "title", genre: null, sort: "relevance", source: "all", lang: null, length: null } as const;
 
   it("matches word starts in the title, ignoring case", () => {
     expect(catalogMatches({ ...base, q: "MIDN libr" }, "all").map((b) => b.id)).toEqual(["the-midnight-library"]);
@@ -118,5 +119,29 @@ describe("genres", () => {
     expect(inFavouriteGenre(["Memoir"], "Biography & Memoir")).toBe(true);
     expect(inFavouriteGenre(["Horror"], "Romance")).toBe(false);
     expect(inFavouriteGenre(["Westerns"], "Westerns")).toBe(true);
+  });
+});
+
+describe("search by author", () => {
+  it("keeps by=author in the address, and drops the filters an author search doesn't have", () => {
+    const read = readSearchParams(new URLSearchParams("q=tolkien&by=author&genre=fantasy&lang=es&sort=newest&length=long"));
+    expect(read).toEqual({ q: "tolkien", by: "author", genre: null, sort: "relevance", source: "all", lang: null, length: "long" });
+    expect(searchUrl(read)).toBe("/search?q=tolkien&by=author&length=long");
+    expect(readSearchParams(new URLSearchParams("q=x&by=publisher")).by).toBe("title");
+  });
+
+  it("matches the catalog's authors by every word, from the start of a word", () => {
+    const found = (q: string) => catalogMatches({ ...unfiltered(q, "author") }, "all").map((b) => b.author);
+    expect(found("shelley").every((a) => /shelley/i.test(a))).toBe(true);
+    expect(found("shelley").length).toBeGreaterThan(0);
+    expect(found("mary shel")).toEqual(found("shelley").filter((a) => /mary/i.test(a)));
+    expect(found("helley")).toEqual([]);
+    // A title word isn't an author.
+    expect(found("frankenstein")).toEqual([]);
+  });
+
+  it("words its errors for a name", () => {
+    expect(queryError("", "author")).toBe("Enter an author's name to search for.");
+    expect(queryError("a<b", "author")).toBe("Search by author using letters, numbers and basic punctuation.");
   });
 });

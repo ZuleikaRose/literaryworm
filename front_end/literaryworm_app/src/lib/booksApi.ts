@@ -2,7 +2,7 @@ import { books, isAllowed } from "../data/books";
 import { type BrowseGenre, sampleCatalogGenres } from "../data/genres";
 import type { AgeRating, Book } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL, usesBackend } from "./backend";
-import { fitsLength, languageCode, type SearchLanguage, type SearchLength } from "./search";
+import { fitsLength, languageCode, type SearchLanguage, type SearchLength, wordsMatch } from "./search";
 
 /**
  * Book lists for Home and the landing page.
@@ -62,8 +62,11 @@ export type FeedQuery =
       /** Checked here on each page: Google can't filter by length. */
       length?: SearchLength | null;
     }
-  /** One author's books on Google Books (their page). */
-  | { mode: "author"; name: string };
+  /**
+   * One author's books on Google Books: credited to exactly that name (their page), or, for a
+   * search by author (`loose`), to any author whose name has every word searched for.
+   */
+  | { mode: "author"; name: string; loose?: boolean; length?: SearchLength | null };
 
 export class BooksApiError extends Error {
   readonly code: string;
@@ -81,7 +84,7 @@ export { usesBackend };
 
 export function feedKey(query: FeedQuery): string {
   if (query.mode === "genre") return `genre:${query.genre}`;
-  if (query.mode === "author") return `author:${query.name}`;
+  if (query.mode === "author") return `author:${query.name}|${query.loose ? "loose" : ""}|${query.length ?? ""}`;
   if (query.mode === "search") {
     return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}|${query.lang ?? ""}|${query.length ?? ""}`;
   }
@@ -133,9 +136,7 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
       // Google's author search also finds study guides and summaries that name the author in
       // their title: keep only books credited to them.
       const items =
-        query.mode === "author"
-          ? data.items.filter((b) => b.authors.some((a) => a.toLowerCase() === query.name.toLowerCase()))
-          : data.items;
+        query.mode === "author" ? data.items.filter((b) => byAuthor(b.authors, query)) : data.items;
       return { items, page: data.page, hasMore: data.hasMore && page < MAX_PAGE };
     });
     pageCache.set(url, pending);
@@ -143,6 +144,11 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
     pending.catch(() => pageCache.delete(url));
   }
   return pending;
+}
+
+/** Whether a book's authors match an author query: exactly, or by every word for a search. */
+function byAuthor(authors: string[], query: { name: string; loose?: boolean }): boolean {
+  return authors.some((a) => (query.loose ? wordsMatch(a, query.name) : a.toLowerCase() === query.name.toLowerCase()));
 }
 
 const RETRY_AFTER_MS = 1500;
@@ -198,7 +204,7 @@ function localPage(query: FeedQuery, page: number, ageRating: AgeRating): BookPa
   const matching = genre
     ? allowed.filter((b) => b.genres.some((g) => sampleCatalogGenres[genre].includes(g)))
     : query.mode === "author"
-      ? allowed.filter((b) => b.author.toLowerCase() === query.name.toLowerCase())
+      ? allowed.filter((b) => byAuthor([b.author], query) && fitsLength(b.pages, query.length ?? null))
       : allowed.filter(
           (b) =>
             query.mode === "search" &&
@@ -225,6 +231,6 @@ export async function fetchBookPage(
 ): Promise<BookPage> {
   if (!usesBackend || ageRating === "kids") return localPage(query, page, ageRating);
   const result = await fetchRemote(query, page);
-  if (query.mode !== "search" || !query.length) return result;
+  if ((query.mode !== "search" && query.mode !== "author") || !query.length) return result;
   return { ...result, items: result.items.filter((b) => fitsLength(b.pageCount, query.length ?? null)) };
 }

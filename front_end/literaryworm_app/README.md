@@ -143,3 +143,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | What's new: a *Minor* filter (every change not marked major) beside *Major* |
 | — | Yearly billing: `Plan.yearlyPrice`, `priceFor()` in `data/plans.ts`, the Monthly/Yearly choice on Plans (`?billing=yearly`), `Account.billingInterval` and `renewsAt`, `renewalReminder()` in `lib/billing.ts` on the bell; migrations 4400–4402 |
 | — | Goals and streaks in the bell: `goalAlerts()` in `lib/goals.ts` (streak from 6 pm, close to the goal, goal reached), *Your reading* in `NotificationBell`; migration 4500 |
+| — | Search by author: `SearchParams.by` (`by=author`), `wordsMatch()` and `unfiltered()` in `lib/search.ts`, the author feed with `loose` in `lib/booksApi.ts`; migration 4501 |

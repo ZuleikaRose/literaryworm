@@ -248,3 +248,12 @@
     flex: 1 1 auto;
   }
 }
+
+/* Title or Author, above the search box: full-size targets, no wider than it needs. */
+.search-by {
+  max-width: 320px;
+}
+
+.search-by span {
+  min-height: 44px;
+}

@@ -41,7 +41,10 @@ function ChipGroup<T extends string | null>({
   );
 }
 
-/** Narrow a title search: where results come from, a genre, language, length, and the order. */
+/**
+ * Narrow a search: where results come from, a genre, language, length, and the order. A search
+ * by author has only where results come from and length (Google's author search has no others).
+ */
 export function SearchFilters({ value, onChange, showSource }: SearchFiltersProps) {
   return (
     <div className="search-filters">
@@ -57,33 +60,39 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
           onPick={(source) => onChange({ ...value, source })}
         />
       )}
-      <ChipGroup
-        legend="Genre"
-        current={value.genre}
-        options={[{ value: null, label: "Any genre" }, ...browseGenres.map((g) => ({ value: g.id, label: g.label }))]}
-        onPick={(genre) => onChange({ ...value, genre })}
-      />
-      <ChipGroup
-        legend="Language"
-        current={value.lang}
-        options={[{ value: null, label: "Any language" }, ...SEARCH_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))]}
-        onPick={(lang) => onChange({ ...value, lang })}
-      />
+      {value.by === "title" && (
+        <>
+          <ChipGroup
+            legend="Genre"
+            current={value.genre}
+            options={[{ value: null, label: "Any genre" }, ...browseGenres.map((g) => ({ value: g.id, label: g.label }))]}
+            onPick={(genre) => onChange({ ...value, genre })}
+          />
+          <ChipGroup
+            legend="Language"
+            current={value.lang}
+            options={[{ value: null, label: "Any language" }, ...SEARCH_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))]}
+            onPick={(lang) => onChange({ ...value, lang })}
+          />
+        </>
+      )}
       <ChipGroup
         legend="Length"
         current={value.length}
         options={[{ value: null, label: "Any length" }, ...SEARCH_LENGTHS.map((l) => ({ value: l.id, label: l.label }))]}
         onPick={(length) => onChange({ ...value, length })}
       />
-      <ChipGroup
-        legend="Sort by"
-        current={value.sort}
-        options={[
-          { value: "relevance", label: "Best match" },
-          { value: "newest", label: "Newest" },
-        ]}
-        onPick={(sort) => onChange({ ...value, sort })}
-      />
+      {value.by === "title" && (
+        <ChipGroup
+          legend="Sort by"
+          current={value.sort}
+          options={[
+            { value: "relevance", label: "Best match" },
+            { value: "newest", label: "Newest" },
+          ]}
+          onPick={(sort) => onChange({ ...value, sort })}
+        />
+      )}
     </div>
   );
 }

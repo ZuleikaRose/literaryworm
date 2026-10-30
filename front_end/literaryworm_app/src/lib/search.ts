@@ -2,11 +2,16 @@ import { books, isAllowed } from "../data/books";
 import { type BrowseGenre, isBrowseGenre, sampleCatalogGenres } from "../data/genres";
 import type { AgeRating, Book } from "../types";
 
-/** Search is by title only (the brief). These match the `books` Edge Function's own checks. */
+/**
+ * Search is by title (the brief), or by author when the reader chooses. These match the `books`
+ * Edge Function's own checks, which are the same for a title and an author's name.
+ */
 export const QUERY_MAX = 100;
 const QUERY_CHARS = /^[\p{L}\p{N}\p{M} '’.,!?&()-]+$/u;
 
 export type SearchSort = "relevance" | "newest";
+/** What the words are matched against: titles (the default), or authors' names. */
+export type SearchBy = "title" | "author";
 export type SearchSource = "all" | "literaryworm" | "google";
 
 /** The languages search offers (ISO 639-1, the same list as the `books` function's `lang`). */
@@ -30,6 +35,8 @@ export type SearchLength = (typeof SEARCH_LENGTHS)[number]["id"];
 
 export interface SearchParams {
   q: string;
+  /** Title unless `by=author` is in the address. An author search has no genre, language or sort. */
+  by: SearchBy;
   genre: BrowseGenre | null;
   sort: SearchSort;
   source: SearchSource;
@@ -58,31 +65,48 @@ export function normalizeQuery(raw: string): string {
 }
 
 /** A plain-words problem with the query, or null when it can be searched. */
-export function queryError(q: string): string | null {
-  if (!q) return "Enter a title to search for.";
-  if (q.length > QUERY_MAX) return `Search is limited to ${QUERY_MAX} characters. Try a shorter title.`;
-  if (!QUERY_CHARS.test(q)) return "Search by title using letters, numbers and basic punctuation.";
+export function queryError(q: string, by: SearchBy = "title"): string | null {
+  const what = by === "author" ? "an author's name" : "a title";
+  if (!q) return `Enter ${what} to search for.`;
+  if (q.length > QUERY_MAX) return `Search is limited to ${QUERY_MAX} characters. Try a shorter ${by === "author" ? "name" : "title"}.`;
+  if (!QUERY_CHARS.test(q)) return `Search by ${by} using letters, numbers and basic punctuation.`;
   return null;
 }
+
+/** The search with nothing narrowing it: no genre, language or length, sorted by relevance, from everywhere. */
+export const unfiltered = (q: string, by: SearchBy = "title"): SearchParams => ({
+  q,
+  by,
+  genre: null,
+  sort: "relevance",
+  source: "all",
+  lang: null,
+  length: null,
+});
 
 /** Read the search from the URL, falling back to defaults for anything unexpected. */
 export function readSearchParams(params: URLSearchParams): SearchParams {
   const genre = params.get("genre");
   const sort = params.get("sort");
   const source = params.get("source");
+  const by: SearchBy = params.get("by") === "author" ? "author" : "title";
+  // Google's author search can't narrow by genre or language, or sort by date, so neither does ours.
+  const byTitle = by === "title";
   return {
     q: normalizeQuery(params.get("q") ?? ""),
-    genre: isBrowseGenre(genre) ? genre : null,
-    sort: sort === "newest" ? "newest" : "relevance",
+    by,
+    genre: byTitle && isBrowseGenre(genre) ? genre : null,
+    sort: byTitle && sort === "newest" ? "newest" : "relevance",
     source: source === "literaryworm" || source === "google" ? source : "all",
-    lang: isLanguage(params.get("lang")) ? (params.get("lang") as SearchLanguage) : null,
+    lang: byTitle && isLanguage(params.get("lang")) ? (params.get("lang") as SearchLanguage) : null,
     length: isLength(params.get("length")) ? (params.get("length") as SearchLength) : null,
   };
 }
 
-export function searchUrl({ q, genre, sort, source, lang, length }: SearchParams): string {
+export function searchUrl({ q, by, genre, sort, source, lang, length }: SearchParams): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
+  if (by === "author") params.set("by", "author");
   if (genre) params.set("genre", genre);
   if (sort !== "relevance") params.set("sort", sort);
   if (source !== "all") params.set("source", source);
@@ -101,9 +125,9 @@ const fold = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** True when every word of the query appears in the title (like Google's intitle: per word). */
-function titleMatches(title: string, q: string): boolean {
-  const words = fold(title).split(" ");
+/** True when every word of the query starts a word of the text (like Google's intitle: per word). */
+export function wordsMatch(text: string, q: string): boolean {
+  const words = fold(text).split(" ");
   return fold(q)
     .split(" ")
     .filter(Boolean)
@@ -111,11 +135,11 @@ function titleMatches(title: string, q: string): boolean {
 }
 
 /** LiteraryWorm's own titles that match, filtered and sorted like the Google results. */
-export function catalogMatches({ q, genre, sort, lang, length }: SearchParams, ageRating: AgeRating): Book[] {
+export function catalogMatches({ q, by, genre, sort, lang, length }: SearchParams, ageRating: AgeRating): Book[] {
   const found = books.filter(
     (b) =>
       isAllowed(b.ageRating, ageRating) &&
-      titleMatches(b.title, q) &&
+      wordsMatch(by === "author" ? b.author : b.title, q) &&
       (!genre || b.genres.some((g) => sampleCatalogGenres[genre].includes(g))) &&
       (!lang || languageCode(b.language) === lang) &&
       fitsLength(b.pages, length),
@@ -169,7 +193,7 @@ export function didYouMean(q: string, ageRating: AgeRating): string | null {
       return best?.word ?? word;
     })
     .join(" ");
-  if (!changed || !visible.some((b) => titleMatches(b.title, corrected))) return null;
+  if (!changed || !visible.some((b) => wordsMatch(b.title, corrected))) return null;
   return corrected
     .split(" ")
     .map((word) => display.get(word) ?? word)

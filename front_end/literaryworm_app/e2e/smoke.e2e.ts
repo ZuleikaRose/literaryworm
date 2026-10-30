@@ -37,6 +37,20 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("searches by author, keeping the choice in the address", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/search`);
+    await page.getByRole("radio", { name: "Author" }).check({ force: true });
+    await page.getByLabel("Author's name").fill("shelley");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await page.waitForURL(/by=author/);
+    await page.getByText(/Results for books by “shelley”/).waitFor();
+    await page.getByRole("link", { name: /Frankenstein/ }).first().waitFor();
+    // Author searches have no genre filter.
+    expect(await page.locator(".search-sidebar").getByText("Any genre").count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("browses a new genre from Home, and narrows a search by it", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);

@@ -16,30 +16,33 @@ import {
   readSearchParams,
   SEARCH_LANGUAGES,
   SEARCH_LENGTHS,
+  type SearchBy,
   type SearchParams,
   searchUrl,
   surpriseBook,
+  unfiltered,
 } from "../lib/search";
 import { useCollections } from "../lib/useCollections";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile } from "../store/context";
 
 /**
- * /search, public. Title-only search (the brief): LiteraryWorm's own titles first, then Google
- * Books results through the `books` Edge Function, loading more as the reader scrolls. The
- * whole search lives in the URL, so it survives a refresh and works with Back.
+ * /search, public. Search by title (the brief), or by author when the reader chooses (`by=author`):
+ * LiteraryWorm's own titles first, then Google Books results through the `books` Edge Function
+ * (its author mode for an author), loading more as the reader scrolls. The whole search lives in
+ * the URL, so it survives a refresh and works with Back.
  */
 export default function Search() {
   const [urlParams] = useSearchParams();
   const search = readSearchParams(urlParams);
-  const invalid = search.q ? queryError(search.q) : null;
+  const invalid = search.q ? queryError(search.q, search.by) : null;
   const searching = Boolean(search.q) && !invalid;
   useTitle(searching ? `“${search.q}”` : "Search");
 
   return (
     <div className="search-page page-content">
       {/* Keyed so the box shows the query from the URL after Back, a recent search or Did you mean. */}
-      <SearchHeader key={search.q} search={search} serverError={invalid} />
+      <SearchHeader key={`${search.by}|${search.q}`} search={search} serverError={invalid} />
       {searching ? <Results search={search} /> : <StartHere />}
     </div>
   );
@@ -50,6 +53,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
   const profile = useActiveProfile();
   const navigate = useNavigate();
   const [draft, setDraft] = useState(search.q);
+  const [by, setBy] = useState<SearchBy>(search.by);
   const [error, setError] = useState<string | null>(serverError);
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -57,14 +61,15 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
   function submit(e: FormEvent) {
     e.preventDefault();
     const q = normalizeQuery(draft);
-    const problem = queryError(q);
+    const problem = queryError(q, by);
     if (problem) {
       setError(problem);
       input.current?.focus();
       return;
     }
     if (profile) collections.addRecentSearch(q);
-    navigate(searchUrl({ ...search, q }));
+    // Moving to an author search drops the filters it doesn't have.
+    navigate(searchUrl(by === search.by ? { ...search, q } : { ...unfiltered(q, by), source: search.source, length: search.length }));
   }
 
   function surprise() {
@@ -75,8 +80,29 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
     <header className="search-header">
       <h1>{search.q && !serverError ? "Search results" : "Search"}</h1>
       <form className="search-form" role="search" onSubmit={submit} noValidate>
+        <fieldset className="segmented search-by">
+          <legend>Search by</legend>
+          <div>
+            {(["title", "author"] as const).map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name="search-by"
+                  value={value}
+                  checked={by === value}
+                  onChange={() => {
+                    setBy(value);
+                    setError(null);
+                    input.current?.focus();
+                  }}
+                />
+                <span>{value === "title" ? "Title" : "Author"}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <label className="field-label" htmlFor={id}>
-          Search by title
+          {by === "author" ? "Author's name" : "Title"}
         </label>
         <div className="search-form-row">
           <div className="search-input-wrap">
@@ -89,7 +115,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
               value={draft}
               maxLength={QUERY_MAX + 20}
               autoComplete="off"
-              placeholder="For example, The Hobbit"
+              placeholder={by === "author" ? "For example, Ursula K. Le Guin" : "For example, The Hobbit"}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? `${id}-error` : `${id}-hint`}
               onChange={(e) => {
@@ -112,7 +138,9 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
           </p>
         ) : (
           <p className="field-hint" id={`${id}-hint`}>
-            LiteraryWorm searches book titles only, not authors or ISBNs.
+            {by === "author"
+              ? "Finds books by any author whose name has every word you type, such as tolkien or le guin."
+              : "Searches book titles. Choose Author to search by who wrote it."}
           </p>
         )}
       </form>
@@ -140,7 +168,7 @@ function StartHere() {
           <ul className="recent-list" role="list">
             {recent.map((q) => (
               <li key={q}>
-                <Link to={searchUrl({ q, genre: null, sort: "relevance", source: "all", lang: null, length: null })}>
+                <Link to={searchUrl(unfiltered(q))}>
                   <Icon name="clock" size={16} /> {q}
                 </Link>
                 <button type="button" className="icon-button" onClick={() => collections.removeRecentSearch(q)}>
@@ -179,7 +207,8 @@ function Results({ search }: { search: SearchParams }) {
   const source = googleAllowed ? search.source : "literaryworm";
 
   const catalog = source === "google" ? [] : catalogMatches(search, ageRating);
-  const suggestion = catalogMatches(search, ageRating).length === 0 ? didYouMean(search.q, ageRating) : null;
+  const byAuthor = search.by === "author";
+  const suggestion = !byAuthor && catalogMatches(search, ageRating).length === 0 ? didYouMean(search.q, ageRating) : null;
   const filterCount =
     (search.genre ? 1 : 0) +
     (search.sort !== "relevance" ? 1 : 0) +
@@ -192,7 +221,7 @@ function Results({ search }: { search: SearchParams }) {
   }
 
   const summary = [
-    `“${search.q}”`,
+    byAuthor ? `books by “${search.q}”` : `“${search.q}”`,
     search.genre && genreLabel(search.genre),
     search.lang && SEARCH_LANGUAGES.find((l) => l.code === search.lang)?.label,
     search.length && SEARCH_LENGTHS.find((l) => l.id === search.length)?.label.toLowerCase(),
@@ -265,16 +294,22 @@ function Results({ search }: { search: SearchParams }) {
 
         {source !== "literaryworm" && googleAllowed && (
           <BookFeed
-            key={`${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`}
+            key={`${search.by}|${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`}
             id="google-results"
             eyebrow="Save, rate and write logs"
             title="From Google Books"
-            query={{ mode: "search", q: search.q, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }}
+            query={
+              byAuthor
+                ? { mode: "author", name: search.q, loose: true, length: search.length }
+                : { mode: "search", q: search.q, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }
+            }
             ageRating={ageRating}
             emptyHint={
               search.length
                 ? "No Google Books titles match. Google doesn't list the length of every edition, so the length filter leaves those out: try any length."
-                : "No Google Books titles match. Check the spelling, try fewer words or another genre."
+                : byAuthor
+                  ? "No Google Books titles by that author. Check the spelling, or try just their surname."
+                  : "No Google Books titles match. Check the spelling, try fewer words or another genre."
             }
             endText="That's every Google Books match for this search."
           />
@@ -297,7 +332,7 @@ function Results({ search }: { search: SearchParams }) {
             <button
               type="button"
               className="secondary-button"
-              onClick={() => update({ q: search.q, genre: null, sort: "relevance", source: "all", lang: null, length: null })}
+              onClick={() => update(unfiltered(search.q, search.by))}
             >
               Clear filters
             </button>
