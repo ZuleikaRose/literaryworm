@@ -116,7 +116,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Home row (shelf).** Heading on the left; *See all* and two 44px arrow buttons on the right. Scrolls left and right only (arrows, swipe, or Tab through the books), with the row bleeding to the screen edge. Rows from the books service end with a dashed *Load more* card. Top 10 puts a large outlined rank number beside each cover.
 
-**Keep discovering (feed).** Genre links as 44px pill buttons (current genre filled terracotta, `aria-current="page"`), a "N books loaded" count, then the cover grid. More books load as the reader nears the bottom; a *Load more books* button does the same. States: shimmer skeletons on first load, an error panel with *Try again* (keeps the books already loaded), *No books here yet*, and *That's everything in …* at the end.
+**Keep discovering (feed).** Genre links as 44px pill buttons (current genre filled terracotta, `aria-current="page"`), all nineteen in one wrapping row, the brief's six first; Search's *Or browse a genre* uses the same pills and its Genre filter the same list as radio chips. Only the brief's six get a row of their own on Home. a "N books loaded" count, then the cover grid. More books load as the reader nears the bottom; a *Load more books* button does the same. States: shimmer skeletons on first load, an error panel with *Try again* (keeps the books already loaded), *No books here yet*, and *That's everything in …* at the end.
 
 **Featured carousel.** Copy on the left (eyebrow, large title, byline, three-line synopsis, primary button), cover on the right. Controls: Pause/Play, Previous, dots, Next, all 44px. Advances every 7 seconds; stops while hovered or focused; starts paused when motion is reduced.
 

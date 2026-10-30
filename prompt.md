@@ -76,6 +76,8 @@ After Phase 10 the app was deployed to Vercel. Two fixes followed: the Vercel UR
 
 The app was then renamed LiteraryWorm and moved to www.literaryworm.com (the app folder is `front_end/literaryworm_app`, Vercel's Root Directory). `vercel.json` moved into that folder, which fixed refreshing any page but Home, and genre links now open at the genre's books (`#discover`).
 
+Later, thirteen more genres were added beside the brief's six (Fantasy, Mystery, Thriller, Romance, Classics, Historical Fiction, Young Adult, Children's, Biography & Memoir, History, Science, Self-Help, Poetry): one list in `src/data/genres.ts` (`shelf` marks the six with a Home row each) matched by `GENRES` and `GENRE_QUERIES` in the `books` function, with a plain-words fallback for each.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.
