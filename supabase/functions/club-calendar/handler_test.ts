@@ -5,9 +5,9 @@ import { checkFeedToken, feedToken } from "./feed.ts";
 import { type Deps, handle } from "./handler.ts";
 
 const KEY = "feed-signing-key";
-const CLUB = "00000000-0000-0000-0000-0000000000c1";
-const ANN = "00000000-0000-0000-0000-00000000000a";
-const BEN = "00000000-0000-0000-0000-00000000000b";
+const CLUB = "6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f";
+const ANN = "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d";
+const BEN = "9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b";
 const BASE = "https://project.supabase.co/functions/v1/club-calendar";
 const SITE = "https://www.literaryworm.com";
 const NOW = new Date("2026-11-01T12:00:00Z");
@@ -46,7 +46,7 @@ Deno.test("a member gets a link only for their own club", async () => {
   assertEquals(res.status, 200);
   const { url } = await res.json();
   assertEquals(url, `${BASE}?t=${await feedToken(CLUB, ANN, KEY)}`);
-  assertEquals((await handle(post({ clubId: "00000000-0000-0000-0000-0000000000c2" }), deps)).status, 404);
+  assertEquals((await handle(post({ clubId: "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e" }), deps)).status, 404);
   assertEquals((await handle(post({ clubId: CLUB }, "nobody"), deps)).status, 401);
   assertEquals((await handle(post({ clubId: "x" }), deps)).status, 400);
   assertEquals((await handle(post({ clubId: CLUB, extra: 1 }), deps)).status, 400);
