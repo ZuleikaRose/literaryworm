@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "update",
+    "title": "A tidier footer",
+    "body": "The links at the foot of every page are now grouped under Explore, Help, Your privacy and Legal.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "feature",
     "title": "Search by author",
     "body": "Search can now find books by who wrote them: choose Author above the search box and type any part of a name, such as tolkien or le guin. Title search works as before.",

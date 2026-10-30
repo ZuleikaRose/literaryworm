@@ -76,6 +76,19 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("groups the footer's links under Explore, Help, Your privacy and Legal", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    const footer = page.getByRole("contentinfo");
+    const group = (name: string) => footer.getByRole("list", { name });
+    await expect(group("Explore").getByRole("link").first().textContent()).resolves.toBe("What's new");
+    await group("Help").getByRole("link", { name: "Help" }).waitFor();
+    await group("Your privacy").getByRole("link", { name: "Privacy Policy" }).waitFor();
+    await group("Your privacy").getByRole("link", { name: "Consent Preferences" }).waitFor();
+    await group("Legal").getByRole("link", { name: "Terms of Service" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("reads What's new from the footer, and filters it to the major and the minor changes", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);

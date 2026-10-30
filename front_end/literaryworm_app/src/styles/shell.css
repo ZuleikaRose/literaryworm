@@ -487,18 +487,40 @@
   font-size: 0.875rem;
 }
 
+/* Four labelled columns: Explore, Help, Your privacy, Legal. */
+.footer-nav {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 28px 40px;
+  max-width: 860px;
+}
+
+.footer-group h2 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .footer-links {
   display: grid;
-  grid-template-columns: repeat(2, minmax(160px, auto));
-  gap: 10px 40px;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .footer-links a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
   color: var(--muted);
   font-size: 0.875rem;
+  line-height: 1.35;
 }
 
 .footer-links a:hover {
@@ -598,9 +620,13 @@
     color: var(--rust-bright);
   }
 
-  .footer-links {
+  .footer-nav {
     grid-template-columns: 1fr 1fr;
-    gap: 10px 20px;
+    gap: 28px 20px;
+  }
+
+  .footer-links a {
+    min-height: 44px;
   }
 
   .popover {
