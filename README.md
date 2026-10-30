@@ -276,6 +276,7 @@ npm run dev      # http://localhost:5173
 npm run build    # type-check and production build
 npm run lint
 npm test         # unit tests (Jest)
+npm run test:e2e # end-to-end smoke tests (Jest driving Chromium)
 ```
 
 With no environment variables the app runs on its sample catalog. To use the real backend, copy `.env.example` to `front_end/literaryworm_app/.env.development.local` and fill in the two `VITE_` values.
@@ -375,5 +376,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | New books from authors you follow: found on Google Books by a daily job, shown in the bell and emailed on Mondays (switched off in Account → Preferences; not for Kids profiles); deleting an account now confirms by email; the Privacy Policy lists both emails (migrations 3400–3402) | Done    |
 | —    | Cancelling needs 48 hours' notice to stop the next charge (later, the membership ends after one more month; no refunds), enforced in Stripe and stated in Account, at checkout, in the Terms and in the Return Policy; promo codes show the price once they end (migrations 3500–3501) | Done    |
 | —    | Staff get a complimentary membership while they hold any role (Admin, Editor, Developer, Billing, Customer service, Blog and the new Sales), set by the database, refused at checkout and never billed in Stripe (migrations 3600–3601) | Done    |
+| —    | End-to-end smoke tests with Jest and the Playwright library, on the demo with no network beyond the app, run by GitHub Actions with the build, lint and unit tests on every push | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

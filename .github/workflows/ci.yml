@@ -1,0 +1,36 @@
+# Checks every push and pull request to main: the app builds, lints and passes its unit tests
+# (Jest), then its end-to-end smoke tests (Jest driving Chromium through the Playwright library).
+# The e2e run serves the app with Vite in "e2e" mode, with no Supabase settings, so it needs no
+# secrets: it uses the demo household and the sample catalog.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: front_end/literaryworm_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: front_end/literaryworm_app/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test
+      # The Chromium that matches the playwright-core version in package.json.
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run test:e2e

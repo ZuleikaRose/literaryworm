@@ -25,6 +25,7 @@ npm run dev      # http://localhost:5173
 npm run build    # type-check and production build
 npm run lint
 npm test         # unit tests (Jest)
+npm run test:e2e # end-to-end smoke tests (Jest driving Chromium)
 ```
 
 Use **Try the demo** on the sign-in page to get a household with three profiles: Avery (All), Sam (Teen) and Mia (Kids).
@@ -75,7 +76,7 @@ src/
 ## Build phases
 
 Each phase ends with Playwright screenshots (in `docs/screenshots/`), a Chrome DevTools console and
-Lighthouse check, a clean `npm run build`, `npm run lint` and `npm test`, and a commit.
+Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm run test:e2e`, and a commit.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
@@ -127,3 +128,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint` and `npm test`, and a 
 | — | New from authors you follow (the `author-news` function, migration 3400): in the bell (`ProfileData.authorNews`, loaded with the collections) and a Monday email, switched off in Account → Preferences (`setAuthorEmails()`); deleting an account sends a confirmation email (`manage-account`) |
 | — | The 48-hour cancellation rule (`cancellationEnd()` in `lib/billing.ts` and the `manage-account` function; `subscriptions.cancel_at`, migration 3500): stated in Account → Plan and billing, the cancel dialog, the Plans renewal terms, the Terms and the Return Policy; promo codes show the price once they end (`afterDiscountLabel()`) |
 | — | Every staff role is complimentary, not only admin (migrations 3600–3601): the new Sales role in `lib/staff.ts`; Account, Plans, Gifts and Team access say staff are never charged; `checkout` and `stripe-webhook` check any role (`isStaff`) |
+| — | End-to-end smoke tests with Jest (`npm run test:e2e`, `jest.e2e.config.js`, `e2e/`): the Playwright library drives Chromium against Vite in `e2e` mode (no `.env` files, so no Supabase: the demo and the sample catalog), with every request to another site refused and any console error failing the test. They cover landing and Plans, search to a book page, a policy page, the demo's Discover, the bell, reading and turning a page, the player, cancelling under the 48-hour rule, the Preferences email switch, and no sideways scrolling at 390px. GitHub Actions runs build, lint, unit and e2e tests on every push (`.github/workflows/ci.yml`). They found the phone header overflowing with a fallback font, now fixed |

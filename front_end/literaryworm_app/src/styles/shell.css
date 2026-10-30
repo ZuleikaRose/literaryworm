@@ -634,6 +634,22 @@
     font-size: 1rem;
   }
 
+  /*
+   * If the name still doesn't fit (a wider fallback font while DM Sans loads, or when it's
+   * blocked), the name gives way rather than pushing Sign up off the screen.
+   */
+  .brand {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .brand > strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   /* Hidden visually only, so the link is still announced as "LiteraryWorm, home". */
   .has-tab-bar .brand > strong {
     position: absolute;
@@ -651,6 +667,15 @@
 
   .header-actions {
     gap: 4px;
+  }
+}
+
+/* The narrowest phones (390px and under): a little less padding on Log in and Sign up, so the
+   name fits beside them in full. */
+@media (max-width: 400px) {
+  .login-button,
+  .signup-button {
+    padding: 0 8px;
   }
 }
 

@@ -244,7 +244,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Mark as finished? and daily limit.** Small dialogs and full-screen messages use the empty-state pattern (icon in a rust circle, title, one sentence, actions). The finished state pops its check icon in once.
 
-**Header on narrow phones.** The logo is the book mark plus the wordmark "Literary**Worm**" ("Worm" in rust). Up to 480px the wordmark is set at 1rem so the header still fits; below 390px it is hidden visually (not with `display: none`), so the logo link is still announced as "LiteraryWorm, home".
+**Header on narrow phones.** The logo is the book mark plus the wordmark "Literary**Worm**" ("Worm" in rust). Up to 480px the wordmark is set at 1rem so the header still fits, and at 400px and under *Log in* and *Sign up* have 8px side padding; if a wider fallback font is showing (while DM Sans loads, or when it's blocked), the wordmark ends in an ellipsis rather than push *Sign up* off the screen; below 390px it is hidden visually (not with `display: none`), so the logo link is still announced as "LiteraryWorm, home".
 
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
 
