@@ -4,6 +4,17 @@ import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
 import { getBook } from "../data/books";
+import {
+  type ClubMeeting,
+  MEETING_LENGTHS,
+  MEETING_NOTE_MAX,
+  MEETING_TITLE_MAX,
+  meetingError,
+  meetingFileName,
+  meetingIcs,
+  meetingStart,
+  upcomingMeetings,
+} from "../lib/clubCalendar";
 import { onClubPost } from "../lib/clubEvents";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
@@ -20,6 +31,221 @@ import type { Book } from "../types";
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
 
 const postTime = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+const meetingDay = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long" });
+const meetingClock = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+const lengthLabel = (minutes: number) => (minutes === 60 ? "1 hour" : minutes === 120 ? "2 hours" : `${minutes} minutes`);
+
+/** Saves a meeting's calendar file, made here in the browser (never uploaded). */
+function downloadIcs(meeting: ClubMeeting, club: Club, book: Book) {
+  const url = `${window.location.origin}/clubs/${club.id}`;
+  const blob = new Blob([meetingIcs(meeting, { clubName: club.name, bookTitle: book.title, url })], { type: "text/calendar;charset=utf-8" });
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = meetingFileName(club.name, meeting.startsAt);
+  document.body.append(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(href);
+}
+
+/**
+ * Meetings: the club's upcoming meetings with Add to calendar, and for its owner a form to
+ * schedule one and Cancel on each. Members get an email reminder in the day before.
+ */
+function ClubMeetings({ club, book, isOwner, initial }: { club: Club; book: Book; isOwner: boolean; initial: ClubMeeting[] }) {
+  const clubs = useClubs();
+  const [meetings, setMeetings] = useState(initial);
+  const [now] = useState(() => new Date());
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ title: "", date: "", time: "19:00", minutes: 60, note: "" });
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const id = useId();
+  const upcoming = upcomingMeetings(meetings, now);
+
+  const schedule = async (e: FormEvent) => {
+    e.preventDefault();
+    const problem = meetingError(form);
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const added = await clubs.addMeeting({
+        clubId: club.id,
+        startsAt: meetingStart(form.date, form.time)!.toISOString(),
+        minutes: form.minutes,
+        title: form.title.trim(),
+        note: form.note.trim() || null,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      setMeetings((list) => [...list, added]);
+      setForm({ title: "", date: "", time: "19:00", minutes: 60, note: "" });
+      setAdding(false);
+      setDone(`Scheduled for ${meetingDay.format(new Date(added.startsAt))}. Members get a reminder the day before.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't schedule the meeting. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancel = async (meeting: ClubMeeting) => {
+    setError(null);
+    setDone(null);
+    try {
+      await clubs.deleteMeeting(club.id, meeting.id);
+      setMeetings((list) => list.filter((m) => m.id !== meeting.id));
+      setDone("Meeting cancelled.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't cancel the meeting. Try again.");
+    }
+  };
+
+  return (
+    <section className="goal-card club-meetings" aria-labelledby="meetings-title">
+      <h2 id="meetings-title">Meetings</h2>
+      {upcoming.length === 0 ? (
+        <p className="goal-hint">{isOwner ? "No meetings yet. Schedule one so everyone knows when to talk." : "No meetings scheduled yet."}</p>
+      ) : (
+        <ul className="meeting-list" role="list">
+          {upcoming.map((m) => {
+            const start = new Date(m.startsAt);
+            return (
+              <li key={m.id}>
+                <p className="meeting-when">
+                  <Icon name="calendar" size={16} />
+                  <time dateTime={m.startsAt}>
+                    {meetingDay.format(start)}, {meetingClock.format(start)}
+                  </time>
+                </p>
+                <p className="meeting-title">{m.title}</p>
+                <p className="goal-hint">
+                  {lengthLabel(m.minutes)}
+                  {m.note && ` · ${m.note}`}
+                </p>
+                <div className="goal-actions">
+                  <button type="button" className="ghost-button small-button" onClick={() => downloadIcs(m, club, book)}>
+                    <Icon name="calendar" size={15} /> Add to calendar<span className="visually-hidden">: {m.title}</span>
+                  </button>
+                  {isOwner && (
+                    <button type="button" className="text-button" onClick={() => cancel(m)}>
+                      Cancel<span className="visually-hidden"> {m.title}</span>
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {isOwner &&
+        (adding ? (
+          <form className="meeting-form" noValidate onSubmit={schedule}>
+            <div className="field">
+              <label className="field-label" htmlFor={`${id}-title`}>
+                What you'll talk about
+              </label>
+              <input
+                id={`${id}-title`}
+                className="field-input"
+                maxLength={MEETING_TITLE_MAX + 10}
+                placeholder="For example, Chapters 1 to 10"
+                value={form.title}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? `${id}-error` : undefined}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+            </div>
+            <div className="meeting-form-row">
+              <div className="field">
+                <label className="field-label" htmlFor={`${id}-date`}>
+                  Date
+                </label>
+                <input id={`${id}-date`} className="field-input" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+              </div>
+              <div className="field">
+                <label className="field-label" htmlFor={`${id}-time`}>
+                  Time
+                </label>
+                <input id={`${id}-time`} className="field-input" type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
+              </div>
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor={`${id}-length`}>
+                How long
+              </label>
+              <select id={`${id}-length`} className="field-input" value={form.minutes} onChange={(e) => setForm({ ...form, minutes: Number(e.target.value) })}>
+                {MEETING_LENGTHS.map((m) => (
+                  <option key={m} value={m}>
+                    {lengthLabel(m)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor={`${id}-note`}>
+                Note (optional)
+              </label>
+              <textarea
+                id={`${id}-note`}
+                className="field-input"
+                rows={2}
+                maxLength={MEETING_NOTE_MAX + 20}
+                placeholder="Where you'll meet, or a video call link"
+                value={form.note}
+                onChange={(e) => setForm({ ...form, note: e.target.value })}
+              />
+            </div>
+            {error && (
+              <p className="field-error" id={`${id}-error`} role="alert">
+                <Icon name="alert" size={15} /> {error}
+              </p>
+            )}
+            <div className="goal-actions">
+              <button type="submit" className="primary-button small-button" disabled={busy}>
+                {busy ? "Scheduling…" : "Schedule meeting"}
+              </button>
+              <button type="button" className="ghost-button small-button" onClick={() => setAdding(false)}>
+                Not now
+              </button>
+            </div>
+          </form>
+        ) : (
+          <button
+            type="button"
+            className="secondary-button small-button"
+            onClick={() => {
+              setAdding(true);
+              setDone(null);
+              setError(null);
+            }}
+          >
+            <Icon name="plus" size={15} /> Schedule a meeting
+          </button>
+        ))}
+      {!adding && error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
+      <p className="goal-hint" role="status">
+        {done}
+      </p>
+      {upcoming.length > 0 && (
+        <p className="goal-hint">
+          {clubs.remote
+            ? "Everyone in the club gets an email reminder the day before. Turn yours off in Account → Preferences."
+            : "Members get an email reminder the day before. The demo doesn't send emails."}
+        </p>
+      )}
+    </section>
+  );
+}
 
 /** Where an invitation link goes: /clubs/join/<code> joins the club after signing in. */
 const joinPath = (code: string) => `literaryworm.com/clubs/join/${code}`;
@@ -285,6 +511,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         </section>
 
         <aside className="club-side">
+          <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} />
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <section className="goal-card" aria-labelledby="invite-title">
             <h2 id="invite-title">Invite</h2>

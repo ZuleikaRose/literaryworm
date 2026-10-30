@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccountError } from "./accountApi";
+import type { ClubMeeting } from "./clubCalendar";
 import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
@@ -21,6 +22,15 @@ const demoMetaFor = (id: string) => {
   if (!meta) demoMeta.set(id, (meta = { notify: true, lastReadAt: Date.now() - 48 * 3_600_000 }));
   return meta;
 };
+
+/** The next Sunday at 7 pm local time, at least two days away: the sample club's meeting. */
+function nextSundayEvening(): Date {
+  const date = new Date();
+  date.setHours(19, 0, 0, 0);
+  date.setDate(date.getDate() + ((7 - date.getDay()) % 7 || 7));
+  if (date.getTime() - Date.now() < 2 * 86_400_000) date.setDate(date.getDate() + 7);
+  return date;
+}
 
 function seedDemo(you: string): DemoClub[] {
   const day = (offset: number) => today(new Date(Date.now() + offset * 86_400_000));
@@ -49,6 +59,17 @@ function seedDemo(you: string): DemoClub[] {
         { id: "p4", userId: "demo-priya", author: "Priya", chapterIndex: 5, body: "Charlotte's view of marriage is so practical it's almost shocking.", createdAt: at(30) },
         { id: "p5", userId: "demo-jordan", author: "Jordan", chapterIndex: 33, body: "I did NOT expect that proposal, or Elizabeth's answer. Talk when you get here!", createdAt: at(5) },
         { id: "p6", userId: "demo-priya", author: "Priya", chapterIndex: 0, body: "Rereading chapter 1 out loud. The dialogue is so quick it's almost a play.", createdAt: at(3) },
+      ],
+      meetings: [
+        {
+          id: "3c0b8f0e-6d1a-4b8e-9a5e-1d2c3b4a5f60",
+          clubId: "demo-club",
+          startsAt: nextSundayEvening().toISOString(),
+          minutes: 60,
+          title: "Volume 1: the Netherfield ball",
+          note: "Video call link in the club chat. Read to the end of chapter 23 if you can.",
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
       ],
     },
   ];
@@ -91,7 +112,7 @@ export function useClubs() {
         await clubsApi.createClub({ id, ...input });
         return id;
       }
-      demo().push({ club: { ...input, id, ownerId: DEMO_USER, memberCount: 1 }, members: [{ userId: DEMO_USER, name: you }], posts: [] });
+      demo().push({ club: { ...input, id, ownerId: DEMO_USER, memberCount: 1 }, members: [{ userId: DEMO_USER, name: you }], posts: [], meetings: [] });
       return id;
     },
     [remote, demo, you],
@@ -155,6 +176,27 @@ export function useClubs() {
     [remote, demo],
   );
 
+  const addMeeting = useCallback(
+    async (meeting: Omit<ClubMeeting, "id">): Promise<ClubMeeting> => {
+      const withId = { ...meeting, id: crypto.randomUUID() };
+      if (remote) return clubsApi.addMeeting(withId);
+      const found = demo().find((c) => c.club.id === meeting.clubId);
+      if (!found || found.club.ownerId !== DEMO_USER) throw new AccountError("Only the person who started the club can schedule meetings.");
+      found.meetings.push(withId);
+      return withId;
+    },
+    [remote, demo],
+  );
+
+  const deleteMeeting = useCallback(
+    async (clubId: string, meetingId: string) => {
+      if (remote) return clubsApi.deleteMeeting(meetingId);
+      const found = demo().find((c) => c.club.id === clubId);
+      if (found) found.meetings = found.meetings.filter((m) => m.id !== meetingId);
+    },
+    [remote, demo],
+  );
+
   /** This account's alerts setting and unread posts per club. */
   const memberships = useCallback(async (): Promise<Record<string, ClubMembership>> => {
     if (remote) return clubsApi.loadMemberships();
@@ -186,7 +228,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, memberships, markRead, setNotify }),
-    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, memberships, markRead, setNotify],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, memberships, markRead, setNotify }),
+    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, memberships, markRead, setNotify],
   );
 }

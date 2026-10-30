@@ -739,12 +739,13 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
-  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails } = useAccount();
+  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
   const releaseHintId = useId();
   const authorHintId = useId();
   const updateHintId = useId();
+  const clubHintId = useId();
   return (
     <Section id="preferences" title="Preferences">
       <label className="switch-row">
@@ -840,6 +841,31 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             void attempt(
               () => setUpdateEmails(on),
               on ? "We'll email you the biggest changes once a month." : "No more monthly round-ups.",
+            );
+          }}
+        />
+      </label>
+      <label className="switch-row">
+        <span>
+          <strong>Email me the day before a book club meets</strong>
+          <small id={clubHintId}>
+            {remote
+              ? "For meetings in any club you're in. The club page lists them, with Add to calendar."
+              : "The demo doesn't send emails. Members get a reminder the day before each club meeting."}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={clubHintId}
+          checked={account.clubMeetingEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setClubMeetingEmails(on),
+              on ? "We'll email you the day before your book clubs meet." : "No more book club meeting reminders.",
             );
           }}
         />

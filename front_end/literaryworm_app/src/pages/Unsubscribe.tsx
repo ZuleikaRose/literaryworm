@@ -21,11 +21,18 @@ const LISTS: Record<EmailList, { name: string; ask: string; settings: string; pl
     place: "Account → Family",
     instead: { to: "/account#family", label: "See it in Account instead" },
   },
+  "club-meetings": {
+    name: "book club meeting reminders",
+    ask: "Stop getting an email the day before your book clubs meet?",
+    settings: "/account#preferences",
+    place: "Account → Preferences",
+    instead: { to: "/library?view=clubs", label: "See your clubs instead" },
+  },
 };
 
 /**
- * /unsubscribe?t=…&l=…: the link in the monthly What's new email (no `l`) or the weekly Kids
- * reading report (`l=kids-report`). It asks before unsubscribing,
+ * /unsubscribe?t=…&l=…: the link in the monthly What's new email (no `l`), the weekly Kids
+ * reading report (`l=kids-report`) or a book club meeting reminder (`l=club-meetings`). It asks before unsubscribing,
  * so a link-checker opening the page changes nothing; mail apps' one-click button goes to the
  * unsubscribe function directly.
  */
@@ -33,7 +40,8 @@ export default function Unsubscribe() {
   useTitle("Unsubscribe");
   const [params] = useSearchParams();
   const token = params.get("t") ?? "";
-  const list: EmailList = params.get("l") === "kids-report" ? "kids-report" : "whats-new";
+  const given = params.get("l");
+  const list: EmailList = given === "kids-report" || given === "club-meetings" ? given : "whats-new";
   const about = LISTS[list];
   const [status, setStatus] = useState<"ready" | "busy" | "done">("ready");
   const [error, setError] = useState<string | null>(null);

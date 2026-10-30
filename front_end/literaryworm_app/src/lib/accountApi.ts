@@ -300,7 +300,7 @@ export async function loadAccount(): Promise<Account | null> {
   if (!user) return null;
   const [profile, details, subscription] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails, update_emails, kids_report_emails").eq("user_id", user.id).maybeSingle(),
+    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails").eq("user_id", user.id).maybeSingle(),
     db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
@@ -315,6 +315,7 @@ export async function loadAccount(): Promise<Account | null> {
     authorEmails: details.data?.author_emails ?? true,
     updateEmails: details.data?.update_emails ?? false,
     kidsReportEmails: details.data?.kids_report_emails ?? false,
+    clubMeetingEmails: details.data?.club_meeting_emails ?? true,
     isDemo: false,
     ...fromSubscription(subscription.data as SubscriptionRow | null),
   };
@@ -576,6 +577,12 @@ export async function setUpdateEmails(userId: string, on: boolean): Promise<void
 /** The weekly Kids reading report email (account_private.kids_report_emails, sent by the kids-report function). */
 export async function setKidsReportEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ kids_report_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** Book club meeting reminders (account_private.club_meeting_emails, sent by the club-meetings function). */
+export async function setClubMeetingEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ club_meeting_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
 }
 

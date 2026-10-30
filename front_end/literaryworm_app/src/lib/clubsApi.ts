@@ -1,5 +1,6 @@
 import { AccountError, callFunction, signedInUserId } from "./accountApi";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { ClubMeeting } from "./clubCalendar";
 import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "./clubs";
 import { supabase } from "./supabase";
 
@@ -25,6 +26,18 @@ type ClubRow = {
   club_members?: { count: number }[];
 };
 type PostRow = { id: string; user_id: string; chapter_index: number; body: string; created_at: string; author: { display_name: string } | null };
+
+type MeetingRow = { id: string; club_id: string; starts_at: string; minutes: number; title: string; note: string | null; time_zone: string };
+const MEETING_COLUMNS = "id, club_id, starts_at, minutes, title, note, time_zone";
+const toMeeting = (row: MeetingRow): ClubMeeting => ({
+  id: row.id,
+  clubId: row.club_id,
+  startsAt: new Date(row.starts_at).toISOString(),
+  minutes: row.minutes,
+  title: row.title,
+  note: row.note,
+  timeZone: row.time_zone,
+});
 
 const CLUB_COLUMNS = "id, name, volume_id, starts_on, finishes_on, invite_code, owner_id, club_members(count)";
 const POST_COLUMNS = "id, user_id, chapter_index, body, created_at, author:profiles(display_name)";
@@ -58,12 +71,13 @@ export async function listClubs(): Promise<Club[]> {
 /** A club with its members and posts, or null when it doesn't exist or the caller isn't in it. */
 export async function loadClub(id: string): Promise<ClubDetail | null> {
   const db = client();
-  const [club, members, posts] = await Promise.all([
+  const [club, members, posts, meetings] = await Promise.all([
     db.from("book_clubs").select(CLUB_COLUMNS).eq("id", id).maybeSingle(),
     db.from("club_members").select("user_id, joined_at, member:profiles(display_name)").eq("club_id", id).order("joined_at"),
     db.from("club_posts").select(POST_COLUMNS).eq("club_id", id).order("created_at"),
+    db.from("club_meetings").select(MEETING_COLUMNS).eq("club_id", id).gte("starts_at", new Date(Date.now() - 4 * 3_600_000).toISOString()).order("starts_at"),
   ]);
-  if (club.error || members.error || posts.error) throw new AccountError("We couldn't load this club. Try again.");
+  if (club.error || members.error || posts.error || meetings.error) throw new AccountError("We couldn't load this club. Try again.");
   if (!club.data) return null;
   return {
     club: toClub(club.data as unknown as ClubRow),
@@ -72,7 +86,37 @@ export async function loadClub(id: string): Promise<ClubDetail | null> {
       name: m.member?.display_name ?? "A member",
     })),
     posts: (posts.data as unknown as PostRow[]).map(toPost),
+    meetings: (meetings.data as MeetingRow[]).map(toMeeting),
   };
+}
+
+/** Schedules a meeting (the club's owner only; the database checks the time and the limit). */
+export async function addMeeting(meeting: Omit<ClubMeeting, "id"> & { id: string }): Promise<ClubMeeting> {
+  const { data, error } = await client()
+    .from("club_meetings")
+    .insert({
+      id: meeting.id,
+      club_id: meeting.clubId,
+      starts_at: meeting.startsAt,
+      minutes: meeting.minutes,
+      title: meeting.title,
+      note: meeting.note,
+      time_zone: meeting.timeZone,
+      created_by: await signedInUserId(),
+    })
+    .select(MEETING_COLUMNS)
+    .single();
+  if (error) {
+    if (error.message.includes("20 upcoming")) throw new AccountError("A club can have up to 20 upcoming meetings. Cancel one to add another.");
+    if (error.message.includes("still to come") || error.message.includes("year ahead")) throw new AccountError(`${error.message}.`);
+    throw new AccountError("We couldn't schedule the meeting. Only the person who started the club can. Try again.");
+  }
+  return toMeeting(data as MeetingRow);
+}
+
+export async function deleteMeeting(id: string): Promise<void> {
+  const { error } = await client().from("club_meetings").delete().eq("id", id);
+  if (error) throw new AccountError("We couldn't cancel the meeting. Try again.");
 }
 
 export async function createClub(input: { id: string; name: string; bookId: string; startsOn: string; finishesOn: string; inviteCode: string }): Promise<void> {

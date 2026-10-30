@@ -289,14 +289,27 @@ insert into public.book_clubs (id, owner_id, name, volume_id, starts_on, finishe
 insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 0, 'Welcome');
 select pg_temp.check((select count(*) from public.club_members where club_id = '00000000-0000-0000-0000-0000000000c1') = 1, 'the owner joins their own club');
 select pg_temp.expect_error($$insert into public.book_clubs (owner_id, name, volume_id, starts_on, finishes_on, invite_code) values ('00000000-0000-0000-0000-00000000000a', 'Too long', 'dracula', current_date, current_date + 400, 'AnnClub999')$$, 'a club over a year long');
+-- Club meetings: the owner schedules them, ahead and within a year.
+insert into public.club_meetings (club_id, starts_at, title, time_zone, created_by)
+  values ('00000000-0000-0000-0000-0000000000c1', now() + interval '2 days', 'Chapters 1 to 5', 'Europe/London', '00000000-0000-0000-0000-00000000000a');
+select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() - interval '1 hour', 'Too late', '00000000-0000-0000-0000-00000000000a')$$, 'a meeting in the past');
+select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() + interval '400 days', 'Too far', '00000000-0000-0000-0000-00000000000a')$$, 'a meeting more than a year ahead');
+select pg_temp.expect_error($$update public.club_meetings set reminded_at = now()$$, 'marking a meeting reminded from the browser');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.book_clubs) + (select count(*) from public.club_posts) = 0, 'Ben cannot see a club he isn''t in');
+select pg_temp.check((select count(*) from public.club_meetings) = 0, 'Ben cannot see the meetings of a club he isn''t in');
 select pg_temp.expect_error($$insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', 0, 'Hi')$$, 'posting in a club you aren''t in');
 select pg_temp.check(public.join_club('WrongCode1') is null, 'a wrong code joins nothing');
 select pg_temp.check(public.join_club('AnnClub123') = '00000000-0000-0000-0000-0000000000c1', 'the right code joins the club');
 select pg_temp.check((select count(*) from public.club_posts) = 1 and (select count(*) from public.club_members) = 2, 'a member sees the posts and members');
+select pg_temp.check((select count(*) from public.club_meetings) = 1, 'a member sees the club''s meetings');
+select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() + interval '3 days', 'Mine', '00000000-0000-0000-0000-00000000000b')$$, 'a member who isn''t the owner scheduling a meeting');
+delete from public.club_meetings where club_id = '00000000-0000-0000-0000-0000000000c1';
+select pg_temp.check((select count(*) from public.club_meetings) = 1, 'a member who isn''t the owner cannot cancel a meeting');
+select pg_temp.expect_error('select * from public.claim_club_meeting_reminders(10)', 'claiming meeting reminders from the browser');
+select pg_temp.expect_error('select public.club_meetings_secret()', 'reading the meeting reminders cron key from the browser');
 -- Club notifications (Phase 19): unread posts since joining, read marks, own settings only.
 select pg_temp.check((select count(*) from public.club_unread()) = 0, 'posts from before joining aren''t new');
 reset role;
@@ -364,7 +377,9 @@ select pg_temp.expect_error('select * from public.club_posts', 'anon reading clu
 select pg_temp.expect_error($$select public.join_club('AnnClub123')$$, 'anon joining a club');
 select pg_temp.expect_error('select * from public.club_unread()', 'anon counting club posts');
 select pg_temp.expect_error('select * from public.club_listening', 'anon reading listening sessions');
+select pg_temp.expect_error('select * from public.club_meetings', 'anon reading club meetings');
 reset role;
+select pg_temp.check(not has_function_privilege('authenticated', 'private.call_club_meetings()', 'execute'), 'only the cron job calls the club-meetings function');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c1';

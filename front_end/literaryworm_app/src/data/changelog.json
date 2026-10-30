@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Book club meetings",
+    "body": "Whoever started a book club can now schedule its meetings. Everyone in the club sees them on the club page, can add them to their calendar in one tap, and gets an email reminder the day before.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "A weekly reading report for Kids profiles",
     "body": "Account → Family now shows how each Kids profile read this week: time, days read and books finished. Turn on Email me this every week to get it on Monday mornings.",
     "major": true

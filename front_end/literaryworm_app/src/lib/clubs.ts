@@ -1,4 +1,5 @@
 import type { Book } from "../types";
+import type { ClubMeeting } from "./clubCalendar";
 import { chapterAt, chapterTimes } from "./reading";
 
 /** A book club: one LiteraryWorm title, read together to a finish date. */
@@ -45,6 +46,8 @@ export interface ClubDetail {
   club: Club;
   members: ClubMember[];
   posts: ClubPost[];
+  /** Meetings the owner has scheduled, soonest first. */
+  meetings: ClubMeeting[];
 }
 
 /** The same limits as the database. */

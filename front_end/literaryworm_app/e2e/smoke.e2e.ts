@@ -147,6 +147,47 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lists the sample club's meeting with Add to calendar, which saves a calendar file", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const meetings = page.getByRole("region", { name: "Meetings" });
+    await meetings.getByText("Volume 1: the Netherfield ball", { exact: true }).waitFor();
+    const download = page.waitForEvent("download");
+    await meetings.getByRole("button", { name: /Add to calendar/ }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toMatch(/^sunday-classics-\d{4}-\d{2}-\d{2}\.ics$/);
+    // The demo member didn't start this club, so only its owner's tools are missing.
+    expect(await meetings.getByRole("button", { name: /Schedule a meeting/ }).count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("starts a club, schedules a meeting in it, and cancels it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=clubs");
+    await page.getByRole("button", { name: "Start a club" }).click();
+    await page.getByLabel("Club name").fill("Tuesday Readers");
+    await page.getByRole("button", { name: "Start club" }).click();
+    await page.waitForURL(/\/clubs\/[0-9a-f-]{36}$/);
+    const meetings = page.getByRole("region", { name: "Meetings" });
+    await meetings.getByRole("button", { name: /Schedule a meeting/ }).click();
+    // A name is needed first.
+    await meetings.getByRole("button", { name: "Schedule meeting" }).click();
+    await meetings.getByText(/Give the meeting a name/).waitFor();
+    const soon = new Date(Date.now() + 3 * 86_400_000);
+    const date = `${soon.getFullYear()}-${String(soon.getMonth() + 1).padStart(2, "0")}-${String(soon.getDate()).padStart(2, "0")}`;
+    await meetings.getByLabel("What you'll talk about").fill("The first five chapters");
+    await meetings.getByLabel("Date").fill(date);
+    await meetings.getByLabel("Time").fill("18:30");
+    await meetings.getByRole("button", { name: "Schedule meeting" }).click();
+    await meetings.getByText(/^Scheduled for/).waitFor();
+    await meetings.locator(".meeting-title", { hasText: "The first five chapters" }).waitFor();
+    await meetings.getByRole("button", { name: /Cancel The first five chapters/ }).click();
+    await meetings.getByText("Meeting cancelled.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("opens the bell, which lists the sample club's new post, and closes it with Escape", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

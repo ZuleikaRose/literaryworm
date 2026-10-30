@@ -1387,3 +1387,50 @@ body:has(.mini-player) .listen-along-bar {
   color: var(--ink-soft);
   font-size: 0.875rem;
 }
+
+/* Book club meetings, at the top of the club's side column. */
+.meeting-list {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.meeting-list li + li {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.meeting-list p {
+  margin: 0 0 4px;
+}
+
+.meeting-when {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rust-bright);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.meeting-title {
+  font-weight: 700;
+}
+
+.meeting-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.meeting-form .field {
+  margin: 0;
+}
+
+.meeting-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}

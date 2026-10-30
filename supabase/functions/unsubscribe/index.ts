@@ -6,7 +6,11 @@ import { serviceClient } from "../_shared/supabase.ts";
 import { handle, type List } from "./handler.ts";
 
 /** The account_private column each optional email is switched by. */
-const COLUMN: Record<List, string> = { "whats-new": "update_emails", "kids-report": "kids_report_emails" };
+const COLUMN: Record<List, string> = {
+  "whats-new": "update_emails",
+  "kids-report": "kids_report_emails",
+  "club-meetings": "club_meeting_emails",
+};
 
 Deno.serve((req) =>
   handle(req, {

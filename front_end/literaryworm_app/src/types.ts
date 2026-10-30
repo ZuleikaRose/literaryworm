@@ -129,6 +129,8 @@ export interface Account {
   updateEmails: boolean;
   /** The weekly email of how the Kids profiles read (members only; off until they turn it on). */
   kidsReportEmails: boolean;
+  /** Email reminders the day before a book club meeting (members only; on until they turn it off). */
+  clubMeetingEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */
