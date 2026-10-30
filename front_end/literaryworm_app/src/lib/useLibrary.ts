@@ -25,14 +25,18 @@ export function useLibrary() {
     }
   }
 
-  async function add(entry: NewEntry, status: ReadingStatus = "want_to_read") {
+  /**
+   * Adds a book. A finished book counts towards today's goal and stats, unless `countFinished`
+   * is false (an import: those were finished on other days we don't know).
+   */
+  async function add(entry: NewEntry, status: ReadingStatus = "want_to_read", { countFinished: count = true }: { countFinished?: boolean } = {}) {
     if (remote) {
       const saved = await addLibraryItem(entry.bookId, status);
       dispatch({ type: "addToLibrary", entry: { ...entry, addedAt: saved.addedAt }, status: saved.status });
     } else {
       dispatch({ type: "addToLibrary", entry, status });
     }
-    if (status === "finished") countFinished(entry.bookId);
+    if (status === "finished" && count) countFinished(entry.bookId);
   }
 
   async function setStatus(bookId: string, status: ReadingStatus) {

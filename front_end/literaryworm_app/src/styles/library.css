@@ -1315,3 +1315,75 @@ body:has(.mini-player) .listen-along-bar {
   background: var(--rust-wash);
   color: var(--rust-ink);
 }
+
+/* ---------- Import from Goodreads or StoryGraph ---------- */
+
+.library-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.import {
+  display: grid;
+  gap: 14px;
+}
+
+.import p {
+  margin: 0;
+}
+
+.import-list {
+  display: grid;
+  max-height: min(50vh, 420px);
+  margin: 0;
+  padding: 0 4px 0 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.import-list li {
+  border-bottom: 1px solid var(--line);
+}
+
+.import-list .check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 0;
+}
+
+.import-list .check-row input {
+  flex: none;
+  margin-top: 3px;
+}
+
+.import-list span {
+  display: grid;
+  min-width: 0;
+}
+
+.import-list strong {
+  overflow-wrap: anywhere;
+}
+
+.import-list small,
+.import-missing small {
+  color: var(--muted);
+}
+
+.import-missing summary {
+  min-height: 44px;
+  padding: 10px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.import-missing ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}

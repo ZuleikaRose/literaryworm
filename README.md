@@ -379,5 +379,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | End-to-end smoke tests with Jest and the Playwright library, on the demo with no network beyond the app, run by GitHub Actions with the build, lint and unit tests on every push | Done    |
 | —    | Share your year: Year in Review as a picture to post or download (books, hours, days, streak, covers, top genre and author), drawn on the device | Done    |
 | —    | Household reading challenges: the account's profiles take on a goal together (books, hours or days with reading, over a month or 30 days), each one's progress shown from their reading days; private to the household (migrations 3700–3703) | Done    |
+| —    | Import from Goodreads or StoryGraph: the export read on the device, each book matched (catalog first, then Google Books with the author checked), reviewed, and added with its shelf and stars; old reads don't count towards this year's goal | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

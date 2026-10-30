@@ -121,6 +121,36 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("imports a Goodreads export without counting old reads towards this year", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=goals");
+    const goal = page.locator(".goal-count");
+    const before = await goal.innerText();
+
+    await goInApp(page, "/library");
+    await page.getByRole("button", { name: "Import from Goodreads or StoryGraph" }).click();
+    const dialog = page.getByRole("dialog", { name: "Import your reading" });
+    const csv =
+      "Book Id,Title,Author,My Rating,Exclusive Shelf\n" +
+      '1,"The Call of the Wild",Jack London,5,read\n' +
+      "2,Peter Pan,J. M. Barrie,0,to-read\n" +
+      "3,Not In The Catalog At All,Nobody,4,read\n";
+    await dialog.getByLabel("Your export (CSV)").setInputFiles({ name: "goodreads_library_export.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+    await dialog.getByText(/Goodreads export: 3 books/).waitFor();
+    await dialog.getByRole("button", { name: "Find these books" }).click();
+    await dialog.getByText(/^Found 2 of 3 books/).waitFor();
+    await dialog.getByRole("button", { name: /^Add \d+ books?$/ }).click();
+    await dialog.getByText(/Added \d+ books? to your library/).waitFor();
+    await dialog.getByRole("button", { name: "Done" }).click();
+
+    await goInApp(page, "/library?status=finished");
+    await page.getByRole("link", { name: /The Call of the Wild/ }).first().waitFor();
+    await goInApp(page, "/library?view=goals");
+    await expect(goal.innerText()).resolves.toBe(before);
+    expect(errors()).toEqual([]);
+  });
+
   it("turns the weekly author email off in Preferences", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

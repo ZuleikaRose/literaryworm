@@ -7,6 +7,7 @@ import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
+import { ImportDialog } from "../components/ImportDialog";
 import { RemindersView } from "../components/RemindersView";
 import { SavedBookTile } from "../components/SavedBookTile";
 import { StatsView } from "../components/StatsView";
@@ -102,6 +103,7 @@ function LibraryView({ profile }: { profile: Profile }) {
   const [announcement, setAnnouncement] = useState("");
   const [removing, setRemoving] = useState<LibraryEntry | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const entries = Object.values(library.entries)
@@ -143,6 +145,14 @@ function LibraryView({ profile }: { profile: Profile }) {
       <p className="visually-hidden" role="status">
         {announcement}
       </p>
+      {profile.ageRating !== "kids" && (
+        <div className="library-tools">
+          <button type="button" className="secondary-button small-button" onClick={() => setImporting(true)}>
+            <Icon name="download" size={16} /> Import from Goodreads or StoryGraph
+          </button>
+        </div>
+      )}
+      <ImportDialog open={importing} onClose={() => setImporting(false)} profile={profile} />
       <fieldset className="filter-group library-filter">
         <legend>Show</legend>
         <div className="chip-group">
