@@ -145,7 +145,7 @@
           "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website. Mailgun sends our emails (confirming your email address, resetting your password, and telling you when a book you set Remind me on is out, a weekly list of new books from authors you follow, and confirming that your account was deleted) and the book club invitations members send, so it receives the address each email goes to and the email's contents. We turn off Mailgun's open and click tracking. None of them may use your data for their own purposes.",
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
           "Termly provides our cookie consent banner and our privacy request forms. Your browser loads the banner from Termly on each visit, so Termly receives those requests, including your IP address, and your consent choice is kept in your browser. Termly handles this under its own privacy policy (https://termly.io/our-privacy-policy/). It never handles payment details: Stripe does.",
-          "Anthropic (Claude) writes book summaries and answers Ask the book questions (see section 6).",
+          "Anthropic (Claude) writes book summaries, answers Ask the book questions and writes Who's who (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words, book ids and the names of authors people follow, never who's asking. LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself. Lists you share can be read by anyone with the link. Staff with the right access can see account details to run the service and help you.",
           "Business Transfers. We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company."
@@ -167,7 +167,7 @@
           "In Short: We offer products, features, or tools powered by artificial intelligence, machine learning, or similar technologies.",
           "As part of our Services, we offer features powered by artificial intelligence (\"AI Products\"). The terms in this Privacy Notice govern your use of the AI Products within our Services.",
           "Use of AI Technologies. We provide the AI Products through one third-party service provider (\"AI Service Provider\"): Anthropic (Claude). We don't use OpenAI, Hugging Face, Google Cloud AI, DeepSeek or Gemini to process your information. Figma Make was used only to design the app's screens and never receives your information. You must not use the AI Products in any way that violates the terms or policies of the AI Service Provider.",
-          "Our AI Products. Book summaries: short and detailed summaries of books in our catalog, written the first time anyone asks, from the book's details; no personal information is sent. Ask the book: answers to your questions about a public-domain book. We send your question and the book's text up to your chapter; we don't send your name, email or account details. Ask the book isn't offered to Kids profiles. Summaries and answers are labelled as written by AI.",
+          "Our AI Products. Book summaries: short and detailed summaries of books in our catalog, written the first time anyone asks, from the book's details; no personal information is sent. Ask the book: answers to your questions about a public-domain book. We send your question and the book's text up to your chapter; we don't send your name, email or account details. Who's who: the characters you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the list so the next reader at that chapter gets the same one. Ask the book and Who's who aren't offered to Kids profiles. Summaries, answers and Who's who are labelled as written by AI.",
           "How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreement with the AI Service Provider. We don't use your reading history, notes, uploads or posts to train AI models."
         ]
       },
@@ -590,7 +590,7 @@
           "11. Delete the copyright or other proprietary rights notice from any Content.",
           "12. Attempt to impersonate another user or person or use the display name of another user.",
           "13. Upload or transmit (or attempt to upload or to transmit) any material that acts as a passive or active information collection or transmission mechanism, including without limitation, clear graphics interchange formats (\"gifs\"), 1×1 pixels, web bugs, cookies, or other similar devices (sometimes referred to as \"spyware\" or \"passive collection mechanisms\" or \"pcms\").",
-          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries and Ask the book.",
+          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, Ask the book and Who's who.",
           "15. Harass, annoy, intimidate, or threaten any of our employees or agents engaged in providing any portion of the Services to you.",
           "16. Attempt to bypass any measures of the Services designed to prevent or restrict access to the Services, or any portion of the Services.",
           "17. Copy or adapt the Services' software, including but not limited to HTML, JavaScript, or other code.",
@@ -774,7 +774,7 @@
         "paragraphs": [
           "Public-domain titles: the texts come from Project Gutenberg and the recordings from LibriVox, whose volunteers release their recordings into the public domain. These works are in the public domain in the United States; they may not be everywhere, so check your country's rules before using them outside LiteraryWorm.",
           "Other LiteraryWorm titles show sample pages, not the published books. Book details and covers from Google Books belong to their publishers and rights holders and are shown under Google's terms.",
-          "Summaries and Ask the book answers are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
+          "Summaries, Ask the book answers and Who's who are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
           "The LiteraryWorm name, logo, design and software belong to LiteraryWorm. Using the service doesn't give you any rights in them beyond these Terms."
         ]
       },
@@ -964,7 +964,7 @@
       {
         "heading": "Agreement to this policy",
         "paragraphs": [
-          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are the book summaries and Ask the book, which are written by Claude, an AI model made by Anthropic, and labelled as written by AI. Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.",
+          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are the book summaries, Ask the book and Who's who, which are written by Claude, an AI model made by Anthropic, and labelled as written by AI. Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.",
           "Please carefully review this Policy which applies to any and all:",
           "(a) uses of our Services (as defined in \"Legal Terms\");",
           "(b) forms, materials, consent tools, comments, posts, and all other content available on the Services (\"Content\");",
@@ -1037,7 +1037,7 @@
       {
         "heading": "Artificial intelligence",
         "paragraphs": [
-          "We recognize the significant impact AI can have on our users and society, and we are dedicated to ensuring that our AI Products are designed and operated in a manner that aligns with comprehensive ethical standards. We aim to use AI to enhance user experiences while upholding fairness, transparency, and accountability principles. That's why everything our AI Products write is labelled as written by AI, and why Ask the book is only given the text up to your place in the book.",
+          "We recognize the significant impact AI can have on our users and society, and we are dedicated to ensuring that our AI Products are designed and operated in a manner that aligns with comprehensive ethical standards. We aim to use AI to enhance user experiences while upholding fairness, transparency, and accountability principles. That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book.",
           "This Policy applies to all AI-powered features, services, and systems in our Services. It governs the development, deployment, and use of AI technologies to protect users' rights and maintain transparency in all AI operations. This Policy applies to all stakeholders, including employees, third-party vendors, and partners who contribute to or interact with our AI Products.",
           "Enforcement. Any misuse of our AI Products or failure to adhere to the standards outlined in this Policy will result in appropriate actions to ensure the integrity of our platform and the protection of our users. The specific consequences for misuse of AI may vary depending on the nature and severity of the violation and the user's history with our Services.",
           "Violations may include, but are not limited to:",
@@ -1288,7 +1288,7 @@
           "Accounts, libraries and reading progress: working normally.",
           "Book search and details (Google Books): working normally.",
           "Audiobook recordings (Internet Archive): working normally.",
-          "Summaries and Ask the book (AI): working normally."
+          "Summaries, Ask the book and Who's who (AI): working normally."
         ]
       },
       {

@@ -11,6 +11,7 @@ import {
   ReadingMessage,
 } from "../components/ReadingParts";
 import { AskDialog } from "../components/AskDialog";
+import { CharactersDialog } from "../components/CharactersDialog";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
 import { QuoteCardDialog } from "../components/QuoteCardDialog";
 import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar } from "../components/StudyTools";
@@ -27,7 +28,7 @@ import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useProfileData } from "../store/context";
 import type { Book, Highlight, HighlightColor } from "../types";
 
-type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | null;
+type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | null;
 
 export default function Reader() {
   return <ReadingGate format="ebook">{(book) => <ReaderPages key={book.id} book={book} />}</ReadingGate>;
@@ -312,6 +313,13 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               <span className="visually-hidden">Ask the book</span>
             </button>
           )}
+          {/* Not on Kids profiles either: it's written by an AI service from the book. */}
+          {book.recording && profile?.ageRating !== "kids" && (
+            <button type="button" className="icon-button" onClick={() => setPanel("characters")}>
+              <Icon name="users" size={20} />
+              <span className="visually-hidden">Who's who</span>
+            </button>
+          )}
           <button type="button" className="icon-button" onClick={() => setPanel("display")}>
             <Icon name="type" size={20} />
             <span className="visually-hidden">Display settings</span>
@@ -509,6 +517,9 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       <QuoteCardDialog book={book} highlight={sharing} onClose={() => setSharing(null)} />
       <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} onClose={() => setPanel(null)} />
       {book.recording && profile?.ageRating !== "kids" && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
+      {book.recording && profile?.ageRating !== "kids" && (
+        <CharactersDialog open={panel === "characters"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />
+      )}
       {selection && !finished && (
         <SelectionToolbar
           rect={selection.rect}

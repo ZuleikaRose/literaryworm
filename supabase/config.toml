@@ -31,6 +31,12 @@ verify_jwt = false
 # questions (Claude calls) per IP and per day.
 verify_jwt = false
 
+[functions.characters]
+# Public like ask: the demo household uses Who's who without a session. The function
+# validates every field, works only for public-domain catalog titles, keeps each list,
+# and limits new lists (Claude calls) per IP and per day.
+verify_jwt = false
+
 [functions.stripe-webhook]
 # Called by Stripe, which sends no Supabase token: every request's Stripe-Signature is
 # checked against STRIPE_WEBHOOK_SECRET instead, and unsigned or forged events are refused.

@@ -6,15 +6,17 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
+import { contextText } from "../_shared/bookText.ts";
 import { onlyKeys, parseInt, parseText, parseVolumeId } from "../_shared/validate.ts";
+
+// The shared text helpers, for the tests and anything that imported them from here.
+export { CONTEXT_CHARS, contextText } from "../_shared/bookText.ts";
 
 const METHODS = "POST";
 
 export const QUESTION_MIN = 3;
 export const QUESTION_MAX = 500;
 export const ANSWER_MAX = 4000;
-/** How much of the book goes to Claude: the most recent text up to the reader's chapter. */
-export const CONTEXT_CHARS = 120_000;
 
 export type AskBook = { title: string; author: string };
 
@@ -27,20 +29,6 @@ export type Deps = {
   answer: (input: { book: AskBook; chapter: number; chapterCount: number; text: string; question: string }) => Promise<string>;
   rateLimit?: (req: Request) => Promise<void>;
 };
-
-/**
- * The text Claude gets: chapters up to and including the reader's, each headed with its number,
- * trimmed from the front to the most recent CONTEXT_CHARS so a long book stays cheap.
- */
-export function contextText(chapters: string[], chapter: number): string {
-  const parts = chapters.slice(0, chapter + 1).map((text, i) => `[Chapter ${i + 1}]\n${text}`);
-  const joined = parts.join("\n\n");
-  if (joined.length <= CONTEXT_CHARS) return joined;
-  const cut = joined.slice(joined.length - CONTEXT_CHARS);
-  // Start at a paragraph so the text doesn't open mid-sentence.
-  const start = cut.indexOf("\n\n");
-  return `[Earlier chapters left out]\n\n${start >= 0 ? cut.slice(start + 2) : cut}`;
-}
 
 export async function handle(req: Request, deps: Deps): Promise<Response> {
   const early = preflight(req, METHODS);

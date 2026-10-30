@@ -919,3 +919,48 @@
 .quote-card-status:empty {
   display: none;
 }
+
+/* ---------- Who's who (reader) ---------- */
+
+.characters {
+  display: grid;
+  gap: 14px;
+}
+
+.characters .goal-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+}
+
+.character-list {
+  display: grid;
+  max-height: min(60vh, 520px);
+  margin: 0;
+  padding: 0 4px 0 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.character-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.character-list strong {
+  color: var(--ink);
+}
+
+.character-list p {
+  margin: 4px 0;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.character-list small {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
