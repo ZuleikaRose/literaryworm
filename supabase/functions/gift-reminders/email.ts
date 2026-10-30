@@ -24,9 +24,17 @@ const FONT = "font-family:'DM Sans',Arial,Helvetica,sans-serif;";
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-/** "Sunday 14 March 2027": the day as written, whatever the time zone. */
-export const giftDay = (startsOn: string) =>
-  new Date(`${startsOn}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+/**
+ * "Sunday 14 March 2027": the day as written, whatever the time zone. Built from its parts, since
+ * some ICU versions put a comma after the weekday (like meetingTime() in club-meetings).
+ */
+export function giftDay(startsOn: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).formatToParts(
+    new Date(`${startsOn}T12:00:00Z`),
+  );
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("weekday")} ${part("day")} ${part("month")} ${part("year")}`;
+}
 
 const length = (months: number) => (months === 12 ? "a year" : months === 1 ? "1 month" : `${months} months`);
 
