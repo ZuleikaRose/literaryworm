@@ -387,5 +387,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Favourite genres from all nineteen, Home rows for favourites beyond the six, and sample titles tagged with the new genres | Done    |
 | —    | What's new linked from the home page, members' Home, Plans and Account → Help, not only the footer | Done    |
 | —    | A heads-up before the listening limit (player line, 80% bell alert), Member lookup for customer service (read only, recorded; Privacy Policy updated), Lighthouse accessibility 100 on every new screen, and a real-device checklist for the plan limits (migrations 4200–4204) | Done    |
+| —    | Move up a plan in one tap from every limit screen; the home page's layout shift checked on the production build (0.022, good) (migration 4300) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

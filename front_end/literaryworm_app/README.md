@@ -139,3 +139,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Favourite genres from all nineteen (`favouriteGenreLabel()`, `inFavouriteGenre()` in `data/genres.ts`), Home rows for up to two favourites, sample titles tagged with the new genres |
 | — | What's new links on the home page, members' Home and Plans (`components/WhatsNewLink.tsx`) and in Account → Help |
 | — | Listening heads-up (player line, 80% bell alert: `listeningAlert()` in `lib/planLimits.ts`), Member lookup at `/support` (`pages/Support.tsx`, `lookupMember()` in `lib/staffApi.ts`) for customer service, accessibility pass, `docs/qa/plan-limits-device-check.md`; migrations 4200–4204 |
+| — | Move up a plan in one tap: `nextPlanUp()` and `planCheckoutPath()` in `lib/planLimits.ts`, used by the used-up message, the bell alert, `PlanUsage` and `OfflineBook`; migration 4300 |
