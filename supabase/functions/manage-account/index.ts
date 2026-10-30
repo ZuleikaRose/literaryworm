@@ -1,4 +1,5 @@
 import { allowedOrigins } from "../_shared/cors.ts";
+import { sendWithMailgun } from "../_shared/mailgun.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { discountView, type InvoiceView, invoiceView, Stripe, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice } from "../_shared/stripeCustomers.ts";
@@ -124,6 +125,8 @@ Deno.serve((req) =>
       if (error) throw error;
       return data as Subscription;
     },
+    // A one-off service email: no unsubscribe link, since there's nothing left to unsubscribe from.
+    sendEmail: (email) => sendWithMailgun({ ...email, tag: "account-deleted" }),
     async deleteUser(userId) {
       const db = serviceClient();
       // Uploaded books' text lives in Storage, in a folder named after the account: delete it

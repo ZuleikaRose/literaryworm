@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3300, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3402, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -113,11 +113,12 @@
             ["", "date_of_birth", "date (18+ trigger)"],
             ["", "marketing_emails", "boolean"],
             ["", "release_emails", "boolean (on)"],
+            ["", "author_emails", "boolean (on)"],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Private sign-up details. RLS: read own; browser may change marketing_emails and release_emails only (column grants).",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails and author_emails only (column grants).",
         },
         {
           id: "plans", color: colors.billing, x: 0, y: 770, sub: "catalog",
@@ -420,6 +421,28 @@
           note: "A one-way fingerprint of each invited address, never the address. Written by the club-invite function through record_club_invite() (member of the club, not full, 10 a day, same address once a week). RLS on, no browser access. Removed after 30 days by pg_cron. Indexes: (club_id, email_hash, created_at), (invited_by, created_at).",
         },
         {
+          id: "author_news", color: colors.household, x: 0, y: 4250, sub: "per profile · followed authors",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["", "title", "text 1–300"],
+            ["", "author", "text 1–100"],
+            ["", "published", "text YYYY-MM[-DD]"],
+            ["", "found_at", "timestamptz"],
+            ["", "emailed_at", "timestamptz", true],
+          ],
+          note: "FK as favorites; the key is its index. Written by the author-news function only (record_author_news, daily via pg_cron; not Kids profiles, not books already in the library); emailed Mondays (claim_author_emails; index on unemailed rows). RLS: owner reads, never emailed_at; no browser writes. Removed after 60 days by pg_cron.",
+        },
+        {
+          id: "author_checks", color: colors.server, x: 420, y: 4330, sub: "server only",
+          cols: [
+            ["pk", "name_key", "text (lower case)"],
+            ["", "checked_at", "timestamptz"],
+          ],
+          note: "When each followed author was last asked about on Google Books (authors_to_check() skips those checked in the last six days). RLS on, no browser access.",
+        },
+        {
           id: "club_members", color: colors.reading, x: 1260, y: 2050, sub: "up to 50 a club",
           cols: [
             ["pk fk", "club_id", "uuid"],
@@ -611,6 +634,7 @@
         ["highlights", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["favorites", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["author_news", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_ratings", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_lists", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

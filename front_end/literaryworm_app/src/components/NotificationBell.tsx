@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
-import { badgeText, bellLabel, isNewRelease } from "../lib/notifications";
+import { badgeText, bellLabel, isNewAuthorBook, isNewRelease } from "../lib/notifications";
 import { releaseLabel } from "../lib/release";
 import { useNotifications } from "../lib/useNotifications";
 import { usePopover } from "../lib/usePopover";
@@ -12,7 +12,7 @@ import { Icon } from "./Icon";
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, news, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const panelId = useId();
   // What was seen before this opening, so the panel can still mark what's new while it's open.
@@ -26,7 +26,7 @@ export function NotificationBell() {
     }
     setOpen(!open);
   };
-  const empty = released.length === 0 && news.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0;
 
   return (
     <div className="popover-wrap" ref={wrapRef}>
@@ -44,8 +44,8 @@ export function NotificationBell() {
           <h2 className="popover-title">Notifications</h2>
           {empty ? (
             <p className="bell-empty">
-              Nothing new. Books you set <strong>Remind me</strong> on show up here when they come out
-              {withClubs ? ", and so do new posts in your book clubs" : ""}.
+              Nothing new. Books you set <strong>Remind me</strong> on show up here when they come out, and so do new books from
+              authors you follow{withClubs ? " and new posts in your book clubs" : ""}.
             </p>
           ) : (
             <>
@@ -61,6 +61,29 @@ export function NotificationBell() {
                             <strong>{n.clubName}</strong>
                             <small>
                               {n.posts} new {n.posts === 1 ? "post" : "posts"} · {n.bookTitle}
+                            </small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {authorNews.length > 0 && (
+                <>
+                  <p className="popover-label">New from authors you follow</p>
+                  <ul className="bell-list" role="list">
+                    {authorNews.map((n) => (
+                      <li key={n.bookId}>
+                        <Link className="bell-item" to={`/books/${n.bookId}`} onClick={() => close(false)}>
+                          <Icon name="user" size={18} />
+                          <span>
+                            <strong>
+                              {n.title}
+                              {isNewAuthorBook(n, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>
+                              {n.author} · out {releaseLabel(n.published)}
                             </small>
                           </span>
                         </Link>

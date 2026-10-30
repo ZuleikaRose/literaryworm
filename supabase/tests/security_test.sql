@@ -588,6 +588,44 @@ select pg_temp.expect_error('select public.release_emails_secret()', 'anon readi
 reset role;
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_release_emails()', 'execute'), 'only the cron job calls the release-emails function');
 
+-- New books from followed authors: only the author-news function records or claims them ----
+insert into public.follows (profile_id, user_id, kind, name) values
+  ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'author', 'Test Author'),
+  ((select id from public.reader_profiles where name = 'Mia'), '00000000-0000-0000-0000-00000000000a', 'author', 'Test Author');
+set role service_role;
+select pg_temp.check(exists (select 1 from public.authors_to_check(10) where name = 'Test Author'), 'a followed author is due a check');
+select pg_temp.check(public.record_author_news('test author', '[{"id":"newVol1","title":"Brand New","published":"2026-10-20"}]'::jsonb) = 1, 'a new book is recorded for the follower');
+select pg_temp.check(not exists (select 1 from public.author_news n join public.reader_profiles p on p.id = n.profile_id where p.name = 'Mia'), 'not for a Kids profile');
+select pg_temp.check(public.record_author_news('Test Author', '[{"id":"newVol1","title":"Brand New","published":"2026-10-20"}]'::jsonb) = 0, 'the same book is recorded once');
+select pg_temp.check(not exists (select 1 from public.authors_to_check(10) where name = 'Test Author'), 'a checked author waits six days');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select count(*) = 1 from public.author_news), 'Ann sees her profile''s new book');
+select pg_temp.expect_error('select emailed_at from public.author_news', 'reading when a new book was emailed');
+select pg_temp.expect_error($$update public.author_news set found_at = now()$$, 'changing a new book from the browser');
+select pg_temp.expect_error($$insert into public.author_news (profile_id, user_id, volume_id, title, author, published) values ((select id from public.reader_profiles where name = 'Ann'), '00000000-0000-0000-0000-00000000000a', 'x', 'X', 'Y', '2026-10')$$, 'adding a new book from the browser');
+select pg_temp.expect_error('select * from public.author_checks', 'reading which authors were checked');
+select pg_temp.expect_error($$select public.record_author_news('Test Author', '[]'::jsonb)$$, 'recording new books from the browser');
+select pg_temp.expect_error('select * from public.claim_author_emails(10)', 'claiming new-book emails from the browser');
+select pg_temp.expect_error('select public.author_news_secret()', 'reading the author-news secret from the browser');
+update public.account_private set author_emails = false where user_id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select bool_and(not author_emails) from public.account_private), 'Ann turns off new-book emails');
+update public.account_private set author_emails = true where user_id = '00000000-0000-0000-0000-00000000000a';
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select count(*) = 0 from public.author_news), 'Ben cannot see Ann''s new books');
+reset role;
+reset request.jwt.claims;
+set role anon;
+select pg_temp.expect_error('select * from public.author_news', 'anon reading new books');
+select pg_temp.expect_error('select * from public.claim_author_emails(10)', 'anon claiming new-book emails');
+reset role;
+select pg_temp.check(not has_function_privilege('authenticated', 'private.call_author_news(text)', 'execute'), 'only the cron job calls the author-news function');
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

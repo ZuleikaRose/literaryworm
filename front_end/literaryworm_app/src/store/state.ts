@@ -97,6 +97,7 @@ export const emptyProfileData = (): ProfileData => ({
   follows: [],
   reminders: [],
   notificationsSeenAt: null,
+  authorNews: [],
 });
 
 export const newId = () => crypto.randomUUID();
@@ -216,6 +217,7 @@ export function demoHousehold(): Household {
       billingDay: 1,
       marketingEmails: false,
       releaseEmails: true,
+      authorEmails: true,
       isDemo: true,
       status: "active",
       endsAt: null,

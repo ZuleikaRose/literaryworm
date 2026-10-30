@@ -63,7 +63,7 @@ export function useNotifications() {
   const released = useMemo(() => releasedReminders(data.reminders), [data.reminders]);
   // Kids profiles have no clubs; a profile switched to one keeps nothing from the last.
   const shownNews = withClubs ? news : [];
-  const count = bellCount(data.reminders, seenAt, shownNews);
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -76,5 +76,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, news: shownNews, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, count, seenAt, withClubs, markSeen, refresh };
 }

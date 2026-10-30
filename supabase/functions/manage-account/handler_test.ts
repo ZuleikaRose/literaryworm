@@ -22,6 +22,7 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
   const state = {
     sub,
     deleted: false,
+    emails: [] as { to: string; subject: string; text: string }[],
     passwordChecks: 0,
     stripe: [] as string[],
     gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null } as Gift,
@@ -45,6 +46,10 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
     },
     deleteUser: () => {
       state.deleted = true;
+      return Promise.resolve();
+    },
+    sendEmail: (email) => {
+      state.emails.push(email);
       return Promise.resolve();
     },
     billing: {
@@ -186,6 +191,39 @@ Deno.test("delete needs confirm and the right password, cancels the plan, then d
   assertEquals(ok.body, { deleted: true });
   assertEquals(state.sub!.status, "cancelled");
   assert(state.deleted);
+});
+
+Deno.test("deleting emails the address once it's done, saying the plan was cancelled", async () => {
+  const { state, deps } = setup(active());
+  await call(deps, { action: "delete", password: "nope", confirm: true });
+  assertEquals(state.emails.length, 0);
+  await call(deps, { action: "delete", password: "right password", confirm: true });
+  assertEquals(state.emails.length, 1);
+  assertEquals(state.emails[0].to, USER.email);
+  assertEquals(state.emails[0].subject, "Your LiteraryWorm account has been deleted");
+  assert(state.emails[0].text.includes("nothing more will be charged"));
+});
+
+Deno.test("an admin's deletion email doesn't mention a cancelled plan", async () => {
+  const { state, deps } = setup(complimentary());
+  await call(deps, { action: "delete", password: "right password", confirm: true });
+  assertEquals(state.emails.length, 1);
+  assert(!state.emails[0].text.includes("nothing more will be charged"));
+});
+
+Deno.test("an email that fails to send doesn't undo or fail the deletion", async () => {
+  const { state, deps } = setup(active(), { sendEmail: () => Promise.reject(new Error("Mailgun answered 500")) });
+  const res = await call(deps, { action: "delete", password: "right password", confirm: true });
+  assertEquals(res.status, 200);
+  assertEquals(res.body, { deleted: true });
+  assert(state.deleted);
+});
+
+Deno.test("an account with no plan yet still gets the email, without mention of charges", async () => {
+  const { state, deps } = setup(null);
+  await call(deps, { action: "delete", password: "right password", confirm: true });
+  assertEquals(state.emails.length, 1);
+  assert(!state.emails[0].text.includes("nothing more will be charged"));
 });
 
 Deno.test("an admin's complimentary membership can't be paused, resumed, cancelled or restarted", async () => {

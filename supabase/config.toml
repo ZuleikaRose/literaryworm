@@ -44,6 +44,11 @@ verify_jwt = true
 # Authorization header against the release_emails_secret kept in Vault instead.
 verify_jwt = false
 
+[functions.author-news]
+# Called by pg_cron (daily checks, Monday emails), which sends no Supabase token: the function
+# checks the Authorization header against the author_news_secret kept in Vault instead.
+verify_jwt = false
+
 # Two-step sign-in with an authenticator app (on by default on hosted projects; the CLI's default is off).
 [auth.mfa.totp]
 enroll_enabled = true

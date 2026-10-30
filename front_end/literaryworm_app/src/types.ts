@@ -109,6 +109,8 @@ export interface Account {
   marketingEmails: boolean;
   /** Email when a book a profile set Remind me on comes out (members only; on by default). */
   releaseEmails: boolean;
+  /** Weekly email of new books from authors the profiles follow (members only; on by default). */
+  authorEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */
@@ -315,6 +317,20 @@ export interface ProfileData {
   reminders: Reminder[];
   /** When this profile last opened the notification bell (ms), or null if never. Members keep it in Supabase. */
   notificationsSeenAt: number | null;
+  /** New books from authors this profile follows, found by the author-news function (members only), newest first. */
+  authorNews: AuthorNews[];
+}
+
+/** A Google Books title by a followed author, out in the last 30 days when it was found. */
+export interface AuthorNews {
+  bookId: string;
+  title: string;
+  /** The followed name. */
+  author: string;
+  /** Google's publishedDate: YYYY-MM or YYYY-MM-DD. */
+  published: string;
+  /** When the author-news function found it (ms). */
+  foundAt: number;
 }
 
 /**

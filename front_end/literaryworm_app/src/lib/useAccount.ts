@@ -48,6 +48,11 @@ export function useAccount() {
     dispatch({ type: "updateAccount", patch: { releaseEmails: on } });
   }
 
+  async function setAuthorEmails(on: boolean) {
+    if (userId) await accountApi.setAuthorEmails(userId, on);
+    dispatch({ type: "updateAccount", patch: { authorEmails: on } });
+  }
+
   async function changePassword(current: string, next: string) {
     if (!account) return;
     if (userId) {
@@ -92,6 +97,9 @@ export function useAccount() {
           ratings: data?.ratings ?? {},
           customLists: data?.customLists ?? [],
           recentSearches: data?.recentSearches ?? [],
+          follows: data?.follows ?? [],
+          reminders: data?.reminders ?? [],
+          newFromFollowedAuthors: (data?.authorNews ?? []).map(({ foundAt, ...n }) => ({ ...n, foundAt: new Date(foundAt).toISOString() })),
           player: data?.player ?? null,
           // What was uploaded (the books' text stays in the app; it's the member's own file).
           uploads: (data?.uploads ?? []).map(({ id, title, author, chapterTitles, words, createdAt }) => ({ id, title, author, chapters: chapterTitles, words, uploadedAt: new Date(createdAt).toISOString() })),
@@ -114,5 +122,5 @@ export function useAccount() {
     URL.revokeObjectURL(url);
   }
 
-  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, setReleaseEmails, changePassword, deleteAccount, downloadData };
+  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, setReleaseEmails, setAuthorEmails, changePassword, deleteAccount, downloadData };
 }

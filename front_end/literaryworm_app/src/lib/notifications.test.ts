@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
-import type { Progress, Reminder } from "../types";
+import type { AuthorNews, Progress, Reminder } from "../types";
 import type { Club, ClubMembership } from "./clubs";
-import { badgeText, bellCount, bellLabel, clubNews, isNewRelease, releasedReminders } from "./notifications";
+import { badgeText, bellCount, bellLabel, clubNews, isNewAuthorBook, isNewRelease, releasedReminders } from "./notifications";
 
 const now = new Date(2026, 9, 30, 12);
 const at = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).getTime();
@@ -62,8 +62,16 @@ describe("the bell", () => {
   it("adds new releases and club posts", () => {
     const reminders = [reminder("New", "2026-10-30"), reminder("Seen", "2026-10-01"), reminder("Soon", "2027-01-01")];
     const news = [{ clubId: "a", clubName: "A", bookTitle: "Dune", posts: 2 }];
-    expect(bellCount(reminders, at(2026, 10, 15), news, now)).toBe(3);
-    expect(bellCount([], null, [], now)).toBe(0);
+    expect(bellCount(reminders, at(2026, 10, 15), news, [], now)).toBe(3);
+    expect(bellCount([], null, [], [], now)).toBe(0);
+  });
+
+  it("counts books from followed authors found since the bell was last opened", () => {
+    const found = (title: string, foundAt: number): AuthorNews => ({ bookId: title, title, author: "Matt Haig", published: "2026-10-14", foundAt });
+    const authorNews = [found("New", at(2026, 10, 27)), found("Seen", at(2026, 10, 1))];
+    expect(bellCount([], at(2026, 10, 15), [], authorNews, now)).toBe(1);
+    expect(bellCount([], null, [], authorNews, now)).toBe(2);
+    expect(isNewAuthorBook(authorNews[0], at(2026, 10, 27))).toBe(false);
   });
 
   it("caps the badge and names the button", () => {

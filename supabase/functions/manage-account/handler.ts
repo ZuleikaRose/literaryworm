@@ -25,7 +25,8 @@
 //                                            and the webhook writes it. Returns { gift, subscription? }
 //   { action: "delete", password, confirm: true }
 //                                            cancels the plan, then deletes the user (and,
-//                                            by cascade, everything the account owns)
+//                                            by cascade, everything the account owns), then
+//                                            emails the address to confirm it
 //
 // A membership billed through Stripe (stripe_subscription_id) is changed in Stripe first, then
 // here; the stripe-webhook function keeps the two in step afterwards. Nothing is refunded.
@@ -34,6 +35,7 @@ import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { addGiftMonths, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
 import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
+import { deletedEmail, type Email } from "./email.ts";
 
 const METHODS = "POST";
 
@@ -100,6 +102,8 @@ export interface Deps {
   getSubscription: (userId: string) => Promise<Subscription | null>;
   updateSubscription: (userId: string, patch: SubscriptionPatch) => Promise<Subscription>;
   deleteUser: (userId: string) => Promise<void>;
+  /** Emails the address that its account was deleted (Mailgun). */
+  sendEmail: (email: Email) => Promise<void>;
   billing: Billing;
   gifts: Gifts;
   /** The account's Stripe Customer, created the first time. */
@@ -315,11 +319,14 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         await deps.confirmPassword(user.email, password);
         // Cancel first, so a failure part-way through never leaves a plan that keeps charging.
         const sub = await deps.getSubscription(user.id);
-        if (sub && !sub.complimentary && sub.status !== "cancelled") {
+        const cancelling = Boolean(sub && !sub.complimentary && sub.status !== "cancelled");
+        if (sub && cancelling) {
           if (sub.stripe_subscription_id) await deps.billing.cancelNow(sub.stripe_subscription_id);
           await deps.updateSubscription(user.id, { status: "cancelled", cancel_at_period_end: false, current_period_end: now.toISOString() });
         }
         await deps.deleteUser(user.id);
+        // The account has gone either way: a confirmation that doesn't send is logged, not an error.
+        await deps.sendEmail(deletedEmail(user.email, cancelling)).catch((err) => console.error("manage-account: the deletion email didn't send", err));
         return json(req, METHODS, { deleted: true });
       }
       default:

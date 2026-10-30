@@ -98,6 +98,7 @@ export default function SignUp() {
         billingDay: null,
         marketingEmails: marketing,
         releaseEmails: true,
+        authorEmails: true,
         isDemo: false,
         status: "active",
         endsAt: null,

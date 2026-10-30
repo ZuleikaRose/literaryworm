@@ -299,7 +299,7 @@ export async function loadAccount(): Promise<Account | null> {
   if (!user) return null;
   const [profile, details, subscription] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    db.from("account_private").select("date_of_birth, marketing_emails, release_emails").eq("user_id", user.id).maybeSingle(),
+    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails").eq("user_id", user.id).maybeSingle(),
     db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
@@ -311,6 +311,7 @@ export async function loadAccount(): Promise<Account | null> {
     dob: details.data?.date_of_birth ?? "",
     marketingEmails: details.data?.marketing_emails ?? false,
     releaseEmails: details.data?.release_emails ?? true,
+    authorEmails: details.data?.author_emails ?? true,
     isDemo: false,
     ...fromSubscription(subscription.data as SubscriptionRow | null),
   };
@@ -540,6 +541,12 @@ export async function setMarketingEmails(userId: string, on: boolean): Promise<v
 /** Emails when a reminded book comes out (account_private.release_emails, sent by the release-emails function). */
 export async function setReleaseEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ release_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** The weekly email of new books from followed authors (account_private.author_emails, sent by the author-news function). */
+export async function setAuthorEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ author_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
 }
 
@@ -961,6 +968,7 @@ const emptyCollections = (): Collections => ({
   follows: [],
   reminders: [],
   notificationsSeenAt: null,
+  authorNews: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
@@ -975,6 +983,9 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
     db.from("follows").select("profile_id, kind, name").order("created_at"),
     db.from("release_reminders").select("profile_id, volume_id, title, author, release_date").order("release_date"),
   ]);
+  // New books from followed authors arrived later (migration 3400): if they can't load, the rest still opens.
+  const news = await db.from("author_news").select("profile_id, volume_id, title, author, published, found_at").order("found_at", { ascending: false });
+  if (news.error) console.error("collections: couldn't load new books from followed authors:", news.error.message);
   if (profiles.error || favorites.error || ratings.error || lists.error || items.error || follows.error || reminders.error) {
     throw new AccountError("We couldn't load your lists and ratings. Try again.");
   }
@@ -986,6 +997,9 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   }
   for (const f of favorites.data as { profile_id: string; volume_id: string }[]) of(f.profile_id).favorites.push(f.volume_id);
   for (const f of follows.data as ({ profile_id: string } & Follow)[]) of(f.profile_id).follows.push({ kind: f.kind, name: f.name });
+  for (const n of (news.data ?? []) as { profile_id: string; volume_id: string; title: string; author: string; published: string; found_at: string }[]) {
+    of(n.profile_id).authorNews.push({ bookId: n.volume_id, title: n.title, author: n.author, published: n.published, foundAt: Date.parse(n.found_at) });
+  }
   for (const r of reminders.data as ReminderRow[]) {
     of(r.profile_id).reminders.push({ bookId: r.volume_id, title: r.title, author: r.author, releaseDate: r.release_date });
   }

@@ -695,10 +695,11 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
-  const { remote, setMarketingEmails, setReleaseEmails } = useAccount();
+  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
   const releaseHintId = useId();
+  const authorHintId = useId();
   return (
     <Section id="preferences" title="Preferences">
       <label className="switch-row">
@@ -740,6 +741,31 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             void attempt(
               () => setReleaseEmails(on),
               on ? "We'll email you when a book you're waiting for comes out." : "No more emails about reminded books.",
+            );
+          }}
+        />
+      </label>
+      <label className="switch-row">
+        <span>
+          <strong>Email me new books from authors I follow</strong>
+          <small id={authorHintId}>
+            {remote
+              ? "Once a week, when an author any profile follows has a new book. They're in the bell either way."
+              : "The demo doesn't send emails. Members get a weekly email of new books from the authors they follow."}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={authorHintId}
+          checked={account.authorEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setAuthorEmails(on),
+              on ? "We'll email you once a week about new books from authors you follow." : "No more emails about authors you follow.",
             );
           }}
         />
