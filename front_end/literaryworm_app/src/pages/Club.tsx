@@ -21,6 +21,8 @@ import {
   rsvpSummary,
   upcomingMeetings,
 } from "../lib/clubCalendar";
+import { AccountError } from "../lib/accountApi";
+import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
@@ -339,7 +341,89 @@ function ClubMeetings({
             : "Members get an email reminder the day before, unless they can't make it, and an email if a meeting moves or is cancelled. The demo doesn't send emails."}
         </p>
       )}
+      {clubs.remote ? (
+        <CalendarFeed clubId={club.id} />
+      ) : (
+        <p className="goal-hint">Members can also subscribe to a club's meetings in their calendar app, so it stays up to date by itself.</p>
+      )}
     </section>
+  );
+}
+
+/**
+ * Subscribe in a calendar app: the member's own signed link to the club's meetings (the
+ * club-calendar function), which calendar apps check on their own, so moved and cancelled
+ * meetings update without opening an email.
+ */
+function CalendarFeed({ clubId }: { clubId: string }) {
+  const id = useId();
+  const [url, setUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function show() {
+    setBusy(true);
+    setError(null);
+    try {
+      setUrl(await calendarFeedUrl(clubId));
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : "We couldn't make the calendar link. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <div className="calendar-feed">
+      <h3 id={`${id}-title`}>Subscribe in your calendar</h3>
+      {url ? (
+        <>
+          <label className="field-label" htmlFor={`${id}-url`}>
+            Your calendar link
+          </label>
+          <input id={`${id}-url`} className="field-input" readOnly value={url} onFocus={(e) => e.currentTarget.select()} aria-describedby={`${id}-hint`} />
+          <div className="calendar-feed-actions">
+            <a className="secondary-button" href={url.replace(/^https:/, "webcal:")}>
+              <Icon name="calendar" size={15} /> Open in calendar app
+            </a>
+            <button type="button" className="ghost-button" onClick={() => void copy()}>
+              {copied ? "Copied" : "Copy link"}
+            </button>
+          </div>
+          <p className="goal-hint" id={`${id}-hint`}>
+            In Google Calendar, add it under Other calendars → From URL. Calendars check it every few hours, so moved and cancelled
+            meetings update by themselves. The link is yours: anyone with it sees this club's meetings, and it stops working if you
+            leave the club.
+          </p>
+          <p aria-live="polite" className="visually-hidden">
+            {copied ? "Calendar link copied" : ""}
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="goal-hint">Add every meeting to your calendar app once, and it stays up to date as meetings are added, moved or cancelled.</p>
+          <button type="button" className="secondary-button" onClick={() => void show()} disabled={busy}>
+            <Icon name="calendar" size={15} /> {busy ? "Making your link…" : "Get calendar link"}
+          </button>
+        </>
+      )}
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
+    </div>
   );
 }
 

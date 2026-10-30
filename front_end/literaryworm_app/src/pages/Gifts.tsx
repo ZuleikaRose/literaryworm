@@ -5,7 +5,18 @@ import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, plans } from "../data/plans";
 import { AccountError, type BoughtGift, buyGift, myGifts } from "../lib/accountApi";
 import { endDate, formatMoney } from "../lib/billing";
-import { formatGiftCode, GIFT_MONTHS, GIFT_YEAR_MONTHS, giftNotStarted, giftPriceCents, giftStartBounds, giftStartError, monthsLabel } from "../lib/gifts";
+import {
+  formatGiftCode,
+  GIFT_MESSAGE_MAX,
+  GIFT_MONTHS,
+  GIFT_YEAR_MONTHS,
+  giftNotStarted,
+  giftPriceCents,
+  giftRecipientError,
+  giftStartBounds,
+  giftStartError,
+  monthsLabel,
+} from "../lib/gifts";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
 import type { PlanId } from "../types";
@@ -39,8 +50,8 @@ export default function Gifts() {
         <p className="eyebrow">Gifts</p>
         <h1>Give LiteraryWorm</h1>
         <p className="account-sub">
-          Months of any plan, paid once. You get a code to pass on; they redeem it in Account. Codes don't expire and nothing renews
-          on your card.
+          Months of any plan, paid once. You get a code to pass on, or we email it to them; they redeem it in Account. Codes don't
+          expire and nothing renews on your card.
         </p>
       </header>
 
@@ -68,7 +79,7 @@ export default function Gifts() {
 
       {live && !account.complimentary && (
         <section className="gifts-section" aria-label="Redeem a gift">
-          <RedeemGift account={account} />
+          <RedeemGift account={account} initialCode={params.get("code") ?? ""} />
         </section>
       )}
     </div>
@@ -83,6 +94,11 @@ function BuyGift() {
   const [later, setLater] = useState(false);
   const [startsOn, setStartsOn] = useState("");
   const [startError, setStartError] = useState<string | null>(null);
+  // Hand the code over yourself, or have us email it to them when it can be redeemed.
+  const [byEmail, setByEmail] = useState(false);
+  const [recipient, setRecipient] = useState("");
+  const [recipientError, setRecipientError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bounds = giftStartBounds();
@@ -93,15 +109,17 @@ function BuyGift() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     const problem = later ? giftStartError(startsOn) : null;
+    const toProblem = byEmail ? giftRecipientError(recipient) : null;
     setStartError(problem);
-    if (problem) {
-      document.getElementById(`${id}-starts`)?.focus();
+    setRecipientError(toProblem);
+    if (problem || toProblem) {
+      document.getElementById(problem ? `${id}-starts` : `${id}-to`)?.focus();
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      window.location.assign(await buyGift(planId, months, later ? startsOn : null));
+      window.location.assign(await buyGift(planId, months, later ? startsOn : null, byEmail ? { email: recipient, message } : null));
     } catch (err) {
       setError(err instanceof AccountError ? err.message : "We couldn't start the payment. Try again.");
       setBusy(false);
@@ -171,7 +189,8 @@ function BuyGift() {
                 }}
               />
               <p className="field-hint" id={`${id}-starts-hint`}>
-                For a birthday, say. You get the code now to pass on; it can be redeemed from that day, up to a year ahead. We'll email you three days before.
+                For a birthday, say. You get the code now; it can be redeemed from that day, up to a year ahead.
+                {byEmail ? " We'll email it to them that morning." : " We'll email you three days before."}
               </p>
               {startError && (
                 <p className="field-error" id={`${id}-starts-error`} role="alert">
@@ -179,6 +198,67 @@ function BuyGift() {
                   {startError}
                 </p>
               )}
+            </div>
+          )}
+        </fieldset>
+        <fieldset className="gift-choice">
+          <legend className="field-label">How they get it</legend>
+          <div className="chip-group chip-group-lg">
+            <label className="chip">
+              <input type="radio" name={`${id}-how`} checked={!byEmail} onChange={() => setByEmail(false)} />
+              <span>I'll pass the code on</span>
+            </label>
+            <label className="chip">
+              <input type="radio" name={`${id}-how`} checked={byEmail} onChange={() => setByEmail(true)} />
+              <span>Email it to them</span>
+            </label>
+          </div>
+          {byEmail && (
+            <div className="gift-recipient">
+              <div className="field">
+                <label className="field-label" htmlFor={`${id}-to`}>
+                  Their email address
+                </label>
+                <input
+                  id={`${id}-to`}
+                  className="field-input"
+                  type="email"
+                  autoComplete="off"
+                  value={recipient}
+                  aria-invalid={recipientError ? true : undefined}
+                  aria-describedby={recipientError ? `${id}-to-error` : `${id}-to-hint`}
+                  onChange={(e) => {
+                    setRecipient(e.target.value);
+                    setRecipientError(null);
+                  }}
+                />
+                <p className="field-hint" id={`${id}-to-hint`}>
+                  We email them the code {later ? "on the start day" : "within the hour"}, then forget the address. You still see the code below.
+                </p>
+                {recipientError && (
+                  <p className="field-error" id={`${id}-to-error`} role="alert">
+                    <Icon name="alert" size={15} />
+                    {recipientError}
+                  </p>
+                )}
+              </div>
+              <div className="field">
+                <label className="field-label" htmlFor={`${id}-message`}>
+                  A message (optional)
+                </label>
+                <textarea
+                  id={`${id}-message`}
+                  className="field-input"
+                  rows={3}
+                  maxLength={GIFT_MESSAGE_MAX}
+                  value={message}
+                  aria-describedby={`${id}-message-hint`}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+                <p className="field-hint" id={`${id}-message-hint`}>
+                  Up to {GIFT_MESSAGE_MAX} characters, sent with the code under your display name.
+                </p>
+              </div>
             </div>
           )}
         </fieldset>
@@ -284,6 +364,13 @@ function YourGifts({ justPaid }: { justPaid: boolean }) {
                   bought {endDate(g.createdAt)}
                   {!g.redeemedAt && giftNotStarted(g.startsOn) && ` · starts ${endDate(g.startsOn!)}`}
                 </p>
+                {!g.redeemedAt && (g.deliveredAt || g.recipientEmail) && (
+                  <p className="gift-meta">
+                    {g.deliveredAt
+                      ? `Emailed to them ${endDate(g.deliveredAt)}`
+                      : `We'll email it to ${g.recipientEmail} ${g.startsOn && giftNotStarted(g.startsOn) ? `on ${endDate(g.startsOn)}` : "within the hour"}`}
+                  </p>
+                )}
               </div>
               <span className={`status-pill ${g.redeemedAt ? "status-paused" : "status-active"}`}>
                 {g.redeemedAt ? `Redeemed ${endDate(g.redeemedAt)}` : "Not redeemed yet"}

@@ -136,7 +136,7 @@ export function tooBigFor(plan: Plan, size: HouseholdSize): string[] {
   const problems: string[] = [];
   if (size.profiles > plan.profiles) {
     problems.push(
-      `${plan.name} has room for ${count(plan.profiles, "profile", "profiles")} and your household has ${size.profiles}. Remove ${size.profiles - plan.profiles} in Who's reading? first.`,
+      `${plan.name} has room for ${count(plan.profiles, "profile", "profiles")} and your household uses ${size.profiles}. Set aside or remove ${size.profiles - plan.profiles} in Who's reading? first.`,
     );
   }
   if (size.offlineDevices > plan.offlineDevices) {
@@ -146,3 +146,21 @@ export function tooBigFor(plan: Plan, size: HouseholdSize): string[] {
   }
   return problems;
 }
+
+/** No household has more profiles than Premium's 12, in use or set aside (the database's cap too). */
+const PROFILE_CAP = 12;
+
+/**
+ * How many profiles the household may use: the plan's, or the smaller of the plan's and the one a
+ * yearly membership moves to at renewal (so it can't grow past the smaller plan before then). One
+ * without a plan. The same rule as private.profile_room() in the database.
+ */
+export function profileRoom(account: { planId: PlanId | null; switchToMonthly?: PlanId | null } | null): number {
+  const plan = account?.planId ? planById.get(account.planId) : undefined;
+  if (!plan) return 1;
+  const next = account?.switchToMonthly ? planById.get(account.switchToMonthly) : undefined;
+  return Math.min(plan.profiles, next?.profiles ?? plan.profiles, PROFILE_CAP);
+}
+
+/** The profiles in use (not set aside), which are what a plan counts. */
+export const profilesInUse = <P extends { setAside: boolean }>(profiles: P[]) => profiles.filter((p) => !p.setAside);

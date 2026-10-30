@@ -300,6 +300,11 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Follower counts in author search (follow-up) | — | Done | *Authors* cards in an author search show *12 followers* (one `follower_counts()` call for the list; a count, never who). |
 | Gift start reminder (follow-up) | — | Done | The buyer of a gift for a later day is emailed three days before it starts (the `gift-reminders` function, daily), without the code. |
 | Kids report in groups (follow-up) | — | Done | Account → Family and the Monday email group Kids profiles: still working on their goal, no reading yet, reading without a goal, goal reached. |
+| Set profiles aside (follow-up) | — | Done | A grown-up sets a profile aside instead of deleting it to fit a smaller plan (account password, `manage-profile`); it keeps everything, doesn't count, and comes back with *Bring back* or by itself when the plan has room. A smaller plan arriving sets the newest aside. |
+| Plan room at renewal (follow-up) | — | Done | A yearly membership moving to a smaller monthly plan at renewal has that plan's room for profiles and offline devices straight away (`private.profile_room()`, `claim_offline_device()`). |
+| Email a gift (follow-up) | — | Done | The buyer can have the code emailed to the person it's for, with a message, when it can be redeemed (`gift-reminders`, hourly); the address and message are deleted once sent. |
+| Club calendar feed (follow-up) | — | Done | Each member gets a signed subscribe link for a club's meetings (`club-calendar` function); it stops working if they leave. |
+| Most-followed authors (follow-up) | — | Done | Home lists the authors most profiles follow (`most_followed()`, counts only, two or more followers). |
 | Read and listen offline (new request) | 12 | Done | *Read offline* on public-domain book pages saves the text, and the audio if chosen (size shown), on the device; the app opens and plays them without a connection. Signing in still needs one. |
 | More public-domain titles (new request) | 12 | Done | A Christmas Carol, The Call of the Wild, The Picture of Dorian Gray and The Wonderful Wizard of Oz, with LibriVox narration and full text. |
 | 31. More Like This | 4 | Done | Similar catalog titles, or the closest of the six genres for Google titles. |

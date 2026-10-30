@@ -132,6 +132,7 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
     dailyLimitMinutes: null,
     weeklyGoalMinutes: null,
     kidsConsent: input.ageRating === "kids",
+    setAside: false,
     ...input,
     hasPin: input.hasPin ?? Boolean(input.pin),
   };

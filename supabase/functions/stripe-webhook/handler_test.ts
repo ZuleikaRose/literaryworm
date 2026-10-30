@@ -187,7 +187,7 @@ const giftPaid = (overrides: Record<string, unknown> = {}) =>
 Deno.test("a paid gift Checkout makes the gift for the buyer, and starts no membership", async () => {
   const { state, deps } = setup(giftPaid());
   assertEquals((await handle(post(), deps)).status, 200);
-  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD", startsOn: null }]);
+  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD", startsOn: null, recipientEmail: null, message: null }]);
   assertEquals(state.started.length, 0);
 });
 
@@ -195,6 +195,15 @@ Deno.test("a gift bought for a later day keeps its start day", async () => {
   const { state, deps } = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "12", starts_on: "2027-03-14" } }));
   assertEquals((await handle(post(), deps)).status, 200);
   assertEquals(state.gifts[0].startsOn, "2027-03-14");
+});
+
+Deno.test("a gift to email keeps its recipient and message; a bad address still makes the code", async () => {
+  const sent = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "1", recipient_email: "sam@example.com", message: "Happy birthday!" } }));
+  assertEquals((await handle(post(), sent.deps)).status, 200);
+  assertEquals([sent.state.gifts[0].recipientEmail, sent.state.gifts[0].message], ["sam@example.com", "Happy birthday!"]);
+  const bad = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "1", recipient_email: "nobody", message: "Hi" } }));
+  assertEquals((await handle(post(), bad.deps)).status, 200);
+  assertEquals([bad.state.gifts[0].recipientEmail, bad.state.gifts[0].message], [null, null]);
 });
 
 Deno.test("an unpaid gift makes nothing; one with bad metadata is retried, not saved", async () => {

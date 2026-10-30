@@ -5940,3 +5940,422 @@ begin
   return null;
 end;
 $$;
+
+-- =============================================================================
+-- 20261030006100_profiles_set_aside.sql
+-- =============================================================================
+-- Profiles set aside, and a plan's room as it will be at renewal.
+--
+-- reader_profiles.set_aside_at: a profile set aside keeps its shelf, history and settings but
+-- doesn't count towards the plan and can't be chosen in Who's reading? until it's brought back.
+-- A grown-up sets one aside or brings it back through the manage-profile function (with the
+-- account password); the browser can read the column but never write it.
+--
+-- private.profile_room(): how many profiles the account may use. The plan's, or the smaller of
+-- the plan's and the one a yearly membership moves to at renewal (subscriptions.switch_to_monthly),
+-- so a household can't grow past the smaller plan before the year ends. Offline device places
+-- (claim_offline_device()) follow the same rule.
+--
+-- When an active membership's room changes (a smaller plan reaches the account, say), the newest
+-- profiles over it are set aside; when there's room again (moving up a plan), the ones set aside
+-- earliest come back. The oldest profile is always kept.
+
+alter table public.reader_profiles add column set_aside_at timestamptz;
+grant select (set_aside_at) on public.reader_profiles to authenticated;
+
+create or replace function private.profile_room(p_account uuid)
+returns smallint
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((
+    select least(p.max_profiles, coalesce(sp.max_profiles, p.max_profiles), 12)::smallint
+    from public.subscriptions s
+    join public.plans p on p.id = s.plan_id
+    left join public.plans sp on sp.id = s.switch_to_monthly
+    where s.user_id = p_account and s.status in ('active', 'past_due')
+  ), 1::smallint);
+$$;
+revoke execute on function private.profile_room(uuid) from public, anon, authenticated;
+
+-- Adding a profile, or bringing one back, needs room among the profiles in use; no household keeps
+-- more than 12 profiles in all (Premium's), set aside or not.
+create or replace function private.enforce_profile_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  allowed smallint;
+  in_use  integer;
+  total   integer;
+begin
+  if tg_op = 'UPDATE' and not (old.set_aside_at is not null and new.set_aside_at is null) then
+    return new;
+  end if;
+  -- Serialize concurrent changes for one account so two requests can't both slip under the limit.
+  perform pg_advisory_xact_lock(hashtext('reader_profiles:' || new.account_id::text));
+
+  allowed := private.profile_room(new.account_id);
+  select count(*) filter (where set_aside_at is null and id <> new.id), count(*) filter (where id <> new.id)
+    into in_use, total
+  from public.reader_profiles where account_id = new.account_id;
+
+  if new.set_aside_at is null and in_use >= allowed then
+    raise exception 'This plan allows % profile(s)', allowed
+      using errcode = 'check_violation';
+  end if;
+  if tg_op = 'INSERT' and total >= 12 then
+    raise exception 'A household keeps at most 12 profiles'
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger reader_profiles_enforce_limit_on_return
+  before update of set_aside_at on public.reader_profiles
+  for each row execute function private.enforce_profile_limit();
+
+-- Sets aside the newest profiles over the account's room, or brings back the ones set aside
+-- earliest while there's room. Only for an active membership: a paused or ended one changes nothing.
+create or replace function private.fit_profiles_to_plan()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  allowed smallint;
+  in_use  integer;
+begin
+  if new.status not in ('active', 'past_due') then
+    return null;
+  end if;
+  perform pg_advisory_xact_lock(hashtext('reader_profiles:' || new.user_id::text));
+  allowed := private.profile_room(new.user_id);
+  select count(*) into in_use from public.reader_profiles where account_id = new.user_id and set_aside_at is null;
+
+  if in_use > allowed then
+    update public.reader_profiles r set set_aside_at = now()
+    where r.id in (
+      select id from public.reader_profiles
+      where account_id = new.user_id and set_aside_at is null
+        -- Never the oldest: the account keeps at least one profile in use.
+        and id <> (select id from public.reader_profiles where account_id = new.user_id order by created_at, id limit 1)
+      order by created_at desc, id desc
+      limit in_use - allowed
+    );
+  elsif in_use < allowed then
+    update public.reader_profiles r set set_aside_at = null
+    where r.id in (
+      select id from public.reader_profiles
+      where account_id = new.user_id and set_aside_at is not null
+      order by set_aside_at, created_at
+      limit allowed - in_use
+    );
+  end if;
+  return null;
+end;
+$$;
+revoke execute on function private.fit_profiles_to_plan() from public, anon, authenticated;
+
+-- The webhook writes the whole row on every Stripe event: only a real change counts, or a profile
+-- set aside by hand would come straight back.
+create trigger subscriptions_fit_profiles_on_insert
+  after insert on public.subscriptions
+  for each row
+  execute function private.fit_profiles_to_plan();
+
+create trigger subscriptions_fit_profiles
+  after update of plan_id, status, switch_to_monthly on public.subscriptions
+  for each row
+  when (old.plan_id is distinct from new.plan_id or old.status is distinct from new.status or old.switch_to_monthly is distinct from new.switch_to_monthly)
+  execute function private.fit_profiles_to_plan();
+
+-- Offline device places: the smaller of the plan's and, for a yearly membership moving to monthly
+-- at renewal, the next plan's. Otherwise as in migration 4100.
+create or replace function public.claim_offline_device(p_id uuid, p_label text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user  uuid := (select auth.uid());
+  v_limit smallint;
+  v_plan  text;
+begin
+  if v_user is null or not public.second_step_done() then
+    raise exception 'sign in first' using errcode = 'insufficient_privilege';
+  end if;
+  if p_id is null or p_label is null or char_length(btrim(p_label)) not between 1 and 60 then
+    raise exception 'a device id and a label of 1 to 60 characters are needed' using errcode = 'check_violation';
+  end if;
+  -- One claim at a time per account, so two devices can't both take the last place.
+  perform pg_advisory_xact_lock(hashtextextended('offline_devices:' || v_user::text, 0));
+
+  update public.offline_devices set last_seen_at = now(), label = btrim(p_label)
+  where id = p_id and user_id = v_user;
+  if found then
+    return jsonb_build_object('status', 'ok');
+  end if;
+  if exists (select 1 from public.offline_devices where id = p_id) then
+    raise exception 'that device id is taken' using errcode = 'unique_violation';
+  end if;
+
+  -- Without a membership row, the smallest plan's places.
+  select case when sp.download_devices < p.download_devices then sp.download_devices else p.download_devices end,
+         case when sp.download_devices < p.download_devices then sp.id else p.id end
+    into v_limit, v_plan
+  from public.subscriptions s
+  join public.plans p on p.id = s.plan_id
+  left join public.plans sp on sp.id = s.switch_to_monthly
+  where s.user_id = v_user;
+  if v_limit is null then
+    select p.download_devices, p.id into v_limit, v_plan from public.plans p where p.id = 'basic';
+  end if;
+
+  if (select count(*) from public.offline_devices where user_id = v_user) >= v_limit then
+    return jsonb_build_object(
+      'status', 'full',
+      'plan_id', v_plan,
+      'limit', v_limit,
+      'devices', coalesce((
+        select jsonb_agg(jsonb_build_object('id', d.id, 'label', d.label, 'last_seen_at', d.last_seen_at) order by d.last_seen_at desc)
+        from public.offline_devices d where d.user_id = v_user
+      ), '[]'::jsonb)
+    );
+  end if;
+
+  insert into public.offline_devices (id, user_id, label) values (p_id, v_user, btrim(p_label));
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+revoke execute on function public.claim_offline_device(uuid, text) from public, anon;
+grant execute on function public.claim_offline_device(uuid, text) to authenticated;
+
+-- =============================================================================
+-- 20261030006101_gift_by_email.sql
+-- =============================================================================
+-- Send a gift by email: the buyer gives the recipient's address (and a short message, if they
+-- like) at checkout, and the gift-reminders function emails them the code once it can be redeemed.
+--
+-- gift_codes.recipient_email and .message come from the Checkout Session's metadata (the checkout
+-- function checked them); stripe-webhook writes them with the code. claim_gift_deliveries() picks
+-- each due gift once (delivered_at): straight away for a gift that starts now, at 08:00 UTC on
+-- the start day for a later one (early morning in the Americas, morning in Europe), and never one
+-- already redeemed. Once the email has gone, the function clears the address and the message, so
+-- they're kept only until then; a failed send is handed back for the next run.
+--
+-- The buyer isn't sent the three-day reminder for a gift we deliver, and reminders still go out
+-- in the afternoon (UTC): the job now runs hourly so deliveries aren't held back to one run a day.
+
+alter table public.gift_codes
+  add column recipient_email text check (
+    recipient_email is null
+    or (char_length(recipient_email) between 3 and 254 and recipient_email = lower(btrim(recipient_email)) and recipient_email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$')
+  ),
+  add column message text check (message is null or (char_length(message) between 1 and 300 and message = btrim(message))),
+  add column delivered_at timestamptz;
+
+grant select (recipient_email, message, delivered_at) on public.gift_codes to authenticated;
+
+create or replace function public.claim_gift_deliveries(max_count integer default 200)
+returns table (gift_id uuid, code text, plan_id text, months smallint, starts_on date, recipient_email text, message text, buyer_name text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return query
+  with due as (
+    select g.id
+    from public.gift_codes g
+    where g.recipient_email is not null
+      and g.delivered_at is null
+      and g.redeemed_at is null
+      and (g.starts_on is null or now() >= (g.starts_on::timestamp + interval '8 hours') at time zone 'utc')
+    order by g.created_at
+    limit least(greatest(coalesce(max_count, 200), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.gift_codes g set delivered_at = now()
+    from due where g.id = due.id
+    returning g.id, g.code, g.plan_id, g.months, g.starts_on, g.recipient_email, g.message, g.buyer_id
+  )
+  select c.id, c.code, c.plan_id, c.months, c.starts_on, c.recipient_email, c.message, p.display_name
+  from claimed c
+  left join public.profiles p on p.id = c.buyer_id;
+end;
+$$;
+revoke execute on function public.claim_gift_deliveries(integer) from public, anon, authenticated;
+grant execute on function public.claim_gift_deliveries(integer) to service_role;
+
+-- As in migration 6000, but not for a gift we email to its recipient, and from 15:00 UTC.
+create or replace function public.claim_gift_start_reminders(max_count integer default 200)
+returns table (gift_id uuid, plan_id text, months smallint, starts_on date, email text, buyer_name text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (now() at time zone 'utc')::time < time '15:00' then
+    return;
+  end if;
+  return query
+  with due as (
+    select g.id
+    from public.gift_codes g
+    where g.reminded_at is null
+      and g.redeemed_at is null
+      and g.recipient_email is null
+      and g.delivered_at is null
+      and g.buyer_id is not null
+      and g.starts_on is not null
+      and g.starts_on between (now() at time zone 'utc')::date and (now() at time zone 'utc')::date + 3
+      and g.starts_on >= (g.created_at at time zone 'utc')::date + 4
+    order by g.starts_on
+    limit least(greatest(coalesce(max_count, 200), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.gift_codes g set reminded_at = now()
+    from due where g.id = due.id
+    returning g.id, g.plan_id, g.months, g.starts_on, g.buyer_id
+  )
+  select c.id, c.plan_id, c.months, c.starts_on, u.email::text, p.display_name
+  from claimed c
+  join auth.users u on u.id = c.buyer_id and u.email is not null and u.email_confirmed_at is not null
+  left join public.profiles p on p.id = c.buyer_id;
+end;
+$$;
+revoke execute on function public.claim_gift_start_reminders(integer) from public, anon, authenticated;
+grant execute on function public.claim_gift_start_reminders(integer) to service_role;
+
+-- Hourly, five past (it was daily at 15:00).
+select cron.unschedule('gift-start-reminders') where exists (select 1 from cron.job where jobname = 'gift-start-reminders');
+select cron.schedule('gift-emails', '5 * * * *', $$select private.call_gift_reminders()$$);
+
+-- =============================================================================
+-- 20261030006102_club_calendar_feeds.sql
+-- =============================================================================
+-- Calendar feeds for book clubs: each member gets a subscribe link for a club's meetings, which
+-- calendar apps read from the club-calendar function every so often.
+--
+-- A link carries the club, the member and an HMAC-SHA256 of both, signed with the key below (kept
+-- in Vault, read only by the service role), so nothing new is stored and a link can't be made up
+-- or changed to another club. The function checks membership on every read: someone who leaves
+-- the club stops getting its meetings.
+
+select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'club_calendar_secret', 'Signs book club calendar feed links; checked by the club-calendar function')
+where not exists (select 1 from vault.secrets where name = 'club_calendar_secret');
+
+create or replace function public.club_calendar_secret()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'club_calendar_secret';
+$$;
+revoke execute on function public.club_calendar_secret() from public, anon, authenticated;
+grant execute on function public.club_calendar_secret() to service_role;
+
+-- =============================================================================
+-- 20261030006103_most_followed.sql
+-- =============================================================================
+-- The most-followed authors (or narrators), for a row on members' Home.
+--
+-- Like follower_count() and follower_counts(): names and numbers, never who. Only people with at
+-- least two followers, so the row shows what readers share rather than one household's taste. At
+-- most 12, most followed first (then by name). The follows (kind, name) index (migration 5401)
+-- covers it.
+
+create or replace function public.most_followed(p_kind text, p_limit integer default 8)
+returns table (name text, followers integer)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select f.name, count(*)::integer as followers
+  from public.follows f
+  where f.kind = p_kind
+  group by f.name
+  having count(*) >= 2
+  order by count(*) desc, f.name
+  limit least(greatest(coalesce(p_limit, 8), 1), 12);
+$$;
+
+revoke execute on function public.most_followed(text, integer) from public;
+grant execute on function public.most_followed(text, integer) to anon, authenticated;
+
+-- =============================================================================
+-- 20261030006104_whats_new_set_aside_gift_email_calendar.sql
+-- =============================================================================
+-- What's new: this round's changes (src/data/changelog.json has the same).
+-- Data only; each skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Set a profile aside$lw$, $lw$Moving to a smaller plan? Instead of deleting a profile, set it aside in Who's reading?: it keeps its shelf, history and settings and doesn't count towards the plan. Bring it back when there's room, or it comes back by itself when you move up a plan.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Set a profile aside$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Email a gift to someone$lw$, $lw$When you buy a gift membership you can now have us email the code to the person it's for, with a short message from you. A gift that starts now arrives within the hour; one for a later day arrives that morning. We forget their address once it's sent.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Email a gift to someone$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Club meetings in your calendar app$lw$, $lw$Each book club now has a calendar link for its members. Add it to Google Calendar, Apple Calendar or Outlook once, and new, moved and cancelled meetings update by themselves.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Club meetings in your calendar app$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Most-followed authors on Home$lw$, $lw$Home now shows the authors readers on LiteraryWorm follow most, with how many follow each. Follow one straight from the row.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Most-followed authors on Home$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$fix$lw$, $lw$Plan limits when moving to monthly at renewal$lw$, $lw$A yearly membership set to move to a smaller monthly plan at renewal now has that plan's room for profiles and offline devices straight away, so nothing needs removing on renewal day.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Plan limits when moving to monthly at renewal$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030006105_legal_set_aside_gift_email_calendar.sql
+-- =============================================================================
+-- This round's policy wording (src/data/legalPages.json has the same change): the Privacy Policy
+-- covers emailed gifts (what Stripe and Mailgun receive, and that the address and message are kept
+-- only until the email goes), profiles set aside and club calendar links; the Terms say profiles
+-- can be set aside to fit a smaller plan; the Return Policy says how emailed gifts arrive. A page an
+-- editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$, a reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and confirming$lw$, $lw$, a reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), a gift membership a member asked us to email to you (its code, plan and months, the buyer's display name and any message they wrote), and confirming$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$, a reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and confirming$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$(and, for a gift that starts on a later day, when we reminded the buyer); only the buyer can see the code$lw$, $lw$(and, for a gift that starts on a later day, when we reminded the buyer). If you ask us to email a gift to someone, Stripe receives their email address and your message with the payment, and we keep both only until the email has gone; only the buyer can see the code$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$(and, for a gift that starts on a later day, when we reminded the buyer); only the buyer can see the code$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal and player settings.$lw$, $lw$each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal and player settings, and whether it's set aside.$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal and player settings.$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$such as reading logs, book clubs and shared lists.$lw$, $lw$such as reading logs, book clubs and shared lists. A book club's calendar link lets your calendar app read the club's meetings (their names, times and notes) from us; the link is yours, we don't store it, and it stops working if you leave the club.$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$such as reading logs, book clubs and shared lists.$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$first remove the profiles and free the devices it has no room for.$lw$, $lw$first set aside or remove the profiles and free the devices it has no room for. A profile set aside keeps its shelf, history and settings, doesn't count towards the plan, and comes back when there's room. While a yearly membership waits to move to a smaller plan at renewal, it has that plan's room already.$lw$)::jsonb
+where slug in ($lw$terms$lw$)
+  and strpos(sections::text, $lw$first remove the profiles and free the devices it has no room for.$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$(from the day the gift starts, if the buyer chose a later day up to a year ahead; we email the buyer three days before)$lw$, $lw$(from the day the gift starts, if the buyer chose a later day up to a year ahead; if the buyer asked us to email it to the person it's for, we send it once it can be redeemed, and otherwise we remind the buyer three days before a later start)$lw$)::jsonb
+where slug in ($lw$returns$lw$)
+  and strpos(sections::text, $lw$(from the day the gift starts, if the buyer chose a later day up to a year ahead; we email the buyer three days before)$lw$) > 0;

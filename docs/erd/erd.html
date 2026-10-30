@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6003, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6105, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -187,7 +187,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "library_items", color: colors.reading, x: 840, y: 930, sub: "private",
+          id: "library_items", color: colors.reading, x: 840, y: 1000, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -212,7 +212,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
         },
         {
-          id: "bookmarks", color: colors.reading, x: 840, y: 1230, sub: "private",
+          id: "bookmarks", color: colors.reading, x: 840, y: 1300, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -316,7 +316,7 @@
           note: "A passage on one reader page, in yellow, green, blue or pink, with an optional note. FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; browser edits color and note only.",
         },
         {
-          id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 5 per account",
+          id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 12 per account",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "account_id", "uuid"],
@@ -332,6 +332,7 @@
             ["", "weekly_goal_minutes", "smallint 60–300", true],
             ["", "favorite_genres", "text[]"],
             ["", "kids_consent_at", "timestamptz", true],
+            ["", "set_aside_at", "timestamptz", true],
             ["", "recent_searches", "text[] ≤ 8"],
             ["", "notifications_seen_at", "timestamptz", true],
             ["", "playback_speed", "numeric 0.5–3"],
@@ -344,7 +345,7 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres, recent searches, player settings; notifications_seen_at via mark_notifications_seen(). PINs, limits, weekly goals, age ratings, Kids and deletes: manage-profile.",
+          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger (profiles in use; set_aside_at set by manage-profile, or by a trigger when a smaller plan arrives). RLS: own account; browser edits name, avatar, genres, recent searches, player settings; notifications_seen_at via mark_notifications_seen(). PINs, limits, weekly goals, age ratings, Kids and deletes: manage-profile.",
         },
         {
           id: "parental_consents", color: colors.household, x: 1260, y: 60, sub: "COPPA record",
@@ -451,7 +452,7 @@
           note: "When each followed author was last asked about on Google Books (authors_to_check() skips those checked in the last six days). RLS on, no browser access.",
         },
         {
-          id: "household_challenges", color: colors.household, x: 1260, y: 4520, sub: "per account",
+          id: "household_challenges", color: colors.household, x: 1260, y: 4560, sub: "per account",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -610,7 +611,7 @@
           note: "Written only by support_member_lookup() (customer service and admins; 60 an hour). Both FKs on delete set null, indexed. RLS: admins read. Deleted after a year by pg_cron.",
         },
         {
-          id: "offline_devices", color: colors.account, x: 1260, y: 5000, sub: "plan's Read offline places",
+          id: "offline_devices", color: colors.account, x: 1260, y: 5040, sub: "plan's Read offline places",
           cols: [
             ["pk", "id", "uuid (made by the browser)"],
             ["fk", "user_id", "uuid"],
@@ -756,9 +757,12 @@
             ["", "redeemed_at", "timestamptz", true],
             ["", "starts_on", "date", true],
             ["", "reminded_at", "timestamptz", true],
+            ["", "recipient_email", "text", true],
+            ["", "message", "text ≤ 300", true],
+            ["", "delivered_at", "timestamptz", true],
             ["", "created_at", "timestamptz"],
           ],
-          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). The buyer is emailed three days before a later start (gift-reminders, claim_gift_start_reminders(); reminded_at, server only). RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
+          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). The buyer is emailed three days before a later start (gift-reminders, claim_gift_start_reminders(); reminded_at, server only), unless they asked us to email the code to someone: gift-reminders sends it once it can be redeemed (claim_gift_deliveries(), delivered_at) and then clears recipient_email and message. RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
         },
       ];
 

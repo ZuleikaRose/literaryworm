@@ -2,7 +2,11 @@
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
 -- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; every staff role's membership is complimentary and never billed; Stripe customers and events are server-only) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs, and two-step sign-in (a password-only session reaches nothing of a member who turned it on). Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
-\set ON_ERROR_STOP on
+--
+-- Plain SQL, so it runs as it is under psql (with -v ON_ERROR_STOP=1) and through the Management
+-- API, which sends the whole file as one transaction (supabase/tests/run-on-branch.sh): ids found
+-- along the way are kept with set_config() rather than psql's gset command, and where order in time
+-- matters the rows are stepped on explicitly, since now() doesn't move within a transaction.
 
 -- Helpers ---------------------------------------------------------------------
 create or replace function pg_temp.expect_error(sql text, what text)
@@ -138,6 +142,23 @@ insert into public.reader_profiles (account_id, name) values ('00000000-0000-000
 select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Sixth', 0::smallint, null, '2026-10')$$, 'a 6th profile on Standard');
 delete from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and name in ('Fourth', 'Fifth');
 
+-- Profiles set aside don't count towards the plan; bringing one back needs room; a smaller plan
+-- coming (a yearly membership moving to Basic at renewal) sets the newest aside, keeping the oldest.
+insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fourth'), ('00000000-0000-0000-0000-00000000000a', 'Fifth');
+update public.reader_profiles set set_aside_at = now() where account_id = '00000000-0000-0000-0000-00000000000a' and name = 'Fifth';
+insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Sixth');
+select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 5, 'a profile set aside leaves room for another');
+select pg_temp.expect_error($$update public.reader_profiles set set_aside_at = null where name = 'Fifth'$$, 'bringing a profile back with no room');
+update public.subscriptions set billing_interval = 'year', switch_to_monthly = 'basic' where user_id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 1
+  and (select set_aside_at is null from public.reader_profiles where name = 'Ann'), 'a move to Basic at renewal sets the newest profiles aside, never the oldest');
+select pg_temp.expect_error($$insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Seventh')$$, 'adding a profile past the plan it moves to at renewal');
+update public.subscriptions set billing_interval = 'month', switch_to_monthly = null where user_id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 5, 'room again brings profiles back');
+delete from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and name in ('Fourth', 'Fifth', 'Sixth');
+update public.reader_profiles set set_aside_at = null where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is not null;
+select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 3, 'back to Ann, Sam and Mia, all in use');
+
 select public.set_profile_pin('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'), '4821');
 select pg_temp.check((select pin_hash <> '4821' and pin_hash like '$2%' from public.reader_profiles where name = 'Sam'), 'PIN stored as a bcrypt hash');
 select pg_temp.expect_error($$select public.set_profile_pin('00000000-0000-0000-0000-00000000000b', (select id from public.reader_profiles where name = 'Sam'), '1111')$$, 'setting a PIN on another account''s profile');
@@ -202,22 +223,22 @@ select pg_temp.check(public.mark_notifications_seen((select id from public.reade
 reset role;
 
 -- Ids Ben could only have guessed.
-select id as ann_profile from public.reader_profiles where name = 'Ann' \gset
-select id as ann_list from public.custom_lists where name = 'Holiday stack' \gset
+select set_config('lw.ann_profile', id::text, false) from public.reader_profiles where name = 'Ann';
+select set_config('lw.ann_list', id::text, false) from public.custom_lists where name = 'Holiday stack';
 
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.book_ratings) + (select count(*) from public.favorites) + (select count(*) from public.custom_lists) + (select count(*) from public.custom_list_items) = 0, 'Ben cannot see Ann''s ratings, favourites or lists');
 insert into public.favorites (profile_id, user_id, volume_id) values ((select id from public.reader_profiles where name = 'Ben'), '00000000-0000-0000-0000-00000000000b', 'dune');
-select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000b', 'x'), 'a favourite on another account''s profile, as yourself');
-select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'x'), 'a favourite on another account''s profile, as them');
+select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', current_setting('lw.ann_profile'), '00000000-0000-0000-0000-00000000000b', 'x'), 'a favourite on another account''s profile, as yourself');
+select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', current_setting('lw.ann_profile'), '00000000-0000-0000-0000-00000000000a', 'x'), 'a favourite on another account''s profile, as them');
 select pg_temp.check((select count(*) from public.follows) = 0, 'Ben cannot see who Ann follows');
 select pg_temp.check((select count(*) from public.release_reminders) = 0, 'Ben cannot see Ann''s reminders');
-select pg_temp.check(public.mark_notifications_seen(:'ann_profile') is null, 'Ben cannot mark Ann''s notifications seen');
-select pg_temp.expect_error(format('insert into public.release_reminders (profile_id, user_id, volume_id, title, release_date) values (%L, %L, %L, %L, current_date + 5)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'x', 'X'), 'a reminder on another account''s profile');
-select pg_temp.expect_error(format('insert into public.follows (profile_id, user_id, kind, name) values (%L, %L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'author', 'X'), 'a follow on another account''s profile');
-select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000b', 'x'), 'adding to someone else''s list, as yourself');
-select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000a', 'x'), 'adding to someone else''s list, as them');
+select pg_temp.check(public.mark_notifications_seen(current_setting('lw.ann_profile')::uuid) is null, 'Ben cannot mark Ann''s notifications seen');
+select pg_temp.expect_error(format('insert into public.release_reminders (profile_id, user_id, volume_id, title, release_date) values (%L, %L, %L, %L, current_date + 5)', current_setting('lw.ann_profile'), '00000000-0000-0000-0000-00000000000a', 'x', 'X'), 'a reminder on another account''s profile');
+select pg_temp.expect_error(format('insert into public.follows (profile_id, user_id, kind, name) values (%L, %L, %L, %L)', current_setting('lw.ann_profile'), '00000000-0000-0000-0000-00000000000a', 'author', 'X'), 'a follow on another account''s profile');
+select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', current_setting('lw.ann_list'), '00000000-0000-0000-0000-00000000000b', 'x'), 'adding to someone else''s list, as yourself');
+select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', current_setting('lw.ann_list'), '00000000-0000-0000-0000-00000000000a', 'x'), 'adding to someone else''s list, as them');
 with u as (update public.custom_lists set share_slug = null returning 1)
 select pg_temp.check(count(*) = 0, 'Ben cannot stop Ann''s sharing') from u;
 reset role;
@@ -273,9 +294,9 @@ reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.reading_goals) + (select count(*) from public.reading_days) + (select count(*) from public.finished_books) = 0, 'Ben cannot see Ann''s goals, reading days or finished books');
-select pg_temp.expect_error('insert into public.finished_books (profile_id, user_id, volume_id, finished_on) values (' || quote_literal(:'ann_profile') || ', ''00000000-0000-0000-0000-00000000000a'', ''dune'', current_date)', 'recording a finished book on another account''s profile');
-select pg_temp.expect_error('select public.record_reading(' || quote_literal(:'ann_profile') || ', current_date, 5, 0)', 'adding reading to another account''s profile');
-select pg_temp.expect_error('insert into public.reading_goals (profile_id, user_id, year, books) values (' || quote_literal(:'ann_profile') || ', ''00000000-0000-0000-0000-00000000000a'', 2026, 5)', 'a goal on another account''s profile');
+select pg_temp.expect_error('insert into public.finished_books (profile_id, user_id, volume_id, finished_on) values (' || quote_literal(current_setting('lw.ann_profile')) || ', ''00000000-0000-0000-0000-00000000000a'', ''dune'', current_date)', 'recording a finished book on another account''s profile');
+select pg_temp.expect_error('select public.record_reading(' || quote_literal(current_setting('lw.ann_profile')) || ', current_date, 5, 0)', 'adding reading to another account''s profile');
+select pg_temp.expect_error('insert into public.reading_goals (profile_id, user_id, year, books) values (' || quote_literal(current_setting('lw.ann_profile')) || ', ''00000000-0000-0000-0000-00000000000a'', 2026, 5)', 'a goal on another account''s profile');
 reset role;
 set role anon;
 select pg_temp.expect_error('select * from public.reading_days', 'anon reading reading days');
@@ -325,12 +346,22 @@ reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 3, 'Chapter 4 thoughts');
+reset role;
+-- The new post comes a moment after Ben joined (in one transaction, now() hasn't moved).
+update public.club_posts set created_at = created_at + interval '1 second' where body = 'Chapter 4 thoughts';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.check((select count(*) from public.club_unread()) = 0, 'your own posts are never new to you');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select chapter_index = 3 and posts = 1 from public.club_unread()), 'another member''s new post counts, with its chapter');
 select public.mark_club_read('00000000-0000-0000-0000-0000000000c1');
+reset role;
+-- And Ben's read mark a moment after the post.
+update public.club_members set last_read_at = last_read_at + interval '2 seconds' where club_id = '00000000-0000-0000-0000-0000000000c1' and user_id = '00000000-0000-0000-0000-00000000000b';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.club_unread()) = 0, 'opening the club marks it read');
 update public.club_members set notify = false where club_id = '00000000-0000-0000-0000-0000000000c1';
 select pg_temp.check((select notify from public.club_members where user_id = '00000000-0000-0000-0000-00000000000b') = false
@@ -422,7 +453,7 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.listening_devices) + (select count(*) from public.playback_handoffs) = 0, 'Ben cannot see Ann''s devices or handoffs');
 insert into public.listening_devices (id, user_id, label) values ('00000000-0000-0000-0000-0000000000d3', '00000000-0000-0000-0000-00000000000b', 'Firefox on Linux');
 select pg_temp.expect_error($$insert into public.playback_handoffs (user_id, profile_id, volume_id, position_seconds, from_label, to_device_id) values ('00000000-0000-0000-0000-00000000000b', (select id from public.reader_profiles limit 1), 'dracula', 0, 'Firefox on Linux', '00000000-0000-0000-0000-0000000000d2')$$, 'sending to another account''s device');
-select pg_temp.expect_error('insert into public.playback_handoffs (user_id, profile_id, volume_id, position_seconds, from_label, to_device_id) values (''00000000-0000-0000-0000-00000000000b'', ' || quote_literal(:'ann_profile') || ', ''dracula'', 0, ''Firefox on Linux'', ''00000000-0000-0000-0000-0000000000d3'')', 'sending for another account''s profile');
+select pg_temp.expect_error('insert into public.playback_handoffs (user_id, profile_id, volume_id, position_seconds, from_label, to_device_id) values (''00000000-0000-0000-0000-00000000000b'', ' || quote_literal(current_setting('lw.ann_profile')) || ', ''dracula'', 0, ''Firefox on Linux'', ''00000000-0000-0000-0000-0000000000d3'')', 'sending for another account''s profile');
 select public.touch_listening_device('00000000-0000-0000-0000-0000000000d1');
 reset role;
 select pg_temp.check((select last_seen_at = '2026-01-01' from public.listening_devices where id = '00000000-0000-0000-0000-0000000000d1') and (select count(*) from public.listening_devices where user_id = '00000000-0000-0000-0000-00000000000a') = 2, 'Ben cannot check in or clear Ann''s devices');
@@ -457,7 +488,7 @@ reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.uploaded_books) = 0, 'Ben cannot see Ann''s uploads');
-select pg_temp.expect_error('insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path) values (''u-3123456789abcdef0123456789abcdef'', ' || quote_literal(:'ann_profile')
+select pg_temp.expect_error('insert into public.uploaded_books (id, profile_id, user_id, title, chapter_titles, chapter_words, words, storage_path) values (''u-3123456789abcdef0123456789abcdef'', ' || quote_literal(current_setting('lw.ann_profile'))
   || ', ''00000000-0000-0000-0000-00000000000a'', ''Sneaky'', array[''One''], array[10], 10, ''00000000-0000-0000-0000-00000000000a/u-3123456789abcdef0123456789abcdef.json'')', 'uploading to another account''s profile');
 delete from public.uploaded_books where id = 'u-0123456789abcdef0123456789abcdef';
 reset role;
@@ -705,7 +736,7 @@ select pg_temp.check(not has_function_privilege('authenticated', 'private.call_k
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_whats_new()', 'execute'), 'only the cron job calls the whats-new function');
 
 -- Household challenges: the account's profiles only ------------------------------------
-select id as ben_profile from public.reader_profiles where name = 'Ben' \gset
+select set_config('lw.ben_profile', id::text, false) from public.reader_profiles where name = 'Ben';
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
@@ -717,7 +748,7 @@ select pg_temp.check((select count(*) = 2 from public.challenge_participants), '
 select pg_temp.expect_error($$update public.household_challenges set target = 1$$, 'editing a challenge');
 select pg_temp.expect_error($$insert into public.household_challenges (user_id, title, kind, target, starts_on, ends_on) values ('00000000-0000-0000-0000-00000000000a', 'X', 'days', 31, '2026-11-01', '2026-11-30')$$, 'more days than the challenge has');
 -- Ben's profile id is written in: Ann can't see it, so selecting it would insert nothing.
-select pg_temp.expect_error(format('insert into public.challenge_participants (challenge_id, user_id, profile_id) select c.id, %L, %L from public.household_challenges c', '00000000-0000-0000-0000-00000000000a', :'ben_profile'), 'another account''s profile joining');
+select pg_temp.expect_error(format('insert into public.challenge_participants (challenge_id, user_id, profile_id) select c.id, %L, %L from public.household_challenges c', '00000000-0000-0000-0000-00000000000a', current_setting('lw.ben_profile')), 'another account''s profile joining');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
@@ -792,7 +823,32 @@ select pg_temp.check((select public.follower_count('author', 'Nobody Followed Ye
 select pg_temp.check((select followers from public.follower_counts('author', array['Nobody Followed Yet'])) = 0, 'anyone reads follower counts for a search''s authors');
 select pg_temp.check((select count(*) from public.follower_counts('author', array_fill('x'::text, array[80]) || array['y'])) = 1, 'follower counts read at most 50 names');
 select pg_temp.expect_error('select * from public.claim_gift_start_reminders(10)', 'anon claiming gift start reminders');
+select pg_temp.expect_error('select * from public.claim_gift_deliveries(10)', 'anon claiming gift deliveries');
+select pg_temp.expect_error('select public.club_calendar_secret()', 'anon reading the club calendar key');
 reset role;
+
+-- Most-followed: names and counts for anyone, only people at least two profiles follow
+insert into public.follows (profile_id, user_id, kind, name)
+select id, account_id, 'author', 'Shared Author' from public.reader_profiles where name in ('Ann', 'Ben');
+insert into public.follows (profile_id, user_id, kind, name)
+select id, account_id, 'author', 'Solo Author' from public.reader_profiles where name = 'Ann';
+set role anon;
+select pg_temp.check((select followers from public.most_followed('author') where name = 'Shared Author') = 2
+  and not exists (select 1 from public.most_followed('author') where name = 'Solo Author'), 'most followed lists people with two or more followers, as counts');
+select pg_temp.check((select count(*) from public.most_followed('author', 1000)) <= 12, 'most followed lists at most 12');
+reset role;
+delete from public.follows where name in ('Shared Author', 'Solo Author');
+
+-- Gift deliveries: claimed once, straight away for a gift that starts now, not before a later start
+insert into public.gift_codes (code, plan_id, months, amount_cents, buyer_id, stripe_checkout_session_id, recipient_email, message, starts_on) values
+  ('ABCDEFGHJKLMNPQ2', 'standard', 3, 3897, '00000000-0000-0000-0000-00000000000a', 'cs_test_deliver_now', 'sam@example.com', 'Happy birthday', null),
+  ('ABCDEFGHJKLMNPQ3', 'standard', 3, 3897, '00000000-0000-0000-0000-00000000000a', 'cs_test_deliver_later', 'kit@example.com', null, current_date + 5);
+select pg_temp.expect_error($$insert into public.gift_codes (code, plan_id, months, amount_cents, stripe_checkout_session_id, recipient_email) values ('ABCDEFGHJKLMNPQ4', 'basic', 1, 799, 'cs_test_bad_address', 'Not An Address')$$, 'a gift recipient that isn''t an address');
+set role service_role;
+select pg_temp.check((select array_agg(recipient_email) from public.claim_gift_deliveries(10)) = array['sam@example.com'], 'a gift that starts now is delivered; a later one waits');
+select pg_temp.check((select count(*) from public.claim_gift_deliveries(10)) = 0, 'a gift is delivered once');
+reset role;
+delete from public.gift_codes where stripe_checkout_session_id in ('cs_test_deliver_now', 'cs_test_deliver_later');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
@@ -803,6 +859,12 @@ select pg_temp.expect_error('select reminded_at from public.gift_codes', 'a buye
 select pg_temp.expect_error($$update public.gift_codes set reminded_at = null$$, 'a buyer resetting a gift reminder');
 select pg_temp.expect_error('select * from public.claim_gift_start_reminders(10)', 'claiming gift start reminders from the browser');
 select pg_temp.expect_error('select public.gift_reminders_secret()', 'reading the gift reminders key from the browser');
+select pg_temp.expect_error($$update public.reader_profiles set set_aside_at = now()$$, 'setting a profile aside from the browser (it needs the account password)');
+select pg_temp.check((select count(*) >= 0 from (select recipient_email, message, delivered_at from public.gift_codes) g), 'a buyer reads who a gift goes to');
+select pg_temp.expect_error($$update public.gift_codes set recipient_email = 'x@example.com'$$, 'changing who a gift is emailed to');
+select pg_temp.expect_error($$update public.gift_codes set delivered_at = null$$, 'sending a gift email again from the browser');
+select pg_temp.expect_error('select * from public.claim_gift_deliveries(10)', 'claiming gift deliveries from the browser');
+select pg_temp.expect_error('select public.club_calendar_secret()', 'reading the club calendar key from the browser');
 reset role;
 reset request.jwt.claims;
 
@@ -823,4 +885,4 @@ select pg_temp.check(not exists (
     )
 ), 'every foreign key is indexed');
 
-\echo ALL SECURITY CHECKS PASSED
+select 'ALL SECURITY CHECKS PASSED' as result;

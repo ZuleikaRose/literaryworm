@@ -9,6 +9,8 @@
 //   { action: "set_age_rating", profileId, ageRating, noticeVersion?, password }   (noticeVersion for Kids)
 //   { action: "delete", profileId, password }
 //   { action: "unlock", profileId, password }
+//   { action: "set_aside", profileId, password }   (keeps everything; doesn't count towards the plan)
+//   { action: "bring_back", profileId, password }  (needs room on the plan)
 //   { action: "verify_pin", profileId, pin }
 
 import { preflight } from "../_shared/cors.ts";
@@ -148,15 +150,45 @@ Deno.serve(async (req) => {
         if (error) dbError(error);
         return json(req, METHODS, { ok: true });
       }
-      case "delete": {
+      case "set_aside": {
         onlyKeys(body, ["action", "profileId", "password"]);
         const profileId = parseUuid(body.profileId, "profileId");
         await confirmPassword(user.email, password);
         const { count, error: countError } = await db.from("reader_profiles")
           .select("id", { count: "exact", head: true })
-          .eq("account_id", user.id);
+          .eq("account_id", user.id).is("set_aside_at", null).neq("id", profileId);
         if (countError) dbError(countError);
-        if (count === null || count <= 1) throw new HttpError("bad_request", "An account keeps at least one profile.");
+        if (!count) throw new HttpError("bad_request", "Keep at least one profile in use.");
+        const { data, error } = await db.from("reader_profiles").update({ set_aside_at: new Date().toISOString() })
+          .eq("id", profileId).eq("account_id", user.id).is("set_aside_at", null).select("id");
+        if (error) dbError(error);
+        if (!data?.length) throw new HttpError("not_found", "Profile not found, or already set aside.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "bring_back": {
+        onlyKeys(body, ["action", "profileId", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        await confirmPassword(user.email, password);
+        // The database refuses it when the plan has no room (check_violation, shown as it is).
+        const { data, error } = await db.from("reader_profiles").update({ set_aside_at: null })
+          .eq("id", profileId).eq("account_id", user.id).not("set_aside_at", "is", null).select("id");
+        if (error) {
+          if (error.code === "23514") throw new HttpError("bad_request", "Your plan has no room for another profile. Set one aside or change plan first.");
+          dbError(error);
+        }
+        if (!data?.length) throw new HttpError("not_found", "Profile not found, or already in use.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "delete": {
+        onlyKeys(body, ["action", "profileId", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        await confirmPassword(user.email, password);
+        // Another profile has to stay in use (not set aside).
+        const { count, error: countError } = await db.from("reader_profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("account_id", user.id).is("set_aside_at", null).neq("id", profileId);
+        if (countError) dbError(countError);
+        if (!count) throw new HttpError("bad_request", "An account keeps at least one profile in use.");
         // The profile's uploaded books go with it; their text files are in Storage.
         const { data: uploads, error: uploadsError } = await db.from("uploaded_books")
           .select("storage_path").eq("profile_id", profileId).eq("user_id", user.id);

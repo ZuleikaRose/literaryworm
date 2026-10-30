@@ -1461,3 +1461,29 @@ body:has(.mini-player) .listen-along-bar {
   display: grid;
   gap: 8px;
 }
+
+
+/* Subscribe in your calendar: the member's own feed link. */
+.calendar-feed {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.calendar-feed h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.calendar-feed .field-input {
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.calendar-feed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

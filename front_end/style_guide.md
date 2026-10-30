@@ -194,6 +194,14 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Gift start day.** *When it starts* is a fieldset of two chips (*Straight away*, *On a later day*) like *How long*; the later choice adds a native date field, at most 320px wide, with a hint and an error under it.
 
+**Profiles set aside.** Below the grid on Who's reading?, a *Set aside* section (`h2`, 18px) with a muted line and smaller tiles (112px, avatar at 60% opacity, partly greyed) each with a *Set aside* chip. In the editor, *Set aside* is a ghost button between *Save changes* and *Delete profile*; *Bring back* a secondary button. Both confirm in the same panel as Delete, with the account password, and a primary button (*Set aside*, *Bring back*) and *Cancel*.
+
+**Emailing a gift.** *How they get it* is a fieldset of two chips like *When it starts*: *I'll pass the code on* and *Email it to them*, which opens *Their email address* (email input) and *A message (optional)* (a 3-row textarea, 300 characters), up to 520px wide. Hints say when it goes and that the address is forgotten afterwards. The recipient's email uses the gift reminder's layout: *A gift for you*, the message as a quote with a rust left border, the code large in a monospace face in the card, and *Redeem your gift*.
+
+**Calendar link.** At the foot of Meetings, under a thin rule: *Subscribe in your calendar* (`h3`, 16px), a short line and *Get calendar link* (secondary, calendar icon). Then a read-only field with the link (selected on focus), *Open in calendar app* and *Copy link*, and a hint naming Google Calendar's *Other calendars → From URL*.
+
+**Most-followed authors.** The author search's card list on Home, under *What readers here follow* / *Most-followed authors*: initials, the name as a link, *12 followers* muted, and a small Follow button. It sits after *New from people you follow*.
+
 **Changing a meeting.** The scheduling form, reopened in place with the meeting filled in; *Change* is a text button beside *Cancel*. The submit reads *Save changes* and the secondary *Keep it as it was*.
 
 **Yearly to monthly.** No new components: Plans' confirmation reuses the checkout summary (*When it changes: On March 10, 2027, when your year would renew…*), the chosen plan's card swaps its button for the *Your current plan* style with a calendar icon (*Monthly from March 10, 2027*), and Account adds a hint line with a text-button *Keep yearly billing*.

@@ -487,9 +487,21 @@ export async function redeemPromoCode(code: string): Promise<MembershipDiscount>
 
 // --- Gifts (checkout and manage-account functions; gift_codes) ---------------------------
 
+/** Who to email a gift to (and what to tell them); without one, the buyer passes the code on. */
+export interface GiftRecipient {
+  email: string;
+  message: string;
+}
+
 /** Starts paying for a gift on Stripe Checkout; returns the page to send the member to. */
-export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null): Promise<string> {
-  const body = { gift: true, planId, months, ...(startsOn ? { startsOn } : {}) };
+export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null, recipient: GiftRecipient | null = null): Promise<string> {
+  const body = {
+    gift: true,
+    planId,
+    months,
+    ...(startsOn ? { startsOn } : {}),
+    ...(recipient ? { recipientEmail: recipient.email.trim(), ...(recipient.message.trim() ? { message: recipient.message.trim() } : {}) } : {}),
+  };
   const { url } = await callFunction<{ url: string }>("checkout", body, "We couldn't start the payment. Try again.");
   return url;
 }
@@ -505,16 +517,19 @@ export interface BoughtGift {
   createdAt: string;
   /** The first day the code can be redeemed ("YYYY-MM-DD"); null from the day it was bought. */
   startsOn: string | null;
+  /** Who we'll email it to; cleared once it's sent (deliveredAt). */
+  recipientEmail: string | null;
+  deliveredAt: string | null;
 }
 
 /** The gift codes this account bought, newest first (only the buyer can read them). */
 export async function myGifts(): Promise<BoughtGift[]> {
   const { data, error } = await client()
     .from("gift_codes")
-    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at, starts_on")
+    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at")
     .order("created_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load your gifts. Try again.");
-  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null }[]).map((g) => ({
+  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null }[]).map((g) => ({
     id: g.id,
     code: g.code,
     planId: g.plan_id,
@@ -524,6 +539,8 @@ export async function myGifts(): Promise<BoughtGift[]> {
     redeemedAt: g.redeemed_at,
     createdAt: g.created_at,
     startsOn: g.starts_on,
+    recipientEmail: g.recipient_email,
+    deliveredAt: g.delivered_at,
   }));
 }
 
@@ -627,10 +644,11 @@ interface ProfileRow {
   weekly_goal_minutes?: number | null;
   favorite_genres: string[];
   kids_consent_at: string | null;
+  set_aside_at?: string | null;
 }
 
 const PROFILE_COLUMNS =
-  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, favorite_genres, kids_consent_at";
+  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, favorite_genres, kids_consent_at, set_aside_at";
 
 const toProfile = (row: ProfileRow): Profile => ({
   id: row.id,
@@ -645,6 +663,7 @@ const toProfile = (row: ProfileRow): Profile => ({
   dailyLimitMinutes: row.daily_limit_minutes,
   weeklyGoalMinutes: row.age_rating === "kids" ? (row.weekly_goal_minutes ?? null) : null,
   kidsConsent: Boolean(row.kids_consent_at),
+  setAside: Boolean(row.set_aside_at),
 });
 
 /** The household's profiles, oldest first. A new account gets its first profile here. */
@@ -703,6 +722,8 @@ type ProtectedProfileChange =
   | { action: "set_weekly_goal"; profileId: string; weeklyGoalMinutes: number | null }
   | { action: "set_age_rating"; profileId: string; ageRating: AgeRating; noticeVersion?: string }
   | { action: "unlock"; profileId: string }
+  | { action: "set_aside"; profileId: string }
+  | { action: "bring_back"; profileId: string }
   | { action: "delete"; profileId: string };
 
 /** Changes a grown-up controls; the manage-profile function re-checks the account password. */

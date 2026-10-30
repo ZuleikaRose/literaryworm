@@ -531,3 +531,29 @@
     font-size: 2.1rem !important;
   }
 }
+
+/* Profiles set aside to fit a smaller plan: smaller, quieter, and chosen only to bring back. */
+.profiles-aside {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.profiles-aside h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.profiles-aside .profiles-note {
+  margin: 6px 0 20px;
+}
+
+.profile-tile.is-aside {
+  width: 112px;
+}
+
+.profile-tile.is-aside .avatar {
+  font-size: 1.8rem !important;
+  opacity: 0.6;
+  filter: grayscale(0.6);
+}

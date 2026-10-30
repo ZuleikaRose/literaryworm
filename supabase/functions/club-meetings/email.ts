@@ -183,13 +183,13 @@ export interface MeetingChange {
 }
 
 /** 2026-11-08T19:00:00.000Z → 20261108T190000Z, as calendars write times. */
-const icsTime = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+export const icsTime = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
 /** Escapes text for a calendar file (RFC 5545): backslashes, commas, semicolons and line breaks. */
-const icsText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+export const icsText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
 /** Folds a line to 75 characters, continuing with a space, as calendar files must. */
-function fold(line: string): string {
+export function fold(line: string): string {
   const parts: string[] = [];
   let rest = line;
   while (rest.length > 75) {

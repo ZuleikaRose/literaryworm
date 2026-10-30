@@ -165,6 +165,11 @@ export interface Profile {
   /** Kids profiles: how long a grown-up wants them to read or listen each week, in minutes. */
   weeklyGoalMinutes: number | null;
   kidsConsent: boolean;
+  /**
+   * Set aside to fit a smaller plan: keeps its shelf, history and settings, doesn't count towards
+   * the plan, and can't be chosen in Who's reading? until it's brought back.
+   */
+  setAside: boolean;
 }
 
 export type RatingValue = "not-for-me" | "like" | "love";

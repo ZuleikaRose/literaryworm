@@ -77,8 +77,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.gift-reminders]
-# Called by pg_cron once a day, which sends no Supabase token: the function checks the
+# Called by pg_cron every hour, which sends no Supabase token: the function checks the
 # Authorization header against the gift_reminders_secret kept in Vault instead.
+verify_jwt = false
+
+[functions.club-calendar]
+# Calendar apps read the feed with no Supabase token (the link is signed with the
+# club_calendar_secret kept in Vault); asking for a link checks the session itself.
 verify_jwt = false
 
 # Two-step sign-in with an authenticator app (on by default on hosted projects; the CLI's default is off).

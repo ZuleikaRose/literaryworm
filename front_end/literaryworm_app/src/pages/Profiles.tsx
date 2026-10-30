@@ -7,6 +7,7 @@ import { PinDialog } from "../components/PinDialog";
 import { ProfileEditor } from "../components/ProfileEditor";
 import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { planById } from "../data/plans";
+import { profileRoom, profilesInUse } from "../lib/planLimits";
 import { ageRatingDetails, lockMinutesLeft } from "../lib/profiles";
 import { useProfiles } from "../lib/useProfiles";
 import { useTitle } from "../lib/useTitle";
@@ -39,8 +40,14 @@ export default function Profiles() {
   const [grownUpOk, setGrownUpOk] = useState(false);
 
   const plan = account?.planId ? planById.get(account.planId) : undefined;
-  const profileLimit = Math.min(plan?.profiles ?? 1, MAX_PROFILES);
-  const canAdd = profiles.length < profileLimit;
+  // Profiles set aside keep everything but don't count, and can't be chosen until they're back.
+  const inUse = profilesInUse(profiles);
+  const setAside = profiles.filter((p) => p.setAside);
+  const profileLimit = profileRoom(account);
+  // A yearly membership moving to a smaller plan at renewal has that plan's room already.
+  const nextPlan = account?.switchToMonthly ? planById.get(account.switchToMonthly) : undefined;
+  const limitedByNext = Boolean(plan && nextPlan && nextPlan.profiles < plan.profiles);
+  const canAdd = inUse.length < profileLimit && profiles.length < MAX_PROFILES;
   const needsGrownUp = kidsGuard && !grownUpOk;
 
   const run = (action: Pending) => {
@@ -56,13 +63,13 @@ export default function Profiles() {
   };
 
   const choose = (profile: Profile) => {
-    if (managing) return guarded({ kind: "edit", profile });
+    if (managing || profile.setAside) return guarded({ kind: "edit", profile });
     if (profile.hasPin) return setPinFor(profile);
     enter(profile);
   };
 
   // Step 3 of sign-up: pick genres for the first profile.
-  const setupProfile = params.get("setup") === "1" && profiles.length === 1 ? profiles[0] : null;
+  const setupProfile = params.get("setup") === "1" && profiles.length === 1 && !profiles[0].setAside ? profiles[0] : null;
   if (setupProfile) {
     return (
       <GenreSetup
@@ -88,7 +95,7 @@ export default function Profiles() {
       </p>
 
       <ul className="profile-grid">
-        {profiles.map((p) => {
+        {inUse.map((p) => {
           const locked = lockMinutesLeft(p) > 0;
           // The accessible name comes from the visible text plus this hidden state, so it always
           // contains what sighted users see (WCAG 2.5.3 Label in Name).
@@ -145,7 +152,7 @@ export default function Profiles() {
               </span>
               <span className="profile-tile-name">Add profile</span>
               <span className="profile-tile-meta">
-                {profiles.length} of {profileLimit} used
+                {inUse.length} of {profileLimit} used
               </span>
             </button>
           </li>
@@ -154,9 +161,36 @@ export default function Profiles() {
 
       {!canAdd && profiles.length < MAX_PROFILES && plan && (
         <p className="profiles-note">
-          Your {plan.name} plan includes {profileLimit === 1 ? "1 profile" : `${profileLimit} profiles`}.{" "}
+          {limitedByNext && nextPlan
+            ? `Your membership moves to ${nextPlan.name} at renewal, which includes ${profileLimit === 1 ? "1 profile" : `${profileLimit} profiles`}. `
+            : `Your ${plan.name} plan includes ${profileLimit === 1 ? "1 profile" : `${profileLimit} profiles`}. `}
           <Link to="/plans">Change plan</Link> to add more.
         </p>
+      )}
+
+      {setAside.length > 0 && (
+        <section className="profiles-aside" aria-labelledby="profiles-aside-title">
+          <h2 id="profiles-aside-title">Set aside</h2>
+          <p className="profiles-note">
+            These keep their shelf, history and settings, and don't count towards your plan. Choose one to bring it back
+            {inUse.length >= profileLimit ? " once there's room" : ""}.
+          </p>
+          <ul className="profile-grid is-aside">
+            {setAside.map((p) => (
+              <li key={p.id}>
+                <button type="button" className="profile-tile is-aside" onClick={() => choose(p)}>
+                  <span className="profile-tile-avatar">
+                    <Avatar name={p.name} avatar={p.avatar} size={72} />
+                  </span>
+                  <span className="profile-tile-name">{p.name}</span>
+                  <span className="profile-tile-meta">
+                    <span className="rating-chip">Set aside</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="profiles-actions">

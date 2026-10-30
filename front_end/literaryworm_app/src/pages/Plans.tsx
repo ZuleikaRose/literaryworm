@@ -6,7 +6,7 @@ import { WhatsNewLink } from "../components/WhatsNewLink";
 import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
 import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
-import { tooBigFor } from "../lib/planLimits";
+import { profilesInUse, tooBigFor } from "../lib/planLimits";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { BillingInterval, Plan, PlanId } from "../types";
@@ -145,7 +145,7 @@ export default function Plans() {
   };
 
   const plan = selected ? planById.get(selected)! : null;
-  const tooBig = plan ? tooBigFor(plan, { profiles: state.profiles.length, offlineDevices }) : [];
+  const tooBig = plan ? tooBigFor(plan, { profiles: profilesInUse(state.profiles).length, offlineDevices }) : [];
   const isDemo = Boolean(account?.isDemo);
   // A member already paying through Stripe switches plan from their next billing date.
   const changingPaid = Boolean(account?.userId && account.stripeLinked && account.status !== "cancelled");

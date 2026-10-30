@@ -56,7 +56,7 @@ export function tooBigFor(planId: PlanId, size: { profiles: number; offlineDevic
   const problems: string[] = [];
   if (size.profiles > room.profiles) {
     problems.push(
-      `${name} has room for ${plural(room.profiles, "profile", "profiles")} and your household has ${size.profiles}. Remove ${size.profiles - room.profiles} in Who's reading? first.`,
+      `${name} has room for ${plural(room.profiles, "profile", "profiles")} and your household uses ${size.profiles}. Set aside or remove ${size.profiles - room.profiles} in Who's reading? first.`,
     );
   }
   if (size.offlineDevices > room.offlineDevices) {
@@ -94,6 +94,33 @@ export function parseGiftStart(raw: unknown, now = new Date()): string | null {
   const latest = new Date(now.getTime() + GIFT_START_MAX_DAYS * 86_400_000).toISOString().slice(0, 10);
   if (raw < earliest || raw > latest) throw new Error("A gift can start today or on a day up to a year ahead.");
   return raw;
+}
+
+/** Longest message a buyer can send with a gift (the database allows the same). */
+export const GIFT_MESSAGE_MAX = 300;
+
+/**
+ * The address to email a gift to, as gift_codes keeps it (trimmed, lower case); null when none is
+ * given (the buyer passes the code on). The same check as giftRecipientError() in the app.
+ */
+export function parseGiftRecipient(raw: unknown): string | null {
+  if (raw === undefined || raw === null) return null;
+  const email = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  if (email.length < 3 || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    throw new Error("Enter the email address to send the gift to, like name@example.com.");
+  }
+  return email;
+}
+
+/** A message to go with an emailed gift: plain text, trimmed, up to GIFT_MESSAGE_MAX characters. */
+export function parseGiftMessage(raw: unknown): string | null {
+  if (raw === undefined || raw === null) return null;
+  // deno-lint-ignore no-control-regex
+  const text = typeof raw === "string" ? raw.normalize("NFC").replace(/\r\n?/g, "\n").replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, "").trim() : null;
+  if (text === null) throw new Error("The message is text.");
+  if (text.length === 0) return null;
+  if (text.length > GIFT_MESSAGE_MAX) throw new Error(`Keep the message to ${GIFT_MESSAGE_MAX} characters.`);
+  return text;
 }
 
 /** Whether a gift set to start on `startsOn` can be redeemed: from the start of that day anywhere (UTC+14). */

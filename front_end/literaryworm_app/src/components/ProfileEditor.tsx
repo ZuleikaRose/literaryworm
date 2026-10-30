@@ -64,14 +64,19 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const goal = rating === "kids" ? weeklyGoal : (profile?.weeklyGoalMinutes ?? null);
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  // A step that needs confirming with the account password: deleting, setting aside, bringing back.
+  const [confirm, setConfirm] = useState<"delete" | "aside" | "back" | null>(null);
+  const confirmDelete = confirm === "delete";
+  const inUseOthers = others.filter((p) => !p.setAside);
+  // Not the profile reading now (switch first), and never the last one in use.
+  const canSetAside = !isNew && !profile.setAside && profile.id !== state.activeProfileId && inUseOthers.length > 0;
   const formRef = useRef<HTMLFormElement>(null);
 
   // Changing who can see what, or locking a profile, is the account holder's call.
   const pinChanged = pinOn ? pin.length > 0 || !profile?.hasPin : Boolean(profile?.hasPin);
   const protectedChange =
     (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null) || goal !== (profile?.weeklyGoalMinutes ?? null);
-  const needsPassword = protectedChange || confirmDelete;
+  const needsPassword = protectedChange || confirm !== null;
   const needsConsent = rating === "kids" && !(profile?.ageRating === "kids" && profile.kidsConsent);
 
   const toggleGenre = (g: string) => setGenres((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
@@ -115,6 +120,25 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       onDone();
     } catch (err) {
       setErrors({ form: err instanceof AccountError ? err.message : "We couldn't save the profile. Try again." });
+      setBusy(false);
+    }
+  };
+
+  const moveAside = async (aside: boolean) => {
+    if (!profile) return;
+    setBusy(true);
+    const result = await checkPassword(password);
+    if (!result.ok) {
+      setBusy(false);
+      setErrors({ password: result.problem ?? `Enter the account password to ${aside ? "set this profile aside" : "bring this profile back"}.` });
+      focusFirstError();
+      return;
+    }
+    try {
+      await household.setAside(profile, aside, password);
+      onDone();
+    } catch (err) {
+      setErrors({ form: err instanceof AccountError ? err.message : "We couldn't change the profile. Try again." });
       setBusy(false);
     }
   };
@@ -311,8 +335,31 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
             <button type="button" className="danger-button" onClick={remove} disabled={busy}>
               <Icon name="trash" size={16} /> {busy ? "Deleting…" : "Delete profile"}
             </button>
-            <button type="button" className="ghost-button" onClick={() => setConfirmDelete(false)}>
+            <button type="button" className="ghost-button" onClick={() => setConfirm(null)}>
               Keep profile
+            </button>
+          </div>
+        </div>
+      ) : confirm === "aside" || confirm === "back" ? (
+        <div className="delete-confirm" role="group" aria-label={confirm === "aside" ? "Set profile aside" : "Bring profile back"}>
+          <p>
+            {confirm === "aside" ? (
+              <>
+                Set <strong>{profile?.name}</strong> aside? Their shelf, history and settings stay, but nobody can choose the profile
+                and it doesn't count towards your plan until you bring it back.
+              </>
+            ) : (
+              <>
+                Bring <strong>{profile?.name}</strong> back? It counts towards your plan again.
+              </>
+            )}
+          </p>
+          <div className="modal-actions">
+            <button type="button" className="primary-button" onClick={() => void moveAside(confirm === "aside")} disabled={busy}>
+              {busy ? "Saving…" : confirm === "aside" ? "Set aside" : "Bring back"}
+            </button>
+            <button type="button" className="ghost-button" onClick={() => setConfirm(null)}>
+              Cancel
             </button>
           </div>
         </div>
@@ -321,8 +368,18 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           <button type="submit" className="primary-button" disabled={busy}>
             {busy ? "Saving…" : isNew ? "Add profile" : "Save changes"}
           </button>
-          {!isNew && others.length > 0 && (
-            <button type="button" className="ghost-button danger-text" onClick={() => setConfirmDelete(true)}>
+          {profile?.setAside && (
+            <button type="button" className="secondary-button" onClick={() => setConfirm("back")}>
+              Bring back
+            </button>
+          )}
+          {canSetAside && (
+            <button type="button" className="ghost-button" onClick={() => setConfirm("aside")}>
+              Set aside
+            </button>
+          )}
+          {!isNew && inUseOthers.length > 0 && (
+            <button type="button" className="ghost-button danger-text" onClick={() => setConfirm("delete")}>
               Delete profile
             </button>
           )}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { bellCount, isNewListeningAlert } from "./notifications";
-import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, nextPlanUp, planCheckoutPath, planLimits, tooBigFor } from "./planLimits";
+import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, nextPlanUp, planCheckoutPath, planLimits, profileRoom, profilesInUse, tooBigFor } from "./planLimits";
 import { planById } from "../data/plans";
 
 describe("plan limits", () => {
@@ -110,14 +110,40 @@ describe("moving down a plan", () => {
 
   it("says how many profiles and offline devices have to go, as the checkout function does", () => {
     expect(tooBigFor(standard, { profiles: 8, offlineDevices: 12 })).toEqual([
-      "Standard has room for 5 profiles and your household has 8. Remove 3 in Who's reading? first.",
+      "Standard has room for 5 profiles and your household uses 8. Set aside or remove 3 in Who's reading? first.",
       "Standard keeps books offline on 10 devices and 12 are saving books now. Free 2 in Account first.",
     ]);
     expect(tooBigFor(basic, { profiles: 2, offlineDevices: 1 })).toEqual([
-      "Basic has room for 1 profile and your household has 2. Remove 1 in Who's reading? first.",
+      "Basic has room for 1 profile and your household uses 2. Set aside or remove 1 in Who's reading? first.",
     ]);
     expect(tooBigFor(basic, { profiles: 1, offlineDevices: 3 })).toEqual([
       "Basic keeps books offline on 1 device and 3 are saving books now. Free 2 in Account first.",
+    ]);
+  });
+});
+
+describe("how many profiles a household may use", () => {
+  it("is the plan's, or one without a plan", () => {
+    expect(profileRoom(null)).toBe(1);
+    expect(profileRoom({ planId: null })).toBe(1);
+    expect(profileRoom({ planId: "basic" })).toBe(1);
+    expect(profileRoom({ planId: "standard" })).toBe(5);
+    expect(profileRoom({ planId: "premium" })).toBe(12);
+  });
+
+  it("is the smaller plan's while a yearly membership waits to move to it at renewal", () => {
+    expect(profileRoom({ planId: "premium", switchToMonthly: "standard" })).toBe(5);
+    expect(profileRoom({ planId: "standard", switchToMonthly: "basic" })).toBe(1);
+    // Moving to monthly on the same or a bigger plan changes nothing now.
+    expect(profileRoom({ planId: "standard", switchToMonthly: "premium" })).toBe(5);
+    expect(profileRoom({ planId: "standard", switchToMonthly: null })).toBe(5);
+  });
+
+  it("counts only the profiles in use, not those set aside", () => {
+    const household = [{ setAside: false }, { setAside: true }, { setAside: false }];
+    expect(profilesInUse(household)).toHaveLength(2);
+    expect(tooBigFor(planById.get("basic")!, { profiles: profilesInUse(household).length, offlineDevices: 0 })).toEqual([
+      "Basic has room for 1 profile and your household uses 2. Set aside or remove 1 in Who's reading? first.",
     ]);
   });
 });

@@ -412,5 +412,10 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Gift start reminder: the buyer is emailed three days before a later start day (new `gift-reminders` function, daily; Privacy and Return Policy updated) (migration 6000) | Done    |
 | —    | Kids report in groups: Account → Family and the Monday email group Kids profiles by how the week went (`kids-report`) | Done    |
 | —    | Database security checks run in full on a Supabase branch; fixed deleting a club with an upcoming meeting (migrations 6001–6003) | Done    |
+| —    | Set profiles aside to fit a smaller plan (they keep everything and come back when there's room), and a yearly move to a smaller plan has its room from the start (migration 6100; Terms and Privacy updated) | Done    |
+| —    | Email a gift to the person it's for, with a message; the address is deleted once it's sent (migration 6101; Privacy and Return Policy updated) | Done    |
+| —    | Club meetings in your calendar app: a signed subscribe link per member (new `club-calendar` function, migration 6102) | Done    |
+| —    | Most-followed authors on Home (migration 6103) | Done    |
+| —    | Yearly-to-monthly switch tested on the Stripe sandbox with the app's prices; security checks run unchanged on a branch with `supabase/tests/run-on-branch.sh` | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

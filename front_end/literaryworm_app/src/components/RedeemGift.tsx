@@ -15,10 +15,11 @@ const message = (err: unknown) => (err instanceof AccountError ? err.message : "
  * when the gift ends; Stripe then starts a membership free for the months and the webhook writes
  * it, so this waits for it before saying it's ready.
  */
-export function RedeemGift({ account, onStarted }: { account: Account; onStarted?: () => void }) {
+export function RedeemGift({ account, onStarted, initialCode = "" }: { account: Account; onStarted?: () => void; initialCode?: string }) {
   const id = useId();
   const { dispatch } = useStore();
-  const [code, setCode] = useState("");
+  // Filled in from a gift email's link (/gifts?code=…).
+  const [code, setCode] = useState(initialCode);
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ field: "code" | "agree" | "form"; text: string } | null>(null);

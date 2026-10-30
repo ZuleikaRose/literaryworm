@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookFeed } from "../components/BookFeed";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
 import { GenreNav } from "../components/GenreNav";
+import { MostFollowed } from "../components/MostFollowed";
 import { OutNow } from "../components/RemindersView";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
@@ -135,6 +136,7 @@ export default function Browse() {
             items={followed.map(fromLocal)}
           />
         )}
+        {profile.ageRating !== "kids" && <MostFollowed />}
         <Shelf
           id="trending"
           eyebrow="Curated for you"

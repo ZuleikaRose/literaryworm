@@ -975,3 +975,16 @@
 .gift-start {
   max-width: 320px;
 }
+
+/* Emailing a gift: the recipient's address and an optional message. */
+.gift-recipient {
+  display: grid;
+  gap: 4px;
+  max-width: 520px;
+  margin-top: 12px;
+}
+
+.gift-recipient textarea {
+  min-height: 88px;
+  resize: vertical;
+}

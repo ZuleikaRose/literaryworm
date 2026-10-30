@@ -47,3 +47,27 @@ export async function fetchFollowerCounts(kind: PersonKind, names: string[]): Pr
     return null;
   }
 }
+
+/**
+ * The most-followed authors (or narrators), through the `most_followed` database function: names
+ * and counts, never who, for people with at least two followers. Null without the backend or when
+ * they can't be read; Home then leaves the row out.
+ */
+export async function fetchMostFollowed(kind: PersonKind, limit = 8): Promise<{ name: string; followers: number }[] | null> {
+  if (!usesBackend) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/most_followed`, {
+      method: "POST",
+      headers: { apikey: PUBLISHABLE_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_kind: kind, p_limit: limit }),
+    });
+    if (!res.ok) return null;
+    const rows: unknown = await res.json();
+    if (!Array.isArray(rows)) return null;
+    return (rows as { name?: unknown; followers?: unknown }[])
+      .filter((r): r is { name: string; followers: number } => typeof r.name === "string" && typeof r.followers === "number")
+      .map((r) => ({ name: r.name, followers: r.followers }));
+  } catch {
+    return null;
+  }
+}

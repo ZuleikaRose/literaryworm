@@ -5,6 +5,17 @@ import { serviceClient } from "../_shared/supabase.ts";
 import { handle } from "./handler.ts";
 import type { Gift } from "./email.ts";
 
+interface DeliveryRow {
+  gift_id: string;
+  code: string;
+  plan_id: Gift["planId"];
+  months: Gift["months"];
+  starts_on: string | null;
+  recipient_email: string;
+  message: string | null;
+  buyer_name: string | null;
+}
+
 interface ReminderRow {
   gift_id: string;
   plan_id: Gift["planId"];
@@ -32,6 +43,24 @@ Deno.serve((req) =>
     },
     async release(giftId) {
       const { error } = await serviceClient().from("gift_codes").update({ reminded_at: null }).eq("id", giftId);
+      if (error) throw error;
+    },
+    async claimDeliveries(max) {
+      const { data, error } = await serviceClient().rpc("claim_gift_deliveries", { max_count: max });
+      if (error) throw error;
+      return (data as DeliveryRow[]).map((r) => ({
+        gift: { id: r.gift_id, code: r.code, planId: r.plan_id, months: r.months, startsOn: r.starts_on },
+        to: r.recipient_email,
+        message: r.message,
+        from: r.buyer_name,
+      }));
+    },
+    async releaseDelivery(giftId) {
+      const { error } = await serviceClient().from("gift_codes").update({ delivered_at: null }).eq("id", giftId);
+      if (error) throw error;
+    },
+    async delivered(giftId) {
+      const { error } = await serviceClient().from("gift_codes").update({ recipient_email: null, message: null }).eq("id", giftId);
       if (error) throw error;
     },
     send: (email) => sendWithMailgun({ ...email, tag: "gift-reminders" }),

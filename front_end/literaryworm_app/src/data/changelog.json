@@ -3,6 +3,46 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Set a profile aside",
+    "body": "Moving to a smaller plan? Instead of deleting a profile, set it aside in Who's reading?: it keeps its shelf, history and settings and doesn't count towards the plan. Bring it back when there's room, or it comes back by itself when you move up a plan.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "Email a gift to someone",
+    "body": "When you buy a gift membership you can now have us email the code to the person it's for, with a short message from you. A gift that starts now arrives within the hour; one for a later day arrives that morning. We forget their address once it's sent.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "Club meetings in your calendar app",
+    "body": "Each book club now has a calendar link for its members. Add it to Google Calendar, Apple Calendar or Outlook once, and new, moved and cancelled meetings update by themselves.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "Most-followed authors on Home",
+    "body": "Home now shows the authors readers on LiteraryWorm follow most, with how many follow each. Follow one straight from the row.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "fix",
+    "title": "Plan limits when moving to monthly at renewal",
+    "body": "A yearly membership set to move to a smaller monthly plan at renewal now has that plan's room for profiles and offline devices straight away, so nothing needs removing on renewal day.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "A reminder before a gift starts",
     "body": "Bought a gift membership for a later day? We'll email you three days before it starts, so you remember to pass the code on. The email links to your gifts; the code itself stays on the Gifts page.",
     "major": false

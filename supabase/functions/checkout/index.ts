@@ -51,7 +51,8 @@ Deno.serve((req) =>
     },
     async householdSize(userId) {
       const [profiles, devices] = await Promise.all([
-        serviceClient().from("reader_profiles").select("id", { count: "exact", head: true }).eq("account_id", userId),
+        // Profiles set aside don't count.
+        serviceClient().from("reader_profiles").select("id", { count: "exact", head: true }).eq("account_id", userId).is("set_aside_at", null),
         serviceClient().from("offline_devices").select("id", { count: "exact", head: true }).eq("user_id", userId),
       ]);
       if (profiles.error) throw profiles.error;
@@ -94,7 +95,15 @@ Deno.serve((req) =>
           { quantity: year ? 1 : input.months, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } },
         ],
         // Read by stripe-webhook to make the gift code.
-        metadata: { kind: "gift", plan_id: input.planId, months: String(input.months), ...(input.startsOn ? { starts_on: input.startsOn } : {}) },
+        metadata: {
+          kind: "gift",
+          plan_id: input.planId,
+          months: String(input.months),
+          ...(input.startsOn ? { starts_on: input.startsOn } : {}),
+          // Who to email the code to (Stripe keeps metadata values up to 500 characters).
+          ...(input.recipientEmail ? { recipient_email: input.recipientEmail } : {}),
+          ...(input.message ? { message: input.message } : {}),
+        },
         success_url: `${input.origin}/gifts?checkout=success`,
         cancel_url: `${input.origin}/gifts?checkout=cancelled`,
         integration_identifier: `literaryworm_gift_${randomLetters()}`,

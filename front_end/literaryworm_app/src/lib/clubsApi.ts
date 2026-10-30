@@ -191,6 +191,15 @@ export async function inviteByEmail(clubId: string, email: string): Promise<void
   await callFunction<{ sent: true }>("club-invite", { clubId, email: email.trim() }, "We couldn't send the invitation. Try again.");
 }
 
+/**
+ * The member's subscribe link for a club's meetings (the club-calendar function signs it). Calendar
+ * apps read it on their own; it stops working if the member leaves the club.
+ */
+export async function calendarFeedUrl(clubId: string): Promise<string> {
+  const { url } = await callFunction<{ url: string }>("club-calendar", { clubId }, "We couldn't make the calendar link. Try again.");
+  return url;
+}
+
 /** Joins with an invite code; returns the club's id, or null for a code that doesn't match a club. */
 export async function joinClub(code: string): Promise<string | null> {
   const { data, error } = await client().rpc("join_club", { p_code: code });

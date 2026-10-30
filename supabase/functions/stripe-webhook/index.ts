@@ -63,6 +63,8 @@ Deno.serve((req) =>
           buyer_id: gift.buyerId,
           stripe_checkout_session_id: gift.sessionId,
           starts_on: gift.startsOn,
+          recipient_email: gift.recipientEmail,
+          message: gift.message,
         },
         { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true },
       );

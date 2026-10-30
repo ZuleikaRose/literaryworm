@@ -49,5 +49,16 @@ export function giftStartError(value: string, now = new Date()): string | null {
   return null;
 }
 
+/** Longest message to send with an emailed gift (the checkout function's limit too). */
+export const GIFT_MESSAGE_MAX = 300;
+
+/** The same address check as the checkout function's (parseGiftRecipient()). */
+export function giftRecipientError(raw: string): string | null {
+  const email = raw.trim();
+  if (!email) return "Enter their email address.";
+  if (email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return "Enter an email address like name@example.com.";
+  return null;
+}
+
 /** Whether a bought gift's start day is still to come (its code can't be redeemed yet). */
 export const giftNotStarted = (startsOn: string | null, now = new Date()) => Boolean(startsOn && startsOn > today(now));

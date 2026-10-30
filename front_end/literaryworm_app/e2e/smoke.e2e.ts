@@ -173,11 +173,47 @@ describe("the demo household", () => {
     await signInDemo(page);
     await goInApp(page, "/plans?plan=basic");
     const checkout = page.getByRole("region", { name: /Confirm Basic/ });
-    await checkout.getByText("Basic has room for 1 profile and your household has 3. Remove 2 in Who's reading? first.").waitFor();
+    await checkout.getByText("Basic has room for 1 profile and your household uses 3. Set aside or remove 2 in Who's reading? first.").waitFor();
     expect(await checkout.getByRole("button", { name: /Switch to|Continue to payment/ }).count()).toBe(0);
     await checkout.getByRole("link", { name: "Who's reading?" }).waitFor();
     await checkout.getByRole("button", { name: "Keep my plan" }).click();
     await page.getByRole("region", { name: /Confirm Basic/ }).waitFor({ state: "detached" });
+    expect(errors()).toEqual([]);
+  });
+
+  it("sets a profile aside to fit a smaller plan, then brings it back", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles?manage=1");
+    await page.getByRole("heading", { name: "Manage profiles" }).waitFor();
+    const password = async (dialog: ReturnType<typeof page.getByRole>) => {
+      const hint = await dialog.getByText(/Demo account password:/).textContent();
+      await dialog.getByLabel("Account password").fill(hint!.replace("Demo account password:", "").trim());
+    };
+
+    await page.getByRole("button", { name: /^Sam/ }).click();
+    let dialog = page.getByRole("dialog", { name: "Edit Sam" });
+    await dialog.getByRole("button", { name: "Set aside" }).click();
+    await password(dialog);
+    await dialog.getByRole("group", { name: "Set profile aside" }).getByRole("button", { name: "Set aside" }).click();
+    await dialog.waitFor({ state: "detached" });
+
+    // Out of the grid, into "Set aside", and out of the plan's count.
+    const aside = page.getByRole("region", { name: "Set aside" });
+    await aside.getByRole("button", { name: /^Sam/ }).waitFor();
+    await page.getByRole("button", { name: "Done" }).click();
+    expect(await page.getByRole("list").first().getByRole("button", { name: /^Sam/ }).count()).toBe(0);
+    await goInApp(page, "/plans?plan=basic");
+    await page.getByRole("region", { name: /Confirm Basic/ }).getByText("your household uses 2. Set aside or remove 1").waitFor();
+
+    await goInApp(page, "/profiles");
+    await page.getByRole("region", { name: "Set aside" }).getByRole("button", { name: /^Sam/ }).click();
+    dialog = page.getByRole("dialog", { name: "Edit Sam" });
+    await dialog.getByRole("button", { name: "Bring back" }).click();
+    await password(dialog);
+    await dialog.getByRole("group", { name: "Bring profile back" }).getByRole("button", { name: "Bring back" }).click();
+    await dialog.waitFor({ state: "detached" });
+    expect(await page.getByRole("region", { name: "Set aside" }).count()).toBe(0);
     expect(errors()).toEqual([]);
   });
 

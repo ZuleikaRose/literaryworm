@@ -1,6 +1,7 @@
-// The note to a gift's buyer a few days before the day it starts. Inline styles only (email
-// clients drop <style> blocks), matching supabase/templates and the other emails. The code itself
-// isn't in it: the buyer sees it on the Gifts page, signed in.
+// The note to a gift's buyer a few days before the day it starts, and the gift itself, emailed to
+// its recipient when the buyer asked us to. Inline styles only (email clients drop <style>
+// blocks), matching supabase/templates and the other emails. The buyer's reminder never has the
+// code in it (they see it on the Gifts page, signed in); the recipient's email is the code.
 
 export interface Gift {
   id: string;
@@ -103,4 +104,100 @@ export function giftStartEmail(input: { to: string; name: string | null; gift: G
 </html>
 `;
   return { to: input.to, subject, text, html };
+}
+
+/** A gift to email to its recipient (what claim_gift_deliveries() returns). */
+export interface Delivery {
+  gift: Omit<Gift, "startsOn"> & { code: string; startsOn: string | null };
+  to: string;
+  /** What the buyer wrote, if anything. */
+  message: string | null;
+  /** The buyer's display name; null when they have none (or deleted their account). */
+  from: string | null;
+}
+
+/** ABCD-EFGH-JKLM-NPQR, as the app shows codes (formatGiftCode() in src/lib/gifts.ts). */
+export const formatGiftCode = (code: string) => code.match(/.{1,4}/g)?.join("-") ?? code;
+
+export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): Email {
+  const { gift, message, from } = input.delivery;
+  const what = `${length(gift.months)} of ${PLAN_NAMES[gift.planId]}`;
+  const subject = from ? `A LiteraryWorm gift from ${from}` : "You've been sent a LiteraryWorm gift";
+  const lead = `${from ?? "Someone"} sent you ${what} on LiteraryWorm: ebooks and audiobooks, with a profile for everyone at home.`;
+  const code = formatGiftCode(gift.code);
+  const page = `${input.site}/gifts?code=${gift.code}`;
+  const hint = "Sign in or create an account, then enter the code on the Gifts page or in Account. It doesn't expire";
+  const why = `You're getting this because ${from ?? "someone"} bought you a gift membership and asked us to email it to you. We don't keep your address once this is sent, and we won't email you again unless you sign up.`;
+  const text = [
+    "Hi,",
+    "",
+    lead,
+    ...(message ? ["", `${from ?? "They"} wrote:`, message] : []),
+    "",
+    `Your code: ${code}`,
+    "",
+    `${hint}: ${page}`,
+    "",
+    why,
+    "LiteraryWorm · https://www.literaryworm.com",
+  ].join("\n");
+
+  const quote = message
+    ? `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid #a24e2f;background:#f1e4cb;font-size:16px;line-height:1.55;white-space:pre-line;">${escapeHtml(message)}</p>`
+    : "";
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>${escapeHtml(subject)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f1e4cb;">
+    <div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(lead)}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1e4cb;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fbf8f2;border:1px solid #e0d9cc;border-radius:14px;">
+            <tr>
+              <td style="padding:32px 32px 8px;${FONT}font-size:20px;font-weight:700;color:#1d1c1a;">
+                Literary<span style="color:#a24e2f;">Worm</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">A gift for you</h1>
+                <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">Hi,</p>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
+                ${quote}
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:14px 0;border-top:1px solid #e0d9cc;border-bottom:1px solid #e0d9cc;${FONT}">
+                      <div style="font-size:15px;color:#3d3a35;">Your code</div>
+                      <div style="margin-top:4px;font-size:22px;font-weight:700;letter-spacing:1px;color:#1d1c1a;font-family:Consolas,'Courier New',monospace;">${escapeHtml(code)}</div>
+                      <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(what)}</div>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:20px 0 0;">
+                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Redeem your gift</a>
+                </p>
+                <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#5b5750;">${escapeHtml(hint)}.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 32px;${FONT}font-size:12px;line-height:1.5;color:#5b5750;">
+                <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
+                ${escapeHtml(why)}<br />
+                LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
+  return { to: input.delivery.to, subject, text, html };
 }

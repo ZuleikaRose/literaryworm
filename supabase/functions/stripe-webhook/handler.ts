@@ -17,7 +17,7 @@
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
 
 import type { Stripe } from "../_shared/stripe.ts";
-import { GIFT_MONTHS, type GiftMonths, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
+import { GIFT_MONTHS, type GiftMonths, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
 
 export type SubscriptionFields = ReturnType<typeof subscriptionRow>;
 
@@ -48,6 +48,21 @@ export interface NewGift {
   currency: string;
   /** The first day the code can be redeemed ("YYYY-MM-DD"), when the buyer picked one. */
   startsOn: string | null;
+  /** Who gift-reminders emails the code to, and the buyer's message; null when the buyer passes it on. */
+  recipientEmail: string | null;
+  message: string | null;
+}
+
+/** The recipient and message from a gift Checkout's metadata, checked again; dropped (and logged) if they don't pass. */
+function giftRecipient(metadata: Record<string, string>, sessionId: string): { recipientEmail: string | null; message: string | null } {
+  try {
+    const recipientEmail = parseGiftRecipient(metadata.recipient_email);
+    return { recipientEmail, message: recipientEmail ? parseGiftMessage(metadata.message) : null };
+  } catch (err) {
+    // The buyer has paid: make the code anyway, for them to pass on.
+    console.warn(`stripe-webhook: gift checkout ${sessionId} has a recipient that doesn't pass: ${(err as Error).message}`);
+    return { recipientEmail: null, message: null };
+  }
 }
 
 const REVIEW = new Set(["charge.dispute.created", "charge.refunded", "radar.early_fraud_warning.created"]);
@@ -101,6 +116,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
           amountCents: session.amount_total,
           currency: (session.currency ?? "usd").toUpperCase(),
           startsOn,
+          ...giftRecipient(session.metadata, session.id),
         });
         return;
       }

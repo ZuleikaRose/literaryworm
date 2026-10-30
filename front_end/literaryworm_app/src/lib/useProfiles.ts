@@ -3,6 +3,7 @@ import { useStore } from "../store/context";
 import { makeProfile } from "../store/state";
 import type { Profile } from "../types";
 import * as accountApi from "./accountApi";
+import { profileRoom, profilesInUse } from "./planLimits";
 import { pinAttemptResult } from "./profiles";
 
 /** What the profile editor saves. `pin`: undefined keeps the current PIN, null removes it. */
@@ -122,6 +123,25 @@ export function useProfiles() {
     return { ok: false, locked: Boolean(result.lockedUntil), attemptsLeft: result.attemptsLeft };
   }
 
+  /**
+   * Sets a profile aside (it keeps everything, but doesn't count towards the plan and can't be
+   * chosen), or brings one back when the plan has room. Real accounts go through manage-profile,
+   * which re-checks the account password; the database checks the room.
+   */
+  async function setAside(profile: Profile, aside: boolean, password: string) {
+    const inUse = profilesInUse(state.profiles);
+    if (aside && !inUse.some((p) => p.id !== profile.id)) throw new accountApi.AccountError("Keep at least one profile in use.");
+    if (!aside && inUse.length >= profileRoom(account)) {
+      throw new accountApi.AccountError("Your plan has no room for another profile. Set one aside or change plan first.");
+    }
+    if (remote) {
+      await accountApi.changeProtectedProfile({ action: aside ? "set_aside" : "bring_back", profileId: profile.id }, password);
+      await reload();
+    } else {
+      dispatch({ type: "setProfiles", profiles: state.profiles.map((p) => (p.id === profile.id ? { ...p, setAside: aside } : p)) });
+    }
+  }
+
   /** Clears a PIN lockout; the caller has already checked the account password. */
   async function unlock(profile: Profile, password: string) {
     if (remote) await accountApi.changeProtectedProfile({ action: "unlock", profileId: profile.id }, password);
@@ -133,5 +153,5 @@ export function useProfiles() {
     dispatch({ type: "updateProfile", id: profile.id, patch: { favoriteGenres } });
   }
 
-  return { profiles: state.profiles, remote, save, remove, checkPin, unlock, setGenres };
+  return { profiles: state.profiles, remote, save, remove, checkPin, unlock, setGenres, setAside };
 }

@@ -6,12 +6,14 @@
 //
 // interval is "month" unless given. Yearly costs ten times the monthly price and starts the day it's
 // bought (billingDay isn't needed); it renews on that date each year.
-//   { gift: true, planId, months: 1 | 3 | 6 | 12, startsOn?: "YYYY-MM-DD" }
+//   { gift: true, planId, months: 1 | 3 | 6 | 12, startsOn?: "YYYY-MM-DD", recipientEmail?, message? }
 //
 // A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, or the
 // yearly price for 12 months, nothing recurring): this returns { url }, and once Stripe confirms payment the stripe-webhook function
 // makes the gift code, which the buyer sees in /gifts. Stripe sends them back to /gifts?checkout=success.
 // startsOn (up to a year ahead, for a birthday say) is the first day the code can be redeemed.
+// recipientEmail (and an optional message of up to 300 characters) has the gift-reminders
+// function email the code to someone once it can be redeemed, instead of the buyer passing it on.
 //
 // Stripe sends the member back to /plans?checkout=success (with &setup=1 during sign-up), where
 // the page waits for the webhook to write the membership.
@@ -37,7 +39,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
+import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -73,6 +75,9 @@ export interface GiftCheckoutInput {
   months: GiftMonths;
   /** The first day the code can be redeemed ("YYYY-MM-DD"); null for straight away. */
   startsOn: string | null;
+  /** Who to email the code to, and what the buyer wrote; null when the buyer passes it on. */
+  recipientEmail: string | null;
+  message: string | null;
   origin: string;
 }
 
@@ -112,7 +117,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     }
     const body = await readJsonBody(req);
     if (body.gift !== undefined) {
-      onlyKeys(body, ["gift", "planId", "months", "startsOn"]);
+      onlyKeys(body, ["gift", "planId", "months", "startsOn", "recipientEmail", "message"]);
       if (body.gift !== true) throw new HttpError("bad_request", "gift is true when buying a gift.");
       if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {
         throw new HttpError("bad_request", "Pick Basic, Standard or Premium.");
@@ -122,11 +127,16 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         throw new HttpError("bad_request", "Pick 1, 3, 6 or 12 months.");
       }
       let startsOn: string | null;
+      let recipientEmail: string | null;
+      let message: string | null;
       try {
         startsOn = parseGiftStart(body.startsOn);
+        recipientEmail = parseGiftRecipient(body.recipientEmail);
+        message = parseGiftMessage(body.message);
       } catch (err) {
         throw new HttpError("bad_request", (err as Error).message);
       }
+      if (message !== null && recipientEmail === null) throw new HttpError("bad_request", "A message goes with a gift sent by email.");
       const customerId = await deps.customerFor(user.id, user.email);
       const url = await deps.createGiftCheckout({
         customerId,
@@ -134,6 +144,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         planId: body.planId as PlanId,
         months: months as GiftMonths,
         startsOn,
+        recipientEmail,
+        message,
         origin: deps.siteOrigin(req),
       });
       return json(req, METHODS, { url });

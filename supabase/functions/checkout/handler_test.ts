@@ -124,13 +124,13 @@ Deno.test("moving down a plan needs the household to fit it first; nothing touch
   assertEquals(res.status, 400);
   assertEquals(
     res.body.error.message,
-    "Standard has room for 5 profiles and your household has 8. Remove 3 in Who's reading? first. " +
+    "Standard has room for 5 profiles and your household uses 8. Set aside or remove 3 in Who's reading? first. " +
       "Standard keeps books offline on 10 devices and 12 are saving books now. Free 2 in Account first.",
   );
   assertEquals(state.planChanges.length, 0);
   // A lapsed member with more profiles than Basic allows can't start it either.
   const lapsed = setup(null, { householdSize: () => Promise.resolve({ profiles: 2, offlineDevices: 0 }) });
-  assertEquals((await call(lapsed.deps, choice({ planId: "basic" }))).body.error.message, "Basic has room for 1 profile and your household has 2. Remove 1 in Who's reading? first.");
+  assertEquals((await call(lapsed.deps, choice({ planId: "basic" }))).body.error.message, "Basic has room for 1 profile and your household uses 2. Set aside or remove 1 in Who's reading? first.");
   assertEquals(lapsed.state.checkouts.length, 0);
   // Once it fits, the change goes ahead.
   size.profiles = 5;
@@ -227,7 +227,7 @@ Deno.test("a gift is a one-off Checkout for the plan and months, whatever the bu
   const res = await call(deps, { gift: true, planId: "premium", months: 6 });
   assertEquals(res.status, 200);
   assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_gift");
-  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, startsOn: null, origin: ORIGIN }]);
+  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, startsOn: null, recipientEmail: null, message: null, origin: ORIGIN }]);
   assertEquals(state.checkouts.length + state.planChanges.length, 0);
 });
 
@@ -238,6 +238,24 @@ Deno.test("a gift can start on a later day, up to a year ahead", async () => {
   assertEquals(state.gifts[0].startsOn, day(40));
   for (const startsOn of ["2020-01-01", day(400), "2027-02-30", "next week", 20270101]) {
     assertEquals((await call(deps, { gift: true, planId: "basic", months: 12, startsOn })).status, 400, String(startsOn));
+  }
+  assertEquals(state.gifts.length, 1);
+});
+
+Deno.test("a gift can be emailed to someone, with a short message", async () => {
+  const { state, deps } = setup(null);
+  const res = await call(deps, { gift: true, planId: "standard", months: 3, recipientEmail: "  Sam@Example.COM ", message: "  Happy birthday!\r\nLove, Ann  " });
+  assertEquals(res.status, 200);
+  assertEquals(state.gifts[0].recipientEmail, "sam@example.com");
+  assertEquals(state.gifts[0].message, "Happy birthday!\nLove, Ann");
+  for (const body of [
+    { recipientEmail: "not an address" },
+    { recipientEmail: "a@b" },
+    { recipientEmail: 42 },
+    { recipientEmail: "sam@example.com", message: "x".repeat(301) },
+    { message: "A message with nobody to send it to" },
+  ]) {
+    assertEquals((await call(deps, { gift: true, planId: "standard", months: 3, ...body })).status, 400, JSON.stringify(body));
   }
   assertEquals(state.gifts.length, 1);
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { giftNotStarted, giftPriceCents, giftStartBounds, giftStartError } from "./gifts";
+import { giftNotStarted, giftPriceCents, giftRecipientError, giftStartBounds, giftStartError } from "./gifts";
 
 describe("what a gift costs", () => {
   const standard = { price: 12.99, yearlyPrice: 129.9 };
@@ -29,5 +29,20 @@ describe("a gift's start day", () => {
     expect(giftNotStarted(null, now)).toBe(false);
     expect(giftNotStarted("2026-10-31", now)).toBe(true);
     expect(giftNotStarted("2026-10-30", now)).toBe(false);
+  });
+});
+
+describe("who to email a gift to", () => {
+  it("takes an address like the checkout function does", () => {
+    expect(giftRecipientError("sam@example.com")).toBeNull();
+    expect(giftRecipientError("  Sam@Example.co.uk ")).toBeNull();
+  });
+
+  it("asks for a real address", () => {
+    expect(giftRecipientError("")).toBe("Enter their email address.");
+    expect(giftRecipientError("   ")).toBe("Enter their email address.");
+    for (const bad of ["sam", "sam@example", "sam @example.com", "@example.com", `${"a".repeat(250)}@example.com`]) {
+      expect(giftRecipientError(bad)).toBe("Enter an email address like name@example.com.");
+    }
   });
 });

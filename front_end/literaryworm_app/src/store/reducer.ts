@@ -123,9 +123,12 @@ function stash(state: AppState): AppState["households"] {
   return { ...state.households, [emailKey(account.email)]: { account, profiles, profileData } };
 }
 
-/** Replace the household's profiles, keeping each surviving profile's in-memory data. */
+/**
+ * Replace the household's profiles, keeping each surviving profile's in-memory data. A profile
+ * that's gone, or been set aside, stops being the one in use.
+ */
 function withProfiles(state: AppState, profiles: Profile[]): AppState {
-  const ids = new Set(profiles.map((p) => p.id));
+  const ids = new Set(profiles.filter((p) => !p.setAside).map((p) => p.id));
   const profileData = Object.fromEntries(profiles.map((p) => [p.id, state.profileData[p.id] ?? emptyProfileData()]));
   return {
     ...state,
@@ -223,7 +226,8 @@ export function reducer(state: AppState, action: Action): AppState {
       });
       // Restored after a refresh: carry on when there's only one profile and nothing guards it;
       // otherwise Who's reading? asks (PIN locks and Kids profiles still apply).
-      const only = action.profiles.length === 1 ? action.profiles[0] : null;
+      const inUse = action.profiles.filter((p) => !p.setAside);
+      const only = inUse.length === 1 ? inUse[0] : null;
       const carryOn = action.restored && only && !only.hasPin && only.ageRating !== "kids";
       return {
         ...entered,
@@ -299,6 +303,7 @@ export function reducer(state: AppState, action: Action): AppState {
     }
 
     case "selectProfile":
+      if (action.id !== null && state.profiles.find((p) => p.id === action.id)?.setAside) return state;
       return {
         ...state,
         activeProfileId: action.id,
