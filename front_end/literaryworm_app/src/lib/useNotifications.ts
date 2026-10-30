@@ -6,6 +6,7 @@ import * as accountApi from "./accountApi";
 import { onClubPost } from "./clubEvents";
 import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notifications";
 import { renewalReminder } from "./billing";
+import { type MeetingAlert, meetingAlerts } from "./clubCalendar";
 import { goalAlerts } from "./goals";
 import { today } from "./reading";
 import { listeningAlert } from "./planLimits";
@@ -27,6 +28,8 @@ export function useNotifications() {
   const withClubs = Boolean(profile && profile.ageRating !== "kids");
   const remote = Boolean(state.account?.userId);
   const [news, setNews] = useState<ClubNews[]>([]);
+  // Club meetings starting within a day (clubs with alerts on, unless the reader can't make it).
+  const [meetings, setMeetings] = useState<MeetingAlert[]>([]);
   // The time goals and the renewal are judged at: when the bell mounts, and again when the tab comes back.
   const [now, setNow] = useState(() => Date.now());
 
@@ -38,8 +41,9 @@ export function useNotifications() {
   const refresh = useCallback(async () => {
     if (!withClubs) return;
     try {
-      const [list, memberships] = await Promise.all([clubs.list(), clubs.memberships()]);
+      const [list, memberships, soon, me] = await Promise.all([clubs.list(), clubs.memberships(), clubs.soonMeetings(), clubs.myId()]);
       setNews(clubNews(list, memberships, latest.current));
+      setMeetings(meetingAlerts(soon, (clubId) => memberships[clubId]?.notify === false, me));
     } catch (err) {
       console.error("notifications: couldn't check book clubs:", err instanceof Error ? err.message : err);
     }
@@ -71,6 +75,7 @@ export function useNotifications() {
   const released = useMemo(() => releasedReminders(data.reminders), [data.reminders]);
   // Kids profiles have no clubs; a profile switched to one keeps nothing from the last.
   const shownNews = withClubs ? news : [];
+  const shownMeetings = withClubs ? meetings : [];
   // Most of the month's listening used (Basic and Standard); a grown-up's concern, so not on Kids profiles.
   const planId = state.account?.planId ?? null;
   const listening = useMemo(
@@ -85,7 +90,7 @@ export function useNotifications() {
     () => goalAlerts(data.readingDays, data.readingGoals, today(new Date(now)), new Date(now)),
     [data.readingDays, data.readingGoals, now],
   );
-  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [...goals, ...(renewal ? [renewal] : [])]);
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [...goals, ...(renewal ? [renewal] : []), ...shownMeetings]);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -98,5 +103,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh };
 }

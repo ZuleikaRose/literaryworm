@@ -1,5 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
-import { type ClubMeeting, icsText, meetingError, meetingFileName, meetingIcs, meetingStart, upcomingMeetings } from "./clubCalendar";
+import {
+  type ClubMeeting,
+  icsText,
+  meetingAlerts,
+  meetingError,
+  meetingFileName,
+  meetingIcs,
+  meetingStart,
+  rsvpCounts,
+  rsvpSummary,
+  upcomingMeetings,
+} from "./clubCalendar";
 
 const meeting: ClubMeeting = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -9,6 +20,7 @@ const meeting: ClubMeeting = {
   title: "Chapters 1 to 10",
   note: "Bring tea; we'll start, then chat.",
   timeZone: "Europe/London",
+  rsvps: {},
 };
 
 describe("checking a new meeting", () => {
@@ -67,5 +79,41 @@ describe("the calendar file", () => {
 
   it("is named after the club and the day", () => {
     expect(meetingFileName("Sunday Classics!", meeting.startsAt)).toBe("sunday-classics-2026-11-08.ics");
+  });
+});
+
+describe("answers", () => {
+  const answered = { ...meeting, rsvps: { a: "yes", b: "yes", c: "maybe", gone: "no" } } as ClubMeeting;
+
+  it("counts current members only", () => {
+    expect(rsvpCounts(answered, ["a", "b", "c", "d"])).toEqual({ yes: 2, maybe: 1, no: 0 });
+  });
+
+  it("sums them up in words", () => {
+    expect(rsvpSummary({ yes: 2, maybe: 1, no: 1 })).toBe("2 going, 1 maybe, 1 can't make it");
+    expect(rsvpSummary({ yes: 0, maybe: 0, no: 0 })).toBe("No answers yet");
+  });
+});
+
+describe("meetings in the bell", () => {
+  const now = Date.parse("2026-11-08T08:00:00.000Z");
+  const soon = { ...meeting, clubName: "Sunday Classics" };
+  const on = () => false;
+
+  it("shows a meeting in the next day, counting from a day before it", () => {
+    const alerts = meetingAlerts([soon], on, "me", now);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].at).toBe(Date.parse(soon.startsAt) - 24 * 3_600_000);
+  });
+
+  it("leaves out meetings more than a day away or already started", () => {
+    expect(meetingAlerts([{ ...soon, startsAt: "2026-11-09T09:00:00.000Z" }], on, "me", now)).toEqual([]);
+    expect(meetingAlerts([{ ...soon, startsAt: "2026-11-08T07:00:00.000Z" }], on, "me", now)).toEqual([]);
+  });
+
+  it("leaves out clubs with alerts off and meetings the reader can't make", () => {
+    expect(meetingAlerts([soon], () => true, "me", now)).toEqual([]);
+    expect(meetingAlerts([{ ...soon, rsvps: { me: "no" } }], on, "me", now)).toEqual([]);
+    expect(meetingAlerts([{ ...soon, rsvps: { me: "maybe" } }], on, "me", now)).toHaveLength(1);
   });
 });

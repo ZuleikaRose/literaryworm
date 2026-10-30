@@ -10,13 +10,22 @@ import { usePopover } from "../lib/usePopover";
 import { useStore } from "../store/context";
 import { Icon } from "./Icon";
 
+const clock = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+
+/** "today at 7:00 PM" or "tomorrow at 7:00 PM" (meetings in the bell are less than a day away). */
+function meetingWhen(iso: string): string {
+  const start = new Date(iso);
+  const sameDay = start.toDateString() === new Date().toDateString();
+  return `${sameDay ? "today" : "tomorrow"} at ${clock.format(start)}`;
+}
+
 /**
  * The header's bell: a count of what's new for the profile, and a panel listing books from its
  * reminders that are out and book clubs with new posts. Opening it marks the releases seen;
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -32,7 +41,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && goals.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && goals.length === 0 && meetings.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
 
   return (
@@ -52,7 +61,7 @@ export function NotificationBell() {
           {empty ? (
             <p className="bell-empty">
               Nothing new. Books you set <strong>Remind me</strong> on show up here when they come out, and so do new books from
-              authors you follow{withClubs ? ", new posts in your book clubs" : ""} and news about your goals and streak.
+              authors you follow{withClubs ? ", new posts and meetings in your book clubs" : ""} and news about your goals and streak.
             </p>
           ) : (
             <>
@@ -128,10 +137,24 @@ export function NotificationBell() {
                   </ul>
                 </>
               )}
-              {news.length > 0 && (
+              {(news.length > 0 || meetings.length > 0) && (
                 <>
                   <p className="popover-label">Book clubs</p>
                   <ul className="bell-list" role="list">
+                    {meetings.map(({ meeting: m, at }) => (
+                      <li key={m.id}>
+                        <Link className="bell-item" to={`/clubs/${m.clubId}`} onClick={() => close(false)}>
+                          <Icon name="calendar" size={18} />
+                          <span>
+                            <strong>
+                              {m.clubName} meets {meetingWhen(m.startsAt)}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>{m.title}</small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
                     {news.map((n) => (
                       <li key={n.clubId}>
                         <Link className="bell-item" to={`/clubs/${n.clubId}`} onClick={() => close(false)}>

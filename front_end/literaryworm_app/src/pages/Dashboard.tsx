@@ -99,12 +99,14 @@ function Totals({ data }: { data: StaffDashboard }) {
         <li>
           <Icon name="check" size={20} />
           <strong>{paid.toLocaleString("en-US")}</strong>
-          <span>paid {paid === 1 ? "membership" : "memberships"} active</span>
+          <span>
+            paid {paid === 1 ? "membership" : "memberships"} active, {data.yearlyMemberships.toLocaleString("en-US")} billed yearly
+          </span>
         </li>
         <li>
           <Icon name="star" size={20} />
           <strong>{formatMoney(data.monthlyRevenueCents, currency)}</strong>
-          <span>a month at list price, before promo codes</span>
+          <span>a month at list price, before promo codes (a yearly membership counts a twelfth)</span>
         </li>
         <li>
           <Icon name="bookOpen" size={20} />
@@ -138,7 +140,11 @@ function Totals({ data }: { data: StaffDashboard }) {
               {data.memberships.map((m) => (
                 <tr key={m.plan}>
                   <th scope="row">
-                    {m.name} <span>{formatMoney(m.priceCents, m.currency)} a month</span>
+                    {m.name}{" "}
+                    <span>
+                      {formatMoney(m.priceCents, m.currency)} a month
+                      {m.yearlyPriceCents !== null && `, ${formatMoney(m.yearlyPriceCents, m.currency)} a year`}
+                    </span>
                   </th>
                   <td>{m.active}</td>
                   <td>{m.cancelling}</td>
@@ -151,7 +157,7 @@ function Totals({ data }: { data: StaffDashboard }) {
             </tbody>
           </table>
         </div>
-        <p className="goal-hint">Active counts paid memberships only; cancelling ones are active until the end of the month they've paid for. Admins' memberships are complimentary.</p>
+        <p className="goal-hint">Active counts paid memberships, monthly and yearly; cancelling ones are active until the end of the month or year they've paid for. Staff memberships are complimentary.</p>
       </section>
 
       <section className="stats-card" aria-labelledby="dash-weeks">

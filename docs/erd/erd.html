@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4704, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4803, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -526,6 +526,16 @@
           note: "Members read their clubs' meetings; only the club's owner schedules, changes or cancels them (RLS). Ahead and within a year, up to 20 upcoming (trigger). Reminders the day before by the club-meetings function (claim_club_meeting_reminders, hourly via pg_cron). Indexes: (club_id, starts_at), created_by.",
         },
         {
+          id: "club_meeting_rsvps", color: colors.reading, x: 840, y: 5900, sub: "who's coming",
+          cols: [
+            ["pk fk", "meeting_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["", "answer", "yes | maybe | no"],
+            ["", "answered_at", "timestamptz"],
+          ],
+          note: "One answer per member per meeting; the club's members read them. Written only through answer_club_meeting() (member, meeting still to come). Members who said no aren't reminded. Index: user_id.",
+        },
+        {
           id: "kids_report_sends", color: colors.server, x: 420, y: 5160, sub: "server only",
           cols: [
             ["pk fk", "user_id", "uuid"],
@@ -754,6 +764,8 @@
         ["kids_report_sends", "user_id", "auth.users", "id", "N : 1"],
         ["club_meetings", "club_id", "book_clubs", "id", "N : 1"],
         ["club_meetings", "created_by", "auth.users", "id", "N : 1"],
+        ["club_meeting_rsvps", "meeting_id", "club_meetings", "id", "N : 1"],
+        ["club_meeting_rsvps", "user_id", "auth.users", "id", "N : 1"],
         ["challenge_participants", "challenge_id", "household_challenges", "id", "N : 1 (pair)"],
         ["challenge_participants", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

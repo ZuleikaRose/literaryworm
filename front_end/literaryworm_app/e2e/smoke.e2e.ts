@@ -162,6 +162,19 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("answers the sample club's meeting and shows who's coming", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const meetings = page.getByRole("region", { name: "Meetings" });
+    await meetings.getByText("1 going, 1 maybe · Going: Jordan").waitFor();
+    await meetings.getByRole("radio", { name: "Going" }).check();
+    await meetings.getByText("2 going, 1 maybe · Going: Jordan, you").waitFor();
+    await meetings.getByRole("radio", { name: "Can't make it" }).check();
+    await page.getByText("We won't send you the reminder.", { exact: false }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("starts a club, schedules a meeting in it, and cancels it", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

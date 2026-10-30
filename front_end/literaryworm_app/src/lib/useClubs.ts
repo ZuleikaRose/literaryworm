@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccountError } from "./accountApi";
-import type { ClubMeeting } from "./clubCalendar";
+import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeting } from "./clubCalendar";
 import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
@@ -69,6 +69,7 @@ function seedDemo(you: string): DemoClub[] {
           title: "Volume 1: the Netherfield ball",
           note: "Video call link in the club chat. Read to the end of chapter 23 if you can.",
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          rsvps: { "demo-jordan": "yes", "demo-priya": "maybe" },
         },
       ],
     },
@@ -177,8 +178,8 @@ export function useClubs() {
   );
 
   const addMeeting = useCallback(
-    async (meeting: Omit<ClubMeeting, "id">): Promise<ClubMeeting> => {
-      const withId = { ...meeting, id: crypto.randomUUID() };
+    async (meeting: Omit<ClubMeeting, "id" | "rsvps">): Promise<ClubMeeting> => {
+      const withId = { ...meeting, id: crypto.randomUUID(), rsvps: {} };
       if (remote) return clubsApi.addMeeting(withId);
       const found = demo().find((c) => c.club.id === meeting.clubId);
       if (!found || found.club.ownerId !== DEMO_USER) throw new AccountError("Only the person who started the club can schedule meetings.");
@@ -196,6 +197,30 @@ export function useClubs() {
     },
     [remote, demo],
   );
+
+  /** Answers a meeting for this account (null takes the answer back). */
+  const answerMeeting = useCallback(
+    async (clubId: string, meetingId: string, answer: RsvpAnswer | null) => {
+      if (remote) return clubsApi.answerMeeting(meetingId, answer);
+      const meeting = demo()
+        .find((c) => c.club.id === clubId)
+        ?.meetings.find((m) => m.id === meetingId);
+      if (!meeting) return;
+      if (answer) meeting.rsvps[DEMO_USER] = answer;
+      else delete meeting.rsvps[DEMO_USER];
+    },
+    [remote, demo],
+  );
+
+  /** Meetings in this account's clubs starting in the next day (for the bell). */
+  const soonMeetings = useCallback(async (): Promise<UpcomingMeeting[]> => {
+    if (remote) return clubsApi.loadSoonMeetings();
+    const now = Date.now();
+    return demo()
+      .filter((c) => c.members.some((m) => m.userId === DEMO_USER))
+      .flatMap((c) => c.meetings.map((m) => ({ ...clone(m), clubName: c.club.name })))
+      .filter((m) => Date.parse(m.startsAt) > now && Date.parse(m.startsAt) - now <= MEETING_ALERT_MS);
+  }, [remote, demo]);
 
   /** This account's alerts setting and unread posts per club. */
   const memberships = useCallback(async (): Promise<Record<string, ClubMembership>> => {
@@ -228,7 +253,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, memberships, markRead, setNotify }),
-    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, memberships, markRead, setNotify],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify }),
+    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify],
   );
 }

@@ -63,6 +63,7 @@ export interface StaffDashboard {
     plan: string;
     name: string;
     priceCents: number;
+    yearlyPriceCents: number | null;
     currency: string;
     active: number;
     paused: number;
@@ -72,6 +73,7 @@ export interface StaffDashboard {
     complimentary: number;
   }[];
   monthlyRevenueCents: number;
+  yearlyMemberships: number;
   reading: { activeReaders7Days: number; minutes30Days: number; listeningMinutes30Days: number; booksFinished30Days: number };
   clubs: { running: number; posts30Days: number };
   stripeEventsToReview: number;
@@ -85,6 +87,7 @@ interface DashboardRow {
     plan: string;
     name: string;
     price_cents: number;
+    yearly_price_cents: number | null;
     currency: string;
     active: number;
     paused: number;
@@ -94,6 +97,7 @@ interface DashboardRow {
     complimentary: number;
   }[];
   monthly_revenue_cents: number;
+  yearly_memberships?: number;
   reading: { active_readers_7_days: number; minutes_30_days: number; listening_minutes_30_days: number; books_finished_30_days: number };
   clubs: { running: number; posts_30_days: number };
   stripe_events_to_review: number;
@@ -114,6 +118,7 @@ export async function loadDashboard(): Promise<StaffDashboard> {
       plan: m.plan,
       name: m.name,
       priceCents: m.price_cents,
+      yearlyPriceCents: m.yearly_price_cents ?? null,
       currency: m.currency,
       active: m.active,
       paused: m.paused,
@@ -123,6 +128,7 @@ export async function loadDashboard(): Promise<StaffDashboard> {
       complimentary: m.complimentary,
     })),
     monthlyRevenueCents: d.monthly_revenue_cents,
+    yearlyMemberships: d.yearly_memberships ?? 0,
     reading: {
       activeReaders7Days: d.reading.active_readers_7_days,
       minutes30Days: d.reading.minutes_30_days,

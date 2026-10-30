@@ -13,6 +13,11 @@ import {
   meetingFileName,
   meetingIcs,
   meetingStart,
+  RSVP_ANSWERS,
+  RSVP_LABELS,
+  type RsvpAnswer,
+  rsvpCounts,
+  rsvpSummary,
   upcomingMeetings,
 } from "../lib/clubCalendar";
 import { onClubPost } from "../lib/clubEvents";
@@ -50,10 +55,25 @@ function downloadIcs(meeting: ClubMeeting, club: Club, book: Book) {
 }
 
 /**
- * Meetings: the club's upcoming meetings with Add to calendar, and for its owner a form to
- * schedule one and Cancel on each. Members get an email reminder in the day before.
+ * Meetings: the club's upcoming meetings with who's coming, each member's answer (Going, Maybe,
+ * Can't make it) and Add to calendar, and for its owner a form to schedule one and Cancel on
+ * each. Members get an email reminder in the day before, unless they can't make it.
  */
-function ClubMeetings({ club, book, isOwner, initial }: { club: Club; book: Book; isOwner: boolean; initial: ClubMeeting[] }) {
+function ClubMeetings({
+  club,
+  book,
+  isOwner,
+  initial,
+  me,
+  members,
+}: {
+  club: Club;
+  book: Book;
+  isOwner: boolean;
+  initial: ClubMeeting[];
+  me: string;
+  members: ClubMember[];
+}) {
   const clubs = useClubs();
   const [meetings, setMeetings] = useState(initial);
   const [now] = useState(() => new Date());
@@ -94,6 +114,26 @@ function ClubMeetings({ club, book, isOwner, initial }: { club: Club; book: Book
     }
   };
 
+  const memberIds = members.map((m) => m.userId);
+  const going = (meeting: ClubMeeting) =>
+    members
+      .filter((m) => meeting.rsvps[m.userId] === "yes")
+      .map((m) => (m.userId === me ? "you" : m.name))
+      .join(", ");
+
+  // Saved first, then shown.
+  const answer = async (meeting: ClubMeeting, value: RsvpAnswer) => {
+    setError(null);
+    setDone(null);
+    try {
+      await clubs.answerMeeting(club.id, meeting.id, value);
+      setMeetings((list) => list.map((m) => (m.id === meeting.id ? { ...m, rsvps: { ...m.rsvps, [me]: value } } : m)));
+      setDone(value === "no" ? "Thanks for letting everyone know. We won't send you the reminder." : `Saved: ${RSVP_LABELS[value].toLowerCase()}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't save your answer. Try again.");
+    }
+  };
+
   const cancel = async (meeting: ClubMeeting) => {
     setError(null);
     setDone(null);
@@ -128,6 +168,24 @@ function ClubMeetings({ club, book, isOwner, initial }: { club: Club; book: Book
                   {lengthLabel(m.minutes)}
                   {m.note && ` · ${m.note}`}
                 </p>
+                <p className="goal-hint meeting-rsvps">
+                  {rsvpSummary(rsvpCounts(m, memberIds))}
+                  {going(m) && ` · Going: ${going(m)}`}
+                </p>
+                <fieldset className="segmented meeting-rsvp">
+                  <legend>
+                    <span aria-hidden="true">Are you coming?</span>
+                    <span className="visually-hidden">Are you coming to {m.title}?</span>
+                  </legend>
+                  <div>
+                    {RSVP_ANSWERS.map((value) => (
+                      <label key={value}>
+                        <input type="radio" name={`${id}-rsvp-${m.id}`} value={value} checked={m.rsvps[me] === value} onChange={() => answer(m, value)} />
+                        <span>{RSVP_LABELS[value]}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
                 <div className="goal-actions">
                   <button type="button" className="ghost-button small-button" onClick={() => downloadIcs(m, club, book)}>
                     <Icon name="calendar" size={15} /> Add to calendar<span className="visually-hidden">: {m.title}</span>
@@ -239,8 +297,8 @@ function ClubMeetings({ club, book, isOwner, initial }: { club: Club; book: Book
       {upcoming.length > 0 && (
         <p className="goal-hint">
           {clubs.remote
-            ? "Everyone in the club gets an email reminder the day before. Turn yours off in Account → Preferences."
-            : "Members get an email reminder the day before. The demo doesn't send emails."}
+            ? "Everyone in the club gets an email reminder the day before, unless they can't make it. Turn yours off in Account → Preferences."
+            : "Members get an email reminder the day before, unless they can't make it. The demo doesn't send emails."}
         </p>
       )}
     </section>
@@ -511,7 +569,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         </section>
 
         <aside className="club-side">
-          <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} />
+          <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <section className="goal-card" aria-labelledby="invite-title">
             <h2 id="invite-title">Invite</h2>

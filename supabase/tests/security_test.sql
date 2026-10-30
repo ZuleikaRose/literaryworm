@@ -308,6 +308,13 @@ select pg_temp.check((select count(*) from public.club_meetings) = 1, 'a member 
 select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() + interval '3 days', 'Mine', '00000000-0000-0000-0000-00000000000b')$$, 'a member who isn''t the owner scheduling a meeting');
 delete from public.club_meetings where club_id = '00000000-0000-0000-0000-0000000000c1';
 select pg_temp.check((select count(*) from public.club_meetings) = 1, 'a member who isn''t the owner cannot cancel a meeting');
+-- RSVPs: members answer through answer_club_meeting(), never the table; everyone in the club sees the answers.
+select public.answer_club_meeting((select id from public.club_meetings limit 1), 'yes');
+select pg_temp.check((select answer from public.club_meeting_rsvps where user_id = '00000000-0000-0000-0000-00000000000b') = 'yes', 'a member answers a meeting');
+select public.answer_club_meeting((select id from public.club_meetings limit 1), 'no');
+select pg_temp.check((select count(*) from public.club_meeting_rsvps) = 1 and (select answer from public.club_meeting_rsvps) = 'no', 'answering again changes the answer');
+select pg_temp.expect_error($$select public.answer_club_meeting((select id from public.club_meetings limit 1), 'perhaps')$$, 'an answer that isn''t yes, maybe or no');
+select pg_temp.expect_error($$insert into public.club_meeting_rsvps (meeting_id, user_id, answer) select id, '00000000-0000-0000-0000-00000000000a', 'no' from public.club_meetings$$, 'answering for someone else through the table');
 select pg_temp.expect_error('select * from public.claim_club_meeting_reminders(10)', 'claiming meeting reminders from the browser');
 select pg_temp.expect_error('select public.club_meetings_secret()', 'reading the meeting reminders cron key from the browser');
 -- Club notifications (Phase 19): unread posts since joining, read marks, own settings only.
@@ -378,6 +385,8 @@ select pg_temp.expect_error($$select public.join_club('AnnClub123')$$, 'anon joi
 select pg_temp.expect_error('select * from public.club_unread()', 'anon counting club posts');
 select pg_temp.expect_error('select * from public.club_listening', 'anon reading listening sessions');
 select pg_temp.expect_error('select * from public.club_meetings', 'anon reading club meetings');
+select pg_temp.expect_error('select * from public.club_meeting_rsvps', 'anon reading meeting answers');
+select pg_temp.expect_error($$select public.answer_club_meeting(gen_random_uuid(), 'yes')$$, 'anon answering a meeting');
 reset role;
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_club_meetings()', 'execute'), 'only the cron job calls the club-meetings function');
 set role authenticated;

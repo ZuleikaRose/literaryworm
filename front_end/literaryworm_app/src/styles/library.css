@@ -1419,6 +1419,22 @@ body:has(.mini-player) .listen-along-bar {
   font-weight: 700;
 }
 
+/* Going, Maybe, Can't make it: full-size targets. */
+.meeting-rsvp {
+  margin: 8px 0 10px;
+}
+
+.meeting-rsvp label span {
+  min-height: 44px;
+  padding: 0 6px;
+  text-align: center;
+}
+
+.meeting-rsvp legend span {
+  display: inline;
+  min-height: 0;
+}
+
 .meeting-form {
   display: grid;
   gap: 12px;

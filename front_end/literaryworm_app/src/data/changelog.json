@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Who's coming to club meetings",
+    "body": "Book club meetings now ask everyone whether they're coming: Going, Maybe or Can't make it, with who's going shown on the club page. Meetings in the next day show up in the notification bell, and if you can't make one we won't send you the reminder.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Book club meetings",
     "body": "Whoever started a book club can now schedule its meetings. Everyone in the club sees them on the club page, can add them to their calendar in one tap, and gets an email reminder the day before.",
     "major": true

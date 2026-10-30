@@ -1,6 +1,6 @@
 import { AccountError, callFunction, signedInUserId } from "./accountApi";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { ClubMeeting } from "./clubCalendar";
+import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeting } from "./clubCalendar";
 import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "./clubs";
 import { supabase } from "./supabase";
 
@@ -27,8 +27,17 @@ type ClubRow = {
 };
 type PostRow = { id: string; user_id: string; chapter_index: number; body: string; created_at: string; author: { display_name: string } | null };
 
-type MeetingRow = { id: string; club_id: string; starts_at: string; minutes: number; title: string; note: string | null; time_zone: string };
-const MEETING_COLUMNS = "id, club_id, starts_at, minutes, title, note, time_zone";
+type MeetingRow = {
+  id: string;
+  club_id: string;
+  starts_at: string;
+  minutes: number;
+  title: string;
+  note: string | null;
+  time_zone: string;
+  club_meeting_rsvps?: { user_id: string; answer: RsvpAnswer }[];
+};
+const MEETING_COLUMNS = "id, club_id, starts_at, minutes, title, note, time_zone, club_meeting_rsvps(user_id, answer)";
 const toMeeting = (row: MeetingRow): ClubMeeting => ({
   id: row.id,
   clubId: row.club_id,
@@ -37,6 +46,7 @@ const toMeeting = (row: MeetingRow): ClubMeeting => ({
   title: row.title,
   note: row.note,
   timeZone: row.time_zone,
+  rsvps: Object.fromEntries((row.club_meeting_rsvps ?? []).map((r) => [r.user_id, r.answer])),
 });
 
 const CLUB_COLUMNS = "id, name, volume_id, starts_on, finishes_on, invite_code, owner_id, club_members(count)";
@@ -117,6 +127,29 @@ export async function addMeeting(meeting: Omit<ClubMeeting, "id"> & { id: string
 export async function deleteMeeting(id: string): Promise<void> {
   const { error } = await client().from("club_meetings").delete().eq("id", id);
   if (error) throw new AccountError("We couldn't cancel the meeting. Try again.");
+}
+
+/** Answers a meeting for the signed-in member (null takes the answer back); through answer_club_meeting(). */
+export async function answerMeeting(id: string, answer: RsvpAnswer | null): Promise<void> {
+  const { error } = await client().rpc("answer_club_meeting", { p_meeting: id, p_answer: answer });
+  if (error) {
+    if (error.message.includes("already started")) throw new AccountError("This meeting has already started.");
+    throw new AccountError("We couldn't save your answer. Try again.");
+  }
+}
+
+/** Meetings in the member's clubs starting in the next day, for the bell. */
+export async function loadSoonMeetings(): Promise<UpcomingMeeting[]> {
+  const now = Date.now();
+  const { data, error } = await client()
+    .from("club_meetings")
+    .select(`${MEETING_COLUMNS}, club:book_clubs(name)`)
+    .gt("starts_at", new Date(now).toISOString())
+    .lte("starts_at", new Date(now + MEETING_ALERT_MS).toISOString())
+    .order("starts_at")
+    .limit(20);
+  if (error) throw new AccountError("We couldn't check your club meetings.");
+  return (data as unknown as (MeetingRow & { club: { name: string } | null })[]).map((row) => ({ ...toMeeting(row), clubName: row.club?.name ?? "Your book club" }));
 }
 
 export async function createClub(input: { id: string; name: string; bookId: string; startsOn: string; finishesOn: string; inviteCode: string }): Promise<void> {

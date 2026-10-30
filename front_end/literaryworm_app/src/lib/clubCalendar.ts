@@ -11,6 +11,66 @@ export interface ClubMeeting {
   note: string | null;
   /** The time zone it was scheduled in (IANA), so the reminder email gives the right time. */
   timeZone: string;
+  /** Members' answers, by user id; a member who hasn't answered has none. */
+  rsvps: Record<string, RsvpAnswer>;
+}
+
+/** Going, Maybe or Can't make it. */
+export type RsvpAnswer = "yes" | "maybe" | "no";
+export const RSVP_ANSWERS: readonly RsvpAnswer[] = ["yes", "maybe", "no"];
+export const RSVP_LABELS: Record<RsvpAnswer, string> = { yes: "Going", maybe: "Maybe", no: "Can't make it" };
+
+/** How many current members gave each answer (answers from people who left don't count). */
+export function rsvpCounts(meeting: ClubMeeting, memberIds: string[]): Record<RsvpAnswer, number> {
+  const counts: Record<RsvpAnswer, number> = { yes: 0, maybe: 0, no: 0 };
+  for (const id of memberIds) {
+    const answer = meeting.rsvps[id];
+    if (answer) counts[answer] += 1;
+  }
+  return counts;
+}
+
+/** "2 going, 1 maybe", or "No answers yet". */
+export function rsvpSummary(counts: Record<RsvpAnswer, number>): string {
+  const parts = [
+    counts.yes > 0 && `${counts.yes} going`,
+    counts.maybe > 0 && `${counts.maybe} maybe`,
+    counts.no > 0 && `${counts.no} can't make it`,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "No answers yet";
+}
+
+/** A meeting in one of the reader's clubs, with the club's name (for the bell). */
+export interface UpcomingMeeting extends ClubMeeting {
+  clubName: string;
+}
+
+/** How long before a meeting the bell mentions it (the email goes out in the same window). */
+export const MEETING_ALERT_MS = 24 * 3_600_000;
+
+export interface MeetingAlert {
+  meeting: UpcomingMeeting;
+  /** When it started counting: a day before the meeting. */
+  at: number;
+}
+
+/**
+ * Meetings for the bell: starting in the next day, in clubs with alerts on, unless the reader
+ * said they can't make it. Soonest first.
+ */
+export function meetingAlerts(
+  meetings: UpcomingMeeting[],
+  notifyOff: (clubId: string) => boolean,
+  myId: string,
+  now = Date.now(),
+): MeetingAlert[] {
+  return meetings
+    .filter((m) => {
+      const start = Date.parse(m.startsAt);
+      return start > now && start - now <= MEETING_ALERT_MS && !notifyOff(m.clubId) && m.rsvps[myId] !== "no";
+    })
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .map((meeting) => ({ meeting, at: Date.parse(meeting.startsAt) - MEETING_ALERT_MS }));
 }
 
 /** The same limits as the database. */
