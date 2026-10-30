@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "@jest/globals";
 import { books, getBook } from "../data/books";
 import type { LibraryEntry, ProfileData } from "../types";
 import { moreLike, recommend, similarity, tasteSeeds } from "./recommend";

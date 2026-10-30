@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "@jest/globals";
 import type { Highlight, ReadingDay } from "../types";
 import { statsYears, yearStats } from "./stats";
 

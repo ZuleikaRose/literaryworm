@@ -18,7 +18,7 @@ LiteraryWorm is a reading and listening app (ebooks and audiobooks, household pr
 npm run dev     # http://localhost:5173
 npm run build   # tsc -b + vite build; must pass before every commit
 npm run lint    # oxlint; must be clean
-npm test        # Vitest unit tests (src/lib/*.test.ts); must pass before every commit
+npm test        # Jest unit tests (src/lib/*.test.ts); must pass before every commit
 ```
 
 ## Conventions

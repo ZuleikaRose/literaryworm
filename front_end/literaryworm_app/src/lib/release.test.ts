@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "@jest/globals";
 import type { Reminder } from "../types";
 import { isOut, releaseDay, sortReminders } from "./release";
 
