@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4103, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4204, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -541,6 +541,16 @@
           note: "Unique (id, user_id). Index: (user_id, last_seen_at). Checks in every minute through touch_listening_device(); 20 kept an account. RLS: owner only; browser sets id, user_id and label.",
         },
         {
+          id: "support_lookups", color: colors.server, x: 840, y: 5080, sub: "member lookup record",
+          cols: [
+            ["pk", "id", "bigint identity"],
+            ["fk", "staff_id", "uuid", true],
+            ["fk", "member_id", "uuid", true],
+            ["", "looked_up_at", "timestamptz"],
+          ],
+          note: "Written only by support_member_lookup() (customer service and admins; 60 an hour). Both FKs on delete set null, indexed. RLS: admins read. Deleted after a year by pg_cron.",
+        },
+        {
           id: "offline_devices", color: colors.account, x: 1260, y: 5000, sub: "plan's Read offline places",
           cols: [
             ["pk", "id", "uuid (made by the browser)"],
@@ -728,6 +738,8 @@
         ["club_posts", "club_id", "club_members", "club_id", "N : 1 (pair)"],
         ["listening_devices", "user_id", "auth.users", "id", "N : 1"],
         ["offline_devices", "user_id", "auth.users", "id", "N : 1"],
+        ["support_lookups", "staff_id", "auth.users", "id", "N : 1"],
+        ["support_lookups", "member_id", "auth.users", "id", "N : 1"],
         ["playback_handoffs", "to_device_id", "listening_devices", "id", "N : 1 (pair)"],
         ["playback_handoffs", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["finished_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

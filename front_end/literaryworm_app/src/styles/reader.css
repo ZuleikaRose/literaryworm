@@ -669,6 +669,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Plans with a listening limit: what's left this month (rust when under a fifth). */
+.player-allowance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.player-allowance-low {
+  color: var(--rust-bright);
+  font-weight: 600;
+}
+
 .player-jumps {
   display: flex;
   flex-wrap: wrap;

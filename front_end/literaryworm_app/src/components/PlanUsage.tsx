@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import { freeOfflineDevice, listeningBetween, listOfflineDevices, type OfflineDevice } from "../lib/accountApi";
 import { readOfflinePlace } from "../lib/offline";
-import { listenedThisMonth, monthRange, nextMonthLabel, planLimits } from "../lib/planLimits";
+import { hoursAndMinutes, listenedThisMonth, monthRange, nextMonthLabel, planLimits } from "../lib/planLimits";
 import { today } from "../lib/reading";
 import { useStore } from "../store/context";
 import type { PlanId } from "../types";
-
-const hoursAndMinutes = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m} min`;
-};
 
 /**
  * Account → Plan: how much of the plan's limits is used. This month's listening for the whole

@@ -236,6 +236,16 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("keeps Member lookup for customer service staff", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/support");
+    await page.getByRole("heading", { level: 1, name: "Member lookup" }).waitFor();
+    await page.getByText("The demo household has no staff access.").waitFor();
+    await expect(page.getByLabel("Member's email").count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("shows this month's listening against the plan in Account", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

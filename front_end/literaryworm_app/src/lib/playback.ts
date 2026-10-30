@@ -26,6 +26,8 @@ export interface PlaybackSnapshot {
   limitMinutes: number | null;
   /** Set when the plan's audiobook hours for the month are used up (lib/useListeningAllowance.ts). */
   allowance: AllowanceUsed | null;
+  /** On plans with a listening limit: seconds of it left this month for the household, and the plan's hours. */
+  listeningLeft: { seconds: number; hours: number } | null;
   saveError: string | null;
 }
 

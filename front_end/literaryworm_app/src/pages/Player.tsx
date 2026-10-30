@@ -7,6 +7,7 @@ import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPan
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
+import { hoursAndMinutes } from "../lib/planLimits";
 import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
 import { usePlayerControls } from "../lib/usePlayerControls";
 import { useTitle } from "../lib/useTitle";
@@ -199,6 +200,13 @@ function PlayerView({ book }: { book: Book }) {
                   {formatTime(total - position)}
                 </span>
               </p>
+
+              {live.listeningLeft && (
+                <p className={`player-allowance${live.listeningLeft.seconds <= live.listeningLeft.hours * 3600 * 0.2 ? " player-allowance-low" : ""}`}>
+                  <Icon name="headphones" size={14} /> {hoursAndMinutes(live.listeningLeft.seconds)} of this month's {live.listeningLeft.hours} hours left for the
+                  household
+                </p>
+              )}
 
               <div className="player-controls">
                 <button type="button" className="icon-button" disabled={!controls.previousChapter} onClick={controls.previousChapter ?? undefined}>

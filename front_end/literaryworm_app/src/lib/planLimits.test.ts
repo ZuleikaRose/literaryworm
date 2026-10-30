@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
-import { listenedSoFar, listenedThisMonth, listeningLeft, monthRange, nextMonthLabel, planLimits } from "./planLimits";
+import { bellCount, isNewListeningAlert } from "./notifications";
+import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, planLimits } from "./planLimits";
 
 describe("plan limits", () => {
   it("matches the plan cards, and gives an account without a plan Basic's", () => {
@@ -37,5 +38,49 @@ describe("plan limits", () => {
     expect(listeningLeft("basic", 6 * 3600)).toBe(0);
     expect(listeningLeft("standard", 0)).toBe(30 * 3600);
     expect(listeningLeft("premium", 1_000_000)).toBeNull();
+  });
+});
+
+describe("the listening heads-up", () => {
+  const now = new Date(2026, 9, 30, 18, 0, 0);
+  const hours = (h: number) => h * 3600;
+
+  it("comes once the household passes 80% of the month, dated the day it did", () => {
+    const avery = { "2026-10-02": { seconds: hours(2), finished: 0, listened: hours(2) }, "2026-10-20": { seconds: hours(2), finished: 0, listened: hours(2) } };
+    const sam = { "2026-10-25": { seconds: hours(1), finished: 0, listened: hours(1) } };
+    const alert = listeningAlert("basic", [avery, sam], now)!;
+    expect(alert.used).toBe(hours(5));
+    expect(alert.limit).toBe(hours(5));
+    // 4 of 5 hours (80%) was reached on the 20th.
+    expect(alert.crossedAt).toBe(new Date(2026, 9, 20).getTime());
+  });
+
+  it("dates a crossing today by how long ago it was", () => {
+    const today = { "2026-10-30": { seconds: hours(4.5), finished: 0, listened: hours(4.5) } };
+    // Half an hour past the 4-hour mark.
+    expect(listeningAlert("basic", [today], now)!.crossedAt).toBe(now.getTime() - 1800 * 1000);
+  });
+
+  it("stays quiet below 80%, on Premium, and for last month's listening", () => {
+    const days = { "2026-10-01": { seconds: hours(3.9), finished: 0, listened: hours(3.9) }, "2026-09-30": { seconds: hours(20), finished: 0, listened: hours(20) } };
+    expect(listeningAlert("basic", [days], now)).toBeNull();
+    expect(listeningAlert("premium", [{ "2026-10-01": { seconds: hours(100), finished: 0, listened: hours(100) } }], now)).toBeNull();
+  });
+
+  it("counts on the bell until it's seen", () => {
+    const alert = { used: hours(4), limit: hours(5), crossedAt: 1000 };
+    expect(isNewListeningAlert(alert, null)).toBe(true);
+    expect(isNewListeningAlert(alert, 500)).toBe(true);
+    expect(isNewListeningAlert(alert, 2000)).toBe(false);
+    expect(isNewListeningAlert(null, null)).toBe(false);
+    expect(bellCount([], 500, [], [], now, alert)).toBe(1);
+    expect(bellCount([], 2000, [], [], now, alert)).toBe(0);
+  });
+
+  it("writes hours and minutes", () => {
+    expect(hoursAndMinutes(0)).toBe("0 min");
+    expect(hoursAndMinutes(45 * 60)).toBe("45 min");
+    expect(hoursAndMinutes(5 * 3600)).toBe("5 h");
+    expect(hoursAndMinutes(2 * 3600 + 10 * 60 + 59)).toBe("2 h 10 min");
   });
 });

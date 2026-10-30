@@ -133,3 +133,97 @@ export async function loadDashboard(): Promise<StaffDashboard> {
     stripeEventsToReview: d.stripe_events_to_review,
   };
 }
+
+/** One member, as customer service sees them (support_member_lookup(): no library, reading or Stripe ids). */
+export interface MemberLookup {
+  name: string | null;
+  email: string;
+  joinedAt: string;
+  emailConfirmed: boolean;
+  twoStep: boolean;
+  staff: boolean;
+  /** Null when they've never chosen a plan. */
+  planName: string | null;
+  status: string | null;
+  billingDay: number | null;
+  nextBillingAt: string | null;
+  cancelAt: string | null;
+  giftUntil: string | null;
+  complimentary: boolean;
+  cardOnFile: boolean;
+  profiles: number;
+  kidsProfiles: number;
+  maxProfiles: number;
+  listeningMinutes: number;
+  /** Null for unlimited. */
+  audioHours: number | null;
+  downloadDevices: number;
+  offlineDevices: { label: string; lastSeenAt: string }[];
+  devicesOpenToday: number;
+}
+
+interface LookupRow {
+  status: "ok" | "not_found" | "too_many";
+  member?: {
+    name: string | null;
+    email: string;
+    joined_at: string;
+    email_confirmed: boolean;
+    two_step: boolean;
+    staff: boolean;
+    plan_name: string | null;
+    status: string | null;
+    billing_day: number | null;
+    next_billing_at: string | null;
+    cancel_at: string | null;
+    gift_until: string | null;
+    complimentary: boolean;
+    card_on_file: boolean;
+    profiles: number;
+    kids_profiles: number;
+    max_profiles: number;
+    listening_minutes: number;
+    audio_hours: number | null;
+    download_devices: number;
+    offline_devices: { label: string; last_seen_at: string }[];
+    devices_open_today: number;
+  };
+}
+
+/** Looks up a member by email for customer service; null when no account has that email. Each lookup is recorded. */
+export async function lookupMember(email: string): Promise<MemberLookup | null> {
+  const { data, error } = await client().rpc("support_member_lookup", { p_email: email.trim() });
+  if (error) {
+    if (/Only customer service/i.test(error.message)) throw new AccountError("Member lookup is for customer service staff and admins.");
+    if (/Enter the member/i.test(error.message)) throw new AccountError("Enter the member's email address.");
+    throw new AccountError("We couldn't look that up. Try again.");
+  }
+  const row = data as LookupRow;
+  if (row.status === "too_many") throw new AccountError("That's 60 lookups this hour. Try again later.");
+  if (row.status === "not_found" || !row.member) return null;
+  const m = row.member;
+  return {
+    name: m.name,
+    email: m.email,
+    joinedAt: m.joined_at,
+    emailConfirmed: m.email_confirmed,
+    twoStep: m.two_step,
+    staff: m.staff,
+    planName: m.plan_name,
+    status: m.status,
+    billingDay: m.billing_day,
+    nextBillingAt: m.next_billing_at,
+    cancelAt: m.cancel_at,
+    giftUntil: m.gift_until,
+    complimentary: m.complimentary,
+    cardOnFile: m.card_on_file,
+    profiles: m.profiles,
+    kidsProfiles: m.kids_profiles,
+    maxProfiles: m.max_profiles,
+    listeningMinutes: m.listening_minutes,
+    audioHours: m.audio_hours,
+    downloadDevices: m.download_devices,
+    offlineDevices: m.offline_devices.map((d) => ({ label: d.label, lastSeenAt: d.last_seen_at })),
+    devicesOpenToday: m.devices_open_today,
+  };
+}

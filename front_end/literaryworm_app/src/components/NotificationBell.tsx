@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
-import { badgeText, bellLabel, isNewAuthorBook, isNewRelease } from "../lib/notifications";
+import { badgeText, bellLabel, isNewAuthorBook, isNewListeningAlert, isNewRelease } from "../lib/notifications";
+import { hoursAndMinutes } from "../lib/planLimits";
 import { releaseLabel } from "../lib/release";
 import { useNotifications } from "../lib/useNotifications";
 import { usePopover } from "../lib/usePopover";
@@ -12,7 +13,7 @@ import { Icon } from "./Icon";
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, listening, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const panelId = useId();
   // What was seen before this opening, so the panel can still mark what's new while it's open.
@@ -26,7 +27,7 @@ export function NotificationBell() {
     }
     setOpen(!open);
   };
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null;
 
   return (
     <div className="popover-wrap" ref={wrapRef}>
@@ -49,6 +50,27 @@ export function NotificationBell() {
             </p>
           ) : (
             <>
+              {listening && (
+                <>
+                  <p className="popover-label">Your plan</p>
+                  <ul className="bell-list" role="list">
+                    <li>
+                      <Link className="bell-item" to="/account#plan" onClick={() => close(false)}>
+                        <Icon name="headphones" size={18} />
+                        <span>
+                          <strong>
+                            {listening.used >= listening.limit ? "This month's listening is used up" : "Most of this month's listening is used"}
+                            {isNewListeningAlert(listening, seenBefore) && <span className="bell-new">New</span>}
+                          </strong>
+                          <small>
+                            {hoursAndMinutes(Math.min(listening.used, listening.limit))} of {listening.limit / 3600} hours, for the whole household
+                          </small>
+                        </span>
+                      </Link>
+                    </li>
+                  </ul>
+                </>
+              )}
               {news.length > 0 && (
                 <>
                   <p className="popover-label">Book clubs</p>

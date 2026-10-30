@@ -353,7 +353,8 @@
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
-.bell-item span {
+/* The text column only: the New pill inside the title is a span too, and must stay inline. */
+.bell-item > span {
   display: grid;
   min-width: 0;
 }

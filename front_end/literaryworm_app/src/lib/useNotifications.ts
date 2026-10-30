@@ -5,6 +5,7 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import * as accountApi from "./accountApi";
 import { onClubPost } from "./clubEvents";
 import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notifications";
+import { listeningAlert } from "./planLimits";
 import { useClubs } from "./useClubs";
 
 /**
@@ -63,7 +64,13 @@ export function useNotifications() {
   const released = useMemo(() => releasedReminders(data.reminders), [data.reminders]);
   // Kids profiles have no clubs; a profile switched to one keeps nothing from the last.
   const shownNews = withClubs ? news : [];
-  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews);
+  // Most of the month's listening used (Basic and Standard); a grown-up's concern, so not on Kids profiles.
+  const planId = state.account?.planId ?? null;
+  const listening = useMemo(
+    () => (withClubs ? listeningAlert(planId, state.profiles.map((p) => state.profileData[p.id]?.readingDays ?? {})) : null),
+    [withClubs, planId, state.profiles, state.profileData],
+  );
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -76,5 +83,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, listening, count, seenAt, withClubs, markSeen, refresh };
 }

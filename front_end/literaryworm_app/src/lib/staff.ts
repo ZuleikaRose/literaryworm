@@ -9,7 +9,7 @@ export const STAFF_ROLES: { value: StaffRole; label: string; description: string
   { value: "editor", label: "Editor", description: "Edits the policy and help pages in the footer, and What's new.", inUse: true },
   { value: "developer", label: "Developer", description: "Writes What's new: the changes in each release.", inUse: true },
   { value: "billing", label: "Billing", description: "Sees the dashboard: totals for accounts, memberships and reading.", inUse: true },
-  { value: "customer_service", label: "Customer service", description: "For support tools. None in LiteraryWorm use it yet.", inUse: false },
+  { value: "customer_service", label: "Customer service", description: "Looks up a member by email to help them: plan, billing, listening and devices (Member lookup).", inUse: true },
   { value: "blog", label: "Blog", description: "For the blog. None in LiteraryWorm use it yet.", inUse: false },
   { value: "sales", label: "Sales", description: "For sales tools. None in LiteraryWorm use it yet.", inUse: false },
 ];

@@ -713,6 +713,32 @@ select pg_temp.expect_error($$select public.claim_offline_device(gen_random_uuid
 select pg_temp.expect_error($$select public.listening_minutes_between('2026-10-01', '2026-10-31')$$, 'anon counting listening');
 reset role;
 
+-- Member lookup: customer service and admins only, recorded -------------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.expect_error($$select public.support_member_lookup('ann@example.com')$$, 'a member without the customer service role looking someone up');
+select pg_temp.check((select count(*) from public.support_lookups) = 0, 'Ben cannot read the lookup record');
+reset role;
+reset request.jwt.claims;
+insert into public.staff_roles (user_id, role) values ('00000000-0000-0000-0000-00000000000b', 'customer_service');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select r ->> 'status' = 'ok' and r -> 'member' ->> 'plan_name' is not null and not (r -> 'member' ? 'stripe_customer_id')
+                      from public.support_member_lookup((select email from auth.users where id = '00000000-0000-0000-0000-00000000000a')) r), 'customer service sees Ann''s plan, without Stripe ids');
+select pg_temp.check(public.support_member_lookup('nobody@example.com') ->> 'status' = 'not_found', 'an email with no account');
+select pg_temp.expect_error($$select public.support_member_lookup('not an email')$$, 'a lookup without an email');
+select pg_temp.expect_error($$insert into public.support_lookups (staff_id, member_id) values (null, null)$$, 'writing the lookup record directly');
+select pg_temp.check((select count(*) from public.support_lookups) = 0, 'customer service cannot read the lookup record (admins only)');
+reset role;
+reset request.jwt.claims;
+select pg_temp.check((select count(*) from public.support_lookups where staff_id = '00000000-0000-0000-0000-00000000000b') = 1, 'each found lookup is recorded once');
+delete from public.staff_roles where user_id = '00000000-0000-0000-0000-00000000000b' and role = 'customer_service';
+set role anon;
+select pg_temp.expect_error($$select public.support_member_lookup('ann@example.com')$$, 'anon looking someone up');
+reset role;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

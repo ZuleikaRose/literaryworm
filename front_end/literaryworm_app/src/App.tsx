@@ -30,6 +30,7 @@ const Reader = lazy(() => import("./pages/Reader"));
 const Player = lazy(() => import("./pages/Player"));
 // Staff only, so most members never download it.
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Support = lazy(() => import("./pages/Support"));
 
 /** Old /book/:id links keep working. */
 function LegacyBookRedirect() {
@@ -80,6 +81,14 @@ export default function App() {
               element={
                 <Suspense fallback={null}>
                   <Dashboard />
+                </Suspense>
+              }
+            />
+            <Route
+              path="support"
+              element={
+                <Suspense fallback={null}>
+                  <Support />
                 </Suspense>
               }
             />

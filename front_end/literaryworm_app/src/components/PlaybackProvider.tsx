@@ -207,7 +207,13 @@ function Engine({
   const [finished, setFinished] = useState(false);
   const limit = useDailyLimit(playing, profileId, true);
   const allowance = useListeningAllowance(playing);
-  const { reached: allowanceReached, hours: allowanceHours, planName, resumesOn } = allowance;
+  const { reached: allowanceReached, hours: allowanceHours, planName, resumesOn, leftSeconds } = allowance;
+  // Whole minutes, so the snapshot changes once a minute rather than every step.
+  const leftMinutes = leftSeconds === null ? null : Math.floor(leftSeconds / 60);
+  const listeningLeft = useMemo(
+    () => (leftMinutes === null || allowanceHours === null ? null : { seconds: leftMinutes * 60, hours: allowanceHours }),
+    [leftMinutes, allowanceHours],
+  );
   const allowanceUsed = useMemo(
     () => (allowanceReached && allowanceHours !== null ? { planName, hours: allowanceHours, resumesOn } : null),
     [allowanceReached, allowanceHours, planName, resumesOn],
@@ -413,9 +419,10 @@ function Engine({
       limitReached: limit.reached,
       limitMinutes: limit.limitMinutes,
       allowance: allowanceUsed,
+      listeningLeft,
       saveError,
     });
-  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, notice, limit.reached, limit.limitMinutes, allowanceUsed, saveError]);
+  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, notice, limit.reached, limit.limitMinutes, allowanceUsed, listeningLeft, saveError]);
 
   // The controls, for the provider to call. Kept current with the latest render.
   const latest = useRef({ position, seek, reading, limit, allowance, finished });

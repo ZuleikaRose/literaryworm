@@ -1,6 +1,7 @@
 import { getBook } from "../data/books";
 import type { AuthorNews, Progress, Reminder } from "../types";
 import { type Club, type ClubMembership, spoilerFreeUpTo, unreadUpTo } from "./clubs";
+import type { ListeningAlert } from "./planLimits";
 import { today } from "./reading";
 import { isOut } from "./release";
 
@@ -46,9 +47,20 @@ export function clubNews(clubs: Club[], memberships: Record<string, ClubMembersh
     .sort((a, b) => b.posts - a.posts || a.clubName.localeCompare(b.clubName));
 }
 
-/** The number on the bell: new releases, new books from followed authors and unread club posts. */
-export function bellCount(reminders: Reminder[], seenAt: number | null, news: ClubNews[], authorNews: AuthorNews[] = [], now = new Date()): number {
+/** True when the household passed most of the month's listening after the bell was last opened. */
+export const isNewListeningAlert = (alert: ListeningAlert | null, seenAt: number | null) => alert !== null && (seenAt === null || alert.crossedAt > seenAt);
+
+/** The number on the bell: new releases, new books from followed authors, unread club posts and the listening heads-up. */
+export function bellCount(
+  reminders: Reminder[],
+  seenAt: number | null,
+  news: ClubNews[],
+  authorNews: AuthorNews[] = [],
+  now = new Date(),
+  listening: ListeningAlert | null = null,
+): number {
   return (
+    (isNewListeningAlert(listening, seenAt) ? 1 : 0) +
     reminders.filter((r) => isNewRelease(r, seenAt, now)).length +
     authorNews.filter((n) => isNewAuthorBook(n, seenAt)).length +
     news.reduce((sum, n) => sum + n.posts, 0)

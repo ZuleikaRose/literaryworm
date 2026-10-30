@@ -56,3 +56,52 @@ export function listeningLeft(planId: PlanId | null, listened: number): number |
   const { audioSeconds } = planLimits(planId);
   return audioSeconds === null ? null : Math.max(0, audioSeconds - listened);
 }
+
+/** The share of the month's listening at which the bell gives a heads-up. */
+export const LISTENING_ALERT_SHARE = 0.8;
+
+export interface ListeningAlert {
+  /** Seconds listened this month by the household, and the plan's limit. */
+  used: number;
+  limit: number;
+  /** When the household passed the alert share (an estimate: the start of that day, or for today, how long ago). */
+  crossedAt: number;
+}
+
+/**
+ * The bell's heads-up when the household has used most of the month's listening (Basic and
+ * Standard only), or null. Worked out from the profiles' reading days.
+ */
+export function listeningAlert(planId: PlanId | null, profiles: Record<string, ReadingDay>[], now = new Date()): ListeningAlert | null {
+  const { audioSeconds } = planLimits(planId);
+  if (audioSeconds === null) return null;
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const { from, to } = monthRange(day);
+  const byDay = new Map<string, number>();
+  for (const days of profiles) {
+    for (const [d, r] of Object.entries(days)) {
+      if (d >= from && d <= to && r.listened) byDay.set(d, (byDay.get(d) ?? 0) + r.listened);
+    }
+  }
+  const threshold = audioSeconds * LISTENING_ALERT_SHARE;
+  let used = 0;
+  let crossedOn: string | null = null;
+  for (const d of [...byDay.keys()].sort()) {
+    used += byDay.get(d)!;
+    if (crossedOn === null && used >= threshold) crossedOn = d;
+  }
+  if (crossedOn === null) return null;
+  // Listening happens as it's counted, so today's crossing was as long ago as the time listened since.
+  const crossedAt =
+    crossedOn === day ? now.getTime() - (used - threshold) * 1000 : new Date(Number(crossedOn.slice(0, 4)), Number(crossedOn.slice(5, 7)) - 1, Number(crossedOn.slice(8, 10))).getTime();
+  return { used, limit: audioSeconds, crossedAt };
+}
+
+/** "2 h 10 min", "45 min", "5 h". */
+export function hoursAndMinutes(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m} min`;
+}

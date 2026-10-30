@@ -885,3 +885,37 @@
   justify-content: space-between;
   gap: 8px 16px;
 }
+
+/* ---------- Member lookup (pages/Support.tsx) ---------- */
+
+.team-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.support-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 560px;
+  margin: 20px 0 28px;
+}
+
+.support-form .field {
+  flex: 1 1 260px;
+  margin: 0;
+}
+
+.support-card,
+.support-none {
+  max-width: 760px;
+}
+
+.support-card h2,
+.support-none {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
