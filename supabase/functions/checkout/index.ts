@@ -102,7 +102,8 @@ Deno.serve((req) =>
         // The year starts now and is charged now, less the unused part of the month.
         await stripe.subscriptions.update(subscriptionId, {
           items: [{ id: item.id, price: price.id }],
-          billing_cycle_anchor: "now",
+          // An object since API version 2026-09-30 (it was the string "now").
+          billing_cycle_anchor: { type: "now" },
           proration_behavior: "always_invoice",
         });
         return;
