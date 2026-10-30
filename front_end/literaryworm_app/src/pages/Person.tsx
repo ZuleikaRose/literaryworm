@@ -1,14 +1,11 @@
-import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink";
 import { BookFeed } from "../components/BookFeed";
-import { Icon } from "../components/Icon";
+import { FollowButton } from "../components/FollowButton";
 import { Shelf } from "../components/Shelf";
-import { AccountError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
 import { fromLocal } from "../lib/booksApi";
-import { catalogBy, type PersonKind, personName } from "../lib/people";
-import { useFollows } from "../lib/useFollows";
+import { catalogBy, type PersonKind, personInitials, personName } from "../lib/people";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
 import NotFound from "./NotFound";
@@ -29,13 +26,7 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
   const catalog = catalogBy(kind, name, ageRating);
   // Google Books lists authors, not narrators; Kids profiles see only the catalog.
   const showGoogle = kind === "author" && usesBackend && ageRating !== "kids";
-  const initials = name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
+  const initials = personInitials(name);
 
   return (
     <div className="page-content person-page">
@@ -91,51 +82,6 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
           Follow them to see their new titles first on Home.
         </p>
       )}
-    </div>
-  );
-}
-
-function FollowButton({ kind, name }: { kind: PersonKind; name: string }) {
-  const follows = useFollows();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // Said only after a change, so screen readers aren't told on arrival.
-  const [announcement, setAnnouncement] = useState("");
-  const following = follows.isFollowing(kind, name);
-
-  const toggle = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      await follows.toggle(kind, name);
-      setAnnouncement(following ? `You no longer follow ${name}.` : `You follow ${name}.`);
-    } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="person-follow">
-      <button
-        type="button"
-        className={following ? "secondary-button" : "primary-button"}
-        aria-pressed={following}
-        aria-describedby={error ? "follow-error" : undefined}
-        disabled={busy}
-        onClick={toggle}
-      >
-        <Icon name={following ? "check" : "plus"} size={16} /> {following ? "Following" : "Follow"}
-      </button>
-      {error && (
-        <p className="field-error" id="follow-error" role="alert">
-          {error}
-        </p>
-      )}
-      <p className="visually-hidden" role="status">
-        {announcement}
-      </p>
     </div>
   );
 }

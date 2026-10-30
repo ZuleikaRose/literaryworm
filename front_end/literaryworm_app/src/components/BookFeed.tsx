@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useRef } from "react";
-import type { FeedQuery } from "../lib/booksApi";
+import type { BookSummary, FeedQuery } from "../lib/booksApi";
 import { useBookFeed } from "../lib/useBookFeed";
 import type { AgeRating } from "../types";
 import { BookTile, BookTileSkeleton } from "./BookTile";
@@ -17,6 +17,8 @@ interface BookFeedProps {
   emptyHint?: string;
   /** The line under a list that has loaded everything. */
   endText?: string;
+  /** Told the books loaded so far, each time more arrive (author search lists their authors). */
+  onItems?: (items: BookSummary[]) => void;
 }
 
 /**
@@ -24,8 +26,15 @@ interface BookFeedProps {
  * discovering"). A Load more button does the same for keyboard users and browsers without
  * IntersectionObserver.
  */
-export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint = "Try another genre.", endText }: BookFeedProps) {
+export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint = "Try another genre.", endText, onItems }: BookFeedProps) {
   const { items, status, error, loadMore, retry } = useBookFeed(query, ageRating);
+  const report = useRef(onItems);
+  useEffect(() => {
+    report.current = onItems;
+  });
+  useEffect(() => {
+    report.current?.(items);
+  }, [items]);
   const sentinel = useRef<HTMLDivElement>(null);
   const headingId = `${id}-title`;
 

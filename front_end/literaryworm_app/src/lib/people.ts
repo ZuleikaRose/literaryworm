@@ -1,6 +1,6 @@
 import { books, isAllowed } from "../data/books";
 import type { AgeRating, Book, Follow } from "../types";
-import { normalizeQuery, queryError } from "./search";
+import { normalizeQuery, queryError, wordsMatch } from "./search";
 
 /** Authors and narrators: their pages, what they've made in the catalog, and following them. */
 
@@ -43,3 +43,43 @@ export function fromFollowed(follows: Follow[], ageRating: AgeRating, inLibrary:
     .filter((b) => !inLibrary(b.id) && !seen.has(b.id) && Boolean(seen.add(b.id)))
     .sort((a, b) => b.year - a.year);
 }
+
+/** An author an author search found, and how many of the books shown are theirs. */
+export interface AuthorMatch {
+  name: string;
+  books: number;
+}
+
+/** How many authors an author search lists above its books. */
+export const AUTHOR_MATCHES_MAX = 6;
+
+/**
+ * The authors of these books whose names have every word searched for (as the search matched
+ * them), most books first; names a page address or a follow couldn't hold are left out.
+ */
+export function matchingAuthors(authorLists: string[][], q: string, max = AUTHOR_MATCHES_MAX): AuthorMatch[] {
+  const counts = new Map<string, AuthorMatch>();
+  for (const authors of authorLists) {
+    for (const raw of new Set(authors)) {
+      const name = personName(raw);
+      if (!name || !wordsMatch(name, q)) continue;
+      // The same person spelt with different case, spaces or dots (J. R. R. and J.R.R.) counts
+      // once, under the first spelling seen.
+      const key = name.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+      const found = counts.get(key);
+      if (found) found.books += 1;
+      else counts.set(key, { name, books: 1 });
+    }
+  }
+  return [...counts.values()].sort((a, b) => b.books - a.books || a.name.localeCompare(b.name)).slice(0, max);
+}
+
+/** Two letters for an author's mark: "Ursula K. Le Guin" → "UK". */
+export const personInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();

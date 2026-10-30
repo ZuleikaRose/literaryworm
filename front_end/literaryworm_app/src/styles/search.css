@@ -257,3 +257,61 @@
 .search-by span {
   min-height: 44px;
 }
+
+/* An author search's authors, above the books: a mark, the name (to their page), a count and Follow. */
+.author-results {
+  margin-bottom: 32px;
+}
+
+.author-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.author-list .person-mark.small {
+  width: 44px;
+  height: 44px;
+  font-size: 0.9375rem;
+}
+
+.author-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.author-text a {
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author-text span {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.author-list .person-follow {
+  flex: none;
+}
+
+.author-list .person-follow .small-button {
+  min-height: 44px;
+}

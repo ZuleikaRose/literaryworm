@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "update",
+    "title": "Follow authors from search",
+    "body": "Searching by author now lists the authors it finds above the books, with how many of the results are theirs and a Follow button, so you can follow someone without opening their page.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "feature",
     "title": "Weekly reading goals for Kids profiles",
     "body": "Grown-ups can now give a Kids profile a weekly reading goal, from 1 to 5 hours, in the profile's settings. Kids see how close they are in Goals, grown-ups see it in Account → Family, and the Monday Kids reading report says whether the goal was reached.",

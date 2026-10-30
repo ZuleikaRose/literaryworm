@@ -51,6 +51,18 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lists the authors an author search finds, and follows one from there", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/search?q=shelley&by=author");
+    const authors = page.getByRole("region", { name: "Authors" });
+    await authors.getByRole("link", { name: "Mary Shelley" }).waitFor();
+    await authors.getByRole("button", { name: /Follow Mary Shelley/ }).click();
+    await authors.getByRole("button", { name: /Following Mary Shelley/ }).waitFor();
+    expect(await authors.getByRole("button", { name: /Following/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(errors()).toEqual([]);
+  });
+
   it("browses a new genre from Home, and narrows a search by it", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);

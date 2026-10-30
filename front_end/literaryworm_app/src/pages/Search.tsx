@@ -3,10 +3,12 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookCard } from "../components/BookCard";
 import { BookFeed } from "../components/BookFeed";
 import { Dialog } from "../components/Dialog";
+import { FollowButton } from "../components/FollowButton";
 import { Icon } from "../components/Icon";
 import { SearchFilters } from "../components/SearchFilters";
 import { browseGenres, genreHref, genreLabel } from "../data/genres";
-import { usesBackend } from "../lib/booksApi";
+import { type BookSummary, usesBackend } from "../lib/booksApi";
+import { type AuthorMatch, matchingAuthors, personInitials, personPath } from "../lib/people";
 import {
   catalogMatches,
   didYouMean,
@@ -208,6 +210,11 @@ function Results({ search }: { search: SearchParams }) {
 
   const catalog = source === "google" ? [] : catalogMatches(search, ageRating);
   const byAuthor = search.by === "author";
+  // The Google Books results loaded so far, for this search only (an author search lists their authors).
+  const feedKey = `${search.by}|${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`;
+  const [loaded, setLoaded] = useState<{ key: string; items: BookSummary[] }>({ key: feedKey, items: [] });
+  const googleItems = loaded.key === feedKey && source !== "literaryworm" && googleAllowed ? loaded.items : [];
+  const authors = byAuthor ? matchingAuthors([...catalog.map((b) => [b.author]), ...googleItems.map((b) => b.authors)], search.q) : [];
   const suggestion = !byAuthor && catalogMatches(search, ageRating).length === 0 ? didYouMean(search.q, ageRating) : null;
   const filterCount =
     (search.genre ? 1 : 0) +
@@ -265,6 +272,8 @@ function Results({ search }: { search: SearchParams }) {
           </p>
         )}
 
+        {authors.length > 0 && <AuthorResults authors={authors} canFollow={Boolean(profile)} />}
+
         {source !== "google" && (
           <section className="catalog-results" aria-labelledby="catalog-results-title">
             <div className="section-heading">
@@ -294,8 +303,9 @@ function Results({ search }: { search: SearchParams }) {
 
         {source !== "literaryworm" && googleAllowed && (
           <BookFeed
-            key={`${search.by}|${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`}
+            key={feedKey}
             id="google-results"
+            onItems={(items) => setLoaded({ key: feedKey, items })}
             eyebrow="Save, rate and write logs"
             title="From Google Books"
             query={
@@ -340,5 +350,35 @@ function Results({ search }: { search: SearchParams }) {
         </div>
       </Dialog>
     </div>
+  );
+}
+
+/** An author search's authors: each one's page, how many of the results are theirs, and Follow. */
+function AuthorResults({ authors, canFollow }: { authors: AuthorMatch[]; canFollow: boolean }) {
+  return (
+    <section className="author-results" aria-labelledby="author-results-title">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Follow to see their new books first</p>
+          <h2 id="author-results-title">Authors</h2>
+        </div>
+      </div>
+      <ul className="author-list" role="list">
+        {authors.map((a) => (
+          <li key={a.name}>
+            <span className="person-mark small" aria-hidden="true">
+              {personInitials(a.name)}
+            </span>
+            <div className="author-text">
+              <Link to={personPath("author", a.name)}>{a.name}</Link>
+              <span>
+                {a.books} {a.books === 1 ? "book" : "books"} below
+              </span>
+            </div>
+            {canFollow && <FollowButton kind="author" name={a.name} small />}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

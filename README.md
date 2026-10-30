@@ -398,5 +398,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Club meeting RSVPs: members answer Going, Maybe or Can't make it and see who's coming; meetings in the next day show in the bell; no reminder email for members who can't come; the staff dashboard shows yearly memberships (migrations 4800–4803) | Done    |
 | —    | Yearly to monthly at renewal: a yearly member chooses monthly on Plans; a Stripe subscription schedule keeps the year and bills monthly from the renewal date; *Keep yearly billing* in Account undoes it; cancelling drops it (Terms updated) (migrations 4900–4903) | Done    |
 | —    | Weekly reading goals for Kids profiles: set by a grown-up in the profile editor (account password, `manage-profile`), shown in the child's Goals, Account → Family and the Monday Kids report (Privacy and Children's Privacy Notice updated) (migrations 5000–5002) | Done    |
+| —    | Follow authors from search: an author search lists the matching authors above the books, with a Follow button each (migration 5100, What's new only) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
