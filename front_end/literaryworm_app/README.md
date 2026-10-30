@@ -138,3 +138,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Plan limits: `lib/planLimits.ts`, `lib/useListeningAllowance.ts` (pauses the player at the month's hours), `lib/offlinePlaces.ts` (each Read offline device takes a place; `claim_offline_device()`), `components/PlanUsage.tsx` in Account; migrations 4100–4103 |
 | — | Favourite genres from all nineteen (`favouriteGenreLabel()`, `inFavouriteGenre()` in `data/genres.ts`), Home rows for up to two favourites, sample titles tagged with the new genres |
 | — | What's new links on the home page, members' Home and Plans (`components/WhatsNewLink.tsx`) and in Account → Help |
+| — | Listening heads-up (player line, 80% bell alert: `listeningAlert()` in `lib/planLimits.ts`), Member lookup at `/support` (`pages/Support.tsx`, `lookupMember()` in `lib/staffApi.ts`) for customer service, accessibility pass, `docs/qa/plan-limits-device-check.md`; migrations 4200–4204 |
