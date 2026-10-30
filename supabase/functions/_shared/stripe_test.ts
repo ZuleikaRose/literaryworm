@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/_shared/stripe_test.ts — Stripe objects to what members see.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
-import { addGiftMonths, discountView, giftCode, invoiceView, type Stripe } from "./stripe.ts";
+import { addGiftMonths, cancellationEnd, discountView, giftCode, invoiceView, oneMonthAfter, type Stripe, subscriptionRow } from "./stripe.ts";
 
 const invoice = (fields: Partial<Stripe.Invoice>) =>
   ({
@@ -70,4 +70,42 @@ Deno.test("gift codes are 16 easy-to-read characters", () => {
   const codes = new Set(Array.from({ length: 200 }, giftCode));
   assertEquals(codes.size, 200);
   for (const code of codes) assertEquals(/^[A-HJ-NP-Z2-9]{16}$/.test(code), true, code);
+});
+
+Deno.test("cancelling 48 hours or more before the billing date ends the membership then", () => {
+  const billing = new Date("2026-11-05T09:30:00Z");
+  assertEquals(cancellationEnd(billing, new Date("2026-11-01T00:00:00Z")), { ends: billing, late: false });
+  // Exactly 48 hours before still counts.
+  assertEquals(cancellationEnd(billing, new Date("2026-11-03T09:30:00Z")), { ends: billing, late: false });
+});
+
+Deno.test("cancelling with less than 48 hours' notice keeps the next charge and ends a month later", () => {
+  const billing = new Date("2026-11-05T09:30:00Z");
+  const late = { ends: new Date("2026-12-05T09:30:00Z"), late: true };
+  assertEquals(cancellationEnd(billing, new Date("2026-11-03T09:30:01Z")), late);
+  assertEquals(cancellationEnd(billing, new Date("2026-11-05T09:00:00Z")), late);
+});
+
+Deno.test("a month after keeps the day and time, and ends of months clamp as Stripe renews", () => {
+  assertEquals(oneMonthAfter(new Date("2026-12-18T00:00:00Z")).toISOString(), "2027-01-18T00:00:00.000Z");
+  assertEquals(oneMonthAfter(new Date("2027-01-31T12:00:00Z")).toISOString(), "2027-02-28T12:00:00.000Z");
+  assertEquals(oneMonthAfter(new Date("2028-01-31T12:00:00Z")).toISOString(), "2028-02-29T12:00:00.000Z");
+});
+
+Deno.test("a subscription's end date: cancel_at when set, the period end when ending there, else none", () => {
+  const base = {
+    id: "sub_1",
+    customer: "cus_1",
+    status: "active",
+    pause_collection: null,
+    cancel_at_period_end: false,
+    cancel_at: null,
+    billing_cycle_anchor: 1_797_552_000,
+    items: { data: [{ price: { lookup_key: "literaryworm_standard_monthly" }, current_period_end: 1_798_761_600 }] },
+  };
+  const row = (o: Record<string, unknown>) => subscriptionRow({ ...base, ...o } as unknown as Stripe.Subscription);
+  assertEquals([row({}).cancel_at_period_end, row({}).cancel_at], [false, null]);
+  assertEquals([row({ cancel_at_period_end: true }).cancel_at_period_end, row({ cancel_at_period_end: true }).cancel_at], [true, "2027-01-01T00:00:00.000Z"]);
+  // A late cancellation: Stripe has cancel_at a period later and cancel_at_period_end off.
+  assertEquals([row({ cancel_at: 1_801_440_000 }).cancel_at_period_end, row({ cancel_at: 1_801_440_000 }).cancel_at], [true, "2027-02-01T00:00:00.000Z"]);
 });

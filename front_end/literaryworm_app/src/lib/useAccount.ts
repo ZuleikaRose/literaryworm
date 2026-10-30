@@ -4,7 +4,7 @@ import { useStore } from "../store/context";
 import { activeLibrary, activeReading } from "../store/reducer";
 import * as accountApi from "./accountApi";
 import { AccountError, type MembershipAction } from "./accountApi";
-import { nextBillingDate } from "./billing";
+import { cancellationEnd, nextBillingDate } from "./billing";
 
 /**
  * The Account page's changes. Real accounts save to Supabase (membership and deleting go
@@ -27,7 +27,7 @@ export function useAccount() {
     const patch = {
       pause: { status: "paused" as const },
       resume: { status: "active" as const },
-      cancel: { endsAt: nextBillingDate(day).toISOString() },
+      cancel: { endsAt: cancellationEnd(nextBillingDate(day)).ends.toISOString() },
       restart: { endsAt: null },
     }[action];
     dispatch({ type: "updateAccount", patch });

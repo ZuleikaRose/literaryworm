@@ -10,7 +10,7 @@ import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./
 const DISCOUNT_EXPAND = ["discounts.source.coupon", "discounts.promotion_code"];
 
 const COLUMNS =
-  "plan_id, status, billing_day, cancel_at_period_end, current_period_end, complimentary, gift_until, stripe_subscription_id, stripe_customer_id";
+  "plan_id, status, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, stripe_subscription_id, stripe_customer_id";
 
 Deno.serve((req) =>
   handle(req, {
@@ -21,6 +21,9 @@ Deno.serve((req) =>
       pause: async (id) => void (await stripeClient().subscriptions.update(id, { pause_collection: { behavior: "void" } })),
       resume: async (id) => void (await stripeClient().subscriptions.update(id, { pause_collection: "" })),
       setCancelAtPeriodEnd: async (id, cancel) => void (await stripeClient().subscriptions.update(id, { cancel_at_period_end: cancel })),
+      // At a period's end, so the last period is whole and nothing is prorated.
+      cancelAt: async (id, at) => void (await stripeClient().subscriptions.update(id, { cancel_at: at, proration_behavior: "none" })),
+      clearCancelAt: async (id) => void (await stripeClient().subscriptions.update(id, { cancel_at: "" })),
       cancelNow: async (id) => void (await stripeClient().subscriptions.cancel(id, { invoice_now: false, prorate: false })),
       // A free stretch until the new date, which becomes the billing day from then on.
       moveRenewal: async (id, until) =>

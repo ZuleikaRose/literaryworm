@@ -26,7 +26,7 @@ import {
   type TwoStepSetup,
   twoStepIsOn,
 } from "../lib/accountApi";
-import { endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
+import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { useAccount } from "../lib/useAccount";
 import { useTitle } from "../lib/useTitle";
@@ -195,19 +195,28 @@ function PlanSection({ account }: { account: AccountDetails }) {
     }, `Your billing day is now the ${ordinal(newDay)}. The days until your next charge are free.`);
   };
   // During a gift's free months, the first charge is when they end.
-  const nextCharge = account.giftUntil
-    ? endDate(account.giftUntil)
+  const nextChargeDate = account.giftUntil
+    ? new Date(account.giftUntil)
     : account.billingDay
-      ? longDate(nextBillingDate(account.billingDay))
+      ? nextBillingDate(account.billingDay)
       : null;
+  const nextCharge = account.giftUntil ? endDate(account.giftUntil) : nextChargeDate ? longDate(nextChargeDate) : null;
   const endsOn = account.endsAt ? endDate(account.endsAt) : null;
+  // Cancelled with under 48 hours' notice: the next charge still goes through, and the plan ends a month later.
+  const chargeBeforeEnd = Boolean(endsOn && nextCharge && endsOn !== nextCharge);
+  // What cancelling now would do (the manage-account function applies the same rule).
+  const cancelling = nextChargeDate ? cancellationEnd(nextChargeDate) : null;
+  const cancelLate = Boolean(cancelling?.late);
+  const cancelEnds = cancelling ? longDate(cancelling.ends) : nextCharge;
 
   const run = async (action: MembershipAction) => {
     setConfirming(null);
     const messages: Record<MembershipAction, string> = {
       pause: "Your membership is paused. Nothing is charged until you resume.",
       resume: "Welcome back. Your membership is active again.",
-      cancel: `Your membership is cancelled. You can keep reading until ${nextCharge}.`,
+      cancel: cancelLate
+        ? `Your membership is cancelled. The charge on ${nextCharge} still goes through, and you can keep reading until ${cancelEnds}.`
+        : `Your membership is cancelled. You can keep reading until ${nextCharge}.`,
       restart: "Your membership will carry on as before.",
     };
     await attempt(() => changeMembership(action), messages[action]);
@@ -280,7 +289,9 @@ function PlanSection({ account }: { account: AccountDetails }) {
             {account.status === "paused"
               ? "None while paused"
               : endsOn
-                ? "None: the plan ends instead"
+                ? chargeBeforeEnd
+                  ? `${formatPrice(plan.price)} on ${nextCharge}, then the plan ends on ${endsOn}`
+                  : "None: the plan ends instead"
                 : account.giftUntil
                   ? `None until ${nextCharge}: a gift. Then ${formatPrice(plan.price)} if a card is on file; without one, the membership ends that day.`
                   : `${formatPrice(plan.price)} on ${nextCharge}`}
@@ -291,6 +302,10 @@ function PlanSection({ account }: { account: AccountDetails }) {
           <dd>The {ordinal(account.billingDay ?? 1)} of each month</dd>
         </div>
       </dl>
+      <p className="field-hint cancel-notice">
+        Cancel at least {CANCEL_NOTICE_HOURS} hours before your next billing date to stop the next charge. Cancelling later still
+        ends your membership, but after one more month. No refunds.
+      </p>
       {account.isDemo && <p className="field-hint">The demo can't take payments, so no card is on file.</p>}
 
       {billed && !account.stripeLinked && (
@@ -376,7 +391,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
 
       {billed && <RedeemGift account={account} />}
 
-      {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} />}
+      {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={formatPrice(plan.price)} />}
 
       <Dialog
         open={confirming !== null}
@@ -386,7 +401,9 @@ function PlanSection({ account }: { account: AccountDetails }) {
         description={
           <p>
             {confirming === "cancel"
-              ? `You can keep reading and listening until ${nextCharge}, and you won't be charged again. You can change your mind any time before then.`
+              ? cancelLate
+                ? `It's less than ${CANCEL_NOTICE_HOURS} hours until your next billing date, so the charge on ${nextCharge} still goes through. You can keep reading and listening until ${cancelEnds}, with no charges after that. No refunds. You can change your mind any time before then.`
+                : `You can keep reading and listening until ${nextCharge}, and you won't be charged again. No refunds. You can change your mind any time before then.`
               : "Reading and listening stop, and nothing is charged until you resume. Your library, profiles and progress stay as they are."}
           </p>
         }

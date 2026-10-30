@@ -323,12 +323,13 @@ interface SubscriptionRow {
   status: string;
   cancel_at_period_end: boolean;
   current_period_end: string | null;
+  cancel_at: string | null;
   complimentary: boolean;
   stripe_linked: boolean;
   gift_until: string | null;
 }
 
-const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, complimentary, stripe_linked, gift_until";
+const SUBSCRIPTION_COLUMNS = "plan_id, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until";
 
 type PlanFields = Pick<Account, "planId" | "billingDay" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil">;
 
@@ -345,7 +346,8 @@ function fromSubscription(row: SubscriptionRow | null): PlanFields {
     planId: (row?.plan_id as PlanId | undefined) ?? null,
     billingDay: row?.billing_day ?? null,
     status: status === "paused" || status === "cancelled" ? status : "active",
-    endsAt: row?.cancel_at_period_end ? row.current_period_end : null,
+    // When an ending membership ends: a month after the period's end if it was cancelled with under 48 hours' notice.
+    endsAt: row?.cancel_at_period_end ? (row.cancel_at ?? row.current_period_end) : null,
     complimentary: row?.complimentary ?? false,
     stripeLinked: row?.stripe_linked ?? false,
     pastDue: status === "past_due",

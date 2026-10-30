@@ -56,6 +56,8 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       pause: (id) => record(`pause ${id}`),
       resume: (id) => record(`resume ${id}`),
       setCancelAtPeriodEnd: (id, cancel) => record(`cancel_at_period_end ${id} ${cancel}`),
+      cancelAt: (id, at) => record(`cancel_at ${id} ${new Date(at * 1000).toISOString()}`),
+      clearCancelAt: (id) => record(`clear cancel_at ${id}`),
       cancelNow: (id) => record(`cancel ${id}`),
       moveRenewal: (id, until) => record(`renew ${id} ${new Date(until * 1000).toISOString().slice(0, 10)}`),
       paymentMethodUrl: (customer, returnUrl) => {
@@ -106,6 +108,7 @@ const active = (): Subscription => ({
   billing_day: 5,
   cancel_at_period_end: false,
   current_period_end: null,
+  cancel_at: null,
   complimentary: false,
   gift_until: null,
   stripe_subscription_id: null,
@@ -126,6 +129,7 @@ const complimentary = (): Subscription => ({
   billing_day: null,
   cancel_at_period_end: false,
   current_period_end: null,
+  cancel_at: null,
   complimentary: true,
   gift_until: null,
   stripe_subscription_id: null,
@@ -170,6 +174,52 @@ Deno.test("cancel keeps reading until the next billing date, and restart undoes 
   await call(deps, { action: "restart" });
   assertEquals(state.sub!.cancel_at_period_end, false);
   assertEquals(state.sub!.current_period_end, null);
+  assertEquals(state.sub!.cancel_at, null);
+});
+
+// 36 hours before the 5 November billing date.
+const LATE = new Date("2026-11-03T12:00:00Z");
+
+Deno.test("cancelling with under 48 hours' notice keeps the next charge and ends a month later, in Stripe too", async () => {
+  const { state, deps } = setup(paid(), { now: () => LATE });
+  const res = await call(deps, { action: "cancel" });
+  assertEquals(res.status, 200);
+  assertEquals(state.stripe, ["cancel_at sub_1 2026-12-05T00:00:00.000Z"]);
+  assertEquals(state.sub!.cancel_at, "2026-12-05T00:00:00.000Z");
+  assertEquals(state.sub!.current_period_end, "2026-11-05T00:00:00.000Z");
+  assertEquals(res.body.cancel_at, "2026-12-05T00:00:00.000Z");
+  await call(deps, { action: "restart" });
+  assertEquals(state.stripe.at(-1), "clear cancel_at sub_1");
+  assertEquals([state.sub!.cancel_at_period_end, state.sub!.cancel_at], [false, null]);
+});
+
+Deno.test("with 48 hours' notice or more the membership ends on the billing date, with nothing more charged", async () => {
+  const { state, deps } = setup(paid());
+  await call(deps, { action: "cancel" });
+  assertEquals(state.stripe, ["cancel_at_period_end sub_1 true"]);
+  assertEquals(state.sub!.cancel_at, "2026-11-05T00:00:00.000Z");
+});
+
+Deno.test("the 48-hour rule applies to memberships without Stripe too", async () => {
+  const { state, deps } = setup(active(), { now: () => LATE });
+  await call(deps, { action: "cancel" });
+  assertEquals(state.sub!.current_period_end, "2026-11-05T00:00:00.000Z");
+  assertEquals(state.sub!.cancel_at, "2026-12-05T00:00:00.000Z");
+});
+
+Deno.test("a paused membership isn't charged, so cancelling it late still ends it on the billing date", async () => {
+  const { state, deps } = setup({ ...paid(), status: "paused" }, { now: () => LATE });
+  await call(deps, { action: "cancel" });
+  assertEquals(state.stripe, ["cancel_at_period_end sub_1 true"]);
+  assertEquals(state.sub!.cancel_at, "2026-11-05T00:00:00.000Z");
+});
+
+Deno.test("cancelling twice changes nothing the second time", async () => {
+  const { state, deps } = setup(paid(), { now: () => LATE });
+  await call(deps, { action: "cancel" });
+  await call(deps, { action: "cancel" });
+  assertEquals(state.stripe.length, 1);
+  assertEquals(state.sub!.cancel_at, "2026-12-05T00:00:00.000Z");
 });
 
 Deno.test("no plan yet is a plain 404", async () => {

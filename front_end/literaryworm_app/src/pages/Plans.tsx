@@ -4,7 +4,7 @@ import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, planFaqs, plans } from "../data/plans";
 import { AccountError, choosePlan, loadAccount, planFields } from "../lib/accountApi";
-import { longDate, nextBillingDate, ordinal } from "../lib/billing";
+import { CANCEL_NOTICE_HOURS, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { Plan, PlanId } from "../types";
@@ -299,7 +299,8 @@ export default function Plans() {
                 <p className="renewal-terms">
                   Your membership renews automatically every month on the {ordinal(billingDay)} at{" "}
                   {formatPrice(plan.price)} until you cancel. Cancel online any time from Account; you'll keep access
-                  until the end of the period you've paid for.
+                  until the end of the period you've paid for. To stop a charge, cancel at least {CANCEL_NOTICE_HOURS} hours before
+                  that billing date. No refunds.
                 </p>
 
                 <label className="check-row">

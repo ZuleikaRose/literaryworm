@@ -7,7 +7,9 @@
 //
 //   { action: "pause" }                      stop reading and billing until resumed
 //   { action: "resume" }
-//   { action: "cancel" }                     ends on the next billing date; no more charges
+//   { action: "cancel" }                     ends on the next billing date with no more charges,
+//                                            given at least 48 hours' notice; with less, that charge
+//                                            still goes through and it ends a month later. No refunds
 //   { action: "restart" }                    undo a cancel before it takes effect
 //   { action: "billing_day", billingDay }    move the billing day (1-28): the days until the new
 //                                            date are free, so nothing is charged twice or lost
@@ -33,7 +35,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { addGiftMonths, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
+import { addGiftMonths, cancellationEnd, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
 import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 import { deletedEmail, type Email } from "./email.ts";
 
@@ -44,8 +46,11 @@ export interface Subscription {
   status: "active" | "paused" | "cancelled" | "past_due";
   /** Null only for a complimentary membership, which is never billed. */
   billing_day: number | null;
+  /** Ending: no renewal after the date it ends (cancel_at). */
   cancel_at_period_end: boolean;
   current_period_end: string | null;
+  /** When an ending membership ends: the period's end, or a month later after a cancellation with under 48 hours' notice. */
+  cancel_at: string | null;
   /** An admin's membership: set by the database from the admin role, never billed. */
   complimentary: boolean;
   /** The end of a gift's free months, while they last. */
@@ -56,7 +61,7 @@ export interface Subscription {
 }
 
 export type SubscriptionPatch = Partial<
-  Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end" | "billing_day" | "gift_until">
+  Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end" | "cancel_at" | "billing_day" | "gift_until">
 >;
 
 export interface Gift {
@@ -80,6 +85,10 @@ export interface Billing {
   pause: (subscriptionId: string) => Promise<void>;
   resume: (subscriptionId: string) => Promise<void>;
   setCancelAtPeriodEnd: (subscriptionId: string, cancel: boolean) => Promise<void>;
+  /** Ends the subscription at `at` (unix seconds, a period's end), with no proration. */
+  cancelAt: (subscriptionId: string, at: number) => Promise<void>;
+  /** Removes a cancellation set with cancelAt. */
+  clearCancelAt: (subscriptionId: string) => Promise<void>;
   cancelNow: (subscriptionId: string) => Promise<void>;
   /** Moves the renewal to `until` (unix seconds), with no charge for the days before it. */
   moveRenewal: (subscriptionId: string, until: number) => Promise<void>;
@@ -175,16 +184,29 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       case "cancel": {
         onlyKeys(body, ["action"]);
         const sub = await requirePaidSubscription(deps, user.id);
-        if (sub.status === "cancelled") return json(req, METHODS, view(sub));
-        // Nothing more is charged; reading continues until the date already paid for.
-        if (sub.stripe_subscription_id) await deps.billing.setCancelAtPeriodEnd(sub.stripe_subscription_id, true);
-        const ends = sub.stripe_subscription_id && sub.current_period_end
-          ? sub.current_period_end
-          : nextBillingDate(sub.billing_day, now).toISOString();
+        if (sub.status === "cancelled" || sub.cancel_at_period_end) return json(req, METHODS, view(sub));
+        const nextBilling = sub.stripe_subscription_id && sub.current_period_end
+          ? new Date(sub.current_period_end)
+          : nextBillingDate(sub.billing_day, now);
+        // Reading continues until the date already paid for. With under 48 hours' notice the next
+        // charge still goes through, so that date is a month later; a paused membership isn't
+        // charged, so it ends on the billing date whenever it's cancelled.
+        const { ends, late } = sub.status === "paused" ? { ends: nextBilling, late: false } : cancellationEnd(nextBilling, now);
+        if (sub.stripe_subscription_id) {
+          if (late) await deps.billing.cancelAt(sub.stripe_subscription_id, Math.floor(ends.getTime() / 1000));
+          else await deps.billing.setCancelAtPeriodEnd(sub.stripe_subscription_id, true);
+        }
         return json(
           req,
           METHODS,
-          view(await deps.updateSubscription(user.id, { status: "active", cancel_at_period_end: true, current_period_end: ends })),
+          view(
+            await deps.updateSubscription(user.id, {
+              status: "active",
+              cancel_at_period_end: true,
+              current_period_end: nextBilling.toISOString(),
+              cancel_at: ends.toISOString(),
+            }),
+          ),
         );
       }
       case "restart": {
@@ -194,10 +216,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
           throw new HttpError("bad_request", "This membership has ended. Choose a plan to start again.");
         }
         if (sub.stripe_subscription_id) {
-          await deps.billing.setCancelAtPeriodEnd(sub.stripe_subscription_id, false);
-          return json(req, METHODS, view(await deps.updateSubscription(user.id, { cancel_at_period_end: false })));
+          // A cancellation with under 48 hours' notice set a date past the period's end.
+          const late = Boolean(sub.cancel_at && sub.current_period_end && sub.cancel_at > sub.current_period_end);
+          if (late) await deps.billing.clearCancelAt(sub.stripe_subscription_id);
+          else await deps.billing.setCancelAtPeriodEnd(sub.stripe_subscription_id, false);
+          return json(req, METHODS, view(await deps.updateSubscription(user.id, { cancel_at_period_end: false, cancel_at: null })));
         }
-        return json(req, METHODS, view(await deps.updateSubscription(user.id, { cancel_at_period_end: false, current_period_end: null })));
+        return json(
+          req,
+          METHODS,
+          view(await deps.updateSubscription(user.id, { cancel_at_period_end: false, current_period_end: null, cancel_at: null })),
+        );
       }
       case "billing_day": {
         onlyKeys(body, ["action", "billingDay"]);

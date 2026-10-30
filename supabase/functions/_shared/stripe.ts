@@ -48,6 +48,29 @@ export function addGiftMonths(from: Date, months: number): Date {
   return date;
 }
 
+/** Members must cancel at least this long before the next billing date to stop that charge (the Terms). */
+export const CANCEL_NOTICE_HOURS = 48;
+
+/** The same day and time a month later; a day the next month doesn't have becomes its last day, as Stripe renews. */
+export function oneMonthAfter(from: Date): Date {
+  const year = from.getUTCFullYear();
+  const month = from.getUTCMonth() + 1;
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return new Date(
+    Date.UTC(year, month, Math.min(from.getUTCDate(), lastDay), from.getUTCHours(), from.getUTCMinutes(), from.getUTCSeconds()),
+  );
+}
+
+/**
+ * When a membership cancelled at `now` ends, given its next billing date. With at least 48 hours'
+ * notice it ends then and nothing more is charged; with less, that charge still goes through and
+ * the membership ends a month later, at the end of the period it paid for. No refunds either way.
+ */
+export function cancellationEnd(nextBilling: Date, now: Date): { ends: Date; late: boolean } {
+  if (nextBilling.getTime() - now.getTime() >= CANCEL_NOTICE_HOURS * 3_600_000) return { ends: nextBilling, late: false };
+  return { ends: oneMonthAfter(nextBilling), late: true };
+}
+
 export function planForLookupKey(key: string | null | undefined): PlanId | null {
   return (Object.keys(PRICE_LOOKUP_KEY) as PlanId[]).find((p) => PRICE_LOOKUP_KEY[p] === key) ?? null;
 }
@@ -172,8 +195,11 @@ export function subscriptionRow(sub: Stripe.Subscription) {
     status: statusFor(sub),
     gift_until: sub.status === "trialing" && giftUntil > 0 ? new Date(giftUntil * 1000).toISOString() : null,
     billing_day: new Date(sub.billing_cycle_anchor * 1000).getUTCDate(),
-    cancel_at_period_end: sub.cancel_at_period_end,
+    // "Ending": at the period's end, or on a later date set for a cancellation with under 48 hours' notice.
+    cancel_at_period_end: sub.cancel_at_period_end || Boolean(sub.cancel_at),
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+    // When an ending membership ends.
+    cancel_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : sub.cancel_at_period_end && periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
     stripe_subscription_id: sub.id,
     stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
   };

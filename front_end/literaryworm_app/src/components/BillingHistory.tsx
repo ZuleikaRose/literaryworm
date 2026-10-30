@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { AccountError, type BillingInvoice, billingHistory, type MembershipDiscount, redeemPromoCode } from "../lib/accountApi";
-import { discountLabel, formatMoney, longDate, promoCodeError } from "../lib/billing";
+import { afterDiscountLabel, discountLabel, formatMoney, longDate, promoCodeError } from "../lib/billing";
 import { Icon } from "./Icon";
 
 const STATUS: Record<BillingInvoice["status"], string> = {
@@ -16,7 +16,7 @@ const message = (err: unknown) => (err instanceof AccountError ? err.message : "
  * Account → Plan and billing, for members paying through Stripe: the promo code on the
  * membership (and a box to add one), then every charge with a link to Stripe's receipt.
  */
-export function BillingHistory({ canRedeem }: { canRedeem: boolean }) {
+export function BillingHistory({ canRedeem, monthlyPrice }: { canRedeem: boolean; monthlyPrice: string }) {
   const [invoices, setInvoices] = useState<BillingInvoice[] | null>(null);
   const [discount, setDiscount] = useState<MembershipDiscount | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export function BillingHistory({ canRedeem }: { canRedeem: boolean }) {
 
   return (
     <div className="billing-history">
-      <PromoCode discount={discount} canRedeem={canRedeem} onApplied={setDiscount} />
+      <PromoCode discount={discount} canRedeem={canRedeem} monthlyPrice={monthlyPrice} onApplied={setDiscount} />
 
       <section aria-labelledby="billing-history-title">
         <h3 id="billing-history-title">Billing history</h3>
@@ -102,10 +102,13 @@ export function BillingHistory({ canRedeem }: { canRedeem: boolean }) {
 function PromoCode({
   discount,
   canRedeem,
+  monthlyPrice,
   onApplied,
 }: {
   discount: MembershipDiscount | null;
   canRedeem: boolean;
+  /** The plan's price, for what's charged once the code stops applying. */
+  monthlyPrice: string;
   onApplied: (d: MembershipDiscount) => void;
 }) {
   const id = useId();
@@ -128,7 +131,7 @@ function PromoCode({
       const applied = await redeemPromoCode(code.trim());
       onApplied(applied);
       setCode("");
-      setDone(`Code applied: ${discountLabel(applied)}.`);
+      setDone(`Code applied: ${discountLabel(applied)}.${afterDiscountLabel(applied, monthlyPrice) ? ` ${afterDiscountLabel(applied, monthlyPrice)}` : ""}`);
     } catch (err) {
       setError(message(err));
     } finally {
@@ -144,6 +147,7 @@ function PromoCode({
           <Icon name="check" size={17} />
           <span>
             {discount.code && <strong>{discount.code}</strong>} {discountLabel(discount)}
+            {afterDiscountLabel(discount, monthlyPrice) && <small className="promo-after">{afterDiscountLabel(discount, monthlyPrice)}</small>}
           </span>
         </p>
       ) : (

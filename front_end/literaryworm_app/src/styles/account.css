@@ -170,7 +170,7 @@
 
 .promo-current {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   margin: 0 0 12px;
   color: var(--success);
@@ -179,6 +179,19 @@
 .promo-current strong {
   color: var(--ink);
   letter-spacing: 0.04em;
+}
+
+/* What the plan costs once the code stops applying, on its own line under the code. */
+.promo-after {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* The 48-hour cancellation rule, under the plan's facts. */
+.cancel-notice {
+  margin: 4px 0 16px;
 }
 
 .promo-form {
