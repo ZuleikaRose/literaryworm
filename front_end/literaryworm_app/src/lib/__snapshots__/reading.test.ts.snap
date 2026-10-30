@@ -1,0 +1,22 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`textPages > pages alice-in-wonderland the same way every time 1`] = `
+{
+  "digest": "1d3b18def56d1ff9306578fd01477f7297262e8dd8b6fc4a673d27dc7df6f179",
+  "pages": 101,
+}
+`;
+
+exports[`textPages > pages frankenstein the same way every time 1`] = `
+{
+  "digest": "2dad6dc562f7af34962eff8ba1dca07138f3d23a74767e67b13ad54dfe872f78",
+  "pages": 333,
+}
+`;
+
+exports[`textPages > pages pride-and-prejudice the same way every time 1`] = `
+{
+  "digest": "e7480a2af43f1e4570eb7f7de53739c3cec0943f38e29adf2f8124d9c6d4d93d",
+  "pages": 531,
+}
+`;

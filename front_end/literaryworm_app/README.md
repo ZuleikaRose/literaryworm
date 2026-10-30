@@ -24,6 +24,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # type-check and production build
 npm run lint
+npm test         # unit tests (Vitest)
 ```
 
 Use **Try the demo** on the sign-in page to get a household with three profiles: Avery (All), Sam (Teen) and Mia (Kids).
@@ -74,7 +75,7 @@ src/
 ## Build phases
 
 Each phase ends with Playwright screenshots (in `docs/screenshots/`), a Chrome DevTools console and
-Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
+Lighthouse check, a clean `npm run build`, `npm run lint` and `npm test`, and a commit.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
@@ -121,3 +122,4 @@ Lighthouse check, a clean `npm run build` and `npm run lint`, and a commit.
 | — | Gift memberships (`pages/Gifts.tsx`, `components/RedeemGift.tsx`, `lib/gifts.ts`; `buyGift()`, `myGifts()`, `redeemGift()` in `lib/accountApi.ts`): a one-off Stripe Checkout through `checkout`, codes made by `stripe-webhook` (`gift_codes`), redeemed once through `manage-account`; Account shows the free months (`subscriptions.gift_until`); migrations 2700–2800 |
 | — | Book-out emails: when a book a profile set Remind me on comes out, the account holder gets one email (the `release-emails` function, called hourly by pg_cron, sends through Mailgun's API); *Email me when a book I'm waiting for comes out* in Account → Preferences (`setReleaseEmails()` in `lib/accountApi.ts`, `account_private.release_emails`); Remind me says when an email will come too; migrations 2900–3000 |
 | — | Club invites by email: *Invite by email* on the club page (`InviteByEmail` in `pages/Club.tsx`, `inviteByEmail()` in `lib/clubsApi.ts`) through the `club-invite` function; the email links to `/clubs/join/:code` (`pages/JoinClub.tsx`); only a fingerprint of the address is kept (`club_invites`); the club page no longer scrolls sideways on phones; migrations 3100–3200 |
+| — | Unit tests with Vitest (`npm test`): `src/lib/*.test.ts` for paging, highlights, goals and streaks, stats, release dates, search and recommendations. Snapshots in `src/lib/__snapshots__` guard paging of the public-domain texts, which saved highlights rely on; update them (`npx vitest run -u`) only when paging is meant to change, knowing saved highlights move. Tests type-check through `tsconfig.test.json` |

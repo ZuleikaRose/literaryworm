@@ -18,6 +18,7 @@ LiteraryWorm is a reading and listening app (ebooks and audiobooks, household pr
 npm run dev     # http://localhost:5173
 npm run build   # tsc -b + vite build; must pass before every commit
 npm run lint    # oxlint; must be clean
+npm test        # Vitest unit tests (src/lib/*.test.ts); must pass before every commit
 ```
 
 ## Conventions
@@ -72,7 +73,7 @@ npm run lint    # oxlint; must be clean
 
 Build in phases (see `prompt.md`). At the end of each phase:
 
-1. `npm run build` and `npm run lint` clean.
+1. `npm run build`, `npm run lint` and `npm test` clean. New logic in `src/lib` gets tests beside it (`*.test.ts`). The paging snapshots in `src/lib/__snapshots__` must not change unless paging is meant to (saved highlights depend on it).
 2. Playwright screenshots at 1440px and 390px, compared against the wireframe; save keepers to `front_end/literaryworm_app/docs/screenshots/`.
 3. Chrome DevTools: no console errors; Lighthouse accessibility 100.
 4. Update `schema.sql` and re-render `drawsql.png` for any new data.

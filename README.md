@@ -275,6 +275,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # type-check and production build
 npm run lint
+npm test         # unit tests (Vitest)
 ```
 
 With no environment variables the app runs on its sample catalog. To use the real backend, copy `.env.example` to `front_end/literaryworm_app/.env.development.local` and fill in the two `VITE_` values.
@@ -369,5 +370,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Book-out emails: an email on the day a reminded book comes out (the `release-emails` function, hourly through pg_cron, sending with Mailgun's API), switched off in Account → Preferences; Privacy Policy updated (migrations 2900–3000) | Done    |
 | —    | Club invites by email: members invite by address from the club page (the `club-invite` function, Mailgun's API); the link `/clubs/join/<code>` joins after sign-in; only a fingerprint of the address is kept, for 30 days; Privacy Policy updated (migrations 3100–3200) | Done    |
 | —    | `drawsql.png` and `schema.sql` cover every migration up to 3200 (new: `gift_codes`, `club_invites`; `subscriptions.gift_until`, `account_private.release_emails`, `release_reminders.emailed_at`); the diagram's 260 columns match the database exactly; live Supabase checked against both (columns, types, nullability, indexes and RLS identical); docs and style guide cover the four new features | Done    |
+| —    | Unit tests (Vitest, `npm test`) for the app's logic: paging, highlights, goals and streaks, stats, release dates, search and recommendations, with a check that the public-domain texts always page the same way so saved highlights stay put | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
