@@ -1,5 +1,7 @@
 /** Gift memberships: what can be bought, and how codes are typed and shown. */
 
+import { today } from "./reading";
+
 /** How many months a gift can be bought for (the same as the checkout function's). */
 export const GIFT_MONTHS = [1, 3, 6, 12] as const;
 
@@ -28,3 +30,24 @@ export function giftCodeError(raw: string): string | null {
 
 /** ABCD-EFGH-JKLM-NPQR: easier to read out and copy by hand. */
 export const formatGiftCode = (code: string) => code.match(/.{1,4}/g)?.join("-") ?? code;
+
+/** A gift can start on a day up to a year ahead (the checkout function allows a day's slack either side). */
+export const GIFT_START_MAX_DAYS = 365;
+
+/** The days a gift can be set to start on, as the date picker's min and max: tomorrow to a year ahead. */
+export function giftStartBounds(now = new Date()): { min: string; max: string } {
+  const day = (d: number) => today(new Date(now.getFullYear(), now.getMonth(), now.getDate() + d));
+  return { min: day(1), max: day(GIFT_START_MAX_DAYS) };
+}
+
+/** The same rule as the checkout function, for the date picker. */
+export function giftStartError(value: string, now = new Date()): string | null {
+  if (!value) return "Pick the day the gift starts.";
+  const { min, max } = giftStartBounds(now);
+  if (value < min) return "Pick a day after today, or choose Straight away.";
+  if (value > max) return "A gift can start on a day up to a year ahead.";
+  return null;
+}
+
+/** Whether a bought gift's start day is still to come (its code can't be redeemed yet). */
+export const giftNotStarted = (startsOn: string | null, now = new Date()) => Boolean(startsOn && startsOn > today(now));

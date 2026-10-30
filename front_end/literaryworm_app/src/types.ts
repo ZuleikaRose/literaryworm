@@ -145,6 +145,8 @@ export interface Account {
   giftUntil: string | null;
   /** A yearly membership moving to monthly billing at renewal: the plan it moves to. */
   switchToMonthly: PlanId | null;
+  /** When the membership began (ISO; real accounts only): monthly members near a year in are offered yearly billing. */
+  memberSince: string | null;
 }
 
 export interface Profile {

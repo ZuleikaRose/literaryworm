@@ -5,7 +5,7 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import * as accountApi from "./accountApi";
 import { onClubPost } from "./clubEvents";
 import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notifications";
-import { renewalReminder } from "./billing";
+import { renewalReminder, yearlyOffer } from "./billing";
 import { type MeetingAlert, meetingAlerts } from "./clubCalendar";
 import { goalAlerts } from "./goals";
 import { today } from "./reading";
@@ -85,12 +85,14 @@ export function useNotifications() {
   // A yearly membership's renewal, 30 days ahead; for the grown-ups too.
   const account = state.account;
   const renewal = useMemo(() => (withClubs ? renewalReminder(account, now) : null), [withClubs, account, now]);
+  // A monthly member nearly a year in: what paying yearly would save.
+  const offer = useMemo(() => (withClubs ? yearlyOffer(account, now) : null), [withClubs, account, now]);
   // Streak about to end, close to this year's goal, goal reached: every profile, Kids included.
   const goals = useMemo(
     () => goalAlerts(data.readingDays, data.readingGoals, today(new Date(now)), new Date(now)),
     [data.readingDays, data.readingGoals, now],
   );
-  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [...goals, ...(renewal ? [renewal] : []), ...shownMeetings]);
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [...goals, ...(renewal ? [renewal] : []), ...(offer ? [offer] : []), ...shownMeetings]);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -103,5 +105,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, offer, goals, count, seenAt, withClubs, markSeen, refresh };
 }

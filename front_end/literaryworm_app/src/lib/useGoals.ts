@@ -17,5 +17,12 @@ export function useGoals() {
     dispatch({ type: "setReadingGoal", year, books });
   }
 
-  return { goals: data.readingGoals, days: data.readingDays, setGoal };
+  /** The profile's own weekly goal in minutes (not for Kids profiles: a grown-up sets theirs). */
+  async function setWeeklyGoal(minutes: number | null) {
+    if (!profile || profile.ageRating === "kids") return;
+    if (remote) await accountApi.setWeeklyGoal(profile.id, minutes);
+    dispatch({ type: "updateProfile", id: profile.id, patch: { weeklyGoalMinutes: minutes } });
+  }
+
+  return { goals: data.readingGoals, days: data.readingDays, setGoal, setWeeklyGoal };
 }

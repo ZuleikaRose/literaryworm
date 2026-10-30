@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import type { MembershipDiscount } from "./accountApi";
-import { afterDiscountLabel, cancellationEnd, CANCEL_NOTICE_HOURS, oneMonthAfter, oneYearAfter, renewalReminder } from "./billing";
+import { afterDiscountLabel, cancellationEnd, CANCEL_NOTICE_HOURS, monthsAfter, oneMonthAfter, oneYearAfter, renewalReminder, yearlyOffer, yearlySaving } from "./billing";
 import { perPeriod, plans, priceFor } from "../data/plans";
 
 describe("the 48-hour cancellation rule", () => {
@@ -112,5 +112,50 @@ describe("the yearly renewal reminder", () => {
     ]) {
       expect(renewalReminder({ ...yearly, ...patch }, now)).toBeNull();
     }
+  });
+});
+
+describe("the yearly billing offer", () => {
+  const since = new Date(2026, 0, 31, 9, 0);
+  const member = {
+    planId: "standard" as const,
+    billingInterval: "month" as const,
+    memberSince: since.toISOString(),
+    endsAt: null,
+    status: "active" as const,
+    complimentary: false,
+    giftUntil: null,
+    stripeLinked: true,
+    pastDue: false,
+  };
+  const starts = monthsAfter(since, 11).getTime();
+  const day = 86_400_000;
+
+  it("saves two months' price", () => {
+    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([15.98, 25.98, 35.98]);
+  });
+
+  it("counts months like Stripe, keeping the day or the month's last", () => {
+    expect(monthsAfter(since, 11)).toEqual(new Date(2026, 11, 31, 9, 0));
+    expect(monthsAfter(since, 1)).toEqual(new Date(2026, 1, 28, 9, 0));
+  });
+
+  it("shows for 30 days from 11 months in", () => {
+    expect(yearlyOffer(member, starts - 1)).toBeNull();
+    expect(yearlyOffer(member, starts)).toEqual({ at: starts, planId: "standard", saving: 25.98 });
+    expect(yearlyOffer(member, starts + 29 * day)).not.toBeNull();
+    expect(yearlyOffer(member, starts + 30 * day)).toBeNull();
+  });
+
+  it("is only for monthly members set to carry on and billed through Stripe", () => {
+    expect(yearlyOffer({ ...member, billingInterval: "year" }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, endsAt: "2027-01-01" }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, status: "paused" }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, complimentary: true }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, giftUntil: "2027-01-01" }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, stripeLinked: false }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, pastDue: true }, starts)).toBeNull();
+    expect(yearlyOffer({ ...member, memberSince: null }, starts)).toBeNull();
+    expect(yearlyOffer(null, starts)).toBeNull();
   });
 });

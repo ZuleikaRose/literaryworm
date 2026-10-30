@@ -62,6 +62,7 @@ Deno.serve((req) =>
           currency: gift.currency,
           buyer_id: gift.buyerId,
           stripe_checkout_session_id: gift.sessionId,
+          starts_on: gift.startsOn,
         },
         { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true },
       );

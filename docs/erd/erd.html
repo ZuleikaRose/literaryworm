@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–5002, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–5701, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -244,7 +244,7 @@
             ["pk", "name", "text 1–100"],
             ["", "created_at", "timestamptz"],
           ],
-          note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed.",
+          note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed. follower_count(kind, name) gives pages a count, never who. Index: (kind, name).",
         },
         {
           id: "release_reminders", color: colors.household, x: 840, y: 3790, sub: "per profile · Remind me",
@@ -525,7 +525,7 @@
             ["", "reminded_at", "timestamptz", true],
             ["", "created_at", "timestamptz"],
           ],
-          note: "Members read their clubs' meetings; only the club's owner schedules, changes or cancels them (RLS). Ahead and within a year, up to 20 upcoming (trigger). Reminders the day before by the club-meetings function (claim_club_meeting_reminders, hourly via pg_cron). Indexes: (club_id, starts_at), created_by.",
+          note: "Members read their clubs' meetings; only the club's owner schedules, changes or cancels them (RLS). Ahead and within a year, up to 20 upcoming (trigger). Reminders the day before by the club-meetings function (claim_club_meeting_reminders, every 10 minutes via pg_cron); moving or cancelling one notes it in club_meeting_changes (trigger). Indexes: (club_id, starts_at), created_by.",
         },
         {
           id: "club_meeting_rsvps", color: colors.reading, x: 840, y: 5900, sub: "who's coming",
@@ -536,6 +536,24 @@
             ["", "answered_at", "timestamptz"],
           ],
           note: "One answer per member per meeting; the club's members read them. Written only through answer_club_meeting() (member, meeting still to come). Members who said no aren't reminded. Index: user_id.",
+        },
+        {
+          id: "club_meeting_changes", color: colors.server, x: 840, y: 6170, sub: "server only",
+          cols: [
+            ["pk", "meeting_id", "uuid"],
+            ["fk", "club_id", "uuid"],
+            ["", "kind", "moved | cancelled"],
+            ["", "title", "text"],
+            ["", "note", "text", true],
+            ["", "was_starts_at", "timestamptz"],
+            ["", "starts_at", "timestamptz", true],
+            ["", "minutes", "smallint"],
+            ["", "time_zone", "text"],
+            ["fk", "changed_by", "uuid", true],
+            ["", "changed_at", "timestamptz"],
+            ["", "emailed_at", "timestamptz", true],
+          ],
+          note: "Written by triggers on club_meetings (upcoming meetings only; one note per meeting until sent). The club-meetings function claims them (claim_club_meeting_changes) and emails the other members. No browser access. Indexes: club_id, changed_by.",
         },
         {
           id: "kids_report_sends", color: colors.server, x: 420, y: 5160, sub: "server only",
@@ -736,9 +754,10 @@
             ["", "stripe_checkout_session_id", "text unique"],
             ["fk", "redeemed_by", "uuid", true],
             ["", "redeemed_at", "timestamptz", true],
+            ["", "starts_on", "date", true],
             ["", "created_at", "timestamptz"],
           ],
-          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account. RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
+          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
         },
       ];
 
@@ -769,6 +788,8 @@
         ["club_meetings", "created_by", "auth.users", "id", "N : 1"],
         ["club_meeting_rsvps", "meeting_id", "club_meetings", "id", "N : 1"],
         ["club_meeting_rsvps", "user_id", "auth.users", "id", "N : 1"],
+        ["club_meeting_changes", "club_id", "book_clubs", "id", "N : 1"],
+        ["club_meeting_changes", "changed_by", "auth.users", "id", "N : 1"],
         ["challenge_participants", "challenge_id", "household_challenges", "id", "N : 1 (pair)"],
         ["challenge_participants", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

@@ -5,7 +5,7 @@ import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, plans } from "../data/plans";
 import { AccountError, type BoughtGift, buyGift, myGifts } from "../lib/accountApi";
 import { endDate, formatMoney } from "../lib/billing";
-import { formatGiftCode, GIFT_MONTHS, GIFT_YEAR_MONTHS, giftPriceCents, monthsLabel } from "../lib/gifts";
+import { formatGiftCode, GIFT_MONTHS, GIFT_YEAR_MONTHS, giftNotStarted, giftPriceCents, giftStartBounds, giftStartError, monthsLabel } from "../lib/gifts";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
 import type { PlanId } from "../types";
@@ -79,18 +79,29 @@ function BuyGift() {
   const id = useId();
   const [planId, setPlanId] = useState<PlanId>("standard");
   const [months, setMonths] = useState<number>(3);
+  // Straight away, or a later day (a birthday, say): the code works from then.
+  const [later, setLater] = useState(false);
+  const [startsOn, setStartsOn] = useState("");
+  const [startError, setStartError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const bounds = giftStartBounds();
   const plan = planById.get(planId)!;
   const total = giftPriceCents(plan, months);
   const yearSaving = Math.round(plan.price * 100) * GIFT_YEAR_MONTHS - giftPriceCents(plan, GIFT_YEAR_MONTHS);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    const problem = later ? giftStartError(startsOn) : null;
+    setStartError(problem);
+    if (problem) {
+      document.getElementById(`${id}-starts`)?.focus();
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      window.location.assign(await buyGift(planId, months));
+      window.location.assign(await buyGift(planId, months, later ? startsOn : null));
     } catch (err) {
       setError(err instanceof AccountError ? err.message : "We couldn't start the payment. Try again.");
       setBusy(false);
@@ -128,10 +139,54 @@ function BuyGift() {
             ))}
           </div>
         </fieldset>
+        <fieldset className="gift-choice">
+          <legend className="field-label">When it starts</legend>
+          <div className="chip-group chip-group-lg">
+            <label className="chip">
+              <input type="radio" name={`${id}-when`} checked={!later} onChange={() => setLater(false)} />
+              <span>Straight away</span>
+            </label>
+            <label className="chip">
+              <input type="radio" name={`${id}-when`} checked={later} onChange={() => setLater(true)} />
+              <span>On a later day</span>
+            </label>
+          </div>
+          {later && (
+            <div className="field gift-start">
+              <label className="field-label" htmlFor={`${id}-starts`}>
+                Start day
+              </label>
+              <input
+                id={`${id}-starts`}
+                className="field-input"
+                type="date"
+                min={bounds.min}
+                max={bounds.max}
+                value={startsOn}
+                aria-invalid={startError ? true : undefined}
+                aria-describedby={startError ? `${id}-starts-error` : `${id}-starts-hint`}
+                onChange={(e) => {
+                  setStartsOn(e.target.value);
+                  setStartError(null);
+                }}
+              />
+              <p className="field-hint" id={`${id}-starts-hint`}>
+                For a birthday, say. You get the code now to pass on; it can be redeemed from that day, up to a year ahead.
+              </p>
+              {startError && (
+                <p className="field-error" id={`${id}-starts-error`} role="alert">
+                  <Icon name="alert" size={15} />
+                  {startError}
+                </p>
+              )}
+            </div>
+          )}
+        </fieldset>
         <div className="gift-total">
           <p>
             <strong>{formatMoney(total, "usd")}</strong> for {months === GIFT_YEAR_MONTHS ? "a year" : monthsLabel(months)} of {plan.name}, paid once.
             {months === GIFT_YEAR_MONTHS && ` That's the yearly price: ${formatMoney(yearSaving, "usd")} less than 12 months.`}
+            {later && startsOn && !giftStartError(startsOn) && ` It can be redeemed from ${endDate(startsOn)}.`}
           </p>
           <p className="field-hint">
             Paid on Stripe's secure page. Your code appears below once payment goes through. All sales are final.
@@ -227,6 +282,7 @@ function YourGifts({ justPaid }: { justPaid: boolean }) {
                 <p className="gift-meta">
                   {monthsLabel(g.months)} of {planById.get(g.planId)?.name ?? g.planId} · {formatMoney(g.amountCents, g.currency)} ·
                   bought {endDate(g.createdAt)}
+                  {!g.redeemedAt && giftNotStarted(g.startsOn) && ` · starts ${endDate(g.startsOn!)}`}
                 </p>
               </div>
               <span className={`status-pill ${g.redeemedAt ? "status-paused" : "status-active"}`}>

@@ -956,3 +956,7 @@
   color: var(--ink-soft);
   font-size: 0.875rem;
 }
+
+.gift-start {
+  max-width: 320px;
+}

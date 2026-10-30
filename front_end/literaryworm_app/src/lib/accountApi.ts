@@ -333,20 +333,21 @@ interface SubscriptionRow {
   stripe_linked: boolean;
   gift_until: string | null;
   switch_to_monthly?: string | null;
+  created_at?: string;
 }
 
 const SUBSCRIPTION_COLUMNS =
-  "plan_id, billing_interval, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until, switch_to_monthly";
+  "plan_id, billing_interval, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until, switch_to_monthly, created_at";
 
 type PlanFields = Pick<
   Account,
-  "planId" | "billingDay" | "billingInterval" | "renewsAt" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil" | "switchToMonthly"
+  "planId" | "billingDay" | "billingInterval" | "renewsAt" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil" | "switchToMonthly" | "memberSince"
 >;
 
 /** The plan fields of a freshly loaded account, to update the store with. */
 export function planFields(a: Account): PlanFields {
-  const { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil, switchToMonthly } = a;
-  return { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil, switchToMonthly };
+  const { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil, switchToMonthly, memberSince } = a;
+  return { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil, switchToMonthly, memberSince };
 }
 
 /** The account's plan fields from a subscriptions row (or none yet). */
@@ -367,6 +368,7 @@ function fromSubscription(row: SubscriptionRow | null): PlanFields {
     giftUntil: row?.gift_until && new Date(row.gift_until) > new Date() ? row.gift_until : null,
     // Only for a yearly membership still waiting for its renewal.
     switchToMonthly: row?.billing_interval === "year" && row.switch_to_monthly ? (row.switch_to_monthly as PlanId) : null,
+    memberSince: row?.created_at ?? null,
   };
 }
 
@@ -486,8 +488,9 @@ export async function redeemPromoCode(code: string): Promise<MembershipDiscount>
 // --- Gifts (checkout and manage-account functions; gift_codes) ---------------------------
 
 /** Starts paying for a gift on Stripe Checkout; returns the page to send the member to. */
-export async function buyGift(planId: PlanId, months: number): Promise<string> {
-  const { url } = await callFunction<{ url: string }>("checkout", { gift: true, planId, months }, "We couldn't start the payment. Try again.");
+export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null): Promise<string> {
+  const body = { gift: true, planId, months, ...(startsOn ? { startsOn } : {}) };
+  const { url } = await callFunction<{ url: string }>("checkout", body, "We couldn't start the payment. Try again.");
   return url;
 }
 
@@ -500,16 +503,18 @@ export interface BoughtGift {
   currency: string;
   redeemedAt: string | null;
   createdAt: string;
+  /** The first day the code can be redeemed ("YYYY-MM-DD"); null from the day it was bought. */
+  startsOn: string | null;
 }
 
 /** The gift codes this account bought, newest first (only the buyer can read them). */
 export async function myGifts(): Promise<BoughtGift[]> {
   const { data, error } = await client()
     .from("gift_codes")
-    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at")
+    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at, starts_on")
     .order("created_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load your gifts. Try again.");
-  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string }[]).map((g) => ({
+  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null }[]).map((g) => ({
     id: g.id,
     code: g.code,
     planId: g.plan_id,
@@ -518,6 +523,7 @@ export async function myGifts(): Promise<BoughtGift[]> {
     currency: g.currency,
     redeemedAt: g.redeemed_at,
     createdAt: g.created_at,
+    startsOn: g.starts_on,
   }));
 }
 
@@ -584,7 +590,7 @@ export async function setKidsReportEmails(userId: string, on: boolean): Promise<
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
 }
 
-/** Book club meeting reminders (account_private.club_meeting_emails, sent by the club-meetings function). */
+/** Book club meeting emails: reminders, and when a meeting moves or is cancelled (account_private.club_meeting_emails, sent by the club-meetings function). */
 export async function setClubMeetingEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ club_meeting_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
@@ -682,6 +688,12 @@ export async function updateProfileBasics(id: string, patch: Pick<Profile, "name
     if (error.code === "23505") throw new AccountError("Another profile already uses this name.");
     throw new AccountError("We couldn't save the profile. Try again.");
   }
+}
+
+/** A grown-up or teen profile's own weekly goal (a Kids profile's goes through `set_weekly_goal`). */
+export async function setWeeklyGoal(id: string, minutes: number | null): Promise<void> {
+  const { error } = await client().from("reader_profiles").update({ weekly_goal_minutes: minutes }).eq("id", id);
+  if (error) throw new AccountError("We couldn't save your weekly goal. Try again.");
 }
 
 type ProtectedProfileChange =

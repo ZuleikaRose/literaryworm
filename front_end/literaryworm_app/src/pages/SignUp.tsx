@@ -112,6 +112,7 @@ export default function SignUp() {
         pastDue: false,
         giftUntil: null,
         switchToMonthly: null,
+        memberSince: null,
       },
       firstProfile: makeProfile({ name: firstName, ageRating: "all" }),
     });

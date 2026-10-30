@@ -83,3 +83,14 @@ export const personInitials = (name: string) =>
     .map((w) => w[0])
     .join("")
     .toUpperCase();
+
+/**
+ * The follower count to show: the one read when the page opened, moved by one when the profile
+ * has followed or unfollowed since (so it changes straight away, without asking again).
+ */
+export function followerCountNow(loaded: number, followedAtLoad: boolean, followingNow: boolean): number {
+  return Math.max(loaded + (followingNow ? 1 : 0) - (followedAtLoad ? 1 : 0), 0);
+}
+
+/** "1 reader follows them", "12 readers follow them"; nothing until someone does. */
+export const followerLabel = (count: number) => (count <= 0 ? null : count === 1 ? "1 reader follows them" : `${count.toLocaleString()} readers follow them`);

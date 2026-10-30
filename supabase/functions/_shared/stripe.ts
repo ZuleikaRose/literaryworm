@@ -44,6 +44,31 @@ export function giftCode(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => GIFT_ALPHABET[b % 32]).join("");
 }
 
+/** A gift can be set to start on a day up to this many days ahead (a birthday, say). */
+export const GIFT_START_MAX_DAYS = 366;
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * A gift's start day as the buyer picked it ("YYYY-MM-DD"), or null for straight away: a real date,
+ * from today to GIFT_START_MAX_DAYS ahead. Today anywhere counts, so the buyer's own date is never
+ * refused for being behind UTC. Throws a plain-words message otherwise.
+ */
+export function parseGiftStart(raw: unknown, now = new Date()): string | null {
+  if (raw === undefined || raw === null) return null;
+  const day = typeof raw === "string" && ISO_DAY.test(raw) ? new Date(`${raw}T00:00:00Z`) : null;
+  // 2027-02-30 parses as 2 March: a real date reads back the same.
+  if (!day || Number.isNaN(day.getTime()) || day.toISOString().slice(0, 10) !== raw) throw new Error("Pick the day the gift starts.");
+  const earliest = new Date(now.getTime() - 12 * 3_600_000).toISOString().slice(0, 10);
+  const latest = new Date(now.getTime() + GIFT_START_MAX_DAYS * 86_400_000).toISOString().slice(0, 10);
+  if (raw < earliest || raw > latest) throw new Error("A gift can start today or on a day up to a year ahead.");
+  return raw;
+}
+
+/** Whether a gift set to start on `startsOn` can be redeemed: from the start of that day anywhere (UTC+14). */
+export const giftStarted = (startsOn: string | null, now = new Date()) =>
+  !startsOn || new Date(now.getTime() + 14 * 3_600_000).toISOString().slice(0, 10) >= startsOn;
+
 /**
  * `months` after `from` (midnight UTC), as the date the gift's free months run to. Billing days
  * run 1–28, so a date on the 29th to 31st moves on to the 1st of the next month (a few days more,

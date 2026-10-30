@@ -5319,3 +5319,336 @@ where slug in ($lw$privacy$lw$)
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Weekly reading goals for Kids profiles$lw$, $lw$Grown-ups can now give a Kids profile a weekly reading goal, from 1 to 5 hours, in the profile's settings. Kids see how close they are in Goals, grown-ups see it in Account → Family, and the Monday Kids reading report says whether the goal was reached.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Weekly reading goals for Kids profiles$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005100_whats_new_follow_from_search.sql
+-- =============================================================================
+-- What's new: follow authors from an author search (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Follow authors from search$lw$, $lw$Searching by author now lists the authors it finds above the books, with how many of the results are theirs and a Follow button, so you can follow someone without opening their page.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Follow authors from search$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005200_whats_new_gift_a_year.sql
+-- =============================================================================
+-- What's new: a year's gift at the yearly price (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Gift a year for the yearly price$lw$, $lw$A year's gift membership now costs the yearly price, so it comes with two months free, just like paying yearly. Gifts of 1, 3 or 6 months are still the monthly price for each month.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Gift a year for the yearly price$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005300_weekly_goals_for_everyone.sql
+-- =============================================================================
+-- Weekly goals for every profile, not just Kids.
+--
+-- A grown-up or teen profile sets its own weekly reading goal from Goals, saved straight to
+-- reader_profiles.weekly_goal_minutes like its name or avatar. A Kids profile's goal is still set
+-- by a grown-up through the manage-profile function (with the account password): the trigger
+-- refuses the browser's role any change to a Kids profile's goal, and the function, which uses the
+-- service role, isn't affected.
+
+grant update (weekly_goal_minutes) on public.reader_profiles to authenticated;
+
+create or replace function private.guard_kids_weekly_goal()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.weekly_goal_minutes is distinct from old.weekly_goal_minutes
+     and old.age_rating = 'kids'
+     and current_user = 'authenticated' then
+    raise exception 'A grown-up sets a Kids profile''s weekly goal.' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function private.guard_kids_weekly_goal() from public, anon, authenticated;
+
+create trigger reader_profiles_guard_kids_weekly_goal
+  before update of weekly_goal_minutes on public.reader_profiles
+  for each row execute function private.guard_kids_weekly_goal();
+
+-- =============================================================================
+-- 20261030005303_whats_new_weekly_goals_for_everyone.sql
+-- =============================================================================
+-- What's new: a weekly goal for everyone (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$A weekly goal for everyone$lw$, $lw$Grown-up and teen profiles can now set their own weekly reading goal in Goals, from 1 to 5 hours a week, and see how close they are over the last 7 days. Kids profiles still have theirs set by a grown-up.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A weekly goal for everyone$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005400_follower_counts.sql
+-- =============================================================================
+-- How many reader profiles follow an author or narrator, for their public page.
+--
+-- follows is private to each account (RLS), so the count comes from this security-definer
+-- function: a number, never who. Callable by visitors too, since author pages are public; it
+-- returns no member data, so it doesn't wait for the second sign-in step.
+
+create or replace function public.follower_count(p_kind text, p_name text)
+returns integer
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select count(*)::integer
+  from public.follows
+  where kind = p_kind and name = btrim(p_name);
+$$;
+
+revoke execute on function public.follower_count(text, text) from public;
+grant execute on function public.follower_count(text, text) to anon, authenticated;
+
+-- =============================================================================
+-- 20261030005401_index_follows_kind_name.sql
+-- =============================================================================
+-- For follower_count(). Kept to one statement: CONCURRENTLY can't run in a transaction.
+create index concurrently if not exists follows_kind_name_idx on public.follows (kind, name);
+
+-- =============================================================================
+-- 20261030005403_whats_new_follower_counts.sql
+-- =============================================================================
+-- What's new: see who follows an author (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$See who follows an author$lw$, $lw$Author and narrator pages now show how many readers follow them, and My Library has a new Following tab listing everyone you follow, with their pages and Unfollow.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$See who follows an author$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005500_gift_start_dates.sql
+-- =============================================================================
+-- A gift can be bought now to start later (for a birthday, say): its code can't be redeemed
+-- before starts_on. Set by the stripe-webhook function from the Checkout Session's metadata, which
+-- the checkout function checked (today to a year ahead); manage-account refuses the code until
+-- that day has started anywhere. Null: from the day it was bought.
+
+alter table public.gift_codes
+  add column starts_on date check (starts_on is null or starts_on <= (created_at at time zone 'UTC')::date + 367);
+
+grant select (starts_on) on public.gift_codes to authenticated;
+
+-- =============================================================================
+-- 20261030005503_whats_new_gift_start_dates.sql
+-- =============================================================================
+-- What's new: give a gift that starts later (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Give a gift that starts later$lw$, $lw$When you buy a gift membership you can now choose the day it starts, up to a year ahead, so you can buy it now for a birthday. You get the code straight away, and it can be redeemed from that day.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Give a gift that starts later$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005600_club_meeting_changes.sql
+-- =============================================================================
+-- Emails when a book club meeting moves or is cancelled.
+--
+-- The club's owner could already change a meeting's time (the update policy and grant in the
+-- 4700 migration); the app now offers it. When an upcoming meeting's time changes, or an upcoming
+-- meeting is cancelled, a trigger notes it in club_meeting_changes, and the club-meetings function
+-- (now every 10 minutes) claims the notes with claim_club_meeting_changes() and emails the other
+-- members, as it does the reminders: only to confirmed addresses, and only to members who haven't
+-- turned club meeting emails off. One note per meeting until it's sent: moving it twice, or moving
+-- it then cancelling it, sends one email with the latest. Meetings deleted with their club (the
+-- cascade) send nothing.
+
+create table public.club_meeting_changes (
+  -- The meeting's id, not a foreign key: a cancelled meeting is gone.
+  meeting_id    uuid primary key,
+  club_id       uuid not null references public.book_clubs (id) on delete cascade,
+  kind          text not null check (kind in ('moved', 'cancelled')),
+  title         text not null,
+  note          text,
+  -- The time members knew, and the new one (null when cancelled).
+  was_starts_at timestamptz not null,
+  starts_at     timestamptz,
+  minutes       smallint not null,
+  time_zone     text not null,
+  -- The owner who made the change gets no email about it.
+  changed_by    uuid references auth.users (id) on delete set null,
+  changed_at    timestamptz not null default now(),
+  emailed_at    timestamptz,
+  check ((kind = 'moved') = (starts_at is not null))
+);
+-- Indexes for club_id and changed_by (foreign keys) are in the 5601 and 5602 migrations.
+
+-- Only the club-meetings function (service role) reads or writes it.
+alter table public.club_meeting_changes enable row level security;
+create policy "Two-step sign-in when turned on" on public.club_meeting_changes as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+revoke all on public.club_meeting_changes from anon, authenticated;
+
+create or replace function private.note_club_meeting_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  -- What members will be told: the meeting as it is now (moved), or as it was (cancelled).
+  m public.club_meetings := case when tg_op = 'DELETE' then old else new end;
+begin
+  -- Deleted with the club (a cascade, so a nested trigger): nobody to tell.
+  if tg_op = 'DELETE' and pg_trigger_depth() > 1 then
+    return null;
+  end if;
+  -- Only meetings members are still waiting for.
+  if old.starts_at <= now() then
+    return null;
+  end if;
+  insert into public.club_meeting_changes as c
+    (meeting_id, club_id, kind, title, note, was_starts_at, starts_at, minutes, time_zone, changed_by)
+  values (
+    old.id, old.club_id, case when tg_op = 'DELETE' then 'cancelled' else 'moved' end, m.title, m.note,
+    old.starts_at, case when tg_op = 'DELETE' then null else m.starts_at end, m.minutes, m.time_zone, (select auth.uid())
+  )
+  on conflict (meeting_id) do update set
+    kind = excluded.kind, title = excluded.title, note = excluded.note,
+    -- Not yet sent: members still know the first time. Already sent: they know the last one.
+    was_starts_at = case when c.emailed_at is null then c.was_starts_at else excluded.was_starts_at end,
+    starts_at = excluded.starts_at, minutes = excluded.minutes, time_zone = excluded.time_zone,
+    changed_by = excluded.changed_by, changed_at = now(), emailed_at = null;
+  -- Moved back to the time members were told: nothing to send.
+  delete from public.club_meeting_changes c
+  where c.meeting_id = old.id and c.kind = 'moved' and c.starts_at = c.was_starts_at and c.emailed_at is null;
+  return null;
+end;
+$$;
+revoke execute on function private.note_club_meeting_change() from public, anon, authenticated;
+
+create trigger club_meetings_note_move
+  after update of starts_at on public.club_meetings
+  for each row when (old.starts_at is distinct from new.starts_at)
+  execute function private.note_club_meeting_change();
+
+create trigger club_meetings_note_cancel
+  after delete on public.club_meetings
+  for each row execute function private.note_club_meeting_change();
+
+-- Marks up to max_count changes as emailed and returns one row per member to tell (not the
+-- owner who made the change), with the club and the address.
+create or replace function public.claim_club_meeting_changes(max_count integer default 100)
+returns table (
+  meeting_id uuid, club_id uuid, club_name text, volume_id text, kind text, title text, note text,
+  was_starts_at timestamptz, starts_at timestamptz, minutes smallint, time_zone text,
+  user_id uuid, email text, member_name text
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return query
+  with due as (
+    select c.meeting_id
+    from public.club_meeting_changes c
+    where c.emailed_at is null
+    order by c.changed_at
+    limit least(greatest(coalesce(max_count, 100), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.club_meeting_changes c set emailed_at = now()
+    from due where c.meeting_id = due.meeting_id
+    returning c.*
+  )
+  select c.meeting_id, c.club_id, b.name, b.volume_id, c.kind, c.title, c.note,
+         c.was_starts_at, c.starts_at, c.minutes, c.time_zone,
+         cm.user_id, u.email::text, p.display_name
+  from claimed c
+  join public.book_clubs b on b.id = c.club_id
+  join public.club_members cm on cm.club_id = c.club_id and cm.user_id is distinct from c.changed_by
+  join auth.users u on u.id = cm.user_id and u.email is not null and u.email_confirmed_at is not null
+  join public.account_private a on a.user_id = cm.user_id and a.club_meeting_emails
+  left join public.profiles p on p.id = cm.user_id;
+end;
+$$;
+revoke execute on function public.claim_club_meeting_changes(integer) from public, anon, authenticated;
+grant execute on function public.claim_club_meeting_changes(integer) to service_role;
+
+-- Sent notes are kept a month, then cleared.
+select cron.schedule(
+  'club-meeting-changes-cleanup', '40 3 * * *',
+  $$delete from public.club_meeting_changes where emailed_at < now() - interval '30 days'$$
+);
+
+-- Every 10 minutes (was hourly), so a change reaches members soon after it's made. Reminders are
+-- claimed once each, so running more often sends nothing twice.
+select cron.schedule('club-meeting-reminders', '*/10 * * * *', $$select private.call_club_meetings()$$);
+
+-- =============================================================================
+-- 20261030005601_index_club_meeting_changes_club_id.sql
+-- =============================================================================
+-- Foreign-key index. Kept to one statement: CONCURRENTLY can't run in a transaction.
+create index concurrently if not exists club_meeting_changes_club_id_idx on public.club_meeting_changes (club_id);
+
+-- =============================================================================
+-- 20261030005602_index_club_meeting_changes_changed_by.sql
+-- =============================================================================
+-- Foreign-key index. Kept to one statement: CONCURRENTLY can't run in a transaction.
+create index concurrently if not exists club_meeting_changes_changed_by_idx on public.club_meeting_changes (changed_by);
+
+-- =============================================================================
+-- 20261030005603_whats_new_club_meeting_changes.sql
+-- =============================================================================
+-- What's new: change a club meeting's time (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Change a club meeting's time$lw$, $lw$Club owners can now change a meeting's time, length, name or note, instead of cancelling it and adding a new one. When a meeting moves or is cancelled, everyone in the club gets an email with the old and new times, unless they turned meeting emails off.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Change a club meeting's time$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005700_whats_new_yearly_offer.sql
+-- =============================================================================
+-- What's new: switch to yearly from the bell (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Switch to yearly from the bell$lw$, $lw$Paying monthly for nearly a year? The bell now shows what paying yearly would save on your plan, with a link to switch.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Switch to yearly from the bell$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005701_legal_meeting_changes_goals_gifts.sql
+-- =============================================================================
+-- Meeting change emails, weekly goals for every profile, follower counts and gift start days
+-- (migrations 5300 to 5600): the Privacy Policy lists the new email and what's kept, and the
+-- Return Policy says when a gift code works (src/data/legalPages.json has the same change). A page
+-- an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$a reminder the day before a book club you're in meets (the club's name and book and the meeting's name, time and note),$lw$, $lw$a reminder the day before a book club you're in meets, and a note when one of its meetings moves or is cancelled (the club's name and book and the meeting's name, times and note),$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$a reminder the day before a book club you're in meets (the club's name and book and the meeting's name, time and note),$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$the weekly Kids reading report and book club meeting reminders have one-click unsubscribe links$lw$, $lw$the weekly Kids reading report and book club meeting emails have one-click unsubscribe links$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$the weekly Kids reading report and book club meeting reminders have one-click unsubscribe links$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$book club meeting reminders (on until you turn them off)$lw$, $lw$book club meeting emails (reminders, and when a meeting moves or is cancelled; on until you turn them off)$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$book club meeting reminders (on until you turn them off)$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$daily limit, weekly goal (Kids profiles) and player settings.$lw$, $lw$daily limit, weekly goal and player settings.$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$daily limit, weekly goal (Kids profiles) and player settings.$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$the authors and narrators you follow (and, for 60 days,$lw$, $lw$the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days,$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$the authors and narrators you follow (and, for 60 days,$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$A gift code doesn't expire, works once, and can't be exchanged$lw$, $lw$A gift code doesn't expire, works once (from the day the gift starts, if the buyer chose a later day up to a year ahead), and can't be exchanged$lw$)::jsonb
+where slug in ($lw$returns$lw$)
+  and strpos(sections::text, $lw$A gift code doesn't expire, works once, and can't be exchanged$lw$) > 0;

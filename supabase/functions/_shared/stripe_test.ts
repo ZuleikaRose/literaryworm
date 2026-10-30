@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/_shared/stripe_test.ts — Stripe objects to what members see.
-import { assertEquals } from "jsr:@std/assert@1.0.13";
-import { addGiftMonths, cancellationEnd, discountView, giftCode, invoiceView, oneMonthAfter, oneYearAfter, planForLookupKey, type Stripe, subscriptionRow } from "./stripe.ts";
+import { assertEquals, assertRejects, assertThrows } from "jsr:@std/assert@1.0.13";
+import { addGiftMonths, cancellationEnd, discountView, giftCode, giftStarted, invoiceView, oneMonthAfter, oneYearAfter, parseGiftStart, planForLookupKey, releaseSchedule, scheduleMonthly, type Stripe, subscriptionRow } from "./stripe.ts";
 
 const invoice = (fields: Partial<Stripe.Invoice>) =>
   ({
@@ -155,4 +155,97 @@ Deno.test("a yearly subscription waiting to move to monthly says so only while i
   // Released early (Keep yearly): the key may linger, the schedule doesn't.
   assertEquals(sub({ schedule: null, metadata: { switch_to_monthly: "basic" } }), null);
   assertEquals(sub({ schedule: "sub_sched_1", metadata: { switch_to_monthly: "gold" } }), null);
+});
+
+/** A Stripe stand-in for the schedule calls: records each call, and fails the one named in `failOn`. */
+function fakeStripe(failOn?: string) {
+  const calls: string[] = [];
+  const sub = { id: "sub_1", schedule: null as string | null, metadata: {} as Record<string, string> };
+  const call = (name: string) => {
+    calls.push(name);
+    if (name === failOn) throw new Error(`${name} failed`);
+  };
+  const schedule = {
+    id: "sub_sched_1",
+    current_phase: { start_date: 100, end_date: 200 },
+    phases: [{ start_date: 100, end_date: 200, items: [{ price: "price_year", quantity: 1 }], discounts: [], metadata: { plan_id: "standard" } }],
+  };
+  const stripe = {
+    subscriptions: {
+      retrieve: () => Promise.resolve({ ...sub, metadata: { ...sub.metadata } }),
+      update: (_id: string, params: { metadata: Record<string, string> }) => {
+        call("subscriptions.update");
+        for (const [k, v] of Object.entries(params.metadata)) {
+          if (v) sub.metadata[k] = v;
+          else delete sub.metadata[k];
+        }
+        return Promise.resolve();
+      },
+    },
+    subscriptionSchedules: {
+      create: () => {
+        call("schedules.create");
+        sub.schedule = schedule.id;
+        return Promise.resolve(schedule);
+      },
+      retrieve: () => Promise.resolve(schedule),
+      update: () => Promise.resolve(call("schedules.update")),
+      release: () => {
+        call("schedules.release");
+        sub.schedule = null;
+        return Promise.resolve();
+      },
+    },
+  } as unknown as Stripe;
+  return { stripe, calls, sub };
+}
+
+Deno.test("scheduleMonthly sets the schedule and the key", async () => {
+  const { stripe, calls, sub } = fakeStripe();
+  await scheduleMonthly(stripe, "sub_1", "basic", "price_month");
+  assertEquals(calls, ["schedules.create", "schedules.update", "subscriptions.update"]);
+  assertEquals([sub.schedule, sub.metadata.switch_to_monthly], ["sub_sched_1", "basic"]);
+});
+
+Deno.test("scheduleMonthly lets go of a half-made schedule when the phases can't be set", async () => {
+  const { stripe, calls, sub } = fakeStripe("schedules.update");
+  await assertRejects(() => scheduleMonthly(stripe, "sub_1", "basic", "price_month"), Error, "schedules.update failed");
+  assertEquals(calls, ["schedules.create", "schedules.update", "schedules.release"]);
+  assertEquals([sub.schedule, sub.metadata.switch_to_monthly], [null, undefined]);
+});
+
+Deno.test("scheduleMonthly lets go of the schedule when the key can't be set", async () => {
+  const { stripe, sub } = fakeStripe("subscriptions.update");
+  await assertRejects(() => scheduleMonthly(stripe, "sub_1", "basic", "price_month"));
+  assertEquals(sub.schedule, null);
+});
+
+Deno.test("releaseSchedule releases and clears the key", async () => {
+  const { stripe, calls, sub } = fakeStripe();
+  await scheduleMonthly(stripe, "sub_1", "basic", "price_month");
+  calls.length = 0;
+  await releaseSchedule(stripe, "sub_1");
+  assertEquals(calls, ["schedules.release", "subscriptions.update"]);
+  assertEquals([sub.schedule, sub.metadata.switch_to_monthly], [null, undefined]);
+});
+
+Deno.test("a gift's start day is a real date from today anywhere to a year ahead", () => {
+  const now = new Date("2026-10-30T06:00:00Z");
+  assertEquals(parseGiftStart(undefined, now), null);
+  assertEquals(parseGiftStart(null, now), null);
+  // Still the 29th west of UTC.
+  assertEquals(parseGiftStart("2026-10-29", now), "2026-10-29");
+  assertEquals(parseGiftStart("2027-03-14", now), "2027-03-14");
+  assertEquals(parseGiftStart("2027-10-31", now), "2027-10-31");
+  for (const bad of ["2026-10-28", "2027-11-01", "2027-02-30", "14/03/2027", 20270314, ""]) {
+    assertThrows(() => parseGiftStart(bad, now), Error, undefined, String(bad));
+  }
+});
+
+Deno.test("a gift can be redeemed from the start of its day anywhere", () => {
+  assertEquals(giftStarted(null), true);
+  assertEquals(giftStarted("2027-03-14", new Date("2027-03-13T09:59:59Z")), false);
+  // 10:00 UTC on the 13th is midnight on the 14th at UTC+14.
+  assertEquals(giftStarted("2027-03-14", new Date("2027-03-13T10:00:00Z")), true);
+  assertEquals(giftStarted("2027-03-14", new Date("2027-06-01T00:00:00Z")), true);
 });

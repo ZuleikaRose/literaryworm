@@ -12,6 +12,7 @@ import {
   meetingError,
   meetingFileName,
   meetingIcs,
+  meetingInput,
   meetingStart,
   RSVP_ANSWERS,
   RSVP_LABELS,
@@ -78,6 +79,8 @@ function ClubMeetings({
   const [meetings, setMeetings] = useState(initial);
   const [now] = useState(() => new Date());
   const [adding, setAdding] = useState(false);
+  // The meeting being changed (the form is shared with scheduling a new one).
+  const [editing, setEditing] = useState<ClubMeeting | null>(null);
   const [form, setForm] = useState({ title: "", date: "", time: "19:00", minutes: 60, note: "" });
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -94,21 +97,34 @@ function ClubMeetings({
     }
     setBusy(true);
     setError(null);
+    const fields = {
+      clubId: club.id,
+      startsAt: meetingStart(form.date, form.time)!.toISOString(),
+      minutes: form.minutes,
+      title: form.title.trim(),
+      note: form.note.trim() || null,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
     try {
-      const added = await clubs.addMeeting({
-        clubId: club.id,
-        startsAt: meetingStart(form.date, form.time)!.toISOString(),
-        minutes: form.minutes,
-        title: form.title.trim(),
-        note: form.note.trim() || null,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      });
-      setMeetings((list) => [...list, added]);
+      if (editing) {
+        const saved = await clubs.updateMeeting({ ...editing, ...fields });
+        setMeetings((list) => list.map((m) => (m.id === saved.id ? saved : m)));
+        const moved = saved.startsAt !== editing.startsAt;
+        setDone(
+          moved
+            ? `Moved to ${meetingDay.format(new Date(saved.startsAt))}.${clubs.remote ? " Members get an email about it." : ""}`
+            : "Meeting saved.",
+        );
+      } else {
+        const added = await clubs.addMeeting(fields);
+        setMeetings((list) => [...list, added]);
+        setDone(`Scheduled for ${meetingDay.format(new Date(added.startsAt))}. Members get a reminder the day before.`);
+      }
       setForm({ title: "", date: "", time: "19:00", minutes: 60, note: "" });
       setAdding(false);
-      setDone(`Scheduled for ${meetingDay.format(new Date(added.startsAt))}. Members get a reminder the day before.`);
+      setEditing(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't schedule the meeting. Try again.");
+      setError(err instanceof Error ? err.message : "We couldn't save the meeting. Try again.");
     } finally {
       setBusy(false);
     }
@@ -140,10 +156,27 @@ function ClubMeetings({
     try {
       await clubs.deleteMeeting(club.id, meeting.id);
       setMeetings((list) => list.filter((m) => m.id !== meeting.id));
-      setDone("Meeting cancelled.");
+      if (editing?.id === meeting.id) setEditing(null);
+      setDone(`Meeting cancelled.${clubs.remote ? " Members get an email about it." : ""}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "We couldn't cancel the meeting. Try again.");
     }
+  };
+
+  const change = (meeting: ClubMeeting) => {
+    setEditing(meeting);
+    setAdding(false);
+    setForm(meetingInput(meeting));
+    setError(null);
+    setDone(null);
+    // The form is below the list: take the keyboard there.
+    requestAnimationFrame(() => document.getElementById(`${id}-title`)?.focus());
+  };
+
+  const closeForm = () => {
+    setAdding(false);
+    setEditing(null);
+    setForm({ title: "", date: "", time: "19:00", minutes: 60, note: "" });
   };
 
   return (
@@ -191,9 +224,14 @@ function ClubMeetings({
                     <Icon name="calendar" size={15} /> Add to calendar<span className="visually-hidden">: {m.title}</span>
                   </button>
                   {isOwner && (
-                    <button type="button" className="text-button" onClick={() => cancel(m)}>
-                      Cancel<span className="visually-hidden"> {m.title}</span>
-                    </button>
+                    <>
+                      <button type="button" className="text-button" onClick={() => change(m)}>
+                        Change<span className="visually-hidden"> {m.title}</span>
+                      </button>
+                      <button type="button" className="text-button" onClick={() => cancel(m)}>
+                        Cancel<span className="visually-hidden"> {m.title}</span>
+                      </button>
+                    </>
                   )}
                 </div>
               </li>
@@ -202,8 +240,8 @@ function ClubMeetings({
         </ul>
       )}
       {isOwner &&
-        (adding ? (
-          <form className="meeting-form" noValidate onSubmit={schedule}>
+        (adding || editing ? (
+          <form className="meeting-form" noValidate onSubmit={schedule} aria-label={editing ? `Change ${editing.title}` : "Schedule a meeting"}>
             <div className="field">
               <label className="field-label" htmlFor={`${id}-title`}>
                 What you'll talk about
@@ -266,10 +304,10 @@ function ClubMeetings({
             )}
             <div className="goal-actions">
               <button type="submit" className="primary-button small-button" disabled={busy}>
-                {busy ? "Scheduling…" : "Schedule meeting"}
+                {busy ? "Saving…" : editing ? "Save changes" : "Schedule meeting"}
               </button>
-              <button type="button" className="ghost-button small-button" onClick={() => setAdding(false)}>
-                Not now
+              <button type="button" className="ghost-button small-button" onClick={closeForm}>
+                {editing ? "Keep it as it was" : "Not now"}
               </button>
             </div>
           </form>
@@ -286,7 +324,7 @@ function ClubMeetings({
             <Icon name="plus" size={15} /> Schedule a meeting
           </button>
         ))}
-      {!adding && error && (
+      {!adding && !editing && error && (
         <p className="field-error" role="alert">
           <Icon name="alert" size={15} /> {error}
         </p>
@@ -297,8 +335,8 @@ function ClubMeetings({
       {upcoming.length > 0 && (
         <p className="goal-hint">
           {clubs.remote
-            ? "Everyone in the club gets an email reminder the day before, unless they can't make it. Turn yours off in Account → Preferences."
-            : "Members get an email reminder the day before, unless they can't make it. The demo doesn't send emails."}
+            ? "Everyone in the club gets an email reminder the day before, unless they can't make it, and an email if a meeting moves or is cancelled. Turn them off in Account → Preferences."
+            : "Members get an email reminder the day before, unless they can't make it, and an email if a meeting moves or is cancelled. The demo doesn't send emails."}
         </p>
       )}
     </section>

@@ -400,5 +400,10 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Weekly reading goals for Kids profiles: set by a grown-up in the profile editor (account password, `manage-profile`), shown in the child's Goals, Account → Family and the Monday Kids report (Privacy and Children's Privacy Notice updated) (migrations 5000–5002) | Done    |
 | —    | Follow authors from search: an author search lists the matching authors above the books, with a Follow button each (migration 5100, What's new only) | Done    |
 | —    | Gift a year at the yearly price: a 12-month gift costs the plan's yearly price (two months free); shorter gifts stay monthly price × months (`checkout` function) (migration 5200, What's new only) | Done    |
+| —    | Change a club meeting: the owner changes a meeting in place; members get an email when an upcoming meeting moves or is cancelled (`club-meetings` function, now every 10 minutes; Privacy Policy updated) (migrations 5600–5603) | Done    |
+| —    | Weekly goals for everyone: grown-up and teen profiles set their own weekly goal in Goals (migrations 5300, 5303) | Done    |
+| —    | Followers: author and narrator pages show how many readers follow them; My Library → Following lists who a profile follows (migrations 5400–5403) | Done    |
+| —    | Gift start day: a gift can be bought now to start on a later day, up to a year ahead (`checkout`, `stripe-webhook`, `manage-account`; Return Policy updated) (migrations 5500, 5503) | Done    |
+| —    | Yearly saving in the bell: monthly members 11 months in see what paying yearly would save (migrations 5700–5701) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

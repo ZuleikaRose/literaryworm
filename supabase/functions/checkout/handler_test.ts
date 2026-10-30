@@ -202,8 +202,19 @@ Deno.test("a gift is a one-off Checkout for the plan and months, whatever the bu
   const res = await call(deps, { gift: true, planId: "premium", months: 6 });
   assertEquals(res.status, 200);
   assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_gift");
-  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, origin: ORIGIN }]);
+  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, startsOn: null, origin: ORIGIN }]);
   assertEquals(state.checkouts.length + state.planChanges.length, 0);
+});
+
+Deno.test("a gift can start on a later day, up to a year ahead", async () => {
+  const day = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
+  const { state, deps } = setup(null);
+  assertEquals((await call(deps, { gift: true, planId: "basic", months: 12, startsOn: day(40) })).status, 200);
+  assertEquals(state.gifts[0].startsOn, day(40));
+  for (const startsOn of ["2020-01-01", day(400), "2027-02-30", "next week", 20270101]) {
+    assertEquals((await call(deps, { gift: true, planId: "basic", months: 12, startsOn })).status, 400, String(startsOn));
+  }
+  assertEquals(state.gifts.length, 1);
 });
 
 Deno.test("gifts are only 1, 3, 6 or 12 months of a real plan, with no other fields", async () => {

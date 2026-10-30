@@ -98,6 +98,19 @@ export function meetingStart(date: string, time: string): Date | null {
   return Number.isNaN(start.getTime()) ? null : start;
 }
 
+/** A meeting as the form shows it, to change it: local date and time. */
+export function meetingInput(meeting: Pick<ClubMeeting, "title" | "startsAt" | "minutes" | "note">): MeetingInput {
+  const start = new Date(meeting.startsAt);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    title: meeting.title,
+    date: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`,
+    time: `${pad(start.getHours())}:${pad(start.getMinutes())}`,
+    minutes: meeting.minutes,
+    note: meeting.note ?? "",
+  };
+}
+
 /** A plain-words problem with a new meeting, or null when it can be saved. */
 export function meetingError(input: MeetingInput, now = new Date()): string | null {
   const title = input.title.trim();

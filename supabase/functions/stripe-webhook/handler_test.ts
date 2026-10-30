@@ -187,8 +187,14 @@ const giftPaid = (overrides: Record<string, unknown> = {}) =>
 Deno.test("a paid gift Checkout makes the gift for the buyer, and starts no membership", async () => {
   const { state, deps } = setup(giftPaid());
   assertEquals((await handle(post(), deps)).status, 200);
-  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD" }]);
+  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD", startsOn: null }]);
   assertEquals(state.started.length, 0);
+});
+
+Deno.test("a gift bought for a later day keeps its start day", async () => {
+  const { state, deps } = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "12", starts_on: "2027-03-14" } }));
+  assertEquals((await handle(post(), deps)).status, 200);
+  assertEquals(state.gifts[0].startsOn, "2027-03-14");
 });
 
 Deno.test("an unpaid gift makes nothing; one with bad metadata is retried, not saved", async () => {

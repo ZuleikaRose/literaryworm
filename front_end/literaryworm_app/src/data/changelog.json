@@ -3,6 +3,46 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "update",
+    "title": "Switch to yearly from the bell",
+    "body": "Paying monthly for nearly a year? The bell now shows what paying yearly would save on your plan, with a link to switch.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "Give a gift that starts later",
+    "body": "When you buy a gift membership you can now choose the day it starts, up to a year ahead, so you can buy it now for a birthday. You get the code straight away, and it can be redeemed from that day.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "A weekly goal for everyone",
+    "body": "Grown-up and teen profiles can now set their own weekly reading goal in Goals, from 1 to 5 hours a week, and see how close they are over the last 7 days. Kids profiles still have theirs set by a grown-up.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "See who follows an author",
+    "body": "Author and narrator pages now show how many readers follow them, and My Library has a new Following tab listing everyone you follow, with their pages and Unfollow.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "Change a club meeting's time",
+    "body": "Club owners can now change a meeting's time, length, name or note, instead of cancelling it and adding a new one. When a meeting moves or is cancelled, everyone in the club gets an email with the old and new times, unless they turned meeting emails off.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
     "title": "Gift a year for the yearly price",
     "body": "A year's gift membership now costs the yearly price, so it comes with two months free, just like paying yearly. Gifts of 1, 3 or 6 months are still the monthly price for each month.",
     "major": false

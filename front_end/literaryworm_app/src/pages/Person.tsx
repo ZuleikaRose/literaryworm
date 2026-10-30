@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink";
 import { BookFeed } from "../components/BookFeed";
@@ -5,7 +6,9 @@ import { FollowButton } from "../components/FollowButton";
 import { Shelf } from "../components/Shelf";
 import { usesBackend } from "../lib/backend";
 import { fromLocal } from "../lib/booksApi";
-import { catalogBy, type PersonKind, personInitials, personName } from "../lib/people";
+import { fetchFollowerCount } from "../lib/followersApi";
+import { catalogBy, followerCountNow, followerLabel, type PersonKind, personInitials, personName } from "../lib/people";
+import { useFollows } from "../lib/useFollows";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
 import NotFound from "./NotFound";
@@ -27,6 +30,24 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
   // Google Books lists authors, not narrators; Kids profiles see only the catalog.
   const showGoogle = kind === "author" && usesBackend && ageRating !== "kids";
   const initials = personInitials(name);
+  const following = useFollows().isFollowing(kind, name);
+  // Read once per page; following or unfollowing here moves it by one. Whether the profile
+  // followed is taken when the count arrives, since its follows may load after the page opens.
+  const followingRef = useRef(following);
+  useEffect(() => {
+    followingRef.current = following;
+  }, [following]);
+  const [followers, setFollowers] = useState<{ count: number; followedAtLoad: boolean } | null>(null);
+  useEffect(() => {
+    let live = true;
+    void fetchFollowerCount(kind, name).then((count) => {
+      if (live && count !== null) setFollowers({ count, followedAtLoad: followingRef.current });
+    });
+    return () => {
+      live = false;
+    };
+  }, [kind, name]);
+  const followersText = followers ? followerLabel(followerCountNow(followers.count, followers.followedAtLoad, following)) : null;
 
   return (
     <div className="page-content person-page">
@@ -44,6 +65,7 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
               : `${catalog.length} ${catalog.length === 1 ? "title" : "titles"} on LiteraryWorm`}
             {kind === "narrator" && catalog.length > 0 && ", read by them"}
           </p>
+          {followersText && <p className="person-count">{followersText}</p>}
         </div>
         {profile ? (
           <FollowButton kind={kind} name={name} />

@@ -37,9 +37,12 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { addGiftMonths, type BillingInterval, cancellationEnd, type DiscountView, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
+import { addGiftMonths, type BillingInterval, cancellationEnd, type DiscountView, giftStarted, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
 import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 import { deletedEmail, type Email } from "./email.ts";
+
+/** "March 14, 2027", as the app writes dates, for a gift's start day (a calendar date, so read in UTC). */
+const longDate = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 const METHODS = "POST";
 
@@ -75,6 +78,8 @@ export interface Gift {
   plan_id: PlanId;
   months: number;
   redeemed_at: string | null;
+  /** The first day it can be redeemed ("YYYY-MM-DD"); null from the day it was bought. */
+  starts_on: string | null;
 }
 
 /** Gift codes (gift_codes): found by code, and claimed by one account at a time. */
@@ -306,6 +311,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         }
         const gift = await deps.gifts.find(code);
         if (!gift || gift.redeemed_at) throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+        if (!giftStarted(gift.starts_on, now)) {
+          throw new HttpError("bad_request", `This gift starts on ${longDate(gift.starts_on!)}. Redeem it from then.`);
+        }
         const giftPlan = PLAN_NAMES[gift.plan_id];
         // A membership billed through Stripe that hasn't ended gets the months added.
         const live = sub && sub.stripe_subscription_id && sub.status !== "cancelled" ? sub : null;

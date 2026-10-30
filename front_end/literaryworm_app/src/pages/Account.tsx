@@ -878,8 +878,8 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
           <strong>Email me the day before a book club meets</strong>
           <small id={clubHintId}>
             {remote
-              ? "For meetings in any club you're in. The club page lists them, with Add to calendar."
-              : "The demo doesn't send emails. Members get a reminder the day before each club meeting."}
+              ? "For meetings in any club you're in, and when one moves or is cancelled. The club page lists them, with Add to calendar."
+              : "The demo doesn't send emails. Members get a reminder the day before each club meeting, and an email when one moves or is cancelled."}
           </small>
         </span>
         <input
@@ -893,7 +893,7 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             const on = e.target.checked;
             void attempt(
               () => setClubMeetingEmails(on),
-              on ? "We'll email you the day before your book clubs meet." : "No more book club meeting reminders.",
+              on ? "We'll email you the day before your book clubs meet, and when a meeting changes." : "No more book club meeting emails.",
             );
           }}
         />

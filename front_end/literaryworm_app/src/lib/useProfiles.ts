@@ -39,7 +39,7 @@ export function useProfiles() {
         favoriteGenres: draft.favoriteGenres,
         kidsConsent: draft.ageRating === "kids" ? true : (existing?.kidsConsent ?? false),
         dailyLimitMinutes: draft.dailyLimitMinutes,
-        weeklyGoalMinutes: draft.ageRating === "kids" ? draft.weeklyGoalMinutes : null,
+        weeklyGoalMinutes: draft.ageRating === "kids" ? draft.weeklyGoalMinutes : (existing?.weeklyGoalMinutes ?? null),
         ...(draft.pin !== undefined ? { pin: draft.pin } : {}),
       };
       if (existing) dispatch({ type: "updateProfile", id: existing.id, patch: { ...patch, failedPinAttempts: 0, lockedUntil: null } });
@@ -86,10 +86,9 @@ export function useProfiles() {
       if (!limitSet && draft.dailyLimitMinutes !== (existing?.dailyLimitMinutes ?? null)) {
         await change({ action: "set_daily_limit", profileId: id, dailyLimitMinutes: draft.dailyLimitMinutes });
       }
-      // Only Kids profiles have a weekly goal; one that stops being Kids loses it.
-      const goal = draft.ageRating === "kids" ? draft.weeklyGoalMinutes : null;
-      if (goal !== (existing?.weeklyGoalMinutes ?? null)) {
-        await change({ action: "set_weekly_goal", profileId: id, weeklyGoalMinutes: goal });
+      // A grown-up sets a Kids profile's weekly goal here; other profiles set their own in Goals.
+      if (draft.ageRating === "kids" && draft.weeklyGoalMinutes !== (existing?.weeklyGoalMinutes ?? null)) {
+        await change({ action: "set_weekly_goal", profileId: id, weeklyGoalMinutes: draft.weeklyGoalMinutes });
       }
     } finally {
       // Show what was saved, even when a later step failed.

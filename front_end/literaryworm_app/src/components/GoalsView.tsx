@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { weeklyGoal } from "../lib/kidsReport";
+import { weeklyGoalOptions } from "../lib/profiles";
 import { booksFinishedIn, expectedByNow, GOAL_MAX, GOAL_MIN, monthSummaries, readingTime, streaks } from "../lib/goals";
 import { today } from "../lib/reading";
 import { useGoals } from "../lib/useGoals";
@@ -12,7 +13,7 @@ const monthName = new Intl.DateTimeFormat(undefined, { month: "long", year: "num
 
 /** My Library → Goals: the profile's yearly book goal, reading streak, household challenges and the last six months. */
 export function GoalsView({ profile }: { profile: Profile }) {
-  const { goals, days, setGoal } = useGoals();
+  const { goals, days, setGoal, setWeeklyGoal } = useGoals();
   const now = today();
   const year = Number(now.slice(0, 4));
   const goal = goals[year] ?? null;
@@ -24,23 +25,19 @@ export function GoalsView({ profile }: { profile: Profile }) {
 
   return (
     <div className="goals">
-      {week && (
-        <section className="goal-card" aria-labelledby="weekly-goal-title">
-          <h2 id="weekly-goal-title">Weekly goal</h2>
-          <p className="goal-count">
-            <strong>{readingTime(week.minutes * 60)}</strong> of {readingTime(week.goal * 60)} this week
-          </p>
-          <progress
-            className="goal-bar"
-            max={week.goal}
-            value={Math.min(week.minutes, week.goal)}
-            aria-label={`${readingTime(week.minutes * 60)} of ${readingTime(week.goal * 60)} this week`}
-          />
-          <p className="goal-hint">
-            {week.reached ? "You did it! Goal reached." : `${readingTime(week.left * 60)} to go.`} A grown-up set this goal; it counts
-            the last 7 days.
-          </p>
-        </section>
+      {profile.ageRating === "kids" ? (
+        week && (
+          <section className="goal-card" aria-labelledby="weekly-goal-title">
+            <h2 id="weekly-goal-title">Weekly goal</h2>
+            <WeeklyProgress minutes={week.minutes} goal={week.goal} />
+            <p className="goal-hint">
+              {week.reached ? "You did it! Goal reached." : `${readingTime(week.left * 60)} to go.`} A grown-up set this goal; it counts
+              the last 7 days.
+            </p>
+          </section>
+        )
+      ) : (
+        <WeeklyGoalCard key={profile.id} current={profile.weeklyGoalMinutes} week={week} onSave={setWeeklyGoal} />
       )}
       <section className="goal-card" aria-labelledby="goal-title">
         <h2 id="goal-title">{year} reading goal</h2>
@@ -101,6 +98,106 @@ export function GoalsView({ profile }: { profile: Profile }) {
         <p className="goal-hint">Time counts while the reader is open or the player is playing, on every device this profile uses.</p>
       </section>
     </div>
+  );
+}
+
+function WeeklyProgress({ minutes, goal }: { minutes: number; goal: number }) {
+  const label = `${readingTime(minutes * 60)} of ${readingTime(goal * 60)} this week`;
+  return (
+    <>
+      <p className="goal-count">
+        <strong>{readingTime(minutes * 60)}</strong> of {readingTime(goal * 60)} this week
+      </p>
+      <progress className="goal-bar" max={goal} value={Math.min(minutes, goal)} aria-label={label} />
+    </>
+  );
+}
+
+/** A grown-up or teen profile's own weekly goal: progress, or a choice of goal. */
+function WeeklyGoalCard({
+  current,
+  week,
+  onSave,
+}: {
+  current: number | null;
+  week: ReturnType<typeof weeklyGoal>;
+  onSave: (minutes: number | null) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(current !== null ? String(current) : "120");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const save = async (minutes: number | null) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await onSave(minutes);
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't save your weekly goal. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="goal-card" aria-labelledby="weekly-goal-title">
+      <h2 id="weekly-goal-title">Weekly goal</h2>
+      {week && !editing ? (
+        <>
+          <WeeklyProgress minutes={week.minutes} goal={week.goal} />
+          <p className="goal-hint">{week.reached ? "Goal reached. Well done!" : `${readingTime(week.left * 60)} to go.`} It counts the last 7 days.</p>
+          <div className="goal-actions">
+            <button type="button" className="ghost-button small-button" onClick={() => setEditing(true)}>
+              <Icon name="edit" size={15} /> Change goal
+            </button>
+            <button type="button" className="ghost-button small-button" disabled={busy} onClick={() => void save(null)}>
+              <Icon name="trash" size={15} /> Remove goal
+            </button>
+          </div>
+        </>
+      ) : (
+        <form
+          className="goal-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save(Number(value));
+          }}
+        >
+          <p className="goal-hint">How much would you like to read or listen each week? It counts the last 7 days, on every device.</p>
+          <div className="field">
+            <label className="field-label" htmlFor="own-weekly-goal">
+              Weekly reading goal
+            </label>
+            <select id="own-weekly-goal" className="field-input" value={value} onChange={(e) => setValue(e.target.value)}>
+              {weeklyGoalOptions
+                .filter((o) => o.value !== null)
+                .map((o) => (
+                  <option key={o.value} value={o.value!}>
+                    {o.label}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div className="goal-actions">
+            <button type="submit" className="primary-button small-button" disabled={busy}>
+              {busy ? "Saving…" : "Save weekly goal"}
+            </button>
+            {week && (
+              <button type="button" className="ghost-button small-button" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      )}
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
+    </section>
   );
 }
 

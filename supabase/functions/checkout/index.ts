@@ -85,7 +85,7 @@ Deno.serve((req) =>
           { quantity: year ? 1 : input.months, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } },
         ],
         // Read by stripe-webhook to make the gift code.
-        metadata: { kind: "gift", plan_id: input.planId, months: String(input.months) },
+        metadata: { kind: "gift", plan_id: input.planId, months: String(input.months), ...(input.startsOn ? { starts_on: input.startsOn } : {}) },
         success_url: `${input.origin}/gifts?checkout=success`,
         cancel_url: `${input.origin}/gifts?checkout=cancelled`,
         integration_identifier: `literaryworm_gift_${randomLetters()}`,

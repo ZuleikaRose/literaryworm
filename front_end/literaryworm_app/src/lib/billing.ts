@@ -2,6 +2,7 @@
 
 import type { Account, BillingInterval, PlanId } from "../types";
 import type { MembershipDiscount } from "./accountApi";
+import { planById } from "../data/plans";
 
 /** 1 → "1st", 22 → "22nd". */
 export const ordinal = (n: number) => {
@@ -61,6 +62,53 @@ export interface RenewalReminder {
   at: number;
   /** Moving to monthly billing on that day instead: the plan it moves to. */
   switchToMonthly: PlanId | null;
+}
+
+/** How many months into a monthly membership the bell offers yearly billing, and for how many days. */
+export const YEARLY_OFFER_MONTHS = 11;
+export const YEARLY_OFFER_DAYS = 30;
+
+export interface YearlyOffer {
+  /** When the offer started showing (ms): the bell counts it as new after this. */
+  at: number;
+  planId: PlanId;
+  /** What a year costs less than twelve months, in dollars. */
+  saving: number;
+}
+
+/** The same day `months` months later; a day that month doesn't have becomes its last day. */
+export function monthsAfter(from: Date, months: number): Date {
+  const next = new Date(from);
+  next.setDate(1);
+  next.setMonth(next.getMonth() + months);
+  const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+  next.setDate(Math.min(from.getDate(), lastDay));
+  return next;
+}
+
+/** What paying yearly saves on a plan over twelve monthly payments, in dollars (two months' price). */
+export function yearlySaving(planId: PlanId): number {
+  const plan = planById.get(planId);
+  return plan ? Math.round((plan.price * 12 - plan.yearlyPrice) * 100) / 100 : 0;
+}
+
+/**
+ * The bell's offer of yearly billing, once, to a monthly member about to finish their first year:
+ * for 30 days from 11 months after the membership began, while it's billed through Stripe and
+ * set to carry on (not ending, paused, behind on payment, on a gift or complimentary).
+ */
+export function yearlyOffer(
+  account: Pick<
+    Account,
+    "planId" | "billingInterval" | "memberSince" | "endsAt" | "status" | "complimentary" | "giftUntil" | "stripeLinked" | "pastDue"
+  > | null,
+  now = Date.now(),
+): YearlyOffer | null {
+  if (!account?.planId || !account.memberSince || account.billingInterval !== "month") return null;
+  if (account.endsAt || account.status !== "active" || account.complimentary || account.giftUntil || !account.stripeLinked || account.pastDue) return null;
+  const at = monthsAfter(new Date(account.memberSince), YEARLY_OFFER_MONTHS).getTime();
+  if (now < at || now >= at + YEARLY_OFFER_DAYS * 86_400_000) return null;
+  return { at, planId: account.planId, saving: yearlySaving(account.planId) };
 }
 
 /**

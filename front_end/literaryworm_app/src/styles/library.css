@@ -136,6 +136,7 @@
   color: var(--muted);
 }
 
+.library-empty h2,
 .library-empty h3 {
   margin: 4px 0 0;
   color: var(--ink);
@@ -1454,4 +1455,9 @@ body:has(.mini-player) .listen-along-bar {
 /* A Kids profile's weekly goal in Account → Family, once reached. */
 .kids-goal-reached {
   color: var(--success);
+}
+
+.following-view {
+  display: grid;
+  gap: 8px;
 }

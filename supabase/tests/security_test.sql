@@ -781,6 +781,20 @@ set role anon;
 select pg_temp.expect_error($$select public.support_member_lookup('ann@example.com')$$, 'anon looking someone up');
 reset role;
 
+-- Meeting change notes are server only; follower counts are a number for anyone
+set role anon;
+select pg_temp.expect_error('select * from public.club_meeting_changes', 'anon reading meeting change notes');
+select pg_temp.check((select public.follower_count('author', 'Nobody Followed Yet')) = 0, 'anyone reads a follower count');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.expect_error('select * from public.club_meeting_changes', 'a member reading meeting change notes');
+select pg_temp.expect_error('select * from public.claim_club_meeting_changes(10)', 'claiming meeting change emails from the browser');
+select pg_temp.expect_error($$update public.gift_codes set starts_on = null$$, 'a buyer changing a gift''s start day');
+reset role;
+reset request.jwt.claims;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

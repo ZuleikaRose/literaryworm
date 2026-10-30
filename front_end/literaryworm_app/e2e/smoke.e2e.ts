@@ -196,7 +196,7 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("starts a club, schedules a meeting in it, and cancels it", async () => {
+  it("starts a club, schedules a meeting in it, moves it, and cancels it", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     await goInApp(page, "/library?view=clubs");
@@ -217,6 +217,15 @@ describe("the demo household", () => {
     await meetings.getByRole("button", { name: "Schedule meeting" }).click();
     await meetings.getByText(/^Scheduled for/).waitFor();
     await meetings.locator(".meeting-title", { hasText: "The first five chapters" }).waitFor();
+    // The owner moves it a day later; the form opens filled in.
+    await meetings.getByRole("button", { name: /Change The first five chapters/ }).click();
+    const name = meetings.getByLabel("What you'll talk about");
+    await expect(name.inputValue()).resolves.toBe("The first five chapters");
+    await page.waitForFunction(() => document.activeElement?.id.endsWith("-title"));
+    const later = new Date(soon.getTime() + 86_400_000);
+    await meetings.getByLabel("Date").fill(`${later.getFullYear()}-${String(later.getMonth() + 1).padStart(2, "0")}-${String(later.getDate()).padStart(2, "0")}`);
+    await meetings.getByRole("button", { name: "Save changes" }).click();
+    await meetings.getByText(/^Moved to/).waitFor();
     await meetings.getByRole("button", { name: /Cancel The first five chapters/ }).click();
     await meetings.getByText("Meeting cancelled.").waitFor();
     expect(errors()).toEqual([]);
@@ -443,6 +452,35 @@ describe("the demo household", () => {
     const card = page.getByRole("region", { name: "Weekly goal" });
     await card.getByText("of 2 h this week").waitFor();
     await card.getByText("45 min to go.", { exact: false }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("sets a grown-up profile's own weekly goal in Goals", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=goals");
+    const card = page.getByRole("region", { name: "Weekly goal" });
+    await card.getByLabel("Weekly reading goal").selectOption({ label: "3 hours a week" });
+    await card.getByRole("button", { name: "Save weekly goal" }).click();
+    await card.getByText("of 3 h this week").waitFor();
+    await card.getByRole("button", { name: /Remove goal/ }).click();
+    await card.getByRole("button", { name: "Save weekly goal" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("lists the people a profile follows in My Library, and unfollows one there", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/authors/Mary%20Shelley");
+    await page.getByRole("heading", { name: "Mary Shelley", level: 1 }).waitFor();
+    await page.getByRole("button", { name: "Follow", exact: true }).click();
+    await page.getByRole("button", { name: "Following", exact: true }).waitFor();
+    await goInApp(page, "/library?view=following");
+    const authors = page.getByRole("region", { name: "Authors" });
+    await authors.getByRole("link", { name: "Mary Shelley" }).waitFor();
+    await authors.getByRole("button", { name: /Following Mary Shelley/ }).click();
+    // Still listed, so a slip is easy to undo.
+    await authors.getByRole("button", { name: /^Follow Mary Shelley/ }).waitFor();
     expect(errors()).toEqual([]);
   });
 

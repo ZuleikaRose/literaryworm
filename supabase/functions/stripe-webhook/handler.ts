@@ -46,6 +46,8 @@ export interface NewGift {
   months: GiftMonths;
   amountCents: number;
   currency: string;
+  /** The first day the code can be redeemed ("YYYY-MM-DD"), when the buyer picked one. */
+  startsOn: string | null;
 }
 
 const REVIEW = new Set(["charge.dispute.created", "charge.refunded", "radar.early_fraud_warning.created"]);
@@ -85,7 +87,8 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
         if (session.payment_status !== "paid") return;
         const planId = session.metadata.plan_id as PlanId;
         const months = Number(session.metadata.months) as GiftMonths;
-        if (!PLANS.includes(planId) || !GIFT_MONTHS.includes(months) || !session.amount_total) {
+        const startsOn = session.metadata.starts_on ?? null;
+        if (!PLANS.includes(planId) || !GIFT_MONTHS.includes(months) || !session.amount_total || (startsOn !== null && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn))) {
           throw new Error(`gift checkout ${session.id} has bad metadata`);
         }
         const buyerId = session.customer ? await deps.userForCustomer(idOf(session.customer)!) : null;
@@ -97,6 +100,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
           months,
           amountCents: session.amount_total,
           currency: (session.currency ?? "usd").toUpperCase(),
+          startsOn,
         });
         return;
       }

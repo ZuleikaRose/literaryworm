@@ -178,6 +178,14 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Author results.** An author search's *Authors* section sits above the books: an eyebrow (*Follow to see their new books first*), then cards in a grid (at least 340px wide, one column on a phone) on the raised surface with a hairline border: a 44px initials mark, the name in bold (a link, cut with an ellipsis), *12 books below* in small muted text, and a 44px-tall Follow button (primary; secondary with a check once following).
 
+**Following.** My Library's *Following* tab reuses the author result cards (initials mark, bold name link, muted count, 44px Follow button), grouped under *Authors* and *Narrators* headings. The follower count on a person's page is a second muted line under the title count, shown only once someone follows.
+
+**Weekly goal (grown-ups).** The same card as the Kids weekly goal; before a goal is set it holds a short question, the *Weekly reading goal* select (field width) and a primary *Save weekly goal*; once set, ghost *Change goal* and *Remove goal* buttons like the yearly goal's.
+
+**Gift start day.** *When it starts* is a fieldset of two chips (*Straight away*, *On a later day*) like *How long*; the later choice adds a native date field, at most 320px wide, with a hint and an error under it.
+
+**Changing a meeting.** The scheduling form, reopened in place with the meeting filled in; *Change* is a text button beside *Cancel*. The submit reads *Save changes* and the secondary *Keep it as it was*.
+
 **Yearly to monthly.** No new components: Plans' confirmation reuses the checkout summary (*When it changes: On March 10, 2027, when your year would renew…*), the chosen plan's card swaps its button for the *Your current plan* style with a calendar icon (*Monthly from March 10, 2027*), and Account adds a hint line with a text-button *Keep yearly billing*.
 
 **Clubs.** My Library's *Clubs* tab lists clubs as cards (small cover, name, book, members, finish date, today's chapter), then *Start a club* and *Join a club* cards. A club page has the cover beside its name and pace, *Read* and *Listen*, the discussion (chapter select, post box, posts newest first, spoilers replaced by an italic line with *Show it anyway*), and a side column with the invite code (*Copy*), members (*Started it* tag) and *Leave club* / *Delete club*, which asks first. On phones the side column drops below.

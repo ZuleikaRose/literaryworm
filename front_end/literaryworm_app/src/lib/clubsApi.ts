@@ -124,6 +124,21 @@ export async function addMeeting(meeting: Omit<ClubMeeting, "id"> & { id: string
   return toMeeting(data as MeetingRow);
 }
 
+/** Changes a meeting (the club's owner only). A new time emails the members (club_meeting_changes). */
+export async function updateMeeting(meeting: ClubMeeting): Promise<ClubMeeting> {
+  const { data, error } = await client()
+    .from("club_meetings")
+    .update({ starts_at: meeting.startsAt, minutes: meeting.minutes, title: meeting.title, note: meeting.note, time_zone: meeting.timeZone })
+    .eq("id", meeting.id)
+    .select(MEETING_COLUMNS)
+    .single();
+  if (error) {
+    if (error.message.includes("still to come") || error.message.includes("year ahead")) throw new AccountError(`${error.message}.`);
+    throw new AccountError("We couldn't change the meeting. Only the person who started the club can. Try again.");
+  }
+  return toMeeting(data as MeetingRow);
+}
+
 export async function deleteMeeting(id: string): Promise<void> {
   const { error } = await client().from("club_meetings").delete().eq("id", id);
   if (error) throw new AccountError("We couldn't cancel the meeting. Try again.");

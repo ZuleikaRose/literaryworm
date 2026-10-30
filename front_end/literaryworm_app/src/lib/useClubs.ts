@@ -189,6 +189,17 @@ export function useClubs() {
     [remote, demo],
   );
 
+  const updateMeeting = useCallback(
+    async (meeting: ClubMeeting): Promise<ClubMeeting> => {
+      if (remote) return clubsApi.updateMeeting(meeting);
+      const found = demo().find((c) => c.club.id === meeting.clubId);
+      if (!found || found.club.ownerId !== DEMO_USER) throw new AccountError("Only the person who started the club can change meetings.");
+      found.meetings = found.meetings.map((m) => (m.id === meeting.id ? meeting : m));
+      return meeting;
+    },
+    [remote, demo],
+  );
+
   const deleteMeeting = useCallback(
     async (clubId: string, meetingId: string) => {
       if (remote) return clubsApi.deleteMeeting(meetingId);
@@ -253,7 +264,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify }),
-    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify }),
+    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify],
   );
 }

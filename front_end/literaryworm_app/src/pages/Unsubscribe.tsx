@@ -22,8 +22,8 @@ const LISTS: Record<EmailList, { name: string; ask: string; settings: string; pl
     instead: { to: "/account#family", label: "See it in Account instead" },
   },
   "club-meetings": {
-    name: "book club meeting reminders",
-    ask: "Stop getting an email the day before your book clubs meet?",
+    name: "book club meeting emails",
+    ask: "Stop getting an email the day before your book clubs meet, and when a meeting moves or is cancelled?",
     settings: "/account#preferences",
     place: "Account → Preferences",
     instead: { to: "/library?view=clubs", label: "See your clubs instead" },

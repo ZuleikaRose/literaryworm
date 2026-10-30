@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import {
+  meetingInput,
   type ClubMeeting,
   icsText,
   meetingAlerts,
@@ -115,5 +116,18 @@ describe("meetings in the bell", () => {
     expect(meetingAlerts([soon], () => true, "me", now)).toEqual([]);
     expect(meetingAlerts([{ ...soon, rsvps: { me: "no" } }], on, "me", now)).toEqual([]);
     expect(meetingAlerts([{ ...soon, rsvps: { me: "maybe" } }], on, "me", now)).toHaveLength(1);
+  });
+});
+
+describe("changing a meeting", () => {
+  it("fills the form with the meeting's local date and time", () => {
+    const start = new Date(2026, 10, 8, 19, 5);
+    expect(meetingInput({ title: "Chapters 1 to 10", startsAt: start.toISOString(), minutes: 90, note: null })).toEqual({
+      title: "Chapters 1 to 10",
+      date: "2026-11-08",
+      time: "19:05",
+      minutes: 90,
+      note: "",
+    });
   });
 });

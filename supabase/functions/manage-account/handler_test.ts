@@ -25,7 +25,7 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
     emails: [] as { to: string; subject: string; text: string }[],
     passwordChecks: 0,
     stripe: [] as string[],
-    gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null } as Gift,
+    gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null, starts_on: null } as Gift,
     redeemedBy: null as string | null,
   };
   const record = (call: string) => {
@@ -504,6 +504,17 @@ Deno.test("a gift code works once; unknown and badly typed codes are refused", a
   const typo = await call(deps, { action: "gift", code: "O0I1" });
   assert(typo.body.error.message.includes("16 letters and numbers"));
   assertEquals(state.stripe.length, 1);
+});
+
+Deno.test("a gift bought for a later day can't be redeemed before it", async () => {
+  const { state, deps } = setup(paid());
+  state.gift = { ...state.gift, starts_on: "2027-03-14" };
+  const early = await call(deps, { action: "gift", code: GIFT_CODE });
+  assertEquals(early.status, 400);
+  assert(early.body.error.message.includes("This gift starts on March 14, 2027"), early.body.error.message);
+  assertEquals([state.stripe.length, state.gift.redeemed_at], [0, null]);
+  state.gift = { ...state.gift, starts_on: "2026-10-24" };
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 200);
 });
 
 Deno.test("when Stripe fails, the gift is released so the code still works", async () => {

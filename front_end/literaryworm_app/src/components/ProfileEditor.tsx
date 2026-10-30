@@ -60,7 +60,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const [limit, setLimit] = useState<number | null>(profile?.dailyLimitMinutes ?? null);
   const [weeklyGoal, setWeeklyGoal] = useState<number | null>(profile?.weeklyGoalMinutes ?? null);
   // Only Kids profiles keep a weekly goal.
-  const goal = rating === "kids" ? weeklyGoal : null;
+  // Grown-up and teen profiles set their own goal in Goals; the editor sets a Kids profile's.
+  const goal = rating === "kids" ? weeklyGoal : (profile?.weeklyGoalMinutes ?? null);
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [confirmDelete, setConfirmDelete] = useState(false);

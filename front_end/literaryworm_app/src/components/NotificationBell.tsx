@@ -25,7 +25,7 @@ function meetingWhen(iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, listening, renewal, offer, goals, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -41,9 +41,10 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && goals.length === 0 && meetings.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && meetings.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
+  const offerPlan = offer ? planById.get(offer.planId) : undefined;
 
   return (
     <div className="popover-wrap" ref={wrapRef}>
@@ -97,7 +98,7 @@ export function NotificationBell() {
                   </ul>
                 </>
               )}
-              {(listening || renewal) && (
+              {(listening || renewal || offerPlan) && (
                 <>
                   <p className="popover-label">Your plan</p>
                   <ul className="bell-list" role="list">
@@ -116,6 +117,22 @@ export function NotificationBell() {
                               {switchPlan
                                 ? `${switchPlan.name} · ${formatPrice(switchPlan.price)} a month from then, instead of renewing the year.`
                                 : `${plan.name} · ${formatPrice(plan.yearlyPrice)}. To stop it, cancel in Account at least 48 hours before.`}
+                            </small>
+                          </span>
+                        </Link>
+                      </li>
+                    )}
+                    {offer && offerPlan && (
+                      <li>
+                        <Link className="bell-item" to="/plans?billing=yearly" onClick={() => close(false)}>
+                          <Icon name="star" size={18} />
+                          <span>
+                            <strong>
+                              Switch to yearly and save {formatPrice(offer.saving)}
+                              {isNewAlert(offer.at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>
+                              {offerPlan.name} · {formatPrice(offerPlan.yearlyPrice)} a year instead of {formatPrice(offerPlan.price)} a month: two months free.
                             </small>
                           </span>
                         </Link>
