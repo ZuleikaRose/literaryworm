@@ -406,5 +406,11 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Gift start day: a gift can be bought now to start on a later day, up to a year ahead (`checkout`, `stripe-webhook`, `manage-account`; Return Policy updated) (migrations 5500, 5503) | Done    |
 | —    | Yearly saving in the bell: monthly members 11 months in see what paying yearly would save (migrations 5700–5701) | Done    |
 | —    | Bigger plans: Standard has 5 profiles and Read offline on 10 devices, Premium 12 profiles and 24 devices, at the same prices (Terms updated) (migrations 5800–5802) | Done    |
+| —    | Moving to a smaller plan: Plans says how many profiles to remove and offline devices to free first, and `checkout` refuses until the household fits (Terms updated) | Done    |
+| —    | Calendar file in meeting change emails: moved and cancelled meetings update members' calendars (`club-meetings`; Privacy Policy updated) | Done    |
+| —    | Follower counts in author search (migration 5900) | Done    |
+| —    | Gift start reminder: the buyer is emailed three days before a later start day (new `gift-reminders` function, daily; Privacy and Return Policy updated) (migration 6000) | Done    |
+| —    | Kids report in groups: Account → Family and the Monday email group Kids profiles by how the week went (`kids-report`) | Done    |
+| —    | Database security checks run in full on a Supabase branch; fixed deleting a club with an upcoming meeting (migrations 6001–6003) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
