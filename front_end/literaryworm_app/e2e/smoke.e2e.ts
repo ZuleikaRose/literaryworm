@@ -102,6 +102,25 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("starts a household challenge, sees the standings, and deletes it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=goals");
+    const section = page.locator(".challenges");
+    await section.getByRole("list", { name: /Progress in/ }).first().waitFor();
+    await section.getByRole("button", { name: "Start a challenge" }).click();
+    await section.getByLabel("Count").selectOption("days");
+    await section.getByLabel("Target").fill("10");
+    await section.getByText("Next month").click();
+    await section.getByRole("button", { name: "Start the challenge" }).click();
+    const card = section.locator(".challenge-card", { hasText: /^10 days in / });
+    await card.waitFor();
+    await card.getByRole("list", { name: /Progress in 10 days in/ }).waitFor();
+    await card.getByRole("button", { name: /^Delete/ }).click();
+    await expect(card.count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("turns the weekly author email off in Preferences", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

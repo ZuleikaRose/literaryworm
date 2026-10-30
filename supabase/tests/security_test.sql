@@ -643,6 +643,30 @@ select pg_temp.expect_error('select * from public.claim_author_emails(10)', 'ano
 reset role;
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_author_news(text)', 'execute'), 'only the cron job calls the author-news function');
 
+-- Household challenges: the account's profiles only ------------------------------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+insert into public.household_challenges (user_id, created_by, title, kind, target, starts_on, ends_on)
+values ('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Ann'), '5 books in November', 'books', 5, '2026-11-01', '2026-11-30');
+insert into public.challenge_participants (challenge_id, user_id, profile_id)
+select c.id, '00000000-0000-0000-0000-00000000000a', p.id from public.household_challenges c, public.reader_profiles p where p.name in ('Ann', 'Mia');
+select pg_temp.check((select count(*) = 2 from public.challenge_participants), 'Ann and Mia (Kids) join a household challenge');
+select pg_temp.expect_error($$update public.household_challenges set target = 1$$, 'editing a challenge');
+select pg_temp.expect_error($$insert into public.household_challenges (user_id, title, kind, target, starts_on, ends_on) values ('00000000-0000-0000-0000-00000000000a', 'X', 'days', 31, '2026-11-01', '2026-11-30')$$, 'more days than the challenge has');
+select pg_temp.expect_error($$insert into public.challenge_participants (challenge_id, user_id, profile_id) select c.id, '00000000-0000-0000-0000-00000000000a', p.id from public.household_challenges c, public.reader_profiles p where p.name = 'Ben'$$, 'another account''s profile joining');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select count(*) = 0 from public.household_challenges) and (select count(*) = 0 from public.challenge_participants), 'Ben cannot see Ann''s challenges');
+with d as (delete from public.household_challenges returning 1) select pg_temp.check(count(*) = 0, 'Ben cannot delete Ann''s challenges') from d;
+reset role;
+reset request.jwt.claims;
+set role anon;
+select pg_temp.expect_error('select * from public.household_challenges', 'anon reading challenges');
+reset role;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

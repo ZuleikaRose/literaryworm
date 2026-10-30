@@ -3,12 +3,13 @@ import { booksFinishedIn, expectedByNow, GOAL_MAX, GOAL_MIN, monthSummaries, rea
 import { today } from "../lib/reading";
 import { useGoals } from "../lib/useGoals";
 import type { Profile } from "../types";
+import { ChallengesView } from "./ChallengesView";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
 
 const monthName = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric", timeZone: "UTC" });
 
-/** My Library → Goals: the profile's yearly book goal, reading streak and the last six months. */
+/** My Library → Goals: the profile's yearly book goal, reading streak, household challenges and the last six months. */
 export function GoalsView({ profile }: { profile: Profile }) {
   const { goals, days, setGoal } = useGoals();
   const now = today();
@@ -50,6 +51,8 @@ export function GoalsView({ profile }: { profile: Profile }) {
           {longest} {longest === 1 ? "day" : "days"}.
         </p>
       </section>
+
+      <ChallengesView profile={profile} />
 
       <section className="goal-months" aria-labelledby="months-title">
         <h2 id="months-title">Month by month</h2>

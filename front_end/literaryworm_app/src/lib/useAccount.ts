@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
 import { activeLibrary, activeReading } from "../store/reducer";
 import * as accountApi from "./accountApi";
+import { listChallenges } from "./challengesApi";
 import { AccountError, type MembershipAction } from "./accountApi";
 import { cancellationEnd, nextBillingDate } from "./billing";
 
@@ -112,6 +113,7 @@ export function useAccount() {
       bookmarks: reading.bookmarks,
       highlights: reading.highlights,
       logs,
+      householdChallenges: userId ? await listChallenges() : [],
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);

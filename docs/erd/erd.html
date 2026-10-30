@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3601, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3703, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -444,6 +444,31 @@
           note: "When each followed author was last asked about on Google Books (authors_to_check() skips those checked in the last six days). RLS on, no browser access.",
         },
         {
+          id: "household_challenges", color: colors.household, x: 1260, y: 4520, sub: "per account",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["fk", "created_by", "uuid", true],
+            ["", "title", "text 1–80"],
+            ["", "kind", "text books | hours | days"],
+            ["", "target", "smallint 1–1000"],
+            ["", "starts_on", "date"],
+            ["", "ends_on", "date (≤ a year on)"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "The account's profiles take it on together; progress comes from each one's reading_days. created_by is cleared (the challenge stays) if that profile goes. Unique (id, user_id). Up to 20 an account (trigger); not edited once made. RLS: owner only. Indexes: user_id, (created_by, user_id).",
+        },
+        {
+          id: "challenge_participants", color: colors.household, x: 420, y: 4560, sub: "who joined",
+          cols: [
+            ["pk fk", "challenge_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk fk", "profile_id", "uuid"],
+            ["", "joined_at", "timestamptz"],
+          ],
+          note: "FK (challenge_id, user_id) → household_challenges and (profile_id, user_id) → reader_profiles, so both belong to the same account; on delete cascade. Kids profiles can join. RLS: owner only; joined and left. Index: (profile_id, user_id).",
+        },
+        {
           id: "club_members", color: colors.reading, x: 1260, y: 2050, sub: "up to 50 a club",
           cols: [
             ["pk fk", "club_id", "uuid"],
@@ -636,6 +661,9 @@
         ["favorites", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["author_news", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["household_challenges", "user_id", "auth.users", "id", "N : 1"],
+        ["challenge_participants", "challenge_id", "household_challenges", "id", "N : 1 (pair)"],
+        ["challenge_participants", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_ratings", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["custom_lists", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

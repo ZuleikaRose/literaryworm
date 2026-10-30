@@ -489,6 +489,126 @@
   font-size: 0.875rem;
 }
 
+/* ---------- Household challenges (in Goals) ---------- */
+
+.challenges {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 16px;
+}
+
+.challenges-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.challenges .challenges-heading h2 {
+  margin: 0;
+}
+
+.challenges-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.challenge-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challenge-card {
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.challenge-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+
+.challenge-card .goal-hint {
+  margin-top: 4px;
+}
+
+.challenge-standings {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challenge-standings li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 7rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.challenge-name {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.challenge-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 4.5rem;
+  justify-content: flex-end;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.challenge-count svg {
+  color: var(--success);
+}
+
+.challenge-form h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+}
+
+.challenge-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+
+.challenge-form .field {
+  flex: 1 1 180px;
+  max-width: 320px;
+  margin-top: 16px;
+}
+
+.challenge-form .segmented {
+  margin: 16px 0 0;
+}
+
+.challenges-ended summary {
+  min-height: 44px;
+  padding: 10px 0;
+  color: var(--ink-soft);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .goal-form .field {
   max-width: 220px;
   margin-top: 16px;
