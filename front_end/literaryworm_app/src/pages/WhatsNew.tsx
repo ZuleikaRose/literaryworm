@@ -12,6 +12,7 @@ import {
   dayLabel,
   entryError,
   filterEntries,
+  NEW_DAYS,
   groupReleases,
   kindLabel,
   releaseLabel,
@@ -27,6 +28,7 @@ import { useStore } from "../store/context";
 
 const FILTERS: { value: ChangeFilter; label: string }[] = [
   { value: "all", label: "Everything" },
+  { value: "new", label: "What's new" },
   { value: "major", label: "Major" },
   { value: "minor", label: "Minor" },
   ...CHANGE_KINDS.map((k) => ({ value: k.value as ChangeFilter, label: k.plural })),
@@ -115,7 +117,7 @@ export default function WhatsNew() {
       </fieldset>
 
       {releases.length === 0 ? (
-        <p className="muted">Nothing here yet.</p>
+        <p className="muted">{filter === "new" ? `Nothing has changed in the last ${NEW_DAYS} days.` : "Nothing here yet."}</p>
       ) : (
         releases.map((r) => (
           <section key={r.version} className="release" aria-labelledby={`release-${r.version}`}>

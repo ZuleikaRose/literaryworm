@@ -51,6 +51,12 @@ describe("ordering and grouping", () => {
     expect(filterEntries(mixed, "minor").every((e) => !e.major)).toBe(true);
     expect(filterEntries(mixed, "minor").length + filterEntries(mixed, "major").length).toBe(filterEntries(mixed, "all").length);
   });
+
+  it("shows what's new: the last 30 days, today included", () => {
+    const dated = [entry({ releasedOn: "2026-10-30" }), entry({ releasedOn: "2026-10-01" }), entry({ releasedOn: "2026-09-30" })];
+    expect(filterEntries(dated, "new", "2026-10-30").map((e) => e.releasedOn)).toEqual(["2026-10-30", "2026-10-01"]);
+    expect(filterEntries(dated, "new", "2026-12-15")).toEqual([]);
+  });
 });
 
 describe("words", () => {

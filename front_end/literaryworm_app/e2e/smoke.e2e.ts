@@ -108,6 +108,15 @@ describe("a visitor", () => {
     await page.waitForURL(/\/whats-new/);
     await page.getByRole("heading", { level: 1, name: "What's new" }).waitFor();
     await page.getByRole("heading", { level: 2, name: /October 2026/ }).waitFor();
+    expect(await page.locator(".whats-new-filter .chip span").allInnerTexts()).toEqual([
+      "Everything",
+      "What's new",
+      "Major",
+      "Minor",
+      "New features",
+      "Updates",
+      "Fixes",
+    ]);
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();

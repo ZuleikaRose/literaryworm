@@ -65,11 +65,22 @@ export function groupReleases(entries: ChangeEntry[]): Release[] {
     .sort((a, b) => b.releasedOn.localeCompare(a.releasedOn));
 }
 
-export type ChangeFilter = ChangeKind | "all" | "major" | "minor";
+export type ChangeFilter = ChangeKind | "all" | "new" | "major" | "minor";
 
-/** Everything, the major or minor changes (minor: every change not marked major), or one kind. */
-export function filterEntries(entries: ChangeEntry[], filter: ChangeFilter): ChangeEntry[] {
+/** How far back the What's new filter looks, in days. */
+export const NEW_DAYS = 30;
+
+/**
+ * Everything, what's new (released in the last 30 days, `today` included), the major or minor
+ * changes (minor: every change not marked major), or one kind.
+ */
+export function filterEntries(entries: ChangeEntry[], filter: ChangeFilter, today = new Date().toISOString().slice(0, 10)): ChangeEntry[] {
   if (filter === "all") return entries;
+  if (filter === "new") {
+    const [y, m, d] = today.split("-").map(Number);
+    const from = new Date(Date.UTC(y, m - 1, d - (NEW_DAYS - 1))).toISOString().slice(0, 10);
+    return entries.filter((e) => e.releasedOn >= from && e.releasedOn <= today);
+  }
   if (filter === "major") return entries.filter((e) => e.major);
   if (filter === "minor") return entries.filter((e) => !e.major);
   return entries.filter((e) => e.kind === filter);
