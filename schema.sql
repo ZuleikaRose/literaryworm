@@ -4141,3 +4141,169 @@ where slug = 'privacy'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$More genres to browse and search$lw$, $lw$Alongside Technology, Adventure, Sci-Fi, Fiction, Non-Fiction and Horror, you can now browse and search Fantasy, Mystery, Thriller, Romance, Classics, Historical Fiction, Young Adult, Children's, Biography & Memoir, History, Science, Self-Help and Poetry.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$More genres to browse and search$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030004100_plan_limits.sql
+-- =============================================================================
+-- Plan limits: each plan's audiobook hours a month and offline devices (public.plans
+-- audio_hours and download_devices, shown on the plan cards) are now kept.
+--
+-- Listening: the app pauses the player once the account's listening this month reaches the
+-- plan's hours. listening_minutes_between() gives it the account's saved listening (every
+-- profile, every device) so time on another device counts too.
+--
+-- Offline devices: a device that keeps books with Read offline holds one of the plan's
+-- device places. claim_offline_device() gives a place (or confirms one the device already
+-- has) and refuses when the plan's places are taken, listing the devices holding them so
+-- the member can free one. A device whose place is freed clears its offline books the next
+-- time it opens. Staff memberships are Premium (5 devices, unlimited listening).
+
+-- The account's listening, in whole minutes, from p_from to p_to (at most a month and a bit).
+create or replace function public.listening_minutes_between(p_from date, p_to date)
+returns integer
+language plpgsql
+stable
+security invoker
+set search_path = ''
+as $$
+begin
+  if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 31 then
+    raise exception 'p_from and p_to must be at most 31 days apart' using errcode = 'check_violation';
+  end if;
+  return coalesce((
+    select sum(d.listening_minutes)::integer
+    from public.reading_days d
+    where d.user_id = (select auth.uid()) and d.day between p_from and p_to
+  ), 0);
+end;
+$$;
+
+revoke execute on function public.listening_minutes_between(date, date) from public, anon;
+grant execute on function public.listening_minutes_between(date, date) to authenticated;
+
+create table public.offline_devices (
+  id           uuid primary key,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  -- "Chrome on Windows": worked out from the browser, shown when choosing one to free.
+  label        text not null check (char_length(btrim(label)) between 1 and 60),
+  created_at   timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+-- The index for user_id (the foreign key and RLS) is in the 4101 migration.
+
+alter table public.offline_devices enable row level security;
+
+create policy "Members see their own offline devices" on public.offline_devices for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Members free their own offline devices" on public.offline_devices for delete to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Two-step sign-in when turned on" on public.offline_devices as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+-- Places are only taken through claim_offline_device(), which checks the plan.
+revoke all on public.offline_devices from anon, authenticated;
+grant select, delete on public.offline_devices to authenticated;
+
+create or replace function public.claim_offline_device(p_id uuid, p_label text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user  uuid := (select auth.uid());
+  v_limit smallint;
+  v_plan  text;
+begin
+  if v_user is null or not public.second_step_done() then
+    raise exception 'sign in first' using errcode = 'insufficient_privilege';
+  end if;
+  if p_id is null or p_label is null or char_length(btrim(p_label)) not between 1 and 60 then
+    raise exception 'a device id and a label of 1 to 60 characters are needed' using errcode = 'check_violation';
+  end if;
+  -- One claim at a time per account, so two devices can't both take the last place.
+  perform pg_advisory_xact_lock(hashtextextended('offline_devices:' || v_user::text, 0));
+
+  update public.offline_devices set last_seen_at = now(), label = btrim(p_label)
+  where id = p_id and user_id = v_user;
+  if found then
+    return jsonb_build_object('status', 'ok');
+  end if;
+  if exists (select 1 from public.offline_devices where id = p_id) then
+    raise exception 'that device id is taken' using errcode = 'unique_violation';
+  end if;
+
+  -- Without a membership row, the smallest plan's places.
+  select p.download_devices, p.id into v_limit, v_plan
+  from public.subscriptions s join public.plans p on p.id = s.plan_id
+  where s.user_id = v_user;
+  if v_limit is null then
+    select p.download_devices, p.id into v_limit, v_plan from public.plans p where p.id = 'basic';
+  end if;
+
+  if (select count(*) from public.offline_devices where user_id = v_user) >= v_limit then
+    return jsonb_build_object(
+      'status', 'full',
+      'plan_id', v_plan,
+      'limit', v_limit,
+      'devices', coalesce((
+        select jsonb_agg(jsonb_build_object('id', d.id, 'label', d.label, 'last_seen_at', d.last_seen_at) order by d.last_seen_at desc)
+        from public.offline_devices d where d.user_id = v_user
+      ), '[]'::jsonb)
+    );
+  end if;
+
+  insert into public.offline_devices (id, user_id, label) values (p_id, v_user, btrim(p_label));
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+revoke execute on function public.claim_offline_device(uuid, text) from public, anon;
+grant execute on function public.claim_offline_device(uuid, text) to authenticated;
+
+-- =============================================================================
+-- 20261030004101_index_offline_devices_user_id.sql
+-- =============================================================================
+create index concurrently if not exists offline_devices_user_id_idx on public.offline_devices (user_id);
+
+-- =============================================================================
+-- 20261030004102_legal_plan_limits.sql
+-- =============================================================================
+-- Plan limits (migration 4100) and staff memberships in the policies: the Terms say what each
+-- plan includes and that staff are never billed; the Privacy and Cookie Policies cover the
+-- offline device list and the note kept beside offline books; Help says where to see usage.
+-- src/data/legalPages.json has the same change. A page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly until you cancel. Add a payment method in Account → Plan and billing to continue your membership. You can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account."$lw$, $lw$"This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly until you cancel. Add a payment method in Account → Plan and billing to continue your membership. You can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account.", "Plan limits. Each plan includes the audiobook listening and offline devices shown on the Plans page: Basic, 5 hours a month and 1 device; Standard, 30 hours and 3 devices; Premium, unlimited listening and 5 devices. Listening is counted for the whole household on every device. When a month's hours are used up, audiobooks pause until the 1st of the next month; reading carries on, and you can change plan at any time. Each device that saves books with Read offline holds one of the plan's places: free one in Account → Plan and billing to use another device, and the freed device's offline books are removed the next time it opens LiteraryWorm.", "Staff memberships. People with a LiteraryWorm staff role (admin, editor, developer, billing, customer service, blog or sales) have a complimentary Premium membership for as long as they hold a role. It's never billed and can't be paused or cancelled; it ends when their last staff role is removed, and they can then choose a plan like any member."$lw$)::jsonb
+where slug = $lw$terms$lw$
+  and strpos(sections::text, $lw$"This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly until you cancel. Add a payment method in Account → Plan and billing to continue your membership. You can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account."$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Devices: while you're signed in, a short label for each open copy of the app (such as \"Chrome on Windows\") so you can send a book to another device."$lw$, $lw$"Devices: while you're signed in, a short label for each open copy of the app (such as \"Chrome on Windows\") so you can send a book to another device. For each device that keeps books with Read offline, the same kind of label and when it was last used, so your plan's offline devices can be counted and you can free one."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Devices: while you're signed in, a short label for each open copy of the app (such as \"Chrome on Windows\") so you can send a book to another device."$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page."$lw$, $lw$"Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page. Next to them the app keeps a small note of which account's offline place this device holds (a random id, not your name or email), so the place can be freed from another device; it goes when the books do."$lw$)::jsonb
+where slug = $lw$cookies$lw$
+  and strpos(sections::text, $lw$"Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page."$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time."$lw$, $lw$"Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time.", "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time."$lw$) > 0;
+
+-- =============================================================================
+-- 20261030004103_whats_new_plan_limits.sql
+-- =============================================================================
+-- What's new: plan limits (migration 4100) and favourite genres from the full list
+-- (src/data/changelog.json has the same). Data only; skipped if an editor added them already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select v.released_on, v.version, v.kind, v.title, v.body, v.major
+from (values
+  ($lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Plan limits on listening and offline devices$lw$, $lw$Each plan's audiobook hours and offline devices now apply: Basic 5 hours a month and 1 device, Standard 30 hours and 3 devices, Premium unlimited listening and 5 devices. Account → Plan and billing shows this month's listening and lets you free a device.$lw$, true),
+  ($lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Favourite genres from the full list$lw$, $lw$Pick favourites from all nineteen genres when you set up or edit a profile. Up to two that aren't already on Home get a row of their own there, and more of our own titles are tagged Thriller, Historical Fiction and Fantasy.$lw$, false)
+) as v(released_on, version, kind, title, body, major)
+where not exists (select 1 from public.changelog_entries c where c.title = v.title and c.version = v.version);

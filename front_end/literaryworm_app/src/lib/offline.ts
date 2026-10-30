@@ -68,6 +68,35 @@ export async function saveOffline(book: Book, withAudio: boolean, onProgress?: (
   }
 }
 
+/**
+ * Which account's offline place this device holds (lib/offlinePlaces.ts): kept in the same
+ * cache as the books, so clearing the books forgets it too.
+ */
+const PLACE = "/__lw/offline-place.json";
+
+export interface OfflinePlace {
+  id: string;
+  userId: string;
+}
+
+export async function readOfflinePlace(): Promise<OfflinePlace | null> {
+  if (!offlineSupported()) return null;
+  const res = await (await caches.open(BOOKS)).match(PLACE);
+  if (!res) return null;
+  const place = (await res.json().catch(() => null)) as Partial<OfflinePlace> | null;
+  return typeof place?.id === "string" && typeof place.userId === "string" ? { id: place.id, userId: place.userId } : null;
+}
+
+export async function writeOfflinePlace(place: OfflinePlace): Promise<void> {
+  const cache = await caches.open(BOOKS);
+  await cache.put(PLACE, new Response(JSON.stringify(place), { headers: { "Content-Type": "application/json" } }));
+}
+
+/** Removes every book saved on this device, and the place it held. */
+export async function clearOfflineBooks(): Promise<void> {
+  if (offlineSupported()) await caches.delete(BOOKS);
+}
+
 export async function removeOffline(book: Book): Promise<void> {
   if (!offlineSupported()) return;
   const cache = await caches.open(BOOKS);

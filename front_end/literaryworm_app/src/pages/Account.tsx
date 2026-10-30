@@ -5,6 +5,7 @@ import { BillingHistory } from "../components/BillingHistory";
 import { Avatar } from "../components/Avatar";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
+import { PlanUsage } from "../components/PlanUsage";
 import { GrownUpDialog } from "../components/GrownUpDialog";
 import { InstallApp } from "../components/InstallApp";
 import { RedeemGift } from "../components/RedeemGift";
@@ -254,6 +255,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
           </div>
         </dl>
         <p className="field-hint">When your last staff role is removed, the complimentary membership ends and a plan can be chosen then.</p>
+        <PlanUsage planId={plan.id} />
       </Section>
     );
   }
@@ -391,6 +393,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
 
       {billed && <RedeemGift account={account} />}
 
+      <PlanUsage planId={plan.id} />
       {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={formatPrice(plan.price)} />}
 
       <Dialog

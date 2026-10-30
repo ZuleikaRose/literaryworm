@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { allGenres } from "../data/books";
+import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { avatarPalette } from "../lib/avatars";
 import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName } from "../lib/profiles";
 import { AccountError } from "../lib/accountApi";
@@ -50,7 +50,10 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const [name, setName] = useState(profile?.name ?? "");
   const [avatar, setAvatar] = useState(profile?.avatar ?? state.profiles.length % avatarPalette.length);
   const [rating, setRating] = useState<AgeRating>(profile?.ageRating ?? "all");
-  const [genres, setGenres] = useState<string[]>(profile?.favoriteGenres ?? []);
+  // Favourites chosen from the older list become the browse genre that covers them.
+  const [genres, setGenres] = useState<string[]>(() => [
+    ...new Set((profile?.favoriteGenres ?? []).map(favouriteGenreLabel).filter((g): g is string => g !== null)),
+  ]);
   const [consent, setConsent] = useState(profile?.kidsConsent ?? false);
   const [pinOn, setPinOn] = useState(Boolean(profile?.hasPin));
   const [pin, setPin] = useState("");
@@ -199,9 +202,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
 
       <fieldset className="form-group">
         <legend className="field-label">Favorite genres</legend>
-        <p className="field-hint genre-hint">Used to start this profile's recommendations.</p>
+        <p className="field-hint genre-hint">Used to start this profile's recommendations, and up to two of them get their own row on Home.</p>
         <div className="chip-group">
-          {allGenres.map((g) => (
+          {browseGenres.map(({ label: g }) => (
             <label key={g} className="chip">
               <input type="checkbox" checked={genres.includes(g)} onChange={() => toggleGenre(g)} />
               <span>

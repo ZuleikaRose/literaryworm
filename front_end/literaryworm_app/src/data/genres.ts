@@ -96,3 +96,34 @@ export function genreForCategories(categories: string[]): BrowseGenre | null {
   if (/science|nature|mathematics/.test(text)) return "science";
   return text ? "non-fiction" : null;
 }
+
+/**
+ * A saved favourite genre as one of the browse genres' labels. Favourites are the browse
+ * genres (Sci-Fi, Fantasy…); ones chosen before, from the sample catalog's own genres
+ * (Science fiction, Memoir…), become the browse genre that covers them. Null if none does.
+ */
+export function favouriteGenreLabel(saved: string): string | null {
+  const key = saved.toLowerCase();
+  const byLabel = browseGenres.find((g) => g.label.toLowerCase() === key);
+  if (byLabel) return byLabel.label;
+  // The narrowest browse genre that covers it (Fiction covers almost everything); on a tie, the
+  // more specific one, which comes later in the list (Memoir: Biography & Memoir, not Non-Fiction).
+  const covering = browseGenres
+    .map((g, index) => ({ g, index, size: sampleCatalogGenres[g.id].length }))
+    .filter(({ g }) => sampleCatalogGenres[g.id].some((c) => c.toLowerCase() === key))
+    .sort((a, b) => a.size - b.size || b.index - a.index);
+  return covering[0]?.g.label ?? null;
+}
+
+/** The browse genre a favourite names (see favouriteGenreLabel), or null. */
+export function favouriteGenreId(saved: string): BrowseGenre | null {
+  const label = favouriteGenreLabel(saved);
+  return browseGenres.find((g) => g.label === label)?.id ?? null;
+}
+
+/** Whether a catalog book is in a favourite genre. */
+export function inFavouriteGenre(bookGenres: string[], favourite: string): boolean {
+  const id = favouriteGenreId(favourite);
+  const catalog = id ? sampleCatalogGenres[id] : [favourite];
+  return bookGenres.some((g) => catalog.some((c) => c.toLowerCase() === g.toLowerCase()));
+}

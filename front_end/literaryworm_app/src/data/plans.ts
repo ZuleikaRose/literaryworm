@@ -8,7 +8,9 @@ export const plans: Plan[] = [
     summary: "Ebooks for one reader.",
     profiles: 1,
     audioHours: "5 hours of audiobooks a month",
-    downloads: "Downloads on 1 device",
+    audioHoursPerMonth: 5,
+    offlineDevices: 1,
+    downloads: "Read offline on 1 device",
     features: [
       "Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics",
       "Search almost any book on Google Books and keep it in your library",
@@ -29,7 +31,9 @@ export const plans: Plan[] = [
     summary: "Reading and listening for a small household.",
     profiles: 3,
     audioHours: "30 hours of audiobooks a month",
-    downloads: "Downloads on 3 devices",
+    audioHoursPerMonth: 30,
+    offlineDevices: 3,
+    downloads: "Read offline on 3 devices",
     features: [
       "Everything in Basic",
       "Kids and Teen profiles that show only titles rated for them",
@@ -45,7 +49,9 @@ export const plans: Plan[] = [
     summary: "Unlimited listening for the whole family.",
     profiles: 5,
     audioHours: "Unlimited audiobooks",
-    downloads: "Downloads on 5 devices",
+    audioHoursPerMonth: null,
+    offlineDevices: 5,
+    downloads: "Read offline on 5 devices",
     features: [
       "Everything in Standard",
       "Two more profiles than Standard, for bigger households",
@@ -88,8 +94,12 @@ export const planFaqs = [
     a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox. To read a book you own, upload it: for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads. It opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
   },
   {
+    q: "What happens when the month's listening runs out?",
+    a: "Basic includes 5 hours of audiobooks a month and Standard 30, shared by everyone in the household on every device; Premium has no limit. When they're used up, audiobooks pause until the 1st of the next month and your place is saved. Reading has no limit, and you can move to a bigger plan at any time. Account → Plan and billing shows how much you've listened this month.",
+  },
+  {
     q: "Can I read without a connection?",
-    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device. Books you upload keep working if your connection drops, once you've opened them on that device.",
+    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device. Basic keeps offline books on 1 device, Standard on 3 and Premium on 5; free a device in Account to use another. Books you upload keep working if your connection drops, once you've opened them on that device.",
   },
   {
     q: "Are there audiobooks?",

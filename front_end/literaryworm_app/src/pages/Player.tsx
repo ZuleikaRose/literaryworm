@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "../components/PlayerControls";
-import { BookmarksDialog, DailyLimitReached, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
+import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
@@ -84,6 +84,10 @@ function PlayerView({ book }: { book: Book }) {
   }, []);
 
   if (!live) return <div className="player" aria-busy="true" />;
+
+  if (live.allowance) {
+    return <ListeningAllowanceUsed {...live.allowance} bookId={book.id} />;
+  }
 
   if (live.limitReached && live.limitMinutes !== null) {
     return <DailyLimitReached limitMinutes={live.limitMinutes} onAllowMore={playback.allowMore} />;

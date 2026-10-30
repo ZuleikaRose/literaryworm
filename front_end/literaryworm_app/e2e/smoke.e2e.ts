@@ -214,6 +214,30 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows this month's listening against the plan in Account", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#plan");
+    const usage = page.locator(".plan-usage");
+    await usage.getByRole("heading", { name: "This month" }).waitFor();
+    // The demo household is on Premium.
+    await usage.getByText(/listened\. Unlimited on this plan\./).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("offers the new genres as favourites, and gives a favourite beyond the six its own Home row", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    // Sam's favourites (Young adult, Fantasy) were chosen from the old list; both are now rows on Home.
+    await page.getByRole("button", { name: /^Sam/ }).click();
+    const shelf = (name: string) => page.locator("section.shelf", { has: page.getByRole("heading", { level: 2, name, exact: true }) });
+    await shelf("Fantasy").getByText("One of your favourite genres").waitFor();
+    await shelf("Young Adult").getByText("One of your favourite genres").waitFor();
+    await expect(shelf("Romance").count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("starts with the monthly What's new email off, and turns it on", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

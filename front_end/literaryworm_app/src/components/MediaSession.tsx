@@ -37,7 +37,7 @@ function MediaSessionView({ book }: { book: Book }) {
     const session = navigator.mediaSession;
     const run = (action: MediaSessionAction) => (details: MediaSessionActionDetails) => {
       const { controls: c, playback: p } = latest.current;
-      if (c.live?.limitReached) return;
+      if (c.live?.limitReached || c.live?.allowance) return;
       switch (action) {
         case "play":
           return p.play();

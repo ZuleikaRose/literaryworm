@@ -5,7 +5,7 @@ import { GrownUpDialog } from "../components/GrownUpDialog";
 import { Icon } from "../components/Icon";
 import { PinDialog } from "../components/PinDialog";
 import { ProfileEditor } from "../components/ProfileEditor";
-import { allGenres } from "../data/books";
+import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { planById } from "../data/plans";
 import { ageRatingDetails, lockMinutesLeft } from "../lib/profiles";
 import { useProfiles } from "../lib/useProfiles";
@@ -196,7 +196,9 @@ export default function Profiles() {
 }
 
 function GenreSetup({ profile, onDone }: { profile: Profile; onDone: (genres: string[]) => Promise<void> }) {
-  const [genres, setGenres] = useState<string[]>(profile.favoriteGenres);
+  const [genres, setGenres] = useState<string[]>(() => [
+    ...new Set(profile.favoriteGenres.map(favouriteGenreLabel).filter((g): g is string => g !== null)),
+  ]);
   const toggle = (g: string) => setGenres((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
   return (
     <section className="profiles-page setup" aria-labelledby="setup-title">
@@ -205,7 +207,7 @@ function GenreSetup({ profile, onDone }: { profile: Profile; onDone: (genres: st
       <p className="profiles-sub">Pick a few genres to start your recommendations. You can change them later.</p>
       <fieldset className="chip-group chip-group-lg">
         <legend className="visually-hidden">Favorite genres</legend>
-        {allGenres.map((g) => (
+        {browseGenres.map(({ label: g }) => (
           <label key={g} className="chip">
             <input type="checkbox" checked={genres.includes(g)} onChange={() => toggle(g)} />
             <span>

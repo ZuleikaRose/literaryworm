@@ -1285,3 +1285,52 @@ export async function saveRecentSearches(profileId: string, searches: string[]):
   const { error } = await client().from("reader_profiles").update({ recent_searches: searches }).eq("id", profileId);
   if (error) throw new AccountError("We couldn't save your recent searches.");
 }
+
+/** The account's saved listening, in seconds, between two days (YYYY-MM-DD), on every device. */
+export async function listeningBetween(from: string, to: string): Promise<number> {
+  const { data, error } = await client().rpc("listening_minutes_between", { p_from: from, p_to: to });
+  if (error || typeof data !== "number") throw new AccountError("We couldn't check this month's listening.");
+  return data * 60;
+}
+
+export interface OfflineDevice {
+  id: string;
+  label: string;
+  lastSeenAt: number;
+}
+
+export type OfflineClaim = { status: "ok" } | { status: "full"; planId: PlanId; limit: number; devices: OfflineDevice[] };
+
+/** Takes one of the plan's offline device places for this device (or confirms it has one). */
+export async function claimOfflineDevice(id: string, label: string): Promise<OfflineClaim> {
+  const { data, error } = await client().rpc("claim_offline_device", { p_id: id, p_label: label });
+  if (error || !data) throw new AccountError("We couldn't check your offline devices. Try again.");
+  const row = data as { status: string; plan_id?: PlanId; limit?: number; devices?: { id: string; label: string; last_seen_at: string }[] };
+  if (row.status !== "full") return { status: "ok" };
+  return {
+    status: "full",
+    planId: row.plan_id ?? "basic",
+    limit: row.limit ?? 1,
+    devices: (row.devices ?? []).map((d) => ({ id: d.id, label: d.label, lastSeenAt: Date.parse(d.last_seen_at) })),
+  };
+}
+
+/** Whether this device still holds an offline place (another device may have freed it). */
+export async function hasOfflineDevice(id: string): Promise<boolean> {
+  const { data, error } = await client().from("offline_devices").select("id").eq("id", id).maybeSingle();
+  if (error) throw new AccountError("We couldn't check your offline devices.");
+  return Boolean(data);
+}
+
+/** Frees a device's offline place; that device clears its offline books when it next opens. */
+export async function freeOfflineDevice(id: string): Promise<void> {
+  const { error } = await client().from("offline_devices").delete().eq("id", id);
+  if (error) throw new AccountError("We couldn't free that device. Try again.");
+}
+
+/** The devices holding the account's offline places, most recently used first. */
+export async function listOfflineDevices(): Promise<OfflineDevice[]> {
+  const { data, error } = await client().from("offline_devices").select("id, label, last_seen_at").order("last_seen_at", { ascending: false });
+  if (error) throw new AccountError("We couldn't load your offline devices.");
+  return (data ?? []).map((d) => ({ id: d.id as string, label: d.label as string, lastSeenAt: Date.parse(d.last_seen_at as string) }));
+}

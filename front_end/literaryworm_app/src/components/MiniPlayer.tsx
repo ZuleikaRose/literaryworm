@@ -35,8 +35,10 @@ function MiniPlayerView({ book }: { book: Book }) {
 
   const chapter = book.chapters[places.chapterIndex];
   const chapterName = chapter.title === `Chapter ${places.chapterIndex + 1}` ? chapter.title : `${places.chapterIndex + 1}. ${chapter.title}`;
-  const locked = live.limitReached;
-  const status = locked ? (
+  const locked = live.limitReached || live.allowance !== null;
+  const status = live.allowance ? (
+    "This month's listening is used up"
+  ) : locked ? (
     "Today's listening time is used up"
   ) : live.finished ? (
     "Finished"

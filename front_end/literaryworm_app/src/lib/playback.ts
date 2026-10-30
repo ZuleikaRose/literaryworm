@@ -24,7 +24,16 @@ export interface PlaybackSnapshot {
   notice: string | null;
   limitReached: boolean;
   limitMinutes: number | null;
+  /** Set when the plan's audiobook hours for the month are used up (lib/useListeningAllowance.ts). */
+  allowance: AllowanceUsed | null;
   saveError: string | null;
+}
+
+/** The month's listening is used up: the plan, its hours, and when listening starts again. */
+export interface AllowanceUsed {
+  planName: string;
+  hours: number;
+  resumesOn: string;
 }
 
 export interface BookmarkPlace {

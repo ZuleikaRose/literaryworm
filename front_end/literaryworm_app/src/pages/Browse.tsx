@@ -6,7 +6,7 @@ import { OutNow } from "../components/RemindersView";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
-import { type BrowseGenre, browseGenres, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
+import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
 import { fromFollowed } from "../lib/people";
 import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
@@ -18,13 +18,17 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { AgeRating, Book } from "../types";
 
-/** One of the brief's six genres as a Home row, loading more at its end (the others are in the genre links). */
-function GenreShelf({ genre, ageRating }: { genre: BrowseGenre; ageRating: AgeRating }) {
+/**
+ * A genre as a Home row, loading more at its end: the brief's six, and up to two of the profile's
+ * favourite genres beyond them (`favourite` adds an eyebrow). The others are in the genre links.
+ */
+function GenreShelf({ genre, ageRating, favourite = false }: { genre: BrowseGenre; ageRating: AgeRating; favourite?: boolean }) {
   // Technology uses the same "technology" list as the public home page.
   const feed = useBookFeed(genre === "technology" ? { mode: "home" } : { mode: "genre", genre }, ageRating);
   return (
     <Shelf
       id={`genre-${genre}`}
+      eyebrow={favourite ? "One of your favourite genres" : undefined}
       title={genreLabel(genre)}
       items={feed.items}
       status={feed.status}
@@ -90,6 +94,10 @@ export default function Browse() {
       return { seed, items };
     })
     .filter((row) => row.items.length >= 3);
+  // Up to two favourite genres that don't already have a row (the brief's six do).
+  const favouriteShelves = [
+    ...new Set(profile.favoriteGenres.map(favouriteGenreId).filter((id): id is BrowseGenre => id !== null && !browseGenres.find((g) => g.id === id)?.shelf)),
+  ].slice(0, 2);
   const picked = recommend(catalog, taste, profile.favoriteGenres, new Set([...inLibrary, ...because.flatMap((r) => r.items.map((b) => b.id))]));
 
   // With nothing to go on yet: the catalog title most recently added to the library.
@@ -188,6 +196,10 @@ export default function Browse() {
             items={becauseSaved.map(fromLocal)}
           />
         )}
+
+        {favouriteShelves.map((id) => (
+          <GenreShelf key={id} genre={id} ageRating={profile.ageRating} favourite />
+        ))}
 
         {browseGenres.filter((g) => g.shelf).map((g) => (
           <GenreShelf key={g.id} genre={g.id} ageRating={profile.ageRating} />

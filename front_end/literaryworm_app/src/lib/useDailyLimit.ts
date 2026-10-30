@@ -5,6 +5,8 @@ import { today } from "./reading";
 
 /** Time is added to the store in steps this long, so the whole app doesn't re-render every second. */
 const STEP_SECONDS = 10;
+/** A computer that slept doesn't count the time it was asleep. */
+const MAX_STEP_SECONDS = 120;
 export const EXTRA_MINUTES = 30;
 
 /**
@@ -37,9 +39,16 @@ export function useDailyLimit(counting: boolean, profileId?: string, listening =
       dispatch({ type: "addTimeUsed", day, seconds, profileId, listening });
       if (remote && countedProfile) addReadingSeconds(countedProfile, day, seconds, listening);
     };
+    // Counted by the clock rather than by ticks: browsers slow timers in background tabs, and
+    // listening carries on there (reading doesn't count while the tab is hidden).
+    let last = Date.now();
     const id = window.setInterval(() => {
-      if (document.visibilityState !== "visible") return;
-      unsaved.current += 1;
+      const now = Date.now();
+      const elapsed = Math.min(MAX_STEP_SECONDS, Math.max(0, Math.round((now - last) / 1000)));
+      if (elapsed === 0) return;
+      last = now;
+      if (!listening && document.visibilityState !== "visible") return;
+      unsaved.current += elapsed;
       if (unsaved.current >= STEP_SECONDS) {
         add(unsaved.current);
         unsaved.current = 0;

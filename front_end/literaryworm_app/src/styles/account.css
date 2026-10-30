@@ -855,3 +855,33 @@
 .gift-months {
   justify-content: flex-start;
 }
+
+/* ---------- Plan usage (components/PlanUsage.tsx) ---------- */
+
+.plan-usage {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.plan-usage h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.plan-devices {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-devices li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}

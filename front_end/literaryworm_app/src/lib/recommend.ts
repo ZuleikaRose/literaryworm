@@ -1,3 +1,4 @@
+import { inFavouriteGenre } from "../data/genres";
 import type { Book, LibraryEntry, ProfileData, RatingValue } from "../types";
 
 /**
@@ -86,7 +87,7 @@ export function recommend(candidates: Book[], seedList: Seed[], favouriteGenres:
         because = seed.book;
       }
     }
-    const genreMatches = book.genres.filter((g) => favouriteGenres.some((f) => f.toLowerCase() === g.toLowerCase())).length;
+    const genreMatches = favouriteGenres.filter((f) => inFavouriteGenre(book.genres, f)).length;
     score += genreMatches * 0.5;
     if (score <= 0) continue;
     // A small nudge for well-rated books, so ties go to the better book.

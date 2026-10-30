@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3903, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4102, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -541,6 +541,17 @@
           note: "Unique (id, user_id). Index: (user_id, last_seen_at). Checks in every minute through touch_listening_device(); 20 kept an account. RLS: owner only; browser sets id, user_id and label.",
         },
         {
+          id: "offline_devices", color: colors.account, x: 1260, y: 5000, sub: "plan's Read offline places",
+          cols: [
+            ["pk", "id", "uuid (made by the browser)"],
+            ["fk", "user_id", "uuid"],
+            ["", "label", "text 1–60"],
+            ["", "created_at", "timestamptz"],
+            ["", "last_seen_at", "timestamptz"],
+          ],
+          note: "Index: user_id. Places are taken only through claim_offline_device(), which checks plans.download_devices (Basic 1, Standard 3, Premium 5). RLS: owner reads and frees (deletes) their own.",
+        },
+        {
           id: "playback_handoffs", color: colors.household, x: 420, y: 2420, sub: "listen on another device",
           cols: [
             ["pk", "id", "uuid"],
@@ -716,6 +727,7 @@
         ["club_members", "user_id", "profiles", "id", "N : 1"],
         ["club_posts", "club_id", "club_members", "club_id", "N : 1 (pair)"],
         ["listening_devices", "user_id", "auth.users", "id", "N : 1"],
+        ["offline_devices", "user_id", "auth.users", "id", "N : 1"],
         ["playback_handoffs", "to_device_id", "listening_devices", "id", "N : 1 (pair)"],
         ["playback_handoffs", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["finished_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

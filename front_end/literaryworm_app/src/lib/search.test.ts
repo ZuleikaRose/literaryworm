@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { browseGenres, genreForCategories } from "../data/genres";
+import { browseGenres, favouriteGenreId, favouriteGenreLabel, genreForCategories, inFavouriteGenre } from "../data/genres";
 import { catalogMatches, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl } from "./search";
 
 describe("queries", () => {
@@ -98,5 +98,25 @@ describe("genres", () => {
     expect(genreForCategories(["Self-Help / Personal Growth"])).toBe("self-help");
     expect(genreForCategories(["Cooking"])).toBe("non-fiction");
     expect(genreForCategories([])).toBeNull();
+  });
+
+  it("turns favourites saved from the old list into browse genres", () => {
+    expect(favouriteGenreLabel("Fantasy")).toBe("Fantasy");
+    expect(favouriteGenreLabel("sci-fi")).toBe("Sci-Fi");
+    expect(favouriteGenreLabel("Science fiction")).toBe("Sci-Fi");
+    expect(favouriteGenreLabel("Memoir")).toBe("Biography & Memoir");
+    expect(favouriteGenreLabel("Self-development")).toBe("Self-Help");
+    expect(favouriteGenreLabel("Young adult")).toBe("Young Adult");
+    expect(favouriteGenreLabel("Literary fiction")).toBe("Fiction");
+    expect(favouriteGenreLabel("Westerns")).toBeNull();
+    expect(favouriteGenreId("Historical Fiction")).toBe("historical-fiction");
+  });
+
+  it("matches a book to a favourite genre through the catalog's own genres", () => {
+    expect(inFavouriteGenre(["Science fiction"], "Sci-Fi")).toBe(true);
+    expect(inFavouriteGenre(["Mythology", "Fantasy"], "Fantasy")).toBe(true);
+    expect(inFavouriteGenre(["Memoir"], "Biography & Memoir")).toBe(true);
+    expect(inFavouriteGenre(["Horror"], "Romance")).toBe(false);
+    expect(inFavouriteGenre(["Westerns"], "Westerns")).toBe(true);
   });
 });

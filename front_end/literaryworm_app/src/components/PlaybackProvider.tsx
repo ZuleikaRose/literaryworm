@@ -6,6 +6,7 @@ import { bookStart, chapterIntro, chapterOutro } from "../lib/playerNav";
 import { chapterAt, chapterTimes, type SleepTimer } from "../lib/reading";
 import { useDeviceLink } from "../lib/useDeviceLink";
 import { useDailyLimit } from "../lib/useDailyLimit";
+import { useListeningAllowance } from "../lib/useListeningAllowance";
 import { bookText, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
@@ -205,6 +206,12 @@ function Engine({
   const [notice, setNotice] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
   const limit = useDailyLimit(playing, profileId, true);
+  const allowance = useListeningAllowance(playing);
+  const { reached: allowanceReached, hours: allowanceHours, planName, resumesOn } = allowance;
+  const allowanceUsed = useMemo(
+    () => (allowanceReached && allowanceHours !== null ? { planName, hours: allowanceHours, resumesOn } : null),
+    [allowanceReached, allowanceHours, planName, resumesOn],
+  );
 
   const save = (seconds: number, finishedNow = false) =>
     reading.save({
@@ -214,7 +221,7 @@ function Engine({
       finished: finishedNow,
     });
 
-  const running = playing && !limit.reached;
+  const running = playing && !limit.reached && !allowance.reached;
   const narrator = useRef<Narrator | null>(null);
 
   /**
@@ -405,14 +412,15 @@ function Engine({
       notice,
       limitReached: limit.reached,
       limitMinutes: limit.limitMinutes,
+      allowance: allowanceUsed,
       saveError,
     });
-  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, notice, limit.reached, limit.limitMinutes, saveError]);
+  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, notice, limit.reached, limit.limitMinutes, allowanceUsed, saveError]);
 
   // The controls, for the provider to call. Kept current with the latest render.
-  const latest = useRef({ position, seek, reading, limit, finished });
+  const latest = useRef({ position, seek, reading, limit, allowance, finished });
   useEffect(() => {
-    latest.current = { position, seek, reading, limit, finished };
+    latest.current = { position, seek, reading, limit, allowance, finished };
   });
   useEffect(() => {
     const api: PlaybackEngine = {
@@ -427,7 +435,7 @@ function Engine({
           l.seek(l.position + chapterIntro(book, chapterAt(starts, l.position)));
         }
         // Started here, inside the click, because browsers block sound that starts later.
-        if (!l.limit.reached) narrator.current?.start();
+        if (!l.limit.reached && !l.allowance.reached) narrator.current?.start();
         setPlaying(true);
       },
       pause: () => setPlaying(false),

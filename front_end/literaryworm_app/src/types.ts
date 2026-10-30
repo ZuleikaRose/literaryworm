@@ -90,6 +90,10 @@ export interface Plan {
   profiles: number;
   audioHours: string;
   downloads: string;
+  /** Hours of listening a month for the whole account; null means unlimited (lib/planLimits.ts). */
+  audioHoursPerMonth: number | null;
+  /** Devices that may keep books with Read offline at once. */
+  offlineDevices: number;
   features: string[];
 }
 

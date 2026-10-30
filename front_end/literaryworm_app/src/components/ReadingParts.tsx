@@ -12,7 +12,7 @@ import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
 /** A full-screen message in place of the reader or player. */
-export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock"; children: ReactNode; action?: ReactNode }) {
+export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock" | "headphones"; children: ReactNode; action?: ReactNode }) {
   useTitle(title);
   return (
     <main className="page empty-state reading-message">
@@ -118,6 +118,31 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
 }
 
 /** Shown once the profile's daily limit is used up. A grown-up can allow 30 more minutes. */
+/** The plan's audiobook hours for the month are used up (Basic 5, Standard 30); reading carries on. */
+export function ListeningAllowanceUsed({ planName, hours, resumesOn, bookId }: { planName: string; hours: number; resumesOn: string; bookId: string }) {
+  return (
+    <ReadingMessage
+      title="That's this month's listening"
+      icon="headphones"
+      action={
+        <div className="reading-message-actions">
+          <Link className="primary-button" to="/plans">
+            See plans
+          </Link>
+          <Link className="secondary-button" to={`/read/${bookId}`}>
+            Read it instead
+          </Link>
+        </div>
+      }
+    >
+      <p>
+        Your {planName} plan includes {hours} hours of audiobooks a month for the whole household, and they're used up. Listening starts
+        again on {resumesOn}, and your place is saved. Reading has no limit, and a bigger plan has more hours.
+      </p>
+    </ReadingMessage>
+  );
+}
+
 export function DailyLimitReached({ limitMinutes, onAllowMore }: { limitMinutes: number; onAllowMore: () => void }) {
   const profile = useActiveProfile();
   const checkPassword = useCheckAccountPassword();

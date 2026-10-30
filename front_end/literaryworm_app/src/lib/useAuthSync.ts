@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
 import { loadAccount, loadCollections, loadLibrary, loadProfiles, loadReading, secondStepNeeded, takeFreshSignIn } from "./accountApi";
+import { checkOfflinePlace } from "./offlinePlaces";
 import { supabase } from "./supabase";
 
 /**
@@ -60,6 +61,8 @@ export function useAuthSync() {
             // After the profiles: a new account's first profile is made by loadProfiles.
             const collections = await loadCollections();
             dispatch({ type: "enterAccount", account, library, reading, profiles, collections, restored });
+            // A device whose offline place was freed elsewhere drops its offline books (in the background).
+            checkOfflinePlace(session.user.id).catch((err: Error) => console.error("offline: couldn't check this device's place:", err.message));
           } catch {
             // Offline or the database is unreachable: carry on as a visitor and say why; logging in again retries.
             dispatch({

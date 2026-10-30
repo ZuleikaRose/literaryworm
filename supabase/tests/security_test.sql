@@ -684,6 +684,35 @@ set role anon;
 select pg_temp.expect_error('select * from public.household_challenges', 'anon reading challenges');
 reset role;
 
+-- Plan limits: offline device places and the month's listening ------------------
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+-- Ben has no plan, so Basic's single place.
+select pg_temp.check(public.claim_offline_device('00000000-0000-0000-0000-0000000000e1', 'Chrome on Linux') ->> 'status' = 'ok', 'Ben''s first device takes his one offline place');
+select pg_temp.check(public.claim_offline_device('00000000-0000-0000-0000-0000000000e1', 'Chrome on Linux') ->> 'status' = 'ok', 'the same device claiming again keeps its place');
+select pg_temp.check((select r ->> 'status' = 'full' and (r ->> 'limit')::int = 1 and jsonb_array_length(r -> 'devices') = 1
+                      from public.claim_offline_device('00000000-0000-0000-0000-0000000000e2', 'Safari on iPhone') r), 'a second device is refused on Basic, listing the one in use');
+select pg_temp.expect_error($$insert into public.offline_devices (id, user_id, label) values (gen_random_uuid(), '00000000-0000-0000-0000-00000000000b', 'Sneaky')$$, 'taking a place without the plan check');
+select pg_temp.expect_error($$select public.claim_offline_device(gen_random_uuid(), '')$$, 'a device with no name');
+select pg_temp.expect_error($$select public.listening_minutes_between('2026-01-01', '2026-03-01')$$, 'counting listening over more than a month');
+delete from public.offline_devices where id = '00000000-0000-0000-0000-0000000000e1';
+select pg_temp.check(public.claim_offline_device('00000000-0000-0000-0000-0000000000e2', 'Safari on iPhone') ->> 'status' = 'ok', 'freeing a place lets another device take it');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select count(*) from public.offline_devices) = 0, 'Ann cannot see Ben''s offline devices');
+with d as (delete from public.offline_devices returning 1) select pg_temp.check(count(*) = 0, 'Ann cannot free Ben''s devices') from d;
+select pg_temp.expect_error($$select public.claim_offline_device('00000000-0000-0000-0000-0000000000e2', 'Chrome on Windows')$$, 'claiming another account''s device id');
+select pg_temp.check(public.listening_minutes_between('2026-10-01', '2026-10-31') >= 0, 'Ann counts her own listening this month');
+reset role;
+reset request.jwt.claims;
+set role anon;
+select pg_temp.expect_error($$select public.claim_offline_device(gen_random_uuid(), 'Anon')$$, 'anon taking an offline place');
+select pg_temp.expect_error($$select public.listening_minutes_between('2026-10-01', '2026-10-31')$$, 'anon counting listening');
+reset role;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
