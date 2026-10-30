@@ -243,30 +243,37 @@ export async function scheduleMonthly(stripe: Stripe, subscriptionId: string, pl
   const startedAt = schedule.current_phase?.start_date;
   const phase = schedule.phases.find((p) => p.start_date === startedAt) ?? schedule.phases[0];
   const idOf = (x: string | { id: string } | null | undefined) => (x ? (typeof x === "string" ? x : x.id) : undefined);
-  await stripe.subscriptionSchedules.update(schedule.id, {
-    end_behavior: "release",
-    phases: [
-      {
-        items: phase.items.map((i) => ({ price: idOf(i.price)!, quantity: i.quantity ?? 1 })),
-        start_date: phase.start_date,
-        end_date: phase.end_date,
-        // Kept as they are (Stripe unsets anything a phase leaves out).
-        discounts: (phase.discounts ?? []).map((d) =>
-          d.discount ? { discount: idOf(d.discount) } : d.promotion_code ? { promotion_code: idOf(d.promotion_code) } : { coupon: idOf(d.coupon) }
-        ),
-        metadata: { ...(phase.metadata ?? {}), [SWITCH_KEY]: planId },
-        proration_behavior: "none",
-      },
-      {
-        items: [{ price: monthlyPriceId, quantity: 1 }],
-        duration: { interval: "month", interval_count: 1 },
-        metadata: { plan_id: planId, interval: "month", [SWITCH_KEY]: "" },
-        proration_behavior: "none",
-      },
-    ],
-  } as Stripe.SubscriptionScheduleUpdateParams);
-  // The current phase's metadata reaches the subscription only when a phase starts; set it now too.
-  await stripe.subscriptions.update(subscriptionId, { metadata: { [SWITCH_KEY]: planId } });
+  try {
+    await stripe.subscriptionSchedules.update(schedule.id, {
+      end_behavior: "release",
+      phases: [
+        {
+          items: phase.items.map((i) => ({ price: idOf(i.price)!, quantity: i.quantity ?? 1 })),
+          start_date: phase.start_date,
+          end_date: phase.end_date,
+          // Kept as they are (Stripe unsets anything a phase leaves out).
+          discounts: (phase.discounts ?? []).map((d) =>
+            d.discount ? { discount: idOf(d.discount) } : d.promotion_code ? { promotion_code: idOf(d.promotion_code) } : { coupon: idOf(d.coupon) }
+          ),
+          metadata: { ...(phase.metadata ?? {}), [SWITCH_KEY]: planId },
+          proration_behavior: "none",
+        },
+        {
+          items: [{ price: monthlyPriceId, quantity: 1 }],
+          duration: { interval: "month", interval_count: 1 },
+          metadata: { plan_id: planId, interval: "month", [SWITCH_KEY]: "" },
+          proration_behavior: "none",
+        },
+      ],
+    } as Stripe.SubscriptionScheduleUpdateParams);
+    // The current phase's metadata reaches the subscription only when a phase starts; set it now too.
+    await stripe.subscriptions.update(subscriptionId, { metadata: { [SWITCH_KEY]: planId } });
+  } catch (err) {
+    // Half done is worse than not done (a switch the member can't see, or one shown that won't
+    // happen): let the subscription go from the schedule, then report the failure.
+    await releaseSchedule(stripe, subscriptionId).catch((undo) => console.error("scheduleMonthly: couldn't undo", undo));
+    throw err;
+  }
 }
 
 export function subscriptionRow(sub: Stripe.Subscription) {
