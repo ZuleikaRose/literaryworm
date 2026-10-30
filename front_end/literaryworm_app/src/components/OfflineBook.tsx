@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { planById } from "../data/plans";
 import { freeOfflineDevice, type OfflineDevice } from "../lib/accountApi";
 import { audioMegabytes, offlineState, type OfflineState, offlineSupported, removeOffline, saveOffline } from "../lib/offline";
 import { takeOfflinePlace } from "../lib/offlinePlaces";
+import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
 import { useStore } from "../store/context";
 import type { Book, PlanId } from "../types";
 import { Icon } from "./Icon";
@@ -75,6 +77,7 @@ export function OfflineBook({ book }: { book: Book }) {
       await save(withAudio, (done, total) => setBusy(`Saving the audio: chapter ${done} of ${total}…`))();
     });
 
+  const fullNext = full ? nextPlanUp(full.planId) : null;
   const megabytes = audioMegabytes(book);
   const audioSaved = state !== null && state.tracks > 0 && state.audio === state.tracks;
   const saved = state?.text ?? false;
@@ -100,6 +103,12 @@ export function OfflineBook({ book }: { book: Book }) {
           <p>
             Your {planById.get(full.planId)?.name ?? "Basic"} plan keeps offline books on {full.limit} {full.limit === 1 ? "device" : "devices"}, and{" "}
             {full.limit === 1 ? "it's" : "they're all"} in use. Free one to use this device instead; its offline books are removed the next time it opens LiteraryWorm.
+            {fullNext && (
+              <>
+                {" "}
+                Or <Link to={planCheckoutPath(fullNext)}>move to {fullNext.name}</Link> for {fullNext.offlineDevices} devices.
+              </>
+            )}
           </p>
           <ul role="list">
             {full.devices.map((d) => (

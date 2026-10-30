@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "update",
+    "title": "Move up a plan in one tap",
+    "body": "When this month's listening or your offline devices run out, the message offers the next plan up and opens its checkout straight away.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
     "title": "A heads-up before your listening runs out",
     "body": "On Basic and Standard, the player shows how much of this month's listening is left, and the bell lets you know once the household has used most of it.",
     "major": false

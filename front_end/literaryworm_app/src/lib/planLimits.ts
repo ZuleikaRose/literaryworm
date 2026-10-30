@@ -1,5 +1,5 @@
-import { planById } from "../data/plans";
-import type { PlanId, ReadingDay } from "../types";
+import { planById, plans } from "../data/plans";
+import type { Plan, PlanId, ReadingDay } from "../types";
 
 /**
  * The plan limits shown on the plan cards: hours of listening a month for the whole account,
@@ -105,3 +105,16 @@ export function hoursAndMinutes(seconds: number): string {
   const m = minutes % 60;
   return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
+
+/**
+ * The next plan up from `planId` (Basic → Standard → Premium), for "move up" links: they go to
+ * `/plans?plan=<id>`, which opens that plan's checkout. Null on Premium. Without a plan, Basic.
+ */
+export function nextPlanUp(planId: PlanId | null): Plan | null {
+  if (planId === null) return planById.get("basic") ?? null;
+  const index = plans.findIndex((p) => p.id === planId);
+  return index >= 0 && index < plans.length - 1 ? plans[index + 1] : null;
+}
+
+/** The address that opens a plan's checkout on Plans. */
+export const planCheckoutPath = (plan: Plan) => `/plans?plan=${plan.id}`;

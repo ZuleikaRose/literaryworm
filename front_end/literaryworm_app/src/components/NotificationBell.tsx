@@ -1,10 +1,11 @@
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { badgeText, bellLabel, isNewAuthorBook, isNewListeningAlert, isNewRelease } from "../lib/notifications";
-import { hoursAndMinutes } from "../lib/planLimits";
+import { hoursAndMinutes, nextPlanUp, planCheckoutPath } from "../lib/planLimits";
 import { releaseLabel } from "../lib/release";
 import { useNotifications } from "../lib/useNotifications";
 import { usePopover } from "../lib/usePopover";
+import { useStore } from "../store/context";
 import { Icon } from "./Icon";
 
 /**
@@ -15,6 +16,7 @@ import { Icon } from "./Icon";
 export function NotificationBell() {
   const { released, authorNews, news, listening, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
+  const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
   // What was seen before this opening, so the panel can still mark what's new while it's open.
   const [seenBefore, setSeenBefore] = useState(seenAt);
@@ -27,6 +29,7 @@ export function NotificationBell() {
     }
     setOpen(!open);
   };
+  const listeningNext = listening ? nextPlanUp(planId) : null;
   const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null;
 
   return (
@@ -55,7 +58,7 @@ export function NotificationBell() {
                   <p className="popover-label">Your plan</p>
                   <ul className="bell-list" role="list">
                     <li>
-                      <Link className="bell-item" to="/account#plan" onClick={() => close(false)}>
+                      <Link className="bell-item" to={listeningNext ? planCheckoutPath(listeningNext) : "/account#plan"} onClick={() => close(false)}>
                         <Icon name="headphones" size={18} />
                         <span>
                           <strong>
@@ -64,6 +67,8 @@ export function NotificationBell() {
                           </strong>
                           <small>
                             {hoursAndMinutes(Math.min(listening.used, listening.limit))} of {listening.limit / 3600} hours, for the whole household
+                            {listeningNext &&
+                              ` · ${listeningNext.audioHoursPerMonth === null ? "unlimited" : `${listeningNext.audioHoursPerMonth} hours`} on ${listeningNext.name}`}
                           </small>
                         </span>
                       </Link>

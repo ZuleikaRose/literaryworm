@@ -4449,3 +4449,13 @@ from (values
   ($lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$fix$lw$, $lw$The New label in notifications$lw$, $lw$The New label on a notification now sits next to its title instead of stretching across the panel.$lw$, false)
 ) as v(released_on, version, kind, title, body, major)
 where not exists (select 1 from public.changelog_entries c where c.title = v.title and c.version = v.version);
+
+-- =============================================================================
+-- 20261030004300_whats_new_move_up.sql
+-- =============================================================================
+-- What's new: moving up a plan from the limit screens (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Move up a plan in one tap$lw$, $lw$When this month's listening or your offline devices run out, the message offers the next plan up and opens its checkout straight away.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Move up a plan in one tap$lw$ and c.version = $lw$2026.10$lw$);

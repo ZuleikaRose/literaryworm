@@ -6,10 +6,11 @@ import { EXTRA_MINUTES } from "../lib/useDailyLimit";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
-import type { Book, Bookmark, Format } from "../types";
+import type { Book, Bookmark, Format, PlanId } from "../types";
 import { AccountPasswordField } from "./AccountPasswordField";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
 
 /** A full-screen message in place of the reader or player. */
 export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock" | "headphones"; children: ReactNode; action?: ReactNode }) {
@@ -119,16 +120,36 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
 
 /** Shown once the profile's daily limit is used up. A grown-up can allow 30 more minutes. */
 /** The plan's audiobook hours for the month are used up (Basic 5, Standard 30); reading carries on. */
-export function ListeningAllowanceUsed({ planName, hours, resumesOn, bookId }: { planName: string; hours: number; resumesOn: string; bookId: string }) {
+export function ListeningAllowanceUsed({
+  planId,
+  planName,
+  hours,
+  resumesOn,
+  bookId,
+}: {
+  planId: PlanId | null;
+  planName: string;
+  hours: number;
+  resumesOn: string;
+  bookId: string;
+}) {
+  // One tap to the next plan's checkout (Plans opens it from ?plan=).
+  const next = nextPlanUp(planId);
   return (
     <ReadingMessage
       title="That's this month's listening"
       icon="headphones"
       action={
         <div className="reading-message-actions">
-          <Link className="primary-button" to="/plans">
-            See plans
-          </Link>
+          {next ? (
+            <Link className="primary-button" to={planCheckoutPath(next)}>
+              Move to {next.name}: {next.audioHoursPerMonth === null ? "unlimited listening" : `${next.audioHoursPerMonth} hours`}
+            </Link>
+          ) : (
+            <Link className="primary-button" to="/plans">
+              See plans
+            </Link>
+          )}
           <Link className="secondary-button" to={`/read/${bookId}`}>
             Read it instead
           </Link>

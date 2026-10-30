@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { freeOfflineDevice, listeningBetween, listOfflineDevices, type OfflineDevice } from "../lib/accountApi";
 import { readOfflinePlace } from "../lib/offline";
-import { hoursAndMinutes, listenedThisMonth, monthRange, nextMonthLabel, planLimits } from "../lib/planLimits";
+import { hoursAndMinutes, LISTENING_ALERT_SHARE, listenedThisMonth, monthRange, nextMonthLabel, nextPlanUp, planCheckoutPath, planLimits } from "../lib/planLimits";
 import { today } from "../lib/reading";
 import { useStore } from "../store/context";
 import type { PlanId } from "../types";
@@ -63,6 +64,8 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
   };
 
   const listened = Math.max(server, local);
+  const next = nextPlanUp(planId);
+  const nearlyOut = (audioSeconds !== null && listened >= audioSeconds * LISTENING_ALERT_SHARE) || (devices !== null && devices.length >= offlineDevices);
   return (
     <div className="plan-usage">
       <h3>This month</h3>
@@ -89,6 +92,14 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
       {error && (
         <p className="field-error" role="alert">
           {error}
+        </p>
+      )}
+      {next && nearlyOut && (
+        <p className="plan-move-up">
+          <Link className="secondary-button" to={planCheckoutPath(next)}>
+            Move to {next.name}: {next.audioHoursPerMonth === null ? "unlimited listening" : `${next.audioHoursPerMonth} hours`} and {next.offlineDevices} offline
+            devices
+          </Link>
         </p>
       )}
       {devices !== null && devices.length > 0 && (

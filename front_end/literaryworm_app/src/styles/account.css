@@ -919,3 +919,7 @@
   font-family: var(--font-display);
   font-size: 1.25rem;
 }
+
+.plan-move-up {
+  margin: 14px 0 0;
+}

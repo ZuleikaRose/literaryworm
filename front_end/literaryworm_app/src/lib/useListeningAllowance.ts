@@ -54,6 +54,7 @@ export function useListeningAllowance(playing: boolean) {
   return {
     /** The plan's hours a month, or null for unlimited. */
     hours,
+    planId,
     planName: planById.get(planId ?? "basic")?.name ?? "Basic",
     leftSeconds: left,
     reached: left !== null && left <= 0,

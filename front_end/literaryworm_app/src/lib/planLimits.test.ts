@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { bellCount, isNewListeningAlert } from "./notifications";
-import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, planLimits } from "./planLimits";
+import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, nextPlanUp, planCheckoutPath, planLimits } from "./planLimits";
 
 describe("plan limits", () => {
   it("matches the plan cards, and gives an account without a plan Basic's", () => {
@@ -82,5 +82,18 @@ describe("the listening heads-up", () => {
     expect(hoursAndMinutes(45 * 60)).toBe("45 min");
     expect(hoursAndMinutes(5 * 3600)).toBe("5 h");
     expect(hoursAndMinutes(2 * 3600 + 10 * 60 + 59)).toBe("2 h 10 min");
+  });
+});
+
+describe("moving up a plan", () => {
+  it("offers the next plan up, Basic to Standard to Premium, and nothing past Premium", () => {
+    expect(nextPlanUp("basic")?.id).toBe("standard");
+    expect(nextPlanUp("standard")?.id).toBe("premium");
+    expect(nextPlanUp("premium")).toBeNull();
+    expect(nextPlanUp(null)?.id).toBe("basic");
+  });
+
+  it("links straight to that plan's checkout on Plans", () => {
+    expect(planCheckoutPath(nextPlanUp("basic")!)).toBe("/plans?plan=standard");
   });
 });

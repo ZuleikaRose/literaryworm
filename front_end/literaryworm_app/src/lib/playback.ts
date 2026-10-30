@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Book, Format } from "../types";
+import type { Book, Format, PlanId } from "../types";
 import type { Handoff, ListeningDevice } from "./devicesApi";
 import type { SleepTimer } from "./reading";
 
@@ -33,6 +33,7 @@ export interface PlaybackSnapshot {
 
 /** The month's listening is used up: the plan, its hours, and when listening starts again. */
 export interface AllowanceUsed {
+  planId: PlanId | null;
   planName: string;
   hours: number;
   resumesOn: string;

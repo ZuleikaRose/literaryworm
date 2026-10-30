@@ -207,7 +207,7 @@ function Engine({
   const [finished, setFinished] = useState(false);
   const limit = useDailyLimit(playing, profileId, true);
   const allowance = useListeningAllowance(playing);
-  const { reached: allowanceReached, hours: allowanceHours, planName, resumesOn, leftSeconds } = allowance;
+  const { reached: allowanceReached, hours: allowanceHours, planId: allowancePlan, planName, resumesOn, leftSeconds } = allowance;
   // Whole minutes, so the snapshot changes once a minute rather than every step.
   const leftMinutes = leftSeconds === null ? null : Math.floor(leftSeconds / 60);
   const listeningLeft = useMemo(
@@ -215,8 +215,8 @@ function Engine({
     [leftMinutes, allowanceHours],
   );
   const allowanceUsed = useMemo(
-    () => (allowanceReached && allowanceHours !== null ? { planName, hours: allowanceHours, resumesOn } : null),
-    [allowanceReached, allowanceHours, planName, resumesOn],
+    () => (allowanceReached && allowanceHours !== null ? { planId: allowancePlan, planName, hours: allowanceHours, resumesOn } : null),
+    [allowanceReached, allowanceHours, allowancePlan, planName, resumesOn],
   );
 
   const save = (seconds: number, finishedNow = false) =>
