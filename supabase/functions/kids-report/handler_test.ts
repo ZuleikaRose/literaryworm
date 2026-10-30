@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/kids-report — runs offline with a stand-in database and Mailgun.
-import { assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
-import { type Email, finishedLine, goalLine, kidLine, type KidWeek, kidsReportEmail, timeRead, weekLabel } from "./email.ts";
+import { assert, assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
+import { type Email, finishedLine, goalLine, groupKids, kidGroup, kidLine, type KidWeek, kidsReportEmail, timeRead, weekLabel } from "./email.ts";
 import { type Deps, handle, lastWeek, type Recipient } from "./handler.ts";
 
 const KEY = "cron-key-value";
@@ -103,4 +103,24 @@ Deno.test("the weekly goal a grown-up set says whether the week reached it", () 
   assertEquals(goalLine({ ...MIA, goalMinutes: null }), null);
   assertEquals(goalLine({ ...MIA, minutes: 150, goalMinutes: 120 }), "Weekly goal: 2 h. Reached!");
   assertEquals(goalLine({ ...MIA, minutes: 45, goalMinutes: 120 }), "Weekly goal: 2 h. 1 h 15 min short.");
+});
+
+Deno.test("a household's report reads in groups, the same as Account → Family", () => {
+  const AVA: KidWeek = { ...MIA, name: "Ava", minutes: 150, goalMinutes: 120 };
+  const KAI: KidWeek = { ...MIA, name: "Kai", minutes: 30, goalMinutes: 120 };
+  assertEquals([kidGroup(KAI), kidGroup(LEO), kidGroup(MIA), kidGroup(AVA)], ["toGo", "notYet", "reading", "reached"]);
+  assertEquals(groupKids([AVA, MIA, KAI, LEO]).map((g) => [g.heading, g.kids.map((k) => k.name)]), [
+    ["Still working on their goal", ["Kai"]],
+    ["No reading yet", ["Leo"]],
+    ["Reading, no goal set", ["Mia"]],
+    ["Goal reached", ["Ava"]],
+  ]);
+  const email = kidsReportEmail({ to: "x@example.com", name: null, weekFrom: "2026-10-26", weekTo: "2026-11-01", kids: [AVA, KAI], site: SITE, unsubscribe: `${SITE}/u` });
+  assertStringIncludes(email.text, "STILL WORKING ON THEIR GOAL (1)\n\nKai\n");
+  assertStringIncludes(email.text, "GOAL REACHED (1)\n\nAva\n");
+  assert(email.text.indexOf("Kai") < email.text.indexOf("Ava"));
+  assertStringIncludes(email.html, "Goal reached (1)</td>");
+  // One group needs no headings.
+  const single = kidsReportEmail({ to: "x@example.com", name: null, weekFrom: "2026-10-26", weekTo: "2026-11-01", kids: [AVA], site: SITE, unsubscribe: `${SITE}/u` });
+  assertFalse(single.text.includes("GOAL REACHED"));
 });

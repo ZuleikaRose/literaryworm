@@ -171,7 +171,7 @@ function BuyGift() {
                 }}
               />
               <p className="field-hint" id={`${id}-starts-hint`}>
-                For a birthday, say. You get the code now to pass on; it can be redeemed from that day, up to a year ahead.
+                For a birthday, say. You get the code now to pass on; it can be redeemed from that day, up to a year ahead. We'll email you three days before.
               </p>
               {startError && (
                 <p className="field-error" id={`${id}-starts-error`} role="alert">

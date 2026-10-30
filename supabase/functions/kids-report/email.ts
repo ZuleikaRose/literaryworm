@@ -72,6 +72,30 @@ export function finishedLine(k: KidWeek): string | null {
   return `Finished ${count}: ${named}${others > 0 ? ` and ${others === 1 ? "1 more" : `${others} more`}` : ""}.`;
 }
 
+/**
+ * How a week went, so a big household's email reads in groups: still short of a goal first, then
+ * no reading, reading without a goal, and goals reached. Account → Family groups the same way
+ * (kidGroup() in src/lib/kidsReport.ts).
+ */
+export type KidGroup = "toGo" | "notYet" | "reading" | "reached";
+
+export const KID_GROUPS: { id: KidGroup; heading: string }[] = [
+  { id: "toGo", heading: "Still working on their goal" },
+  { id: "notYet", heading: "No reading yet" },
+  { id: "reading", heading: "Reading, no goal set" },
+  { id: "reached", heading: "Goal reached" },
+];
+
+export function kidGroup(k: KidWeek): KidGroup {
+  if (k.goalMinutes) return k.minutes >= k.goalMinutes ? "reached" : "toGo";
+  return k.minutes <= 0 ? "notYet" : "reading";
+}
+
+/** The kids in their groups, in KID_GROUPS order and their own order within; empty groups left out. */
+export function groupKids(kids: KidWeek[]): { id: KidGroup; heading: string; kids: KidWeek[] }[] {
+  return KID_GROUPS.map((g) => ({ ...g, kids: kids.filter((k) => kidGroup(k) === g.id) })).filter((g) => g.kids.length > 0);
+}
+
 export function kidsReportEmail(input: {
   to: string;
   name: string | null;
@@ -89,13 +113,17 @@ export function kidsReportEmail(input: {
   const subject = `Your Kids reading report: ${when}`;
   const hello = input.name ? `Hi ${input.name},` : "Hi,";
   const lead = `Here's how ${input.kids.length === 1 ? input.kids[0].name : "your Kids profiles"} read and listened last week.`;
+  // One group needs no headings.
+  const groups = groupKids(input.kids);
+  const headed = groups.length > 1;
+  const kidText = (k: KidWeek) => [k.name, kidLine(k), ...(goalLine(k) ? [goalLine(k)!] : []), ...(finishedLine(k) ? [finishedLine(k)!] : []), ""];
 
   const text = [
     hello,
     "",
     lead,
     "",
-    ...input.kids.flatMap((k) => [k.name, kidLine(k), ...(goalLine(k) ? [goalLine(k)!] : []), ...(finishedLine(k) ? [finishedLine(k)!] : []), ""]),
+    ...groups.flatMap((g) => [...(headed ? [`${g.heading.toUpperCase()} (${g.kids.length})`, ""] : []), ...g.kids.flatMap(kidText)]),
     `See it in Account → Family: ${family}`,
     "",
     `You're getting this because you turned on the weekly Kids reading report. Unsubscribe in one click: ${input.unsubscribe}`,
@@ -103,11 +131,13 @@ export function kidsReportEmail(input: {
     "LiteraryWorm · https://www.literaryworm.com",
   ].join("\n");
 
-  const rows = input.kids
-    .map((k) => {
-      const finished = finishedLine(k);
-      const goal = goalLine(k);
-      return `<tr>
+  const heading = (g: { heading: string; kids: KidWeek[] }) => `<tr>
+                    <td style="padding:20px 0 6px;${FONT}font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#5b5750;">${escapeHtml(g.heading)} (${g.kids.length})</td>
+                  </tr>`;
+  const kidRow = (k: KidWeek) => {
+    const finished = finishedLine(k);
+    const goal = goalLine(k);
+    return `<tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <div style="font-size:17px;font-weight:700;color:#1d1c1a;">${escapeHtml(k.name)}</div>
                       <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(kidLine(k))}</div>
@@ -115,8 +145,8 @@ export function kidsReportEmail(input: {
                       ${finished ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(finished)}</div>` : ""}
                     </td>
                   </tr>`;
-    })
-    .join("\n");
+  };
+  const rows = groups.map((g) => [...(headed ? [heading(g)] : []), ...g.kids.map(kidRow)].join("\n")).join("\n");
 
   const html = `<!doctype html>
 <html lang="en">

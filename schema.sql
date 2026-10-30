@@ -5723,3 +5723,220 @@ where slug in ($lw$terms$lw$)
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$More profiles and offline devices$lw$, $lw$Standard now has 5 profiles and Read offline on 10 devices (was 3 and 3), and Premium 12 profiles and 24 devices (was 5 and 5), at the same prices. Basic is unchanged.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$More profiles and offline devices$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005900_follower_counts_for_search.sql
+-- =============================================================================
+-- Follower counts for an author search's authors, in one call (follower_count() does one person).
+--
+-- Like follower_count(): numbers, never who; callable by visitors, since search is public. At most
+-- 50 names are counted (a search lists far fewer); names with no followers come back as 0.
+
+create or replace function public.follower_counts(p_kind text, p_names text[])
+returns table (name text, followers integer)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select n.name, count(f.name)::integer
+  from (select distinct btrim(x) as name from unnest(p_names[1:50]) as x where x is not null) as n
+  left join public.follows f on f.kind = p_kind and f.name = n.name
+  group by n.name;
+$$;
+
+revoke execute on function public.follower_counts(text, text[]) from public;
+grant execute on function public.follower_counts(text, text[]) to anon, authenticated;
+
+-- =============================================================================
+-- 20261030006000_gift_start_reminders.sql
+-- =============================================================================
+-- A reminder to the buyer of a gift set to start on a later day, three days before that day.
+--
+-- gift_codes.reminded_at marks a gift whose buyer has been reminded (server only, never granted to
+-- the browser). claim_gift_start_reminders() picks the due ones once, for the gift-reminders
+-- function, which pg_cron calls each day. Only gifts bought at least four days before they start,
+-- not redeemed, whose buyer still has a confirmed address. The email has no code in it.
+
+alter table public.gift_codes add column reminded_at timestamptz;
+
+create or replace function public.claim_gift_start_reminders(max_count integer default 200)
+returns table (gift_id uuid, plan_id text, months smallint, starts_on date, email text, buyer_name text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return query
+  with due as (
+    select g.id
+    from public.gift_codes g
+    where g.reminded_at is null
+      and g.redeemed_at is null
+      and g.buyer_id is not null
+      and g.starts_on is not null
+      and g.starts_on between (now() at time zone 'utc')::date and (now() at time zone 'utc')::date + 3
+      and g.starts_on >= (g.created_at at time zone 'utc')::date + 4
+    order by g.starts_on
+    limit least(greatest(coalesce(max_count, 200), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.gift_codes g set reminded_at = now()
+    from due where g.id = due.id
+    returning g.id, g.plan_id, g.months, g.starts_on, g.buyer_id
+  )
+  select c.id, c.plan_id, c.months, c.starts_on, u.email::text, p.display_name
+  from claimed c
+  join auth.users u on u.id = c.buyer_id and u.email is not null and u.email_confirmed_at is not null
+  left join public.profiles p on p.id = c.buyer_id;
+end;
+$$;
+revoke execute on function public.claim_gift_start_reminders(integer) from public, anon, authenticated;
+grant execute on function public.claim_gift_start_reminders(integer) to service_role;
+
+-- The secret the cron job sends and the gift-reminders function checks: 32 random bytes, made once.
+select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'gift_reminders_secret', 'Sent by the gift-reminders cron job; checked by the function')
+where not exists (select 1 from vault.secrets where name = 'gift_reminders_secret');
+
+create or replace function public.gift_reminders_secret()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'gift_reminders_secret';
+$$;
+revoke execute on function public.gift_reminders_secret() from public, anon, authenticated;
+grant execute on function public.gift_reminders_secret() to service_role;
+
+create or replace function private.call_gift_reminders()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  base   text := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url');
+  secret text := (select decrypted_secret from vault.decrypted_secrets where name = 'gift_reminders_secret');
+begin
+  if base is null or secret is null then
+    return;
+  end if;
+  perform net.http_post(
+    url := rtrim(base, '/') || '/functions/v1/gift-reminders',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || secret),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+revoke execute on function private.call_gift_reminders() from public, anon, authenticated;
+
+-- Daily at 15:00 UTC: morning in the Americas, afternoon in Europe.
+select cron.schedule('gift-start-reminders', '0 15 * * *', $$select private.call_gift_reminders()$$);
+
+-- =============================================================================
+-- 20261030006001_whats_new_plan_room_calendar_gifts.sql
+-- =============================================================================
+-- What's new: this round's changes (src/data/changelog.json has the same).
+-- Data only; each skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$A reminder before a gift starts$lw$, $lw$Bought a gift membership for a later day? We'll email you three days before it starts, so you remember to pass the code on. The email links to your gifts; the code itself stays on the Gifts page.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A reminder before a gift starts$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Meeting changes update your calendar$lw$, $lw$When a book club meeting moves or is cancelled, the email now comes with a calendar file. Open it and the meeting moves in your calendar, or comes out of it.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Meeting changes update your calendar$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Kids report in groups$lw$, $lw$The Kids reading report in Account and the Monday email now group Kids profiles: still working on their goal, no reading yet, reading without a goal, and goal reached. Handy now that a household can have up to 12 profiles.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Kids report in groups$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Follower counts in author search$lw$, $lw$Searching by author now shows how many readers follow each author it finds, next to Follow.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Follower counts in author search$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Moving to a smaller plan$lw$, $lw$Before you move to a plan with fewer profiles or offline devices, Plans now says how many profiles to remove and devices to free, with links to do it.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Moving to a smaller plan$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030006002_legal_plan_room_gift_reminders.sql
+-- =============================================================================
+-- This round's policy wording (src/data/legalPages.json has the same change): the Privacy Policy's
+-- Mailgun list gains the meeting calendar file and the gift start reminder, and the gift data line the
+-- reminder; the Return Policy says the buyer is reminded; the Terms say how to move down a plan. A page
+-- an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$a note when one of its meetings moves or is cancelled (the club's name and book and the meeting's name, times and note)$lw$, $lw$a note when one of its meetings moves or is cancelled (the club's name and book and the meeting's name, times and note, with the meeting as a calendar file)$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$a note when one of its meetings moves or is cancelled (the club's name and book and the meeting's name, times and note)$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$, and confirming that your account was deleted)$lw$, $lw$, a reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and confirming that your account was deleted)$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$, and confirming that your account was deleted)$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$and whether and when it was redeemed; only the buyer$lw$, $lw$and whether and when it was redeemed (and, for a gift that starts on a later day, when we reminded the buyer); only the buyer$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$and whether and when it was redeemed; only the buyer$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$(from the day the gift starts, if the buyer chose a later day up to a year ahead)$lw$, $lw$(from the day the gift starts, if the buyer chose a later day up to a year ahead; we email the buyer three days before)$lw$)::jsonb
+where slug in ($lw$returns$lw$)
+  and strpos(sections::text, $lw$(from the day the gift starts, if the buyer chose a later day up to a year ahead)$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$and you can change plan at any time.$lw$, $lw$and you can change plan at any time. To move to a plan with fewer profiles or offline devices, first remove the profiles and free the devices it has no room for.$lw$)::jsonb
+where slug in ($lw$terms$lw$)
+  and strpos(sections::text, $lw$and you can change plan at any time.$lw$) > 0;
+
+-- =============================================================================
+-- 20261030006003_fix_club_delete_with_meetings.sql
+-- =============================================================================
+-- Fix: deleting a club with an upcoming meeting failed. The cascade deleted the meeting and its
+-- cancel trigger tried to note the change against the club being deleted (a foreign key error),
+-- because the trigger ran at depth 1, not nested as migration 5600 expected. Found by
+-- supabase/tests/security_test.sql ("deleting a club deletes its members and posts").
+
+create or replace function private.note_club_meeting_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  -- What members will be told: the meeting as it is now (moved), or as it was (cancelled).
+  m public.club_meetings := case when tg_op = 'DELETE' then old else new end;
+begin
+  -- Deleted with the club: nobody to tell, and no club to note it against. The cascade's trigger
+  -- isn't always nested (pg_trigger_depth() can be 1), so look for the club itself.
+  if tg_op = 'DELETE' and (pg_trigger_depth() > 1 or not exists (select 1 from public.book_clubs b where b.id = old.club_id)) then
+    return null;
+  end if;
+  -- Only meetings members are still waiting for.
+  if old.starts_at <= now() then
+    return null;
+  end if;
+  insert into public.club_meeting_changes as c
+    (meeting_id, club_id, kind, title, note, was_starts_at, starts_at, minutes, time_zone, changed_by)
+  values (
+    old.id, old.club_id, case when tg_op = 'DELETE' then 'cancelled' else 'moved' end, m.title, m.note,
+    old.starts_at, case when tg_op = 'DELETE' then null else m.starts_at end, m.minutes, m.time_zone, (select auth.uid())
+  )
+  on conflict (meeting_id) do update set
+    kind = excluded.kind, title = excluded.title, note = excluded.note,
+    -- Not yet sent: members still know the first time. Already sent: they know the last one.
+    was_starts_at = case when c.emailed_at is null then c.was_starts_at else excluded.was_starts_at end,
+    starts_at = excluded.starts_at, minutes = excluded.minutes, time_zone = excluded.time_zone,
+    changed_by = excluded.changed_by, changed_at = now(), emailed_at = null;
+  -- Moved back to the time members were told: nothing to send.
+  delete from public.club_meeting_changes c
+  where c.meeting_id = old.id and c.kind = 'moved' and c.starts_at = c.was_starts_at and c.emailed_at is null;
+  return null;
+end;
+$$;

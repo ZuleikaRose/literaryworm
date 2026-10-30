@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useRef, useState } from "react";
+import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookCard } from "../components/BookCard";
 import { BookFeed } from "../components/BookFeed";
@@ -8,7 +8,9 @@ import { Icon } from "../components/Icon";
 import { SearchFilters } from "../components/SearchFilters";
 import { browseGenres, genreHref, genreLabel } from "../data/genres";
 import { type BookSummary, usesBackend } from "../lib/booksApi";
-import { type AuthorMatch, matchingAuthors, personInitials, personPath } from "../lib/people";
+import { fetchFollowerCounts } from "../lib/followersApi";
+import { type AuthorMatch, followerCountNow, followersShort, matchingAuthors, personInitials, personPath } from "../lib/people";
+import { useFollows } from "../lib/useFollows";
 import {
   catalogMatches,
   didYouMean,
@@ -355,6 +357,31 @@ function Results({ search }: { search: SearchParams }) {
 
 /** An author search's authors: each one's page, how many of the results are theirs, and Follow. */
 function AuthorResults({ authors, canFollow }: { authors: AuthorMatch[]; canFollow: boolean }) {
+  const follows = useFollows();
+  // Follower counts for the listed authors, in one call. Whether the profile followed each is taken
+  // when the counts arrive, so Follow and Unfollow move the number without asking again.
+  const key = authors.map((a) => a.name).join("\n");
+  const followsRef = useRef(follows);
+  useEffect(() => {
+    followsRef.current = follows;
+  }, [follows]);
+  const [counts, setCounts] = useState<{ key: string; byName: Map<string, { count: number; followedAtLoad: boolean }> } | null>(null);
+  useEffect(() => {
+    let live = true;
+    void fetchFollowerCounts("author", key.split("\n")).then((found) => {
+      if (!live || !found) return;
+      const byName = new Map([...found].map(([name, count]) => [name, { count, followedAtLoad: followsRef.current.isFollowing("author", name) }]));
+      setCounts({ key, byName });
+    });
+    return () => {
+      live = false;
+    };
+  }, [key]);
+  const followersOf = (name: string) => {
+    const loaded = counts?.key === key ? counts.byName.get(name) : undefined;
+    return loaded ? followersShort(followerCountNow(loaded.count, loaded.followedAtLoad, follows.isFollowing("author", name))) : null;
+  };
+
   return (
     <section className="author-results" aria-labelledby="author-results-title">
       <div className="section-heading">
@@ -373,6 +400,7 @@ function AuthorResults({ authors, canFollow }: { authors: AuthorMatch[]; canFoll
               <Link to={personPath("author", a.name)}>{a.name}</Link>
               <span>
                 {a.books} {a.books === 1 ? "book" : "books"} below
+                {followersOf(a.name) && ` · ${followersOf(a.name)}`}
               </span>
             </div>
             {canFollow && <FollowButton kind="author" name={a.name} small />}

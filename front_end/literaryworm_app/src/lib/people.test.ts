@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { followerCountNow, followerLabel, matchingAuthors, personInitials } from "./people";
+import { followerCountNow, followerLabel, followersShort, matchingAuthors, personInitials } from "./people";
 
 describe("an author search's authors", () => {
   it("lists the authors whose names match, most books first", () => {
@@ -48,5 +48,8 @@ describe("follower counts", () => {
     expect(followerLabel(0)).toBeNull();
     expect(followerLabel(1)).toBe("1 reader follows them");
     expect(followerLabel(1200)).toBe(`${(1200).toLocaleString()} readers follow them`);
+    expect(followersShort(0)).toBeNull();
+    expect(followersShort(1)).toBe("1 follower");
+    expect(followersShort(1200)).toBe(`${(1200).toLocaleString()} followers`);
   });
 });

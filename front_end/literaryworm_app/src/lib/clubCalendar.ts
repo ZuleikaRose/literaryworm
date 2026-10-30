@@ -150,7 +150,11 @@ function fold(line: string): string {
   return parts.join("\r\n");
 }
 
-/** The meeting as a calendar file (.ics), for Add to calendar. */
+/**
+ * The meeting as a calendar file (.ics), for Add to calendar. SEQUENCE is minutes since 1970, so
+ * the newest file wins: the club-meetings function sends one the same way (same UID) when the
+ * meeting moves or is cancelled (meetingChangeIcs()).
+ */
 export function meetingIcs(meeting: ClubMeeting, about: { clubName: string; bookTitle: string; url: string }, now = new Date()): string {
   const start = new Date(meeting.startsAt);
   const end = new Date(start.getTime() + meeting.minutes * 60_000);
@@ -163,6 +167,7 @@ export function meetingIcs(meeting: ClubMeeting, about: { clubName: string; book
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     `UID:${meeting.id}@literaryworm.com`,
+    `SEQUENCE:${Math.floor(now.getTime() / 60_000)}`,
     `DTSTAMP:${icsTime(now)}`,
     `DTSTART:${icsTime(start)}`,
     `DTEND:${icsTime(end)}`,

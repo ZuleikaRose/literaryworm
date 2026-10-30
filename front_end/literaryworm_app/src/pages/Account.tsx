@@ -30,7 +30,7 @@ import {
 } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { readingTime } from "../lib/goals";
-import { kidWeek, weeklyGoal } from "../lib/kidsReport";
+import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal } from "../lib/kidsReport";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
@@ -957,45 +957,62 @@ function KidsReport() {
   const kids = state.profiles.filter((p) => p.ageRating === "kids");
   if (kids.length === 0 || !account) return null;
 
+  // A big household reads in groups (kidGroup()); one group needs no headings.
+  const weeks = kids.map((profile) => {
+    const days = state.profileData[profile.id]?.readingDays ?? {};
+    const week = kidWeek(days, day);
+    const goal = weeklyGoal(days, profile.weeklyGoalMinutes, day);
+    return { profile, week, goal, group: kidGroup(week.seconds, goal) };
+  });
+  const groups = groupKids(weeks, (k) => k.group);
+  const row = (p: (typeof kids)[number], week: KidWeek, goal: WeeklyGoal | null) => {
+    const titles = week.books.map((id) => getBook(id)?.title).filter((t): t is string => Boolean(t));
+    return (
+      <li key={p.id}>
+        <Avatar name={p.name} avatar={p.avatar} size={36} />
+        <div>
+          <strong>{p.name}</strong>
+          {week.seconds < 60 ? (
+            <p>No reading or listening yet this week.</p>
+          ) : (
+            <p>
+              {readingTime(week.seconds)} on {week.daysRead === 1 ? "1 day" : `${week.daysRead} days`}
+              {week.listened >= 60 && ` (${readingTime(week.listened)} of it listening)`}
+            </p>
+          )}
+          {goal && (
+            <p>
+              Weekly goal {readingTime(goal.goal * 60)}:{" "}
+              {goal.reached ? <strong className="kids-goal-reached">reached</strong> : `${readingTime(goal.left * 60)} to go`}
+            </p>
+          )}
+          {week.finished > 0 && (
+            <p>
+              Finished {week.finished === 1 ? "1 book" : `${week.finished} books`}
+              {titles.length > 0 && `: ${titles.join(", ")}`}
+            </p>
+          )}
+        </div>
+      </li>
+    );
+  };
+
   return (
     <section className="kids-report" aria-labelledby="kids-report-title">
       <h3 id="kids-report-title">Kids reading this week</h3>
       <p className="field-hint">The last 7 days, today included.</p>
-      <ul className="kids-report-list">
-        {kids.map((p) => {
-          const week = kidWeek(state.profileData[p.id]?.readingDays ?? {}, day);
-          const goal = weeklyGoal(state.profileData[p.id]?.readingDays ?? {}, p.weeklyGoalMinutes, day);
-          const titles = week.books.map((id) => getBook(id)?.title).filter((t): t is string => Boolean(t));
-          return (
-            <li key={p.id}>
-              <Avatar name={p.name} avatar={p.avatar} size={36} />
-              <div>
-                <strong>{p.name}</strong>
-                {week.seconds < 60 ? (
-                  <p>No reading or listening yet this week.</p>
-                ) : (
-                  <p>
-                    {readingTime(week.seconds)} on {week.daysRead === 1 ? "1 day" : `${week.daysRead} days`}
-                    {week.listened >= 60 && ` (${readingTime(week.listened)} of it listening)`}
-                  </p>
-                )}
-                {goal && (
-                  <p>
-                    Weekly goal {readingTime(goal.goal * 60)}:{" "}
-                    {goal.reached ? <strong className="kids-goal-reached">reached</strong> : `${readingTime(goal.left * 60)} to go`}
-                  </p>
-                )}
-                {week.finished > 0 && (
-                  <p>
-                    Finished {week.finished === 1 ? "1 book" : `${week.finished} books`}
-                    {titles.length > 0 && `: ${titles.join(", ")}`}
-                  </p>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {groups.length > 1 ? (
+        groups.map((g) => (
+          <div key={g.id} className="kids-report-group">
+            <h4>
+              {g.heading} <span className="kids-report-count">({g.kids.length})</span>
+            </h4>
+            <ul className="kids-report-list">{g.kids.map((k) => row(k.profile, k.week, k.goal))}</ul>
+          </div>
+        ))
+      ) : (
+        <ul className="kids-report-list">{weeks.map((k) => row(k.profile, k.week, k.goal))}</ul>
+      )}
       <label className="switch-row">
         <span>
           <strong>Email me this every week</strong>

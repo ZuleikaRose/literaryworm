@@ -49,6 +49,15 @@ Deno.serve((req) =>
       if (error) throw error;
       return data as Membership | null;
     },
+    async householdSize(userId) {
+      const [profiles, devices] = await Promise.all([
+        serviceClient().from("reader_profiles").select("id", { count: "exact", head: true }).eq("account_id", userId),
+        serviceClient().from("offline_devices").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      ]);
+      if (profiles.error) throw profiles.error;
+      if (devices.error) throw devices.error;
+      return { profiles: profiles.count ?? 0, offlineDevices: devices.count ?? 0 };
+    },
     customerFor,
     async createCheckout(input: CheckoutInput) {
       const session = await stripeClient().checkout.sessions.create({

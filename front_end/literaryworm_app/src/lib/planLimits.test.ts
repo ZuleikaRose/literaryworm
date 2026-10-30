@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 import { bellCount, isNewListeningAlert } from "./notifications";
-import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, nextPlanUp, planCheckoutPath, planLimits } from "./planLimits";
+import { hoursAndMinutes, listenedSoFar, listenedThisMonth, listeningAlert, listeningLeft, monthRange, nextMonthLabel, nextPlanUp, planCheckoutPath, planLimits, tooBigFor } from "./planLimits";
+import { planById } from "../data/plans";
 
 describe("plan limits", () => {
   it("matches the plan cards, and gives an account without a plan Basic's", () => {
@@ -95,5 +96,28 @@ describe("moving up a plan", () => {
 
   it("links straight to that plan's checkout on Plans", () => {
     expect(planCheckoutPath(nextPlanUp("basic")!)).toBe("/plans?plan=standard");
+  });
+});
+
+describe("moving down a plan", () => {
+  const standard = planById.get("standard")!;
+  const basic = planById.get("basic")!;
+
+  it("fits when the household is no bigger than the plan", () => {
+    expect(tooBigFor(standard, { profiles: 5, offlineDevices: 10 })).toEqual([]);
+    expect(tooBigFor(planById.get("premium")!, { profiles: 12, offlineDevices: 24 })).toEqual([]);
+  });
+
+  it("says how many profiles and offline devices have to go, as the checkout function does", () => {
+    expect(tooBigFor(standard, { profiles: 8, offlineDevices: 12 })).toEqual([
+      "Standard has room for 5 profiles and your household has 8. Remove 3 in Who's reading? first.",
+      "Standard keeps books offline on 10 devices and 12 are saving books now. Free 2 in Account first.",
+    ]);
+    expect(tooBigFor(basic, { profiles: 2, offlineDevices: 1 })).toEqual([
+      "Basic has room for 1 profile and your household has 2. Remove 1 in Who's reading? first.",
+    ]);
+    expect(tooBigFor(basic, { profiles: 1, offlineDevices: 3 })).toEqual([
+      "Basic keeps books offline on 1 device and 3 are saving books now. Free 2 in Account first.",
+    ]);
   });
 });

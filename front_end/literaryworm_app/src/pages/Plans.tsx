@@ -4,8 +4,9 @@ import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
-import { AccountError, choosePlan, loadAccount, planFields } from "../lib/accountApi";
+import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
+import { tooBigFor } from "../lib/planLimits";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { BillingInterval, Plan, PlanId } from "../types";
@@ -44,6 +45,24 @@ export default function Plans() {
   useEffect(() => {
     if (selected) checkoutRef.current?.focus();
   }, [selected]);
+
+  // A smaller plan needs the household to fit it: members' offline places are counted on the server.
+  const [offlineDevices, setOfflineDevices] = useState(0);
+  const userId = account?.userId;
+  useEffect(() => {
+    if (!selected || !userId) return;
+    let stale = false;
+    listOfflineDevices()
+      .then((devices) => {
+        if (!stale) setOfflineDevices(devices.length);
+      })
+      .catch(() => {
+        // The checkout function checks again, so carry on without the count.
+      });
+    return () => {
+      stale = true;
+    };
+  }, [selected, userId]);
 
   // Back from Stripe Checkout: Stripe tells the stripe-webhook function, which writes the membership
   // a moment later, so look for it every couple of seconds, then carry on.
@@ -126,6 +145,7 @@ export default function Plans() {
   };
 
   const plan = selected ? planById.get(selected)! : null;
+  const tooBig = plan ? tooBigFor(plan, { profiles: state.profiles.length, offlineDevices }) : [];
   const isDemo = Boolean(account?.isDemo);
   // A member already paying through Stripe switches plan from their next billing date.
   const changingPaid = Boolean(account?.userId && account.stripeLinked && account.status !== "cancelled");
@@ -311,6 +331,22 @@ export default function Plans() {
                 Your membership is set to end. Choose <strong>Keep my membership</strong> in <Link to="/account#plan">Account</Link> first, or
                 choose monthly once it ends.
               </p>
+            </div>
+          ) : tooBig.length > 0 ? (
+            <div className="form-alert plan-too-big">
+              <Icon name="alert" size={17} />
+              <div>
+                {tooBig.map((problem) => (
+                  <p key={problem}>{problem}</p>
+                ))}
+                <div className="plan-too-big-actions">
+                  <Link to="/profiles">Who's reading?</Link>
+                  <Link to="/account#plan">Account</Link>
+                  <button type="button" className="text-button" onClick={() => setSelected(null)}>
+                    Keep my plan
+                  </button>
+                </div>
+              </div>
             </div>
           ) : isDemo ? (
             <div className="form-alert">

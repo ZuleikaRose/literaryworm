@@ -24,6 +24,8 @@ export interface Email {
   subject: string;
   text: string;
   html: string;
+  /** A file sent with the email: the updated calendar file when a meeting moves or is cancelled. */
+  attachment?: { filename: string; content: string; contentType: string };
 }
 
 const FONT = "font-family:'DM Sans',Arial,Helvetica,sans-serif;";
@@ -180,12 +182,76 @@ export interface MeetingChange {
   wasStartsAt: string;
 }
 
-export function meetingChangeEmail(input: { to: string; name: string | null; change: MeetingChange; site: string; unsubscribe: string }): Email {
+/** 2026-11-08T19:00:00.000Z → 20261108T190000Z, as calendars write times. */
+const icsTime = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+/** Escapes text for a calendar file (RFC 5545): backslashes, commas, semicolons and line breaks. */
+const icsText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+
+/** Folds a line to 75 characters, continuing with a space, as calendar files must. */
+function fold(line: string): string {
+  const parts: string[] = [];
+  let rest = line;
+  while (rest.length > 75) {
+    parts.push(rest.slice(0, 75));
+    rest = ` ${rest.slice(75)}`;
+  }
+  parts.push(rest);
+  return parts.join("\r\n");
+}
+
+/**
+ * The meeting's calendar file after a change: the same event as the club page's Add to calendar
+ * (UID `<meeting id>@literaryworm.com`, as meetingIcs() in src/lib/clubCalendar.ts writes it) with a
+ * later SEQUENCE (minutes since 1970, like the app's), so opening it moves the event; a cancelled
+ * meeting's file cancels it (METHOD:CANCEL, STATUS:CANCELLED).
+ */
+export function meetingChangeIcs(change: MeetingChange, site: string, now = new Date()): string {
+  const m = change.meeting;
+  const start = new Date(m.startsAt);
+  const end = new Date(start.getTime() + m.minutes * 60_000);
+  const url = `${site}/clubs/${m.clubId}`;
+  const book = CATALOG[m.bookId]?.title ?? "your book";
+  const cancelled = change.kind === "cancelled";
+  const description = [`${m.clubName} is reading ${book}.`, m.note ?? "", `Open the club: ${url}`].filter(Boolean).join("\n\n");
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//LiteraryWorm//Book club meetings//EN",
+    "CALSCALE:GREGORIAN",
+    cancelled ? "METHOD:CANCEL" : "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${m.id}@literaryworm.com`,
+    `SEQUENCE:${Math.floor(now.getTime() / 60_000)}`,
+    `DTSTAMP:${icsTime(now)}`,
+    `DTSTART:${icsTime(start)}`,
+    `DTEND:${icsTime(end)}`,
+    `SUMMARY:${icsText(`${cancelled ? "Cancelled: " : ""}${m.clubName}: ${m.title}`)}`,
+    `DESCRIPTION:${icsText(description)}`,
+    `URL:${url}`,
+    cancelled ? "STATUS:CANCELLED" : "STATUS:CONFIRMED",
+    ...(cancelled ? [] : ["BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsText(`${m.clubName} meets soon`)}`, "TRIGGER:-PT30M", "END:VALARM"]),
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return lines.map(fold).join("\r\n") + "\r\n";
+}
+
+/** The calendar file's name: the club and the day, like meetingFileName() in the app. */
+export function meetingFileName(clubName: string, startsAt: string): string {
+  const slug = clubName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "book-club";
+  return `${slug}-${startsAt.slice(0, 10)}.ics`;
+}
+
+export function meetingChangeEmail(
+  input: { to: string; name: string | null; change: MeetingChange; site: string; unsubscribe: string },
+  now = new Date(),
+): Email {
   const { kind, meeting: m } = input.change;
   const was = meetingTime(input.change.wasStartsAt, m.timeZone);
   const when = meetingTime(m.startsAt, m.timeZone);
   const moved = kind === "moved";
-  return layout({
+  const email = layout({
     to: input.to,
     subject: moved ? `${m.clubName}: meeting moved to ${when}` : `${m.clubName}: meeting on ${was} cancelled`,
     heading: moved ? "A club meeting has moved" : "A club meeting is cancelled",
@@ -198,10 +264,18 @@ export function meetingChangeEmail(input: { to: string; name: string | null; cha
       : [m.title, `Cancelled: was ${was}`],
     page: `${input.site}/clubs/${m.clubId}`,
     pageHint: moved
-      ? "Open the club to say whether you can still come, and add the new time to your calendar"
-      : "Open the club to see its other meetings, and take this one out of your calendar",
+      ? "Open the attached calendar file to move it in your calendar, or open the club to say whether you can still come"
+      : "Open the attached calendar file to take it out of your calendar, or open the club to see its other meetings",
     clubName: m.clubName,
     unsubscribe: input.unsubscribe,
     site: input.site,
   });
+  return {
+    ...email,
+    attachment: {
+      filename: meetingFileName(m.clubName, m.startsAt),
+      content: meetingChangeIcs(input.change, input.site, now),
+      contentType: `text/calendar; charset=utf-8; method=${moved ? "PUBLISH" : "CANCEL"}`,
+    },
+  };
 }

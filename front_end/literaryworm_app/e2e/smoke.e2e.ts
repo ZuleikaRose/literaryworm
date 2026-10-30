@@ -168,6 +168,19 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("can't move down to a plan the household doesn't fit, and is told what to remove", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/plans?plan=basic");
+    const checkout = page.getByRole("region", { name: /Confirm Basic/ });
+    await checkout.getByText("Basic has room for 1 profile and your household has 3. Remove 2 in Who's reading? first.").waitFor();
+    expect(await checkout.getByRole("button", { name: /Switch to|Continue to payment/ }).count()).toBe(0);
+    await checkout.getByRole("link", { name: "Who's reading?" }).waitFor();
+    await checkout.getByRole("button", { name: "Keep my plan" }).click();
+    await page.getByRole("region", { name: /Confirm Basic/ }).waitFor({ state: "detached" });
+    expect(errors()).toEqual([]);
+  });
+
   it("lists the sample club's meeting with Add to calendar, which saves a calendar file", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

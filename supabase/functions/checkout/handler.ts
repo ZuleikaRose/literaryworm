@@ -37,7 +37,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftStart, PLANS, type PlanId } from "../_shared/stripe.ts";
+import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -82,6 +82,8 @@ export interface Deps {
   /** Whether the account holds any staff role. */
   isStaff: (userId: string) => Promise<boolean>;
   getMembership: (userId: string) => Promise<Membership | null>;
+  /** How many profiles the account has, and how many devices hold Read offline places. */
+  householdSize: (userId: string) => Promise<{ profiles: number; offlineDevices: number }>;
   /** The account's Stripe Customer, created (and remembered) the first time. */
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
   createCheckout: (input: CheckoutInput) => Promise<string>;
@@ -154,6 +156,10 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     if (body.renewalTermsAccepted !== true) {
       throw new HttpError("bad_request", "Agree to the renewal terms to continue.");
     }
+
+    // A smaller plan (or a new one after a lapse) needs the household to fit it first.
+    const problems = tooBigFor(planId, await deps.householdSize(user.id));
+    if (problems.length > 0) throw new HttpError("bad_request", problems.join(" "));
 
     const membership = await deps.getMembership(user.id);
     if (membership?.stripe_subscription_id && membership.status !== "cancelled") {

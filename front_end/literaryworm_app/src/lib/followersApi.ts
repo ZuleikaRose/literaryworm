@@ -21,3 +21,29 @@ export async function fetchFollowerCount(kind: PersonKind, name: string): Promis
     return null;
   }
 }
+
+/**
+ * Follower counts for several people at once (an author search's authors), through the
+ * `follower_counts` database function: name → count. Null without the backend or when they can't
+ * be read; the list just leaves the counts out.
+ */
+export async function fetchFollowerCounts(kind: PersonKind, names: string[]): Promise<Map<string, number> | null> {
+  if (!usesBackend || names.length === 0) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/follower_counts`, {
+      method: "POST",
+      headers: { apikey: PUBLISHABLE_KEY!, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_kind: kind, p_names: names.slice(0, 50) }),
+    });
+    if (!res.ok) return null;
+    const rows: unknown = await res.json();
+    if (!Array.isArray(rows)) return null;
+    const counts = new Map<string, number>();
+    for (const row of rows as { name?: unknown; followers?: unknown }[]) {
+      if (typeof row.name === "string" && typeof row.followers === "number") counts.set(row.name, row.followers);
+    }
+    return counts;
+  } catch {
+    return null;
+  }
+}

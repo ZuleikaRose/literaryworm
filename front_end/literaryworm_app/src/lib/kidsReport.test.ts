@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { kidWeek, lastSevenDays, weeklyGoal } from "./kidsReport";
+import { groupKids, kidGroup, kidWeek, lastSevenDays, weeklyGoal } from "./kidsReport";
 
 describe("a Kids profile's week", () => {
   it("covers the 7 days up to today, across a month's end", () => {
@@ -40,5 +40,32 @@ describe("a Kids profile's weekly goal", () => {
 
   it("is nothing without a goal", () => {
     expect(weeklyGoal(days, null, "2026-10-30")).toBeNull();
+  });
+});
+
+describe("grouping a big household's report", () => {
+  const goal = (minutes: number, of: number) => ({ minutes, goal: of, reached: minutes >= of, left: Math.max(of - minutes, 0) });
+
+  it("puts each week in a group: goal still to go, no reading, reading without a goal, goal reached", () => {
+    expect(kidGroup(0, goal(0, 60))).toBe("toGo");
+    expect(kidGroup(1800, goal(30, 60))).toBe("toGo");
+    expect(kidGroup(3600, goal(60, 60))).toBe("reached");
+    expect(kidGroup(59, null)).toBe("notYet");
+    expect(kidGroup(600, null)).toBe("reading");
+  });
+
+  it("lists the groups in order, keeps each kid's order, and leaves out empty groups", () => {
+    const kids = [
+      { name: "Mia", group: "reached" as const },
+      { name: "Leo", group: "toGo" as const },
+      { name: "Ava", group: "reached" as const },
+      { name: "Kai", group: "notYet" as const },
+    ];
+    expect(groupKids(kids, (k) => k.group).map((g) => [g.heading, g.kids.map((k) => k.name)])).toEqual([
+      ["Still working on their goal", ["Leo"]],
+      ["No reading yet", ["Kai"]],
+      ["Goal reached", ["Mia", "Ava"]],
+    ]);
+    expect(groupKids([], () => "reading")).toEqual([]);
   });
 });

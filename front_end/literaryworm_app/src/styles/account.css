@@ -957,6 +957,21 @@
   font-size: 0.875rem;
 }
 
+/* A big household's report, in groups (kidGroup()). */
+.kids-report-group h4 {
+  margin: 18px 0 0;
+  font-size: 0.9375rem;
+}
+
+.kids-report-group .kids-report-list {
+  margin-top: 10px;
+}
+
+.kids-report-count {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
 .gift-start {
   max-width: 320px;
 }

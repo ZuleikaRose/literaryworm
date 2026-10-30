@@ -35,7 +35,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000b', 'b@test', '{"display_name":"Ben","date_of_birth":"1985-06-30","terms_accepted":true}');
 select pg_temp.check((select count(*) from public.profiles) = 2 and (select count(*) from public.account_private) = 2, 'valid sign-ups create profiles and account_private rows');
 
--- Server-side setup: Ann has Standard (3 profiles), Ben has no plan.
+-- Server-side setup: Ann has Standard (5 profiles), Ben has no plan.
 insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at)
 values ('00000000-0000-0000-0000-00000000000a', 'standard', 5, now());
 
@@ -134,7 +134,9 @@ reset role;
 set role service_role;
 select pg_temp.check(public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Mia', 2::smallint, 60::smallint, '2026-10') is not null, 'Kids profile with consent via the server');
 select pg_temp.check((select count(*) from public.parental_consents) = 1, 'consent recorded');
-select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Fourth', 0::smallint, null, '2026-10')$$, 'a 4th profile on Standard');
+insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fourth'), ('00000000-0000-0000-0000-00000000000a', 'Fifth');
+select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Sixth', 0::smallint, null, '2026-10')$$, 'a 6th profile on Standard');
+delete from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and name in ('Fourth', 'Fifth');
 
 select public.set_profile_pin('00000000-0000-0000-0000-00000000000a', (select id from public.reader_profiles where name = 'Sam'), '4821');
 select pg_temp.check((select pin_hash <> '4821' and pin_hash like '$2%' from public.reader_profiles where name = 'Sam'), 'PIN stored as a bcrypt hash');
@@ -502,7 +504,7 @@ select pg_temp.check((select (d->'accounts'->>'total')::int = 2 and jsonb_array_
   and not (d::text ~* '@test') from public.staff_dashboard() d), 'admins see the dashboard: totals only, no emails');
 update public.legal_pages set summary = 'Updated summary.' where slug = 'terms';
 select pg_temp.check((select summary = 'Updated summary.' and updated_by = '00000000-0000-0000-0000-00000000000a' from public.legal_pages where slug = 'terms')
-  and (select count(*) = 1 and bool_and(summary <> 'Updated summary.') from public.legal_page_revisions where slug = 'terms'), 'an admin edits a page; the old version is kept and the editor stamped');
+  and (select count(*) = 1 and bool_and(summary <> 'Updated summary.') from public.legal_page_revisions where slug = 'terms' and replaced_by = '00000000-0000-0000-0000-00000000000a'), 'an admin edits a page; the old version is kept and the editor stamped');
 select pg_temp.expect_error($$update public.legal_pages set sections = '[{"heading": "", "paragraphs": ["x"]}]' where slug = 'terms'$$, 'a section with no heading');
 select pg_temp.expect_error($$update public.legal_pages set sections = '{"not": "a list"}' where slug = 'terms'$$, 'sections that aren''t a list');
 select pg_temp.expect_error($$update public.legal_pages set slug = 'renamed' where slug = 'terms'$$, 'renaming a page');
@@ -703,6 +705,7 @@ select pg_temp.check(not has_function_privilege('authenticated', 'private.call_k
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_whats_new()', 'execute'), 'only the cron job calls the whats-new function');
 
 -- Household challenges: the account's profiles only ------------------------------------
+select id as ben_profile from public.reader_profiles where name = 'Ben' \gset
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
@@ -713,7 +716,8 @@ select c.id, '00000000-0000-0000-0000-00000000000a', p.id from public.household_
 select pg_temp.check((select count(*) = 2 from public.challenge_participants), 'Ann and Mia (Kids) join a household challenge');
 select pg_temp.expect_error($$update public.household_challenges set target = 1$$, 'editing a challenge');
 select pg_temp.expect_error($$insert into public.household_challenges (user_id, title, kind, target, starts_on, ends_on) values ('00000000-0000-0000-0000-00000000000a', 'X', 'days', 31, '2026-11-01', '2026-11-30')$$, 'more days than the challenge has');
-select pg_temp.expect_error($$insert into public.challenge_participants (challenge_id, user_id, profile_id) select c.id, '00000000-0000-0000-0000-00000000000a', p.id from public.household_challenges c, public.reader_profiles p where p.name = 'Ben'$$, 'another account''s profile joining');
+-- Ben's profile id is written in: Ann can't see it, so selecting it would insert nothing.
+select pg_temp.expect_error(format('insert into public.challenge_participants (challenge_id, user_id, profile_id) select c.id, %L, %L from public.household_challenges c', '00000000-0000-0000-0000-00000000000a', :'ben_profile'), 'another account''s profile joining');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
@@ -768,7 +772,7 @@ set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
 select pg_temp.check((select r ->> 'status' = 'ok' and r -> 'member' ->> 'plan_name' is not null and not (r -> 'member' ? 'stripe_customer_id')
-                      from public.support_member_lookup((select email from auth.users where id = '00000000-0000-0000-0000-00000000000a')) r), 'customer service sees Ann''s plan, without Stripe ids');
+                      from public.support_member_lookup('a@test') r), 'customer service sees Ann''s plan, without Stripe ids');
 select pg_temp.check(public.support_member_lookup('nobody@example.com') ->> 'status' = 'not_found', 'an email with no account');
 select pg_temp.expect_error($$select public.support_member_lookup('not an email')$$, 'a lookup without an email');
 select pg_temp.expect_error($$insert into public.support_lookups (staff_id, member_id) values (null, null)$$, 'writing the lookup record directly');
@@ -785,6 +789,9 @@ reset role;
 set role anon;
 select pg_temp.expect_error('select * from public.club_meeting_changes', 'anon reading meeting change notes');
 select pg_temp.check((select public.follower_count('author', 'Nobody Followed Yet')) = 0, 'anyone reads a follower count');
+select pg_temp.check((select followers from public.follower_counts('author', array['Nobody Followed Yet'])) = 0, 'anyone reads follower counts for a search''s authors');
+select pg_temp.check((select count(*) from public.follower_counts('author', array_fill('x'::text, array[80]) || array['y'])) = 1, 'follower counts read at most 50 names');
+select pg_temp.expect_error('select * from public.claim_gift_start_reminders(10)', 'anon claiming gift start reminders');
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
@@ -792,6 +799,10 @@ set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"
 select pg_temp.expect_error('select * from public.club_meeting_changes', 'a member reading meeting change notes');
 select pg_temp.expect_error('select * from public.claim_club_meeting_changes(10)', 'claiming meeting change emails from the browser');
 select pg_temp.expect_error($$update public.gift_codes set starts_on = null$$, 'a buyer changing a gift''s start day');
+select pg_temp.expect_error('select reminded_at from public.gift_codes', 'a buyer reading when a gift reminder went');
+select pg_temp.expect_error($$update public.gift_codes set reminded_at = null$$, 'a buyer resetting a gift reminder');
+select pg_temp.expect_error('select * from public.claim_gift_start_reminders(10)', 'claiming gift start reminders from the browser');
+select pg_temp.expect_error('select public.gift_reminders_secret()', 'reading the gift reminders key from the browser');
 reset role;
 reset request.jwt.claims;
 

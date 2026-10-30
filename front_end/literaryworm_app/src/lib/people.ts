@@ -92,5 +92,8 @@ export function followerCountNow(loaded: number, followedAtLoad: boolean, follow
   return Math.max(loaded + (followingNow ? 1 : 0) - (followedAtLoad ? 1 : 0), 0);
 }
 
+/** "1 follower", "1,204 followers", for a search's author list; nothing until someone follows. */
+export const followersShort = (count: number) => (count <= 0 ? null : count === 1 ? "1 follower" : `${count.toLocaleString()} followers`);
+
 /** "1 reader follows them", "12 readers follow them"; nothing until someone does. */
 export const followerLabel = (count: number) => (count <= 0 ? null : count === 1 ? "1 reader follows them" : `${count.toLocaleString()} readers follow them`);

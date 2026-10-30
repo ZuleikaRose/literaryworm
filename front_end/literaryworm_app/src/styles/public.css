@@ -696,3 +696,22 @@ select.field-input {
   color: var(--muted);
   font-size: 0.8125rem;
 }
+
+/* Moving down a plan: what has to go first. */
+.plan-too-big p {
+  margin: 0 0 6px;
+}
+
+.plan-too-big-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+}
+
+.plan-too-big-actions a,
+.plan-too-big-actions .text-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

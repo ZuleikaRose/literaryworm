@@ -53,3 +53,28 @@ export function weeklyGoal(days: Record<string, ReadingDay>, goalMinutes: number
   const minutes = Math.floor(kidWeek(days, today).seconds / 60);
   return { minutes, goal: goalMinutes, reached: minutes >= goalMinutes, left: Math.max(goalMinutes - minutes, 0) };
 }
+
+/**
+ * How a Kids profile's week went, so a big household's report reads in groups: still working
+ * towards a goal first, then no reading yet, reading without a goal, and goals reached. The
+ * kids-report email groups the same way (kidGroup() in supabase/functions/kids-report/email.ts).
+ */
+export type KidGroup = "toGo" | "notYet" | "reading" | "reached";
+
+export const KID_GROUPS: { id: KidGroup; heading: string }[] = [
+  { id: "toGo", heading: "Still working on their goal" },
+  { id: "notYet", heading: "No reading yet" },
+  { id: "reading", heading: "Reading, no goal set" },
+  { id: "reached", heading: "Goal reached" },
+];
+
+/** Which group a week falls in: `seconds` read or listened, and the weekly goal if one is set. */
+export function kidGroup(seconds: number, goal: WeeklyGoal | null): KidGroup {
+  if (goal) return goal.reached ? "reached" : "toGo";
+  return seconds < 60 ? "notYet" : "reading";
+}
+
+/** The kids in their groups, in KID_GROUPS order and their own order within; empty groups left out. */
+export function groupKids<T>(kids: T[], groupOf: (kid: T) => KidGroup): { id: KidGroup; heading: string; kids: T[] }[] {
+  return KID_GROUPS.map((g) => ({ ...g, kids: kids.filter((k) => groupOf(k) === g.id) })).filter((g) => g.kids.length > 0);
+}

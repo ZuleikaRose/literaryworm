@@ -34,6 +34,7 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
     rateLimit: () => Promise.resolve(),
     isStaff: () => Promise.resolve(state.staff),
     getMembership: () => Promise.resolve(membership),
+    householdSize: () => Promise.resolve({ profiles: 1, offlineDevices: 0 }),
     customerFor: () => {
       state.customers++;
       return Promise.resolve("cus_1");
@@ -112,6 +113,30 @@ Deno.test("a member billed through Stripe changes plan in place, without a new C
   assertEquals(state.planChanges, [["sub_1", "premium", "month", "month"]]);
   assertEquals(state.checkouts.length, 0);
   assertEquals((await call(deps, choice({ planId: "basic" }))).status, 400);
+});
+
+Deno.test("moving down a plan needs the household to fit it first; nothing touches Stripe until it does", async () => {
+  const size = { profiles: 8, offlineDevices: 12 };
+  const { state, deps } = setup(linked({ plan_id: "premium", billing_interval: "month", stripe_subscription_id: "sub_1" }), {
+    householdSize: () => Promise.resolve(size),
+  });
+  const res = await call(deps, choice({ planId: "standard" }));
+  assertEquals(res.status, 400);
+  assertEquals(
+    res.body.error.message,
+    "Standard has room for 5 profiles and your household has 8. Remove 3 in Who's reading? first. " +
+      "Standard keeps books offline on 10 devices and 12 are saving books now. Free 2 in Account first.",
+  );
+  assertEquals(state.planChanges.length, 0);
+  // A lapsed member with more profiles than Basic allows can't start it either.
+  const lapsed = setup(null, { householdSize: () => Promise.resolve({ profiles: 2, offlineDevices: 0 }) });
+  assertEquals((await call(lapsed.deps, choice({ planId: "basic" }))).body.error.message, "Basic has room for 1 profile and your household has 2. Remove 1 in Who's reading? first.");
+  assertEquals(lapsed.state.checkouts.length, 0);
+  // Once it fits, the change goes ahead.
+  size.profiles = 5;
+  size.offlineDevices = 10;
+  assertEquals((await call(deps, choice({ planId: "standard" }))).status, 200);
+  assertEquals(state.planChanges, [["sub_1", "standard", "month", "month"]]);
 });
 
 Deno.test("a new yearly membership starts today, with no billing day needed", async () => {

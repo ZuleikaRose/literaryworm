@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–5802, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6003, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -244,7 +244,7 @@
             ["pk", "name", "text 1–100"],
             ["", "created_at", "timestamptz"],
           ],
-          note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed. follower_count(kind, name) gives pages a count, never who. Index: (kind, name).",
+          note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed. follower_count(kind, name) gives pages a count, and follower_counts(kind, names) an author search its authors' counts, never who. Index: (kind, name).",
         },
         {
           id: "release_reminders", color: colors.household, x: 840, y: 3790, sub: "per profile · Remind me",
@@ -755,9 +755,10 @@
             ["fk", "redeemed_by", "uuid", true],
             ["", "redeemed_at", "timestamptz", true],
             ["", "starts_on", "date", true],
+            ["", "reminded_at", "timestamptz", true],
             ["", "created_at", "timestamptz"],
           ],
-          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
+          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). The buyer is emailed three days before a later start (gift-reminders, claim_gift_start_reminders(); reminded_at, server only). RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
         },
       ];
 

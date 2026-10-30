@@ -36,6 +36,37 @@ export type GiftMonths = (typeof GIFT_MONTHS)[number];
 /** Plan names as members see them. */
 export const PLAN_NAMES: Record<PlanId, string> = { basic: "Basic", standard: "Standard", premium: "Premium" };
 
+/** Each plan's profiles and Read offline devices (public.plans and src/data/plans.ts have the same numbers). */
+export const PLAN_ROOM: Record<PlanId, { profiles: number; offlineDevices: number }> = {
+  basic: { profiles: 1, offlineDevices: 1 },
+  standard: { profiles: 5, offlineDevices: 10 },
+  premium: { profiles: 12, offlineDevices: 24 },
+};
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * What a household has to remove before it fits `planId` (moving down a plan, or starting one after
+ * a lapse with more than it allows): the same sentences as tooBigFor() in src/lib/planLimits.ts.
+ * Empty when it fits.
+ */
+export function tooBigFor(planId: PlanId, size: { profiles: number; offlineDevices: number }): string[] {
+  const room = PLAN_ROOM[planId];
+  const name = PLAN_NAMES[planId];
+  const problems: string[] = [];
+  if (size.profiles > room.profiles) {
+    problems.push(
+      `${name} has room for ${plural(room.profiles, "profile", "profiles")} and your household has ${size.profiles}. Remove ${size.profiles - room.profiles} in Who's reading? first.`,
+    );
+  }
+  if (size.offlineDevices > room.offlineDevices) {
+    problems.push(
+      `${name} keeps books offline on ${plural(room.offlineDevices, "device", "devices")} and ${size.offlineDevices} are saving books now. Free ${size.offlineDevices - room.offlineDevices} in Account first.`,
+    );
+  }
+  return problems;
+}
+
 // 32 letters and digits with no 0/O or 1/I, so a code read aloud or copied by hand stays right.
 const GIFT_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 

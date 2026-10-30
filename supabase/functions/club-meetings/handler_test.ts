@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/club-meetings — runs offline with a stand-in database and Mailgun.
 import { assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
-import { type Email, type Meeting, meetingChangeEmail, meetingLength, meetingReminderEmail, meetingTime } from "./email.ts";
+import { type Email, type Meeting, meetingChangeEmail, meetingChangeIcs, meetingLength, meetingReminderEmail, meetingTime } from "./email.ts";
 import { type ChangeNotice, type Deps, handle, type Reminder } from "./handler.ts";
 
 const KEY = "cron-key-value";
@@ -103,6 +103,20 @@ Deno.test("members hear when a meeting moves, with the old and new times", async
   assertStringIncludes(first.email.text, "Now Sunday 15 November at 19:00 GMT, for 90 minutes");
   assertStringIncludes(first.email.text, "Was Sunday 8 November at 19:00 GMT");
   assertStringIncludes(first.email.html, "l=club-meetings");
+  // The updated calendar file: the same event as Add to calendar, at the new time, with a later SEQUENCE.
+  const file = first.email.attachment!;
+  assertEquals(file.filename, "sunday-classics-2026-11-15.ics");
+  assertEquals(file.contentType, "text/calendar; charset=utf-8; method=PUBLISH");
+  assertStringIncludes(file.content, "UID:meeting-1@literaryworm.com\r\n");
+  assertStringIncludes(file.content, "DTSTART:20261115T190000Z\r\n");
+  assertStringIncludes(file.content, "STATUS:CONFIRMED\r\n");
+});
+
+Deno.test("the calendar file's SEQUENCE grows with time, so the newest file wins", () => {
+  const change = notice("x", "moved").change;
+  const at = (iso: string) => /SEQUENCE:(\d+)/.exec(meetingChangeIcs(change, SITE, new Date(iso)))![1];
+  assertEquals(at("2026-11-09T10:00:00Z"), String(Date.parse("2026-11-09T10:00:00Z") / 60_000));
+  assertEquals(Number(at("2026-11-09T10:05:00Z")) - Number(at("2026-11-09T10:00:00Z")), 5);
 });
 
 Deno.test("members hear when a meeting is cancelled; a change nobody got is handed back", async () => {
@@ -110,6 +124,12 @@ Deno.test("members hear when a meeting is cancelled; a change nobody got is hand
   assertEquals(email.subject, "Sunday Classics: meeting on Sunday 8 November at 19:00 GMT cancelled");
   assertStringIncludes(email.text, "won't go ahead");
   assertFalse(email.text.includes("Now "));
+  // Its calendar file cancels the event members added.
+  assertEquals(email.attachment!.contentType, "text/calendar; charset=utf-8; method=CANCEL");
+  assertStringIncludes(email.attachment!.content, "METHOD:CANCEL\r\n");
+  assertStringIncludes(email.attachment!.content, "STATUS:CANCELLED\r\n");
+  assertStringIncludes(email.attachment!.content, "SUMMARY:Cancelled: Sunday Classics: ");
+  assertFalse(email.attachment!.content.includes("VALARM"));
 
   const failing = setup([], { send: (e) => (e.to.includes("bounce") ? Promise.reject(new Error("refused")) : Promise.resolve()) }, [notice("ben", "cancelled", false)]);
   assertEquals((await (await run(failing.deps)).json()).changes, { meetings: 1, sent: 0, failed: 1 });

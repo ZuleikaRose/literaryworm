@@ -118,3 +118,31 @@ export function nextPlanUp(planId: PlanId | null): Plan | null {
 
 /** The address that opens a plan's checkout on Plans. */
 export const planCheckoutPath = (plan: Plan) => `/plans?plan=${plan.id}`;
+
+export interface HouseholdSize {
+  profiles: number;
+  /** Devices holding a Read offline place. */
+  offlineDevices: number;
+}
+
+const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * What a household has to remove before it fits `plan` (moving down a plan, or starting one after a
+ * lapse with more than it allows), one sentence each; empty when it fits. The checkout function
+ * refuses the change with the same sentences (tooBigFor() in supabase/functions/_shared/stripe.ts).
+ */
+export function tooBigFor(plan: Plan, size: HouseholdSize): string[] {
+  const problems: string[] = [];
+  if (size.profiles > plan.profiles) {
+    problems.push(
+      `${plan.name} has room for ${count(plan.profiles, "profile", "profiles")} and your household has ${size.profiles}. Remove ${size.profiles - plan.profiles} in Who's reading? first.`,
+    );
+  }
+  if (size.offlineDevices > plan.offlineDevices) {
+    problems.push(
+      `${plan.name} keeps books offline on ${count(plan.offlineDevices, "device", "devices")} and ${size.offlineDevices} are saving books now. Free ${size.offlineDevices - plan.offlineDevices} in Account first.`,
+    );
+  }
+  return problems;
+}
