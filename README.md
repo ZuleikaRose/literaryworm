@@ -405,5 +405,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Followers: author and narrator pages show how many readers follow them; My Library → Following lists who a profile follows (migrations 5400–5403) | Done    |
 | —    | Gift start day: a gift can be bought now to start on a later day, up to a year ahead (`checkout`, `stripe-webhook`, `manage-account`; Return Policy updated) (migrations 5500, 5503) | Done    |
 | —    | Yearly saving in the bell: monthly members 11 months in see what paying yearly would save (migrations 5700–5701) | Done    |
+| —    | Bigger plans: Standard has 5 profiles and Read offline on 10 devices, Premium 12 profiles and 24 devices, at the same prices (Terms updated) (migrations 5800–5802) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
