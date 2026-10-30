@@ -5,6 +5,7 @@ import { GenreNav } from "../components/GenreNav";
 import { OutNow } from "../components/RemindersView";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
+import { WhatsNewLink } from "../components/WhatsNewLink";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
@@ -165,6 +166,8 @@ export default function Browse() {
             </Link>
           )}
         </section>
+
+        <WhatsNewLink />
 
         <Shelf id="top-ten" eyebrow="Highest rated" title="Top 10 on LiteraryWorm" items={topTen.map(fromLocal)} ranked />
         {newReleases.length > 0 && (

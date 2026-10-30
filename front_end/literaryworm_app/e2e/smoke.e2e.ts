@@ -65,6 +65,18 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("links to What's new from Home and Plans, not only the footer", async () => {
+    const { page, errors } = await newPage();
+    for (const path of ["/", "/plans"]) {
+      await page.goto(`${BASE_URL}${path}`);
+      const link = page.locator("main .whats-new-link").getByRole("link", { name: "See everything that's new" });
+      await expect(link.getAttribute("href")).resolves.toBe("/whats-new");
+    }
+    await page.locator("main .whats-new-link").getByRole("link").click();
+    await page.getByRole("heading", { level: 1, name: "What's new" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("asks before unsubscribing from the monthly email, and explains a link without its code", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/unsubscribe?t=abc`);
@@ -211,6 +223,16 @@ describe("the demo household", () => {
     await page.getByRole("link", { name: /The Call of the Wild/ }).first().waitFor();
     await goInApp(page, "/library?view=goals");
     await expect(goal.innerText()).resolves.toBe(before);
+    expect(errors()).toEqual([]);
+  });
+
+  it("links to What's new from members' Home and from Account's Help", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await page.locator("main .whats-new-link").getByRole("link", { name: "See everything that's new" }).waitFor();
+    await goInApp(page, "/account#help");
+    await page.locator("#help").getByRole("link", { name: "What's new" }).click();
+    await page.getByRole("heading", { level: 1, name: "What's new" }).waitFor();
     expect(errors()).toEqual([]);
   });
 

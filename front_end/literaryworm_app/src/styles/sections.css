@@ -399,3 +399,29 @@
     right: 2%;
   }
 }
+
+/* ---------- What's new link (components/WhatsNewLink.tsx) ---------- */
+
+.whats-new-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 20px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.whats-new-link svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--rust-bright);
+}
+
+.whats-new-link a {
+  display: inline-block;
+  min-height: 24px;
+  color: var(--rust-bright);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

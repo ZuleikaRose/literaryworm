@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
+import { WhatsNewLink } from "../components/WhatsNewLink";
 import { formatPrice, planById, planFaqs, plans } from "../data/plans";
 import { AccountError, choosePlan, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, longDate, nextBillingDate, ordinal } from "../lib/billing";
@@ -381,6 +382,7 @@ export default function Plans() {
             </details>
           ))}
         </div>
+        <WhatsNewLink />
       </section>
     </div>
   );

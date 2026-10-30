@@ -6,6 +6,7 @@ import { GenreNav } from "../components/GenreNav";
 import { Shelf } from "../components/Shelf";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
+import { WhatsNewLink } from "../components/WhatsNewLink";
 import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../data/books";
 import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
 import { formatPrice, planFaqs, plans } from "../data/plans";
@@ -225,6 +226,7 @@ export default function Landing() {
               </details>
             ))}
           </div>
+          <WhatsNewLink />
         </section>
 
         <section className="community-banner" aria-labelledby="cta-title">

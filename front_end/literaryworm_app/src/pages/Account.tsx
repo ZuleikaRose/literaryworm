@@ -150,6 +150,9 @@ export default function Account() {
       <Section id="help" title="Help">
         <ul className="account-links">
           <li>
+            <Link to="/whats-new">What's new</Link>
+          </li>
+          <li>
             <Link to="/legal/help">Help Center</Link>
           </li>
           <li>
