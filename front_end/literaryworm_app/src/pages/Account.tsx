@@ -236,7 +236,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
 
   if (account.complimentary) {
     return (
-      <Section id="plan" title="Plan and billing" intro="Admin accounts have a complimentary membership. They're never charged.">
+      <Section id="plan" title="Plan and billing" intro="Staff accounts have a complimentary membership while they're on the team. They're never charged.">
         <dl className="account-facts">
           <div>
             <dt>Plan</dt>
@@ -250,10 +250,10 @@ function PlanSection({ account }: { account: AccountDetails }) {
           </div>
           <div>
             <dt>Next charge</dt>
-            <dd>None. Admin accounts aren't billed.</dd>
+            <dd>None. Staff accounts aren't billed.</dd>
           </div>
         </dl>
-        <p className="field-hint">If the admin role is removed, the complimentary membership ends and a plan can be chosen then.</p>
+        <p className="field-hint">When your last staff role is removed, the complimentary membership ends and a plan can be chosen then.</p>
       </Section>
     );
   }

@@ -27,10 +27,11 @@ Deno.serve((req) =>
       if (error) throw error;
       return data?.user_id ?? null;
     },
-    async isAdmin(userId) {
-      const { data, error } = await serviceClient().from("staff_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    // Any staff role: everyone on staff has a complimentary membership.
+    async isStaff(userId) {
+      const { data, error } = await serviceClient().from("staff_roles").select("role").eq("user_id", userId).limit(1);
       if (error) throw error;
-      return data !== null;
+      return data.length > 0;
     },
     getSubscription: (id) => stripeClient().subscriptions.retrieve(id),
     async startMembership(userId, fields: SubscriptionFields, consentAt) {

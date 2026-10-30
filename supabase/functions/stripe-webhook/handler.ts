@@ -2,8 +2,9 @@
 //
 // Every event's signature is checked first (STRIPE_WEBHOOK_SECRET). Events are mapped to an
 // account through the Stripe Customer (stripe_customers), never through metadata, and each is
-// handled once (stripe_events). Admins are never billed: a subscription that reaches an admin's
-// customer is cancelled at once, and a renewal invoice drafted for one is deleted before it's paid.
+// handled once (stripe_events). Staff are never billed (any staff role gives a complimentary
+// membership): a subscription that reaches a staff member's customer is cancelled at once, and a
+// renewal invoice drafted for one is deleted before it's paid.
 //
 // Gifts: a paid gift Checkout (mode payment, metadata.kind "gift") makes a gift code for the buyer,
 // once per Checkout Session. A redeemed gift that starts a membership is a Stripe subscription
@@ -12,7 +13,7 @@
 //
 // Handled: checkout.session.completed and .async_payment_succeeded (start the membership, or a gift),
 // customer.subscription.created/.updated/.deleted and invoice.paid/.payment_failed (keep it in
-// step), invoice.created (admins), and charge.dispute.created, charge.refunded and
+// step), invoice.created (staff), and charge.dispute.created, charge.refunded and
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
 
 import type { Stripe } from "../_shared/stripe.ts";
@@ -25,7 +26,8 @@ export interface Deps {
   alreadyHandled: (eventId: string) => Promise<boolean>;
   markHandled: (event: Stripe.Event, needsReview: boolean) => Promise<void>;
   userForCustomer: (customerId: string) => Promise<string | null>;
-  isAdmin: (userId: string) => Promise<boolean>;
+  /** Whether the account holds any staff role. */
+  isStaff: (userId: string) => Promise<boolean>;
   getSubscription: (id: string) => Promise<Stripe.Subscription>;
   /** Creates or replaces the membership; consentAt records when auto-renewal was agreed. */
   startMembership: (userId: string, fields: SubscriptionFields, consentAt: string) => Promise<void>;
@@ -60,7 +62,7 @@ async function syncSubscription(deps: Deps, sub: Stripe.Subscription): Promise<v
     console.warn(`stripe-webhook: subscription ${sub.id} has no LiteraryWorm account`);
     return;
   }
-  if (await deps.isAdmin(userId)) {
+  if (await deps.isStaff(userId)) {
     if (sub.status !== "canceled" && sub.status !== "incomplete_expired") await deps.cancelNow(sub.id);
     return;
   }
@@ -106,7 +108,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
         console.warn(`stripe-webhook: checkout ${session.id} has no LiteraryWorm account`);
         return;
       }
-      if (await deps.isAdmin(userId)) {
+      if (await deps.isStaff(userId)) {
         await deps.cancelNow(sub.id);
         return;
       }
@@ -127,7 +129,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
       const invoice = event.data.object;
       const subId = invoiceSubscriptionId(invoice);
       const userId = invoice.customer ? await deps.userForCustomer(idOf(invoice.customer)!) : null;
-      if (subId && userId && (await deps.isAdmin(userId))) {
+      if (subId && userId && (await deps.isStaff(userId))) {
         await deps.cancelNow(subId);
         if (invoice.status === "draft" && invoice.id) await deps.deleteDraftInvoice(invoice.id);
       }

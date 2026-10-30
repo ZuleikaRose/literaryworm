@@ -18,7 +18,7 @@ export default function Plans() {
   const [params] = useSearchParams();
   const setup = params.get("setup") === "1";
   const account = state.account;
-  // Admin accounts are complimentary and never charged: they have no plan to choose.
+  // Staff accounts (any staff role) are complimentary and never charged: they have no plan to choose.
   const complimentary = Boolean(account?.complimentary);
   const initialPlan = (params.get("plan") as PlanId | null) ?? null;
 
@@ -155,7 +155,7 @@ export default function Plans() {
         <div className="form-success" role="status">
           <Icon name="check" size={18} />
           <p>
-            Your admin account has a complimentary <strong>Premium</strong> membership. It's never charged, so
+            Your staff account has a complimentary <strong>Premium</strong> membership. It's never charged, so
             there's no plan to choose.
           </p>
         </div>

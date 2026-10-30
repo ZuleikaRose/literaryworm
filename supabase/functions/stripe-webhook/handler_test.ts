@@ -34,7 +34,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     gifts: [] as NewGift[],
     hasMembership: true,
     sub: subscription(),
-    admin: false,
+    staff: false,
   };
   const deps: Deps = {
     verify: (_body, signature) => (signature === "good" ? Promise.resolve(ev) : Promise.reject(new Error("bad"))),
@@ -44,7 +44,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
       return Promise.resolve();
     },
     userForCustomer: (c) => Promise.resolve(c === "cus_1" ? USER : null),
-    isAdmin: () => Promise.resolve(state.admin),
+    isStaff: () => Promise.resolve(state.staff),
     getSubscription: () => Promise.resolve(state.sub),
     startMembership: (userId, fields, consentAt) => {
       state.started.push({ userId, fields, consentAt });
@@ -135,19 +135,19 @@ Deno.test("paused collection, cancellation at period end and deletion are kept i
   assertEquals(deleted.state.updated[0].status, "cancelled");
 });
 
-Deno.test("admins are never billed: their subscription is cancelled and nothing is saved", async () => {
+Deno.test("staff are never billed: their subscription is cancelled and nothing is saved", async () => {
   const { state, deps } = setup(completed());
-  state.admin = true;
+  state.staff = true;
   await handle(post(), deps);
   assertEquals(state.cancelled, ["sub_1"]);
   assertEquals(state.started.length, 0);
 });
 
-Deno.test("a renewal invoice drafted for an admin is deleted before it's charged", async () => {
+Deno.test("a renewal invoice drafted for a member of staff is deleted before it's charged", async () => {
   const { state, deps } = setup(
     event("invoice.created", { id: "in_9", status: "draft", customer: "cus_1", parent: { subscription_details: { subscription: "sub_1" } } }),
   );
-  state.admin = true;
+  state.staff = true;
   await handle(post(), deps);
   assertEquals(state.cancelled, ["sub_1"]);
   assertEquals(state.deletedInvoices, ["in_9"]);

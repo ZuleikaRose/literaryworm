@@ -23,6 +23,10 @@ export function TeamAccess({ roles }: { roles: StaffRole[] }) {
           </li>
         ))}
       </ul>
+      <p className="goal-hint">
+        Every role comes with a complimentary Premium membership, never charged, for as long as it's held. When someone's last
+        role is removed, it ends and they can choose a plan.
+      </p>
       {hasRole(roles, "billing") && (
         <p>
           <Link className="secondary-button" to="/dashboard">
@@ -157,7 +161,7 @@ function TeamManager() {
           {busy ? "Giving access…" : "Give access"}
         </button>
         <p className="goal-hint" id={`${id}-hint`}>
-          Someone without an account gets the access when they sign up with this email.
+          Someone without an account gets the access, and the complimentary membership, when they sign up with this email.
         </p>
       </form>
       {error && (

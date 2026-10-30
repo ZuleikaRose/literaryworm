@@ -17,8 +17,9 @@
 // A member already billed through Stripe changes plan in place ({ planId }): the new price applies
 // from the next renewal, with no partial charges or credits (all sales are final).
 //
-// Admins are never billed: their membership is complimentary (the database makes it so from the
-// admin role), so this refuses them before anything else and never creates a Checkout for them.
+// Staff are never billed: everyone with a staff role (Admin, Editor, Developer, Billing, Customer
+// service, Blog, Sales) has a complimentary membership while they hold it (the database makes it so
+// from staff_roles), so this refuses them before anything else and never creates a Checkout for them.
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
@@ -56,7 +57,8 @@ export interface GiftCheckoutInput {
 export interface Deps {
   requireUser: (req: Request) => Promise<{ id: string; email?: string }>;
   rateLimit: (userId: string) => Promise<void>;
-  isAdmin: (userId: string) => Promise<boolean>;
+  /** Whether the account holds any staff role. */
+  isStaff: (userId: string) => Promise<boolean>;
   getMembership: (userId: string) => Promise<Membership | null>;
   /** The account's Stripe Customer, created (and remembered) the first time. */
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
@@ -76,8 +78,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     requireMethod(req, ["POST"]);
     const user = await deps.requireUser(req);
     await deps.rateLimit(user.id);
-    if (await deps.isAdmin(user.id)) {
-      throw new HttpError("bad_request", "Admin accounts have a complimentary membership and are never charged.");
+    if (await deps.isStaff(user.id)) {
+      throw new HttpError("bad_request", "Staff accounts have a complimentary membership and are never charged.");
     }
     const body = await readJsonBody(req);
     if (body.gift !== undefined) {

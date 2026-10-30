@@ -2,7 +2,7 @@
 // Requires a signed-in account (JWT). Subscriptions are never written from the
 // browser, and deleting needs the account password again.
 //
-// An admin's membership is complimentary (never billed), so it can't be paused, resumed,
+// Staff memberships are complimentary (never billed), so they can't be paused, resumed,
 // cancelled or restarted; deleting the account still works.
 //
 //   { action: "pause" }                      stop reading and billing until resumed
@@ -51,7 +51,7 @@ export interface Subscription {
   current_period_end: string | null;
   /** When an ending membership ends: the period's end, or a month later after a cancellation with under 48 hours' notice. */
   cancel_at: string | null;
-  /** An admin's membership: set by the database from the admin role, never billed. */
+  /** A staff member's membership: set by the database from any staff role, never billed. */
   complimentary: boolean;
   /** The end of a gift's free months, while they last. */
   gift_until: string | null;
@@ -141,11 +141,11 @@ async function requireSubscription(deps: Deps, userId: string): Promise<Subscrip
   return sub;
 }
 
-/** A paid membership, for pausing, resuming, cancelling and restarting: an admin's has nothing to change. */
+/** A paid membership, for pausing, resuming, cancelling and restarting: a staff member's has nothing to change. */
 async function requirePaidSubscription(deps: Deps, userId: string): Promise<Subscription & { billing_day: number }> {
   const sub = await requireSubscription(deps, userId);
   if (sub.complimentary || sub.billing_day === null) {
-    throw new HttpError("bad_request", "Admin memberships are complimentary and never charged, so there's nothing to pause or cancel.");
+    throw new HttpError("bad_request", "Staff memberships are complimentary and never charged, so there's nothing to pause or cancel.");
   }
   return sub as Subscription & { billing_day: number };
 }

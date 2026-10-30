@@ -59,7 +59,7 @@ export default function Gifts() {
           </p>
         </div>
       ) : account.complimentary ? (
-        <p className="field-hint">Admin accounts are never charged, so they can't buy gifts.</p>
+        <p className="field-hint">Staff accounts are never charged, so they can't buy gifts.</p>
       ) : (
         <BuyGift />
       )}

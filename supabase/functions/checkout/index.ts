@@ -20,10 +20,11 @@ Deno.serve((req) =>
   handle(req, {
     requireUser,
     rateLimit: (userId) => enforceRateLimit(`checkout:${userId}`, 10, 60),
-    async isAdmin(userId) {
-      const { data, error } = await serviceClient().from("staff_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    // Any staff role: everyone on staff has a complimentary membership.
+    async isStaff(userId) {
+      const { data, error } = await serviceClient().from("staff_roles").select("role").eq("user_id", userId).limit(1);
       if (error) throw error;
-      return data !== null;
+      return data.length > 0;
     },
     async getMembership(userId) {
       const { data, error } = await serviceClient()

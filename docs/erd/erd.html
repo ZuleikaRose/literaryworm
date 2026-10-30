@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3501, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3601, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -159,13 +159,13 @@
             ["", "cancel_at", "timestamptz", true],
             ["", "stripe_customer_id", "text", true],
             ["", "stripe_subscription_id", "text", true],
-            ["", "complimentary", "boolean (admins)"],
+            ["", "complimentary", "boolean (staff)"],
             ["", "gift_until", "timestamptz", true],
             ["", "stripe_linked", "boolean (generated)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function. Paid rows are written by the stripe-webhook function from Stripe (stripe_subscription_id unique); stripe_linked tells the member a card is on file without showing Stripe's ids. complimentary is set by a trigger from the admin role: Premium, active, no billing day or Stripe subscription, never billed; a paid row needs a billing day and renewal consent. gift_until: the end of a redeemed gift's free months, from Stripe, while they last. cancel_at: when an ending membership ends (a period later after a cancellation with under 48 hours' notice).",
+          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Written only by the checkout Edge Function. Paid rows are written by the stripe-webhook function from Stripe (stripe_subscription_id unique); stripe_linked tells the member a card is on file without showing Stripe's ids. complimentary is set by a trigger from staff_roles (any role): Premium, active, no billing day or Stripe subscription, never billed; a paid row needs a billing day and renewal consent. gift_until: the end of a redeemed gift's free months, from Stripe, while they last. cancel_at: when an ending membership ends (a period later after a cancellation with under 48 hours' notice).",
         },
         {
           id: "logs", color: colors.reading, x: 420, y: 1080, sub: "public",
@@ -540,7 +540,7 @@
             ["", "granted_at", "timestamptz"],
             ["fk", "granted_by", "uuid", true],
           ],
-          note: "Roles: admin, developer, editor, billing, customer_service, blog (admins can do everything). Granted and removed only by admins through grant_staff_role() / revoke_staff_role(); the last admin stays. Granting admin starts a complimentary membership and removing it ends one. RLS: members see their own roles; admins see the team through staff_members(). Index: granted_by.",
+          note: "Roles: admin, developer, editor, billing, customer_service, blog, sales (admins can do everything). Granted and removed only by admins through grant_staff_role() / revoke_staff_role(); the last admin stays. Granting a first role (any) starts a complimentary membership; removing the last ends it. RLS: members see their own roles; admins see the team through staff_members(). Index: granted_by.",
         },
         {
           id: "staff_invites", color: colors.account, x: 420, y: 3330, sub: "roles waiting for sign-up",

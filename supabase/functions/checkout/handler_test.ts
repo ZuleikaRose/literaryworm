@@ -13,12 +13,12 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
     gifts: [] as GiftCheckoutInput[],
     planChanges: [] as [string, string][],
     customers: 0,
-    admin: false,
+    staff: false,
   };
   const deps: Deps = {
     requireUser: () => Promise.resolve(USER),
     rateLimit: () => Promise.resolve(),
-    isAdmin: () => Promise.resolve(state.admin),
+    isStaff: () => Promise.resolve(state.staff),
     getMembership: () => Promise.resolve(membership),
     customerFor: () => {
       state.customers++;
@@ -57,9 +57,9 @@ async function call(deps: Deps, body: unknown) {
 
 const choice = (overrides: Record<string, unknown> = {}) => ({ planId: "standard", billingDay: 5, renewalTermsAccepted: true, ...overrides });
 
-Deno.test("admins are refused before anything touches Stripe", async () => {
+Deno.test("staff (any role) are refused before anything touches Stripe", async () => {
   const { state, deps } = setup(null);
-  state.admin = true;
+  state.staff = true;
   const res = await call(deps, choice());
   assertEquals(res.status, 400);
   assert(res.body.error.message.includes("never charged"));
