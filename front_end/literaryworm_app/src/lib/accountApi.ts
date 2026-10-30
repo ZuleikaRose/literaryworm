@@ -960,13 +960,14 @@ const emptyCollections = (): Collections => ({
   uploads: [],
   follows: [],
   reminders: [],
+  notificationsSeenAt: null,
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
 export async function loadCollections(): Promise<Record<string, Collections>> {
   const db = client();
   const [profiles, favorites, ratings, lists, items, follows, reminders] = await Promise.all([
-    db.from("reader_profiles").select("id, recent_searches"),
+    db.from("reader_profiles").select("id, recent_searches, notifications_seen_at"),
     db.from("favorites").select("profile_id, volume_id").order("created_at"),
     db.from("book_ratings").select("profile_id, volume_id, rating"),
     db.from("custom_lists").select(LIST_COLUMNS).order("position").order("created_at"),
@@ -979,7 +980,10 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   }
   const byProfile: Record<string, Collections> = {};
   const of = (id: string) => (byProfile[id] ??= emptyCollections());
-  for (const p of profiles.data as { id: string; recent_searches: string[] }[]) of(p.id).recentSearches = p.recent_searches;
+  for (const p of profiles.data as { id: string; recent_searches: string[]; notifications_seen_at: string | null }[]) {
+    of(p.id).recentSearches = p.recent_searches;
+    of(p.id).notificationsSeenAt = p.notifications_seen_at ? Date.parse(p.notifications_seen_at) : null;
+  }
   for (const f of favorites.data as { profile_id: string; volume_id: string }[]) of(f.profile_id).favorites.push(f.volume_id);
   for (const f of follows.data as ({ profile_id: string } & Follow)[]) of(f.profile_id).follows.push({ kind: f.kind, name: f.name });
   for (const r of reminders.data as ReminderRow[]) {
@@ -1245,6 +1249,13 @@ export async function removeListBook(listId: string, bookId: string): Promise<vo
 export async function setListShare(id: string, slug: string | null): Promise<void> {
   const { error } = await client().from("custom_lists").update({ share_slug: slug }).eq("id", id);
   if (error) throw listError(error, slug ? "We couldn't share the list. Try again." : "We couldn't stop sharing the list. Try again.");
+}
+
+/** Marks the profile's notifications seen, at the database's time (so every device agrees), and returns when. */
+export async function markNotificationsSeen(profileId: string): Promise<number> {
+  const { data, error } = await client().rpc("mark_notifications_seen", { p_profile_id: profileId });
+  if (error || !data) throw new AccountError("We couldn't update your notifications.");
+  return Date.parse(data as string);
 }
 
 export async function saveRecentSearches(profileId: string, searches: string[]): Promise<void> {

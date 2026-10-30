@@ -196,6 +196,7 @@ select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_
 select pg_temp.expect_error($$insert into public.custom_lists (profile_id, user_id, name) values ((select id from public.reader_profiles where name = 'Mia'), '00000000-0000-0000-0000-00000000000a', 'Kids picks'); update public.custom_lists set share_slug = 'KidsKidsKidsKidsKids00' where name = 'Kids picks'$$, 'sharing a Kids profile''s list');
 update public.reader_profiles set recent_searches = array['dune', 'circe'] where name = 'Ann';
 select pg_temp.expect_error($$update public.reader_profiles set recent_searches = array['1','2','3','4','5','6','7','8','9'] where name = 'Ann'$$, 'more than 8 recent searches');
+select pg_temp.check(public.mark_notifications_seen((select id from public.reader_profiles where name = 'Ann')) is not null, 'Ann marks her notifications seen');
 reset role;
 
 -- Ids Ben could only have guessed.
@@ -210,6 +211,7 @@ select pg_temp.expect_error(format('insert into public.favorites (profile_id, us
 select pg_temp.expect_error(format('insert into public.favorites (profile_id, user_id, volume_id) values (%L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'x'), 'a favourite on another account''s profile, as them');
 select pg_temp.check((select count(*) from public.follows) = 0, 'Ben cannot see who Ann follows');
 select pg_temp.check((select count(*) from public.release_reminders) = 0, 'Ben cannot see Ann''s reminders');
+select pg_temp.check(public.mark_notifications_seen(:'ann_profile') is null, 'Ben cannot mark Ann''s notifications seen');
 select pg_temp.expect_error(format('insert into public.release_reminders (profile_id, user_id, volume_id, title, release_date) values (%L, %L, %L, %L, current_date + 5)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'x', 'X'), 'a reminder on another account''s profile');
 select pg_temp.expect_error(format('insert into public.follows (profile_id, user_id, kind, name) values (%L, %L, %L, %L)', :'ann_profile', '00000000-0000-0000-0000-00000000000a', 'author', 'X'), 'a follow on another account''s profile');
 select pg_temp.expect_error(format('insert into public.custom_list_items (list_id, user_id, volume_id) values (%L, %L, %L)', :'ann_list', '00000000-0000-0000-0000-00000000000b', 'x'), 'adding to someone else''s list, as yourself');
@@ -223,6 +225,7 @@ select pg_temp.expect_error('select * from public.custom_lists', 'anon reading l
 select pg_temp.expect_error('select * from public.favorites', 'anon reading favourites');
 select pg_temp.expect_error('select * from public.follows', 'anon reading follows');
 select pg_temp.expect_error('select * from public.release_reminders', 'anon reading reminders');
+select pg_temp.expect_error($$select public.mark_notifications_seen(gen_random_uuid())$$, 'anon marking notifications seen');
 select pg_temp.check((public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ->> 'name') = 'Holiday stack'
   and (public.shared_list('AbCdEfGhIjKlMnOpQrStUv') ->> 'owner') = 'Ann'
   and jsonb_array_length(public.shared_list('AbCdEfGhIjKlMnOpQrStUv') -> 'items') = 1

@@ -290,6 +290,96 @@
   width: 330px;
 }
 
+/* ---------- Notification bell ---------- */
+
+.bell-button {
+  position: relative;
+}
+
+.bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+  background: var(--rust-bright);
+  color: var(--on-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+
+.bell-panel {
+  width: 340px;
+}
+
+.bell-empty {
+  margin: 0 4px 6px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.bell-list {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.bell-item {
+  display: flex;
+  min-height: 44px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+
+.bell-item > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--rust-bright);
+}
+
+.bell-item:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.bell-item span {
+  display: grid;
+  min-width: 0;
+}
+
+.bell-item strong {
+  color: var(--ink);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.bell-item small {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.bell-new {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--rust-bright);
+  color: var(--on-accent);
+  font-size: 0.6875rem;
+  vertical-align: 1px;
+}
+
 .segmented {
   margin: 0 0 14px;
   padding: 0;

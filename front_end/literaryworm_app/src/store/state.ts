@@ -96,6 +96,7 @@ export const emptyProfileData = (): ProfileData => ({
   uploads: [],
   follows: [],
   reminders: [],
+  notificationsSeenAt: null,
 });
 
 export const newId = () => crypto.randomUUID();

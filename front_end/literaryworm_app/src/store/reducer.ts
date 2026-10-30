@@ -88,6 +88,7 @@ export type Action =
   | { type: "addRecentSearch"; q: string }
   | { type: "removeRecentSearch"; q: string }
   | { type: "clearRecentSearches" }
+  | { type: "notificationsSeen"; profileId: string; at: number }
   // Reader and player
   /** `profileId`: the profile that was reading, when it may no longer be the active one (the mini-player). */
   | { type: "saveProgress"; progress: Progress; profileId?: string }
@@ -479,6 +480,8 @@ export function reducer(state: AppState, action: Action): AppState {
         recentSearches: data.recentSearches.filter((s) => s !== action.q),
       }));
 
+    case "notificationsSeen":
+      return withProfileData(state, (data) => ({ ...data, notificationsSeenAt: action.at }), action.profileId);
     case "clearRecentSearches":
       return withProfileData(state, (data) => ({ ...data, recentSearches: [] }));
 

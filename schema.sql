@@ -3307,3 +3307,39 @@ update public.legal_pages
 set sections = replace(sections::text, $lw$Book club posts are seen by the club's members. Lists you share$lw$, $lw$Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself. Lists you share$lw$)::jsonb
 where slug = 'privacy'
   and sections::text like $lw$%Book club posts are seen by the club's members. Lists you share%$lw$;
+
+-- =============================================================================
+-- 20261030003300_notifications_seen.sql
+-- =============================================================================
+-- The notification bell (story 56).
+--
+-- The bell counts what's new for a profile: books from its reminders that came
+-- out since it last opened the bell, and its account's unread club posts (which
+-- keep their own read state, club_members.last_read_at). Opening the bell sets
+-- notifications_seen_at through mark_notifications_seen(), at the database's
+-- time, so every device signed in to the profile agrees on what's been seen.
+
+alter table public.reader_profiles
+  add column notifications_seen_at timestamptz;
+
+grant select (notifications_seen_at) on public.reader_profiles to authenticated;
+
+-- Marks the profile's notifications seen for the caller and returns when. Only
+-- the caller's own profiles change (RLS on reader_profiles, including the
+-- two-step sign-in policy); a profile that isn't theirs returns null.
+create function public.mark_notifications_seen(p_profile_id uuid)
+returns timestamptz
+language sql
+security invoker
+set search_path = ''
+as $$
+  update public.reader_profiles
+     set notifications_seen_at = now()
+   where id = p_profile_id and account_id = (select auth.uid())
+  returning notifications_seen_at;
+$$;
+
+grant update (notifications_seen_at) on public.reader_profiles to authenticated;
+
+revoke execute on function public.mark_notifications_seen(uuid) from public, anon;
+grant execute on function public.mark_notifications_seen(uuid) to authenticated;

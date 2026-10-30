@@ -313,6 +313,8 @@ export interface ProfileData {
   follows: Follow[];
   /** Books not out yet that this profile asked to hear about, soonest first. */
   reminders: Reminder[];
+  /** When this profile last opened the notification bell (ms), or null if never. Members keep it in Supabase. */
+  notificationsSeenAt: number | null;
 }
 
 /**

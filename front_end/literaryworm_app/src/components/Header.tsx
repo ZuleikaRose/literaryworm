@@ -4,6 +4,7 @@ import { useSignOut } from "../lib/useSignOut";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccessibilityMenu } from "./AccessibilityMenu";
 import { Icon } from "./Icon";
+import { NotificationBell } from "./NotificationBell";
 import { ProfileMenu } from "./ProfileMenu";
 
 export function Brand({ to }: { to: string }) {
@@ -99,6 +100,7 @@ export function Header() {
             <span className="visually-hidden">Search</span>
           </Link>
         )}
+        {isMember && <NotificationBell />}
         <AccessibilityMenu />
         {isMember ? (
           <ProfileMenu />
