@@ -31,6 +31,17 @@ verify_jwt = false
 # questions (Claude calls) per IP and per day.
 verify_jwt = false
 
+[functions.whats-new]
+# Called by pg_cron on the 1st to the 3rd of each month, which sends no Supabase token: the
+# function checks the Authorization header against the whats_new_secret kept in Vault instead.
+verify_jwt = false
+
+[functions.unsubscribe]
+# One-click unsubscribe from mail apps and signed-out readers: the HMAC-signed token in the
+# link (checked against the unsubscribe_secret in Vault) is the check, and it can only turn
+# the monthly email off.
+verify_jwt = false
+
 [functions.characters]
 # Public like ask: the demo household uses Who's who without a session. The function
 # validates every field, works only for public-domain catalog titles, keeps each list,

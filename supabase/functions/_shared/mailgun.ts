@@ -14,6 +14,8 @@ export interface MailgunMessage {
   tag: string;
   /** A page where the recipient can turn these emails off (List-Unsubscribe). */
   unsubscribeUrl?: string;
+  /** The unsubscribe URL takes a one-click POST from the mail app (RFC 8058, List-Unsubscribe-Post). */
+  oneClickUnsubscribe?: boolean;
 }
 
 function env(name: string): string {
@@ -42,6 +44,7 @@ export async function sendWithMailgun(message: MailgunMessage): Promise<void> {
   // No open or click tracking: the Privacy Policy says Mailgun gets the address and the email, nothing more.
   form.set("o:tracking", "no");
   if (message.unsubscribeUrl) form.set("h:List-Unsubscribe", `<${message.unsubscribeUrl}>`);
+  if (message.unsubscribeUrl && message.oneClickUnsubscribe) form.set("h:List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
   const res = await fetch(`${base}/v3/${encodeURIComponent(domain)}/messages`, {
     method: "POST",
     headers: { Authorization: `Basic ${btoa(`api:${env("SEND_MAILGUN_EMAIL")}`)}` },

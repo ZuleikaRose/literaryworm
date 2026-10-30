@@ -14,6 +14,9 @@ export function Footer() {
         </div>
         <nav aria-label="Policies and help">
           <ul className="footer-links">
+            <li>
+              <Link to="/whats-new">What's new</Link>
+            </li>
             {legalPages.map((p) => (
               <li key={p.slug}>
                 <Link to={`/legal/${p.slug}`}>{p.title}</Link>

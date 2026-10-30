@@ -381,5 +381,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Household reading challenges: the account's profiles take on a goal together (books, hours or days with reading, over a month or 30 days), each one's progress shown from their reading days; private to the household (migrations 3700–3703) | Done    |
 | —    | Import from Goodreads or StoryGraph: the export read on the device, each book matched (catalog first, then Google Books with the author checked), reviewed, and added with its shelf and stars; old reads don't count towards this year's goal | Done    |
 | —    | Who's who: a spoiler-free list of the characters met so far in a public-domain book, written by Claude from the text up to the reader's chapter and kept per chapter (migrations 3800–3801) | Done    |
+| —    | What's new: a public page of every feature, fix and update, written by editors and developers in the app, and a monthly email of the major ones for members who opt in, with one-click unsubscribe (migrations 3900–3903) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

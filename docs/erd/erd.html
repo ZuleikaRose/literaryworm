@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3801, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–3903, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -114,11 +114,12 @@
             ["", "marketing_emails", "boolean"],
             ["", "release_emails", "boolean (on)"],
             ["", "author_emails", "boolean (on)"],
+            ["", "update_emails", "boolean (off)"],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails and author_emails only (column grants).",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails and update_emails only (column grants).",
         },
         {
           id: "plans", color: colors.billing, x: 0, y: 770, sub: "catalog",
@@ -480,6 +481,31 @@
           note: "The characters met in a public-domain title up to a chapter, written by Claude the first time anyone asks and kept, so later readers get the same list. RLS on, no browser access; the characters function reads and writes it.",
         },
         {
+          id: "changelog_entries", color: colors.server, x: 0, y: 4760, sub: "what's new · public",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["", "released_on", "date"],
+            ["", "version", "text 2026.10[.1]"],
+            ["", "kind", "text feature | fix | update"],
+            ["", "title", "text 1–120"],
+            ["", "body", "text 1–1000"],
+            ["", "major", "boolean"],
+            ["fk", "created_by", "uuid", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "The What's new page. RLS: anyone reads; editors, developers and admins add, change and delete (has_staff_role()). Major entries go in the monthly email. Index: created_by.",
+        },
+        {
+          id: "whats_new_sends", color: colors.server, x: 420, y: 4900, sub: "server only",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "month", "date (1st)"],
+            ["", "sent_at", "timestamptz"],
+          ],
+          note: "Which accounts have had which month's What's new email, so each gets it once (claim_whats_new_emails, monthly via pg_cron). RLS on, no browser access.",
+        },
+        {
           id: "club_members", color: colors.reading, x: 1260, y: 2050, sub: "up to 50 a club",
           cols: [
             ["pk fk", "club_id", "uuid"],
@@ -673,6 +699,8 @@
         ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["author_news", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["household_challenges", "user_id", "auth.users", "id", "N : 1"],
+        ["changelog_entries", "created_by", "auth.users", "id", "N : 1"],
+        ["whats_new_sends", "user_id", "auth.users", "id", "N : 1"],
         ["challenge_participants", "challenge_id", "household_challenges", "id", "N : 1 (pair)"],
         ["challenge_participants", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

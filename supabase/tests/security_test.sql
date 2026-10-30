@@ -643,6 +643,23 @@ select pg_temp.expect_error('select * from public.claim_author_emails(10)', 'ano
 reset role;
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_author_news(text)', 'execute'), 'only the cron job calls the author-news function');
 
+-- What's new: anyone reads; editors, developers and admins write; the email list is server only
+set role anon;
+select pg_temp.check((select count(*) >= 0 from public.changelog_entries), 'anon reads What''s new');
+select pg_temp.expect_error($$insert into public.changelog_entries (released_on, version, kind, title, body) values (current_date, '2026.10', 'fix', 'x', 'y')$$, 'anon adding to What''s new');
+select pg_temp.expect_error('select * from public.whats_new_sends', 'anon reading who got the monthly email');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.expect_error($$insert into public.changelog_entries (released_on, version, kind, title, body) values (current_date, '2026.10', 'fix', 'x', 'y')$$, 'a member who isn''t staff adding to What''s new');
+select pg_temp.expect_error('select * from public.claim_whats_new_emails(current_date, 10)', 'claiming What''s new emails from the browser');
+select pg_temp.expect_error('select public.unsubscribe_secret()', 'reading the unsubscribe key from the browser');
+select pg_temp.check((select bool_and(not update_emails) from public.account_private), 'the monthly email starts off');
+reset role;
+reset request.jwt.claims;
+select pg_temp.check(not has_function_privilege('authenticated', 'private.call_whats_new()', 'execute'), 'only the cron job calls the whats-new function');
+
 -- Household challenges: the account's profiles only ------------------------------------
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';

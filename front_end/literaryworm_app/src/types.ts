@@ -111,6 +111,8 @@ export interface Account {
   releaseEmails: boolean;
   /** Weekly email of new books from authors the profiles follow (members only; on by default). */
   authorEmails: boolean;
+  /** The monthly What's new email of major changes (members only; off until they turn it on). */
+  updateEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */

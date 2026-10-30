@@ -12,6 +12,8 @@ import JoinClub from "./pages/JoinClub";
 import Browse from "./pages/Browse";
 import Landing from "./pages/Landing";
 import Legal from "./pages/Legal";
+import Unsubscribe from "./pages/Unsubscribe";
+import WhatsNew from "./pages/WhatsNew";
 import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
 import Person from "./pages/Person";
@@ -50,6 +52,8 @@ export default function App() {
           <Route path="signup" element={<SignUp />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="legal/:slug" element={<Legal />} />
+          <Route path="whats-new" element={<WhatsNew />} />
+          <Route path="unsubscribe" element={<Unsubscribe />} />
           {/* Book details are public (the brief's /books/:id); actions ask visitors to sign in. */}
           <Route path="books/:id" element={<BookDetail />} />
           <Route path="book/:id" element={<LegacyBookRedirect />} />

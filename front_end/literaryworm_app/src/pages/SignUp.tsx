@@ -99,6 +99,7 @@ export default function SignUp() {
         marketingEmails: marketing,
         releaseEmails: true,
         authorEmails: true,
+        updateEmails: false,
         isDemo: false,
         status: "active",
         endsAt: null,

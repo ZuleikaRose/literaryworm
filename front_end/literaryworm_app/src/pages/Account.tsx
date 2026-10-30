@@ -712,11 +712,12 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
-  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails } = useAccount();
+  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
   const releaseHintId = useId();
   const authorHintId = useId();
+  const updateHintId = useId();
   return (
     <Section id="preferences" title="Preferences">
       <label className="switch-row">
@@ -783,6 +784,35 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             void attempt(
               () => setAuthorEmails(on),
               on ? "We'll email you once a week about new books from authors you follow." : "No more emails about authors you follow.",
+            );
+          }}
+        />
+      </label>
+      <label className="switch-row">
+        <span>
+          <strong>Email me a monthly round-up of what's new</strong>
+          <small id={updateHintId}>
+            {remote ? (
+              <>
+                The biggest changes to LiteraryWorm, once a month. Everything is on <Link to="/whats-new">What's new</Link> either way.
+              </>
+            ) : (
+              "The demo doesn't send emails. Members can get the biggest changes once a month."
+            )}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={updateHintId}
+          checked={account.updateEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setUpdateEmails(on),
+              on ? "We'll email you the biggest changes once a month." : "No more monthly round-ups.",
             );
           }}
         />

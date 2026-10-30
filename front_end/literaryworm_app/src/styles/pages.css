@@ -236,3 +236,128 @@
   outline: 2px solid var(--danger);
   outline-offset: 4px;
 }
+
+/* ---------- What's new ---------- */
+
+.whats-new {
+  max-width: 760px;
+}
+
+.whats-new .whats-new-filter {
+  margin: 8px 0 32px;
+}
+
+.release {
+  margin-bottom: 36px;
+}
+
+.release h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+}
+
+.release-version {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.release-entries {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.release-entries > li {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.release-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 6px;
+  font-size: 0.8125rem;
+}
+
+.release-kind,
+.release-major {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.release-kind {
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+}
+
+.release-kind.kind-feature {
+  border-color: var(--rust-bright);
+  color: var(--rust-bright);
+}
+
+.release-kind.kind-fix {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.release-major {
+  background: var(--rust-bright);
+  color: var(--on-accent);
+}
+
+.release-entry h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+}
+
+.release-entry p:not(.release-tags) {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.release-entry .ghost-button {
+  margin-top: 8px;
+}
+
+.entry-form {
+  margin-bottom: 24px;
+}
+
+.entry-form h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+}
+
+.entry-form .field {
+  margin-top: 14px;
+}
+
+.entry-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 14px;
+}
+
+.entry-form-row .field {
+  flex: 1 1 150px;
+}
+
+.entry-form .check-row {
+  margin-top: 14px;
+}

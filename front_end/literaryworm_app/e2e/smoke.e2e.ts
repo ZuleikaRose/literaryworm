@@ -24,6 +24,31 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("reads What's new from the footer, and filters it to the major changes", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    await page.getByRole("contentinfo").getByRole("link", { name: "What's new" }).click();
+    await page.waitForURL(/\/whats-new/);
+    await page.getByRole("heading", { level: 1, name: "What's new" }).waitFor();
+    await page.getByRole("heading", { level: 2, name: /October 2026/ }).waitFor();
+    const all = await page.locator(".release-entry").count();
+    await page.getByText("Major", { exact: true }).first().click();
+    const majors = await page.locator(".release-entry").count();
+    expect(majors).toBeGreaterThan(0);
+    expect(majors).toBeLessThan(all);
+    await expect(page.locator(".release-entry .release-major").count()).resolves.toBe(majors);
+    expect(errors()).toEqual([]);
+  });
+
+  it("asks before unsubscribing from the monthly email, and explains a link without its code", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/unsubscribe?t=abc`);
+    await page.getByRole("button", { name: "Unsubscribe" }).waitFor();
+    await page.goto(`${BASE_URL}/unsubscribe`);
+    await page.getByText(/missing its code/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("reads a policy page", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/legal/terms`);
@@ -161,6 +186,18 @@ describe("the demo household", () => {
     await page.getByRole("link", { name: /The Call of the Wild/ }).first().waitFor();
     await goInApp(page, "/library?view=goals");
     await expect(goal.innerText()).resolves.toBe(before);
+    expect(errors()).toEqual([]);
+  });
+
+  it("starts with the monthly What's new email off, and turns it on", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#preferences");
+    const toggle = page.getByRole("switch", { name: /monthly round-up of what's new/ });
+    await expect(toggle.isChecked()).resolves.toBe(false);
+    await toggle.click();
+    await page.getByText("We'll email you the biggest changes once a month.").waitFor();
+    await expect(toggle.isChecked()).resolves.toBe(true);
     expect(errors()).toEqual([]);
   });
 
