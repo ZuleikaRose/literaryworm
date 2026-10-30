@@ -178,6 +178,8 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Author results.** An author search's *Authors* section sits above the books: an eyebrow (*Follow to see their new books first*), then cards in a grid (at least 340px wide, one column on a phone) on the raised surface with a hairline border: a 44px initials mark, the name in bold (a link, cut with an ellipsis), *12 books below* in small muted text, and a 44px-tall Follow button (primary; secondary with a check once following).
 
+**Who's reading? with more profiles.** Premium allows 12 profiles: the tiles (140px) wrap in centred rows, so no new layout is needed; the *Your plan includes…* note still appears when a plan is full.
+
 **Following.** My Library's *Following* tab reuses the author result cards (initials mark, bold name link, muted count, 44px Follow button), grouped under *Authors* and *Narrators* headings. The follower count on a person's page is a second muted line under the title count, shown only once someone follows.
 
 **Weekly goal (grown-ups).** The same card as the Kids weekly goal; before a goal is set it holds a short question, the *Weekly reading goal* select (field width) and a primary *Save weekly goal*; once set, ghost *Change goal* and *Remove goal* buttons like the yearly goal's.
