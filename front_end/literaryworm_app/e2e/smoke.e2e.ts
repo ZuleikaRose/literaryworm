@@ -33,6 +33,15 @@ describe("a visitor", () => {
     await page.getByRole("heading", { name: "Fantasy books" }).waitFor();
     await expect(genres.getByRole("link", { name: "Fantasy" }).getAttribute("aria-current")).resolves.toBe("page");
 
+    const all = ["Technology", "Adventure", "Sci-Fi", "Fiction", "Non-Fiction", "Horror", "Fantasy", "Mystery", "Thriller", "Romance", "Classics", "Historical Fiction", "Young Adult", "Children's", "Biography & Memoir", "History", "Science", "Self-Help", "Poetry"];
+    await expect(genres.getByRole("link").allInnerTexts()).resolves.toEqual(all);
+
+    await page.goto(`${BASE_URL}/search`);
+    const browse = page.locator("section", { has: page.getByRole("heading", { name: "Or browse a genre" }) });
+    await expect(browse.getByRole("link").allInnerTexts()).resolves.toEqual(all);
+    await browse.getByRole("link", { name: "Historical Fiction" }).click();
+    await page.waitForURL(/genre=historical-fiction/);
+
     await page.goto(`${BASE_URL}/search?q=wonder&source=literaryworm&genre=fantasy`);
     await page.getByRole("radio", { name: "Fantasy" }).waitFor();
     await expect(page.getByRole("radio", { name: "Fantasy" }).isChecked()).resolves.toBe(true);
