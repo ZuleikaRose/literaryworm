@@ -691,6 +691,7 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 109. **Deleting an account confirms by email.** After the account is deleted, the address gets one last email saying what went, that nothing more will be charged, and who to write to if it wasn't them.
 110. **Cancel 48 hours ahead.** Account → Plan and billing says: cancel at least 48 hours before your next billing date to stop the next charge; cancelling later still ends the membership, but after one more month; no refunds. *Cancel membership* says which applies before it's confirmed, and afterwards *Next charge* shows the one charge still to come (*$12.99 on November 5, then the plan ends on December 5*). The checkout's renewal terms, the Terms and the Return Policy say the same.
 111. **The price after a promo code.** Under the code on the membership, Account says what the plan costs once it stops applying (*Then $12.99 a month from January 5, 2027*), unless the code lasts as long as the membership.
+112. **Share your year.** In My Library → Stats, *Share as a picture* draws the year as a card to post: *Avery's 2026 in books*, four big numbers (books finished, of the goal if there is one; hours; days with reading; the longest streak), the covers of the latest books finished, and the top genre and author. Dark or light; Share where the device can, Download, or Copy as text. Nothing leaves the device until the reader shares it.
 
 ### Where the build differs from the blueprint, and why
 

@@ -87,6 +87,21 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shares the Year in Review as a picture, in either look", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=stats");
+    await page.getByRole("button", { name: "Share as a picture" }).click();
+    const dialog = page.getByRole("dialog", { name: "Share your year" });
+    const picture = dialog.getByRole("img", { name: /in books: \d+ books? finished/ });
+    await picture.waitFor();
+    await expect(picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).resolves.toBe(1080);
+    await dialog.getByText("Light", { exact: true }).click();
+    await picture.waitFor();
+    await dialog.getByRole("button", { name: "Download picture" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("turns the weekly author email off in Preferences", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

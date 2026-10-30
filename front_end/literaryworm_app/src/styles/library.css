@@ -776,6 +776,14 @@
   gap: 12px 20px;
 }
 
+/* Share as a picture, beside the year picker. */
+.stats-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
 .stats-header h2 {
   margin: 4px 0 0;
   font-family: var(--font-display);

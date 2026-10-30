@@ -1,4 +1,4 @@
-import { type CSSProperties, useId, useState } from "react";
+import { type CSSProperties, useId, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { readingTime } from "../lib/goals";
 import { today } from "../lib/reading";
@@ -9,6 +9,7 @@ import { useStore } from "../store/context";
 import type { Profile } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
+import { YearCardDialog } from "./YearCardDialog";
 
 const MONTHS = Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat(undefined, { month: "short", timeZone: "UTC" }).format(Date.UTC(2024, m, 1)));
 const MONTHS_LONG = Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat(undefined, { month: "long", timeZone: "UTC" }).format(Date.UTC(2024, m, 1)));
@@ -28,7 +29,11 @@ export function StatsView({ profile }: { profile: Profile }) {
   const years = statsYears(days, current);
   const [year, setYear] = useState(current);
   const yearId = useId();
-  const s = yearStats(days, activeReading(state).highlights, year);
+  const highlights = activeReading(state).highlights;
+  // Kept between renders so the share card isn't redrawn for nothing.
+  const s = useMemo(() => yearStats(days, highlights, year), [days, highlights, year]);
+  const [sharing, setSharing] = useState(false);
+  const hasReading = s.seconds > 0 || s.finished > 0;
   const goal = goals[year] ?? null;
   const peak = Math.max(1, ...s.months.map((m) => m.seconds));
 
@@ -39,6 +44,12 @@ export function StatsView({ profile }: { profile: Profile }) {
           <p className="eyebrow">{profile.name}'s year in review</p>
           <h2>{year} in books</h2>
         </div>
+        <div className="stats-header-actions">
+          {hasReading && (
+            <button type="button" className="secondary-button small-button" onClick={() => setSharing(true)}>
+              <Icon name="share" size={16} /> Share as a picture
+            </button>
+          )}
         {years.length > 1 && (
           <div className="stats-year">
             <label className="field-label" htmlFor={yearId}>
@@ -53,9 +64,11 @@ export function StatsView({ profile }: { profile: Profile }) {
             </select>
           </div>
         )}
+        </div>
       </header>
+      <YearCardDialog open={sharing} onClose={() => setSharing(false)} name={profile.name} stats={s} goal={goal} />
 
-      {s.seconds === 0 && s.finished === 0 ? (
+      {!hasReading ? (
         <p className="stats-empty">
           Nothing read or listened to in {year} yet. Time counts while the reader is open or the player is playing, and shows here.
         </p>
