@@ -2,6 +2,46 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "feature",
+    "title": "A reminder before a gift starts",
+    "body": "Bought a gift membership for a later day? We'll email you three days before it starts, so you remember to pass the code on. The email links to your gifts; the code itself stays on the Gifts page.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
+    "title": "Meeting changes update your calendar",
+    "body": "When a book club meeting moves or is cancelled, the email now comes with a calendar file. Open it and the meeting moves in your calendar, or comes out of it.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
+    "title": "Kids report in groups",
+    "body": "The Kids reading report in Account and the Monday email now group Kids profiles: still working on their goal, no reading yet, reading without a goal, and goal reached. Handy now that a household can have up to 12 profiles.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
+    "title": "Follower counts in author search",
+    "body": "Searching by author now shows how many readers follow each author it finds, next to Follow.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "update",
+    "title": "Moving to a smaller plan",
+    "body": "Before you move to a plan with fewer profiles or offline devices, Plans now says how many profiles to remove and devices to free, with links to do it.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "update",
     "title": "More profiles and offline devices",
     "body": "Standard now has 5 profiles and Read offline on 10 devices (was 3 and 3), and Premium 12 profiles and 24 devices (was 5 and 5), at the same prices. Basic is unchanged.",

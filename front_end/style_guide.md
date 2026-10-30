@@ -184,6 +184,14 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Weekly goal (grown-ups).** The same card as the Kids weekly goal; before a goal is set it holds a short question, the *Weekly reading goal* select (field width) and a primary *Save weekly goal*; once set, ghost *Change goal* and *Remove goal* buttons like the yearly goal's.
 
+**Moving to a smaller plan.** When the household doesn't fit the chosen plan, the checkout panel holds a `form-alert` instead of the form: one sentence per limit (*Standard has room for 5 profiles and your household has 8. Remove 3 in Who's reading? first.*), then a wrapping row of 44px-tall links, *Who's reading?* and *Account*, and a *Keep my plan* text button. Numbers are written as digits; the sentence says what to do, not that something is wrong.
+
+**Follower counts on author cards.** After the muted *3 books below*, a middle dot and *12 followers*, in the same small muted text; nothing until someone follows.
+
+**Kids report groups.** Under *Kids reading this week*, each group is an `h4` (15px, bold) with a muted count in brackets, *Still working on their goal (2)*; the rows below are unchanged. Groups come in a fixed order, the ones needing a grown-up's attention first. One group shows no heading. The Monday email uses small uppercase grey headings in the same order.
+
+**Gift and meeting emails.** The gift reminder uses the meeting emails' layout: logo, *Your gift starts soon*, the plan and months in the bold card line with *Starts Sunday 14 March 2027* under it, a rust *See your gifts* button, and a footer saying it's the only reminder. Meeting change emails add the calendar file as an attachment; their hint line says to open it.
+
 **Gift start day.** *When it starts* is a fieldset of two chips (*Straight away*, *On a later day*) like *How long*; the later choice adds a native date field, at most 320px wide, with a hint and an error under it.
 
 **Changing a meeting.** The scheduling form, reopened in place with the meeting filled in; *Change* is a text button beside *Cancel*. The submit reads *Save changes* and the secondary *Keep it as it was*.
