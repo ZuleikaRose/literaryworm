@@ -1450,3 +1450,8 @@ body:has(.mini-player) .listen-along-bar {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+/* A Kids profile's weekly goal in Account → Family, once reached. */
+.kids-goal-reached {
+  color: var(--success);
+}

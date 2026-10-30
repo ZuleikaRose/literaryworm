@@ -6,7 +6,7 @@ import * as accountApi from "./accountApi";
 import { pinAttemptResult } from "./profiles";
 
 /** What the profile editor saves. `pin`: undefined keeps the current PIN, null removes it. */
-export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes"> & {
+export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes" | "weeklyGoalMinutes"> & {
   pin: string | null | undefined;
 };
 
@@ -39,6 +39,7 @@ export function useProfiles() {
         favoriteGenres: draft.favoriteGenres,
         kidsConsent: draft.ageRating === "kids" ? true : (existing?.kidsConsent ?? false),
         dailyLimitMinutes: draft.dailyLimitMinutes,
+        weeklyGoalMinutes: draft.ageRating === "kids" ? draft.weeklyGoalMinutes : null,
         ...(draft.pin !== undefined ? { pin: draft.pin } : {}),
       };
       if (existing) dispatch({ type: "updateProfile", id: existing.id, patch: { ...patch, failedPinAttempts: 0, lockedUntil: null } });
@@ -84,6 +85,11 @@ export function useProfiles() {
       if (draft.pin !== undefined && (draft.pin !== null || hadPin)) await change({ action: "set_pin", profileId: id, pin: draft.pin });
       if (!limitSet && draft.dailyLimitMinutes !== (existing?.dailyLimitMinutes ?? null)) {
         await change({ action: "set_daily_limit", profileId: id, dailyLimitMinutes: draft.dailyLimitMinutes });
+      }
+      // Only Kids profiles have a weekly goal; one that stops being Kids loses it.
+      const goal = draft.ageRating === "kids" ? draft.weeklyGoalMinutes : null;
+      if (goal !== (existing?.weeklyGoalMinutes ?? null)) {
+        await change({ action: "set_weekly_goal", profileId: id, weeklyGoalMinutes: goal });
       }
     } finally {
       // Show what was saved, even when a later step failed.

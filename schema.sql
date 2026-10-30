@@ -5243,3 +5243,79 @@ where slug in ($lw$terms$lw$)
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Yearly members can switch to monthly$lw$, $lw$If you pay yearly, you can now choose monthly billing on the Plans page. Your year carries on as it is, and monthly billing starts on your renewal date. Changed your mind? Keep yearly billing in Account.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Yearly members can switch to monthly$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030005000_kids_weekly_goals.sql
+-- =============================================================================
+-- Weekly goals for Kids profiles (follow-up to the Kids reading report): a grown-up sets how long
+-- a Kids profile aims to read or listen each week (1 to 5 hours), in the profile editor. Like the
+-- daily limit it's the account holder's call, so it's set only through the manage-profile
+-- function (set_weekly_goal), which re-checks the account password; the browser can read it.
+-- The child sees their progress in Goals, the grown-ups in Account → Family and in the Monday
+-- email, which now says whether last week's goal was reached.
+
+alter table public.reader_profiles
+  add column weekly_goal_minutes smallint check (weekly_goal_minutes in (60, 90, 120, 180, 240, 300));
+grant select (weekly_goal_minutes) on public.reader_profiles to authenticated;
+
+-- The report's rows gain the goal (the return type changes, so the function is made again).
+drop function public.kids_report_week(uuid, date, date);
+create function public.kids_report_week(p_user uuid, p_from date, p_to date)
+returns table (
+  profile_name text, minutes integer, listening_minutes integer, days_read integer, books_finished integer,
+  finished_books text[], weekly_goal_minutes integer
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.name::text,
+         coalesce(sum(d.minutes), 0)::integer,
+         coalesce(sum(d.listening_minutes), 0)::integer,
+         count(d.day) filter (where d.minutes >= 1)::integer,
+         coalesce(sum(d.books_finished), 0)::integer,
+         coalesce((select array_agg(f.volume_id order by f.finished_on)
+                     from public.finished_books f
+                    where f.profile_id = p.id and f.user_id = p_user and f.finished_on between p_from and p_to), '{}'),
+         p.weekly_goal_minutes::integer
+  from public.reader_profiles p
+  left join public.reading_days d on d.profile_id = p.id and d.user_id = p_user and d.day between p_from and p_to
+  where p.account_id = p_user and p.age_rating = 'kids'
+  group by p.id, p.name, p.weekly_goal_minutes
+  order by p.name;
+$$;
+revoke execute on function public.kids_report_week(uuid, date, date) from public, anon, authenticated;
+grant execute on function public.kids_report_week(uuid, date, date) to service_role;
+
+-- =============================================================================
+-- 20261030005001_legal_kids_weekly_goals.sql
+-- =============================================================================
+-- Weekly goals for Kids profiles (migration 5000): the Privacy Policy and the Children's Privacy
+-- Notice list the goal among what we keep, and the Kids report email's contents
+-- (src/data/legalPages.json has the same change). A page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$each profile's name, avatar, age rating, favourite genres, daily limit and player settings.$lw$, $lw$each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal (Kids profiles) and player settings.$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$each profile's name, avatar, age rating, favourite genres, daily limit and player settings.$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$its age rating and any daily reading limit you set, and its reading:$lw$, $lw$its age rating and any daily reading limit and weekly reading goal you set, and its reading:$lw$)::jsonb
+where slug in ($lw$childrens-privacy$lw$)
+  and strpos(sections::text, $lw$its age rating and any daily reading limit you set, and its reading:$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$(their names, reading and listening time, days read and books finished)$lw$, $lw$(their names, reading and listening time, days read, books finished and any weekly goal)$lw$)::jsonb
+where slug in ($lw$privacy$lw$)
+  and strpos(sections::text, $lw$(their names, reading and listening time, days read and books finished)$lw$) > 0;
+
+-- =============================================================================
+-- 20261030005002_whats_new_kids_weekly_goals.sql
+-- =============================================================================
+-- What's new: weekly goals for Kids profiles (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Weekly reading goals for Kids profiles$lw$, $lw$Grown-ups can now give a Kids profile a weekly reading goal, from 1 to 5 hours, in the profile's settings. Kids see how close they are in Goals, grown-ups see it in Account → Family, and the Monday Kids reading report says whether the goal was reached.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Weekly reading goals for Kids profiles$lw$ and c.version = $lw$2026.10$lw$);

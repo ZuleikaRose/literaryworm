@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { weeklyGoal } from "../lib/kidsReport";
 import { booksFinishedIn, expectedByNow, GOAL_MAX, GOAL_MIN, monthSummaries, readingTime, streaks } from "../lib/goals";
 import { today } from "../lib/reading";
 import { useGoals } from "../lib/useGoals";
@@ -19,9 +20,28 @@ export function GoalsView({ profile }: { profile: Profile }) {
   const { current, longest } = streaks(days, now);
   const months = monthSummaries(days, now);
   const [editing, setEditing] = useState(false);
+  const week = weeklyGoal(days, profile.weeklyGoalMinutes, now);
 
   return (
     <div className="goals">
+      {week && (
+        <section className="goal-card" aria-labelledby="weekly-goal-title">
+          <h2 id="weekly-goal-title">Weekly goal</h2>
+          <p className="goal-count">
+            <strong>{readingTime(week.minutes * 60)}</strong> of {readingTime(week.goal * 60)} this week
+          </p>
+          <progress
+            className="goal-bar"
+            max={week.goal}
+            value={Math.min(week.minutes, week.goal)}
+            aria-label={`${readingTime(week.minutes * 60)} of ${readingTime(week.goal * 60)} this week`}
+          />
+          <p className="goal-hint">
+            {week.reached ? "You did it! Goal reached." : `${readingTime(week.left * 60)} to go.`} A grown-up set this goal; it counts
+            the last 7 days.
+          </p>
+        </section>
+      )}
       <section className="goal-card" aria-labelledby="goal-title">
         <h2 id="goal-title">{year} reading goal</h2>
         {goal !== null && !editing ? (

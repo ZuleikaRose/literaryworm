@@ -13,6 +13,8 @@ export interface KidWeek {
   booksFinished: number;
   /** The ids of the books finished: catalog ids or Google Books volume ids. */
   finishedBooks: string[];
+  /** The weekly goal a grown-up set, in minutes; none when not set. */
+  goalMinutes?: number | null;
 }
 
 export interface Email {
@@ -52,6 +54,13 @@ export function kidLine(k: KidWeek): string {
   return `${timeRead(k.minutes)} on ${days}${listening}.`;
 }
 
+/** Whether the week reached the goal a grown-up set, or null when there's none. */
+export function goalLine(k: KidWeek): string | null {
+  if (!k.goalMinutes) return null;
+  const goal = `Weekly goal: ${timeRead(k.goalMinutes)}`;
+  return k.minutes >= k.goalMinutes ? `${goal}. Reached!` : `${goal}. ${timeRead(k.goalMinutes - k.minutes)} short.`;
+}
+
 /** The finished books' titles where we know them (our own catalog); others are counted. */
 export function finishedLine(k: KidWeek): string | null {
   if (k.booksFinished <= 0) return null;
@@ -86,7 +95,7 @@ export function kidsReportEmail(input: {
     "",
     lead,
     "",
-    ...input.kids.flatMap((k) => [k.name, kidLine(k), ...(finishedLine(k) ? [finishedLine(k)!] : []), ""]),
+    ...input.kids.flatMap((k) => [k.name, kidLine(k), ...(goalLine(k) ? [goalLine(k)!] : []), ...(finishedLine(k) ? [finishedLine(k)!] : []), ""]),
     `See it in Account → Family: ${family}`,
     "",
     `You're getting this because you turned on the weekly Kids reading report. Unsubscribe in one click: ${input.unsubscribe}`,
@@ -97,10 +106,12 @@ export function kidsReportEmail(input: {
   const rows = input.kids
     .map((k) => {
       const finished = finishedLine(k);
+      const goal = goalLine(k);
       return `<tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <div style="font-size:17px;font-weight:700;color:#1d1c1a;">${escapeHtml(k.name)}</div>
                       <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(kidLine(k))}</div>
+                      ${goal ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(goal)}</div>` : ""}
                       ${finished ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(finished)}</div>` : ""}
                     </td>
                   </tr>`;

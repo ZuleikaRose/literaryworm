@@ -16,6 +16,17 @@ export const dailyLimitOptions: { value: number | null; label: string }[] = [
   { value: 240, label: "4 hours" },
 ];
 
+/** A Kids profile's weekly reading goal, set by a grown-up (the same choices as the database). */
+export const weeklyGoalOptions: { value: number | null; label: string }[] = [
+  { value: null, label: "No weekly goal" },
+  { value: 60, label: "1 hour a week" },
+  { value: 90, label: "1 hour 30 minutes a week" },
+  { value: 120, label: "2 hours a week" },
+  { value: 180, label: "3 hours a week" },
+  { value: 240, label: "4 hours a week" },
+  { value: 300, label: "5 hours a week" },
+];
+
 export const ageRatingDetails: Record<AgeRating, { label: string; description: string }> = {
   kids: {
     label: "Kids",

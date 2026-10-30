@@ -30,7 +30,7 @@ import {
 } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { readingTime } from "../lib/goals";
-import { kidWeek } from "../lib/kidsReport";
+import { kidWeek, weeklyGoal } from "../lib/kidsReport";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
@@ -964,6 +964,7 @@ function KidsReport() {
       <ul className="kids-report-list">
         {kids.map((p) => {
           const week = kidWeek(state.profileData[p.id]?.readingDays ?? {}, day);
+          const goal = weeklyGoal(state.profileData[p.id]?.readingDays ?? {}, p.weeklyGoalMinutes, day);
           const titles = week.books.map((id) => getBook(id)?.title).filter((t): t is string => Boolean(t));
           return (
             <li key={p.id}>
@@ -976,6 +977,12 @@ function KidsReport() {
                   <p>
                     {readingTime(week.seconds)} on {week.daysRead === 1 ? "1 day" : `${week.daysRead} days`}
                     {week.listened >= 60 && ` (${readingTime(week.listened)} of it listening)`}
+                  </p>
+                )}
+                {goal && (
+                  <p>
+                    Weekly goal {readingTime(goal.goal * 60)}:{" "}
+                    {goal.reached ? <strong className="kids-goal-reached">reached</strong> : `${readingTime(goal.left * 60)} to go`}
                   </p>
                 )}
                 {week.finished > 0 && (

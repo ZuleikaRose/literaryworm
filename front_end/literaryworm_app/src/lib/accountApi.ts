@@ -618,12 +618,13 @@ interface ProfileRow {
   failed_pin_attempts: number;
   locked_until: string | null;
   daily_limit_minutes: number | null;
+  weekly_goal_minutes?: number | null;
   favorite_genres: string[];
   kids_consent_at: string | null;
 }
 
 const PROFILE_COLUMNS =
-  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, favorite_genres, kids_consent_at";
+  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, favorite_genres, kids_consent_at";
 
 const toProfile = (row: ProfileRow): Profile => ({
   id: row.id,
@@ -636,6 +637,7 @@ const toProfile = (row: ProfileRow): Profile => ({
   lockedUntil: row.locked_until ? Date.parse(row.locked_until) : null,
   favoriteGenres: row.favorite_genres,
   dailyLimitMinutes: row.daily_limit_minutes,
+  weeklyGoalMinutes: row.age_rating === "kids" ? (row.weekly_goal_minutes ?? null) : null,
   kidsConsent: Boolean(row.kids_consent_at),
 });
 
@@ -686,6 +688,7 @@ type ProtectedProfileChange =
   | { action: "create_kids"; name: string; avatar: number; dailyLimitMinutes: number | null; noticeVersion: string }
   | { action: "set_pin"; profileId: string; pin: string | null }
   | { action: "set_daily_limit"; profileId: string; dailyLimitMinutes: number | null }
+  | { action: "set_weekly_goal"; profileId: string; weeklyGoalMinutes: number | null }
   | { action: "set_age_rating"; profileId: string; ageRating: AgeRating; noticeVersion?: string }
   | { action: "unlock"; profileId: string }
   | { action: "delete"; profileId: string };

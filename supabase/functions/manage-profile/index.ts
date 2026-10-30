@@ -5,6 +5,7 @@
 //   { action: "create_kids", name, avatar, dailyLimitMinutes, noticeVersion, password }
 //   { action: "set_pin", profileId, pin | null, password }
 //   { action: "set_daily_limit", profileId, dailyLimitMinutes | null, password }
+//   { action: "set_weekly_goal", profileId, weeklyGoalMinutes | null, password }   (Kids profiles)
 //   { action: "set_age_rating", profileId, ageRating, noticeVersion?, password }   (noticeVersion for Kids)
 //   { action: "delete", profileId, password }
 //   { action: "unlock", profileId, password }
@@ -18,6 +19,7 @@ import { onlyKeys, parseInt, parseText, parseUuid } from "../_shared/validate.ts
 
 const METHODS = "POST";
 const DAILY_LIMITS = [30, 60, 90, 120, 180, 240];
+const WEEKLY_GOALS = [60, 90, 120, 180, 240, 300];
 const AGE_RATINGS = ["kids", "teen", "all"];
 
 function parsePin(raw: unknown, allowNull: boolean): string | null {
@@ -30,6 +32,13 @@ function parseDailyLimit(raw: unknown): number | null {
   if (raw === null) return null;
   const minutes = parseInt(raw, "dailyLimitMinutes", 30, 240);
   if (!DAILY_LIMITS.includes(minutes)) throw new HttpError("bad_request", "Pick one of the daily limit options.");
+  return minutes;
+}
+
+function parseWeeklyGoal(raw: unknown): number | null {
+  if (raw === null) return null;
+  const minutes = parseInt(raw, "weeklyGoalMinutes", 60, 300);
+  if (!WEEKLY_GOALS.includes(minutes)) throw new HttpError("bad_request", "Pick one of the weekly goal options.");
   return minutes;
 }
 
@@ -106,6 +115,19 @@ Deno.serve(async (req) => {
           .eq("id", profileId).eq("account_id", user.id).select("id");
         if (error) dbError(error);
         if (!data?.length) throw new HttpError("not_found", "Profile not found.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "set_weekly_goal": {
+        onlyKeys(body, ["action", "profileId", "weeklyGoalMinutes", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        const minutes = parseWeeklyGoal(body.weeklyGoalMinutes);
+        await confirmPassword(user.email, password);
+        // A goal only for Kids profiles; taking one away works whatever the rating.
+        let query = db.from("reader_profiles").update({ weekly_goal_minutes: minutes }).eq("id", profileId).eq("account_id", user.id);
+        if (minutes !== null) query = query.eq("age_rating", "kids");
+        const { data, error } = await query.select("id");
+        if (error) dbError(error);
+        if (!data?.length) throw new HttpError("not_found", "Kids profile not found.");
         return json(req, METHODS, { ok: true });
       }
       case "set_age_rating": {

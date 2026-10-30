@@ -404,10 +404,24 @@ describe("the demo household", () => {
     await report.getByRole("heading", { name: "Kids reading this week" }).waitFor();
     await report.getByText("1 h 15 min on 3 days (45 min of it listening)").waitFor();
     await report.getByText("Finished 1 book: Peter Pan").waitFor();
+    await report.getByText("Weekly goal 2 h: 45 min to go").waitFor();
     const toggle = report.getByRole("switch", { name: /Email me this every week/ });
     await expect(toggle.isChecked()).resolves.toBe(false);
     await toggle.click();
     await page.getByText("We'll email you the Kids reading report every Monday.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows a Kids profile the weekly goal a grown-up set, in Goals", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /Mia/ }).first().click();
+    await page.waitForURL(/\/browse/);
+    await goInApp(page, "/library?view=goals");
+    const card = page.getByRole("region", { name: "Weekly goal" });
+    await card.getByText("of 2 h this week").waitFor();
+    await card.getByText("45 min to go.", { exact: false }).waitFor();
     expect(errors()).toEqual([]);
   });
 

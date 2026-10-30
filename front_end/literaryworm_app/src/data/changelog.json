@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "feature",
+    "title": "Weekly reading goals for Kids profiles",
+    "body": "Grown-ups can now give a Kids profile a weekly reading goal, from 1 to 5 hours, in the profile's settings. Kids see how close they are in Goals, grown-ups see it in Account → Family, and the Monday Kids reading report says whether the goal was reached.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "update",
     "title": "Yearly members can switch to monthly",
     "body": "If you pay yearly, you can now choose monthly billing on the Plans page. Your year carries on as it is, and monthly billing starts on your renewal date. Changed your mind? Keep yearly billing in Account.",

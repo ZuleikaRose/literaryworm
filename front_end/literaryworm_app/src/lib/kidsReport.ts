@@ -37,3 +37,19 @@ export function kidWeek(days: Record<string, ReadingDay>, today: string): KidWee
   }
   return week;
 }
+
+/** How a Kids profile's last 7 days compare with the weekly goal a grown-up set (minutes). */
+export interface WeeklyGoal {
+  /** Whole minutes read or listened in the last 7 days. */
+  minutes: number;
+  goal: number;
+  reached: boolean;
+  /** Minutes still to go (0 once reached). */
+  left: number;
+}
+
+export function weeklyGoal(days: Record<string, ReadingDay>, goalMinutes: number | null, today: string): WeeklyGoal | null {
+  if (!goalMinutes) return null;
+  const minutes = Math.floor(kidWeek(days, today).seconds / 60);
+  return { minutes, goal: goalMinutes, reached: minutes >= goalMinutes, left: Math.max(goalMinutes - minutes, 0) };
+}

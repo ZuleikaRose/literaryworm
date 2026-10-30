@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4903, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–5002, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -187,7 +187,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "library_items", color: colors.reading, x: 840, y: 890, sub: "private",
+          id: "library_items", color: colors.reading, x: 840, y: 930, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -212,7 +212,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
         },
         {
-          id: "bookmarks", color: colors.reading, x: 840, y: 1190, sub: "private",
+          id: "bookmarks", color: colors.reading, x: 840, y: 1230, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -329,6 +329,7 @@
             ["", "failed_pin_attempts", "smallint 0–5"],
             ["", "locked_until", "timestamptz", true],
             ["", "daily_limit_minutes", "smallint 30–240", true],
+            ["", "weekly_goal_minutes", "smallint 60–300", true],
             ["", "favorite_genres", "text[]"],
             ["", "kids_consent_at", "timestamptz", true],
             ["", "recent_searches", "text[] ≤ 8"],
@@ -343,7 +344,7 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres, recent searches and player settings only; notifications_seen_at is set by mark_notifications_seen() at the database's time. PINs, limits, age ratings, Kids and deletes go through manage-profile.",
+          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger. RLS: own account; browser edits name, avatar, genres, recent searches, player settings; notifications_seen_at via mark_notifications_seen(). PINs, limits, weekly goals, age ratings, Kids and deletes: manage-profile.",
         },
         {
           id: "parental_consents", color: colors.household, x: 1260, y: 60, sub: "COPPA record",

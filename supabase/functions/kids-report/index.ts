@@ -30,6 +30,7 @@ interface WeekRow {
   days_read: number;
   books_finished: number;
   finished_books: string[] | null;
+  weekly_goal_minutes: number | null;
 }
 
 Deno.serve((req) =>
@@ -55,6 +56,7 @@ Deno.serve((req) =>
           daysRead: r.days_read,
           booksFinished: r.books_finished,
           finishedBooks: r.finished_books ?? [],
+          goalMinutes: r.weekly_goal_minutes,
         }),
       );
     },

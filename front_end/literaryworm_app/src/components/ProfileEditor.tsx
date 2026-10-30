@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { avatarPalette } from "../lib/avatars";
-import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName } from "../lib/profiles";
+import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName, weeklyGoalOptions } from "../lib/profiles";
 import { AccountError } from "../lib/accountApi";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { useProfiles } from "../lib/useProfiles";
@@ -58,6 +58,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const [pinOn, setPinOn] = useState(Boolean(profile?.hasPin));
   const [pin, setPin] = useState("");
   const [limit, setLimit] = useState<number | null>(profile?.dailyLimitMinutes ?? null);
+  const [weeklyGoal, setWeeklyGoal] = useState<number | null>(profile?.weeklyGoalMinutes ?? null);
+  // Only Kids profiles keep a weekly goal.
+  const goal = rating === "kids" ? weeklyGoal : null;
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -66,7 +69,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   // Changing who can see what, or locking a profile, is the account holder's call.
   const pinChanged = pinOn ? pin.length > 0 || !profile?.hasPin : Boolean(profile?.hasPin);
   const protectedChange =
-    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null);
+    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null) || goal !== (profile?.weeklyGoalMinutes ?? null);
   const needsPassword = protectedChange || confirmDelete;
   const needsConsent = rating === "kids" && !(profile?.ageRating === "kids" && profile.kidsConsent);
 
@@ -102,6 +105,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           ageRating: rating,
           favoriteGenres: genres,
           dailyLimitMinutes: limit,
+          weeklyGoalMinutes: goal,
           // undefined keeps the current PIN; null removes it.
           pin: pinOn ? (pin.length > 0 ? pin : undefined) : profile?.hasPin ? null : undefined,
         },
@@ -258,6 +262,29 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           </select>
           <p className="field-hint">Reading and listening stop when the time is used up. The account password allows 30 more minutes.</p>
         </div>
+        {rating === "kids" && (
+          <div className="field">
+            <label className="field-label" htmlFor="weekly-goal">
+              Weekly reading goal
+            </label>
+            <select
+              id="weekly-goal"
+              className="field-input"
+              value={weeklyGoal ?? ""}
+              aria-describedby="weekly-goal-hint"
+              onChange={(e) => setWeeklyGoal(e.target.value ? Number(e.target.value) : null)}
+            >
+              {weeklyGoalOptions.map((o) => (
+                <option key={o.label} value={o.value ?? ""}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <p className="field-hint" id="weekly-goal-hint">
+              Reading and listening over the last 7 days. {name.trim() || "They"} can see how close they are in Goals, and you can in Account → Family.
+            </p>
+          </div>
+        )}
       </fieldset>
 
       {needsPassword && (

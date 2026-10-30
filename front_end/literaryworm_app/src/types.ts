@@ -160,6 +160,8 @@ export interface Profile {
   lockedUntil: number | null;
   favoriteGenres: string[];
   dailyLimitMinutes: number | null;
+  /** Kids profiles: how long a grown-up wants them to read or listen each week, in minutes. */
+  weeklyGoalMinutes: number | null;
   kidsConsent: boolean;
 }
 

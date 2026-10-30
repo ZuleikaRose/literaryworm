@@ -129,6 +129,7 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
     lockedUntil: null,
     favoriteGenres: [],
     dailyLimitMinutes: null,
+    weeklyGoalMinutes: null,
     kidsConsent: input.ageRating === "kids",
     ...input,
     hasPin: input.hasPin ?? Boolean(input.pin),
@@ -163,7 +164,7 @@ function demoReadingDays(now: number): Record<string, ReadingDay> {
 export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
-  const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60 });
+  const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60, weeklyGoalMinutes: 120 });
   const now = Date.now();
   const averyData: ProfileData = {
     ...emptyProfileData(),

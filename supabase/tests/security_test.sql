@@ -608,6 +608,7 @@ select pg_temp.expect_error($$update public.gift_codes set redeemed_at = now()$$
 select pg_temp.expect_error($$insert into public.gift_codes (code, plan_id, months, amount_cents, buyer_id, stripe_checkout_session_id) values ('CDEFGHJKLMNPQRST', 'premium', 12, 1, '00000000-0000-0000-0000-00000000000a', 'cs_free')$$, 'making a gift from the browser');
 select pg_temp.expect_error($$update public.subscriptions set gift_until = now() + interval '1 year'$$, 'giving yourself free months');
 select pg_temp.expect_error($$update public.subscriptions set switch_to_monthly = 'basic'$$, 'scheduling monthly billing from the browser');
+select pg_temp.expect_error($$update public.reader_profiles set weekly_goal_minutes = 60$$, 'setting a Kids weekly goal without the account password');
 reset role;
 reset request.jwt.claims;
 delete from public.gift_codes where stripe_checkout_session_id in ('cs_test_gift_a', 'cs_test_gift_b');
