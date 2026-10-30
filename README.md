@@ -383,5 +383,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Who's who: a spoiler-free list of the characters met so far in a public-domain book, written by Claude from the text up to the reader's chapter and kept per chapter (migrations 3800–3801) | Done    |
 | —    | What's new: a public page of every feature, fix and update, written by editors and developers in the app, and a monthly email of the major ones for members who opt in, with one-click unsubscribe (migrations 3900–3903) | Done    |
 | —    | More genres: Fantasy, Mystery, Thriller, Romance, Classics, Historical Fiction, Young Adult, Children's, Biography & Memoir, History, Science, Self-Help and Poetry, on Home and in Search | Done    |
+| —    | Plan limits enforced: monthly audiobook hours for the household (the player pauses at the limit) and offline devices per plan (checked by the database, freeable in Account); staff memberships in the Terms; the late cancel and promo price checked against a Stripe sandbox subscription (migrations 4100–4103) | Done    |
+| —    | Favourite genres from all nineteen, Home rows for favourites beyond the six, and sample titles tagged with the new genres | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

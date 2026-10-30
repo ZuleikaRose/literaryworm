@@ -78,6 +78,8 @@ The app was then renamed LiteraryWorm and moved to www.literaryworm.com (the app
 
 Later, thirteen more genres were added beside the brief's six (Fantasy, Mystery, Thriller, Romance, Classics, Historical Fiction, Young Adult, Children's, Biography & Memoir, History, Science, Self-Help, Poetry): one list in `src/data/genres.ts` (`shelf` marks the six with a Home row each) matched by `GENRES` and `GENRE_QUERIES` in the `books` function, with a plain-words fallback for each.
 
+Then the plan limits became real: the month's audiobook hours (counted for the household from `reading_days`, checked against the server's total, with listening counted by the clock so a background tab still counts) pause the player, and Read offline devices are counted by the database (`offline_devices`, `claim_offline_device()`), with places freed from Account. The Terms gained the limits and the staff-membership line; the late cancel (`cancel_at` a period on, one more full charge, then *Keep my membership* clearing it) and a repeating promo code were checked against a Stripe sandbox subscription. Favourite genres now come from the nineteen browse genres.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.
