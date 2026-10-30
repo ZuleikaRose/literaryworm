@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "feature",
+    "title": "A weekly reading report for Kids profiles",
+    "body": "Account → Family now shows how each Kids profile read this week: time, days read and books finished. Turn on Email me this every week to get it on Monday mornings.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "update",
     "title": "A tidier footer",
     "body": "The links at the foot of every page are now grouped under Explore, Help, Your privacy and Legal.",

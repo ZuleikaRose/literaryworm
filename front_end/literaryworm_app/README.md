@@ -145,3 +145,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Goals and streaks in the bell: `goalAlerts()` in `lib/goals.ts` (streak from 6 pm, close to the goal, goal reached), *Your reading* in `NotificationBell`; migration 4500 |
 | — | Search by author: `SearchParams.by` (`by=author`), `wordsMatch()` and `unfiltered()` in `lib/search.ts`, the author feed with `loose` in `lib/booksApi.ts`; migration 4501 |
 | — | Footer in four labelled columns (`components/Footer.tsx`: Explore, Help, Your privacy, Legal; footer pages placed by slug); migration 4502 |
+| — | Kids reading report: `kidWeek()` in `lib/kidsReport.ts`, *Kids reading this week* in Account → Family with *Email me this every week* (`account_private.kids_report_emails`, `setKidsReportEmails()`), `/unsubscribe?l=kids-report`; the `kids-report` function; migrations 4600–4602 |

@@ -923,3 +923,36 @@
 .plan-move-up {
   margin: 14px 0 0;
 }
+
+/* Kids reading this week, under the family list. */
+.kids-report {
+  width: 100%;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.kids-report h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.kids-report-list {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.kids-report-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.kids-report-list p {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}

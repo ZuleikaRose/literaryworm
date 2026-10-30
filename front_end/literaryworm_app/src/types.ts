@@ -127,6 +127,8 @@ export interface Account {
   authorEmails: boolean;
   /** The monthly What's new email of major changes (members only; off until they turn it on). */
   updateEmails: boolean;
+  /** The weekly email of how the Kids profiles read (members only; off until they turn it on). */
+  kidsReportEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */

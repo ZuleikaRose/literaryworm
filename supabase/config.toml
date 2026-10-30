@@ -66,6 +66,11 @@ verify_jwt = false
 # checks the Authorization header against the author_news_secret kept in Vault instead.
 verify_jwt = false
 
+[functions.kids-report]
+# Called by pg_cron on Monday and Tuesday mornings, which sends no Supabase token: the function
+# checks the Authorization header against the kids_report_secret kept in Vault instead.
+verify_jwt = false
+
 # Two-step sign-in with an authenticator app (on by default on hosted projects; the CLI's default is off).
 [auth.mfa.totp]
 enroll_enabled = true

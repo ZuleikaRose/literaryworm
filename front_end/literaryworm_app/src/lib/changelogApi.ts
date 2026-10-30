@@ -50,15 +50,18 @@ export async function deleteEntry(id: string): Promise<void> {
   if (!data?.length) throw new AccountError("Only editors, developers and admins can change What's new.");
 }
 
-/** Turns off the monthly email for the account a signed link is for (the unsubscribe function). */
-export async function unsubscribe(token: string): Promise<void> {
+/** The optional emails an unsubscribe link can turn off (the unsubscribe function's lists). */
+export type EmailList = "whats-new" | "kids-report";
+
+/** Turns off one optional email for the account a signed link is for (the unsubscribe function). */
+export async function unsubscribe(token: string, list: EmailList = "whats-new"): Promise<void> {
   if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new AccountError("Unsubscribing needs the LiteraryWorm backend. Turn the email off in Account → Preferences.");
   let res: Response;
   try {
     res = await fetch(`${SUPABASE_URL}/functions/v1/unsubscribe`, {
       method: "POST",
       headers: { apikey: PUBLISHABLE_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ token, list }),
     });
   } catch {
     throw new AccountError("We couldn't reach LiteraryWorm. Check your connection and try again.");

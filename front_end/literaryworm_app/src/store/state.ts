@@ -195,6 +195,12 @@ export function demoHousehold(): Household {
   };
   const miaData: ProfileData = {
     ...emptyProfileData(),
+    // A little reading this week, for the grown-ups' Kids report in Account → Family.
+    readingDays: {
+      [today(new Date(now - 86_400_000))]: { seconds: 25 * 60, listened: 15 * 60, finished: 0 },
+      [today(new Date(now - 2 * 86_400_000))]: { seconds: 30 * 60, listened: 30 * 60, finished: 0 },
+      [today(new Date(now - 4 * 86_400_000))]: { seconds: 20 * 60, listened: 0, finished: 1, books: ["peter-pan"] },
+    },
     library: Object.fromEntries([catalogEntry("the-wild-robot", "reading", now - 2 * 86_400_000)]),
     progress: {
       "the-wild-robot": {
@@ -221,6 +227,7 @@ export function demoHousehold(): Household {
       releaseEmails: true,
       authorEmails: true,
       updateEmails: false,
+      kidsReportEmails: false,
       isDemo: true,
       status: "active",
       endsAt: null,

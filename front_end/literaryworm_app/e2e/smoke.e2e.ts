@@ -342,6 +342,21 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows the Kids profiles' week in Family, with the weekly email off until turned on", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#family");
+    const report = page.locator(".kids-report");
+    await report.getByRole("heading", { name: "Kids reading this week" }).waitFor();
+    await report.getByText("1 h 15 min on 3 days (45 min of it listening)").waitFor();
+    await report.getByText("Finished 1 book: Peter Pan").waitFor();
+    const toggle = report.getByRole("switch", { name: /Email me this every week/ });
+    await expect(toggle.isChecked()).resolves.toBe(false);
+    await toggle.click();
+    await page.getByText("We'll email you the Kids reading report every Monday.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("turns the weekly author email off in Preferences", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -393,5 +393,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Goals and streaks in the bell: a streak about to end (from 6 pm), one or two books from this year's goal, and the goal reached (migration 4500) | Done    |
 | —    | Search by author as well as title (`by=author`), through the `books` function's author mode (migration 4501) | Done    |
 | —    | The footer's links grouped under Explore, Help, Your privacy and Legal (migration 4502) | Done    |
+| —    | Kids reading report: each Kids profile's week in Account → Family, and an opt-in Monday email (`kids-report` function, pg_cron; Privacy Policy updated) (migrations 4600–4602) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

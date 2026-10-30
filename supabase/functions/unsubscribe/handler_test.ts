@@ -10,16 +10,38 @@ const OTHER = "00000000-0000-0000-0000-00000000000b";
 
 function setup(overrides: Partial<Deps> = {}) {
   const off: string[] = [];
+  const lists: string[] = [];
   const deps: Deps = {
     key: () => Promise.resolve(KEY),
-    turnOff: (id) => {
+    turnOff: (id, list) => {
       off.push(id);
+      lists.push(list);
       return Promise.resolve();
     },
     ...overrides,
   };
-  return { deps, off };
+  return { deps, off, lists };
 }
+
+Deno.test("a link names which email it turns off: What's new unless it says the Kids report", async () => {
+  const token = await unsubscribeToken(USER, KEY);
+  const plain = setup();
+  assertEquals((await handle(oneClick(token), plain.deps)).status, 200);
+  assertEquals(plain.lists, ["whats-new"]);
+
+  const kids = setup();
+  const req = new Request(`http://local/unsubscribe?t=${encodeURIComponent(token)}&l=kids-report`, { method: "POST", body: "List-Unsubscribe=One-Click" });
+  assertEquals((await handle(req, kids.deps)).status, 200);
+  assertEquals(kids.lists, ["kids-report"]);
+
+  const site = setup();
+  assertEquals((await handle(fromSite({ token, list: "kids-report" }), site.deps)).status, 200);
+  assertEquals(site.lists, ["kids-report"]);
+
+  const bad = setup();
+  assertEquals((await handle(fromSite({ token, list: "marketing" }), bad.deps)).status, 400);
+  assertEquals(bad.off, []);
+});
 
 const oneClick = (token: string) =>
   new Request(`http://local/unsubscribe?t=${encodeURIComponent(token)}`, {

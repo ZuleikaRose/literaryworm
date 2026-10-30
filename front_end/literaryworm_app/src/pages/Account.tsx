@@ -13,6 +13,7 @@ import { TeamAccess } from "../components/TeamAccess";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
+import { getBook } from "../data/books";
 import { formatPrice, perPeriod, planById, priceFor } from "../data/plans";
 import {
   AccountError,
@@ -28,7 +29,10 @@ import {
   twoStepIsOn,
 } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
+import { readingTime } from "../lib/goals";
+import { kidWeek } from "../lib/kidsReport";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
+import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
 import { useTitle } from "../lib/useTitle";
 import { validateNewPassword } from "../lib/validation";
@@ -856,7 +860,7 @@ function FamilySection() {
   const { state } = useStore();
   const limitLabel = (minutes: number | null) => dailyLimitOptions.find((o) => o.value === minutes)?.label ?? `${minutes} minutes`;
   return (
-    <Section id="family" title="Family" intro="Profiles, Kids consent, PIN locks and daily limits.">
+    <Section id="family" title="Family" intro="Profiles, Kids consent, PIN locks, daily limits and how the Kids profiles are reading.">
       <ul className="family-list">
         {state.profiles.map((p) => (
           <li key={p.id}>
@@ -881,7 +885,83 @@ function FamilySection() {
       <Link className="secondary-button" to="/profiles?manage=1">
         Manage profiles
       </Link>
+      <KidsReport />
     </Section>
+  );
+}
+
+/**
+ * The Kids profiles' last 7 days, for the grown-ups: time, days read and books finished, from
+ * each profile's reading days. Members can also have it emailed on Monday mornings.
+ */
+function KidsReport() {
+  const { state } = useStore();
+  const { account, remote, setKidsReportEmails } = useAccount();
+  const { busy, error, done, attempt } = useAttempt();
+  const hintId = useId();
+  const [day] = useState(() => today());
+  const kids = state.profiles.filter((p) => p.ageRating === "kids");
+  if (kids.length === 0 || !account) return null;
+
+  return (
+    <section className="kids-report" aria-labelledby="kids-report-title">
+      <h3 id="kids-report-title">Kids reading this week</h3>
+      <p className="field-hint">The last 7 days, today included.</p>
+      <ul className="kids-report-list">
+        {kids.map((p) => {
+          const week = kidWeek(state.profileData[p.id]?.readingDays ?? {}, day);
+          const titles = week.books.map((id) => getBook(id)?.title).filter((t): t is string => Boolean(t));
+          return (
+            <li key={p.id}>
+              <Avatar name={p.name} avatar={p.avatar} size={36} />
+              <div>
+                <strong>{p.name}</strong>
+                {week.seconds < 60 ? (
+                  <p>No reading or listening yet this week.</p>
+                ) : (
+                  <p>
+                    {readingTime(week.seconds)} on {week.daysRead === 1 ? "1 day" : `${week.daysRead} days`}
+                    {week.listened >= 60 && ` (${readingTime(week.listened)} of it listening)`}
+                  </p>
+                )}
+                {week.finished > 0 && (
+                  <p>
+                    Finished {week.finished === 1 ? "1 book" : `${week.finished} books`}
+                    {titles.length > 0 && `: ${titles.join(", ")}`}
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <label className="switch-row">
+        <span>
+          <strong>Email me this every week</strong>
+          <small id={hintId}>
+            {remote
+              ? "On Monday mornings: last week's reading for each Kids profile. Off until you turn it on."
+              : "The demo doesn't send emails. Members can get this every Monday morning."}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={hintId}
+          checked={account.kidsReportEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setKidsReportEmails(on),
+              on ? "We'll email you the Kids reading report every Monday." : "No more weekly Kids reports.",
+            );
+          }}
+        />
+      </label>
+      <Feedback error={error} done={done} />
+    </section>
   );
 }
 

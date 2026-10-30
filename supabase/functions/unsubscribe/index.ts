@@ -3,7 +3,10 @@
 import { clientIp } from "../_shared/http.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { serviceClient } from "../_shared/supabase.ts";
-import { handle } from "./handler.ts";
+import { handle, type List } from "./handler.ts";
+
+/** The account_private column each optional email is switched by. */
+const COLUMN: Record<List, string> = { "whats-new": "update_emails", "kids-report": "kids_report_emails" };
 
 Deno.serve((req) =>
   handle(req, {
@@ -12,8 +15,8 @@ Deno.serve((req) =>
       if (error || typeof data !== "string" || !data) throw error ?? new Error("No unsubscribe key in Vault");
       return data;
     },
-    async turnOff(userId) {
-      const { error } = await serviceClient().from("account_private").update({ update_emails: false }).eq("user_id", userId);
+    async turnOff(userId, list) {
+      const { error } = await serviceClient().from("account_private").update({ [COLUMN[list]]: false }).eq("user_id", userId);
       if (error) throw error;
     },
     // Plenty for a person or a mail app; stops anyone trying links in bulk.

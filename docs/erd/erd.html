@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4402, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4602, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -115,11 +115,12 @@
             ["", "release_emails", "boolean (on)"],
             ["", "author_emails", "boolean (on)"],
             ["", "update_emails", "boolean (off)"],
+            ["", "kids_report_emails", "boolean (off)"],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails and update_emails only (column grants).",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails, update_emails and kids_report_emails only (column grants).",
         },
         {
           id: "plans", color: colors.billing, x: 0, y: 770, sub: "catalog",
@@ -508,6 +509,15 @@
           note: "Which accounts have had which month's What's new email, so each gets it once (claim_whats_new_emails, monthly via pg_cron). RLS on, no browser access.",
         },
         {
+          id: "kids_report_sends", color: colors.server, x: 420, y: 5160, sub: "server only",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "week", "date (Monday)"],
+            ["", "sent_at", "timestamptz"],
+          ],
+          note: "Which accounts have had which week's Kids reading report, so each gets it once (claim_kids_report_emails, Mondays via pg_cron). RLS on, no browser access.",
+        },
+        {
           id: "club_members", color: colors.reading, x: 1260, y: 2050, sub: "up to 50 a club",
           cols: [
             ["pk fk", "club_id", "uuid"],
@@ -724,6 +734,7 @@
         ["household_challenges", "user_id", "auth.users", "id", "N : 1"],
         ["changelog_entries", "created_by", "auth.users", "id", "N : 1"],
         ["whats_new_sends", "user_id", "auth.users", "id", "N : 1"],
+        ["kids_report_sends", "user_id", "auth.users", "id", "N : 1"],
         ["challenge_participants", "challenge_id", "household_challenges", "id", "N : 1 (pair)"],
         ["challenge_participants", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["release_reminders", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

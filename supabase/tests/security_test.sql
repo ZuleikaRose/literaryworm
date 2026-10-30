@@ -658,6 +658,22 @@ select pg_temp.expect_error('select public.unsubscribe_secret()', 'reading the u
 select pg_temp.check((select bool_and(not update_emails) from public.account_private), 'the monthly email starts off');
 reset role;
 reset request.jwt.claims;
+
+-- Kids reading report: the setting is the member's own; the send list and the week are server only
+set role anon;
+select pg_temp.expect_error('select * from public.kids_report_sends', 'anon reading who got the Kids report');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select bool_and(not kids_report_emails) from public.account_private), 'the Kids report email starts off');
+select pg_temp.expect_error('select * from public.kids_report_sends', 'a member reading the Kids report send list');
+select pg_temp.expect_error('select * from public.claim_kids_report_emails(current_date, 10)', 'claiming Kids report emails from the browser');
+select pg_temp.expect_error($$select * from public.kids_report_week('00000000-0000-0000-0000-00000000000a', current_date - 6, current_date)$$, 'reading another account''s Kids week');
+select pg_temp.expect_error('select public.kids_report_secret()', 'reading the Kids report cron key from the browser');
+reset role;
+reset request.jwt.claims;
+select pg_temp.check(not has_function_privilege('authenticated', 'private.call_kids_report()', 'execute'), 'only the cron job calls the kids-report function');
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_whats_new()', 'execute'), 'only the cron job calls the whats-new function');
 
 -- Household challenges: the account's profiles only ------------------------------------
