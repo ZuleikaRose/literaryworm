@@ -1,5 +1,7 @@
 # Checks every push and pull request to main: the app builds, lints and passes its unit tests
 # (Jest), then its end-to-end smoke tests (Jest driving Chromium through the Playwright library).
+# Separately, the Supabase Edge Functions type-check and pass their Deno tests (auth, the
+# database and Stripe are stubbed, so that job needs no settings either).
 # The e2e run serves the app with Vite in "e2e" mode, with no Supabase settings, so it needs no
 # secrets: it uses the demo household and the sample catalog.
 name: CI
@@ -34,3 +36,16 @@ jobs:
       # The Chromium that matches the playwright-core version in package.json.
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:e2e
+
+  functions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      # Every function's entry point type-checks, with the shared code it imports.
+      - run: deno check supabase/functions/*/index.ts
+      # The functions' tests run offline: auth, the database and Stripe are stubbed.
+      - run: deno test --allow-env supabase/functions
