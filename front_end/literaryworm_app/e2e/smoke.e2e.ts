@@ -133,6 +133,21 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("nudges the demo's streak in the bell in the evening, and links to Goals", async () => {
+    const { page, errors } = await newPage();
+    // 8 pm today: the demo has read every day up to yesterday, and nothing yet today.
+    const evening = new Date();
+    evening.setHours(20, 0, 0, 0);
+    await page.clock.setFixedTime(evening);
+    await signInDemo(page);
+    await page.getByRole("button", { name: /^Notifications/ }).click();
+    const panel = page.getByRole("region", { name: "Notifications" });
+    await panel.getByText("Your reading").waitFor();
+    await panel.getByRole("link", { name: /-day streak ends tonight/ }).click();
+    await page.waitForURL(/view=goals/);
+    expect(errors()).toEqual([]);
+  });
+
   it("reads a public-domain book and turns the page", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

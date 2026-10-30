@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Goals and streaks in the bell",
+    "body": "The bell now tells you when a streak of three days or more ends tonight (from 6 pm, until you read), when you're one or two books from this year's goal, and when you reach it.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Pay yearly, two months free",
     "body": "Every plan can now be paid yearly, at ten times the monthly price. Choose Yearly on Plans, or switch from monthly at any time: your year starts straight away, with the unused part of the month taken off. The bell reminds you 30 days before your year renews.",
     "major": true

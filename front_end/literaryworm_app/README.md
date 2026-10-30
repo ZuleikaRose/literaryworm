@@ -142,3 +142,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Move up a plan in one tap: `nextPlanUp()` and `planCheckoutPath()` in `lib/planLimits.ts`, used by the used-up message, the bell alert, `PlanUsage` and `OfflineBook`; migration 4300 |
 | — | What's new: a *Minor* filter (every change not marked major) beside *Major* |
 | — | Yearly billing: `Plan.yearlyPrice`, `priceFor()` in `data/plans.ts`, the Monthly/Yearly choice on Plans (`?billing=yearly`), `Account.billingInterval` and `renewsAt`, `renewalReminder()` in `lib/billing.ts` on the bell; migrations 4400–4402 |
+| — | Goals and streaks in the bell: `goalAlerts()` in `lib/goals.ts` (streak from 6 pm, close to the goal, goal reached), *Your reading* in `NotificationBell`; migration 4500 |

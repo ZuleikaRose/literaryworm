@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import type { ReadingDay } from "../types";
-import { booksFinishedIn, expectedByNow, monthSummaries, readingTime, streaks } from "./goals";
+import { booksFinishedIn, expectedByNow, goalAlerts, monthSummaries, readingTime, streaks } from "./goals";
 
 const day = (seconds: number, finished = 0): ReadingDay => ({ seconds, finished });
 
@@ -72,4 +72,35 @@ it("writes reading time", () => {
   expect(readingTime(300)).toBe("5 min");
   expect(readingTime(59)).toBe("0 min");
   expect(readingTime(0)).toBe("0 min");
+});
+
+describe("goal alerts for the bell", () => {
+  const day = (seconds: number, finished = 0) => ({ seconds, finished });
+  const streakDays = { "2026-10-27": day(600), "2026-10-28": day(600), "2026-10-29": day(600) };
+
+  it("nudges a streak of 3 days or more from 6 pm, until the profile reads today", () => {
+    expect(goalAlerts(streakDays, {}, "2026-10-30", new Date(2026, 9, 30, 17, 59))).toEqual([]);
+    const [nudge] = goalAlerts(streakDays, {}, "2026-10-30", new Date(2026, 9, 30, 19));
+    expect(nudge).toEqual({ kind: "streak", days: 3, at: new Date(2026, 9, 30, 18).getTime() });
+    expect(goalAlerts({ ...streakDays, "2026-10-30": day(120) }, {}, "2026-10-30", new Date(2026, 9, 30, 19))).toEqual([]);
+    const { "2026-10-27": _, ...twoDays } = streakDays;
+    expect(goalAlerts(twoDays, {}, "2026-10-30", new Date(2026, 9, 30, 19))).toEqual([]);
+  });
+
+  it("says when this year's goal is 2 books or fewer away, from the day that became true", () => {
+    const days = { "2026-03-01": day(600, 5), "2026-10-02": day(600, 3), "2026-10-20": day(600, 1) };
+    expect(goalAlerts(days, { 2026: 10 }, "2026-10-30", new Date(2026, 9, 30, 12))).toEqual([
+      { kind: "close", left: 1, goal: 10, year: 2026, at: new Date(2026, 9, 2).getTime() },
+    ]);
+    expect(goalAlerts(days, { 2026: 20 }, "2026-10-30", new Date(2026, 9, 30, 12))).toEqual([]);
+    // Last year's goal and books don't count.
+    expect(goalAlerts(days, { 2025: 10 }, "2026-10-30", new Date(2026, 9, 30, 12))).toEqual([]);
+  });
+
+  it("celebrates the goal for a week from the day it was reached", () => {
+    const days = { "2026-10-01": day(600, 8), "2026-10-25": day(600, 2) };
+    const reached = { kind: "reached", goal: 10, year: 2026, at: new Date(2026, 9, 25).getTime() };
+    expect(goalAlerts(days, { 2026: 10 }, "2026-10-30", new Date(2026, 9, 30, 12))).toEqual([reached]);
+    expect(goalAlerts(days, { 2026: 10 }, "2026-11-02", new Date(2026, 10, 2, 12))).toEqual([]);
+  });
 });

@@ -6,6 +6,8 @@ import * as accountApi from "./accountApi";
 import { onClubPost } from "./clubEvents";
 import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notifications";
 import { renewalReminder } from "./billing";
+import { goalAlerts } from "./goals";
+import { today } from "./reading";
 import { listeningAlert } from "./planLimits";
 import { useClubs } from "./useClubs";
 
@@ -25,6 +27,8 @@ export function useNotifications() {
   const withClubs = Boolean(profile && profile.ageRating !== "kids");
   const remote = Boolean(state.account?.userId);
   const [news, setNews] = useState<ClubNews[]>([]);
+  // The time goals and the renewal are judged at: when the bell mounts, and again when the tab comes back.
+  const [now, setNow] = useState(() => Date.now());
 
   const latest = useRef(progress);
   useEffect(() => {
@@ -45,7 +49,9 @@ export function useNotifications() {
     void refresh();
     const stop = onClubPost(() => void refresh());
     const onVisible = () => {
-      if (document.visibilityState === "visible") void refresh();
+      if (document.visibilityState !== "visible") return;
+      void refresh();
+      setNow(Date.now());
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
@@ -73,9 +79,13 @@ export function useNotifications() {
   );
   // A yearly membership's renewal, 30 days ahead; for the grown-ups too.
   const account = state.account;
-  const [now] = useState(() => Date.now());
   const renewal = useMemo(() => (withClubs ? renewalReminder(account, now) : null), [withClubs, account, now]);
-  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, renewal ? [renewal] : []);
+  // Streak about to end, close to this year's goal, goal reached: every profile, Kids included.
+  const goals = useMemo(
+    () => goalAlerts(data.readingDays, data.readingGoals, today(new Date(now)), new Date(now)),
+    [data.readingDays, data.readingGoals, now],
+  );
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [...goals, ...(renewal ? [renewal] : [])]);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -88,5 +98,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, listening, renewal, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh };
 }

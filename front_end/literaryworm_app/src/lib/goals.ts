@@ -80,3 +80,56 @@ export function readingTime(seconds: number): string {
   const m = minutes % 60;
   return h > 0 ? `${h} h${m ? ` ${m} min` : ""}` : `${m} min`;
 }
+
+/** A streak this long or longer gets a nudge in the bell when it's about to end. */
+export const STREAK_NUDGE_DAYS = 3;
+/** The nudge starts at this local hour, when there's still time to read. */
+export const STREAK_NUDGE_HOUR = 18;
+/** How many books from the goal counts as close. */
+export const GOAL_CLOSE_BOOKS = 2;
+/** How long reaching the goal stays in the bell. */
+export const GOAL_REACHED_DAYS = 7;
+
+export type GoalAlert =
+  | { kind: "streak"; days: number; at: number }
+  | { kind: "close"; left: number; goal: number; year: number; at: number }
+  | { kind: "reached"; goal: number; year: number; at: number };
+
+/** Local midnight of a YYYY-MM-DD day, in ms. */
+const localMidnight = (day: string) => new Date(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1, Number(day.slice(8, 10))).getTime();
+
+/**
+ * What the bell says about a profile's goals and streak (`today` is the local date, `now` the
+ * time): a streak of 3 days or more that ends tonight unless the profile reads (from 6 pm, until
+ * it does); this year's goal within 2 books (from the day that became true); and the goal
+ * reached (for a week from that day). Each has the time it started, so the bell can mark it new.
+ */
+export function goalAlerts(days: Record<string, ReadingDay>, goals: Record<number, number>, today: string, now: Date): GoalAlert[] {
+  const alerts: GoalAlert[] = [];
+  const readToday = (days[today]?.seconds ?? 0) >= STREAK_SECONDS;
+  const { current } = streaks(days, today);
+  if (!readToday && current >= STREAK_NUDGE_DAYS && now.getHours() >= STREAK_NUDGE_HOUR) {
+    alerts.push({ kind: "streak", days: current, at: localMidnight(today) + STREAK_NUDGE_HOUR * 3_600_000 });
+  }
+
+  const year = Number(today.slice(0, 4));
+  const goal = goals[year];
+  if (goal) {
+    // The days books were finished this year, in order, to find when each milestone was passed.
+    let finished = 0;
+    let closeOn: string | null = null;
+    let reachedOn: string | null = null;
+    for (const [day, d] of Object.entries(days).filter(([day, d]) => day.startsWith(`${year}-`) && day <= today && d.finished > 0).sort(([a], [b]) => a.localeCompare(b))) {
+      finished += d.finished;
+      if (!closeOn && goal - finished <= GOAL_CLOSE_BOOKS) closeOn = day;
+      if (!reachedOn && finished >= goal) reachedOn = day;
+    }
+    if (reachedOn) {
+      const at = localMidnight(reachedOn);
+      if (now.getTime() - at < GOAL_REACHED_DAYS * DAY_MS) alerts.push({ kind: "reached", goal, year, at });
+    } else if (closeOn && goal > GOAL_CLOSE_BOOKS) {
+      alerts.push({ kind: "close", left: goal - finished, goal, year, at: localMidnight(closeOn) });
+    }
+  }
+  return alerts;
+}

@@ -16,7 +16,7 @@ import { Icon } from "./Icon";
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, listening, renewal, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, listening, renewal, goals, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -32,7 +32,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && goals.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
 
   return (
@@ -52,10 +52,41 @@ export function NotificationBell() {
           {empty ? (
             <p className="bell-empty">
               Nothing new. Books you set <strong>Remind me</strong> on show up here when they come out, and so do new books from
-              authors you follow{withClubs ? " and new posts in your book clubs" : ""}.
+              authors you follow{withClubs ? ", new posts in your book clubs" : ""} and news about your goals and streak.
             </p>
           ) : (
             <>
+              {goals.length > 0 && (
+                <>
+                  <p className="popover-label">Your reading</p>
+                  <ul className="bell-list" role="list">
+                    {goals.map((g) => (
+                      <li key={g.kind}>
+                        <Link className="bell-item" to="/library?view=goals" onClick={() => close(false)}>
+                          <Icon name={g.kind === "streak" ? "clock" : "star"} size={18} />
+                          <span>
+                            <strong>
+                              {g.kind === "streak"
+                                ? `Your ${g.days}-day streak ends tonight`
+                                : g.kind === "close"
+                                  ? `${g.left === 1 ? "1 book" : `${g.left} books`} from your ${g.year} goal`
+                                  : `You reached your ${g.year} goal`}
+                              {isNewAlert(g.at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>
+                              {g.kind === "streak"
+                                ? "Read or listen for a minute today to keep it going."
+                                : g.kind === "close"
+                                  ? `${g.goal - g.left} of ${g.goal} books finished this year.`
+                                  : `${g.goal} ${g.goal === 1 ? "book" : "books"} finished. Well done! Set a bigger goal in Goals if you like.`}
+                            </small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
               {(listening || renewal) && (
                 <>
                   <p className="popover-label">Your plan</p>
