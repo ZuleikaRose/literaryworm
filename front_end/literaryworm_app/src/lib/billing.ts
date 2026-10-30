@@ -1,6 +1,6 @@
 /** Billing dates, amounts and promo codes, shown on Plans and Account. */
 
-import type { Account, BillingInterval } from "../types";
+import type { Account, BillingInterval, PlanId } from "../types";
 import type { MembershipDiscount } from "./accountApi";
 
 /** 1 → "1st", 22 → "22nd". */
@@ -59,6 +59,8 @@ export interface RenewalReminder {
   renewsAt: string;
   /** When the reminder started showing (ms): the bell counts it as new after this. */
   at: number;
+  /** Moving to monthly billing on that day instead: the plan it moves to. */
+  switchToMonthly: PlanId | null;
 }
 
 /**
@@ -66,14 +68,14 @@ export interface RenewalReminder {
  * it's set to renew (not ending, paused, on a gift or complimentary). Monthly plans get none.
  */
 export function renewalReminder(
-  account: Pick<Account, "billingInterval" | "renewsAt" | "endsAt" | "status" | "complimentary" | "giftUntil"> | null,
+  account: Pick<Account, "billingInterval" | "renewsAt" | "endsAt" | "status" | "complimentary" | "giftUntil" | "switchToMonthly"> | null,
   now = Date.now(),
 ): RenewalReminder | null {
   if (!account || account.billingInterval !== "year" || !account.renewsAt) return null;
   if (account.endsAt || account.status !== "active" || account.complimentary || account.giftUntil) return null;
   const renews = Date.parse(account.renewsAt);
   const at = renews - RENEWAL_REMINDER_DAYS * 86_400_000;
-  return now >= at && now < renews ? { renewsAt: account.renewsAt, at } : null;
+  return now >= at && now < renews ? { renewsAt: account.renewsAt, at, switchToMonthly: account.switchToMonthly ?? null } : null;
 }
 
 export const longDate = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });

@@ -85,15 +85,20 @@ describe("the yearly renewal reminder", () => {
     status: "active" as const,
     complimentary: false,
     giftUntil: null,
+    switchToMonthly: null,
   };
   const day = 86_400_000;
   const renews = Date.parse(yearly.renewsAt);
 
   it("shows from 30 days before the renewal until the day", () => {
     expect(renewalReminder(yearly, renews - 31 * day)).toBeNull();
-    expect(renewalReminder(yearly, renews - 30 * day)).toEqual({ renewsAt: yearly.renewsAt, at: renews - 30 * day });
+    expect(renewalReminder(yearly, renews - 30 * day)).toEqual({ renewsAt: yearly.renewsAt, at: renews - 30 * day, switchToMonthly: null });
     expect(renewalReminder(yearly, renews - day)).not.toBeNull();
     expect(renewalReminder(yearly, renews)).toBeNull();
+  });
+
+  it("says when the renewal moves to monthly billing instead", () => {
+    expect(renewalReminder({ ...yearly, switchToMonthly: "basic" }, renews - day)?.switchToMonthly).toBe("basic");
   });
 
   it("isn't shown for monthly, ending, paused, gifted or complimentary memberships", () => {

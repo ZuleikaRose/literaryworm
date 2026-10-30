@@ -332,19 +332,21 @@ interface SubscriptionRow {
   complimentary: boolean;
   stripe_linked: boolean;
   gift_until: string | null;
+  switch_to_monthly?: string | null;
 }
 
-const SUBSCRIPTION_COLUMNS = "plan_id, billing_interval, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until";
+const SUBSCRIPTION_COLUMNS =
+  "plan_id, billing_interval, billing_day, status, cancel_at_period_end, current_period_end, cancel_at, complimentary, stripe_linked, gift_until, switch_to_monthly";
 
 type PlanFields = Pick<
   Account,
-  "planId" | "billingDay" | "billingInterval" | "renewsAt" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil"
+  "planId" | "billingDay" | "billingInterval" | "renewsAt" | "status" | "endsAt" | "complimentary" | "stripeLinked" | "pastDue" | "giftUntil" | "switchToMonthly"
 >;
 
 /** The plan fields of a freshly loaded account, to update the store with. */
 export function planFields(a: Account): PlanFields {
-  const { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil } = a;
-  return { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil };
+  const { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil, switchToMonthly } = a;
+  return { planId, billingDay, billingInterval, renewsAt, status, endsAt, complimentary, stripeLinked, pastDue, giftUntil, switchToMonthly };
 }
 
 /** The account's plan fields from a subscriptions row (or none yet). */
@@ -363,6 +365,8 @@ function fromSubscription(row: SubscriptionRow | null): PlanFields {
     pastDue: status === "past_due",
     // Only while the free months last.
     giftUntil: row?.gift_until && new Date(row.gift_until) > new Date() ? row.gift_until : null,
+    // Only for a yearly membership still waiting for its renewal.
+    switchToMonthly: row?.billing_interval === "year" && row.switch_to_monthly ? (row.switch_to_monthly as PlanId) : null,
   };
 }
 

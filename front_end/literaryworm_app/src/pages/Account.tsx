@@ -177,6 +177,10 @@ export default function Account() {
 
 // --- Plan and billing ----------------------------------------------------------
 
+/** The plan a yearly membership moves to at renewal, while it's still set to renew. */
+const yearlySwitch = (account: AccountDetails) =>
+  account.billingInterval === "year" && account.switchToMonthly && !account.endsAt ? planById.get(account.switchToMonthly) : undefined;
+
 function PlanSection({ account }: { account: AccountDetails }) {
   const { changeMembership } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
@@ -191,6 +195,13 @@ function PlanSection({ account }: { account: AccountDetails }) {
     attempt(async () => {
       window.location.assign(await paymentMethodUrl());
     });
+  // A yearly membership moving to monthly billing at renewal, and what it moves to.
+  const switchPlan = yearlySwitch(account);
+  const keepYearly = () =>
+    attempt(async () => {
+      await choosePlan(account.planId!, account.billingDay ?? 1, false, "year");
+      dispatch({ type: "updateAccount", patch: { switchToMonthly: null } });
+    }, "You'll stay on yearly billing. Your membership renews for another year as before.");
   const addPaymentMethod = () =>
     attempt(async () => {
       const { url } = await choosePlan(account.planId!, account.billingDay ?? Math.min(new Date().getDate(), 28), false, account.billingInterval);
@@ -311,15 +322,19 @@ function PlanSection({ account }: { account: AccountDetails }) {
                   : "None: the plan ends instead"
                 : account.giftUntil
                   ? `None until ${nextCharge}: a gift. Then ${price} if a card is on file; without one, the membership ends that day.`
-                  : `${price} on ${nextCharge}`}
+                  : switchPlan
+                    ? `${formatPrice(switchPlan.price)} on ${nextCharge}, the first monthly charge`
+                    : `${price} on ${nextCharge}`}
           </dd>
         </div>
         <div>
           <dt>{yearly ? "Billing" : "Billing day"}</dt>
           <dd>
-            {yearly
-              ? `Yearly, renewing on ${nextCharge ?? "the date your year started"}`
-              : `The ${ordinal(account.billingDay ?? 1)} of each month`}
+            {switchPlan
+              ? `Yearly until ${nextCharge}, then monthly: ${switchPlan.name} at ${formatPrice(switchPlan.price)} a month, on that day each month`
+              : yearly
+                ? `Yearly, renewing on ${nextCharge ?? "the date your year started"}`
+                : `The ${ordinal(account.billingDay ?? 1)} of each month`}
           </dd>
         </div>
       </dl>
@@ -330,6 +345,19 @@ function PlanSection({ account }: { account: AccountDetails }) {
       {!yearly && billed && account.stripeLinked && account.status === "active" && !endsOn && (
         <p className="field-hint">
           <Link to="/plans?billing=yearly">Pay yearly instead</Link>: {formatPrice(plan.yearlyPrice)} a year, so two months are free.
+        </p>
+      )}
+      {switchPlan && (
+        <p className="field-hint">
+          You chose monthly billing from your renewal date. Changed your mind?{" "}
+          <button type="button" className="text-button" disabled={busy} onClick={keepYearly}>
+            Keep yearly billing
+          </button>
+        </p>
+      )}
+      {yearly && !switchPlan && billed && account.stripeLinked && account.status === "active" && !endsOn && (
+        <p className="field-hint">
+          <Link to="/plans?billing=monthly">Pay monthly instead</Link> from your renewal date. Nothing changes until then.
         </p>
       )}
       {account.isDemo && <p className="field-hint">The demo can't take payments, so no card is on file.</p>}

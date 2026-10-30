@@ -59,13 +59,15 @@ export interface Subscription {
   complimentary: boolean;
   /** The end of a gift's free months, while they last. */
   gift_until: string | null;
+  /** The plan a yearly membership moves to, monthly, at renewal (cancelling drops it). */
+  switch_to_monthly?: string | null;
   /** Set once the member pays through Stripe Checkout. */
   stripe_subscription_id: string | null;
   stripe_customer_id: string | null;
 }
 
 export type SubscriptionPatch = Partial<
-  Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end" | "cancel_at" | "billing_day" | "gift_until">
+  Pick<Subscription, "status" | "cancel_at_period_end" | "current_period_end" | "cancel_at" | "billing_day" | "gift_until" | "switch_to_monthly">
 >;
 
 export interface Gift {
@@ -212,6 +214,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
               cancel_at_period_end: true,
               current_period_end: nextBilling.toISOString(),
               cancel_at: ends.toISOString(),
+              // Stripe drops a scheduled move to monthly when a membership is cancelled.
+              switch_to_monthly: null,
             }),
           ),
         );

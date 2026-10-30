@@ -236,6 +236,7 @@ export function demoHousehold(): Household {
       stripeLinked: false,
       pastDue: false,
       giftUntil: null,
+      switchToMonthly: null,
     },
     profiles: [avery, sam, mia],
     profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },

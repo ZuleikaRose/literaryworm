@@ -1,7 +1,7 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { sendWithMailgun } from "../_shared/mailgun.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { discountView, type InvoiceView, invoiceView, Stripe, stripeClient } from "../_shared/stripe.ts";
+import { discountView, type InvoiceView, invoiceView, releaseSchedule, Stripe, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice } from "../_shared/stripeCustomers.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
 import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
@@ -10,7 +10,7 @@ import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./
 const DISCOUNT_EXPAND = ["discounts.source.coupon", "discounts.promotion_code"];
 
 const COLUMNS =
-  "plan_id, status, billing_interval, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, stripe_subscription_id, stripe_customer_id";
+  "plan_id, status, billing_interval, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, switch_to_monthly, stripe_subscription_id, stripe_customer_id";
 
 Deno.serve((req) =>
   handle(req, {
@@ -20,15 +20,27 @@ Deno.serve((req) =>
       // Void (don't charge) any invoices while paused; resuming clears it.
       pause: async (id) => void (await stripeClient().subscriptions.update(id, { pause_collection: { behavior: "void" } })),
       resume: async (id) => void (await stripeClient().subscriptions.update(id, { pause_collection: "" })),
-      setCancelAtPeriodEnd: async (id, cancel) => void (await stripeClient().subscriptions.update(id, { cancel_at_period_end: cancel })),
+      // Stripe refuses to cancel a subscription with a schedule (a yearly one moving to monthly at
+      // renewal), so cancelling drops that move first.
+      async setCancelAtPeriodEnd(id, cancel) {
+        if (cancel) await releaseSchedule(stripeClient(), id);
+        await stripeClient().subscriptions.update(id, { cancel_at_period_end: cancel });
+      },
       // At a period's end, so the last period is whole and nothing is prorated.
-      cancelAt: async (id, at) => void (await stripeClient().subscriptions.update(id, { cancel_at: at, proration_behavior: "none" })),
+      async cancelAt(id, at) {
+        await releaseSchedule(stripeClient(), id);
+        await stripeClient().subscriptions.update(id, { cancel_at: at, proration_behavior: "none" });
+      },
       clearCancelAt: async (id) => void (await stripeClient().subscriptions.update(id, { cancel_at: "" })),
-      cancelNow: async (id) => void (await stripeClient().subscriptions.cancel(id, { invoice_now: false, prorate: false })),
+      async cancelNow(id) {
+        await releaseSchedule(stripeClient(), id);
+        await stripeClient().subscriptions.cancel(id, { invoice_now: false, prorate: false });
+      },
       // A free stretch until the new date, which becomes the billing day from then on.
       moveRenewal: async (id, until) =>
         void (await stripeClient().subscriptions.update(id, { trial_end: until, proration_behavior: "none" })),
       async extendForGift(id, until) {
+        await releaseSchedule(stripeClient(), id);
         await stripeClient().subscriptions.update(id, {
           trial_end: until,
           proration_behavior: "none",

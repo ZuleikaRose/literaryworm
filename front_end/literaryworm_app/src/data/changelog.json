@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
+    "kind": "update",
+    "title": "Yearly members can switch to monthly",
+    "body": "If you pay yearly, you can now choose monthly billing on the Plans page. Your year carries on as it is, and monthly billing starts on your renewal date. Changed your mind? Keep yearly billing in Account.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
     "kind": "feature",
     "title": "Who's coming to club meetings",
     "body": "Book club meetings now ask everyone whether they're coming: Going, Maybe or Can't make it, with who's going shown on the club page. Meetings in the next day show up in the notification bell, and if you can't make one we won't send you the reminder.",

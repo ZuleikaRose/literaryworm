@@ -209,6 +209,66 @@ export function invoiceView(invoice: Stripe.Invoice): InvoiceView | null {
 }
 
 /** The fields public.subscriptions keeps for a Stripe subscription. */
+/**
+ * Set on a yearly subscription (by checkout, and by its schedule's current phase) while it waits to
+ * move to monthly billing at renewal: the plan it moves to. The schedule's monthly phase unsets it.
+ */
+export const SWITCH_KEY = "switch_to_monthly";
+
+const scheduleId = (sub: Stripe.Subscription) => (sub.schedule ? (typeof sub.schedule === "string" ? sub.schedule : sub.schedule.id) : null);
+
+/**
+ * Drops a scheduled move to monthly: releases the subscription from its schedule (the year carries
+ * on as it is) and clears the key. Stripe refuses cancellations on a scheduled subscription, so
+ * cancelling calls this first.
+ */
+export async function releaseSchedule(stripe: Stripe, subscriptionId: string): Promise<void> {
+  const sub = await stripe.subscriptions.retrieve(subscriptionId);
+  const id = scheduleId(sub);
+  if (id) await stripe.subscriptionSchedules.release(id);
+  if (sub.metadata?.[SWITCH_KEY]) await stripe.subscriptions.update(subscriptionId, { metadata: { [SWITCH_KEY]: "" } });
+}
+
+/**
+ * Schedules a yearly subscription to move to `monthlyPriceId` when its year ends: phase one is the
+ * current year as it is (items, dates, discounts), phase two one month at the monthly price, then
+ * the schedule lets go and the subscription carries on monthly. Nothing is charged or credited now.
+ */
+export async function scheduleMonthly(stripe: Stripe, subscriptionId: string, planId: string, monthlyPriceId: string): Promise<void> {
+  const sub = await stripe.subscriptions.retrieve(subscriptionId);
+  const existing = scheduleId(sub);
+  const schedule = existing
+    ? await stripe.subscriptionSchedules.retrieve(existing)
+    : await stripe.subscriptionSchedules.create({ from_subscription: subscriptionId });
+  const startedAt = schedule.current_phase?.start_date;
+  const phase = schedule.phases.find((p) => p.start_date === startedAt) ?? schedule.phases[0];
+  const idOf = (x: string | { id: string } | null | undefined) => (x ? (typeof x === "string" ? x : x.id) : undefined);
+  await stripe.subscriptionSchedules.update(schedule.id, {
+    end_behavior: "release",
+    phases: [
+      {
+        items: phase.items.map((i) => ({ price: idOf(i.price)!, quantity: i.quantity ?? 1 })),
+        start_date: phase.start_date,
+        end_date: phase.end_date,
+        // Kept as they are (Stripe unsets anything a phase leaves out).
+        discounts: (phase.discounts ?? []).map((d) =>
+          d.discount ? { discount: idOf(d.discount) } : d.promotion_code ? { promotion_code: idOf(d.promotion_code) } : { coupon: idOf(d.coupon) }
+        ),
+        metadata: { ...(phase.metadata ?? {}), [SWITCH_KEY]: planId },
+        proration_behavior: "none",
+      },
+      {
+        items: [{ price: monthlyPriceId, quantity: 1 }],
+        duration: { interval: "month", interval_count: 1 },
+        metadata: { plan_id: planId, interval: "month", [SWITCH_KEY]: "" },
+        proration_behavior: "none",
+      },
+    ],
+  } as Stripe.SubscriptionScheduleUpdateParams);
+  // The current phase's metadata reaches the subscription only when a phase starts; set it now too.
+  await stripe.subscriptions.update(subscriptionId, { metadata: { [SWITCH_KEY]: planId } });
+}
+
 export function subscriptionRow(sub: Stripe.Subscription) {
   const item = sub.items.data[0];
   const price = planForLookupKey(item?.price.lookup_key);
@@ -229,6 +289,10 @@ export function subscriptionRow(sub: Stripe.Subscription) {
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
     // When an ending membership ends.
     cancel_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : sub.cancel_at_period_end && periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+    // A yearly membership waiting to move to monthly at renewal, while its schedule is attached.
+    switch_to_monthly: price.interval === "year" && scheduleId(sub) && PLANS.includes(sub.metadata?.[SWITCH_KEY] as PlanId)
+      ? sub.metadata[SWITCH_KEY]
+      : null,
     stripe_subscription_id: sub.id,
     stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
   };

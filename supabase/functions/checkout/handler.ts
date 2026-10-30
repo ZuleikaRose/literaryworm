@@ -24,7 +24,11 @@
 //   - monthly to yearly: the year starts today, and the unused part of the month comes off its price;
 //   - yearly to a dearer yearly plan: the difference for the rest of the year is charged today;
 //     to a cheaper one, the lower price applies from the next renewal, with no credit;
-//   - yearly to monthly isn't done in place: the member cancels and chooses monthly when the year ends.
+//   - yearly to monthly happens at renewal: a Stripe subscription schedule keeps the year as it is and
+//     bills the monthly price from the day it would have renewed (nothing charged or credited now).
+//     Choosing yearly again before then keeps the yearly membership (the schedule is released);
+//     choosing another yearly plan drops the switch first. An ending membership can't switch.
+//   Response: { planId, interval, switchesAt? } (switchesAt: when monthly billing starts).
 //
 // Staff are never billed: everyone with a staff role (Admin, Editor, Developer, Billing, Customer
 // service, Blog, Sales) has a complimentary membership while they hold it (the database makes it so
@@ -42,6 +46,10 @@ export interface Membership {
   status: "active" | "paused" | "cancelled" | "past_due";
   billing_interval: BillingInterval;
   stripe_subscription_id: string | null;
+  cancel_at_period_end: boolean;
+  current_period_end: string | null;
+  /** The plan a yearly membership moves to, monthly, at renewal (from Stripe, by the webhook). */
+  switch_to_monthly: string | null;
 }
 
 export interface CheckoutInput {
@@ -77,6 +85,10 @@ export interface Deps {
   createGiftCheckout: (input: GiftCheckoutInput) => Promise<string>;
   /** Moves a Stripe subscription to the plan's price for `interval`, from `from` (its interval now). */
   changePlan: (subscriptionId: string, planId: PlanId, interval: BillingInterval, from: BillingInterval) => Promise<void>;
+  /** Schedules a yearly subscription to move to the plan's monthly price when the year ends. */
+  scheduleMonthly: (subscriptionId: string, planId: PlanId) => Promise<void>;
+  /** Drops a scheduled move to monthly, keeping the yearly membership as it is. */
+  keepYearly: (subscriptionId: string) => Promise<void>;
   /** The site to send the member back to: the request's origin when it's allowed. */
   siteOrigin: (req: Request) => string;
   now?: () => Date;
@@ -135,15 +147,27 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     const membership = await deps.getMembership(user.id);
     if (membership?.stripe_subscription_id && membership.status !== "cancelled") {
+      const subId = membership.stripe_subscription_id;
       const current = membership.billing_interval ?? "month";
-      if (membership.plan_id === planId && current === interval) throw new HttpError("bad_request", "That's already your plan.");
+      const switching = current === "year" && membership.switch_to_monthly !== null;
       if (current === "year" && interval === "month") {
-        throw new HttpError(
-          "bad_request",
-          "A yearly membership can't move to monthly billing part way through the year. Cancel it in Account, then choose monthly once it ends.",
-        );
+        if (membership.cancel_at_period_end) {
+          throw new HttpError("bad_request", "This membership is set to end. Restart it in Account first, or choose monthly once it ends.");
+        }
+        if (membership.status !== "active") throw new HttpError("bad_request", "Only an active membership can change how it's billed.");
+        if (membership.switch_to_monthly === planId) throw new HttpError("bad_request", "That's already what happens at renewal.");
+        // Nothing changes until the year is up; then the monthly price, on that day each month.
+        await deps.scheduleMonthly(subId, planId);
+        return json(req, METHODS, { planId, interval, switchesAt: membership.current_period_end });
       }
-      await deps.changePlan(membership.stripe_subscription_id, planId, interval, current);
+      if (membership.plan_id === planId && current === interval) {
+        if (!switching) throw new HttpError("bad_request", "That's already your plan.");
+        await deps.keepYearly(subId);
+        return json(req, METHODS, { planId, interval });
+      }
+      // Another yearly plan replaces a scheduled move to monthly.
+      if (switching) await deps.keepYearly(subId);
+      await deps.changePlan(subId, planId, interval, current);
       return json(req, METHODS, { planId, interval });
     }
 

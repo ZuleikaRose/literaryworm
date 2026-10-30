@@ -1,6 +1,6 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { type BillingInterval, type PlanId, stripeClient } from "../_shared/stripe.ts";
+import { type BillingInterval, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice, planPrice } from "../_shared/stripeCustomers.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
@@ -43,7 +43,7 @@ Deno.serve((req) =>
     async getMembership(userId) {
       const { data, error } = await serviceClient()
         .from("subscriptions")
-        .select("plan_id, status, billing_interval, stripe_subscription_id")
+        .select("plan_id, status, billing_interval, stripe_subscription_id, cancel_at_period_end, current_period_end, switch_to_monthly")
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
@@ -111,6 +111,10 @@ Deno.serve((req) =>
         proration_behavior: upgrade ? "always_invoice" : "none",
       });
     },
+    async scheduleMonthly(subscriptionId, planId) {
+      await scheduleMonthly(stripeClient(), subscriptionId, planId, (await planPrice(planId, "month")).id);
+    },
+    keepYearly: (subscriptionId) => releaseSchedule(stripeClient(), subscriptionId),
     siteOrigin(req) {
       const origins = allowedOrigins();
       const origin = req.headers.get("Origin");

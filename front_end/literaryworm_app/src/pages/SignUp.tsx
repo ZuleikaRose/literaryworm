@@ -111,6 +111,7 @@ export default function SignUp() {
         stripeLinked: false,
         pastDue: false,
         giftUntil: null,
+        switchToMonthly: null,
       },
       firstProfile: makeProfile({ name: firstName, ageRating: "all" }),
     });

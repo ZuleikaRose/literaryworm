@@ -1,7 +1,7 @@
 // Deploy with JWT verification off (Stripe doesn't send a Supabase token); every request's
 // Stripe signature is checked instead. See handler.ts.
 import { serviceClient } from "../_shared/supabase.ts";
-import { giftCode, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
+import { giftCode, releaseSchedule, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
 import { handle, type NewGift, type SubscriptionFields } from "./handler.ts";
 
 const MEMBERSHIP_COLUMNS = "user_id";
@@ -47,6 +47,8 @@ Deno.serve((req) =>
       return data.length > 0;
     },
     async cancelNow(subscriptionId) {
+      // A scheduled subscription can't be cancelled directly.
+      await releaseSchedule(stripeClient(), subscriptionId);
       await stripeClient().subscriptions.cancel(subscriptionId, { invoice_now: false, prorate: false });
     },
     async createGift(gift: NewGift) {

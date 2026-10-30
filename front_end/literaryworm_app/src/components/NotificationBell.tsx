@@ -43,6 +43,7 @@ export function NotificationBell() {
   const listeningNext = listening ? nextPlanUp(planId) : null;
   const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && goals.length === 0 && meetings.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
+  const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
 
   return (
     <div className="popover-wrap" ref={wrapRef}>
@@ -106,11 +107,15 @@ export function NotificationBell() {
                           <Icon name="calendar" size={18} />
                           <span>
                             <strong>
-                              Your yearly membership renews on {endDate(renewal.renewsAt)}
+                              {switchPlan
+                                ? `Monthly billing starts on ${endDate(renewal.renewsAt)}`
+                                : `Your yearly membership renews on ${endDate(renewal.renewsAt)}`}
                               {isNewAlert(renewal.at, seenBefore) && <span className="bell-new">New</span>}
                             </strong>
                             <small>
-                              {plan.name} · {formatPrice(plan.yearlyPrice)}. To stop it, cancel in Account at least 48 hours before.
+                              {switchPlan
+                                ? `${switchPlan.name} · ${formatPrice(switchPlan.price)} a month from then, instead of renewing the year.`
+                                : `${plan.name} · ${formatPrice(plan.yearlyPrice)}. To stop it, cancel in Account at least 48 hours before.`}
                             </small>
                           </span>
                         </Link>

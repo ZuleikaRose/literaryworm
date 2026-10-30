@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4803, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–4903, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -166,11 +166,12 @@
             ["", "stripe_subscription_id", "text", true],
             ["", "complimentary", "boolean (staff)"],
             ["", "gift_until", "timestamptz", true],
+            ["fk", "switch_to_monthly", "text", true],
             ["", "stripe_linked", "boolean (generated)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Index: plan_id. RLS: read own (Stripe ids not granted). Paid rows are written only by the stripe-webhook function from Stripe; stripe_linked says a card is on file. complimentary: set by a trigger from staff_roles, never billed. gift_until: a gift's free months. cancel_at: when an ending membership ends. billing_interval: monthly, or yearly at plans.yearly_price_cents.",
+          note: "RLS: read own (Stripe ids not granted). Paid rows are written only by the stripe-webhook function from Stripe; stripe_linked says a card is on file. complimentary: set by a trigger from staff_roles, never billed. gift_until: a gift's free months. cancel_at: when an ending membership ends. billing_interval: monthly, or yearly at plans.yearly_price_cents. switch_to_monthly: plan at renewal. Indexed FKs.",
         },
         {
           id: "logs", color: colors.reading, x: 420, y: 1080, sub: "public",
@@ -746,6 +747,7 @@
         ["account_private", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "plan_id", "plans", "id", "N : 1"],
+        ["subscriptions", "switch_to_monthly", "plans", "id", "N : 1"],
         ["reader_profiles", "account_id", "auth.users", "id", "N : 1"],
         ["parental_consents", "profile_id", "reader_profiles", "id", "N : 1"],
         ["parental_consents", "account_id", "auth.users", "id", "N : 1"],

@@ -143,6 +143,8 @@ export interface Account {
   pastDue: boolean;
   /** While a gift's free months last: when they end (ISO). Nothing is charged before then. */
   giftUntil: string | null;
+  /** A yearly membership moving to monthly billing at renewal: the plan it moves to. */
+  switchToMonthly: PlanId | null;
 }
 
 export interface Profile {

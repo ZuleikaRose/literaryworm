@@ -5,7 +5,7 @@ import { RedeemGift } from "../components/RedeemGift";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
 import { AccountError, choosePlan, loadAccount, planFields } from "../lib/accountApi";
-import { CANCEL_NOTICE_HOURS, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
+import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { BillingInterval, Plan, PlanId } from "../types";
@@ -22,9 +22,9 @@ export default function Plans() {
   // Staff accounts (any staff role) are complimentary and never charged: they have no plan to choose.
   const complimentary = Boolean(account?.complimentary);
   const initialPlan = (params.get("plan") as PlanId | null) ?? null;
-  // Monthly or yearly: ?billing=yearly picks yearly, else the member's own billing.
+  // Monthly or yearly: ?billing=yearly or ?billing=monthly picks one, else the member's own billing.
   const [interval, setBillingInterval] = useState<BillingInterval>(() =>
-    params.get("billing") === "yearly" ? "year" : (account?.billingInterval ?? "month"),
+    params.get("billing") === "yearly" ? "year" : params.get("billing") === "monthly" ? "month" : (account?.billingInterval ?? "month"),
   );
   const yearlyNow = Boolean(account?.planId && account.billingInterval === "year");
 
@@ -37,6 +37,8 @@ export default function Plans() {
   const [agreed, setAgreed] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
   const [confirmed, setConfirmed] = useState<PlanId | null>(null);
+  // A yearly member who chose monthly billing from their renewal date, just now.
+  const [switched, setSwitched] = useState<PlanId | null>(null);
   const checkoutRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -110,6 +112,13 @@ export default function Plans() {
       }
       setSaving(false);
     }
+    // Yearly to monthly waits for the renewal date: nothing about the plan changes today.
+    if (toMonthlyFromYearly) {
+      dispatch({ type: "updateAccount", patch: { switchToMonthly: selected } });
+      setSwitched(selected);
+      setSelected(null);
+      return;
+    }
     dispatch({ type: "choosePlan", planId: selected, billingDay, billingInterval: interval });
     setConfirmed(selected);
     setSelected(null);
@@ -125,13 +134,17 @@ export default function Plans() {
   const price = plan ? priceFor(plan, interval) : 0;
   const per = perPeriod(interval);
   // Moving a paid membership: monthly to yearly starts the year today; a yearly one moves up today
-  // (paying the difference for the rest of the year) or down at renewal; yearly never goes monthly.
+  // (paying the difference for the rest of the year) or down at renewal, and to monthly at renewal.
   const fromYearly = changingPaid && yearlyNow;
   const toMonthlyFromYearly = fromYearly && !yearly;
+  const renewalDate = account?.renewsAt ? endDate(account.renewsAt) : "your renewal date";
+  const renewalDay = account?.renewsAt ? Math.min(new Date(account.renewsAt).getUTCDate(), 28) : billingDay;
   const yearlyUpgrade = Boolean(fromYearly && yearly && plan && account?.planId && plan.price > planById.get(account.planId)!.price);
   const changeWhen = !changingPaid
     ? null
-    : yearly && !fromYearly
+    : toMonthlyFromYearly
+      ? `On ${renewalDate}, when your year would renew. Nothing is charged or refunded today; your year carries on as it is.`
+      : yearly && !fromYearly
       ? "Today. Your year starts now, and the unused part of this month comes off the first yearly charge."
       : yearlyUpgrade
         ? "Today. You pay the difference for the rest of your year now, and the new price from your renewal date."
@@ -185,6 +198,17 @@ export default function Plans() {
         </div>
       )}
 
+      {switched && (
+        <div className="form-success" role="status">
+          <Icon name="check" size={18} />
+          <p>
+            Done. Your year carries on as it is, then you'll pay <strong>{formatPrice(planById.get(switched)!.price)} a month</strong> for{" "}
+            {planById.get(switched)!.name} from {renewalDate}. Changed your mind? Choose <strong>Keep yearly billing</strong> in{" "}
+            <Link to="/account#plan">Account</Link>.
+          </p>
+        </div>
+      )}
+
       {confirmed && (
         <div className="form-success" role="status">
           <Icon name="check" size={18} />
@@ -219,6 +243,8 @@ export default function Plans() {
       <ul className="plan-grid">
         {plans.map((p) => {
           const current = account?.planId === p.id && account.billingInterval === interval;
+          // Already chosen for monthly billing from the renewal date.
+          const scheduled = !yearly && account?.billingInterval === "year" && account.switchToMonthly === p.id;
           const samePlan = account?.planId === p.id;
           const isSelected = selected === p.id;
           return (
@@ -254,6 +280,10 @@ export default function Plans() {
                 <p className="plan-current">
                   <Icon name="check" size={16} /> Your current plan
                 </p>
+              ) : scheduled ? (
+                <p className="plan-current">
+                  <Icon name="calendar" size={16} /> Monthly from {renewalDate}
+                </p>
               ) : complimentary ? null : (
                 <button
                   type="button"
@@ -274,13 +304,12 @@ export default function Plans() {
           <h2 id="checkout-title" ref={checkoutRef} tabIndex={-1}>
             Confirm {plan.name}, {yearly ? "yearly" : "monthly"}
           </h2>
-          {toMonthlyFromYearly ? (
+          {toMonthlyFromYearly && account.endsAt ? (
             <div className="form-alert">
               <Icon name="alert" size={17} />
               <p>
-                A yearly membership can't move to monthly billing part way through the year. To pay monthly, cancel in{" "}
-                <Link to="/account#plan">Account</Link> at least {CANCEL_NOTICE_HOURS} hours before your renewal date, then choose
-                monthly once your year ends. You can move to a bigger plan on yearly billing at any time.
+                Your membership is set to end. Choose <strong>Keep my membership</strong> in <Link to="/account#plan">Account</Link> first, or
+                choose monthly once it ends.
               </p>
             </div>
           ) : isDemo ? (
@@ -358,7 +387,9 @@ export default function Plans() {
                 <p className="renewal-terms">
                   {yearly
                     ? `Your membership renews automatically every year on ${changingPaid && fromYearly && account?.renewsAt ? "your renewal date" : "the date your year starts"} at ${formatPrice(price)} until you cancel. We'll remind you 30 days before.`
-                    : `Your membership renews automatically every month on the ${ordinal(changingPaid && account?.billingDay ? account.billingDay : billingDay)} at ${formatPrice(price)} until you cancel.`}{" "}
+                    : toMonthlyFromYearly
+                      ? `From ${renewalDate}, your membership renews automatically every month on that day at ${formatPrice(price)} until you cancel.`
+                      : `Your membership renews automatically every month on the ${ordinal(changingPaid && account?.billingDay ? account.billingDay : renewalDay)} at ${formatPrice(price)} until you cancel.`}{" "}
                   Cancel online any time from Account; you'll keep access until the end of the period you've paid for. To stop a
                   charge, cancel at least {CANCEL_NOTICE_HOURS} hours before that billing date. No refunds.
                 </p>
@@ -395,7 +426,9 @@ export default function Plans() {
                       ? changingPaid
                         ? "Switching your plan…"
                         : "Opening the payment page…"
-                      : changingPaid
+                      : toMonthlyFromYearly
+                        ? `Pay monthly from ${renewalDate}: ${plan.name}, ${formatPrice(price)}/month`
+                        : changingPaid
                         ? `Switch to ${plan.name} for ${formatPrice(price)}${yearly ? "/year" : "/month"}`
                         : `Continue to payment: ${plan.name}, ${formatPrice(price)}${yearly ? "/year" : "/month"}`}
                   </button>

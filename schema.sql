@@ -5203,3 +5203,43 @@ where slug = $lw$privacy$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Who's coming to club meetings$lw$, $lw$Book club meetings now ask everyone whether they're coming: Going, Maybe or Can't make it, with who's going shown on the club page. Meetings in the next day show up in the notification bell, and if you can't make one we won't send you the reminder.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Who's coming to club meetings$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030004900_yearly_to_monthly.sql
+-- =============================================================================
+-- Yearly to monthly at renewal (follow-up to yearly billing): a yearly member can choose monthly
+-- billing from the day the year would renew. checkout puts a Stripe subscription schedule on the
+-- subscription (the year as it is, then the monthly price); the stripe-webhook function records
+-- the plan it moves to here, from Stripe, while the schedule is attached. Choosing yearly again
+-- before then, or cancelling, drops it. Members read it; only the service role writes it.
+
+alter table public.subscriptions add column switch_to_monthly text references public.plans (id);
+-- Its foreign key index is in the 4901 migration.
+grant select (switch_to_monthly) on public.subscriptions to authenticated;
+
+-- =============================================================================
+-- 20261030004901_index_subscriptions_switch_to_monthly.sql
+-- =============================================================================
+create index concurrently if not exists subscriptions_switch_to_monthly_idx on public.subscriptions (switch_to_monthly);
+
+-- =============================================================================
+-- 20261030004902_legal_yearly_to_monthly.sql
+-- =============================================================================
+-- Yearly to monthly at renewal (migration 4900): the Terms say monthly billing can be chosen at any
+-- time and starts on the renewal date (src/data/legalPages.json has the same change). A page an
+-- editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$Yearly plans can't be paused, change their billing day, or move to monthly billing until the year ends.$lw$, $lw$Yearly plans can't be paused or change their billing day. You can choose monthly billing at any time, and it starts on your renewal date, with nothing charged or refunded before then.$lw$)::jsonb
+where slug in ($lw$terms$lw$)
+  and strpos(sections::text, $lw$Yearly plans can't be paused, change their billing day, or move to monthly billing until the year ends.$lw$) > 0;
+
+-- =============================================================================
+-- 20261030004903_whats_new_yearly_to_monthly.sql
+-- =============================================================================
+-- What's new: yearly to monthly at renewal (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Yearly members can switch to monthly$lw$, $lw$If you pay yearly, you can now choose monthly billing on the Plans page. Your year carries on as it is, and monthly billing starts on your renewal date. Changed your mind? Keep yearly billing in Account.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Yearly members can switch to monthly$lw$ and c.version = $lw$2026.10$lw$);

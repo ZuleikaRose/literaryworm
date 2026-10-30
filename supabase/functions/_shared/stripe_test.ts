@@ -134,3 +134,25 @@ Deno.test("a yearly subscription's row says so, and a 31st start keeps its billi
   const row = subscriptionRow(sub);
   assertEquals([row.plan_id, row.billing_interval, row.billing_day], ["standard", "year", 28]);
 });
+
+Deno.test("a yearly subscription waiting to move to monthly says so only while its schedule is attached", () => {
+  const sub = (o: Record<string, unknown>) =>
+    subscriptionRow({
+      id: "sub_1",
+      customer: "cus_1",
+      status: "active",
+      pause_collection: null,
+      cancel_at_period_end: false,
+      cancel_at: null,
+      billing_cycle_anchor: Date.UTC(2026, 9, 10) / 1000,
+      items: { data: [{ price: { lookup_key: "literaryworm_standard_yearly" }, current_period_end: Date.UTC(2027, 9, 10) / 1000 }] },
+      metadata: {},
+      schedule: null,
+      ...o,
+    } as unknown as Stripe.Subscription).switch_to_monthly;
+  assertEquals(sub({}), null);
+  assertEquals(sub({ schedule: "sub_sched_1", metadata: { switch_to_monthly: "basic" } }), "basic");
+  // Released early (Keep yearly): the key may linger, the schedule doesn't.
+  assertEquals(sub({ schedule: null, metadata: { switch_to_monthly: "basic" } }), null);
+  assertEquals(sub({ schedule: "sub_sched_1", metadata: { switch_to_monthly: "gold" } }), null);
+});
