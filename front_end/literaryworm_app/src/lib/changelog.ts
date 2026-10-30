@@ -65,11 +65,13 @@ export function groupReleases(entries: ChangeEntry[]): Release[] {
     .sort((a, b) => b.releasedOn.localeCompare(a.releasedOn));
 }
 
-export type ChangeFilter = ChangeKind | "all" | "major";
+export type ChangeFilter = ChangeKind | "all" | "major" | "minor";
 
+/** Everything, the major or minor changes (minor: every change not marked major), or one kind. */
 export function filterEntries(entries: ChangeEntry[], filter: ChangeFilter): ChangeEntry[] {
   if (filter === "all") return entries;
   if (filter === "major") return entries.filter((e) => e.major);
+  if (filter === "minor") return entries.filter((e) => !e.major);
   return entries.filter((e) => e.kind === filter);
 }
 

@@ -47,6 +47,9 @@ describe("ordering and grouping", () => {
     expect(filterEntries(mixed, "all")).toHaveLength(3);
     expect(filterEntries(mixed, "fix").map((e) => e.kind)).toEqual(["fix"]);
     expect(filterEntries(mixed, "major").map((e) => e.kind)).toEqual(["update"]);
+    // Minor is everything not marked major, so Major and Minor together are everything.
+    expect(filterEntries(mixed, "minor").every((e) => !e.major)).toBe(true);
+    expect(filterEntries(mixed, "minor").length + filterEntries(mixed, "major").length).toBe(filterEntries(mixed, "all").length);
   });
 });
 

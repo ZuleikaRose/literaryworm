@@ -49,7 +49,7 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("reads What's new from the footer, and filters it to the major changes", async () => {
+  it("reads What's new from the footer, and filters it to the major and the minor changes", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
     await page.getByRole("contentinfo").getByRole("link", { name: "What's new" }).click();
@@ -62,6 +62,11 @@ describe("a visitor", () => {
     expect(majors).toBeGreaterThan(0);
     expect(majors).toBeLessThan(all);
     await expect(page.locator(".release-entry .release-major").count()).resolves.toBe(majors);
+    await page.getByText("Minor", { exact: true }).first().click();
+    const minors = await page.locator(".release-entry").count();
+    expect(minors).toBeGreaterThan(0);
+    expect(majors + minors).toBe(all);
+    await expect(page.locator(".release-entry .release-major").count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
 

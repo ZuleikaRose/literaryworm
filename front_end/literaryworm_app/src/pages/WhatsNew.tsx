@@ -28,6 +28,7 @@ import { useStore } from "../store/context";
 const FILTERS: { value: ChangeFilter; label: string }[] = [
   { value: "all", label: "Everything" },
   { value: "major", label: "Major" },
+  { value: "minor", label: "Minor" },
   ...CHANGE_KINDS.map((k) => ({ value: k.value as ChangeFilter, label: k.plural })),
 ];
 
