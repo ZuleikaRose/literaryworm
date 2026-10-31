@@ -92,6 +92,8 @@ Then a third 250 titles were added (571 in all), and then 300 more (871 in all).
 
 Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a year), in the app, the database and Stripe; memberships already running keep their price. Basic then went to $9.99 ($99.90 a year) the same way.
 
+Then Search gained a third *Search by* choice, ISBN: the `books` function's new `isbn` mode asks Google Books for the edition, with the ISBN's check digit checked in the browser and in the function; Google Books only, since the catalog keeps no ISBNs.
+
 The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 
 ## Code

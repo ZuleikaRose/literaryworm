@@ -176,3 +176,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | New Basic price ($9.99, $99.90 a year): `data/plans.ts`, `PRICES` in `checkout/index.ts`, `public.plans` (migration 6402), Stripe; migration 6403 (What's new) |
 | — | 300 more public-domain titles (871 in all); ten swapped where the Gutenberg edition wasn't the recorded book; migration 6404 (What's new) |
 | — | Search results: `index.html`'s description, Open Graph tags and JSON-LD (each plan's monthly and yearly Offer) from `lib/seo.ts` (`seo.test.ts` keeps them in step with `data/plans.ts`); `useTitle(title, description)`; `public/sitemap.xml` |
+| — | Search by ISBN: `by=isbn`, `cleanIsbn()` and `queryError()` in `lib/search.ts`, the `isbn` feed in `lib/booksApi.ts`, the `books` function's `isbn` mode (`parseIsbn()` in `_shared/validate.ts`); no filters, not for Kids profiles; migrations 6405 (What's new) and 6406 (Privacy Policy) |
