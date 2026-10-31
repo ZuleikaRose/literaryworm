@@ -88,6 +88,8 @@ Then 50 more public-domain titles were added (71 in all), each with its LibriVox
 
 Then the texts moved to a public Supabase Storage bucket served at the same `/texts/` path, and 250 more titles were added (321 in all).
 
+Then a third 250 titles were added (571 in all).
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

@@ -338,6 +338,259 @@ PROJECTS = {
     "the-secret-agent": 16233,  # solo
     # 250 more public-domain titles (October 2026), one more replacement
     "women-in-love": 2287,  # solo
+    # A third 250 public-domain titles (October 2026)
+    "the-small-house-at-allington": 16404,  # solo
+    "the-last-chronicle-of-barset": 10313,  # solo
+    "orley-farm": 4554,  # solo
+    "the-three-clerks": 7533,  # solo
+    "the-dukes-children": 21492,  # solo
+    "phineas-finn": 18981,  # solo
+    "cousin-henry": 5969,  # solo
+    "phineas-redux": 20387,  # solo
+    "the-eustace-diamonds": 19703,  # solo
+    "the-prime-minister": 20988,  # solo
+    "miss-mackenzie": 6620,  # solo
+    "he-knew-he-was-right": 2935,  # solo
+    "the-law-and-the-lady": 4000,  # solo
+    "quentin-durward": 16193,  # solo
+    "scenes-of-clerical-life": 4765,  # solo
+    "ruth": 1809,  # solo
+    "the-virginians": 8065,  # solo
+    "the-odd-women": 6027,  # solo
+    "uncle-bernac": 5776,  # solo
+    "love-and-mr-lewisham": 8577,  # solo
+    "the-fur-country": 1138,  # solo
+    "godfrey-morgan": 14580,  # solo
+    "the-blockade-runners": 3783,  # solo
+    "eric-brighteyes": 4317,  # solo
+    "jungle-tales-of-tarzan": 2806,  # solo
+    "tarzan-and-the-jewels-of-opar": 2703,  # solo
+    "tarzan-and-the-ant-men": 15152,  # solo
+    "tarzan-the-terrible": 5962,  # solo
+    "the-people-that-time-forgot": 2464,  # solo
+    "the-monster-men": 11891,  # solo
+    "the-cave-girl": 18537,  # solo
+    "sky-island": 301,  # solo
+    "hospital-sketches": 1733,  # solo
+    "just-david": 17963,  # solo
+    "michael-ohalloran": 459,  # solo
+    "the-birds-christmas-carol": 4897,  # solo
+    "moths-of-the-limberlost": 1786,  # solo
+    "when-patty-went-to-college": 6808,  # solo
+    "clover": 3244,  # solo
+    "in-the-high-valley": 3520,  # solo
+    "nights-with-uncle-remus": 4978,  # solo
+    "the-bobbsey-twins-in-the-country": 4663,  # solo
+    "tom-swift-and-his-electric-runabout": 1877,  # solo
+    "the-adventures-of-jerry-muskrat": 17855,  # solo
+    "the-adventures-of-prickly-porky": 18703,  # solo
+    "mother-west-winds-children": 3123,  # solo
+    "bowser-the-hound": 15614,  # solo
+    "whitefoot-the-wood-mouse": 7942,  # solo
+    "the-girl-in-the-golden-atom": 6038,  # solo
+    "wieland": 10471,  # solo
+    "the-return": 5796,  # solo
+    "the-crystal-stopper": 6439,  # solo
+    "the-eye-of-osiris": 21721,  # solo
+    "the-man-who-knew-too-much": 354,  # solo
+    "the-maltese-falcon": 22259,  # solo
+    "bardelys-the-magnificent": 21174,  # solo
+    "fortunes-fool": 21662,  # solo
+    "king-of-the-khyber-rifles": 4127,  # solo
+    "the-border-legion": 11424,  # solo
+    "the-untamed": 4429,  # solo
+    "the-spoilers": 4621,  # solo
+    "the-game": 5710,  # solo
+    "a-daughter-of-the-snows": 9673,  # solo
+    "the-golden-bowl": 2534,  # solo
+    "the-aspern-papers": 3278,  # solo
+    "the-glimpses-of-the-moon": 1641,  # solo
+    "the-fruit-of-the-tree": 3958,  # solo
+    "the-professors-house": 17221,  # solo
+    "one-of-ours": 3486,  # solo
+    "jennie-gerhardt": 6204,  # solo
+    "free-air": 3034,  # solo
+    "the-sun-also-rises": 21084,  # solo
+    "poor-white": 17014,  # solo
+    "crome-yellow": 9744,  # solo
+    "the-country-house": 11253,  # solo
+    "riceyman-steps": 13717,  # solo
+    "buried-alive": 7762,  # solo
+    "liza-of-lambeth": 11725,  # solo
+    "the-patrician": 10195,  # solo
+    "the-club-of-queer-trades": 1431,  # solo
+    "the-unbearable-bassington": 7193,  # solo
+    "the-coming-of-bill": 4740,  # solo
+    "jill-the-reckless": 4957,  # solo
+    "uneasy-money": 2492,  # solo
+    "the-prince-and-betty": 17547,  # solo
+    "love-among-the-chickens": 856,  # solo
+    "indiscretions-of-archie": 2038,  # solo
+    "the-house-of-the-dead": 8354,  # solo
+    "chicot-the-jester": 10127,  # solo
+    "moni-the-goat-boy": 6313,  # solo
+    "growth-of-the-soil": 4395,  # solo
+    "evangeline": 5159,  # solo
+    "rachel-ray": 5343,  # LibriVox volunteers
+    "the-american-senator": 5163,  # LibriVox volunteers
+    "my-lady-ludlow": 5829,  # LibriVox volunteers
+    "the-newcomes": 16677,  # LibriVox volunteers
+    "diana-of-the-crossways": 10120,  # LibriVox volunteers
+    "the-ordeal-of-richard-feverel": 13582,  # LibriVox volunteers
+    "off-on-a-comet": 4060,  # LibriVox volunteers
+    "the-underground-city": 3726,  # LibriVox volunteers
+    "eight-hundred-leagues-on-the-amazon": 1127,  # LibriVox volunteers
+    "tarzan-the-untamed": 6974,  # LibriVox volunteers
+    "the-outlaw-of-torn": 3632,  # LibriVox volunteers
+    "moods": 12323,  # LibriVox volunteers
+    "a-fair-barbarian": 5536,  # LibriVox volunteers
+    "the-head-of-the-house-of-coombe": 19727,  # LibriVox volunteers
+    "just-patty": 2695,  # LibriVox volunteers
+    "davy-and-the-goblin": 7845,  # LibriVox volunteers
+    "the-story-of-a-bad-boy": 5487,  # LibriVox volunteers
+    "the-bobbsey-twins-at-the-seashore": 4906,  # LibriVox volunteers
+    "the-bobbsey-twins-at-school": 9828,  # LibriVox volunteers
+    "tom-swift-and-his-airship": 6528,  # LibriVox volunteers
+    "tom-swift-and-his-submarine-boat": 8271,  # LibriVox volunteers
+    "tom-swift-and-his-wireless-message": 7468,  # LibriVox volunteers
+    "tom-swift-among-the-diamond-makers": 8007,  # LibriVox volunteers
+    "tom-swift-and-his-sky-racer": 6784,  # LibriVox volunteers
+    "the-adventures-of-unc-billy-possum": 9960,  # LibriVox volunteers
+    "the-adventures-of-grandfather-frog": 7710,  # LibriVox volunteers
+    "edisons-conquest-of-mars": 1886,  # LibriVox volunteers
+    "the-mystery-of-the-sea": 7858,  # LibriVox volunteers
+    "the-tavern-knight": 5216,  # LibriVox volunteers
+    "the-league-of-the-scarlet-pimpernel": 3865,  # LibriVox volunteers
+    "the-reef": 3326,  # LibriVox volunteers
+    "so-big": 16250,  # LibriVox volunteers
+    "show-boat": 18111,  # LibriVox volunteers
+    "the-ball-and-the-cross": 2405,  # LibriVox volunteers
+    "the-clicking-of-cuthbert": 3452,  # LibriVox volunteers
+    "ten-years-later": 5863,  # LibriVox volunteers
+    "louise-de-la-valliere": 7451,  # LibriVox volunteers
+    "tartarin-of-tarascon": 3956,  # LibriVox volunteers
+    "the-problems-of-philosophy": 1317,  # LibriVox volunteers
+    "the-history-of-pendennis": 11799,  # LibriVox volunteers
+    "a-laodicean": 9628,  # solo
+    "two-on-a-tower": 4209,  # solo
+    "old-mortality": 17204,  # solo
+    "the-firm-of-girdlestone": 19187,  # solo
+    "montezumas-daughter": 12113,  # solo
+    "a-hazard-of-new-fortunes": 9790,  # solo
+    "the-titan": 5896,  # solo
+    "germinal": 12810,  # solo
+    "the-egoist": 3129,  # LibriVox volunteers
+    "the-tragic-muse": 10647,  # LibriVox volunteers
+    "sketches-by-boz": 13992,  # solo
+    "the-haunted-hotel": 3634,  # solo
+    "the-bride-of-lammermoor": 12318,  # solo
+    "the-mystery-of-a-hansom-cab": 2424,  # solo
+    "what-maisie-knew": 4303,  # solo
+    "death-comes-for-the-archbishop": 18797,  # solo
+    "the-financier": 5445,  # solo
+    "smoke": 11434,  # solo
+    "the-red-and-the-black": 19903,  # solo
+    "the-new-magdalen": 12301,  # LibriVox volunteers
+    "the-man-who-laughs": 4314,  # LibriVox volunteers
+    "the-chessmen-of-mars": 8699,  # solo
+    "the-blind-spot": 22887,  # solo
+    "the-lone-star-ranger": 1773,  # solo
+    "the-valley-of-the-moon": 7529,  # solo
+    "piccadilly-jim": 14277,  # solo
+    "the-song-of-hiawatha": 3447,  # solo
+    "the-book-of-snobs": 3299,  # LibriVox volunteers
+    "ayesha": 1781,  # LibriVox volunteers
+    "the-worlds-desire": 11632,  # LibriVox volunteers
+    "tom-swift-in-the-caves-of-ice": 11826,  # LibriVox volunteers
+    "under-drakes-flag": 8666,  # LibriVox volunteers
+    "in-freedoms-cause": 4653,  # LibriVox volunteers
+    "the-pirate": 17673,  # solo
+    "the-fortunes-of-nigel": 16631,  # solo
+    "the-people-of-the-mist": 7431,  # solo
+    "robin": 5702,  # solo
+    "the-little-nugget": 7719,  # solo
+    "the-rose-and-the-ring": 9902,  # LibriVox volunteers
+    "with-lee-in-virginia": 9108,  # LibriVox volunteers
+    "tanar-of-pellucidar": 20083,  # solo
+    "813": 6281,  # solo
+    "the-land-of-mist": 19159,  # LibriVox volunteers
+    "the-stark-munro-letters": 8634,  # LibriVox volunteers
+    "the-cruise-of-the-snark": 1384,  # LibriVox volunteers
+    "allans-wife": 3718,  # solo
+    "the-moon-maid": 14292,  # solo
+    "wessex-tales": 5615,  # solo
+    "wildfire": 11196,  # solo
+    "the-heritage-of-the-desert": 6358,  # solo
+    "at-the-foot-of-the-rainbow": 7519,  # LibriVox volunteers
+    "american-notes": 14834,  # solo
+    "hide-and-seek": 9940,  # solo
+    "beyond-good-and-evil": 152,  # LibriVox volunteers
+    "the-red-thumb-mark": 3505,  # LibriVox volunteers
+    "the-hill-of-dreams": 8176,  # solo
+    "desert-gold": 21139,  # solo
+    "the-scalp-hunters": 2272,  # LibriVox volunteers
+    "rudin": 10338,  # solo
+    "the-fair-maid-of-perth": 13752,  # LibriVox volunteers
+    "mary-marie": 5732,  # LibriVox volunteers
+    "desperate-remedies": 5415,  # LibriVox volunteers
+    "out-of-times-abyss": 2509,  # solo
+    "new-grub-street": 3276,  # LibriVox volunteers
+    "basil": 5066,  # LibriVox volunteers
+    "east-lynne": 2575,  # LibriVox volunteers
+    "the-duel": 9309,  # solo
+    "lifes-little-ironies": 8459,  # solo
+    "the-possessed": 8782,  # solo
+    "bel-ami": 3857,  # solo
+    "the-rainbow-trail": 7241,  # solo
+    "the-harvester": 17678,  # solo
+    "the-communist-manifesto": 4011,  # solo
+    "the-virginian": 2730,  # solo
+    "the-adventures-of-odysseus-and-the-tale": 5817,  # solo
+    "the-little-lame-prince": 352,  # solo
+    "the-varieties-of-religious-experience": 2828,  # LibriVox volunteers
+    "armadale": 2797,  # LibriVox volunteers
+    "a-vindication-of-the-rights-of-woman": 83,  # LibriVox volunteers
+    "hardings-luck": 4110,  # LibriVox volunteers
+    "kim": 1332,  # solo
+    "the-woman-in-white": 11401,  # solo
+    "redgauntlet": 15622,  # solo
+    "island-nights-entertainments": 10406,  # solo
+    "the-coming-race": 2194,  # solo
+    "the-light-that-failed": 3530,  # LibriVox volunteers
+    "eminent-victorians": 5961,  # solo
+    "chronicles-of-avonlea": 1100,  # solo
+    "the-teeth-of-the-tiger": 5755,  # solo
+    "new-arabian-nights": 6417,  # solo
+    "laddie": 3964,  # solo
+    "the-swiss-family-robinson": 3347,  # solo
+    "some-do-not": 16509,  # solo
+    "hypatia": 3044,  # LibriVox volunteers
+    "the-dawn-of-a-to-morrow": 5182,  # solo
+    "villette": 14892,  # solo
+    "the-rainbow": 9571,  # solo
+    "after-dark": 11404,  # LibriVox volunteers
+    "dead-souls": 1390,  # LibriVox volunteers
+    "aarons-rod": 9254,  # LibriVox volunteers
+    "travels-with-a-donkey-in-the-cevennes": 7282,  # solo
+    "further-chronicles-of-avonlea": 1413,  # solo
+    "the-night-land": 9322,  # solo
+    "roderick-hudson": 5814,  # solo
+    "guy-mannering": 13152,  # LibriVox volunteers
+    "i-will-repay": 2863,  # solo
+    "five-weeks-in-a-balloon": 2024,  # solo
+    "the-garden-party": 19467,  # solo
+    "a-portrait-of-the-artist-as-a-young-man": 8618,  # solo
+    "the-portrait-of-a-lady": 8391,  # solo
+    "sons-and-lovers": 9436,  # solo
+    "queen-victoria": 2169,  # solo
+    "the-voyage-of-the-beagle": 1211,  # LibriVox volunteers
+    "the-prelude": 21142,  # solo
+    # A third 250 public-domain titles (October 2026), three replacements
+    "the-beautiful-and-damned": 12664,  # solo
+    "john-silence": 7459,  # LibriVox volunteers
+    "the-war-in-the-air": 5621,  # LibriVox volunteers
+    # A third 250 public-domain titles (October 2026), one more replacement
+    "the-song-of-the-lark": 2763,  # LibriVox volunteers
 }
 
 API = "https://librivox.org/api/feed/audiobooks/?id={}&format=json&extended=1"
@@ -359,9 +612,10 @@ def fetch(project_id: int) -> dict:
 def narrators(sections: list) -> str:
     names = []
     for s in sections:
-        for r in s.get("readers", []):
-            name = r["display_name"].split(" (")[0]
-            if name not in names:
+        for r in s.get("readers") or []:
+            # A few sections list a reader without a name; they can't be credited, so skip them.
+            name = (r.get("display_name") or "").split(" (")[0].strip()
+            if name and name not in names:
                 names.append(name)
     return names[0] if len(names) == 1 else "LibriVox volunteers"
 
