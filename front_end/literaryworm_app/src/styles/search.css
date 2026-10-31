@@ -117,6 +117,11 @@
   margin-top: 36px;
 }
 
+/* An ISBN search has no filters, so no sidebar. */
+.search-layout-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .search-sidebar {
   position: sticky;
   top: calc(var(--header-h) + 20px);
@@ -249,9 +254,9 @@
   }
 }
 
-/* Title or Author, above the search box: full-size targets, no wider than it needs. */
+/* Title, Author or ISBN, above the search box: full-size targets, no wider than it needs. */
 .search-by {
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .search-by span {

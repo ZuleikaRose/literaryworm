@@ -66,7 +66,9 @@ export type FeedQuery =
    * One author's books on Google Books: credited to exactly that name (their page), or, for a
    * search by author (`loose`), to any author whose name has every word searched for.
    */
-  | { mode: "author"; name: string; loose?: boolean; length?: SearchLength | null };
+  | { mode: "author"; name: string; loose?: boolean; length?: SearchLength | null }
+  /** The editions with one ISBN (its digits, from `cleanIsbn()`). */
+  | { mode: "isbn"; isbn: string };
 
 export class BooksApiError extends Error {
   readonly code: string;
@@ -84,6 +86,7 @@ export { usesBackend };
 
 export function feedKey(query: FeedQuery): string {
   if (query.mode === "genre") return `genre:${query.genre}`;
+  if (query.mode === "isbn") return `isbn:${query.isbn}`;
   if (query.mode === "author") return `author:${query.name}|${query.loose ? "loose" : ""}|${query.length ?? ""}`;
   if (query.mode === "search") {
     return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}|${query.lang ?? ""}|${query.length ?? ""}`;
@@ -121,6 +124,7 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
   const params = new URLSearchParams({ mode: query.mode, page: String(page) });
   if (query.mode === "genre") params.set("genre", query.genre);
   if (query.mode === "author") params.set("name", query.name);
+  if (query.mode === "isbn") params.set("isbn", query.isbn);
   if (query.mode === "search") {
     params.set("q", query.q);
     if (query.genre) params.set("genre", query.genre);

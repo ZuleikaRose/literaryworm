@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { browseGenres, favouriteGenreId, favouriteGenreLabel, genreForCategories, inFavouriteGenre } from "../data/genres";
-import { catalogMatches, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl, unfiltered } from "./search";
+import { catalogMatches, cleanIsbn, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl, unfiltered } from "./search";
 
 describe("queries", () => {
   it("tidies spaces", () => {
@@ -143,5 +143,32 @@ describe("search by author", () => {
   it("words its errors for a name", () => {
     expect(queryError("", "author")).toBe("Enter an author's name to search for.");
     expect(queryError("a<b", "author")).toBe("Search by author using letters, numbers and basic punctuation.");
+  });
+});
+
+describe("search by ISBN", () => {
+  it("accepts ISBN-10 and ISBN-13 with a right check digit, as digits", () => {
+    expect(cleanIsbn("978-0-14-143951-8")).toBe("9780141439518");
+    expect(cleanIsbn("0 19 852663 6")).toBe("0198526636");
+    expect(cleanIsbn("080442957x")).toBe("080442957X");
+    expect(cleanIsbn("9780141439519")).toBeNull();
+    expect(cleanIsbn("0198526637")).toBeNull();
+    expect(cleanIsbn("1234567890123")).toBeNull(); // not 978 or 979
+    expect(cleanIsbn("97801414395X8")).toBeNull();
+  });
+
+  it("explains what's wrong with an ISBN", () => {
+    expect(queryError("", "isbn")).toBe("Enter an ISBN to search for.");
+    expect(queryError("the hobbit", "isbn")).toMatch(/made of digits/);
+    expect(queryError("978-0-14", "isbn")).toBe("An ISBN has 10 or 13 digits. This one has 6.");
+    expect(queryError("9780141439519", "isbn")).toMatch(/doesn't add up/);
+    expect(queryError("978-0-14-143951-8", "isbn")).toBeNull();
+  });
+
+  it("keeps by=isbn in the address with no filters, and never matches the catalog", () => {
+    const read = readSearchParams(new URLSearchParams("q=978-0-14-143951-8&by=isbn&genre=fantasy&length=long&source=literaryworm"));
+    expect(read).toEqual({ q: "9780141439518", by: "isbn", genre: null, sort: "relevance", source: "google", lang: null, length: null });
+    expect(searchUrl(read)).toBe("/search?q=9780141439518&by=isbn");
+    expect(catalogMatches(read, "all")).toEqual([]);
   });
 });

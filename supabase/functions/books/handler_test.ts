@@ -78,6 +78,7 @@ Deno.test("an empty filtered list is asked again with plain words, once", async 
     ["mode=search&q=dune&genre=horror&sort=newest", "intitle:dune subject:horror", "dune horror"],
     ["mode=author&name=Matt%20Haig", 'inauthor:"Matt Haig"', '"Matt Haig"'],
     ["mode=search&q=dune&lang=es", "intitle:dune", "dune"],
+    ["mode=isbn&isbn=978-0-14-143951-8", "isbn:9780141439518", "9780141439518"],
   ];
   for (const [query, filtered, plain] of cases) {
     const calls: URL[] = [];
@@ -147,6 +148,20 @@ Deno.test("each genre maps to a subject query", async () => {
   }
 });
 
+Deno.test("isbn mode asks Google for that ISBN, 10 or 13 digits", async () => {
+  for (const [query, q] of [
+    ["mode=isbn&isbn=978-0-14-143951-8", "isbn:9780141439518"],
+    ["mode=isbn&isbn=0%2019%20852663%206", "isbn:0198526636"],
+    ["mode=isbn&isbn=080442957x", "isbn:080442957X"],
+  ]) {
+    const { calls, fetcher } = stub(200, fullPage);
+    const res = await handle(get(query), { fetcher });
+    assertEquals(res.status, 200, query);
+    await res.body?.cancel();
+    assertEquals(calls[0].url.searchParams.get("q"), q);
+  }
+});
+
 Deno.test("rejects bad input before calling Google", async () => {
   const cases = [
     "mode=search",                                   // missing query
@@ -170,6 +185,11 @@ Deno.test("rejects bad input before calling Google", async () => {
     "mode=author",                                   // missing name
     "mode=author&name=x%3Ay%22",                     // operator injection
     "mode=author&name=Haig&q=dune",                  // q not allowed on author
+    "mode=isbn",                                     // missing isbn
+    "mode=isbn&isbn=9780141439519",                  // wrong check digit
+    "mode=isbn&isbn=014143951",                      // too short
+    "mode=isbn&isbn=isbn%3A9780141439518",           // operator injection
+    "mode=isbn&isbn=9780141439518&lang=es",          // lang only applies to search
   ];
   for (const query of cases) {
     const { calls, fetcher } = stub(200, fullPage);

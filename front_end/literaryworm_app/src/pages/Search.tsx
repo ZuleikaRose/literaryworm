@@ -13,6 +13,7 @@ import { type AuthorMatch, followerCountNow, followersShort, matchingAuthors, pe
 import { useFollows } from "../lib/useFollows";
 import {
   catalogMatches,
+  cleanIsbn,
   didYouMean,
   normalizeQuery,
   QUERY_MAX,
@@ -31,9 +32,10 @@ import { useTitle } from "../lib/useTitle";
 import { useActiveProfile } from "../store/context";
 
 /**
- * /search, public. Search by title (the brief), or by author when the reader chooses (`by=author`):
- * LiteraryWorm's own titles first, then Google Books results through the `books` Edge Function
- * (its author mode for an author), loading more as the reader scrolls. The whole search lives in
+ * /search, public. Search by title (the brief), or by author or ISBN when the reader chooses
+ * (`by=author`, `by=isbn`): LiteraryWorm's own titles first, then Google Books results through the
+ * `books` Edge Function (its author or isbn mode), loading more as the reader scrolls. The catalog
+ * keeps no ISBNs, so an ISBN search is Google Books only, and isn't offered without it. The whole search lives in
  * the URL, so it survives a refresh and works with Back.
  */
 export default function Search() {
@@ -52,6 +54,8 @@ export default function Search() {
   );
 }
 
+const SEARCH_BY_LABELS: Record<SearchBy, string> = { title: "Title", author: "Author", isbn: "ISBN" };
+
 function SearchHeader({ search, serverError }: { search: SearchParams; serverError: string | null }) {
   const collections = useCollections();
   const profile = useActiveProfile();
@@ -61,6 +65,9 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
   const [error, setError] = useState<string | null>(serverError);
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
+  // Only Google Books knows ISBNs, and Kids profiles search LiteraryWorm's own shelf only.
+  const isbnAllowed = usesBackend && profile?.ageRating !== "kids";
+  const choices: SearchBy[] = isbnAllowed || by === "isbn" ? ["title", "author", "isbn"] : ["title", "author"];
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -71,9 +78,15 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
       input.current?.focus();
       return;
     }
+    if (by === "isbn") {
+      // Recent searches are titles, so an ISBN isn't kept among them.
+      navigate(searchUrl(unfiltered(cleanIsbn(q)!, "isbn")));
+      return;
+    }
     if (profile) collections.addRecentSearch(q);
     // Moving to an author search drops the filters it doesn't have.
-    navigate(searchUrl(by === search.by ? { ...search, q } : { ...unfiltered(q, by), source: search.source, length: search.length }));
+    const source = search.by === "isbn" ? "all" : search.source;
+    navigate(searchUrl(by === search.by ? { ...search, q } : { ...unfiltered(q, by), source, length: search.length }));
   }
 
   function surprise() {
@@ -87,7 +100,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
         <fieldset className="segmented search-by">
           <legend>Search by</legend>
           <div>
-            {(["title", "author"] as const).map((value) => (
+            {choices.map((value) => (
               <label key={value}>
                 <input
                   type="radio"
@@ -100,13 +113,13 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
                     input.current?.focus();
                   }}
                 />
-                <span>{value === "title" ? "Title" : "Author"}</span>
+                <span>{SEARCH_BY_LABELS[value]}</span>
               </label>
             ))}
           </div>
         </fieldset>
         <label className="field-label" htmlFor={id}>
-          {by === "author" ? "Author's name" : "Title"}
+          {by === "author" ? "Author's name" : by === "isbn" ? "ISBN" : "Title"}
         </label>
         <div className="search-form-row">
           <div className="search-input-wrap">
@@ -119,7 +132,9 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
               value={draft}
               maxLength={QUERY_MAX + 20}
               autoComplete="off"
-              placeholder={by === "author" ? "For example, Ursula K. Le Guin" : "For example, The Hobbit"}
+              placeholder={
+                by === "author" ? "For example, Ursula K. Le Guin" : by === "isbn" ? "For example, 978-0-14-143951-8" : "For example, The Hobbit"
+              }
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? `${id}-error` : `${id}-hint`}
               onChange={(e) => {
@@ -144,7 +159,9 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
           <p className="field-hint" id={`${id}-hint`}>
             {by === "author"
               ? "Finds books by any author whose name has every word you type, such as tolkien or le guin."
-              : "Searches book titles. Choose Author to search by who wrote it."}
+              : by === "isbn"
+                ? "The 10- or 13-digit number on the back of the book or its copyright page. Searches Google Books."
+                : `Searches book titles. Choose Author to search by who wrote it${isbnAllowed ? ", or ISBN for one edition" : ""}.`}
           </p>
         )}
       </form>
@@ -212,12 +229,13 @@ function Results({ search }: { search: SearchParams }) {
 
   const catalog = source === "google" ? [] : catalogMatches(search, ageRating);
   const byAuthor = search.by === "author";
+  const byIsbn = search.by === "isbn";
   // The Google Books results loaded so far, for this search only (an author search lists their authors).
   const feedKey = `${search.by}|${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`;
   const [loaded, setLoaded] = useState<{ key: string; items: BookSummary[] }>({ key: feedKey, items: [] });
   const googleItems = loaded.key === feedKey && source !== "literaryworm" && googleAllowed ? loaded.items : [];
   const authors = byAuthor ? matchingAuthors([...catalog.map((b) => [b.author]), ...googleItems.map((b) => b.authors)], search.q) : [];
-  const suggestion = !byAuthor && catalogMatches(search, ageRating).length === 0 ? didYouMean(search.q, ageRating) : null;
+  const suggestion = search.by === "title" && catalogMatches(search, ageRating).length === 0 ? didYouMean(search.q, ageRating) : null;
   const filterCount =
     (search.genre ? 1 : 0) +
     (search.sort !== "relevance" ? 1 : 0) +
@@ -230,7 +248,7 @@ function Results({ search }: { search: SearchParams }) {
   }
 
   const summary = [
-    byAuthor ? `books by “${search.q}”` : `“${search.q}”`,
+    byAuthor ? `books by “${search.q}”` : byIsbn ? `ISBN ${search.q}` : `“${search.q}”`,
     search.genre && genreLabel(search.genre),
     search.lang && SEARCH_LANGUAGES.find((l) => l.code === search.lang)?.label,
     search.length && SEARCH_LENGTHS.find((l) => l.id === search.length)?.label.toLowerCase(),
@@ -240,26 +258,39 @@ function Results({ search }: { search: SearchParams }) {
     .join(" · ");
 
   return (
-    <div className="search-layout">
-      <aside className="search-sidebar" aria-labelledby="filters-title">
-        <h2 id="filters-title">Filters</h2>
-        <SearchFilters value={search} onChange={update} showSource={googleAllowed} />
-      </aside>
+    <div className={byIsbn ? "search-layout search-layout-single" : "search-layout"}>
+      {/* An ISBN search has nothing to filter. */}
+      {!byIsbn && (
+        <aside className="search-sidebar" aria-labelledby="filters-title">
+          <h2 id="filters-title">Filters</h2>
+          <SearchFilters value={search} onChange={update} showSource={googleAllowed} />
+        </aside>
+      )}
 
       <div className="search-results">
         <div className="results-bar">
           <p className="results-summary" aria-live="polite">
             Results for {summary}
           </p>
-          <button
-            type="button"
-            className="secondary-button filters-button"
-            aria-haspopup="dialog"
-            onClick={() => setFiltersOpen(true)}
-          >
-            <Icon name="settings" size={17} /> Filters{filterCount > 0 && ` (${filterCount})`}
-          </button>
+          {!byIsbn && (
+            <button
+              type="button"
+              className="secondary-button filters-button"
+              aria-haspopup="dialog"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <Icon name="settings" size={17} /> Filters{filterCount > 0 && ` (${filterCount})`}
+            </button>
+          )}
         </div>
+
+        {byIsbn && !googleAllowed && (
+          <p className="search-empty">
+            {ageRating === "kids"
+              ? `${profile?.name}'s profile searches LiteraryWorm's own shelf, which can't be searched by ISBN. Search by title instead.`
+              : "Searching by ISBN needs Google Books, which this copy of the app doesn't use. Search by title instead."}
+          </p>
+        )}
 
         {suggestion && (
           <p className="did-you-mean">
@@ -276,7 +307,7 @@ function Results({ search }: { search: SearchParams }) {
 
         {authors.length > 0 && <AuthorResults authors={authors} canFollow={Boolean(profile)} />}
 
-        {source !== "google" && (
+        {source !== "google" && !byIsbn && (
           <section className="catalog-results" aria-labelledby="catalog-results-title">
             <div className="section-heading">
               <div>
@@ -311,17 +342,21 @@ function Results({ search }: { search: SearchParams }) {
             eyebrow="Save, rate and write logs"
             title="From Google Books"
             query={
-              byAuthor
-                ? { mode: "author", name: search.q, loose: true, length: search.length }
-                : { mode: "search", q: search.q, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }
+              byIsbn
+                ? { mode: "isbn", isbn: search.q }
+                : byAuthor
+                  ? { mode: "author", name: search.q, loose: true, length: search.length }
+                  : { mode: "search", q: search.q, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }
             }
             ageRating={ageRating}
             emptyHint={
-              search.length
-                ? "No Google Books titles match. Google doesn't list the length of every edition, so the length filter leaves those out: try any length."
-                : byAuthor
-                  ? "No Google Books titles by that author. Check the spelling, or try just their surname."
-                  : "No Google Books titles match. Check the spelling, try fewer words or another genre."
+              byIsbn
+                ? "Google Books has no edition with that ISBN. Check it against the book, or search by title."
+                : search.length
+                  ? "No Google Books titles match. Google doesn't list the length of every edition, so the length filter leaves those out: try any length."
+                  : byAuthor
+                    ? "No Google Books titles by that author. Check the spelling, or try just their surname."
+                    : "No Google Books titles match. Check the spelling, try fewer words or another genre."
             }
             endText="That's every Google Books match for this search."
           />

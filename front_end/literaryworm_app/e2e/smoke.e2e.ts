@@ -51,6 +51,20 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("checks an ISBN search, which needs Google Books", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/search?q=978-0-14-143951-8&by=isbn`);
+    await page.getByText(/Results for ISBN 9780141439518/).waitFor();
+    // This copy has no backend, so it says so instead of searching; there's nothing to filter.
+    await page.getByText(/Searching by ISBN needs Google Books/).waitFor();
+    expect(await page.locator(".search-sidebar").count()).toBe(0);
+    expect(await page.getByRole("radio", { name: "ISBN" }).isChecked()).toBe(true);
+    await page.getByRole("searchbox", { name: "ISBN" }).fill("9780141439519");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await page.getByText(/That ISBN doesn't add up/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("lists the authors an author search finds, and follows one from there", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

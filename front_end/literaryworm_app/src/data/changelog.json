@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-31",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Search by ISBN",
+    "body": "Search now has a third choice beside Title and Author: ISBN. Type the 10- or 13-digit number from the back of a book or its copyright page, with or without hyphens, to find that edition on Google Books. We check the number first, so a mistyped digit is caught straight away.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "300 more classics: 871 to read and hear",
     "body": "Ulysses, The Divine Comedy, Paradise Lost, Beowulf, Leaves of Grass, Pinocchio, The Blue Fairy Book, Rob Roy, Grant's memoirs, Two Years Before the Mast, The King in Yellow, Arsène Lupin, Dr Thorndyke, Henty's and Altsheler's adventures and 280 others are now in LiteraryWorm, each with the whole book to read and a LibriVox recording to listen to. That's 871 classics in all.",
     "major": true

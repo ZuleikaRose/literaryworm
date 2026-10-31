@@ -48,6 +48,29 @@ export function parseName(raw: string | null): string {
   return name;
 }
 
+/**
+ * An ISBN-10 or ISBN-13, as its digits (spaces and hyphens dropped). The check digit must be
+ * right, so a mistyped number is refused before Google is asked.
+ */
+export function parseIsbn(raw: string | null): string {
+  const isbn = (raw ?? "").replace(/[\s-]/g, "").toUpperCase();
+  if (!isbn) throw new HttpError("bad_request", "Send the ISBN.");
+  if (!isValidIsbn(isbn)) throw new HttpError("bad_request", "isbn must be a valid 10- or 13-digit ISBN.");
+  return isbn;
+}
+
+function isValidIsbn(isbn: string): boolean {
+  if (/^\d{9}[\dX]$/.test(isbn)) {
+    const sum = [...isbn].reduce((total, c, i) => total + (c === "X" ? 10 : Number(c)) * (10 - i), 0);
+    return sum % 11 === 0;
+  }
+  if (/^97[89]\d{10}$/.test(isbn)) {
+    const sum = [...isbn].reduce((total, c, i) => total + Number(c) * (i % 2 === 0 ? 1 : 3), 0);
+    return sum % 10 === 0;
+  }
+  return false;
+}
+
 export function parseGenre(raw: string | null): Genre {
   const g = (raw ?? "").toLowerCase();
   if (!(GENRES as readonly string[]).includes(g)) {

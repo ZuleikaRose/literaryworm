@@ -7,6 +7,7 @@
 //     &genre=sci-fi&sort=newest&lang=es optional: narrow to a genre or a language, newest first
 //   ?mode=genre&genre=sci-fi&page=0   one of the six required genres
 //   ?mode=author&name=Matt%20Haig&page=0  one author's books (their page)
+//   ?mode=isbn&isbn=9780141439518&page=0  the editions with that ISBN (10 or 13 digits)
 //   ?mode=volume&id=zyTCAlFPjgYC      one book's details
 
 import { preflight } from "../_shared/cors.ts";
@@ -24,7 +25,7 @@ import {
   titleQuery,
   volumeUrl,
 } from "../_shared/googleBooks.ts";
-import { parseGenre, parseLanguage, parseName, parsePage, parseQuery, parseSort, parseVolumeId } from "../_shared/validate.ts";
+import { parseGenre, parseIsbn, parseLanguage, parseName, parsePage, parseQuery, parseSort, parseVolumeId } from "../_shared/validate.ts";
 
 const METHODS = "GET";
 const ALLOWED_PARAMS: Record<string, string[]> = {
@@ -32,6 +33,7 @@ const ALLOWED_PARAMS: Record<string, string[]> = {
   search: ["mode", "q", "page", "genre", "sort", "lang"],
   genre: ["mode", "genre", "page"],
   author: ["mode", "name", "page"],
+  isbn: ["mode", "isbn", "page"],
   volume: ["mode", "id"],
 };
 
@@ -57,7 +59,7 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     const params = new URL(req.url).searchParams;
     const mode = params.get("mode") ?? "home";
     const allowed = ALLOWED_PARAMS[mode];
-    if (!allowed) throw new HttpError("bad_request", "mode must be home, search, genre, author or volume.");
+    if (!allowed) throw new HttpError("bad_request", "mode must be home, search, genre, author, isbn or volume.");
     for (const key of new Set(params.keys())) {
       if (!allowed.includes(key)) throw new HttpError("bad_request", `Unexpected parameter: ${key}.`);
       if (params.getAll(key).length > 1) throw new HttpError("bad_request", `Send ${key} once.`);
@@ -90,6 +92,11 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
       q = authorQuery(name);
       // Still only their books if Google ignores inauthor: for a while, just matched more loosely.
       plain = `"${name.replace(/["]/g, "")}"`;
+    } else if (mode === "isbn") {
+      const isbn = parseIsbn(params.get("isbn"));
+      q = `isbn:${isbn}`;
+      // The bare number still finds the book if Google ignores isbn: for a while.
+      plain = isbn;
     } else if (mode === "genre") {
       const genre = parseGenre(params.get("genre"));
       q = GENRE_QUERIES[genre];

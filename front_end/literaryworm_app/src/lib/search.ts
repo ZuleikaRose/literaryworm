@@ -3,15 +3,15 @@ import { type BrowseGenre, isBrowseGenre, sampleCatalogGenres } from "../data/ge
 import type { AgeRating, Book } from "../types";
 
 /**
- * Search is by title (the brief), or by author when the reader chooses. These match the `books`
- * Edge Function's own checks, which are the same for a title and an author's name.
+ * Search is by title (the brief), or by author or ISBN when the reader chooses. These match the
+ * `books` Edge Function's own checks, which are the same for a title and an author's name.
  */
 export const QUERY_MAX = 100;
 const QUERY_CHARS = /^[\p{L}\p{N}\p{M} '’.,!?&()-]+$/u;
 
 export type SearchSort = "relevance" | "newest";
-/** What the words are matched against: titles (the default), or authors' names. */
-export type SearchBy = "title" | "author";
+/** What the words are matched against: titles (the default), authors' names, or an ISBN. */
+export type SearchBy = "title" | "author" | "isbn";
 export type SearchSource = "all" | "literaryworm" | "google";
 
 /** The languages search offers (ISO 639-1, the same list as the `books` function's `lang`). */
@@ -35,7 +35,10 @@ export type SearchLength = (typeof SEARCH_LENGTHS)[number]["id"];
 
 export interface SearchParams {
   q: string;
-  /** Title unless `by=author` is in the address. An author search has no genre, language or sort. */
+  /**
+   * Title unless `by=author` or `by=isbn` is in the address. An author search has no genre,
+   * language or sort; an ISBN search has no filters at all, and `q` is the ISBN's digits.
+   */
   by: SearchBy;
   genre: BrowseGenre | null;
   sort: SearchSort;
@@ -64,8 +67,33 @@ export function normalizeQuery(raw: string): string {
   return raw.normalize("NFC").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * An ISBN-10 or ISBN-13 as its digits (spaces and hyphens dropped, a final x as X), or null when
+ * it isn't one or its check digit is wrong. The same rule as the `books` function's `parseIsbn()`.
+ */
+export function cleanIsbn(raw: string): string | null {
+  const isbn = raw.replace(/[\s-]/g, "").toUpperCase();
+  if (/^\d{9}[\dX]$/.test(isbn)) {
+    const sum = [...isbn].reduce((total, c, i) => total + (c === "X" ? 10 : Number(c)) * (10 - i), 0);
+    return sum % 11 === 0 ? isbn : null;
+  }
+  if (/^97[89]\d{10}$/.test(isbn)) {
+    const sum = [...isbn].reduce((total, c, i) => total + Number(c) * (i % 2 === 0 ? 1 : 3), 0);
+    return sum % 10 === 0 ? isbn : null;
+  }
+  return null;
+}
+
 /** A plain-words problem with the query, or null when it can be searched. */
 export function queryError(q: string, by: SearchBy = "title"): string | null {
+  if (by === "isbn") {
+    if (!q) return "Enter an ISBN to search for.";
+    const digits = q.replace(/[\s-]/g, "");
+    if (!/^[\dXx]+$/.test(digits)) return "An ISBN is made of digits (the last can be X). Spaces and hyphens are fine.";
+    if (digits.length !== 10 && digits.length !== 13) return `An ISBN has 10 or 13 digits. This one has ${digits.length}.`;
+    if (!cleanIsbn(q)) return "That ISBN doesn't add up. Check each digit against the book.";
+    return null;
+  }
   const what = by === "author" ? "an author's name" : "a title";
   if (!q) return `Enter ${what} to search for.`;
   if (q.length > QUERY_MAX) return `Search is limited to ${QUERY_MAX} characters. Try a shorter ${by === "author" ? "name" : "title"}.`;
@@ -89,11 +117,16 @@ export function readSearchParams(params: URLSearchParams): SearchParams {
   const genre = params.get("genre");
   const sort = params.get("sort");
   const source = params.get("source");
-  const by: SearchBy = params.get("by") === "author" ? "author" : "title";
+  const byParam = params.get("by");
+  const by: SearchBy = byParam === "author" || byParam === "isbn" ? byParam : "title";
+  const q = normalizeQuery(params.get("q") ?? "");
+  // An ISBN names one book (in its editions), so there's nothing to narrow, and only Google
+  // Books knows ISBNs.
+  if (by === "isbn") return { ...unfiltered(cleanIsbn(q) ?? q, by), source: "google" };
   // Google's author search can't narrow by genre or language, or sort by date, so neither does ours.
   const byTitle = by === "title";
   return {
-    q: normalizeQuery(params.get("q") ?? ""),
+    q,
     by,
     genre: byTitle && isBrowseGenre(genre) ? genre : null,
     sort: byTitle && sort === "newest" ? "newest" : "relevance",
@@ -106,10 +139,10 @@ export function readSearchParams(params: URLSearchParams): SearchParams {
 export function searchUrl({ q, by, genre, sort, source, lang, length }: SearchParams): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
-  if (by === "author") params.set("by", "author");
+  if (by !== "title") params.set("by", by);
   if (genre) params.set("genre", genre);
   if (sort !== "relevance") params.set("sort", sort);
-  if (source !== "all") params.set("source", source);
+  if (source !== "all" && by !== "isbn") params.set("source", source);
   if (lang) params.set("lang", lang);
   if (length) params.set("length", length);
   const query = params.toString();
@@ -136,6 +169,8 @@ export function wordsMatch(text: string, q: string): boolean {
 
 /** LiteraryWorm's own titles that match, filtered and sorted like the Google results. */
 export function catalogMatches({ q, by, genre, sort, lang, length }: SearchParams, ageRating: AgeRating): Book[] {
+  // The catalog doesn't keep ISBNs.
+  if (by === "isbn") return [];
   const found = books.filter(
     (b) =>
       isAllowed(b.ageRating, ageRating) &&
