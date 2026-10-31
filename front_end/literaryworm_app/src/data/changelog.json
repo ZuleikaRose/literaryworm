@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
+    "kind": "update",
+    "title": "A tour of LiteraryWorm on the home page",
+    "body": "The home page now shows what LiteraryWorm does beyond reading and listening: highlights and word review, Ask the book, goals and streaks, the private journal, book clubs, listening anywhere, reading offline and following authors. It also says how Kids profiles can ask a grown-up for a book.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
     "kind": "feature",
     "title": "A private reading journal",
     "body": "Every book's page now has My journal: dated notes about the book that only you see, apart from the public reader logs. Write, edit and delete entries, and export them with your highlights from My Library → Notes.",
