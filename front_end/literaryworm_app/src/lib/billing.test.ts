@@ -73,7 +73,7 @@ describe("yearly billing", () => {
 
   it("says what a yearly price becomes once a promo code ends", () => {
     const code = { code: "X", percentOff: 10, amountOff: null, currency: null, duration: "once" as const, ends: null };
-    expect(afterDiscountLabel(code, "$79.90", "year")).toBe("Then $79.90 a year after that.");
+    expect(afterDiscountLabel(code, "$99.90", "year")).toBe("Then $99.90 a year after that.");
   });
 });
 
@@ -132,7 +132,7 @@ describe("the yearly billing offer", () => {
   const day = 86_400_000;
 
   it("saves two months' price", () => {
-    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([15.98, 29.98, 49.98]);
+    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([19.98, 29.98, 49.98]);
   });
 
   it("counts months like Stripe, keeping the day or the month's last", () => {

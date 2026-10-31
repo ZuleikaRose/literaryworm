@@ -6613,3 +6613,22 @@ update public.plans set price_cents = 2499, yearly_price_cents = 24990 where id 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$New prices for Standard and Premium$lw$, $lw$Standard is now $14.99 a month ($149.90 a year) and Premium $24.99 a month ($249.90 a year), for new memberships and gifts. Basic stays at $7.99. If you're already a member, your price stays as it is.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$New prices for Standard and Premium$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261031006402_basic_price.sql
+-- =============================================================================
+-- Basic goes to $9.99 a month ($99.90 a year). src/data/plans.ts and the checkout function's labels
+-- say the same; in Stripe the new prices took over literaryworm_basic_monthly / _yearly and the old
+-- ones were archived (no active subscription was on them).
+
+update public.plans set price_cents = 999, yearly_price_cents = 9990 where id = 'basic';
+
+-- =============================================================================
+-- 20261031006403_whats_new_basic_price.sql
+-- =============================================================================
+-- What's new: the new Basic price (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$New price for Basic$lw$, $lw$Basic is now $9.99 a month ($99.90 a year), for new memberships and gifts. If you're already a member, your price stays as it is.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$New price for Basic$lw$ and c.version = $lw$2026.10$lw$);

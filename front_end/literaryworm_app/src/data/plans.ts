@@ -4,8 +4,8 @@ export const plans: Plan[] = [
   {
     id: "basic",
     name: "Basic",
-    price: 7.99,
-    yearlyPrice: 79.9,
+    price: 9.99,
+    yearlyPrice: 99.9,
     summary: "Ebooks for one reader.",
     profiles: 1,
     audioHours: "5 hours of audiobooks a month",

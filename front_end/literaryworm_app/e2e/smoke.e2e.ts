@@ -18,10 +18,10 @@ describe("a visitor", () => {
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/plans`);
-    await page.getByText("$7.99").first().waitFor();
+    await page.getByText("$9.99").first().waitFor();
     await page.getByRole("radio", { name: /Yearly/ }).check({ force: true });
-    await page.getByText("$79.90").first().waitFor();
-    await page.getByText(/\$6\.66 a month, instead of \$7\.99/).waitFor();
+    await page.getByText("$99.90").first().waitFor();
+    await page.getByText(/\$8\.33 a month, instead of \$9\.99/).waitFor();
     // ?billing=yearly opens on yearly prices.
     await page.goto(`${BASE_URL}/plans?billing=yearly`);
     expect(await page.getByRole("radio", { name: /Yearly/ }).isChecked()).toBe(true);
