@@ -417,5 +417,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Club meetings in your calendar app: a signed subscribe link per member (new `club-calendar` function, migration 6102) | Done    |
 | —    | Most-followed authors on Home (migration 6103) | Done    |
 | —    | Yearly-to-monthly switch tested on the Stripe sandbox with the app's prices; security checks run unchanged on a branch with `supabase/tests/run-on-branch.sh` | Done    |
+| —    | Club posts by email: a daily email of new posts about chapters the member has reached, for members who turn it on (new `club-digest` function, migration 6200; Privacy Policy updated), and one device per browser in *Listen on another device* (Cookie Policy updated, migration 6201) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
