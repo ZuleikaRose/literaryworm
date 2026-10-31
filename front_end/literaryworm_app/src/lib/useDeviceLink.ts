@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { deviceIdFor } from "./deviceId";
 import {
   claimHandoff,
   deviceLabel,
@@ -17,7 +18,7 @@ const CHECK_IN_MS = 60_000;
 /** Background device calls never interrupt listening; a failure is logged and the next check-in tries again. */
 const logFailure = (what: string) => (err: Error) => console.error(`devices: couldn't ${what}:`, err.message);
 
-/** This visit's id for each member signed in during it (a new visit is a new device). */
+/** This browser's id for each member signed in during the visit (kept across visits by `deviceIdFor()`). */
 const deviceIds = new Map<string, string>();
 const THIS_DEVICE = typeof navigator === "undefined" ? "This device" : deviceLabel();
 
@@ -75,7 +76,7 @@ export function useDeviceLink(userId: string | null) {
 }
 
 function newDeviceId(userId: string): string {
-  const id = crypto.randomUUID();
+  const id = deviceIdFor(userId);
   deviceIds.set(userId, id);
   return id;
 }

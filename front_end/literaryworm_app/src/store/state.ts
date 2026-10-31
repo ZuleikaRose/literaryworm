@@ -232,6 +232,7 @@ export function demoHousehold(): Household {
       updateEmails: false,
       kidsReportEmails: false,
       clubMeetingEmails: true,
+      clubPostEmails: false,
       isDemo: true,
       status: "active",
       endsAt: null,

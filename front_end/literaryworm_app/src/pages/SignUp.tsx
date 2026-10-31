@@ -104,6 +104,7 @@ export default function SignUp() {
         updateEmails: false,
         kidsReportEmails: false,
         clubMeetingEmails: true,
+        clubPostEmails: false,
         isDemo: false,
         status: "active",
         endsAt: null,

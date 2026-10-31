@@ -20,6 +20,7 @@ import type {
   ReadingStatus,
 } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
+import { forgetDeviceId } from "./deviceId";
 import { defaultPlayerSettings } from "./reading";
 import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
@@ -125,6 +126,8 @@ export async function signIn(email: string, password: string): Promise<void> {
 export async function signOut(): Promise<void> {
   // Uploaded books kept for offline are private: none stay on a shared device.
   await forgetAllUploadsOffline().catch((err: unknown) => console.error("uploads: couldn't clear offline copies at sign-out:", err));
+  // Nor which member's device this browser was.
+  forgetDeviceId();
   if (!supabase) return;
   let failed = false;
   try {
@@ -300,7 +303,7 @@ export async function loadAccount(): Promise<Account | null> {
   if (!user) return null;
   const [profile, details, subscription] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails").eq("user_id", user.id).maybeSingle(),
+    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails, club_post_emails").eq("user_id", user.id).maybeSingle(),
     db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
@@ -316,6 +319,7 @@ export async function loadAccount(): Promise<Account | null> {
     updateEmails: details.data?.update_emails ?? false,
     kidsReportEmails: details.data?.kids_report_emails ?? false,
     clubMeetingEmails: details.data?.club_meeting_emails ?? true,
+    clubPostEmails: details.data?.club_post_emails ?? false,
     isDemo: false,
     ...fromSubscription(subscription.data as SubscriptionRow | null),
   };
@@ -610,6 +614,12 @@ export async function setKidsReportEmails(userId: string, on: boolean): Promise<
 /** Book club meeting emails: reminders, and when a meeting moves or is cancelled (account_private.club_meeting_emails, sent by the club-meetings function). */
 export async function setClubMeetingEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ club_meeting_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** The daily email of new book club posts (account_private.club_post_emails, sent by the club-digest function). */
+export async function setClubPostEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ club_post_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
 }
 

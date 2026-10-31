@@ -59,6 +59,11 @@ export function useAccount() {
     dispatch({ type: "updateAccount", patch: { clubMeetingEmails: on } });
   }
 
+  async function setClubPostEmails(on: boolean) {
+    if (userId) await accountApi.setClubPostEmails(userId, on);
+    dispatch({ type: "updateAccount", patch: { clubPostEmails: on } });
+  }
+
   async function setKidsReportEmails(on: boolean) {
     if (userId) await accountApi.setKidsReportEmails(userId, on);
     dispatch({ type: "updateAccount", patch: { kidsReportEmails: on } });
@@ -139,5 +144,5 @@ export function useAccount() {
     URL.revokeObjectURL(url);
   }
 
-  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setKidsReportEmails, setClubMeetingEmails, changePassword, deleteAccount, downloadData };
+  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
 }

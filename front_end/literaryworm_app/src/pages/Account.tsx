@@ -767,13 +767,14 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
-  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails } = useAccount();
+  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
   const releaseHintId = useId();
   const authorHintId = useId();
   const updateHintId = useId();
   const clubHintId = useId();
+  const clubPostsHintId = useId();
   return (
     <Section id="preferences" title="Preferences">
       <label className="switch-row">
@@ -894,6 +895,31 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             void attempt(
               () => setClubMeetingEmails(on),
               on ? "We'll email you the day before your book clubs meet, and when a meeting changes." : "No more book club meeting emails.",
+            );
+          }}
+        />
+      </label>
+      <label className="switch-row">
+        <span>
+          <strong>Email me new book club posts</strong>
+          <small id={clubPostsHintId}>
+            {remote
+              ? "Once a day, when there are new posts in your clubs with alerts on. Only posts about chapters you've reached, and who wrote them; what they wrote stays in the app."
+              : "The demo doesn't send emails. Members can get a daily email of new posts in their clubs, about chapters they've reached."}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={clubPostsHintId}
+          checked={account.clubPostEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setClubPostEmails(on),
+              on ? "We'll email you new book club posts once a day." : "No more book club post emails.",
             );
           }}
         />
