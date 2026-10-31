@@ -298,6 +298,19 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Moving to a smaller plan (follow-up) | — | Done | Plans says how many profiles to remove and offline devices to free before a move to a plan the household doesn't fit, with links to do it; `checkout` refuses the change with the same words. |
 | Calendar file in meeting change emails (follow-up) | — | Done | Moved and cancelled meeting emails carry the meeting as a calendar file (same event as *Add to calendar*, a later version), so calendars move or cancel it. |
 | Search by ISBN (new request) | — | Done | A third *Search by* choice, *ISBN*: a 10- or 13-digit ISBN (hyphens and spaces allowed, check digit checked in the browser and in the `books` function's new `isbn` mode) finds that edition on Google Books. No filters; not for Kids profiles, since the catalog keeps no ISBNs. The Privacy Policy says an ISBN is what goes to Google Books. |
+| Eight highlight colours (new request) | — | Done | Orange, purple, teal and red join yellow, green, blue and pink (`--mark-*` tokens per paper theme; migration 6501 widens the check). |
+| My words (new request) | — | Done | *Keep in My words* in the dictionary saves the word, its meaning and the sentence; My Library → Words lists them, with flashcard practice (`saved_words`, per profile, up to 500). |
+| Export notes and highlights (new request) | — | Done | Markdown or plain text, one book from the reader or every book from My Library → Notes; made in the browser, never uploaded. |
+| Series (new request) | — | Done | *Book 2 of 6* on book pages, `/series/:name` in reading order, the next one at a book's end and in Home's *Continue the series*; 40 series. |
+| Time left (new request) | — | Done | Minutes left in the chapter and book at the profile's own pace (`reader_profiles.reading_wpm`); the player at its speed. |
+| Up next (new request) | — | Done | A per-profile audiobook queue (`reader_profiles.up_next`, up to 50); the player offers the next book when one ends; My Library → Up next. |
+| Badges (new request) | — | Done | 14 milestones in My Library → Badges with progress, worked out in the browser; new ones in the bell for a week. |
+| Reader keyboard shortcuts (new request) | — | Done | Arrows, C, N, B, D, T, and *?* for the list. |
+| Chapter quizzes (new request) | — | Done | The `quiz` Edge Function has Claude write 3–5 questions from one public-domain chapter, kept in `chapter_quizzes`; scores in `quiz_results`; Kids included, and grown-ups see Kids scores in Account → Family. |
+| Follow other readers (new request) | — | Done | An opt-in public reader page (`profiles.public_reader`, `/readers/:id`) of a member's published logs; `reader_follows` is private to the follower; My Library → Readers. |
+| Car mode and Cast (new request) | — | Done | A full-screen player with five big buttons and the screen kept on; Cast through the browser's Remote Playback (Chromecast, AirPlay) for LibriVox recordings. |
+| Sort My library (new request) | — | Done | Nine sorts (added, oldest added, changed, title A–Z and Z–A, numbers first, author, published newest and oldest) kept in `?sort=` with the status filter; uploads by date or title. |
+| Search by from the header (new request) | — | Done | The header's search box chooses Title, Author or ISBN (ISBN not for Kids profiles or without the backend). |
 | Follower counts in author search (follow-up) | — | Done | *Authors* cards in an author search show *12 followers* (one `follower_counts()` call for the list; a count, never who). |
 | Gift start reminder (follow-up) | — | Done | The buyer of a gift for a later day is emailed three days before it starts (the `gift-reminders` function, daily), without the code. |
 | Kids report in groups (follow-up) | — | Done | Account → Family and the Monday email group Kids profiles: still working on their goal, no reading yet, reading without a goal, goal reached. |

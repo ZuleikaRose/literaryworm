@@ -113,7 +113,7 @@
         "paragraphs": [
           "In Short: We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We may also process your information for other purposes only with your prior explicit consent.",
           "To facilitate account creation and authentication and otherwise manage user accounts. We may process your information so you can create and log in to your account, as well as keep your account and household profiles in working order.",
-          "To deliver and facilitate delivery of services to the user. We may process your information to provide you with the requested service, such as keeping your place in a book across devices, your bookmarks, highlights, lists, goals and stats.",
+          "To deliver and facilitate delivery of services to the user. We may process your information to provide you with the requested service, such as keeping your place in a book across devices, your bookmarks, highlights, saved words, lists, Up next queue, goals and stats.",
           "To respond to user inquiries/offer support to users. We may process your information to respond to your inquiries and solve any potential issues you might have with the requested service.",
           "To send administrative information to you. We may process your information to send you details about your account, changes to our terms and policies, and other similar information.",
           "To enable user-to-user communications. We may process your information if you choose to use any of our offerings that allow for communication with another user, such as reading logs, book clubs and shared lists. A book club's calendar link lets your calendar app read the club's meetings (their names, times and notes) from us; the link is yours, we don't store it, and it stops working if you leave the club.",
@@ -145,7 +145,7 @@
           "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website. Mailgun sends our emails (confirming your email address, resetting your password, and telling you when a book you set Remind me on is out, a weekly list of new books from authors you follow, a monthly round-up of what's new in LiteraryWorm if you turn it on, a weekly report of how your Kids profiles read (their names, reading and listening time, days read, books finished and any weekly goal) if you turn it on, a reminder the day before a book club you're in meets, and a note when one of its meetings moves or is cancelled (the club's name and book and the meeting's name, times and note, with the meeting as a calendar file), a daily email of new posts in your book clubs if you turn it on (each club's name and book, the chapters you've reached that have new posts, how many and the display names of who wrote them; never what they wrote), a reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), a gift membership a member asked us to email to you (its code, plan and months, the buyer's display name and any message they wrote), and confirming that your account was deleted) and the book club invitations members send, so it receives the address each email goes to and the email's contents. We turn off Mailgun's open and click tracking. None of them may use your data for their own purposes.",
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
           "Termly provides our cookie consent banner and our privacy request forms. Your browser loads the banner from Termly on each visit, so Termly receives those requests, including your IP address, and your consent choice is kept in your browser. Termly handles this under its own privacy policy (https://termly.io/our-privacy-policy/). It never handles payment details: Stripe does.",
-          "Anthropic (Claude) writes book summaries, answers Ask the book questions and writes Who's who (see section 6).",
+          "Anthropic (Claude) writes book summaries, answers Ask the book questions, writes Who's who and writes chapter quizzes (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself. Lists you share can be read by anyone with the link. Staff with the right access can see account details to run the service and help you.",
           "Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address. They see the name and email, when the account was made, whether the email is confirmed and two-step sign-in is on, the plan and its billing state (never card details), how many profiles there are, this month's listening against the plan, and the devices keeping books offline. They never see your library, reading, notes, highlights or searches. Every lookup is recorded with who made it and when, and the record is deleted after a year.",
@@ -168,7 +168,7 @@
           "In Short: We offer products, features, or tools powered by artificial intelligence, machine learning, or similar technologies.",
           "As part of our Services, we offer features powered by artificial intelligence (\"AI Products\"). The terms in this Privacy Notice govern your use of the AI Products within our Services.",
           "Use of AI Technologies. We provide the AI Products through one third-party service provider (\"AI Service Provider\"): Anthropic (Claude). We don't use OpenAI, Hugging Face, Google Cloud AI, DeepSeek or Gemini to process your information. Figma Make was used only to design the app's screens and never receives your information. You must not use the AI Products in any way that violates the terms or policies of the AI Service Provider.",
-          "Our AI Products. Book summaries: short and detailed summaries of books in our catalog, written the first time anyone asks, from the book's details; no personal information is sent. Ask the book: answers to your questions about a public-domain book. We send your question and the book's text up to your chapter; we don't send your name, email or account details. Who's who: the characters you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the list so the next reader at that chapter gets the same one. Ask the book and Who's who aren't offered to Kids profiles. Summaries, answers and Who's who are labelled as written by AI.",
+          "Our AI Products. Book summaries: short and detailed summaries of books in our catalog, written the first time anyone asks, from the book's details; no personal information is sent. Ask the book: answers to your questions about a public-domain book. We send your question and the book's text up to your chapter; we don't send your name, email or account details. Who's who: the characters you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the list so the next reader at that chapter gets the same one. Chapter quizzes: a few questions about a chapter of a public-domain book, written for young readers. We send only that chapter's text, nothing about you, and keep the quiz so every reader of that chapter gets the same one; your score is saved with your profile. Ask the book and Who's who aren't offered to Kids profiles; quizzes are. Summaries, answers, Who's who and quizzes are labelled as written by AI.",
           "How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreement with the AI Service Provider. We don't use your reading history, notes, uploads or posts to train AI models."
         ]
       },
@@ -302,7 +302,7 @@
         "paragraphs": [
           "Your account: your email address, display name, password, date of birth (to confirm you're 18 or over), whether you'd like marketing emails, emails when a reminded book is out, weekly emails about new books from authors you follow, the monthly What's new email and the weekly Kids reading report (both off until you turn them on), book club meeting emails (reminders, and when a meeting moves or is cancelled; on until you turn them off), when you accepted the Terms, and your plan. Your password is handled by our sign-in provider and kept only as a one-way hash; we never see it.",
           "Your household: each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal and player settings, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent.",
-          "Your reading: your library, reading progress, bookmarks, highlights and notes, ratings, favourites and lists, the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days, the new books we find by the authors you follow), release reminders, recent searches, reading goals, the household challenges your profiles start or join, time read and listened each day, and the books you finish.",
+          "Your reading: your library, reading progress, bookmarks, highlights and notes, the words you save from the dictionary (with the sentence you met them in), ratings, favourites and lists, your Up next queue, the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days, the new books we find by the authors you follow), release reminders, recent searches, reading goals, the household challenges your profiles start or join, time read and listened each day, your reading pace (words a minute, used to show the time left in a chapter), chapter quiz scores, and the books you finish. If you turn on your reader page (it's off until you do), the reading logs you've already made public are listed together on one public page under your display name, and other members can follow it; who follows whom is never shown, and turning the page off removes its followers. Exports of your highlights and notes are made in your browser and downloaded to your device; they're never uploaded.",
           "Things you share or add: reading logs (public, with your display name), book club posts and whether you're coming to a club's meetings (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text only).",
           "Devices: while you're signed in, a short label for each browser you use the app in (such as \"Chrome on Windows\") so you can send a book to another device. For each device that keeps books with Read offline, the same kind of label and when it was last used, so your plan's offline devices can be counted and you can free one."
         ]
@@ -333,7 +333,7 @@
     "slug": "cookies",
     "title": "Cookie Policy",
     "summary": "This Cookie Policy explains how LiteraryWorm (\"Company,\" \"we,\" \"us,\" and \"our\") uses cookies and similar technologies to recognize you when you visit our website at https://www.literaryworm.com (\"Website\"). It explains what these technologies are and why we use them, as well as your rights to control our use of them.",
-    "updated": "2026-10-29",
+    "updated": "2026-10-31",
     "sections": [
       {
         "heading": "About this policy",
@@ -380,7 +380,7 @@
           "Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page. Next to them the app keeps a small note of which account's offline place this device holds (a random id, not your name or email), so the place can be freed from another device; it goes when the books do.",
           "Books you upload: once you've opened one, its text is kept on that device so it keeps working if your connection drops. It's removed when you delete the book or log out.",
           "Everything else, such as reader settings, playback speed, the demo household and uploads made in the demo, stays in the open tab only and is gone when you refresh or close it.",
-          "Your library, reading progress, bookmarks, highlights, lists, ratings, reading time, player settings, club activity and uploaded books are saved with your account on our servers (Supabase), not in browser cookies. The Privacy Policy says how we use them, and Account lets you download or delete them."
+          "Your library, reading progress, bookmarks, highlights, saved words, lists, Up next queue, ratings, reading time and pace, quiz scores, player settings, club activity and uploaded books are saved with your account on our servers (Supabase), not in browser cookies. Listening on a speaker or TV uses your browser's own Chromecast or AirPlay picker: it loads no script, sets no cookie and keeps nothing in your browser, and the speaker plays the recording straight from the Internet Archive. The Privacy Policy says how we use them, and Account lets you download or delete them."
         ]
       },
       {
@@ -439,7 +439,7 @@
       {
         "heading": "What a Kids profile collects",
         "paragraphs": [
-          "The profile's first name or nickname and avatar, its age rating and any daily reading limit and weekly reading goal you set, and its reading: the books in its library, where it is in each book, bookmarks, highlights and notes, ratings, favourites and lists, the authors and narrators it follows, release reminders, reading time and goals.",
+          "The profile's first name or nickname and avatar, its age rating and any daily reading limit and weekly reading goal you set, and its reading: the books in its library, where it is in each book, bookmarks, highlights and notes, the words it saves from the dictionary, its chapter quiz scores (which you can see in Account), its Up next queue and reading pace, ratings, favourites and lists, the authors and narrators it follows, release reminders, reading time and goals.",
           "We don't ask a child for their email, full name, address, photo, location or any other contact details."
         ]
       },
@@ -462,7 +462,7 @@
         ]
       }
     ],
-    "updated": "2026-10-28"
+    "updated": "2026-10-31"
   },
   {
     "slug": "privacy-choices",
@@ -490,17 +490,17 @@
       {
         "heading": "Your data",
         "paragraphs": [
-          "In Account you can download a copy of your data, correct your display name, and delete profiles or your whole account. Reading logs, club posts, highlights and uploads can each be deleted whenever you like. The Privacy Policy explains what we keep and for how long."
+          "In Account you can download a copy of your data, correct your display name, and delete profiles or your whole account. Reading logs, club posts, highlights, saved words and uploads can each be deleted whenever you like, and your reader page can be turned off. The Privacy Policy explains what we keep and for how long."
         ]
       }
     ],
-    "updated": "2026-10-28"
+    "updated": "2026-10-31"
   },
   {
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-10-30",
+    "updated": "2026-10-31",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
@@ -591,7 +591,7 @@
           "11. Delete the copyright or other proprietary rights notice from any Content.",
           "12. Attempt to impersonate another user or person or use the display name of another user.",
           "13. Upload or transmit (or attempt to upload or to transmit) any material that acts as a passive or active information collection or transmission mechanism, including without limitation, clear graphics interchange formats (\"gifs\"), 1×1 pixels, web bugs, cookies, or other similar devices (sometimes referred to as \"spyware\" or \"passive collection mechanisms\" or \"pcms\").",
-          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, Ask the book and Who's who.",
+          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, Ask the book, Who's who and chapter quizzes.",
           "15. Harass, annoy, intimidate, or threaten any of our employees or agents engaged in providing any portion of the Services to you.",
           "16. Attempt to bypass any measures of the Services designed to prevent or restrict access to the Services, or any portion of the Services.",
           "17. Copy or adapt the Services' software, including but not limited to HTML, JavaScript, or other code.",
@@ -777,7 +777,7 @@
         "paragraphs": [
           "Public-domain titles: the texts come from Project Gutenberg and the recordings from LibriVox, whose volunteers release their recordings into the public domain. These works are in the public domain in the United States; they may not be everywhere, so check your country's rules before using them outside LiteraryWorm.",
           "Other LiteraryWorm titles show sample pages, not the published books. Book details and covers from Google Books belong to their publishers and rights holders and are shown under Google's terms.",
-          "Summaries, Ask the book answers and Who's who are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
+          "Summaries, Ask the book answers, Who's who and chapter quizzes are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
           "The LiteraryWorm name, logo, design and software belong to LiteraryWorm. Using the service doesn't give you any rights in them beyond these Terms."
         ]
       },
@@ -786,7 +786,7 @@
         "paragraphs": [
           "You own what you write: reading logs, club posts, list names and descriptions, notes and highlights.",
           "So we can run the features you use, you give LiteraryWorm a worldwide, non-exclusive, royalty-free licence to store, copy and display what you post, only where and to whom you posted it (logs on the book's public page with your display name, club posts to the club, shared lists to anyone with the link). The licence ends when you delete the content or your account, except for copies already made by others, such as someone else's screenshot.",
-          "Notes, highlights and private lists are never shown to anyone else."
+          "Notes, highlights, saved words and private lists are never shown to anyone else."
         ]
       },
       {
@@ -815,7 +815,7 @@
     "slug": "eula",
     "title": "End User License Agreement",
     "summary": "LiteraryWorm is licensed to You (End-User) by LiteraryWorm (\"Licensor\"), for use only under the terms of this License Agreement. By using the Licensed Application at https://www.literaryworm.com, or installing it on a device from your browser, and any update to it, You agree to be bound by all of the terms and conditions of this License Agreement. It sits alongside our Terms of Service; where they cover the same thing, the Terms of Service apply.",
-    "updated": "2026-10-29",
+    "updated": "2026-10-31",
     "sections": [
       {
         "heading": "1. The application",
@@ -884,7 +884,7 @@
       {
         "heading": "7. Contribution license",
         "paragraphs": [
-          "You own your Contributions. By posting them, you give LiteraryWorm the license described in the Terms of Service (\"What you post, and the licence you give us\"): a worldwide, non-exclusive, royalty-free license to store, copy and display your Contributions, only where and to whom you posted them, so we can run the features you use. The license ends when you delete the Contribution or your account, except for copies already made by others. Notes, highlights and private lists are never shown to anyone else.",
+          "You own your Contributions. By posting them, you give LiteraryWorm the license described in the Terms of Service (\"What you post, and the licence you give us\"): a worldwide, non-exclusive, royalty-free license to store, copy and display your Contributions, only where and to whom you posted them, so we can run the features you use. The license ends when you delete the Contribution or your account, except for copies already made by others. Notes, highlights, saved words and private lists are never shown to anyone else.",
           "We are not liable for any statements or representations in your Contributions. You are solely responsible for your Contributions to the Licensed Application and you expressly agree to exonerate us from any and all responsibility and to refrain from any legal action against us regarding your Contributions.",
           "We may remove Contributions that break this License Agreement or the Terms of Service, at any time and without notice. We have no obligation to monitor your Contributions."
         ]
@@ -962,12 +962,12 @@
     "slug": "acceptable-use",
     "title": "Acceptable Use Policy",
     "summary": "This Acceptable Use Policy (\"Policy\") is part of our Terms of Service (\"Legal Terms\") and should therefore be read alongside our main Legal Terms: https://www.literaryworm.com/legal/terms. It sets out what you may and may not do on LiteraryWorm, what you may post, how to use our AI features responsibly, and how to report anything that breaks it.",
-    "updated": "2026-10-29",
+    "updated": "2026-10-31",
     "sections": [
       {
         "heading": "Agreement to this policy",
         "paragraphs": [
-          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are the book summaries, Ask the book and Who's who, which are written by Claude, an AI model made by Anthropic, and labelled as written by AI. Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.",
+          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are the book summaries, Ask the book, Who's who and chapter quizzes, which are written by Claude, an AI model made by Anthropic, and labelled as written by AI. Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.",
           "Please carefully review this Policy which applies to any and all:",
           "(a) uses of our Services (as defined in \"Legal Terms\");",
           "(b) forms, materials, consent tools, comments, posts, and all other content available on the Services (\"Content\");",
@@ -1040,7 +1040,7 @@
       {
         "heading": "Artificial intelligence",
         "paragraphs": [
-          "We recognize the significant impact AI can have on our users and society, and we are dedicated to ensuring that our AI Products are designed and operated in a manner that aligns with comprehensive ethical standards. We aim to use AI to enhance user experiences while upholding fairness, transparency, and accountability principles. That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book.",
+          "We recognize the significant impact AI can have on our users and society, and we are dedicated to ensuring that our AI Products are designed and operated in a manner that aligns with comprehensive ethical standards. We aim to use AI to enhance user experiences while upholding fairness, transparency, and accountability principles. That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book, and a quiz only the chapter it's about.",
           "This Policy applies to all AI-powered features, services, and systems in our Services. It governs the development, deployment, and use of AI technologies to protect users' rights and maintain transparency in all AI operations. This Policy applies to all stakeholders, including employees, third-party vendors, and partners who contribute to or interact with our AI Products.",
           "Enforcement. Any misuse of our AI Products or failure to adhere to the standards outlined in this Policy will result in appropriate actions to ensure the integrity of our platform and the protection of our users. The specific consequences for misuse of AI may vary depending on the nature and severity of the violation and the user's history with our Services.",
           "Violations may include, but are not limited to:",
@@ -1212,12 +1212,12 @@
     "slug": "disclaimer",
     "title": "Disclaimer",
     "summary": "The information provided by LiteraryWorm (\"we,\" \"us,\" or \"our\") on https://www.literaryworm.com (the \"Site\") is for general informational purposes only. This page explains what we can and can't promise about it, and about the other websites the Site links to.",
-    "updated": "2026-10-28",
+    "updated": "2026-10-31",
     "sections": [
       {
         "heading": "Website disclaimer",
         "paragraphs": [
-          "All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site. This includes book details and covers from Google Books, and summaries and answers written by AI, which are labelled as such.",
+          "All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site. This includes book details and covers from Google Books, and summaries, answers and quizzes written by AI, which are labelled as such.",
           "UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE. YOUR USE OF THE SITE AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE IS SOLELY AT YOUR OWN RISK."
         ]
       },
@@ -1293,7 +1293,7 @@
           "Accounts, libraries and reading progress: working normally.",
           "Book search and details (Google Books): working normally.",
           "Audiobook recordings (Internet Archive): working normally.",
-          "Summaries, Ask the book and Who's who (AI): working normally."
+          "Summaries, Ask the book, Who's who and chapter quizzes (AI): working normally."
         ]
       },
       {
@@ -1303,6 +1303,6 @@
         ]
       }
     ],
-    "updated": "2026-10-28"
+    "updated": "2026-10-31"
   }
 ]

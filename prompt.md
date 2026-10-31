@@ -94,6 +94,10 @@ Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a yea
 
 Then Search gained a third *Search by* choice, ISBN: the `books` function's new `isbn` mode asks Google Books for the edition, with the ISBN's check digit checked in the browser and in the function; Google Books only, since the catalog keeps no ISBNs.
 
+Then came ten reading tools, built in phases: My words (saving words from the dictionary, with flashcards), exporting notes and highlights, series pages, the time left at the reader's own pace, an Up next queue for audiobooks, badges, keyboard shortcuts in the reader, chapter quizzes written by Claude from one public-domain chapter, following other readers through an opt-in public reader page, and Car mode with Cast. Highlights went from four colours to eight (migrations 6500 to 6507).
+
+My library then gained *Sort by* (title, numbers first, author, when added or changed, published date; uploads by date uploaded or title), and the header's search box a *Search by* choice of title, author or ISBN.
+
 The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 
 ## Code

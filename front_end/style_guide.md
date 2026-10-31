@@ -156,11 +156,35 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Player.** Cover beside the controls on desktop, stacked on phones. A 76px rust play button between 56px outlined ±15 buttons, with previous and next chapter beside them; Speed and Sleep timer are labelled native selects. The sleep timer's state reads as one line of rust text under them.
 
-**Highlights.** Four colours, as `--mark-yellow`, `--mark-green`, `--mark-blue` and `--mark-pink` tokens set per paper theme so the text keeps its contrast on light, sepia and dark pages. A highlight is a soft background under the words, never a colour change of the text; one with a note also gets a dotted underline and a small note icon after it, so the difference doesn't rely on colour.
+**Highlights.** Eight colours, as `--mark-yellow`, `--mark-green`, `--mark-blue`, `--mark-pink`, `--mark-orange`, `--mark-purple`, `--mark-teal` and `--mark-red` tokens (each swatch named for screen readers) set per paper theme so the text keeps its contrast on light, sepia and dark pages. A highlight is a soft background under the words, never a colour change of the text; one with a note also gets a dotted underline and a small note icon after it, so the difference doesn't rely on colour.
 
 **Selection toolbar.** A dark floating bar above the selection (below it when there's no room): four 44px colour swatches with names for screen readers, then *Add note* and *Define*. It appears with a 140ms fade and scale from 0.96 and closes when the selection goes or on Escape.
 
 **Notes and highlights list.** A dialog grouped by chapter: a colour bar on the left of each item, the words in the reading serif (clamped to three lines), the note below in the UI font, then *Go to page*, *Edit* and *Remove*.
+
+**My words.** My Library's *Words* tab: a list of cards (the word in the display face, the meaning, the sentence in the reading serif and italic, the book and chapter muted below), a *Known* tag on words marked known, and *Practise* as the primary button. Practice is a dialog, one card at a time: the word large, *Show the meaning*, then *Not yet* and *I knew it* side by side (44px), ending with how many you knew.
+
+**Export.** Two small secondary buttons with a download icon, *Markdown* and *Text*, grouped and labelled (*Export these notes and highlights*) in the notes dialog, beside each book on My Library's *Notes* tab and once at its top for every book; one line there says exports are made on this device.
+
+**Series.** The series page has the eyebrow *Series*, the name and one muted line (*6 books on LiteraryWorm, in reading order · by L. M. Montgomery*), then *Next for you* once one is finished, then a numbered list: the number, the cover, the title, a muted line with the author, year and the profile's status, and the synopsis; the next book is marked. On a book page the series is one muted line under the title, linked.
+
+**Time left.** One small muted line in the reader (*about 12 min left in this chapter · about 6 h 40 min in the book*), and under the player's progress bar. Never a countdown that ticks; it changes as pages turn.
+
+**Up next.** My Library's *Up next* tab: rows with the position number, cover, title and length, then *Move up*, *Move down* and *Remove* as 44px icon buttons with labels. When a book ends, the player shows a card with *Play next: …* as the primary button.
+
+**Badges.** A grid of cards (at least 15rem wide): a 44px round icon, the name, one line on what it's for, and either the date earned or a thin progress bar with *3 of 5*. Earned cards get a rust border and a filled icon; the rest stay quiet, not greyed out, so they're still readable.
+
+**Shortcuts.** A small dialog: a two-column list, the keys as `<kbd>` chips on the left and what they do on the right.
+
+**Chapter quiz.** A dialog: the question in the display face, the choices as full-width 48px buttons with a strong border; after an answer the right one gets a green border and a wrong pick a red border, with the words *That's right!* or *(the right answer)* so colour isn't the only signal, then a sentence explaining it and *Next question*. The score ends it in large type (with last time's, if any) and *Try again*. A muted line says the questions are written by AI from that chapter only.
+
+**Reader page.** `/readers/:id` uses the author page hero with the display name and *Follow*, then their logs as log cards. My Library's *Readers* tab lists the newest logs from followed readers, each with the book.
+
+**Car mode.** Full screen on `--bg-deep`: *Exit car mode* at the top, the title huge (up to 3rem) and the time left, then five buttons in a row (*Previous chapter*, *Back*, *Play*, *Forward*, *Next chapter*, the skips showing their seconds), each at least 112px tall with a large icon and a short label, play in `--rust-bright`; *Play next: …* below when Up next has a book. Nothing small, nothing to read at a glance beyond the title.
+
+**Library sort.** *Sort by*: a labelled native `<select>` beside the *Show* chips, on the same line on wide screens and full width under them below 560px.
+
+**Header search by.** A compact native `<select>` (*Search by*, visibly labelled for screen readers) inside the header's search box, before the field; the field's label and placeholder follow it (*Search by author*).
 
 **Dictionary.** A small dialog: the word in the display face with its pronunciation beside it, then meanings grouped by part of speech (an italic label), numbered definitions and examples in muted italic. A search field at the top looks up another word. The source credit sits at the bottom in small muted text.
 

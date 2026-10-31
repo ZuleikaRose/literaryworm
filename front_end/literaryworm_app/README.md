@@ -42,6 +42,8 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/books/:id` | Book details (catalog id or Google Books volume id); `/book/:id` redirects | Public (actions need a profile) |
 | `/profiles` | Who's reading? | Signed in |
 | `/browse`, `/browse?genre=…` | Home: carousel, rows, infinite genre feed | Profile chosen |
+| `/series/:name` | A series in reading order, with where the profile is in each book | Public |
+| `/readers/:id` | A reader's page: the logs a member chose to gather there, with Follow | Public (Follow needs a grown-up or teen profile) |
 | `/authors/:name`, `/narrators/:name` | An author's or narrator's titles on LiteraryWorm (and an author's on Google Books), with Follow | Public (Follow needs a profile) |
 | `/search` | Title search with filters (`?q=&genre=&sort=&source=&lang=&length=`) | Public (Kids profiles: catalog only) |
 | `/library` | My library (`?status=`), Favorites (`?view=favorites`), custom lists (`?view=lists`), Reminders (`?view=reminders`), Uploads (`?view=uploads`), Goals, Stats (`?view=stats`) and Clubs | Profile chosen |
@@ -177,3 +179,9 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | 300 more public-domain titles (871 in all); ten swapped where the Gutenberg edition wasn't the recorded book; migration 6404 (What's new) |
 | — | Search results: `index.html`'s description, Open Graph tags and JSON-LD (each plan's monthly and yearly Offer) from `lib/seo.ts` (`seo.test.ts` keeps them in step with `data/plans.ts`); `useTitle(title, description)`; `public/sitemap.xml` |
 | — | Search by ISBN: `by=isbn`, `cleanIsbn()` and `queryError()` in `lib/search.ts`, the `isbn` feed in `lib/booksApi.ts`, the `books` function's `isbn` mode (`parseIsbn()` in `_shared/validate.ts`); no filters, not for Kids profiles; migrations 6405 (What's new) and 6406 (Privacy Policy) |
+| — | Eight highlight colours (`--mark-*`, migration 6501) |
+| — | My words (`lib/words.ts`, `useWords`, `WordsView`, `saved_words`, migration 6500) and exporting notes and highlights (`lib/exportNotes.ts`, `NotesView`) |
+| — | Series (`data/series.ts`, `lib/series.ts`, `pages/Series.tsx`), time left (`lib/pace.ts`, `useReadingPace`, `reading_wpm`, migration 6502), Up next (`lib/upNext.ts`, `useUpNext`, `up_next`, migration 6503) |
+| — | Badges (`lib/achievements.ts`, `BadgesView`), reader shortcuts (`lib/shortcuts.ts`, `ShortcutsDialog`) |
+| — | Chapter quizzes (`quiz` function, `chapter_quizzes`, `quiz_results`, `QuizDialog`, migration 6504), following readers (`reader_follows`, `profiles.public_reader`, `pages/ReaderProfile.tsx`, migrations 6505 and 6506), Car mode and Cast (`CarMode`, `lib/cast.ts`) |
+| — | My library *Sort by* (`lib/librarySort.ts`, `?sort=`), uploads sorted by date or title, and *Search by* in the header's search box; What's new (migration 6507), the policies (6508) |
