@@ -9,6 +9,7 @@ import { Icon } from "../components/Icon";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../data/books";
 import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
+import { landingFeatures } from "../data/landingFeatures";
 import { formatPrice, planFaqs, plans } from "../data/plans";
 import { useBookFeed } from "../lib/useBookFeed";
 import { siteDescription } from "../lib/seo";
@@ -29,6 +30,7 @@ export default function Landing() {
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const freeTitles = books.filter((b) => b.publicDomain && b.featured).concat(books.filter((b) => b.publicDomain && !b.featured)).slice(0, 6);
+  const classics = books.filter((b) => b.publicDomain).length;
   const dune = getBook("dune")!;
   const [circe, midnight] = [getBook("circe")!, getBook("the-midnight-library")!];
   // The public home: books about technology from the books Edge Function (Google Books).
@@ -119,7 +121,7 @@ export default function Landing() {
               <p className="eyebrow">No account needed</p>
               <h2 id="free-title">Free to read today</h2>
             </div>
-            <p className="section-aside">Public-domain classics anyone can open.</p>
+            <p className="section-aside">{classics.toLocaleString("en")} public-domain classics, in full, to read and hear.</p>
           </div>
           <ul className="book-row" role="list">
             {freeTitles.map((b) => (
@@ -158,13 +160,36 @@ export default function Landing() {
           </div>
         </section>
 
+        <section className="feature-grid" aria-labelledby="features-title">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">More than a reader</p>
+              <h2 id="features-title">Everything that happens around a good book</h2>
+            </div>
+            <p className="section-aside">Try most of it in the demo household, no account needed.</p>
+          </div>
+          <ul className="feature-list" role="list">
+            {landingFeatures.map((f) => (
+              <li key={f.title}>
+                <span className="feature-icon" aria-hidden="true">
+                  <Icon name={f.icon} size={22} />
+                </span>
+                <h3>{f.title}</h3>
+                <p>{f.body}</p>
+              </li>
+            ))}
+          </ul>
+          <WhatsNewLink />
+        </section>
+
         <section className="household" aria-labelledby="household-title">
           <div className="household-copy">
             <p className="eyebrow">Family profiles</p>
             <h2 id="household-title">A shelf for everyone at home</h2>
             <p>
-              Up to 12 profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, and set a
-              daily reading limit for younger readers.
+              Up to 12 profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, set a
+              daily limit and a weekly goal for younger readers, and get their week by email. Kids can ask you for a book
+              above their shelf, and you say yes or no.
             </p>
           </div>
           <ul className="household-list">
@@ -227,7 +252,6 @@ export default function Landing() {
               </details>
             ))}
           </div>
-          <WhatsNewLink />
         </section>
 
         <section className="community-banner" aria-labelledby="cta-title">

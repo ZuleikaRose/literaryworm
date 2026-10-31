@@ -9,6 +9,9 @@ describe("a visitor", () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
     await expect(page.title()).resolves.toMatch(/LiteraryWorm/);
+    // More than a reader: a card for each kind of tool.
+    await page.getByRole("heading", { name: "Everything that happens around a good book" }).waitFor();
+    await page.getByRole("heading", { name: "A private journal" }).waitFor();
     await page.getByRole("link", { name: "Plans" }).first().click();
     await page.waitForURL(/\/plans/);
     await page.getByText(/Cancel online any time/).waitFor();
