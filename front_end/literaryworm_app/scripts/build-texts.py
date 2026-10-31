@@ -620,6 +620,310 @@ BOOKS = {
     # A third 250 public-domain titles (October 2026), one more replacement: headings found by matching the recording's tracks;
     # "proportional" where this edition's chapters don't line up with them.
     "the-song-of-the-lark": {"ebook": 44, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    # 300 more public-domain titles (October 2026): headings found by matching the recording's tracks;
+    # "proportional" where this edition's chapters don't line up with them.
+    "the-cat-of-bubastes": {"ebook": 29756, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "by-pike-and-dyke": {"ebook": 6952, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "with-clive-in-india": {"ebook": 18833, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "the-master-of-the-world": {"ebook": 3809, "heading": rf" *{ROMAN}\.?"},
+    "the-last-trail": {"ebook": 9932, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-day-of-the-beast": {"ebook": 15673, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": 2},  # the publisher's list isn't read aloud
+    "the-mysterious-rider": {"ebook": 13937, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "buster-bears-twins": {"ebook": 59282, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-vanished-messenger": {"ebook": 1699, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-double-traitor": {"ebook": 10534, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-great-impersonation": {"ebook": 5815, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-flaming-forest": {"ebook": 4702, "heading": rf" *{ROMAN}\.?", "trim": True},  # closing lines and notes cut
+    "the-golden-snare": {"ebook": 4515, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "nomads-of-the-north": {"ebook": 4704, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-danger-trail": {"ebook": 10696, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "isobel": {"ebook": 6715, "heading": rf" *{ROMAN}\.?"},
+    "the-white-feather": {"ebook": 6927, "heading": rf" *{ROMAN}\.?"},
+    "the-adventures-of-sally": {"ebook": 7464, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-swoop": {"ebook": 7050, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "the-gem-collector": {"ebook": 8931, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-innocents": {"ebook": 25430, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "madame-de-treymes": {"ebook": 4518, "heading": rf" *{ROMAN}\.?"},
+    "jurgen": {"ebook": 8771, "heading": r" *\d+\.?"},
+    "the-magnificent-ambersons": {"ebook": 8867, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "alice-adams": {"ebook": 980, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "penrod-and-sam": {"ebook": 1158, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "seventeen": {"ebook": 1611, "heading": rf" *{ROMAN}\.?"},
+    "monsieur-beaucaire": {"ebook": 1983, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?"},
+    "gentle-julia": {"ebook": 18259, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "trim": 2},  # the publisher's list isn't read aloud
+    "the-conquest-of-canaan": {"ebook": 483, "heading": rf" *{ROMAN}\.?", "trim": True},  # closing lines and notes cut
+    "nature": {"ebook": 29433, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-oregon-trail": {"ebook": 1015, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-metropolis": {"ebook": 5421, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-mutiny-of-the-elsinore": {"ebook": 2415, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "tales-of-the-fish-patrol": {"ebook": 28693, "heading": rf" *{ROMAN}\.?"},
+    "the-gold-hunters": {"ebook": 11668, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-honor-of-the-big-snows": {"ebook": 5895, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-riddle-of-the-frozen-flame": {"ebook": 17180, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-man-who-knew": {"ebook": 24933, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-clue-of-the-twisted-candle": {"ebook": 2688, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-great-shadow": {"ebook": 11656, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^THE CRIME OF THE BRIGADIER\.$"},  # the extra story isn't in the recording
+    "jack-o-judgment": {"ebook": 24767, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-doings-of-raffles-haw": {"ebook": 8394, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-eight-strokes-of-the-clock": {"ebook": 7896, "heading": rf" *{ROMAN}\.?", "trim": True},  # closing lines and notes cut
+    "the-woman-of-mystery": {"ebook": 34931, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-middle-temple-murder": {"ebook": 10373, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?"},
+    "scarhaven-keep": {"ebook": 9807, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-charing-cross-mystery": {"ebook": 59893, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-talleyrand-maxim": {"ebook": 9834, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-chestermarke-instinct": {"ebook": 27965, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-further-adventures-of-jimmie-dale": {"ebook": 9440, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "tremendous-trifles": {"ebook": 8092, "heading": rf" *{ROMAN}\. .*"},
+    "the-trees-of-pride": {"ebook": 1721, "heading": rf" *{ROMAN}\. .*"},
+    "eugenics-and-other-evils": {"ebook": 25308, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^INDEX$"},  # the index isn't read aloud
+    "a-short-history-of-england": {"ebook": 20897, "heading": rf" *{ROMAN}\.?"},
+    "for-the-temple": {"ebook": 21614, "heading": None, "start": r"^Preface\.\s+In all history", "proportional": True},  # past the contents; chapter 10 is two tracks
+    "bonnie-prince-charlie": {"ebook": 7006, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-vicomte-de-bragelonne": {"ebook": 2609, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-corsican-brothers": {"ebook": 41881, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^Transcriber.s Note"},  # the transcriber's note isn't read aloud
+    "the-adventures-of-poor-mrs-quack": {"ebook": 5846, "heading": rf" *{ROMAN}\.?"},
+    "mother-west-wind-why-stories": {"ebook": 14958, "heading": rf" *{ROMAN}\.?"},
+    "mother-west-wind-how-stories": {"ebook": 21286, "heading": rf" *{ROMAN}\.?"},
+    "the-hunted-woman": {"ebook": 11328, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-pothunters": {"ebook": 6984, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-turmoil": {"ebook": 1098, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "a-childs-history-of-england": {"ebook": 699, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-history-of-the-peloponnesian-war": {"ebook": 7142, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-courage-of-marge-odoone": {"ebook": 17745, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": 2},  # the publisher's list isn't read aloud
+    "the-wolf-hunters": {"ebook": 12170, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-alaskan": {"ebook": 11867, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "through-the-magic-door": {"ebook": 5317, "heading": rf" *{ROMAN}\.?"},
+    "the-paradise-mystery": {"ebook": 5308, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "dead-mens-money": {"ebook": 12239, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "peter-and-wendy": {"ebook": 26654, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "tommy-and-grizel": {"ebook": 11901, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "my-lady-nicotine": {"ebook": 18934, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "sentimental-tommy": {"ebook": 14961, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-little-white-bird": {"ebook": 1376, "heading": rf" *{ROMAN}\. .*"},
+    "the-story-of-the-greeks": {"ebook": 23495, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "the-queens-necklace": {"ebook": 20122, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-nest-of-the-sparrowhawk": {"ebook": 12175, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "whats-wrong-with-the-world": {"ebook": 1717, "heading": rf" *{ROMAN}\. .*", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-spirit-of-the-border": {"ebook": 1239, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-man-with-the-black-feather": {"ebook": 46343, "heading": None, "proportional": True, "start": r"^HISTORICAL PREFACE$", "end": r"^A new novel by the author of"},  # from the preface, which the recording reads; the publisher's list isn't read aloud
+    "the-daffodil-mystery": {"ebook": 20912, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "wulf-the-saxon": {"ebook": 8745, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "a-knight-of-the-white-cross": {"ebook": 4932, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-valley-of-silent-men": {"ebook": 4707, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "green-mansions": {"ebook": 942, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-lions-skin": {"ebook": 2702, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-young-carthaginian": {"ebook": 5128, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "windy-mcphersons-son": {"ebook": 7443, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "democracy-and-education": {"ebook": 852, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-dragon-and-the-raven": {"ebook": 3674, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "beric-the-briton": {"ebook": 7037, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-young-buglers": {"ebook": 9613, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-cruise-of-the-dazzler": {"ebook": 11051, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "heretics": {"ebook": 470, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "the-snare": {"ebook": 2687, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "true-to-the-old-flag": {"ebook": 8859, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-age-of-chivalry": {"ebook": 4926, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "twenty-years-at-hull-house": {"ebook": 1325, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-last-of-the-plainsmen": {"ebook": 2057, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "proportional": True},
+    "how-we-think": {"ebook": 37423, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-science-of-getting-rich": {"ebook": 59844, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "end": r"^FURTHER AIDS TOWARD GETTING RICH RIGHT"},  # the publisher's list isn't read aloud
+    "in-the-reign-of-terror": {"ebook": 3785, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-purple-land": {"ebook": 7132, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "personal-memoirs-of-u-s-grant": {"ebook": 4367, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "travels-in-alaska": {"ebook": 7345, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": 2},  # the glossary isn't read aloud
+    "the-blonde-lady": {"ebook": 24839, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "john-thorndykes-cases": {"ebook": 13882, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-job": {"ebook": 25474, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-mountains-of-california": {"ebook": 10012, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-jacket": {"ebook": 1162, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "representative-men": {"ebook": 6312, "heading": rf" *{ROMAN}\. .*", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-girl-on-the-boat": {"ebook": 20717, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "three-men-and-a-maid": {"ebook": 6836, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "two-years-before-the-mast": {"ebook": 2055, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-mystery-of-31-new-inn": {"ebook": 12187, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-art-of-public-speaking": {"ebook": 16317, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-yosemite": {"ebook": 7091, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-adventures-of-jimmie-dale": {"ebook": 1218, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-old-man-in-the-corner": {"ebook": 10556, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-confessions-of-arsene-lupin": {"ebook": 28093, "heading": rf" *{ROMAN}\.?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "orthodoxy": {"ebook": 16769, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "tales-of-st-austins": {"ebook": 6980, "heading": rf" *{ROMAN}\.?", "proportional": True, "end": r"^End of Project Gutenberg"},  # no trim: Notes is one of the essays; the closing line isn't read aloud
+    "to-the-last-man": {"ebook": 2070, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-son-of-the-wolf": {"ebook": 2377, "heading": None, "proportional": True, "start": r"^The White Silence$"},  # past the contents
+    "cape-cod": {"ebook": 34392, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "far-away-and-long-ago": {"ebook": 6093, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "manalive": {"ebook": 1718, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "paradise-lost": {"ebook": 1745, "heading": None, "proportional": True, "start": r"^ON Paradise Lost\.\s+WHEN I beheld", "end": r"^Transcriber's Note: Title page of first edition"},  # past the editor's preface; the poems printed after it aren't in the recording
+    "the-theory-of-the-leisure-class": {"ebook": 833, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-adventures-of-gerard": {"ebook": 1644, "heading": rf" *{ROMAN}\. .*", "proportional": True, "trim": True},  # closing lines and notes cut
+    "looking-backward": {"ebook": 624, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-green-flag": {"ebook": 10446, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-monk": {"ebook": 601, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-maine-woods": {"ebook": 42500, "heading": None, "proportional": True, "start": r"^KTAADN$", "end": r"^INDEX$"},  # past the contents; the index isn't read aloud
+    "the-green-fairy-book": {"ebook": 7277, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "hard-times": {"ebook": 786, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "andersens-fairy-tales": {"ebook": 1597, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "the-divine-comedy": {"ebook": 1004, "heading": None, "proportional": True, "start": r"^Inferno: Canto I$", "trim": True},  # past the contents
+    "the-ladies-paradise": {"ebook": 54726, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-crimes-of-england": {"ebook": 11554, "heading": rf" *{ROMAN}\. .*", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-haunted-man-and-the-ghosts-bargain": {"ebook": 644, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-king-in-yellow": {"ebook": 8492, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-wheels-of-chance": {"ebook": 1264, "heading": rf"{ROMAN}\.\n[^\n]+", "proportional": True},
+    "the-pit": {"ebook": 4382, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "on-liberty": {"ebook": 34901, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "alarms-and-discursions": {"ebook": 9656, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-octopus": {"ebook": 268, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-heart-of-mid-lothian": {"ebook": 6944, "heading": None, "proportional": True, "start": r"^CHAPTER FIRST\.$", "end": r"^\s*NOTES TO THE HEART OF MID-LOTHIAN"},  # the recording starts at chapter one; the notes aren't read aloud
+    "specimen-days": {"ebook": 8813, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "legends-of-charlemagne": {"ebook": 4927, "heading": None, "proportional": True, "start": r"^INTRODUCTION$", "end": r"^GLOSSARY$"},  # past the contents; the glossary isn't read aloud
+    "man-and-wife": {"ebook": 1586, "heading": None, "proportional": True, "start": r"^PROLOGUE\.--THE IRISH MARRIAGE\.$", "trim": True},  # past the title page
+    "the-antiquary": {"ebook": 7005, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},  # past the title page and contents
+    "rob-roy": {"ebook": 7025, "heading": None, "proportional": True, "start": r"^INTRODUCTION---\(1829\)$", "trim": True},  # past the title page
+    "the-blue-fairy-book": {"ebook": 503, "heading": None, "proportional": True, "start": r"^THE BRONZE RING$", "trim": True},  # past the contents
+    "in-chancery": {"ebook": 2594, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "myths-and-legends-of-ancient-greece-and": {"ebook": 22381, "heading": None, "proportional": True, "start": r"^PREFACE\.$", "end": r"^PRONOUNCING INDEX\.$"},  # the index isn't read aloud
+    "the-analects": {"ebook": 10056, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "end": r"^~THE SORROWS OF HAN~$"},  # the play printed after it isn't in the recording
+    "twice-told-tales": {"ebook": 13707, "heading": None, "proportional": True, "start": r"^THE GRAY CHAMPION$", "trim": True},  # past the contents
+    "the-hunchback-of-notre-dame": {"ebook": 2610, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "ulysses": {"ebook": 4300, "heading": None, "proportional": True, "start": r"^Stately, plump Buck Mulligan", "trim": True},  # past the title page
+    "the-monastery": {"ebook": 6406, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "beautiful-joe": {"ebook": 10226, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-blue-castle": {"ebook": 67979, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-count-of-monte-cristo": {"ebook": 1184, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "the-abysmal-brute": {"ebook": 55948, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-grand-babylon-hotel": {"ebook": 2813, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-way-of-all-flesh": {"ebook": 2084, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-angel-of-terror": {"ebook": 21530, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "john-barleycorn": {"ebook": 318, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "new-chronicles-of-rebecca": {"ebook": 1375, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-toilers-of-the-sea": {"ebook": 32338, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "tess-of-the-durbervilles": {"ebook": 110, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "coningsby": {"ebook": 7412, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "zanoni": {"ebook": 2664, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-history-of-mr-polly": {"ebook": 7308, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "old-mother-west-wind": {"ebook": 2557, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "on-the-eve": {"ebook": 6902, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-moon-and-sixpence": {"ebook": 222, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "mike": {"ebook": 7423, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "beowulf": {"ebook": 16328, "heading": rf" *{ROMAN}\.?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-adventures-of-bobby-coon": {"ebook": 46951, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "the-adventures-of-peter-cottontail": {"ebook": 46866, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "old-granny-fox": {"ebook": 4980, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "happy-jack": {"ebook": 13355, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-intrusion-of-jimmy": {"ebook": 4075, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "before-adam": {"ebook": 310, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "blacky-the-crow": {"ebook": 4979, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-prince": {"ebook": 1232, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "all-the-sad-young-men": {"ebook": 68229, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "tales-of-the-jazz-age": {"ebook": 6695, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "money-for-nothing": {"ebook": 72972, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-adventures-of-bob-white": {"ebook": 46950, "heading": rf" *{ROMAN}\. .*", "proportional": True, "trim": True},  # closing lines and notes cut
+    "notes-from-the-underground": {"ebook": 600, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "of-human-bondage": {"ebook": 351, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-adventures-of-old-man-coyote": {"ebook": 46952, "heading": rf" *{ROMAN}\. .*", "proportional": True},
+    "the-adventures-of-jimmy-skunk": {"ebook": 21015, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-adventures-of-buster-bear": {"ebook": 22816, "heading": rf" *{ROMAN}\.?", "proportional": True, "trim": 2},  # the publisher's list isn't read aloud
+    "the-new-machiavelli": {"ebook": 1047, "heading": r" *\d+\.?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-sea-lady": {"ebook": 35920, "heading": rf" *{ROMAN}\.?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-adventures-of-johnny-chuck": {"ebook": 5844, "heading": rf" *{ROMAN}\. .*", "proportional": True, "start": r"^ *.Good news, good news for every one"},  # past the title page and contents
+    "redburn": {"ebook": 8118, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "flappers-and-philosophers": {"ebook": 4368, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-food-of-the-gods": {"ebook": 11696, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "a-childs-garden-of-verses": {"ebook": 28722, "heading": rf" *{ROMAN}\.?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "leaves-of-grass": {"ebook": 1322, "heading": r" *\d+\.?", "proportional": True},
+    "the-king-of-irelands-son": {"ebook": 3495, "heading": rf" *{ROMAN}\.?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-imitation-of-christ": {"ebook": 1653, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "sonnets-from-the-portuguese": {"ebook": 2002, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "a-shropshire-lad": {"ebook": 5720, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "lives-of-the-twelve-caesars": {"ebook": 6400, "heading": None, "proportional": True, "start": r"^PREFACE$", "end": r"^\s*INDEX\.$", "trim": True},  # the index isn't read aloud; closing lines and notes cut
+    "five-little-peppers-grown-up": {"ebook": 7498, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-five-little-peppers-midway": {"ebook": 5632, "heading": rf" *{ROMAN}\.?", "trim": True},  # closing lines and notes cut
+    "the-canterville-ghost": {"ebook": 14522, "heading": rf" *{ROMAN}\.?"},
+    "donal-grant": {"ebook": 2433, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "whats-mines-mine": {"ebook": 5969, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "heather-and-snow": {"ebook": 9155, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-bertrams": {"ebook": 26001, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "castle-richmond": {"ebook": 5897, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-kellys-and-the-okellys": {"ebook": 4917, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^Footnotes$"},  # the footnotes aren't read aloud
+    "nina-balatka": {"ebook": 8897, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "linda-tressel": {"ebook": 26002, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-belton-estate": {"ebook": 4969, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "sir-harry-hotspur-of-humblethwaite": {"ebook": 27712, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "ralph-the-heir": {"ebook": 25579, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "harry-heathcote-of-gangoil": {"ebook": 5642, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "lady-anna": {"ebook": 31274, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "john-caldigate": {"ebook": 11643, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "marion-fay": {"ebook": 30100, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-landleaguers": {"ebook": 30606, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "an-old-mans-love": {"ebook": 25001, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-struggles-of-brown-jones-and": {"ebook": 27533, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "brother-jacob": {"ebook": 2171, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "impressions-of-theophrastus-such": {"ebook": 10762, "heading": rf" *{ROMAN}\.?", "trim": True},  # closing lines and notes cut
+    "the-little-colonels-house-party": {"ebook": 15741, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^BOOKS FOR YOUNG PEOPLE"},  # the publisher's list isn't read aloud
+    "ranald-bannermans-boyhood": {"ebook": 9301, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "sir-gibbie": {"ebook": 2370, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^BROAD SCOTS GLOSSARY"},  # the glossary isn't read aloud
+    "the-seaboard-parish": {"ebook": 8562, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-elect-lady": {"ebook": 8944, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-flight-of-the-shadow": {"ebook": 8902, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "the-golden-lion-of-granpere": {"ebook": 5202, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "is-he-popenjoy": {"ebook": 29828, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-fixed-period": {"ebook": 27067, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "kept-in-the-dark": {"ebook": 22000, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-moorland-cottage": {"ebook": 11371, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "a-dark-nights-work": {"ebook": 2522, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "henrietta-temple": {"ebook": 19771, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "robert-falconer": {"ebook": 2561, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^FOOTNOTES:$", "proportional": True},  # the footnotes and glossary aren't read aloud
+    "the-vicar-of-bullhampton": {"ebook": 26541, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "tom-brown-at-oxford": {"ebook": 26851, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "mr-scarboroughs-family": {"ebook": 12234, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-hoosier-schoolmaster": {"ebook": 15099, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "end": r"^FOOTNOTES:\s+\[Footnote 29"},  # footnote blocks follow chapters, so no trim
+    "once-on-a-time": {"ebook": 27771, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "an-autobiography": {"ebook": 5978, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-claverings": {"ebook": 15766, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "annals-of-a-quiet-neighbourhood": {"ebook": 5773, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-king-of-the-golden-river": {"ebook": 701, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "paul-clifford": {"ebook": 7735, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-macdermots-of-ballycloran": {"ebook": 29000, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-caxtons": {"ebook": 7605, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "mopsa-the-fairy": {"ebook": 32867, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-young-trailers": {"ebook": 19477, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-moving-picture-girls": {"ebook": 19171, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "aunt-janes-nieces-in-society": {"ebook": 10468, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-phantom-ship": {"ebook": 12954, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "fame-and-fortune": {"ebook": 21632, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-outdoor-girls-of-deepdale": {"ebook": 10465, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "aunt-janes-nieces-abroad": {"ebook": 16566, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^ *This story is one of the delightful"},  # the publisher's list isn't read aloud
+    "aunt-janes-nieces-at-millville": {"ebook": 10359, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^ *This story is one of the delightful"},  # the publisher's list isn't read aloud
+    "aunt-janes-nieces-at-work": {"ebook": 13110, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "trim": True},  # closing lines and notes cut
+    "snarleyyow": {"ebook": 12558, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-tree-of-appomattox": {"ebook": 17677, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "peter-simple": {"ebook": 21577, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "ran-away-to-sea": {"ebook": 23853, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-rulers-of-the-lakes": {"ebook": 14891, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-shades-of-the-wilderness": {"ebook": 12532, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-hunters-of-the-hills": {"ebook": 14890, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-shadow-of-the-north": {"ebook": 11881, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-guns-of-bull-run": {"ebook": 3653, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-rock-of-chickamauga": {"ebook": 9745, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-sword-of-antietam": {"ebook": 7862, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-scouts-of-stonewall": {"ebook": 6094, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "the-guns-of-shiloh": {"ebook": 5207, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "osceola-the-seminole": {"ebook": 35620, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-headless-horseman": {"ebook": 35587, "heading": r"(?:CHAPTER|Chapter) (?:(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|THIRTY|FORTY)(?:-(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE))?|(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|Sixteen|Seventeen|Eighteen|Nineteen|Twenty|Thirty|Forty)(?:-(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine))?)\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-star-of-gettysburg": {"ebook": 3811, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    "mark-the-match-boy": {"ebook": 53071, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "trim": True},  # closing lines and notes cut
+    # 300 more public-domain titles (October 2026), ten replacements: headings found by matching the recording's tracks;
+    # "proportional" where this edition's chapters don't line up with them.
+    "the-adventures-of-pinocchio": {"ebook": 500, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "a-house-of-pomegranates": {"ebook": 873, "heading": None, "proportional": True, "start": r"^ *THE YOUNG KING\s+TO\s+MARGARET LADY BROOKE"},  # past the title page and contents
+    "south-sea-tales": {"ebook": 1208, "heading": None, "proportional": True, "start": r"^ *THE HOUSE OF MAPUHI\s+Despite"},  # past the title page and contents
+    "children-of-the-frost": {"ebook": 10736, "heading": None, "proportional": True, "start": r"^ *IN THE FORESTS OF THE NORTH\s+A weary"},  # past the title page and contents
+    "love-of-life-and-other-stories": {"ebook": 710, "heading": None, "proportional": True, "start": r"^ *LOVE OF LIFE\s+.This out of all"},  # past the title page and contents
+    "the-flying-inn": {"ebook": 59239, "heading": None, "proportional": True, "trim": True, "end": r"^ *● Transcriber’s Notes:", "start": r"^ *A SERMON ON INNS\s+THE sea"},  # the transcriber's note isn't read aloud; past the title page and contents
+    "tales-of-terror-and-mystery": {"ebook": 537, "heading": None, "proportional": True, "trim": True, "start": r"^ *The Horror of the Heights\s+The idea"},  # closing lines and notes cut; past the title page and contents
+    "the-singing-bone": {"ebook": 59478, "heading": None, "proportional": True},
+    "king-coal": {"ebook": 7522, "heading": None, "proportional": True},
+    "ragged-dick": {"ebook": 5348, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
 }
 
 # Shorter than this after a heading means a table-of-contents line, not a chapter.

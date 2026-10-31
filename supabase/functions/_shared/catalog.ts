@@ -4085,5 +4085,2105 @@ export const CATALOG: Record<string, CatalogBook> = {
     "year": 1915,
     "synopsis": "A minister's daughter from a Colorado town grows up to become a great opera singer.",
     "publicDomain": true
+  },
+  "the-cat-of-bubastes": {
+    "title": "The Cat of Bubastes",
+    "author": "G. A. Henty",
+    "year": 1889,
+    "synopsis": "A young prince taken as a slave to Egypt is caught up in the scandal when a sacred cat is killed.",
+    "publicDomain": true
+  },
+  "by-pike-and-dyke": {
+    "title": "By Pike and Dyke",
+    "author": "G. A. Henty",
+    "year": 1890,
+    "synopsis": "An English boy serves William the Silent in the Dutch revolt against Spain.",
+    "publicDomain": true
+  },
+  "with-clive-in-india": {
+    "title": "With Clive in India",
+    "author": "G. A. Henty",
+    "year": 1884,
+    "synopsis": "A young clerk in India fights alongside Robert Clive in the rise of the British East India Company.",
+    "publicDomain": true
+  },
+  "the-master-of-the-world": {
+    "title": "The Master of the World",
+    "author": "Jules Verne",
+    "year": 1904,
+    "synopsis": "An inspector investigates a machine that can travel by land, sea and air, and the man who built it.",
+    "publicDomain": true
+  },
+  "the-last-trail": {
+    "title": "The Last Trail",
+    "author": "Zane Grey",
+    "year": 1909,
+    "synopsis": "Two frontiersmen hunt a gang of horse thieves and outlaws on the Ohio frontier.",
+    "publicDomain": true
+  },
+  "the-day-of-the-beast": {
+    "title": "The Day of the Beast",
+    "author": "Zane Grey",
+    "year": 1922,
+    "synopsis": "A wounded soldier comes home from the First World War to a town changed by the Jazz Age.",
+    "publicDomain": true
+  },
+  "the-mysterious-rider": {
+    "title": "The Mysterious Rider",
+    "author": "Zane Grey",
+    "year": 1921,
+    "synopsis": "A stranger rides onto a Colorado ranch and helps a young woman who is being forced into marriage.",
+    "publicDomain": true
+  },
+  "buster-bears-twins": {
+    "title": "Buster Bear's Twins",
+    "author": "Thornton W. Burgess",
+    "year": 1923,
+    "synopsis": "Mother Bear's two cubs get into trouble in the Great Woods.",
+    "publicDomain": true
+  },
+  "the-vanished-messenger": {
+    "title": "The Vanished Messenger",
+    "author": "E. Phillips Oppenheim",
+    "year": 1914,
+    "synopsis": "A young man carrying a secret message across England just before the war vanishes.",
+    "publicDomain": true
+  },
+  "the-double-traitor": {
+    "title": "The Double Traitor",
+    "author": "E. Phillips Oppenheim",
+    "year": 1915,
+    "synopsis": "A British diplomat in Berlin uncovers German plans as war approaches.",
+    "publicDomain": true
+  },
+  "the-great-impersonation": {
+    "title": "The Great Impersonation",
+    "author": "E. Phillips Oppenheim",
+    "year": 1920,
+    "synopsis": "An English baronet returns from Africa, but is he really who he says he is?",
+    "publicDomain": true
+  },
+  "the-flaming-forest": {
+    "title": "The Flaming Forest",
+    "author": "James Oliver Curwood",
+    "year": 1921,
+    "synopsis": "A Mountie in the Canadian north falls for a mysterious woman tied to a wilderness conspiracy.",
+    "publicDomain": true
+  },
+  "the-golden-snare": {
+    "title": "The Golden Snare",
+    "author": "James Oliver Curwood",
+    "year": 1921,
+    "synopsis": "A Mountie pursues a wanted man through the Barren Lands and finds a captive girl.",
+    "publicDomain": true
+  },
+  "nomads-of-the-north": {
+    "title": "Nomads of the North",
+    "author": "James Oliver Curwood",
+    "year": 1919,
+    "synopsis": "A bear cub and a puppy, lost together in the Canadian wilderness, become friends.",
+    "publicDomain": true
+  },
+  "the-danger-trail": {
+    "title": "The Danger Trail",
+    "author": "James Oliver Curwood",
+    "year": 1910,
+    "synopsis": "A railway engineer in the far north is caught in a plot and falls for a mysterious woman.",
+    "publicDomain": true
+  },
+  "isobel": {
+    "title": "Isobel",
+    "author": "James Oliver Curwood",
+    "year": 1913,
+    "synopsis": "On the shores of Hudson Bay, a Mountie hunts a man who has the love of a remarkable woman.",
+    "publicDomain": true
+  },
+  "the-white-feather": {
+    "title": "The White Feather",
+    "author": "P. G. Wodehouse",
+    "year": 1907,
+    "synopsis": "A schoolboy who ran from a fight at Wrykyn sets out to win back his good name.",
+    "publicDomain": true
+  },
+  "the-adventures-of-sally": {
+    "title": "The Adventures of Sally",
+    "author": "P. G. Wodehouse",
+    "year": 1922,
+    "synopsis": "A young New Yorker comes into money and finds that her family and fiancé need managing.",
+    "publicDomain": true
+  },
+  "the-swoop": {
+    "title": "The Swoop",
+    "author": "P. G. Wodehouse",
+    "year": 1909,
+    "synopsis": "Britain is invaded by nine armies at once, and only a Boy Scout can save it.",
+    "publicDomain": true
+  },
+  "the-gem-collector": {
+    "title": "The Gem Collector",
+    "author": "P. G. Wodehouse",
+    "year": 1909,
+    "synopsis": "A reformed jewel thief meets a millionaire who collects gems in a comic country-house caper.",
+    "publicDomain": true
+  },
+  "the-innocents": {
+    "title": "The Innocents",
+    "author": "Sinclair Lewis",
+    "year": 1917,
+    "synopsis": "An elderly couple give up their shop and set off to tramp across America together.",
+    "publicDomain": true
+  },
+  "madame-de-treymes": {
+    "title": "Madame de Treymes",
+    "author": "Edith Wharton",
+    "year": 1907,
+    "synopsis": "An American in Paris wants to marry a woman bound by her French husband's family.",
+    "publicDomain": true
+  },
+  "jurgen": {
+    "title": "Jurgen",
+    "author": "James Branch Cabell",
+    "year": 1919,
+    "synopsis": "A middle-aged pawnbroker is given back his youth and travels through mythical lands.",
+    "publicDomain": true
+  },
+  "the-magnificent-ambersons": {
+    "title": "The Magnificent Ambersons",
+    "author": "Booth Tarkington",
+    "year": 1918,
+    "synopsis": "The proud Amberson family declines as their Midwestern town grows into a city of automobiles.",
+    "publicDomain": true
+  },
+  "alice-adams": {
+    "title": "Alice Adams",
+    "author": "Booth Tarkington",
+    "year": 1921,
+    "synopsis": "A young woman from a struggling family tries to win a rich suitor by pretending to be more than she is.",
+    "publicDomain": true
+  },
+  "penrod-and-sam": {
+    "title": "Penrod and Sam",
+    "author": "Booth Tarkington",
+    "year": 1916,
+    "synopsis": "Penrod and his friend Sam have more comic adventures in their Indiana town.",
+    "publicDomain": true
+  },
+  "seventeen": {
+    "title": "Seventeen",
+    "author": "Booth Tarkington",
+    "year": 1916,
+    "synopsis": "William Baxter, seventeen and in love for the first time, suffers through one long summer.",
+    "publicDomain": true
+  },
+  "monsieur-beaucaire": {
+    "title": "Monsieur Beaucaire",
+    "author": "Booth Tarkington",
+    "year": 1900,
+    "synopsis": "In eighteenth-century Bath, a French barber is not what he seems.",
+    "publicDomain": true
+  },
+  "gentle-julia": {
+    "title": "Gentle Julia",
+    "author": "Booth Tarkington",
+    "year": 1922,
+    "synopsis": "A beautiful young woman's suitors and her young niece cause chaos in an Indiana town.",
+    "publicDomain": true
+  },
+  "the-conquest-of-canaan": {
+    "title": "The Conquest of Canaan",
+    "author": "Booth Tarkington",
+    "year": 1905,
+    "synopsis": "An outcast returns to his Indiana town to fight its prejudices.",
+    "publicDomain": true
+  },
+  "nature": {
+    "title": "Nature",
+    "author": "Ralph Waldo Emerson",
+    "year": 1836,
+    "synopsis": "Emerson's essay on finding truth and spirit through the natural world.",
+    "publicDomain": true
+  },
+  "the-oregon-trail": {
+    "title": "The Oregon Trail",
+    "author": "Francis Parkman",
+    "year": 1849,
+    "synopsis": "A young Bostonian travels the Oregon Trail and lives among the Plains peoples in 1846.",
+    "publicDomain": true
+  },
+  "the-metropolis": {
+    "title": "The Metropolis",
+    "author": "Upton Sinclair",
+    "year": 1908,
+    "synopsis": "A young lawyer is drawn into the dazzling, wasteful world of New York's richest families.",
+    "publicDomain": true
+  },
+  "the-mutiny-of-the-elsinore": {
+    "title": "The Mutiny of the Elsinore",
+    "author": "Jack London",
+    "year": 1914,
+    "synopsis": "A writer sails round Cape Horn on a ship whose crew turns to mutiny.",
+    "publicDomain": true
+  },
+  "tales-of-the-fish-patrol": {
+    "title": "Tales of the Fish Patrol",
+    "author": "Jack London",
+    "year": 1905,
+    "synopsis": "A boy patrols San Francisco Bay with the fish patrol, chasing poachers.",
+    "publicDomain": true
+  },
+  "the-gold-hunters": {
+    "title": "The Gold Hunters",
+    "author": "James Oliver Curwood",
+    "year": 1909,
+    "synopsis": "Two boys search for a lost gold mine in the Canadian wilderness.",
+    "publicDomain": true
+  },
+  "the-honor-of-the-big-snows": {
+    "title": "The Honor of the Big Snows",
+    "author": "James Oliver Curwood",
+    "year": 1911,
+    "synopsis": "A hunter in the far north loves a woman whose past is a mystery.",
+    "publicDomain": true
+  },
+  "the-riddle-of-the-frozen-flame": {
+    "title": "The Riddle of the Frozen Flame",
+    "author": "Mary E. and Thomas W. Hanshew",
+    "year": 1920,
+    "synopsis": "Cleek of Scotland Yard investigates a strange cold light that appears before every death.",
+    "publicDomain": true
+  },
+  "the-man-who-knew": {
+    "title": "The Man Who Knew",
+    "author": "Edgar Wallace",
+    "year": 1918,
+    "synopsis": "A murdered financier leaves a puzzle for a young man with a mysterious gift.",
+    "publicDomain": true
+  },
+  "the-clue-of-the-twisted-candle": {
+    "title": "The Clue of the Twisted Candle",
+    "author": "Edgar Wallace",
+    "year": 1916,
+    "synopsis": "A man is murdered in a locked room, and a twisted candle is the only clue.",
+    "publicDomain": true
+  },
+  "the-great-shadow": {
+    "title": "The Great Shadow",
+    "author": "Arthur Conan Doyle",
+    "year": 1892,
+    "synopsis": "A young Scot is caught up in the Napoleonic wars, ending at Waterloo.",
+    "publicDomain": true
+  },
+  "jack-o-judgment": {
+    "title": "Jack O' Judgment",
+    "author": "Edgar Wallace",
+    "year": 1920,
+    "synopsis": "A masked avenger strikes at a criminal gang in London.",
+    "publicDomain": true
+  },
+  "the-doings-of-raffles-haw": {
+    "title": "The Doings of Raffles Haw",
+    "author": "Arthur Conan Doyle",
+    "year": 1891,
+    "synopsis": "A recluse who can make gold tries to do good with it, with unexpected results.",
+    "publicDomain": true
+  },
+  "the-eight-strokes-of-the-clock": {
+    "title": "The Eight Strokes of the Clock",
+    "author": "Maurice Leblanc",
+    "year": 1922,
+    "synopsis": "Arsène Lupin, as Prince Rénine, solves eight mysteries to win a lady's affection.",
+    "publicDomain": true
+  },
+  "the-woman-of-mystery": {
+    "title": "The Woman of Mystery",
+    "author": "Maurice Leblanc",
+    "year": 1916,
+    "synopsis": "A young soldier investigates a murder and a woman who seems to know too much.",
+    "publicDomain": true
+  },
+  "the-middle-temple-murder": {
+    "title": "The Middle Temple Murder",
+    "author": "J. S. Fletcher",
+    "year": 1919,
+    "synopsis": "A journalist investigates the murder of a stranger found near London's law courts.",
+    "publicDomain": true
+  },
+  "scarhaven-keep": {
+    "title": "Scarhaven Keep",
+    "author": "J. S. Fletcher",
+    "year": 1920,
+    "synopsis": "An actor vanishes in a Yorkshire fishing village, and a playwright searches for him.",
+    "publicDomain": true
+  },
+  "the-charing-cross-mystery": {
+    "title": "The Charing Cross Mystery",
+    "author": "J. S. Fletcher",
+    "year": 1923,
+    "synopsis": "A young barrister sees a man die on a train and is drawn into a trail of crime.",
+    "publicDomain": true
+  },
+  "the-talleyrand-maxim": {
+    "title": "The Talleyrand Maxim",
+    "author": "J. S. Fletcher",
+    "year": 1920,
+    "synopsis": "A clerk finds a will that could change his fortunes, and the temptation to use it.",
+    "publicDomain": true
+  },
+  "the-chestermarke-instinct": {
+    "title": "The Chestermarke Instinct",
+    "author": "J. S. Fletcher",
+    "year": 1918,
+    "synopsis": "A bank manager vanishes, and his young clerk suspects the bank's owners.",
+    "publicDomain": true
+  },
+  "the-further-adventures-of-jimmie-dale": {
+    "title": "The Further Adventures of Jimmie Dale",
+    "author": "Frank L. Packard",
+    "year": 1919,
+    "synopsis": "The gentleman safecracker known as the Gray Seal hunts the gang that is hunting him.",
+    "publicDomain": true
+  },
+  "tremendous-trifles": {
+    "title": "Tremendous Trifles",
+    "author": "G. K. Chesterton",
+    "year": 1909,
+    "synopsis": "Chesterton's short essays finding wonder in ordinary things.",
+    "publicDomain": true
+  },
+  "the-trees-of-pride": {
+    "title": "The Trees of Pride",
+    "author": "G. K. Chesterton",
+    "year": 1922,
+    "synopsis": "A squire mocks a legend about deadly trees on his estate, and then disappears.",
+    "publicDomain": true
+  },
+  "eugenics-and-other-evils": {
+    "title": "Eugenics and Other Evils",
+    "author": "G. K. Chesterton",
+    "year": 1922,
+    "synopsis": "Chesterton's argument against the eugenics movement and its threat to freedom.",
+    "publicDomain": true
+  },
+  "a-short-history-of-england": {
+    "title": "A Short History of England",
+    "author": "G. K. Chesterton",
+    "year": 1917,
+    "synopsis": "Chesterton's lively, opinionated retelling of England's history.",
+    "publicDomain": true
+  },
+  "for-the-temple": {
+    "title": "For the Temple",
+    "author": "G. A. Henty",
+    "year": 1888,
+    "synopsis": "A young Jew fights in the revolt against Rome and the siege of Jerusalem.",
+    "publicDomain": true
+  },
+  "bonnie-prince-charlie": {
+    "title": "Bonnie Prince Charlie",
+    "author": "G. A. Henty",
+    "year": 1888,
+    "synopsis": "A young Scot fights at Fontenoy and in the Jacobite rising of 1745.",
+    "publicDomain": true
+  },
+  "the-vicomte-de-bragelonne": {
+    "title": "The Vicomte de Bragelonne",
+    "author": "Alexandre Dumas",
+    "year": 1847,
+    "synopsis": "Athos's son and the ageing musketeers serve and defy Louis XIV.",
+    "publicDomain": true
+  },
+  "the-corsican-brothers": {
+    "title": "The Corsican Brothers",
+    "author": "Alexandre Dumas",
+    "year": 1844,
+    "synopsis": "Twin brothers separated at birth feel each other's pain across the miles.",
+    "publicDomain": true
+  },
+  "the-adventures-of-poor-mrs-quack": {
+    "title": "The Adventures of Poor Mrs. Quack",
+    "author": "Thornton W. Burgess",
+    "year": 1917,
+    "synopsis": "Mrs. Quack the duck tries to keep her family safe from hunters.",
+    "publicDomain": true
+  },
+  "mother-west-wind-why-stories": {
+    "title": "Mother West Wind \"Why\" Stories",
+    "author": "Thornton W. Burgess",
+    "year": 1915,
+    "synopsis": "Grandfather Frog tells why the animals of the Green Meadows are as they are.",
+    "publicDomain": true
+  },
+  "mother-west-wind-how-stories": {
+    "title": "Mother West Wind \"How\" Stories",
+    "author": "Thornton W. Burgess",
+    "year": 1916,
+    "synopsis": "Stories of how the animals got their ways and looks.",
+    "publicDomain": true
+  },
+  "the-hunted-woman": {
+    "title": "The Hunted Woman",
+    "author": "James Oliver Curwood",
+    "year": 1916,
+    "synopsis": "A writer in the Canadian Rockies protects a woman fleeing from dangerous men.",
+    "publicDomain": true
+  },
+  "the-pothunters": {
+    "title": "The Pothunters",
+    "author": "P. G. Wodehouse",
+    "year": 1902,
+    "synopsis": "Sports trophies are stolen from a boys' school, and the boys investigate.",
+    "publicDomain": true
+  },
+  "the-turmoil": {
+    "title": "The Turmoil",
+    "author": "Booth Tarkington",
+    "year": 1915,
+    "synopsis": "A dreamy son of a money-mad industrialist falls in love with the girl next door.",
+    "publicDomain": true
+  },
+  "a-childs-history-of-england": {
+    "title": "A Child's History of England",
+    "author": "Charles Dickens",
+    "year": 1853,
+    "synopsis": "Dickens tells England's history for children, from the Romans to the Stuarts.",
+    "publicDomain": true
+  },
+  "the-history-of-the-peloponnesian-war": {
+    "title": "The History of the Peloponnesian War",
+    "author": "Thucydides",
+    "year": 1874,
+    "synopsis": "The great war between Athens and Sparta, told by an Athenian general who lived through it.",
+    "publicDomain": true
+  },
+  "the-courage-of-marge-odoone": {
+    "title": "The Courage of Marge O'Doone",
+    "author": "James Oliver Curwood",
+    "year": 1918,
+    "synopsis": "A man searching for his lost wife and daughter in the north finds a brave young woman.",
+    "publicDomain": true
+  },
+  "the-wolf-hunters": {
+    "title": "The Wolf Hunters",
+    "author": "James Oliver Curwood",
+    "year": 1908,
+    "synopsis": "Two boys and a guide spend a winter hunting wolves in the Canadian wilderness.",
+    "publicDomain": true
+  },
+  "the-alaskan": {
+    "title": "The Alaskan",
+    "author": "James Oliver Curwood",
+    "year": 1923,
+    "synopsis": "A young woman sailing to Alaska is drawn into a fight for the territory's future.",
+    "publicDomain": true
+  },
+  "through-the-magic-door": {
+    "title": "Through the Magic Door",
+    "author": "Arthur Conan Doyle",
+    "year": 1907,
+    "synopsis": "Doyle walks through his library, talking about the books he loves.",
+    "publicDomain": true
+  },
+  "the-paradise-mystery": {
+    "title": "The Paradise Mystery",
+    "author": "J. S. Fletcher",
+    "year": 1920,
+    "synopsis": "A stranger falls to his death in a cathedral close, and a young doctor investigates.",
+    "publicDomain": true
+  },
+  "dead-mens-money": {
+    "title": "Dead Men's Money",
+    "author": "J. S. Fletcher",
+    "year": 1920,
+    "synopsis": "A young clerk on the Scottish border is drawn into a murder and a hidden fortune.",
+    "publicDomain": true
+  },
+  "peter-and-wendy": {
+    "title": "Peter and Wendy",
+    "author": "J. M. Barrie",
+    "year": 1911,
+    "synopsis": "Peter Pan takes Wendy and her brothers to Neverland, the novel of Barrie's play.",
+    "publicDomain": true
+  },
+  "tommy-and-grizel": {
+    "title": "Tommy and Grizel",
+    "author": "J. M. Barrie",
+    "year": 1900,
+    "synopsis": "Sentimental Tommy grows up to be a famous writer, and Grizel loves him in spite of himself.",
+    "publicDomain": true
+  },
+  "my-lady-nicotine": {
+    "title": "My Lady Nicotine",
+    "author": "J. M. Barrie",
+    "year": 1890,
+    "synopsis": "A comic memoir of a bachelor and his friends and their pipes.",
+    "publicDomain": true
+  },
+  "sentimental-tommy": {
+    "title": "Sentimental Tommy",
+    "author": "J. M. Barrie",
+    "year": 1896,
+    "synopsis": "A London boy with a huge imagination is sent to live in a Scottish village.",
+    "publicDomain": true
+  },
+  "the-little-white-bird": {
+    "title": "The Little White Bird",
+    "author": "J. M. Barrie",
+    "year": 1902,
+    "synopsis": "A bachelor befriends a little boy in Kensington Gardens, where Peter Pan first appears.",
+    "publicDomain": true
+  },
+  "the-story-of-the-greeks": {
+    "title": "The Story of the Greeks",
+    "author": "H. A. Guerber",
+    "year": 1896,
+    "synopsis": "The history of ancient Greece told for young readers.",
+    "publicDomain": true
+  },
+  "the-queens-necklace": {
+    "title": "The Queen's Necklace",
+    "author": "Alexandre Dumas",
+    "year": 1849,
+    "synopsis": "A swindle over a diamond necklace stains Queen Marie Antoinette's name before the Revolution.",
+    "publicDomain": true
+  },
+  "the-nest-of-the-sparrowhawk": {
+    "title": "The Nest of the Sparrowhawk",
+    "author": "Baroness Orczy",
+    "year": 1909,
+    "synopsis": "A young heiress in Puritan England is deceived by her scheming guardian.",
+    "publicDomain": true
+  },
+  "whats-wrong-with-the-world": {
+    "title": "What's Wrong with the World",
+    "author": "G. K. Chesterton",
+    "year": 1910,
+    "synopsis": "Chesterton's essays on the family, education and what modern society has lost.",
+    "publicDomain": true
+  },
+  "the-spirit-of-the-border": {
+    "title": "The Spirit of the Border",
+    "author": "Zane Grey",
+    "year": 1906,
+    "synopsis": "On the Ohio frontier, two brothers join the borderman Lewis Wetzel.",
+    "publicDomain": true
+  },
+  "the-man-with-the-black-feather": {
+    "title": "The Man With the Black Feather",
+    "author": "Gaston Leroux",
+    "year": 1912,
+    "synopsis": "A bookseller is convinced he is the reincarnation of an ancient warrior.",
+    "publicDomain": true
+  },
+  "the-daffodil-mystery": {
+    "title": "The Daffodil Mystery",
+    "author": "Edgar Wallace",
+    "year": 1920,
+    "synopsis": "A businessman is found dead surrounded by daffodils, and a detective investigates.",
+    "publicDomain": true
+  },
+  "wulf-the-saxon": {
+    "title": "Wulf the Saxon",
+    "author": "G. A. Henty",
+    "year": 1895,
+    "synopsis": "A young Saxon serves Harold Godwinson up to the Battle of Hastings.",
+    "publicDomain": true
+  },
+  "a-knight-of-the-white-cross": {
+    "title": "A Knight of the White Cross",
+    "author": "G. A. Henty",
+    "year": 1896,
+    "synopsis": "A young English knight joins the Knights of St John in the siege of Rhodes.",
+    "publicDomain": true
+  },
+  "the-valley-of-silent-men": {
+    "title": "The Valley of Silent Men",
+    "author": "James Oliver Curwood",
+    "year": 1920,
+    "synopsis": "A Mountie who confesses to a murder he didn't commit is rescued by a mysterious woman.",
+    "publicDomain": true
+  },
+  "green-mansions": {
+    "title": "Green Mansions",
+    "author": "W. H. Hudson",
+    "year": 1904,
+    "synopsis": "A fugitive in the Venezuelan jungle falls in love with Rima, a girl of the forest.",
+    "publicDomain": true
+  },
+  "the-lions-skin": {
+    "title": "The Lion's Skin",
+    "author": "Rafael Sabatini",
+    "year": 1911,
+    "synopsis": "A young man sets out to avenge his mother on the father who abandoned her.",
+    "publicDomain": true
+  },
+  "the-young-carthaginian": {
+    "title": "The Young Carthaginian",
+    "author": "G. A. Henty",
+    "year": 1887,
+    "synopsis": "A young Carthaginian marches with Hannibal across the Alps.",
+    "publicDomain": true
+  },
+  "windy-mcphersons-son": {
+    "title": "Windy McPherson's Son",
+    "author": "Sherwood Anderson",
+    "year": 1916,
+    "synopsis": "A boy from a small Iowa town becomes a rich man in Chicago and looks for meaning.",
+    "publicDomain": true
+  },
+  "democracy-and-education": {
+    "title": "Democracy and Education",
+    "author": "John Dewey",
+    "year": 1916,
+    "synopsis": "Dewey's argument that schools should teach through experience and prepare people for democratic life.",
+    "publicDomain": true
+  },
+  "the-dragon-and-the-raven": {
+    "title": "The Dragon and the Raven",
+    "author": "G. A. Henty",
+    "year": 1886,
+    "synopsis": "A young Saxon fights the Danes alongside King Alfred.",
+    "publicDomain": true
+  },
+  "beric-the-briton": {
+    "title": "Beric the Briton",
+    "author": "G. A. Henty",
+    "year": 1893,
+    "synopsis": "A young Briton fights Rome in Boudicca's revolt and is taken to Nero's Rome.",
+    "publicDomain": true
+  },
+  "the-young-buglers": {
+    "title": "The Young Buglers",
+    "author": "G. A. Henty",
+    "year": 1880,
+    "synopsis": "Two brothers serve as buglers in Wellington's army in the Peninsular War.",
+    "publicDomain": true
+  },
+  "the-cruise-of-the-dazzler": {
+    "title": "The Cruise of the Dazzler",
+    "author": "Jack London",
+    "year": 1902,
+    "synopsis": "A rich boy runs away to sea on a sloop crewed by oyster pirates.",
+    "publicDomain": true
+  },
+  "heretics": {
+    "title": "Heretics",
+    "author": "G. K. Chesterton",
+    "year": 1905,
+    "synopsis": "Chesterton takes on the leading writers of his day, from Shaw to Kipling.",
+    "publicDomain": true
+  },
+  "the-snare": {
+    "title": "The Snare",
+    "author": "Rafael Sabatini",
+    "year": 1917,
+    "synopsis": "A British officer in Portugal is falsely accused during the Peninsular War.",
+    "publicDomain": true
+  },
+  "true-to-the-old-flag": {
+    "title": "True to the Old Flag",
+    "author": "G. A. Henty",
+    "year": 1885,
+    "synopsis": "A young Loyalist fights for Britain in the American War of Independence.",
+    "publicDomain": true
+  },
+  "the-age-of-chivalry": {
+    "title": "The Age of Chivalry",
+    "author": "Thomas Bulfinch",
+    "year": 1858,
+    "synopsis": "The legends of King Arthur, the Mabinogion and other medieval tales.",
+    "publicDomain": true
+  },
+  "twenty-years-at-hull-house": {
+    "title": "Twenty Years at Hull-House",
+    "author": "Jane Addams",
+    "year": 1910,
+    "synopsis": "Jane Addams tells how she founded and ran a settlement house for Chicago's immigrant poor.",
+    "publicDomain": true
+  },
+  "the-last-of-the-plainsmen": {
+    "title": "The Last of the Plainsmen",
+    "author": "Zane Grey",
+    "year": 1908,
+    "synopsis": "Zane Grey's account of a hunting trip with Buffalo Jones to rope wild animals.",
+    "publicDomain": true
+  },
+  "how-we-think": {
+    "title": "How We Think",
+    "author": "John Dewey",
+    "year": 1910,
+    "synopsis": "Dewey on how people reason and how teachers can train good thinking.",
+    "publicDomain": true
+  },
+  "the-science-of-getting-rich": {
+    "title": "The Science of Getting Rich",
+    "author": "Wallace D. Wattles",
+    "year": 1910,
+    "synopsis": "A short guide to building wealth by thinking and acting in a certain way.",
+    "publicDomain": true
+  },
+  "in-the-reign-of-terror": {
+    "title": "In the Reign of Terror",
+    "author": "G. A. Henty",
+    "year": 1888,
+    "synopsis": "An English boy in revolutionary France saves the daughters of a French family.",
+    "publicDomain": true
+  },
+  "the-purple-land": {
+    "title": "The Purple Land",
+    "author": "W. H. Hudson",
+    "year": 1885,
+    "synopsis": "A young Englishman wanders through Uruguay during its civil wars.",
+    "publicDomain": true
+  },
+  "personal-memoirs-of-u-s-grant": {
+    "title": "Personal Memoirs of U. S. Grant",
+    "author": "Ulysses S. Grant",
+    "year": 1885,
+    "synopsis": "Grant's own account of his life and the Civil War, written as he was dying.",
+    "publicDomain": true
+  },
+  "travels-in-alaska": {
+    "title": "Travels in Alaska",
+    "author": "John Muir",
+    "year": 1915,
+    "synopsis": "Muir's journeys among the glaciers and islands of Alaska.",
+    "publicDomain": true
+  },
+  "the-blonde-lady": {
+    "title": "The Blonde Lady",
+    "author": "Maurice Leblanc",
+    "year": 1910,
+    "synopsis": "Arsène Lupin matches wits with the English detective Herlock Sholmes over a stolen diamond.",
+    "publicDomain": true
+  },
+  "john-thorndykes-cases": {
+    "title": "John Thorndyke's Cases",
+    "author": "R. Austin Freeman",
+    "year": 1909,
+    "synopsis": "Dr Thorndyke solves crimes with the microscope and the laboratory.",
+    "publicDomain": true
+  },
+  "the-job": {
+    "title": "The Job",
+    "author": "Sinclair Lewis",
+    "year": 1917,
+    "synopsis": "A small-town girl makes a career for herself in the offices of New York.",
+    "publicDomain": true
+  },
+  "the-mountains-of-california": {
+    "title": "The Mountains of California",
+    "author": "John Muir",
+    "year": 1894,
+    "synopsis": "Muir describes the glaciers, forests, storms and wildlife of the Sierra Nevada.",
+    "publicDomain": true
+  },
+  "the-jacket": {
+    "title": "The Jacket",
+    "author": "Jack London",
+    "year": 1915,
+    "synopsis": "A prisoner in solitary confinement escapes his body and relives his past lives.",
+    "publicDomain": true
+  },
+  "representative-men": {
+    "title": "Representative Men",
+    "author": "Ralph Waldo Emerson",
+    "year": 1850,
+    "synopsis": "Emerson's lectures on six great men, from Plato to Shakespeare and Napoleon.",
+    "publicDomain": true
+  },
+  "the-girl-on-the-boat": {
+    "title": "The Girl on the Boat",
+    "author": "P. G. Wodehouse",
+    "year": 1922,
+    "synopsis": "Three men on a liner from New York fall for the same red-haired girl.",
+    "publicDomain": true
+  },
+  "three-men-and-a-maid": {
+    "title": "Three Men and a Maid",
+    "author": "P. G. Wodehouse",
+    "year": 1922,
+    "synopsis": "A comic tangle of love at sea and in an English country house.",
+    "publicDomain": true
+  },
+  "two-years-before-the-mast": {
+    "title": "Two Years Before the Mast",
+    "author": "Richard Henry Dana Jr.",
+    "year": 1840,
+    "synopsis": "A Harvard student sails as a common seaman round Cape Horn to California.",
+    "publicDomain": true
+  },
+  "the-mystery-of-31-new-inn": {
+    "title": "The Mystery of 31 New Inn",
+    "author": "R. Austin Freeman",
+    "year": 1912,
+    "synopsis": "A doctor is taken blindfold to see a dying patient, and Dr Thorndyke sets out to find the house.",
+    "publicDomain": true
+  },
+  "the-art-of-public-speaking": {
+    "title": "The Art of Public Speaking",
+    "author": "Dale Carnegie and J. Berg Esenwein",
+    "year": 1915,
+    "synopsis": "A practical guide to speaking with confidence before an audience.",
+    "publicDomain": true
+  },
+  "the-yosemite": {
+    "title": "The Yosemite",
+    "author": "John Muir",
+    "year": 1912,
+    "synopsis": "Muir's guide to the valley, its waterfalls, trees and wildlife.",
+    "publicDomain": true
+  },
+  "the-adventures-of-jimmie-dale": {
+    "title": "The Adventures of Jimmie Dale",
+    "author": "Frank L. Packard",
+    "year": 1917,
+    "synopsis": "A rich young New Yorker leads a double life as the safecracker the Gray Seal.",
+    "publicDomain": true
+  },
+  "the-old-man-in-the-corner": {
+    "title": "The Old Man in the Corner",
+    "author": "Baroness Orczy",
+    "year": 1909,
+    "synopsis": "An old man in a London teashop solves crimes for a young journalist without leaving his seat.",
+    "publicDomain": true
+  },
+  "the-confessions-of-arsene-lupin": {
+    "title": "The Confessions of Arsène Lupin",
+    "author": "Maurice Leblanc",
+    "year": 1912,
+    "synopsis": "Arsène Lupin tells of more of his exploits.",
+    "publicDomain": true
+  },
+  "orthodoxy": {
+    "title": "Orthodoxy",
+    "author": "G. K. Chesterton",
+    "year": 1908,
+    "synopsis": "Chesterton explains how he came to Christian belief, with wit and paradox.",
+    "publicDomain": true
+  },
+  "tales-of-st-austins": {
+    "title": "Tales of St. Austin's",
+    "author": "P. G. Wodehouse",
+    "year": 1903,
+    "synopsis": "Stories of life at a boys' school.",
+    "publicDomain": true
+  },
+  "to-the-last-man": {
+    "title": "To the Last Man",
+    "author": "Zane Grey",
+    "year": 1921,
+    "synopsis": "A young man is drawn into a feud between two families in Arizona's Tonto Basin.",
+    "publicDomain": true
+  },
+  "the-son-of-the-wolf": {
+    "title": "The Son of the Wolf",
+    "author": "Jack London",
+    "year": 1900,
+    "synopsis": "London's first book: stories of the Klondike and the men and women who live there.",
+    "publicDomain": true
+  },
+  "cape-cod": {
+    "title": "Cape Cod",
+    "author": "Henry David Thoreau",
+    "year": 1865,
+    "synopsis": "Thoreau walks the beaches of Cape Cod, among shipwrecks and fishermen.",
+    "publicDomain": true
+  },
+  "far-away-and-long-ago": {
+    "title": "Far Away and Long Ago",
+    "author": "W. H. Hudson",
+    "year": 1918,
+    "synopsis": "Hudson remembers his boyhood on the pampas of Argentina.",
+    "publicDomain": true
+  },
+  "manalive": {
+    "title": "Manalive",
+    "author": "G. K. Chesterton",
+    "year": 1912,
+    "synopsis": "A joyful stranger arrives at a London boarding house and is accused of crimes that turn out to be something else.",
+    "publicDomain": true
+  },
+  "paradise-lost": {
+    "title": "Paradise Lost",
+    "author": "John Milton",
+    "year": 1667,
+    "synopsis": "Milton's epic of Satan's rebellion and the fall of Adam and Eve.",
+    "publicDomain": true
+  },
+  "the-theory-of-the-leisure-class": {
+    "title": "The Theory of the Leisure Class",
+    "author": "Thorstein Veblen",
+    "year": 1899,
+    "synopsis": "Veblen's study of how the rich show their status through conspicuous consumption.",
+    "publicDomain": true
+  },
+  "the-adventures-of-gerard": {
+    "title": "The Adventures of Gerard",
+    "author": "Arthur Conan Doyle",
+    "year": 1903,
+    "synopsis": "More of the brave, boastful Brigadier Gerard's tales of Napoleon's wars.",
+    "publicDomain": true
+  },
+  "looking-backward": {
+    "title": "Looking Backward",
+    "author": "Edward Bellamy",
+    "year": 1888,
+    "synopsis": "A Bostonian falls asleep in 1887 and wakes in a socialist utopia in the year 2000.",
+    "publicDomain": true
+  },
+  "the-green-flag": {
+    "title": "The Green Flag",
+    "author": "Arthur Conan Doyle",
+    "year": 1900,
+    "synopsis": "Doyle's stories of war, sport and adventure.",
+    "publicDomain": true
+  },
+  "the-monk": {
+    "title": "The Monk",
+    "author": "Matthew Lewis",
+    "year": 1796,
+    "synopsis": "A revered Spanish monk falls into temptation and crime, in one of the first gothic novels.",
+    "publicDomain": true
+  },
+  "the-maine-woods": {
+    "title": "The Maine Woods",
+    "author": "Henry David Thoreau",
+    "year": 1864,
+    "synopsis": "Thoreau's journeys into the Maine wilderness and up Mount Katahdin.",
+    "publicDomain": true
+  },
+  "the-green-fairy-book": {
+    "title": "The Green Fairy Book",
+    "author": "Andrew Lang",
+    "year": 1892,
+    "synopsis": "Fairy tales from around the world, including The Three Little Pigs.",
+    "publicDomain": true
+  },
+  "hard-times": {
+    "title": "Hard Times",
+    "author": "Charles Dickens",
+    "year": 1854,
+    "synopsis": "In a grim industrial town, Mr Gradgrind raises his children on facts alone.",
+    "publicDomain": true
+  },
+  "andersens-fairy-tales": {
+    "title": "Andersen's Fairy Tales",
+    "author": "Hans Christian Andersen",
+    "year": 1835,
+    "synopsis": "The Ugly Duckling, The Snow Queen, The Little Mermaid and more.",
+    "publicDomain": true
+  },
+  "the-divine-comedy": {
+    "title": "The Divine Comedy",
+    "author": "Dante Alighieri",
+    "year": 1320,
+    "synopsis": "Dante's journey through Hell and Purgatory to Paradise.",
+    "publicDomain": true
+  },
+  "the-ladies-paradise": {
+    "title": "The Ladies' Paradise",
+    "author": "Émile Zola",
+    "year": 1883,
+    "synopsis": "A young woman works in a great Paris department store that is crushing the small shops around it.",
+    "publicDomain": true
+  },
+  "the-crimes-of-england": {
+    "title": "The Crimes of England",
+    "author": "G. K. Chesterton",
+    "year": 1915,
+    "synopsis": "Chesterton's wartime essay on England's mistakes in its dealings with Prussia.",
+    "publicDomain": true
+  },
+  "the-haunted-man-and-the-ghosts-bargain": {
+    "title": "The Haunted Man and the Ghost's Bargain",
+    "author": "Charles Dickens",
+    "year": 1848,
+    "synopsis": "A chemistry lecturer haunted by sad memories is given the power to forget them.",
+    "publicDomain": true
+  },
+  "the-king-in-yellow": {
+    "title": "The King in Yellow",
+    "author": "Robert W. Chambers",
+    "year": 1895,
+    "synopsis": "Stories linked by a play that drives its readers mad.",
+    "publicDomain": true
+  },
+  "the-wheels-of-chance": {
+    "title": "The Wheels of Chance",
+    "author": "H. G. Wells",
+    "year": 1896,
+    "synopsis": "A draper's assistant takes a cycling holiday and rescues a young woman.",
+    "publicDomain": true
+  },
+  "the-pit": {
+    "title": "The Pit",
+    "author": "Frank Norris",
+    "year": 1903,
+    "synopsis": "A Chicago speculator tries to corner the wheat market, while his wife feels neglected.",
+    "publicDomain": true
+  },
+  "on-liberty": {
+    "title": "On Liberty",
+    "author": "John Stuart Mill",
+    "year": 1859,
+    "synopsis": "Mill's argument for freedom of thought and speech and the limits of power over the individual.",
+    "publicDomain": true
+  },
+  "alarms-and-discursions": {
+    "title": "Alarms and Discursions",
+    "author": "G. K. Chesterton",
+    "year": 1910,
+    "synopsis": "Chesterton's short essays on everyday things.",
+    "publicDomain": true
+  },
+  "the-octopus": {
+    "title": "The Octopus",
+    "author": "Frank Norris",
+    "year": 1901,
+    "synopsis": "Wheat farmers in California's San Joaquin Valley fight the railroad.",
+    "publicDomain": true
+  },
+  "the-heart-of-mid-lothian": {
+    "title": "The Heart of Mid-Lothian",
+    "author": "Walter Scott",
+    "year": 1818,
+    "synopsis": "Jeanie Deans walks from Edinburgh to London to beg a pardon for her sister.",
+    "publicDomain": true
+  },
+  "specimen-days": {
+    "title": "Specimen Days",
+    "author": "Walt Whitman",
+    "year": 1882,
+    "synopsis": "Whitman's notes on the Civil War hospitals and on nature.",
+    "publicDomain": true
+  },
+  "legends-of-charlemagne": {
+    "title": "Legends of Charlemagne",
+    "author": "Thomas Bulfinch",
+    "year": 1863,
+    "synopsis": "The romances of Charlemagne and his paladins, from Roland to Rinaldo.",
+    "publicDomain": true
+  },
+  "man-and-wife": {
+    "title": "Man and Wife",
+    "author": "Wilkie Collins",
+    "year": 1870,
+    "synopsis": "A dubious marriage in Scotland traps a governess, and a brutish athlete is at the centre.",
+    "publicDomain": true
+  },
+  "the-antiquary": {
+    "title": "The Antiquary",
+    "author": "Walter Scott",
+    "year": 1816,
+    "synopsis": "A young man with a mysterious past visits an old collector of antiquities on the Scottish coast.",
+    "publicDomain": true
+  },
+  "rob-roy": {
+    "title": "Rob Roy",
+    "author": "Walter Scott",
+    "year": 1817,
+    "synopsis": "A young Englishman travels to the Highlands and meets the outlaw Rob Roy MacGregor.",
+    "publicDomain": true
+  },
+  "the-blue-fairy-book": {
+    "title": "The Blue Fairy Book",
+    "author": "Andrew Lang",
+    "year": 1889,
+    "synopsis": "Classic fairy tales from Cinderella to Aladdin.",
+    "publicDomain": true
+  },
+  "in-chancery": {
+    "title": "In Chancery",
+    "author": "John Galsworthy",
+    "year": 1920,
+    "synopsis": "Soames Forsyte divorces Irene and seeks an heir, in the second book of the Forsyte Saga.",
+    "publicDomain": true
+  },
+  "myths-and-legends-of-ancient-greece-and": {
+    "title": "Myths and Legends of Ancient Greece and Rome",
+    "author": "E. M. Berens",
+    "year": 1880,
+    "synopsis": "The gods, heroes and legends of Greece and Rome.",
+    "publicDomain": true
+  },
+  "the-analects": {
+    "title": "The Analects",
+    "author": "Confucius",
+    "year": 1861,
+    "synopsis": "Sayings of Confucius and his disciples on virtue, learning and government.",
+    "publicDomain": true
+  },
+  "twice-told-tales": {
+    "title": "Twice-Told Tales",
+    "author": "Nathaniel Hawthorne",
+    "year": 1837,
+    "synopsis": "Hawthorne's early tales of New England, including Dr Heidegger's Experiment.",
+    "publicDomain": true
+  },
+  "the-hunchback-of-notre-dame": {
+    "title": "The Hunchback of Notre Dame",
+    "author": "Victor Hugo",
+    "year": 1831,
+    "synopsis": "In medieval Paris, the hunchbacked bell-ringer Quasimodo loves the dancer Esmeralda.",
+    "publicDomain": true
+  },
+  "ulysses": {
+    "title": "Ulysses",
+    "author": "James Joyce",
+    "year": 1922,
+    "synopsis": "One day in Dublin, 16 June 1904, in the lives of Leopold Bloom and Stephen Dedalus.",
+    "publicDomain": true
+  },
+  "the-monastery": {
+    "title": "The Monastery",
+    "author": "Walter Scott",
+    "year": 1820,
+    "synopsis": "Two brothers in the Scottish Borders during the Reformation.",
+    "publicDomain": true
+  },
+  "beautiful-joe": {
+    "title": "Beautiful Joe",
+    "author": "Marshall Saunders",
+    "year": 1893,
+    "synopsis": "A dog rescued from a cruel owner tells his life story.",
+    "publicDomain": true
+  },
+  "the-blue-castle": {
+    "title": "The Blue Castle",
+    "author": "L. M. Montgomery",
+    "year": 1926,
+    "synopsis": "Told she has a year to live, a timid spinster finally does what she wants.",
+    "publicDomain": true
+  },
+  "the-count-of-monte-cristo": {
+    "title": "The Count of Monte Cristo",
+    "author": "Alexandre Dumas",
+    "year": 1844,
+    "synopsis": "Wrongly imprisoned, Edmond Dantès escapes and returns rich to take revenge.",
+    "publicDomain": true
+  },
+  "the-abysmal-brute": {
+    "title": "The Abysmal Brute",
+    "author": "Jack London",
+    "year": 1913,
+    "synopsis": "A young boxer raised in the wilderness finds the fight game is corrupt.",
+    "publicDomain": true
+  },
+  "the-grand-babylon-hotel": {
+    "title": "The Grand Babylon Hotel",
+    "author": "Arnold Bennett",
+    "year": 1902,
+    "synopsis": "An American millionaire buys a London hotel on a whim and uncovers a royal conspiracy.",
+    "publicDomain": true
+  },
+  "the-way-of-all-flesh": {
+    "title": "The Way of All Flesh",
+    "author": "Samuel Butler",
+    "year": 1903,
+    "synopsis": "Ernest Pontifex escapes his stifling Victorian family.",
+    "publicDomain": true
+  },
+  "the-angel-of-terror": {
+    "title": "The Angel of Terror",
+    "author": "Edgar Wallace",
+    "year": 1922,
+    "synopsis": "A beautiful woman plots to kill her husband for his fortune.",
+    "publicDomain": true
+  },
+  "john-barleycorn": {
+    "title": "John Barleycorn",
+    "author": "Jack London",
+    "year": 1913,
+    "synopsis": "London's own story of his life with drink.",
+    "publicDomain": true
+  },
+  "new-chronicles-of-rebecca": {
+    "title": "New Chronicles of Rebecca",
+    "author": "Kate Douglas Wiggin",
+    "year": 1907,
+    "synopsis": "More stories of Rebecca of Sunnybrook Farm.",
+    "publicDomain": true
+  },
+  "the-toilers-of-the-sea": {
+    "title": "The Toilers of the Sea",
+    "author": "Victor Hugo",
+    "year": 1866,
+    "synopsis": "A Guernsey fisherman struggles to salvage a wrecked steamship's engine.",
+    "publicDomain": true
+  },
+  "tess-of-the-durbervilles": {
+    "title": "Tess of the d'Urbervilles",
+    "author": "Thomas Hardy",
+    "year": 1891,
+    "synopsis": "A poor country girl is sent to claim kinship with a rich family, and is ruined.",
+    "publicDomain": true
+  },
+  "coningsby": {
+    "title": "Coningsby",
+    "author": "Benjamin Disraeli",
+    "year": 1844,
+    "synopsis": "A young aristocrat finds his way in politics in 1830s England.",
+    "publicDomain": true
+  },
+  "zanoni": {
+    "title": "Zanoni",
+    "author": "Edward Bulwer-Lytton",
+    "year": 1842,
+    "synopsis": "An immortal Rosicrucian falls in love with an opera singer during the French Revolution.",
+    "publicDomain": true
+  },
+  "the-history-of-mr-polly": {
+    "title": "The History of Mr. Polly",
+    "author": "H. G. Wells",
+    "year": 1910,
+    "synopsis": "A bored shopkeeper burns down his shop and runs away to find a better life.",
+    "publicDomain": true
+  },
+  "old-mother-west-wind": {
+    "title": "Old Mother West Wind",
+    "author": "Thornton W. Burgess",
+    "year": 1910,
+    "synopsis": "Stories of the animals of the Green Meadows.",
+    "publicDomain": true
+  },
+  "on-the-eve": {
+    "title": "On the Eve",
+    "author": "Ivan Turgenev",
+    "year": 1860,
+    "synopsis": "A young Russian woman falls in love with a Bulgarian patriot.",
+    "publicDomain": true
+  },
+  "the-moon-and-sixpence": {
+    "title": "The Moon and Sixpence",
+    "author": "W. Somerset Maugham",
+    "year": 1919,
+    "synopsis": "A London stockbroker abandons his family to paint in Paris and Tahiti.",
+    "publicDomain": true
+  },
+  "mike": {
+    "title": "Mike",
+    "author": "P. G. Wodehouse",
+    "year": 1909,
+    "synopsis": "A cricket-mad boy goes to public school.",
+    "publicDomain": true
+  },
+  "beowulf": {
+    "title": "Beowulf",
+    "author": "Unknown",
+    "year": 1000,
+    "synopsis": "The hero Beowulf fights the monster Grendel, his mother and a dragon.",
+    "publicDomain": true
+  },
+  "the-adventures-of-bobby-coon": {
+    "title": "The Adventures of Bobby Coon",
+    "author": "Thornton W. Burgess",
+    "year": 1918,
+    "synopsis": "Bobby Coon gets into scrapes in the Green Forest.",
+    "publicDomain": true
+  },
+  "the-adventures-of-peter-cottontail": {
+    "title": "The Adventures of Peter Cottontail",
+    "author": "Thornton W. Burgess",
+    "year": 1914,
+    "synopsis": "Peter Rabbit wants a fancier name and finds trouble.",
+    "publicDomain": true
+  },
+  "old-granny-fox": {
+    "title": "Old Granny Fox",
+    "author": "Thornton W. Burgess",
+    "year": 1920,
+    "synopsis": "Wise old Granny Fox teaches Reddy Fox the tricks of the trade.",
+    "publicDomain": true
+  },
+  "happy-jack": {
+    "title": "Happy Jack",
+    "author": "Thornton W. Burgess",
+    "year": 1918,
+    "synopsis": "Happy Jack the grey squirrel has adventures in the Green Forest.",
+    "publicDomain": true
+  },
+  "the-intrusion-of-jimmy": {
+    "title": "The Intrusion of Jimmy",
+    "author": "P. G. Wodehouse",
+    "year": 1910,
+    "synopsis": "A wealthy idler bets he can burgle a house and falls for a girl at a country house.",
+    "publicDomain": true
+  },
+  "before-adam": {
+    "title": "Before Adam",
+    "author": "Jack London",
+    "year": 1907,
+    "synopsis": "A man dreams the life of his prehistoric ancestor.",
+    "publicDomain": true
+  },
+  "blacky-the-crow": {
+    "title": "Blacky the Crow",
+    "author": "Thornton W. Burgess",
+    "year": 1922,
+    "synopsis": "Clever Blacky the crow plays tricks on his neighbours.",
+    "publicDomain": true
+  },
+  "the-prince": {
+    "title": "The Prince",
+    "author": "Niccolò Machiavelli",
+    "year": 1532,
+    "synopsis": "Machiavelli's handbook on how rulers win and keep power.",
+    "publicDomain": true
+  },
+  "all-the-sad-young-men": {
+    "title": "All the Sad Young Men",
+    "author": "F. Scott Fitzgerald",
+    "year": 1926,
+    "synopsis": "Fitzgerald's stories, including \"Winter Dreams\" and \"The Rich Boy\".",
+    "publicDomain": true
+  },
+  "tales-of-the-jazz-age": {
+    "title": "Tales of the Jazz Age",
+    "author": "F. Scott Fitzgerald",
+    "year": 1922,
+    "synopsis": "Stories including \"The Curious Case of Benjamin Button\".",
+    "publicDomain": true
+  },
+  "money-for-nothing": {
+    "title": "Money for Nothing",
+    "author": "P. G. Wodehouse",
+    "year": 1928,
+    "synopsis": "Two neighbours feud and a young man falls in love in a village where money is tight.",
+    "publicDomain": true
+  },
+  "the-adventures-of-bob-white": {
+    "title": "The Adventures of Bob White",
+    "author": "Thornton W. Burgess",
+    "year": 1919,
+    "synopsis": "Bob White the quail and his family face danger on the Green Meadows.",
+    "publicDomain": true
+  },
+  "notes-from-the-underground": {
+    "title": "Notes from Underground",
+    "author": "Fyodor Dostoyevsky",
+    "year": 1864,
+    "synopsis": "A bitter, isolated former official tells his story.",
+    "publicDomain": true
+  },
+  "of-human-bondage": {
+    "title": "Of Human Bondage",
+    "author": "W. Somerset Maugham",
+    "year": 1915,
+    "synopsis": "A young man with a club foot searches for his place in the world.",
+    "publicDomain": true
+  },
+  "the-adventures-of-old-man-coyote": {
+    "title": "The Adventures of Old Man Coyote",
+    "author": "Thornton W. Burgess",
+    "year": 1916,
+    "synopsis": "Clever Old Man Coyote comes to the Green Meadows.",
+    "publicDomain": true
+  },
+  "the-adventures-of-jimmy-skunk": {
+    "title": "The Adventures of Jimmy Skunk",
+    "author": "Thornton W. Burgess",
+    "year": 1918,
+    "synopsis": "Jimmy Skunk is a peaceable fellow, but nobody wants to cross him.",
+    "publicDomain": true
+  },
+  "the-adventures-of-buster-bear": {
+    "title": "The Adventures of Buster Bear",
+    "author": "Thornton W. Burgess",
+    "year": 1916,
+    "synopsis": "Buster Bear comes down to the Green Forest, and everyone wonders what he'll do.",
+    "publicDomain": true
+  },
+  "the-new-machiavelli": {
+    "title": "The New Machiavelli",
+    "author": "H. G. Wells",
+    "year": 1911,
+    "synopsis": "A rising politician gives up his career for love.",
+    "publicDomain": true
+  },
+  "the-sea-lady": {
+    "title": "The Sea Lady",
+    "author": "H. G. Wells",
+    "year": 1902,
+    "synopsis": "A mermaid comes ashore at Folkestone and turns a young politician's head.",
+    "publicDomain": true
+  },
+  "the-adventures-of-johnny-chuck": {
+    "title": "The Adventures of Johnny Chuck",
+    "author": "Thornton W. Burgess",
+    "year": 1913,
+    "synopsis": "Johnny Chuck the woodchuck and his adventures on the Green Meadows.",
+    "publicDomain": true
+  },
+  "redburn": {
+    "title": "Redburn",
+    "author": "Herman Melville",
+    "year": 1849,
+    "synopsis": "A young sailor makes his first voyage, to Liverpool.",
+    "publicDomain": true
+  },
+  "flappers-and-philosophers": {
+    "title": "Flappers and Philosophers",
+    "author": "F. Scott Fitzgerald",
+    "year": 1920,
+    "synopsis": "Fitzgerald's first stories, including \"Bernice Bobs Her Hair\".",
+    "publicDomain": true
+  },
+  "the-food-of-the-gods": {
+    "title": "The Food of the Gods",
+    "author": "H. G. Wells",
+    "year": 1904,
+    "synopsis": "Two scientists invent a food that makes living things grow to giant size.",
+    "publicDomain": true
+  },
+  "a-childs-garden-of-verses": {
+    "title": "A Child's Garden of Verses",
+    "author": "Robert Louis Stevenson",
+    "year": 1885,
+    "synopsis": "Stevenson's poems of childhood, from \"My Shadow\" to \"The Land of Counterpane\".",
+    "publicDomain": true
+  },
+  "leaves-of-grass": {
+    "title": "Leaves of Grass",
+    "author": "Walt Whitman",
+    "year": 1855,
+    "synopsis": "Whitman's great collection, including \"Song of Myself\".",
+    "publicDomain": true
+  },
+  "the-king-of-irelands-son": {
+    "title": "The King of Ireland's Son",
+    "author": "Padraic Colum",
+    "year": 1916,
+    "synopsis": "The king's son sets out to win the daughter of an enchanter, in a weave of Irish tales.",
+    "publicDomain": true
+  },
+  "the-imitation-of-christ": {
+    "title": "The Imitation of Christ",
+    "author": "Thomas à Kempis",
+    "year": 1418,
+    "synopsis": "A guide to the inner spiritual life.",
+    "publicDomain": true
+  },
+  "sonnets-from-the-portuguese": {
+    "title": "Sonnets from the Portuguese",
+    "author": "Elizabeth Barrett Browning",
+    "year": 1850,
+    "synopsis": "Love sonnets written during Barrett Browning's courtship with Robert Browning.",
+    "publicDomain": true
+  },
+  "a-shropshire-lad": {
+    "title": "A Shropshire Lad",
+    "author": "A. E. Housman",
+    "year": 1896,
+    "synopsis": "Housman's poems of country life, youth and loss.",
+    "publicDomain": true
+  },
+  "lives-of-the-twelve-caesars": {
+    "title": "Lives of the Twelve Caesars",
+    "author": "Suetonius",
+    "year": 1913,
+    "synopsis": "Biographies of Julius Caesar and the first eleven Roman emperors.",
+    "publicDomain": true
+  },
+  "five-little-peppers-grown-up": {
+    "title": "Five Little Peppers Grown Up",
+    "author": "Margaret Sidney",
+    "year": 1892,
+    "synopsis": "The Pepper children, now young men and women, find work, love and their places in the world.",
+    "publicDomain": true
+  },
+  "the-five-little-peppers-midway": {
+    "title": "The Five Little Peppers Midway",
+    "author": "Margaret Sidney",
+    "year": 1890,
+    "synopsis": "The Peppers settle into life with their kind benefactor and his family.",
+    "publicDomain": true
+  },
+  "the-canterville-ghost": {
+    "title": "The Canterville Ghost",
+    "author": "Oscar Wilde",
+    "year": 1887,
+    "synopsis": "An American family buys a haunted English castle, and its ghost cannot frighten them.",
+    "publicDomain": true
+  },
+  "donal-grant": {
+    "title": "Donal Grant",
+    "author": "George MacDonald",
+    "year": 1883,
+    "synopsis": "A young Scottish poet becomes tutor at a strange castle with a cruel earl and a hidden secret.",
+    "publicDomain": true
+  },
+  "whats-mines-mine": {
+    "title": "What's Mine's Mine",
+    "author": "George MacDonald",
+    "year": 1886,
+    "synopsis": "A Highland chief's sons struggle to keep their land from a rich newcomer.",
+    "publicDomain": true
+  },
+  "heather-and-snow": {
+    "title": "Heather and Snow",
+    "author": "George MacDonald",
+    "year": 1893,
+    "synopsis": "Two young people grow up in the Scottish hills, and their love is tested.",
+    "publicDomain": true
+  },
+  "the-bertrams": {
+    "title": "The Bertrams",
+    "author": "Anthony Trollope",
+    "year": 1859,
+    "synopsis": "A clever young man and the woman he loves are kept apart by pride and money.",
+    "publicDomain": true
+  },
+  "castle-richmond": {
+    "title": "Castle Richmond",
+    "author": "Anthony Trollope",
+    "year": 1860,
+    "synopsis": "Two cousins love the same woman in Ireland during the Great Famine.",
+    "publicDomain": true
+  },
+  "the-kellys-and-the-okellys": {
+    "title": "The Kellys and the O'Kellys",
+    "author": "Anthony Trollope",
+    "year": 1848,
+    "synopsis": "Two Irish cousins of different classes court two heiresses.",
+    "publicDomain": true
+  },
+  "nina-balatka": {
+    "title": "Nina Balatka",
+    "author": "Anthony Trollope",
+    "year": 1867,
+    "synopsis": "In Prague, a Christian girl loves a Jewish man against the wishes of both families.",
+    "publicDomain": true
+  },
+  "linda-tressel": {
+    "title": "Linda Tressel",
+    "author": "Anthony Trollope",
+    "year": 1868,
+    "synopsis": "In Nuremberg, a young woman's strict aunt tries to force her into marriage.",
+    "publicDomain": true
+  },
+  "the-belton-estate": {
+    "title": "The Belton Estate",
+    "author": "Anthony Trollope",
+    "year": 1866,
+    "synopsis": "A young woman must choose between her cousin, who will inherit her father's estate, and another suitor.",
+    "publicDomain": true
+  },
+  "sir-harry-hotspur-of-humblethwaite": {
+    "title": "Sir Harry Hotspur of Humblethwaite",
+    "author": "Anthony Trollope",
+    "year": 1870,
+    "synopsis": "A baronet's daughter falls in love with her cousin, a charming scoundrel.",
+    "publicDomain": true
+  },
+  "ralph-the-heir": {
+    "title": "Ralph the Heir",
+    "author": "Anthony Trollope",
+    "year": 1871,
+    "synopsis": "A spendthrift heir and his rich cousin both want the same estate.",
+    "publicDomain": true
+  },
+  "harry-heathcote-of-gangoil": {
+    "title": "Harry Heathcote of Gangoil",
+    "author": "Anthony Trollope",
+    "year": 1874,
+    "synopsis": "A young sheep farmer in Australia defends his land against fire and enemies.",
+    "publicDomain": true
+  },
+  "lady-anna": {
+    "title": "Lady Anna",
+    "author": "Anthony Trollope",
+    "year": 1874,
+    "synopsis": "A countess's daughter loves a tailor, to her mother's fury.",
+    "publicDomain": true
+  },
+  "john-caldigate": {
+    "title": "John Caldigate",
+    "author": "Anthony Trollope",
+    "year": 1879,
+    "synopsis": "A man returns from the Australian goldfields and is accused of bigamy.",
+    "publicDomain": true
+  },
+  "marion-fay": {
+    "title": "Marion Fay",
+    "author": "Anthony Trollope",
+    "year": 1882,
+    "synopsis": "A young lord falls in love with a Quaker clerk's daughter.",
+    "publicDomain": true
+  },
+  "the-landleaguers": {
+    "title": "The Landleaguers",
+    "author": "Anthony Trollope",
+    "year": 1883,
+    "synopsis": "An English family in Ireland during the Land League troubles.",
+    "publicDomain": true
+  },
+  "an-old-mans-love": {
+    "title": "An Old Man's Love",
+    "author": "Anthony Trollope",
+    "year": 1884,
+    "synopsis": "An older man becomes engaged to his young ward, who still loves someone else.",
+    "publicDomain": true
+  },
+  "the-struggles-of-brown-jones-and": {
+    "title": "The Struggles of Brown, Jones, and Robinson",
+    "author": "Anthony Trollope",
+    "year": 1862,
+    "synopsis": "A comic tale of three partners and their failing London shop.",
+    "publicDomain": true
+  },
+  "brother-jacob": {
+    "title": "Brother Jacob",
+    "author": "George Eliot",
+    "year": 1864,
+    "synopsis": "A thief who set up as a confectioner is undone by his simple brother.",
+    "publicDomain": true
+  },
+  "impressions-of-theophrastus-such": {
+    "title": "Impressions of Theophrastus Such",
+    "author": "George Eliot",
+    "year": 1879,
+    "synopsis": "George Eliot's last book, sketches of characters and opinions.",
+    "publicDomain": true
+  },
+  "the-little-colonels-house-party": {
+    "title": "The Little Colonel's House Party",
+    "author": "Annie Fellows Johnston",
+    "year": 1900,
+    "synopsis": "The Little Colonel invites three girls to her Kentucky home for a house party.",
+    "publicDomain": true
+  },
+  "ranald-bannermans-boyhood": {
+    "title": "Ranald Bannerman's Boyhood",
+    "author": "George MacDonald",
+    "year": 1871,
+    "synopsis": "A minister's son grows up in a Scottish village.",
+    "publicDomain": true
+  },
+  "sir-gibbie": {
+    "title": "Sir Gibbie",
+    "author": "George MacDonald",
+    "year": 1879,
+    "synopsis": "A mute orphan boy from the streets of a Scottish city turns out to be heir to an estate.",
+    "publicDomain": true
+  },
+  "the-seaboard-parish": {
+    "title": "The Seaboard Parish",
+    "author": "George MacDonald",
+    "year": 1868,
+    "synopsis": "A vicar and his family spend a year in a Cornish seaside parish.",
+    "publicDomain": true
+  },
+  "the-elect-lady": {
+    "title": "The Elect Lady",
+    "author": "George MacDonald",
+    "year": 1888,
+    "synopsis": "A laird's daughter in the Scottish hills and the young farmer who loves her.",
+    "publicDomain": true
+  },
+  "the-flight-of-the-shadow": {
+    "title": "The Flight of the Shadow",
+    "author": "George MacDonald",
+    "year": 1891,
+    "synopsis": "A young woman uncovers a dark secret in her family's past.",
+    "publicDomain": true
+  },
+  "the-golden-lion-of-granpere": {
+    "title": "The Golden Lion of Granpere",
+    "author": "Anthony Trollope",
+    "year": 1872,
+    "synopsis": "In an Alsatian inn, the innkeeper's son and his father's ward fall in love.",
+    "publicDomain": true
+  },
+  "is-he-popenjoy": {
+    "title": "Is He Popenjoy?",
+    "author": "Anthony Trollope",
+    "year": 1878,
+    "synopsis": "A family fears that the heir to a marquisate may not be legitimate.",
+    "publicDomain": true
+  },
+  "the-fixed-period": {
+    "title": "The Fixed Period",
+    "author": "Anthony Trollope",
+    "year": 1882,
+    "synopsis": "In a future island republic, everyone must retire to die at sixty-eight.",
+    "publicDomain": true
+  },
+  "kept-in-the-dark": {
+    "title": "Kept in the Dark",
+    "author": "Anthony Trollope",
+    "year": 1882,
+    "synopsis": "A wife doesn't tell her husband she was once engaged to another man.",
+    "publicDomain": true
+  },
+  "the-moorland-cottage": {
+    "title": "The Moorland Cottage",
+    "author": "Elizabeth Gaskell",
+    "year": 1850,
+    "synopsis": "A gentle girl in a moorland cottage loves a squire's son and protects her brother.",
+    "publicDomain": true
+  },
+  "a-dark-nights-work": {
+    "title": "A Dark Night's Work",
+    "author": "Elizabeth Gaskell",
+    "year": 1863,
+    "synopsis": "A lawyer's daughter carries the secret of a crime her father committed one night.",
+    "publicDomain": true
+  },
+  "henrietta-temple": {
+    "title": "Henrietta Temple",
+    "author": "Benjamin Disraeli",
+    "year": 1837,
+    "synopsis": "A young man engaged to his cousin falls in love with another woman.",
+    "publicDomain": true
+  },
+  "robert-falconer": {
+    "title": "Robert Falconer",
+    "author": "George MacDonald",
+    "year": 1868,
+    "synopsis": "A Scottish boy searches for his lost father and his faith.",
+    "publicDomain": true
+  },
+  "the-vicar-of-bullhampton": {
+    "title": "The Vicar of Bullhampton",
+    "author": "Anthony Trollope",
+    "year": 1870,
+    "synopsis": "A country vicar stands by a fallen woman and a young man accused of murder.",
+    "publicDomain": true
+  },
+  "tom-brown-at-oxford": {
+    "title": "Tom Brown at Oxford",
+    "author": "Thomas Hughes",
+    "year": 1861,
+    "synopsis": "Tom Brown goes up to Oxford and learns about friendship, rowing and life.",
+    "publicDomain": true
+  },
+  "mr-scarboroughs-family": {
+    "title": "Mr. Scarborough's Family",
+    "author": "Anthony Trollope",
+    "year": 1883,
+    "synopsis": "A dying squire plays tricks with his will to decide which son will inherit.",
+    "publicDomain": true
+  },
+  "the-hoosier-schoolmaster": {
+    "title": "The Hoosier Schoolmaster",
+    "author": "Edward Eggleston",
+    "year": 1871,
+    "synopsis": "A young teacher takes on a rough backwoods school in Indiana.",
+    "publicDomain": true
+  },
+  "once-on-a-time": {
+    "title": "Once on a Time",
+    "author": "A. A. Milne",
+    "year": 1917,
+    "synopsis": "A comic fairy tale of two kings at war and a princess with sense.",
+    "publicDomain": true
+  },
+  "an-autobiography": {
+    "title": "An Autobiography",
+    "author": "Anthony Trollope",
+    "year": 1883,
+    "synopsis": "Trollope tells of his unhappy youth, his career at the Post Office and how he wrote his novels.",
+    "publicDomain": true
+  },
+  "the-claverings": {
+    "title": "The Claverings",
+    "author": "Anthony Trollope",
+    "year": 1867,
+    "synopsis": "A young man engaged to a gentle girl is tempted by a rich widow he once loved.",
+    "publicDomain": true
+  },
+  "annals-of-a-quiet-neighbourhood": {
+    "title": "Annals of a Quiet Neighbourhood",
+    "author": "George MacDonald",
+    "year": 1867,
+    "synopsis": "A young vicar tells of his first years in a country parish.",
+    "publicDomain": true
+  },
+  "the-king-of-the-golden-river": {
+    "title": "The King of the Golden River",
+    "author": "John Ruskin",
+    "year": 1841,
+    "synopsis": "A kind boy and his cruel brothers meet the spirit of a golden river.",
+    "publicDomain": true
+  },
+  "paul-clifford": {
+    "title": "Paul Clifford",
+    "author": "Edward Bulwer-Lytton",
+    "year": 1830,
+    "synopsis": "An orphan raised in a London slum becomes a highwayman, in the novel that begins \"It was a dark and stormy night\".",
+    "publicDomain": true
+  },
+  "the-macdermots-of-ballycloran": {
+    "title": "The Macdermots of Ballycloran",
+    "author": "Anthony Trollope",
+    "year": 1847,
+    "synopsis": "An Irish landowning family falls into ruin, in Trollope's first novel.",
+    "publicDomain": true
+  },
+  "the-caxtons": {
+    "title": "The Caxtons",
+    "author": "Edward Bulwer-Lytton",
+    "year": 1849,
+    "synopsis": "A scholarly father and his family, told by his son, with comic and touching episodes.",
+    "publicDomain": true
+  },
+  "mopsa-the-fairy": {
+    "title": "Mopsa the Fairy",
+    "author": "Jean Ingelow",
+    "year": 1869,
+    "synopsis": "A boy finds fairies in a hawthorn tree and travels with them to Fairyland.",
+    "publicDomain": true
+  },
+  "the-young-trailers": {
+    "title": "The Young Trailers",
+    "author": "Joseph A. Altsheler",
+    "year": 1907,
+    "synopsis": "Two boys join a party of settlers on the trail to early Kentucky.",
+    "publicDomain": true
+  },
+  "the-moving-picture-girls": {
+    "title": "The Moving Picture Girls",
+    "author": "Laura Lee Hope",
+    "year": 1914,
+    "synopsis": "Two sisters start acting in early moving pictures to help their father.",
+    "publicDomain": true
+  },
+  "aunt-janes-nieces-in-society": {
+    "title": "Aunt Jane's Nieces in Society",
+    "author": "L. Frank Baum",
+    "year": 1910,
+    "synopsis": "The three nieces enter New York society.",
+    "publicDomain": true
+  },
+  "the-phantom-ship": {
+    "title": "The Phantom Ship",
+    "author": "Frederick Marryat",
+    "year": 1839,
+    "synopsis": "A young man sets out to free his father from the curse of the Flying Dutchman.",
+    "publicDomain": true
+  },
+  "fame-and-fortune": {
+    "title": "Fame and Fortune",
+    "author": "Horatio Alger",
+    "year": 1868,
+    "synopsis": "Dick Hunter, once a bootblack, works his way up in New York.",
+    "publicDomain": true
+  },
+  "the-outdoor-girls-of-deepdale": {
+    "title": "The Outdoor Girls of Deepdale",
+    "author": "Laura Lee Hope",
+    "year": 1913,
+    "synopsis": "Four girls set off on a walking tour and get mixed up in a mystery.",
+    "publicDomain": true
+  },
+  "aunt-janes-nieces-abroad": {
+    "title": "Aunt Jane's Nieces Abroad",
+    "author": "L. Frank Baum",
+    "year": 1906,
+    "synopsis": "The three nieces and their uncle travel through Italy and are caught up with bandits.",
+    "publicDomain": true
+  },
+  "aunt-janes-nieces-at-millville": {
+    "title": "Aunt Jane's Nieces at Millville",
+    "author": "L. Frank Baum",
+    "year": 1908,
+    "synopsis": "The nieces spend a summer at their uncle's farm in Millville.",
+    "publicDomain": true
+  },
+  "aunt-janes-nieces-at-work": {
+    "title": "Aunt Jane's Nieces at Work",
+    "author": "L. Frank Baum",
+    "year": 1909,
+    "synopsis": "The nieces throw themselves into a political campaign.",
+    "publicDomain": true
+  },
+  "snarleyyow": {
+    "title": "Snarleyyow",
+    "author": "Frederick Marryat",
+    "year": 1837,
+    "synopsis": "A cruel captain and his ugly dog terrorise the crew of a ship.",
+    "publicDomain": true
+  },
+  "the-tree-of-appomattox": {
+    "title": "The Tree of Appomattox",
+    "author": "Joseph A. Altsheler",
+    "year": 1916,
+    "synopsis": "A young Union officer sees the last days of the Civil War.",
+    "publicDomain": true
+  },
+  "peter-simple": {
+    "title": "Peter Simple",
+    "author": "Frederick Marryat",
+    "year": 1834,
+    "synopsis": "A naive young midshipman learns his trade in the Royal Navy.",
+    "publicDomain": true
+  },
+  "ran-away-to-sea": {
+    "title": "Ran Away to Sea",
+    "author": "Mayne Reid",
+    "year": 1858,
+    "synopsis": "A boy runs away to sea and has adventures on the African coast.",
+    "publicDomain": true
+  },
+  "the-rulers-of-the-lakes": {
+    "title": "The Rulers of the Lakes",
+    "author": "Joseph A. Altsheler",
+    "year": 1917,
+    "synopsis": "Robert Lennox joins the fight for Lake George in the French and Indian War.",
+    "publicDomain": true
+  },
+  "the-shades-of-the-wilderness": {
+    "title": "The Shades of the Wilderness",
+    "author": "Joseph A. Altsheler",
+    "year": 1916,
+    "synopsis": "A young Confederate officer fights through the Battle of the Wilderness.",
+    "publicDomain": true
+  },
+  "the-hunters-of-the-hills": {
+    "title": "The Hunters of the Hills",
+    "author": "Joseph A. Altsheler",
+    "year": 1916,
+    "synopsis": "A young man and his friends are drawn into the French and Indian War.",
+    "publicDomain": true
+  },
+  "the-shadow-of-the-north": {
+    "title": "The Shadow of the North",
+    "author": "Joseph A. Altsheler",
+    "year": 1917,
+    "synopsis": "Robert Lennox scouts for the British in the northern wilderness.",
+    "publicDomain": true
+  },
+  "the-guns-of-bull-run": {
+    "title": "The Guns of Bull Run",
+    "author": "Joseph A. Altsheler",
+    "year": 1914,
+    "synopsis": "A young Kentuckian joins the Union army at the start of the Civil War.",
+    "publicDomain": true
+  },
+  "the-rock-of-chickamauga": {
+    "title": "The Rock of Chickamauga",
+    "author": "Joseph A. Altsheler",
+    "year": 1915,
+    "synopsis": "Dick Mason fights with the Union army at Chickamauga.",
+    "publicDomain": true
+  },
+  "the-sword-of-antietam": {
+    "title": "The Sword of Antietam",
+    "author": "Joseph A. Altsheler",
+    "year": 1914,
+    "synopsis": "Dick Mason fights in the bloody Battle of Antietam.",
+    "publicDomain": true
+  },
+  "the-scouts-of-stonewall": {
+    "title": "The Scouts of Stonewall",
+    "author": "Joseph A. Altsheler",
+    "year": 1914,
+    "synopsis": "A young Confederate rides with Stonewall Jackson in the Shenandoah Valley.",
+    "publicDomain": true
+  },
+  "the-guns-of-shiloh": {
+    "title": "The Guns of Shiloh",
+    "author": "Joseph A. Altsheler",
+    "year": 1914,
+    "synopsis": "Dick Mason is caught up in the Battle of Shiloh.",
+    "publicDomain": true
+  },
+  "osceola-the-seminole": {
+    "title": "Osceola the Seminole",
+    "author": "Mayne Reid",
+    "year": 1858,
+    "synopsis": "A young man in Florida befriends the Seminole leader Osceola in the war with the United States.",
+    "publicDomain": true
+  },
+  "the-headless-horseman": {
+    "title": "The Headless Horseman",
+    "author": "Mayne Reid",
+    "year": 1865,
+    "synopsis": "In Texas, a headless rider haunts the prairie, and a murder must be solved.",
+    "publicDomain": true
+  },
+  "the-star-of-gettysburg": {
+    "title": "The Star of Gettysburg",
+    "author": "Joseph A. Altsheler",
+    "year": 1915,
+    "synopsis": "A young Confederate fights at the Battle of Gettysburg.",
+    "publicDomain": true
+  },
+  "mark-the-match-boy": {
+    "title": "Mark the Match Boy",
+    "author": "Horatio Alger",
+    "year": 1869,
+    "synopsis": "A homeless boy selling matches in New York is helped by a friend and finds his long-lost grandfather.",
+    "publicDomain": true
+  },
+  "the-adventures-of-pinocchio": {
+    "title": "The Adventures of Pinocchio",
+    "author": "Carlo Collodi",
+    "year": 1883,
+    "synopsis": "A wooden puppet who longs to be a real boy runs from one scrape to the next, and his nose grows with every lie.",
+    "publicDomain": true
+  },
+  "a-house-of-pomegranates": {
+    "title": "A House of Pomegranates",
+    "author": "Oscar Wilde",
+    "year": 1891,
+    "synopsis": "Four fairy tales by Oscar Wilde, among them The Young King and The Star-Child, about beauty, pride and kindness.",
+    "publicDomain": true
+  },
+  "south-sea-tales": {
+    "title": "South Sea Tales",
+    "author": "Jack London",
+    "year": 1911,
+    "synopsis": "Traders, castaways and islanders face storms, sharks and one another across the Pacific.",
+    "publicDomain": true
+  },
+  "children-of-the-frost": {
+    "title": "Children of the Frost",
+    "author": "Jack London",
+    "year": 1902,
+    "synopsis": "Stories of the far North told from the side of the Native peoples whose world the newcomers are changing.",
+    "publicDomain": true
+  },
+  "love-of-life-and-other-stories": {
+    "title": "Love of Life and Other Stories",
+    "author": "Jack London",
+    "year": 1907,
+    "synopsis": "A starving prospector crawls across the barren lands in the title story, one of eight tales of grit and survival.",
+    "publicDomain": true
+  },
+  "the-flying-inn": {
+    "title": "The Flying Inn",
+    "author": "G. K. Chesterton",
+    "year": 1914,
+    "synopsis": "When England bans the pub, an Irish captain and an innkeeper roll a barrel of rum and a sign across the country.",
+    "publicDomain": true
+  },
+  "tales-of-terror-and-mystery": {
+    "title": "Tales of Terror and Mystery",
+    "author": "Arthur Conan Doyle",
+    "year": 1922,
+    "synopsis": "Strange deaths, sky monsters and locked-room puzzles in a dozen tales by the creator of Sherlock Holmes.",
+    "publicDomain": true
+  },
+  "the-singing-bone": {
+    "title": "The Singing Bone",
+    "author": "R. Austin Freeman",
+    "year": 1912,
+    "synopsis": "Dr Thorndyke solves five crimes, each first told from the criminal's side, then unpicked by science.",
+    "publicDomain": true
+  },
+  "king-coal": {
+    "title": "King Coal",
+    "author": "Upton Sinclair",
+    "year": 1917,
+    "synopsis": "A rich young man takes a job as a miner under a false name and sees how the coal camps are run.",
+    "publicDomain": true
+  },
+  "ragged-dick": {
+    "title": "Ragged Dick",
+    "author": "Horatio Alger Jr.",
+    "year": 1868,
+    "synopsis": "A cheerful New York bootblack works, saves and learns his way toward a better life.",
+    "publicDomain": true
   }
 };

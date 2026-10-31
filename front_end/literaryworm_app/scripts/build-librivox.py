@@ -591,6 +591,308 @@ PROJECTS = {
     "the-war-in-the-air": 5621,  # LibriVox volunteers
     # A third 250 public-domain titles (October 2026), one more replacement
     "the-song-of-the-lark": 2763,  # LibriVox volunteers
+    # 300 more public-domain titles (October 2026)
+    "the-cat-of-bubastes": 3673,  # solo
+    "by-pike-and-dyke": 3870,  # solo
+    "with-clive-in-india": 6173,  # solo
+    "the-master-of-the-world": 1755,  # solo
+    "the-last-trail": 2572,  # solo
+    "the-day-of-the-beast": 17654,  # solo
+    "the-mysterious-rider": 10439,  # solo
+    "buster-bears-twins": 18139,  # solo
+    "the-vanished-messenger": 9303,  # solo
+    "the-double-traitor": 7267,  # solo
+    "the-great-impersonation": 3904,  # solo
+    "the-flaming-forest": 2771,  # solo
+    "the-golden-snare": 4031,  # solo
+    "nomads-of-the-north": 8395,  # solo
+    "the-danger-trail": 3575,  # solo
+    "isobel": 6625,  # solo
+    "the-white-feather": 4642,  # solo
+    "the-adventures-of-sally": 2393,  # solo
+    "the-swoop": 1840,  # solo
+    "the-gem-collector": 20117,  # solo
+    "the-innocents": 4890,  # solo
+    "madame-de-treymes": 5716,  # solo
+    "jurgen": 10923,  # solo
+    "the-magnificent-ambersons": 3369,  # solo
+    "alice-adams": 2896,  # solo
+    "penrod-and-sam": 3057,  # solo
+    "seventeen": 3122,  # solo
+    "monsieur-beaucaire": 6013,  # solo
+    "gentle-julia": 4160,  # solo
+    "the-conquest-of-canaan": 11863,  # solo
+    "nature": 10073,  # solo
+    "the-oregon-trail": 2648,  # solo
+    "the-metropolis": 11508,  # solo
+    "the-mutiny-of-the-elsinore": 4907,  # solo
+    "tales-of-the-fish-patrol": 9576,  # solo
+    "the-gold-hunters": 4999,  # solo
+    "the-honor-of-the-big-snows": 2980,  # solo
+    "the-riddle-of-the-frozen-flame": 4380,  # solo
+    "the-man-who-knew": 19913,  # solo
+    "the-clue-of-the-twisted-candle": 14527,  # solo
+    "the-great-shadow": 4116,  # solo
+    "jack-o-judgment": 21232,  # solo
+    "the-doings-of-raffles-haw": 6434,  # solo
+    "the-eight-strokes-of-the-clock": 9262,  # solo
+    "the-woman-of-mystery": 10324,  # solo
+    "the-middle-temple-murder": 13832,  # solo
+    "scarhaven-keep": 7443,  # solo
+    "the-charing-cross-mystery": 15833,  # solo
+    "the-talleyrand-maxim": 8396,  # solo
+    "the-chestermarke-instinct": 3888,  # solo
+    "the-further-adventures-of-jimmie-dale": 10407,  # solo
+    "tremendous-trifles": 2794,  # solo
+    "the-trees-of-pride": 4441,  # solo
+    "eugenics-and-other-evils": 2514,  # solo
+    "a-short-history-of-england": 1853,  # solo
+    "for-the-temple": 13773,  # LibriVox volunteers
+    "bonnie-prince-charlie": 9050,  # LibriVox volunteers
+    "the-vicomte-de-bragelonne": 4485,  # LibriVox volunteers
+    "the-corsican-brothers": 9106,  # LibriVox volunteers
+    "the-adventures-of-poor-mrs-quack": 18626,  # LibriVox volunteers
+    "mother-west-wind-why-stories": 20194,  # LibriVox volunteers
+    "mother-west-wind-how-stories": 8506,  # LibriVox volunteers
+    "the-hunted-woman": 8712,  # LibriVox volunteers
+    "the-pothunters": 14447,  # LibriVox volunteers
+    "the-turmoil": 3049,  # LibriVox volunteers
+    "a-childs-history-of-england": 1142,  # LibriVox volunteers
+    "the-history-of-the-peloponnesian-war": 422,  # LibriVox volunteers
+    "the-courage-of-marge-odoone": 9102,  # LibriVox volunteers
+    "the-wolf-hunters": 5500,  # LibriVox volunteers
+    "the-alaskan": 2025,  # LibriVox volunteers
+    "through-the-magic-door": 10369,  # LibriVox volunteers
+    "the-paradise-mystery": 818,  # LibriVox volunteers
+    "dead-mens-money": 1119,  # LibriVox volunteers
+    "peter-and-wendy": 16450,  # LibriVox volunteers
+    "tommy-and-grizel": 11164,  # LibriVox volunteers
+    "my-lady-nicotine": 20370,  # LibriVox volunteers
+    "sentimental-tommy": 9612,  # LibriVox volunteers
+    "the-little-white-bird": 9201,  # LibriVox volunteers
+    "the-story-of-the-greeks": 8345,  # LibriVox volunteers
+    "the-queens-necklace": 13980,  # solo
+    "the-nest-of-the-sparrowhawk": 14509,  # solo
+    "whats-wrong-with-the-world": 1544,  # LibriVox volunteers
+    "the-spirit-of-the-border": 4293,  # solo
+    "the-man-with-the-black-feather": 18013,  # solo
+    "the-daffodil-mystery": 1546,  # LibriVox volunteers
+    "wulf-the-saxon": 7280,  # solo
+    "a-knight-of-the-white-cross": 13597,  # solo
+    "the-valley-of-silent-men": 2651,  # solo
+    "green-mansions": 2397,  # solo
+    "the-lions-skin": 13455,  # solo
+    "the-young-carthaginian": 7963,  # LibriVox volunteers
+    "windy-mcphersons-son": 10600,  # LibriVox volunteers
+    "democracy-and-education": 4492,  # LibriVox volunteers
+    "the-dragon-and-the-raven": 4479,  # solo
+    "beric-the-briton": 5300,  # solo
+    "the-young-buglers": 22864,  # solo
+    "the-cruise-of-the-dazzler": 10897,  # solo
+    "heretics": 1738,  # solo
+    "the-snare": 13805,  # solo
+    "true-to-the-old-flag": 3434,  # LibriVox volunteers
+    "the-age-of-chivalry": 2752,  # LibriVox volunteers
+    "twenty-years-at-hull-house": 4673,  # LibriVox volunteers
+    "the-last-of-the-plainsmen": 2760,  # solo
+    "how-we-think": 10157,  # solo
+    "the-science-of-getting-rich": 20014,  # solo
+    "in-the-reign-of-terror": 5685,  # LibriVox volunteers
+    "the-purple-land": 11495,  # LibriVox volunteers
+    "personal-memoirs-of-u-s-grant": 3909,  # solo
+    "travels-in-alaska": 4067,  # LibriVox volunteers
+    "the-blonde-lady": 2716,  # solo
+    "john-thorndykes-cases": 13463,  # solo
+    "the-job": 3439,  # solo
+    "the-mountains-of-california": 699,  # LibriVox volunteers
+    "the-jacket": 5594,  # solo
+    "representative-men": 4411,  # solo
+    "the-girl-on-the-boat": 5567,  # solo
+    "three-men-and-a-maid": 2263,  # solo
+    "two-years-before-the-mast": 2742,  # LibriVox volunteers
+    "the-mystery-of-31-new-inn": 3802,  # LibriVox volunteers
+    "the-art-of-public-speaking": 4655,  # LibriVox volunteers
+    "the-yosemite": 464,  # LibriVox volunteers
+    "the-adventures-of-jimmie-dale": 1778,  # LibriVox volunteers
+    "the-old-man-in-the-corner": 1196,  # solo
+    "the-confessions-of-arsene-lupin": 6929,  # solo
+    "orthodoxy": 19272,  # solo
+    "tales-of-st-austins": 16646,  # solo
+    "to-the-last-man": 6541,  # solo
+    "the-son-of-the-wolf": 20327,  # solo
+    "cape-cod": 15271,  # solo
+    "far-away-and-long-ago": 20150,  # solo
+    "manalive": 2579,  # solo
+    "paradise-lost": 8815,  # solo
+    "the-theory-of-the-leisure-class": 2635,  # LibriVox volunteers
+    "the-adventures-of-gerard": 4239,  # solo
+    "looking-backward": 3226,  # solo
+    "the-green-flag": 8386,  # LibriVox volunteers
+    "the-monk": 15546,  # LibriVox volunteers
+    "the-maine-woods": 8964,  # solo
+    "the-green-fairy-book": 2525,  # LibriVox volunteers
+    "hard-times": 845,  # LibriVox volunteers
+    "andersens-fairy-tales": 7883,  # LibriVox volunteers
+    "the-divine-comedy": 67,  # LibriVox volunteers
+    "the-ladies-paradise": 22348,  # solo
+    "the-crimes-of-england": 2966,  # solo
+    "the-haunted-man-and-the-ghosts-bargain": 5187,  # solo
+    "the-king-in-yellow": 13568,  # solo
+    "the-wheels-of-chance": 659,  # LibriVox volunteers
+    "the-pit": 13357,  # solo
+    "on-liberty": 21507,  # solo
+    "alarms-and-discursions": 1816,  # solo
+    "the-octopus": 6401,  # solo
+    "the-heart-of-mid-lothian": 15265,  # solo
+    "specimen-days": 1192,  # LibriVox volunteers
+    "legends-of-charlemagne": 14859,  # LibriVox volunteers
+    "man-and-wife": 9165,  # LibriVox volunteers
+    "the-antiquary": 3738,  # solo
+    "rob-roy": 2545,  # LibriVox volunteers
+    "the-blue-fairy-book": 903,  # LibriVox volunteers
+    "in-chancery": 22537,  # solo
+    "myths-and-legends-of-ancient-greece-and": 2264,  # LibriVox volunteers
+    "the-analects": 6647,  # solo
+    "twice-told-tales": 5926,  # solo
+    "the-hunchback-of-notre-dame": 2661,  # solo
+    "ulysses": 4344,  # LibriVox volunteers
+    "the-monastery": 9119,  # solo
+    "beautiful-joe": 2005,  # solo
+    "the-blue-castle": 20437,  # solo
+    "the-count-of-monte-cristo": 6697,  # solo
+    "the-abysmal-brute": 13958,  # solo
+    "the-grand-babylon-hotel": 2446,  # solo
+    "the-way-of-all-flesh": 1798,  # solo
+    "the-angel-of-terror": 1716,  # solo
+    "john-barleycorn": 1975,  # solo
+    "new-chronicles-of-rebecca": 1412,  # LibriVox volunteers
+    "the-toilers-of-the-sea": 4622,  # LibriVox volunteers
+    "tess-of-the-durbervilles": 7043,  # solo
+    "coningsby": 10979,  # solo
+    "zanoni": 5960,  # solo
+    "the-history-of-mr-polly": 5491,  # solo
+    "old-mother-west-wind": 2131,  # solo
+    "on-the-eve": 8017,  # solo
+    "the-moon-and-sixpence": 3316,  # solo
+    "mike": 1323,  # solo
+    "beowulf": 11348,  # solo
+    "the-adventures-of-bobby-coon": 10801,  # solo
+    "the-adventures-of-peter-cottontail": 11452,  # solo
+    "old-granny-fox": 13209,  # solo
+    "happy-jack": 11687,  # solo
+    "the-intrusion-of-jimmy": 4387,  # solo
+    "before-adam": 8891,  # solo
+    "blacky-the-crow": 8267,  # solo
+    "the-prince": 9482,  # solo
+    "all-the-sad-young-men": 18482,  # solo
+    "tales-of-the-jazz-age": 6732,  # solo
+    "money-for-nothing": 20084,  # solo
+    "the-adventures-of-bob-white": 9596,  # solo
+    "notes-from-the-underground": 6789,  # solo
+    "of-human-bondage": 4749,  # solo
+    "the-adventures-of-old-man-coyote": 9416,  # solo
+    "the-adventures-of-jimmy-skunk": 1812,  # solo
+    "the-adventures-of-buster-bear": 1624,  # solo
+    "the-new-machiavelli": 9821,  # solo
+    "the-sea-lady": 9646,  # solo
+    "the-adventures-of-johnny-chuck": 3307,  # solo
+    "redburn": 7820,  # solo
+    "flappers-and-philosophers": 5480,  # solo
+    "the-food-of-the-gods": 1931,  # solo
+    "a-childs-garden-of-verses": 16572,  # solo
+    "leaves-of-grass": 13878,  # solo
+    "the-king-of-irelands-son": 5913,  # solo
+    "the-imitation-of-christ": 575,  # solo
+    "sonnets-from-the-portuguese": 4199,  # solo
+    "a-shropshire-lad": 11042,  # solo
+    "lives-of-the-twelve-caesars": 2376,  # LibriVox volunteers
+    "five-little-peppers-grown-up": 3720,  # solo
+    "the-five-little-peppers-midway": 2848,  # solo
+    "the-canterville-ghost": 9523,  # solo
+    "donal-grant": 11872,  # solo
+    "whats-mines-mine": 10853,  # solo
+    "heather-and-snow": 16891,  # solo
+    "the-bertrams": 10486,  # solo
+    "castle-richmond": 8929,  # solo
+    "the-kellys-and-the-okellys": 19509,  # solo
+    "nina-balatka": 9329,  # solo
+    "linda-tressel": 13586,  # solo
+    "the-belton-estate": 6519,  # solo
+    "sir-harry-hotspur-of-humblethwaite": 10466,  # solo
+    "ralph-the-heir": 8432,  # solo
+    "harry-heathcote-of-gangoil": 14021,  # solo
+    "lady-anna": 5828,  # solo
+    "john-caldigate": 6117,  # solo
+    "marion-fay": 9371,  # solo
+    "the-landleaguers": 9068,  # solo
+    "an-old-mans-love": 10386,  # solo
+    "the-struggles-of-brown-jones-and": 7746,  # solo
+    "brother-jacob": 8245,  # solo
+    "impressions-of-theophrastus-such": 19749,  # solo
+    "the-little-colonels-house-party": 5232,  # LibriVox volunteers
+    "ranald-bannermans-boyhood": 79,  # LibriVox volunteers
+    "sir-gibbie": 10130,  # LibriVox volunteers
+    "the-seaboard-parish": 8653,  # LibriVox volunteers
+    "the-elect-lady": 15728,  # LibriVox volunteers
+    "the-flight-of-the-shadow": 9022,  # LibriVox volunteers
+    "the-golden-lion-of-granpere": 6487,  # LibriVox volunteers
+    "is-he-popenjoy": 6032,  # LibriVox volunteers
+    "the-fixed-period": 4605,  # LibriVox volunteers
+    "kept-in-the-dark": 3163,  # LibriVox volunteers
+    "the-moorland-cottage": 8069,  # LibriVox volunteers
+    "a-dark-nights-work": 9063,  # LibriVox volunteers
+    "henrietta-temple": 5794,  # LibriVox volunteers
+    "robert-falconer": 2692,  # solo
+    "the-vicar-of-bullhampton": 5074,  # solo
+    "tom-brown-at-oxford": 17525,  # LibriVox volunteers
+    "mr-scarboroughs-family": 6951,  # LibriVox volunteers
+    "the-hoosier-schoolmaster": 6803,  # solo
+    "once-on-a-time": 3337,  # LibriVox volunteers
+    "an-autobiography": 3114,  # solo
+    "the-claverings": 5770,  # LibriVox volunteers
+    "annals-of-a-quiet-neighbourhood": 7829,  # LibriVox volunteers
+    "the-king-of-the-golden-river": 4036,  # solo
+    "paul-clifford": 12751,  # solo
+    "the-macdermots-of-ballycloran": 7864,  # LibriVox volunteers
+    "the-caxtons": 15903,  # LibriVox volunteers
+    "mopsa-the-fairy": 6688,  # solo
+    "the-young-trailers": 6004,  # solo
+    "the-moving-picture-girls": 2433,  # solo
+    "aunt-janes-nieces-in-society": 7172,  # solo
+    "the-phantom-ship": 21079,  # solo
+    "fame-and-fortune": 1525,  # LibriVox volunteers
+    "the-outdoor-girls-of-deepdale": 5561,  # LibriVox volunteers
+    "aunt-janes-nieces-abroad": 3683,  # LibriVox volunteers
+    "aunt-janes-nieces-at-millville": 4131,  # LibriVox volunteers
+    "aunt-janes-nieces-at-work": 5579,  # LibriVox volunteers
+    "snarleyyow": 8752,  # solo
+    "the-tree-of-appomattox": 8800,  # LibriVox volunteers
+    "peter-simple": 11965,  # LibriVox volunteers
+    "ran-away-to-sea": 15301,  # LibriVox volunteers
+    "the-rulers-of-the-lakes": 11067,  # solo
+    "the-shades-of-the-wilderness": 8070,  # LibriVox volunteers
+    "the-hunters-of-the-hills": 9519,  # LibriVox volunteers
+    "the-shadow-of-the-north": 8005,  # solo
+    "the-guns-of-bull-run": 6183,  # LibriVox volunteers
+    "the-rock-of-chickamauga": 7664,  # LibriVox volunteers
+    "the-sword-of-antietam": 7436,  # LibriVox volunteers
+    "the-scouts-of-stonewall": 6713,  # LibriVox volunteers
+    "the-guns-of-shiloh": 6091,  # LibriVox volunteers
+    "osceola-the-seminole": 20122,  # LibriVox volunteers
+    "the-headless-horseman": 5326,  # LibriVox volunteers
+    "the-star-of-gettysburg": 4446,  # LibriVox volunteers
+    "mark-the-match-boy": 12577,  # solo
+    # 300 more public-domain titles (October 2026), ten replacements
+    "the-adventures-of-pinocchio": 6787,  # solo
+    "a-house-of-pomegranates": 6900,  # solo
+    "south-sea-tales": 15528,  # solo
+    "children-of-the-frost": 18260,  # LibriVox volunteers
+    "love-of-life-and-other-stories": 20575,  # LibriVox volunteers
+    "the-flying-inn": 20631,  # LibriVox volunteers
+    "tales-of-terror-and-mystery": 925,  # LibriVox volunteers
+    "the-singing-bone": 15935,  # solo
+    "king-coal": 3116,  # solo
+    "ragged-dick": 257,  # solo
 }
 
 API = "https://librivox.org/api/feed/audiobooks/?id={}&format=json&extended=1"
