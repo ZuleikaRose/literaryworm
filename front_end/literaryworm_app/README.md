@@ -51,6 +51,7 @@ Use **Try the demo** on the sign-in page to get a household with three profiles:
 | `/gifts` | Buy a gift membership, your gift codes, and redeem one | Signed in |
 | `/clubs/join/:code` | Where a club invitation email links: joins the club with its code, then opens it | Profile chosen (visitors sign in first and come back) |
 | `/dashboard` | Staff dashboard: totals for accounts, memberships, reading and clubs | Profile chosen; billing staff and admins |
+| `/maintenance` | Maintenance notices: add, edit and delete the banner shown before and during planned work | Profile chosen; developers and admins |
 | `/lists/:slug` | A custom list shared by link: name, description, the profile's name and its books | Public |
 | `/read/:id`, `/listen/:id` | Reader (with highlights, notes and the dictionary) and audiobook player (with the read-along transcript); full screen, loaded on demand; LiteraryWorm titles the profile may see | Profile chosen |
 
@@ -186,3 +187,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Chapter quizzes (`quiz` function, `chapter_quizzes`, `quiz_results`, `QuizDialog`, migration 6504), following readers (`reader_follows`, `profiles.public_reader`, `pages/ReaderProfile.tsx`, migrations 6505 and 6506), Car mode and Cast (`CarMode`, `lib/cast.ts`) |
 | — | My library *Sort by* (`lib/librarySort.ts`, `?sort=`), uploads sorted by date or title, and *Search by* in the header's search box; What's new (migration 6507), the policies (6508) |
 | — | Passkeys: Account → Sign-in adds (password first), lists, renames and removes them, and the log-in page has *Log in with a passkey* (`lib/passkeys.ts`, the passkey calls in `lib/accountApi.ts`, Supabase Auth WebAuthn, supabase-js 2.117.3); What's new (migration 6509) and the Privacy, Cookie and Help pages (6510) |
+| — | Maintenance notices (`lib/maintenance.ts`, `lib/maintenanceApi.ts`, `MaintenanceBanner`, `pages/Maintenance.tsx`, `maintenance_notices`, migrations 6512–6514, What's new 6515); My library *Author Z–A* (What's new 6511); releases go dev first (`docs/releasing.md`, `scripts/promote.sh`) |

@@ -532,6 +532,22 @@
           note: "A chapter's quiz for a public-domain title, written by Claude from that chapter only the first time anyone asks, and kept. RLS on, no browser access; the quiz function reads and writes it.",
         },
         {
+          id: "maintenance_notices", color: colors.server, x: 0, y: 7200, sub: "site banner",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["", "title", "text 1–80"],
+            ["", "message", "text 1–500"],
+            ["", "announce_at", "timestamptz"],
+            ["", "starts_at", "timestamptz"],
+            ["", "ends_at", "timestamptz"],
+            ["fk", "created_by", "uuid", true],
+            ["fk", "updated_by", "uuid", true],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "The banner across the site before and during planned work; announce_at ≤ starts_at < ends_at, at most 7 days of work. RLS: anyone reads the ones showing (announce_at to ends_at); developers and admins read all and add, change and delete (has_staff_role('developer'); writes need the second step). Up to 100. Indexes: created_by, updated_by.",
+        },
+        {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -846,6 +862,8 @@
         ["author_news", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["household_challenges", "user_id", "auth.users", "id", "N : 1"],
         ["changelog_entries", "created_by", "auth.users", "id", "N : 1"],
+        ["maintenance_notices", "created_by", "auth.users", "id", "N : 1"],
+        ["maintenance_notices", "updated_by", "auth.users", "id", "N : 1"],
         ["whats_new_sends", "user_id", "auth.users", "id", "N : 1"],
         ["kids_report_sends", "user_id", "auth.users", "id", "N : 1"],
         ["club_meetings", "club_id", "book_clubs", "id", "N : 1"],

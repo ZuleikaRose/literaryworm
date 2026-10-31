@@ -100,6 +100,8 @@ My library then gained *Sort by* (title, numbers first, author, when added or ch
 
 Then members could add passkeys in Account → Sign-in (Face ID, Touch ID, Windows Hello, a phone's screen lock, a password manager or a security key), rename and remove them, and log in with one instead of the password, through Supabase Auth's passkey API.
 
+Then releases became dev first: a `dev` branch tested by CI against the Supabase dev branch (given production's policies and What's new), and `scripts/promote.sh`, which moves `main` only when every test passes. Developers and admins can announce planned work with maintenance notices, a banner across the site, and My library sorts by author Z–A as well.
+
 The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 
 ## Code
