@@ -7,12 +7,13 @@ import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../
 import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
 import { profilesInUse, tooBigFor } from "../lib/planLimits";
+import { plansDescription } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { BillingInterval, Plan, PlanId } from "../types";
 
 export default function Plans() {
-  useTitle("Plans and pricing");
+  useTitle("Plans and pricing", plansDescription());
   const { state, dispatch } = useStore();
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

@@ -11,6 +11,7 @@ import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../dat
 import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
 import { formatPrice, planFaqs, plans } from "../data/plans";
 import { useBookFeed } from "../lib/useBookFeed";
+import { siteDescription } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { AgeRating } from "../types";
@@ -24,7 +25,7 @@ const household: { name: string; avatar: number; rating: AgeRating; note: string
 const hours = (minutes: number) => `${Math.round(minutes / 60)} hours`;
 
 export default function Landing() {
-  useTitle("Read and listen in one place");
+  useTitle("Read and listen in one place", siteDescription());
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const freeTitles = books.filter((b) => b.publicDomain && b.featured).concat(books.filter((b) => b.publicDomain && !b.featured)).slice(0, 6);
