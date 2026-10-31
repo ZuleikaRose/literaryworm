@@ -90,7 +90,7 @@ Then the texts moved to a public Supabase Storage bucket served at the same `/te
 
 Then a third 250 titles were added (571 in all).
 
-Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a year), in the app, the database and Stripe; memberships already running keep their price.
+Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a year), in the app, the database and Stripe; memberships already running keep their price. Basic then went to $9.99 ($99.90 a year) the same way.
 
 ## Code
 
