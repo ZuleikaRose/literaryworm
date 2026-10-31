@@ -3,6 +3,22 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Book club posts by email",
+    "body": "Turn on Email me new book club posts in Account → Preferences and we'll send one email a day when there's something new in your clubs: which chapters, how many posts and who wrote them. Only chapters you've reached, so no spoilers; the posts themselves stay in the app.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "fix",
+    "title": "One device per browser",
+    "body": "Listen on another device no longer lists the same browser twice after a refresh or in a second tab. Each browser you're signed in on is one device, and it's forgotten when you sign out.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Set a profile aside",
     "body": "Moving to a smaller plan? Instead of deleting a profile, set it aside in Who's reading?: it keeps its shelf, history and settings and doesn't count towards the plan. Bring it back when there's room, or it comes back by itself when you move up a plan.",
     "major": true

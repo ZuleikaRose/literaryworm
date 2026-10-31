@@ -192,6 +192,8 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Gift and meeting emails.** The gift reminder uses the meeting emails' layout: logo, *Your gift starts soon*, the plan and months in the bold card line with *Starts Sunday 14 March 2027* under it, a rust *See your gifts* button, and a footer saying it's the only reminder. Meeting change emails add the calendar file as an attachment; their hint line says to open it.
 
+**Club posts email.** The meeting emails' layout with one ruled card per club: the club name as a bold dark link, the book in muted text under it, then a line per chapter in soft ink, *Chapter 3: 2 posts from Ada and Ben* (three names, then *and 3 others*). One rust button: *Open the club* for one club, *Open your clubs* for more. A muted line says posts about chapters not reached stay hidden; the footer has *Stop them in one click*. In Preferences it's the switch row after the meeting one, *Email me new book club posts*, with a hint that what people wrote stays in the app.
+
 **Gift start day.** *When it starts* is a fieldset of two chips (*Straight away*, *On a later day*) like *How long*; the later choice adds a native date field, at most 320px wide, with a hint and an error under it.
 
 **Profiles set aside.** Below the grid on Who's reading?, a *Set aside* section (`h2`, 18px) with a muted line and smaller tiles (112px, avatar at 60% opacity, partly greyed) each with a *Set aside* chip. In the editor, *Set aside* is a ghost button between *Save changes* and *Delete profile*; *Bring back* a secondary button. Both confirm in the same panel as Delete, with the account password, and a primary button (*Set aside*, *Bring back*) and *Cancel*.

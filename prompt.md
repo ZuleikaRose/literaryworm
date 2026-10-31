@@ -82,6 +82,8 @@ Then the plan limits became real: the month's audiobook hours (counted for the h
 
 The last round closed the gaps in moving down a plan and finished the household features: a profile can be set aside instead of deleted (it keeps everything, doesn't count, and comes back when there's room, by itself when the plan grows), a yearly membership moving to a smaller plan has that plan's room from the day it's chosen, a gift can be emailed to the person it's for, each book club has a calendar feed for its members, and Home lists the most-followed authors. The yearly-to-monthly switch was run again on the Stripe sandbox with the app's prices, and the security checks now run unchanged on a Supabase branch with one script.
 
+Then the two gaps the build notes still named were closed: book club posts can be emailed once a day to members who turn it on (only chapters they've reached, who wrote and how many, never the text; the `club-digest` function), and a browser keeps its device id until sign-out, so a refresh is no longer a new device in *Listen on another device* (the second thing kept in local storage, in the Cookie Policy).
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.
