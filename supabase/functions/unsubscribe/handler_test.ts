@@ -38,6 +38,10 @@ Deno.test("a link names which email it turns off: What's new unless it says the 
   assertEquals((await handle(fromSite({ token, list: "kids-report" }), site.deps)).status, 200);
   assertEquals(site.lists, ["kids-report"]);
 
+  const posts = setup();
+  assertEquals((await handle(fromSite({ token, list: "club-posts" }), posts.deps)).status, 200);
+  assertEquals(posts.lists, ["club-posts"]);
+
   const bad = setup();
   assertEquals((await handle(fromSite({ token, list: "marketing" }), bad.deps)).status, 400);
   assertEquals(bad.off, []);

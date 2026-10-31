@@ -71,6 +71,11 @@ verify_jwt = false
 # Authorization header against the club_meetings_secret kept in Vault instead.
 verify_jwt = false
 
+[functions.club-digest]
+# Called by pg_cron once a day, which sends no Supabase token: the function checks the
+# Authorization header against the club_digest_secret kept in Vault instead.
+verify_jwt = false
+
 [functions.kids-report]
 # Called by pg_cron on Monday and Tuesday mornings, which sends no Supabase token: the function
 # checks the Authorization header against the kids_report_secret kept in Vault instead.

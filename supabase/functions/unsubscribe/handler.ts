@@ -2,7 +2,8 @@
 // POST /functions/v1/unsubscribe { "token", "list"? }   the site's /unsubscribe page
 // Turns off one optional email for the account a signed link is for, without signing in: the
 // monthly What's new email ("whats-new", the default), the weekly Kids reading report
-// ("kids-report") or book club meeting reminders ("club-meetings"). The token is checked against the unsubscribe_secret kept in Vault
+// ("kids-report"), book club meeting reminders ("club-meetings") or the daily book club posts email
+// ("club-posts"). The token is checked against the unsubscribe_secret kept in Vault
 // (_shared/unsubscribe.ts); a link can only ever switch its own account's emails off, never on.
 
 import { preflight } from "../_shared/cors.ts";
@@ -13,7 +14,7 @@ import { onlyKeys } from "../_shared/validate.ts";
 const METHODS = "POST";
 
 /** The optional emails a link can turn off. */
-export const LISTS = ["whats-new", "kids-report", "club-meetings"] as const;
+export const LISTS = ["whats-new", "kids-report", "club-meetings", "club-posts"] as const;
 export type List = (typeof LISTS)[number];
 
 export interface Deps {
