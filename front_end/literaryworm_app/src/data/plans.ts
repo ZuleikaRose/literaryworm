@@ -15,10 +15,11 @@ export const plans: Plan[] = [
     features: [
       "Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics",
       "Search almost any book on Google Books and keep it in your library",
-      "Highlights, notes, bookmarks and a dictionary in the reader",
+      "Highlights in twelve colours, notes, bookmarks and a dictionary in the reader",
+      "A private reading journal on every book, and My words with spaced review",
       "Favourites, custom lists, ratings and reading logs",
       "AI book summaries, and Ask the book on the classics",
-      "Reading goals, streaks, stats and a shareable Year in Review",
+      "Reading goals, streaks with two rest days a month, stats and a shareable Year in Review",
       "Book clubs with spoiler-free discussion and listening along",
       "Upload your own DRM-free EPUBs, and read offline",
       "Import your reading from Goodreads or StoryGraph",
@@ -39,6 +40,7 @@ export const plans: Plan[] = [
     features: [
       "Everything in Basic",
       "Kids and Teen profiles that show only titles rated for them",
+      "Kids can ask a grown-up for any other book, and a grown-up says yes or no",
       "PIN locks and daily reading limits for any profile",
       "Each profile keeps its own favourites, lists, goals and stats",
       "Household reading challenges to take on together",
@@ -94,7 +96,7 @@ export const planFaqs = [
   },
   {
     q: "Is LiteraryWorm safe for my kids?",
-    a: "Kids profiles show only Kids-rated titles, with no chat, public reviews, sharing, payments or AI assistant. You can lock other profiles with a PIN and set daily reading limits.",
+    a: "Kids profiles show only Kids-rated titles, with no chat, public reviews, sharing, payments or AI assistant. A child can ask for a book that isn't on their shelf; it opens only if a grown-up says yes in Account → Family with the account password. You can lock other profiles with a PIN and set daily reading limits.",
   },
   {
     q: "Where do the books come from?",
