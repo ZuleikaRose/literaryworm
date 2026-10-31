@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1.0.13";
-import { needsSecondStep, sessionAal } from "./supabase.ts";
+import { needsSecondStep, sessionAal, usedPasskey } from "./supabase.ts";
 
 // Unsigned test tokens: only the payload matters here (Auth verifies the signature first).
 const token = (claims: Record<string, unknown>) =>
@@ -23,4 +23,12 @@ Deno.test("members without it, or with an unfinished set-up, are unaffected", ()
   assertEquals(needsSecondStep({}, token({ aal: "aal1" })), false);
   const unverified = { factors: [{ ...verified.factors[0], status: "unverified" }] };
   assertEquals(needsSecondStep(unverified as never, token({ aal: "aal1" })), false);
+});
+
+Deno.test("usedPasskey reads the sign-in method from amr", () => {
+  assertEquals(usedPasskey(token({ amr: [{ method: "passkey", timestamp: 1 }] })), true);
+  assertEquals(usedPasskey(token({ amr: [{ method: "password", timestamp: 1 }] })), false);
+  assertEquals(usedPasskey(token({ amr: "passkey" })), false);
+  assertEquals(usedPasskey(token({})), false);
+  assertEquals(usedPasskey("not-a-jwt"), false);
 });

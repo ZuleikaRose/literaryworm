@@ -25,6 +25,8 @@ import {
   finishTwoStep,
   listPasskeys,
   type MembershipAction,
+  PasskeyCodeError,
+  passkeyAddNeedsCode,
   paymentMethodUrl,
   renamePasskey,
   startTwoStep,
@@ -590,6 +592,10 @@ function Passkeys({ account }: { account: AccountDetails }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [password, setPassword] = useState("");
+  // After a passkey log-in with two-step sign-in on, adding another asks for the code too.
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<Passkey | null>(null);
   const [newName, setNewName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
@@ -622,19 +628,30 @@ function Passkeys({ account }: { account: AccountDetails }) {
 
   const confirmAdd = async (e: FormEvent) => {
     e.preventDefault();
+    const digits = code.replace(/\s/g, "");
+    const missingCode = needsCode && !/^\d{6}$/.test(digits);
+    setCodeError(missingCode ? "Enter the 6-digit code from your authenticator app." : null);
     if (!password) {
       add.setError("Enter your account password.");
       return;
     }
+    if (missingCode) return;
     let added: Passkey | null = null;
     const ok = await add.attempt(async () => {
-      added = await addPasskey(account.email, password);
+      try {
+        added = await addPasskey(account.email, password, needsCode ? digits : undefined);
+      } catch (err) {
+        if (!(err instanceof PasskeyCodeError)) throw err;
+        setCodeError(err.message);
+      }
     });
     if (ok && added) {
       const made: Passkey = added;
       setList((current) => sortPasskeys([made, ...(current ?? []).filter((p) => p.id !== made.id)]));
       setAddOpen(false);
       setPassword("");
+      setCode("");
+      setNeedsCode(false);
       setNotice(`Passkey added (${made.name}). Next time, choose Log in with a passkey.`);
     }
   };
@@ -673,7 +690,8 @@ function Passkeys({ account }: { account: AccountDetails }) {
       <h3>Passkeys</h3>
       <p className="field-hint">
         Log in with your face, fingerprint, screen lock or a security key instead of typing your password. Your device keeps
-        the passkey; your face and fingerprint never leave it. Your password still works.
+        the passkey; your face and fingerprint never leave it. Your password still works. With two-step sign-in on, a
+        passkey counts as both steps, so you won't be asked for the code.
       </p>
       {!supported && <p className="field-hint">This browser can't make passkeys. Try a recent Chrome, Safari, Edge or Firefox.</p>}
       {list && list.length > 0 && (
@@ -724,6 +742,10 @@ function Passkeys({ account }: { account: AccountDetails }) {
           onClick={() => {
             setNotice(null);
             add.setError(null);
+            setCode("");
+            setCodeError(null);
+            // If this can't be checked, the code is asked for anyway when it's needed: adding still works.
+            passkeyAddNeedsCode().then(setNeedsCode, () => setNeedsCode(false));
             setAddOpen(true);
           }}
         >
@@ -741,7 +763,12 @@ function Passkeys({ account }: { account: AccountDetails }) {
         size="sm"
         eyebrow="Passkeys"
         title="Add a passkey"
-        description={<p>Enter your account password. Your browser then asks for your face, fingerprint, screen lock or security key.</p>}
+        description={
+          <p>
+            Enter your account password{needsCode ? " and a code from your authenticator app" : ""}. Your browser then asks for
+            your face, fingerprint, screen lock or security key.
+          </p>
+        }
       >
         <form noValidate onSubmit={confirmAdd} className="two-step-form">
           <AccountPasswordField
@@ -752,6 +779,20 @@ function Passkeys({ account }: { account: AccountDetails }) {
             }}
             error={add.error}
           />
+          {needsCode && (
+            <Field
+              label="6-digit code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={7}
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setCodeError(null);
+              }}
+              error={codeError}
+            />
+          )}
           <div className="modal-actions">
             <button type="submit" className="primary-button" disabled={add.busy}>
               {add.busy ? "Waiting for your device…" : "Continue"}
@@ -912,7 +953,8 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
       <h3>Two-step sign-in</h3>
       <p className="field-hint">
         After your password, enter a code from an authenticator app on your phone (such as Google Authenticator, Microsoft
-        Authenticator or 1Password), so your password alone can't open your account.
+        Authenticator or 1Password), so your password alone can't open your account. Logging in with a passkey doesn't
+        need the code.
       </p>
       {on !== null && (
         <div className="account-fact-row">

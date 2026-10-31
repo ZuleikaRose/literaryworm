@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6527, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6533, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -576,6 +576,15 @@
           note: "Private dated entries about a book, apart from the public logs. FK (profile_id, user_id) → reader_profiles, on delete cascade; index on the pair. Up to 1,000 a profile; written_on no later than today (trigger, which also keeps created_at and sets updated_at). RLS: owner only; browser updates body and written_on.",
         },
         {
+          id: "trusted_passkeys", color: colors.auth, x: 1260, y: 7200, sub: "passkeys that skip the code",
+          cols: [
+            ["pk", "credential_id", "uuid (auth passkey id)"],
+            ["fk", "user_id", "uuid"],
+            ["", "trusted_at", "timestamptz"],
+          ],
+          note: "Passkeys added from a session that gave the two-step code (trust_passkey()). second_step_done() accepts a passkey log-in only when every passkey on the account is here. FK user_id → auth.users, on delete cascade; index on user_id. No browser access.",
+        },
+        {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -886,6 +895,7 @@
         ["saved_words", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_requests", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["journal_entries", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["trusted_passkeys", "user_id", "auth.users", "id", "N : 1"],
         ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "reader_id", "profiles", "id", "N : 1"],

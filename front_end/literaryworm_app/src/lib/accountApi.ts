@@ -25,7 +25,7 @@ import type {
 } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { forgetDeviceId } from "./deviceId";
-import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey } from "./passkeys";
+import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey, usedPasskey } from "./passkeys";
 import { defaultPlayerSettings } from "./reading";
 import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
@@ -221,11 +221,20 @@ export async function verifyPassword(email: string, password: string): Promise<b
 
 // --- Two-step sign-in (Supabase Auth MFA: an authenticator app's 6-digit codes) ---
 
-/** True when this session has the password but still needs the code from the authenticator app. */
+/**
+ * True when this session still needs the code from the authenticator app. A passkey log-in counts as
+ * the second step when the database agrees (second_step_done(): every passkey on the account was added
+ * after the code), so someone with only the password can't add a passkey and skip the code.
+ */
 export async function secondStepNeeded(): Promise<boolean> {
-  const { data, error } = await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  const db = client();
+  const { data, error } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if (error) throw new AccountError(OFFLINE);
-  return data.currentLevel === "aal1" && data.nextLevel === "aal2";
+  if (!(data.currentLevel === "aal1" && data.nextLevel === "aal2")) return false;
+  if (!usedPasskey(data.currentAuthenticationMethods)) return true;
+  const { data: done, error: checkError } = await db.rpc("second_step_done");
+  if (checkError) throw new AccountError(OFFLINE);
+  return done !== true;
 }
 
 function codeMessage(error: { message?: string; status?: number; code?: string }): string {
@@ -314,11 +323,37 @@ export async function listPasskeys(): Promise<Passkey[]> {
  * security key). The account password is checked first, so an unlocked, signed-in browser left
  * alone can't quietly add a way in.
  */
-export async function addPasskey(email: string, password: string): Promise<Passkey> {
+export async function addPasskey(email: string, password: string, code?: string): Promise<Passkey> {
   if (!(await verifyPassword(email, password))) throw new AccountError("That password isn't right. Check it and try again.");
+  // After a passkey log-in with two-step sign-in on, the code comes first (passkeyAddNeedsCode()):
+  // only a session that gave it can mark the new passkey trusted.
+  if (code !== undefined) {
+    try {
+      await verifySecondStep(code);
+    } catch (err) {
+      throw new PasskeyCodeError(err instanceof Error ? err.message : "We couldn't check the code. Try again in a moment.");
+    }
+  }
   const { data, error } = await client().auth.registerPasskey();
   if (error || !data) throw new AccountError(passkeyMessage(error ?? {}, "add"));
+  // Marks it as added after the code, so logging in with it skips the code. If this fails the
+  // passkey still logs in, and two-step sign-in asks for the code as before.
+  const { error: trustError } = await client().rpc("trust_passkey", { p_credential: data.id });
+  if (trustError) console.error("passkeys: couldn't mark the new passkey trusted:", trustError.message);
   return toPasskey(data);
+}
+
+/** A wrong or unchecked authenticator code while adding a passkey (shown under the code field). */
+export class PasskeyCodeError extends AccountError {}
+
+/**
+ * True when adding a passkey needs the authenticator code too: two-step sign-in is on and this
+ * session didn't give the code (it logged in with a passkey).
+ */
+export async function passkeyAddNeedsCode(): Promise<boolean> {
+  const { data, error } = await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error) throw new AccountError(OFFLINE);
+  return data.currentLevel === "aal1" && data.nextLevel === "aal2";
 }
 
 export async function renamePasskey(passkeyId: string, name: string): Promise<Passkey> {
@@ -337,8 +372,8 @@ export async function deletePasskey(passkeyId: string): Promise<void> {
 
 /**
  * Logs in with a passkey: the browser offers the passkeys it has for literaryworm.com and the person
- * picks one, so no email is typed. useAuthSync takes it from there, including asking for the
- * authenticator code when two-step sign-in is on (a passkey replaces the password, not the code).
+ * picks one, so no email is typed. useAuthSync takes it from there. A passkey counts as both steps,
+ * so two-step sign-in doesn't ask for the code, unless a passkey on the account was added without it.
  */
 export async function signInWithPasskey(): Promise<void> {
   // A sign-in made here, like signIn(): useAuthSync treats it as fresh, not a restored session.

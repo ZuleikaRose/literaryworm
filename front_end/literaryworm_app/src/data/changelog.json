@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
+    "kind": "update",
+    "title": "Passkeys skip the code",
+    "body": "If you've turned on two-step sign-in, logging in with a passkey no longer asks for the code from your authenticator app: the passkey already needs your device and your face, fingerprint or screen lock. Logging in with your password still asks for the code.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
     "kind": "fix",
     "title": "Book rows keep loading",
     "body": "When Google Books turns our requests away for a while, LiteraryWorm now asks again another way, so the rows on Home, Search, the genre pages and author pages keep filling instead of saying they couldn't load.",

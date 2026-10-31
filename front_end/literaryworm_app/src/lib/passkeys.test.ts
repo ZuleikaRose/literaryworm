@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { PASSKEY_NAME_MAX, passkeyMessage, passkeyNameError, passkeysSupported, sortPasskeys, toPasskey } from "./passkeys";
+import { PASSKEY_NAME_MAX, passkeyMessage, passkeyNameError, passkeysSupported, sortPasskeys, toPasskey, usedPasskey } from "./passkeys";
 
 describe("toPasskey", () => {
   it("keeps the name and dates Supabase sends", () => {
@@ -75,5 +75,16 @@ describe("passkeyMessage", () => {
     expect(passkeyMessage({ message: "Failed to fetch" }, "add")).toMatch(/connection/);
     expect(passkeyMessage({}, "add")).toBe("We couldn't add the passkey. Try again.");
     expect(passkeyMessage({}, "signin")).toMatch(/log in with your password/);
+  });
+});
+
+describe("usedPasskey", () => {
+  it("is true only when the session logged in with a passkey", () => {
+    expect(usedPasskey([{ method: "passkey" }])).toBe(true);
+    expect(usedPasskey([{ method: "password" }, { method: "passkey" }])).toBe(true);
+    expect(usedPasskey(["passkey"])).toBe(true);
+    expect(usedPasskey([{ method: "password" }])).toBe(false);
+    expect(usedPasskey([])).toBe(false);
+    expect(usedPasskey(undefined)).toBe(false);
   });
 });

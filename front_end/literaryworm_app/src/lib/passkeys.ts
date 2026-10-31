@@ -95,3 +95,11 @@ export function passkeyMessage(error: PasskeyProblem, during: "add" | "signin"):
   if ((error.message ?? "").toLowerCase().includes("fetch")) return "We couldn't reach LiteraryWorm. Check your connection and try again.";
   return during === "add" ? "We couldn't add the passkey. Try again." : "We couldn't log you in with a passkey. Try again, or log in with your password.";
 }
+
+/**
+ * True when the session logged in with a passkey (Auth's sign-in methods, `amr`). Whether that also
+ * counts as the second step is the database's call (second_step_done()), not this one's.
+ */
+export function usedPasskey(methods: readonly (string | { method: string })[] | null | undefined): boolean {
+  return (methods ?? []).some((m) => (typeof m === "string" ? m : m.method) === "passkey");
+}
