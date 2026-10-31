@@ -173,3 +173,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | 250 more public-domain titles: `src/data/books.ts`, `src/data/librivox.ts` (generated), texts uploaded to `book-texts`, `supabase/functions/_shared/catalog.ts`; migration 6301 (What's new) |
 | — | A third 250 public-domain titles (571 in all); `build-texts.py` gains `"trim": 2` (glossaries, and anything after the book's last THE END); migration 6302 (What's new) |
 | — | New prices: `data/plans.ts`, `PRICES` in `checkout/index.ts`, `public.plans` (migration 6400), Stripe prices with the same lookup keys (old ones archived); migration 6401 (What's new) |
+| — | New Basic price ($9.99, $99.90 a year): `data/plans.ts`, `PRICES` in `checkout/index.ts`, `public.plans` (migration 6402), Stripe; migration 6403 (What's new) |
