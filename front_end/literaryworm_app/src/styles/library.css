@@ -1752,3 +1752,15 @@ body:has(.mini-player) .listen-along-bar {
     width: 100%;
   }
 }
+
+/* Rest days on the streak card: an icon beside the line. */
+.streak-rest {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.streak-rest svg {
+  flex: none;
+  margin-top: 2px;
+}

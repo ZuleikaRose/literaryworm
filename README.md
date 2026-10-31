@@ -433,5 +433,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Maintenance notices: developers and admins schedule a banner before planned work at `/maintenance`; releases go to the `dev` branch and the Supabase dev branch first and reach the live site through `scripts/promote.sh` once every test passes (`docs/releasing.md`); My library sorts by author Z–A (migrations 6511–6515) | Done    |
 | —    | Twelve highlight colours: lime, indigo, brown and grey join the eight (migrations 6516–6517) | Done    |
 | —    | Book requests: a Kids profile asks a grown-up for a book above its rating, and a grown-up says yes or no in Account → Family with the account password (migrations 6518–6519) | Done    |
+| —    | Rest days: two a month cover missed days so reading streaks keep going (migration 6520) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

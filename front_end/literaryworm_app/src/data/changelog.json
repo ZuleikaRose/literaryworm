@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-31",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Rest days for your streak",
+    "body": "Every profile gets two rest days a month. Miss a day and a rest day is used for you, so your reading streak keeps going. Goals shows how many are left this month and which days your streak rested on, and the evening reminder only comes once they're used up.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Kids can ask for a book",
     "body": "When a book isn't on a Kids profile's shelf, the child can tap Ask a grown-up. The request shows in the grown-ups' notifications and in Account → Family, where a grown-up says yes or no with the account password. A yes opens that one book for that profile.",
     "major": true

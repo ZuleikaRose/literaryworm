@@ -1,13 +1,17 @@
 import { type FormEvent, useState } from "react";
 import { weeklyGoal } from "../lib/kidsReport";
 import { weeklyGoalOptions } from "../lib/profiles";
-import { booksFinishedIn, expectedByNow, GOAL_MAX, GOAL_MIN, monthSummaries, readingTime, streaks } from "../lib/goals";
+import { booksFinishedIn, expectedByNow, GOAL_MAX, GOAL_MIN, monthSummaries, readingTime, REST_DAYS_PER_MONTH, streaks } from "../lib/goals";
 import { today } from "../lib/reading";
 import { useGoals } from "../lib/useGoals";
 import type { Profile } from "../types";
 import { ChallengesView } from "./ChallengesView";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
+
+const restDayFormat = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+/** "Sat 25 Oct" for a YYYY-MM-DD day. */
+const restDay = (day: string) => restDayFormat.format(new Date(`${day}T00:00:00Z`));
 
 const monthName = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -18,7 +22,7 @@ export function GoalsView({ profile }: { profile: Profile }) {
   const year = Number(now.slice(0, 4));
   const goal = goals[year] ?? null;
   const done = booksFinishedIn(days, year);
-  const { current, longest } = streaks(days, now);
+  const { current, longest, restDays, restLeft } = streaks(days, now);
   const months = monthSummaries(days, now);
   const [editing, setEditing] = useState(false);
   const week = weeklyGoal(days, profile.weeklyGoalMinutes, now);
@@ -66,6 +70,16 @@ export function GoalsView({ profile }: { profile: Profile }) {
         <p className="goal-hint">
           {current === 0 ? "Read or listen for a minute today to start a streak." : "Read or listen for a minute a day to keep it going."} Longest:{" "}
           {longest} {longest === 1 ? "day" : "days"}.
+        </p>
+        <p className="goal-hint streak-rest">
+          <Icon name="moon" size={16} />
+          <span>
+            {restLeft === 0
+              ? "No rest days left this month: miss a day and the streak starts again."
+              : `${restLeft === 1 ? "1 rest day" : `${restLeft} rest days`} left this month.`}{" "}
+            A missed day uses one, so the streak keeps going ({REST_DAYS_PER_MONTH} a month).
+            {restDays.length > 0 && ` This streak rested on ${restDays.map(restDay).join(", ")}.`}
+          </span>
         </p>
       </section>
 

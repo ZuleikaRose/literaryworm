@@ -16,27 +16,73 @@ export function booksFinishedIn(days: Record<string, ReadingDay>, year: number):
   return Object.entries(days).reduce((sum, [day, d]) => (day.startsWith(prefix) ? sum + d.finished : sum), 0);
 }
 
+/** Rest days a month: a missed day that doesn't end a streak, used up automatically. */
+export const REST_DAYS_PER_MONTH = 2;
+
+export interface Streaks {
+  /** Days read in the current streak (rest days hold it together but don't add to it). */
+  current: number;
+  longest: number;
+  /** The rest days the current streak used, oldest first (YYYY-MM-DD). */
+  restDays: string[];
+  /** Rest days still free this month. */
+  restLeft: number;
+}
+
 /**
- * The current streak (days in a row up to today, or up to yesterday while today has nothing yet)
- * and the longest one in the days loaded.
+ * Streaks with rest days. A day counts once a minute is read or listened. A gap of missed days
+ * doesn't end a streak when every month it falls in still has rest days for it (2 a month,
+ * REST_DAYS_PER_MONTH, used oldest first); a longer gap ends it. Today never needs one: the
+ * streak runs up to today, or up to yesterday while today has nothing yet. A streak's length is
+ * the days read; rest days only hold it together.
  */
-export function streaks(days: Record<string, ReadingDay>, today: string): { current: number; longest: number } {
-  const read = new Set(Object.entries(days).filter(([, d]) => d.seconds >= STREAK_SECONDS).map(([day]) => day));
-  let current = 0;
-  let at = read.has(today) ? toTime(today) : toTime(today) - DAY_MS;
-  while (read.has(toDay(at))) {
-    current += 1;
-    at -= DAY_MS;
-  }
-  let longest = 0;
+export function streaks(days: Record<string, ReadingDay>, today: string): Streaks {
+  const read = [...new Set(Object.entries(days).filter(([day, d]) => d.seconds >= STREAK_SECONDS && day <= today).map(([day]) => day))].sort();
+  const used = new Map<string, number>();
+  const left = (month: string) => REST_DAYS_PER_MONTH - (used.get(month) ?? 0);
+
+  /** The missed days between two times (exclusive), if every month in them has room; null otherwise. */
+  const bridge = (from: number, to: number): string[] | null => {
+    const missed: string[] = [];
+    for (let at = from + DAY_MS; at < to; at += DAY_MS) missed.push(toDay(at));
+    const need = new Map<string, number>();
+    for (const day of missed) need.set(day.slice(0, 7), (need.get(day.slice(0, 7)) ?? 0) + 1);
+    return [...need].every(([month, n]) => n <= left(month)) ? missed : null;
+  };
+  const spend = (missed: string[]) => {
+    for (const day of missed) used.set(day.slice(0, 7), (used.get(day.slice(0, 7)) ?? 0) + 1);
+  };
+
   let run = 0;
+  let longest = 0;
+  let rests: string[] = [];
   let previous: number | null = null;
-  for (const time of [...read].map(toTime).sort((a, b) => a - b)) {
-    run = previous !== null && time - previous === DAY_MS ? run + 1 : 1;
+  for (const day of read) {
+    const time = toTime(day);
+    const missed = previous === null ? null : bridge(previous, time);
+    if (missed) {
+      spend(missed);
+      rests = [...rests, ...missed];
+      run += 1;
+    } else {
+      run = 1;
+      rests = [];
+    }
     longest = Math.max(longest, run);
     previous = time;
   }
-  return { current, longest };
+
+  // From the last day read to today: today itself is never missed yet.
+  let current = 0;
+  if (previous !== null) {
+    const missed = bridge(previous, toTime(today));
+    if (missed) {
+      spend(missed);
+      current = run;
+      rests = [...rests, ...missed];
+    }
+  }
+  return { current, longest, restDays: current ? rests : [], restLeft: Math.max(0, left(today.slice(0, 7))) };
 }
 
 export interface MonthSummary {
@@ -101,14 +147,15 @@ const localMidnight = (day: string) => new Date(Number(day.slice(0, 4)), Number(
 /**
  * What the bell says about a profile's goals and streak (`today` is the local date, `now` the
  * time): a streak of 3 days or more that ends tonight unless the profile reads (from 6 pm, until
- * it does); this year's goal within 2 books (from the day that became true); and the goal
+ * it does, and only once this month's rest days are used up); this year's goal within 2 books (from the day that became true); and the goal
  * reached (for a week from that day). Each has the time it started, so the bell can mark it new.
  */
 export function goalAlerts(days: Record<string, ReadingDay>, goals: Record<number, number>, today: string, now: Date): GoalAlert[] {
   const alerts: GoalAlert[] = [];
   const readToday = (days[today]?.seconds ?? 0) >= STREAK_SECONDS;
-  const { current } = streaks(days, today);
-  if (!readToday && current >= STREAK_NUDGE_DAYS && now.getHours() >= STREAK_NUDGE_HOUR) {
+  const { current, restLeft } = streaks(days, today);
+  // With a rest day left this month, missing today doesn't end the streak, so no nudge.
+  if (!readToday && restLeft === 0 && current >= STREAK_NUDGE_DAYS && now.getHours() >= STREAK_NUDGE_HOUR) {
     alerts.push({ kind: "streak", days: current, at: localMidnight(today) + STREAK_NUDGE_HOUR * 3_600_000 });
   }
 

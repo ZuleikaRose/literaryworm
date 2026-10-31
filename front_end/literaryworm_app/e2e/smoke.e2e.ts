@@ -330,8 +330,11 @@ describe("the demo household", () => {
 
   it("nudges the demo's streak in the bell in the evening, and links to Goals", async () => {
     const { page, errors } = await newPage();
-    // 8 pm today: the demo has read every day up to yesterday, and nothing yet today.
+    // 8 pm on the 20th: the demo has read every day for the last six, and nothing yet today. The
+    // days 7 and 8 ago it missed (the 12th and 13th) used this month's two rest days, so missing
+    // today would end the streak.
     const evening = new Date();
+    evening.setDate(20);
     evening.setHours(20, 0, 0, 0);
     await page.clock.setFixedTime(evening);
     await signInDemo(page);
@@ -340,6 +343,7 @@ describe("the demo household", () => {
     await panel.getByText("Your reading").waitFor();
     await panel.getByRole("link", { name: /-day streak ends tonight/ }).click();
     await page.waitForURL(/view=goals/);
+    await page.getByText("No rest days left this month: miss a day and the streak starts again.").waitFor();
     expect(errors()).toEqual([]);
   });
 
