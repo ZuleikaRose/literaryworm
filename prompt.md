@@ -86,6 +86,8 @@ Then the two gaps the build notes still named were closed: book club posts can b
 
 Then 50 more public-domain titles were added (71 in all), each with its LibriVox recording and Project Gutenberg text lined up chapter by chapter by `scripts/build-librivox.py` and `scripts/build-texts.py`.
 
+Then the texts moved to a public Supabase Storage bucket served at the same `/texts/` path, and 250 more titles were added (321 in all).
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

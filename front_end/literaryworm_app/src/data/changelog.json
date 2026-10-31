@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
+    "kind": "feature",
+    "title": "250 more classics: 321 to read and hear",
+    "body": "Middlemarch, David Copperfield, The Three Musketeers, Crime and Punishment, Anne of Avonlea, Tarzan of the Apes, ten more Oz books, Wodehouse, Woolf and 240 others are now in LiteraryWorm, each with the whole book to read and a LibriVox recording to listen to. That's 321 classics in all.",
+    "major": true
+  },
+  {
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",

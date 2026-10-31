@@ -7,6 +7,10 @@
 # Run from front_end/literaryworm_app with the Supabase CLI logged in and linked to the project:
 #   scripts/upload-texts.sh                 every file in public/texts
 #   scripts/upload-texts.sh emma heidi      just these books
+#
+# The CLI signs in on every call and Supabase throttles that, so the files go in two calls in all:
+# one removing the old copies (Storage won't overwrite a file), one uploading the new ones. The
+# upload copies a folder named book-texts to the root, which puts its files in that bucket.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,28 +18,23 @@ if [ "$#" -eq 0 ]; then
   set -- $(ls public/texts | sed 's/\.json$//')
 fi
 
-failed=0
+work=$(mktemp -d)
+trap 'rm -r "$work"' EXIT
+mkdir "$work/book-texts"
+paths=()
 for id in "$@"; do
   file="public/texts/$id.json"
   if [ ! -f "$file" ]; then
     echo "$id: no $file (run scripts/build-texts.py $id first)" >&2
-    failed=$((failed + 1))
-    continue
+    exit 1
   fi
-  # Storage won't overwrite a file, so a rebuilt text replaces the old one: remove it first
-  # (nothing to remove the first time).
-  supabase --workdir ../.. --experimental storage rm "ss:///book-texts/$id.json" --linked --yes > /dev/null 2>&1 || true
-  # A day in caches: a rebuilt text keeps its name, so it shows within a day.
-  if supabase --workdir ../.. --experimental storage cp "$file" "ss:///book-texts/$id.json" \
-    --linked --content-type application/json --cache-control "public, max-age=86400" > /dev/null; then
-    echo "$id uploaded"
-  else
-    echo "$id: upload failed" >&2
-    failed=$((failed + 1))
-  fi
+  cp "$file" "$work/book-texts/"
+  paths+=("ss:///book-texts/$id.json")
 done
 
-if [ "$failed" -gt 0 ]; then
-  echo "$failed failed" >&2
-  exit 1
-fi
+# Nothing to remove the first time: a missing file isn't an error worth stopping for.
+supabase --workdir ../.. --experimental storage rm "${paths[@]}" --linked --yes > /dev/null 2>&1 || true
+# A day in caches: a rebuilt text keeps its name, so it shows within a day.
+supabase --workdir ../.. --experimental storage cp -r "$work/book-texts" ss:/// --linked \
+  --content-type application/json --cache-control "public, max-age=86400" --jobs 4 > /dev/null
+echo "uploaded $# texts"
