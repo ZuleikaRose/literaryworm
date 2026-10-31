@@ -143,6 +143,8 @@ describe("a visitor", () => {
       "Updates",
       "Fixes",
     ]);
+    // The most recent change first (the top of src/data/changelog.json), even when it's minor.
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("A tour of LiteraryWorm on the home page");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();

@@ -8,16 +8,16 @@ import { supabase } from "./supabase";
  * admins add, change and delete). Every message here is shown to people as is.
  */
 
-type Row = { id: string; released_on: string; version: string; kind: ChangeEntry["kind"]; title: string; body: string; major: boolean };
+type Row = { id: string; released_on: string; version: string; kind: ChangeEntry["kind"]; title: string; body: string; major: boolean; created_at: string };
 
-const COLUMNS = "id, released_on, version, kind, title, body, major";
-const toEntry = (r: Row): ChangeEntry => ({ id: r.id, releasedOn: r.released_on, version: r.version, kind: r.kind, title: r.title, body: r.body, major: r.major });
+const COLUMNS = "id, released_on, version, kind, title, body, major, created_at";
+const toEntry = (r: Row): ChangeEntry => ({ id: r.id, releasedOn: r.released_on, version: r.version, kind: r.kind, title: r.title, body: r.body, major: r.major, addedAt: Date.parse(r.created_at) });
 const toRow = (e: ChangeInput) => ({ released_on: e.releasedOn, version: e.version.trim(), kind: e.kind, title: e.title.trim(), body: e.body.trim(), major: e.major });
 
-/** Every entry, newest first, or null without a backend. Rejects if they can't load. */
+/** Every entry, most recent first (sortEntries() settles ties), or null without a backend. Rejects if they can't load. */
 export async function loadChangelog(): Promise<ChangeEntry[] | null> {
   if (!supabase) return null;
-  const { data, error } = await supabase.from("changelog_entries").select(COLUMNS).order("released_on", { ascending: false }).order("created_at");
+  const { data, error } = await supabase.from("changelog_entries").select(COLUMNS).order("released_on", { ascending: false }).order("created_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load the latest changes.");
   return (data as Row[]).map(toEntry);
 }

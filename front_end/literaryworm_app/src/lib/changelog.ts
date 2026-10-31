@@ -20,6 +20,8 @@ export interface ChangeEntry {
   body: string;
   /** Major changes go in the monthly email. */
   major: boolean;
+  /** When the entry was added (changelog_entries.created_at, ms); the built-in copy has none. */
+  addedAt?: number;
 }
 
 export const CHANGE_KINDS: { value: ChangeKind; label: string; plural: string }[] = [
@@ -36,11 +38,26 @@ export const VERSION_PATTERN = /^\d{4}\.\d{1,2}(\.\d{1,3})?$/;
 
 export const builtInEntries: ChangeEntry[] = (builtIn as Omit<ChangeEntry, "id">[]).map((e) => ({ ...e, id: null }));
 
-/** Newest release first; within a day, the order they were written. */
+/** Where a title sits in the built-in copy, which is written newest first. */
+let builtInRank: Map<string, number> | null = null;
+const rankOf = (title: string) => (builtInRank ??= new Map(builtInEntries.map((e, i) => [e.title, i]))).get(title);
+
+/**
+ * Most recent first: by release day, then by when the entry was added, then (for entries added
+ * together, or the built-in copy) by their place in src/data/changelog.json, then as given.
+ */
 export function sortEntries(entries: ChangeEntry[]): ChangeEntry[] {
   return entries
     .map((e, i) => ({ e, i }))
-    .sort((a, b) => b.e.releasedOn.localeCompare(a.e.releasedOn) || a.i - b.i)
+    .sort((a, b) => {
+      const day = b.e.releasedOn.localeCompare(a.e.releasedOn);
+      if (day) return day;
+      if (a.e.addedAt !== undefined && b.e.addedAt !== undefined && a.e.addedAt !== b.e.addedAt) return b.e.addedAt - a.e.addedAt;
+      const ra = rankOf(a.e.title);
+      const rb = rankOf(b.e.title);
+      if (ra !== undefined && rb !== undefined && ra !== rb) return ra - rb;
+      return a.i - b.i;
+    })
     .map(({ e }) => e);
 }
 
@@ -51,7 +68,7 @@ export interface Release {
   entries: ChangeEntry[];
 }
 
-/** Entries grouped by version, newest first; major changes lead each release. */
+/** Entries grouped by version, newest release first and the most recent change first within each. */
 export function groupReleases(entries: ChangeEntry[]): Release[] {
   const releases = new Map<string, Release>();
   for (const e of sortEntries(entries)) {
@@ -60,9 +77,7 @@ export function groupReleases(entries: ChangeEntry[]): Release[] {
     if (e.releasedOn > release.releasedOn) release.releasedOn = e.releasedOn;
     releases.set(e.version, release);
   }
-  return [...releases.values()]
-    .map((r) => ({ ...r, entries: [...r.entries.filter((e) => e.major), ...r.entries.filter((e) => !e.major)] }))
-    .sort((a, b) => b.releasedOn.localeCompare(a.releasedOn));
+  return [...releases.values()].sort((a, b) => b.releasedOn.localeCompare(a.releasedOn));
 }
 
 export type ChangeFilter = ChangeKind | "all" | "new" | "major" | "minor";

@@ -28,17 +28,32 @@ describe("ordering and grouping", () => {
     entry({ title: "Newest", releasedOn: "2026-10-30" }),
   ];
 
-  it("puts the newest first, keeping the written order within a day", () => {
+  it("puts the newest first, keeping the given order within a day", () => {
     expect(sortEntries(entries).map((e) => e.title)).toEqual(["Newest", "Minor", "Major", "Old"]);
   });
 
-  it("groups by version, newest release first, with major changes leading", () => {
+  it("puts the most recently added first within a day", () => {
+    const day = [
+      entry({ title: "Earlier", releasedOn: "2026-10-29", addedAt: 1000 }),
+      entry({ title: "Later", releasedOn: "2026-10-29", addedAt: 2000 }),
+    ];
+    expect(sortEntries(day).map((e) => e.title)).toEqual(["Later", "Earlier"]);
+  });
+
+  it("orders entries added together, and the built-in copy, as changelog.json does (newest first)", () => {
+    const [first, second, third] = builtInEntries;
+    const sameTime = [third, first, second].map((e) => ({ ...e, releasedOn: "2026-10-29", addedAt: 5 }));
+    expect(sortEntries(sameTime).map((e) => e.title)).toEqual([first.title, second.title, third.title]);
+    expect(sortEntries([third, first, second].map((e) => ({ ...e, releasedOn: "2026-10-29" }))).map((e) => e.title)).toEqual([first.title, second.title, third.title]);
+  });
+
+  it("groups by version, newest release first, the most recent change first", () => {
     const releases = groupReleases(entries);
     expect(releases.map((r) => [r.version, r.releasedOn])).toEqual([
       ["2026.10", "2026-10-30"],
       ["2026.9", "2026-09-02"],
     ]);
-    expect(releases[0].entries.map((e) => e.title)).toEqual(["Major", "Newest", "Minor"]);
+    expect(releases[0].entries.map((e) => e.title)).toEqual(["Newest", "Minor", "Major"]);
     expect(groupReleases([])).toEqual([]);
   });
 
