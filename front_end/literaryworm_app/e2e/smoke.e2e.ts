@@ -603,6 +603,39 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lets a Kids profile ask for a book, and a grown-up say yes in Family", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /Mia/ }).first().click();
+    await page.waitForURL(/\/browse/);
+    await goInApp(page, "/books/dracula");
+    await page.getByRole("heading", { name: "This book isn't on Mia's shelf" }).waitFor();
+    await page.getByRole("button", { name: "Ask a grown-up" }).click();
+    await page.getByText(/You asked for Dracula/).waitFor();
+    // A grown-up answers, with the account password.
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /Avery/ }).first().click();
+    await page.waitForURL(/\/browse/);
+    await goInApp(page, "/account#family");
+    const requests = page.locator(".book-requests");
+    await requests.getByText(/Mia asked for Dracula/).waitFor();
+    await requests.getByRole("button", { name: "Yes, open it" }).click();
+    const dialog = page.getByRole("dialog", { name: /Open Dracula for Mia/ });
+    const hint = await dialog.getByText(/Demo account password:/).textContent();
+    await dialog.getByLabel("Account password").fill(hint!.replace("Demo account password:", "").trim());
+    await dialog.getByRole("button", { name: "Yes, open it" }).click();
+    await page.getByText("Mia can open Dracula now.").waitFor();
+    // Mia's shelf now has it.
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /Mia/ }).first().click();
+    await page.waitForURL(/\/browse/);
+    await page.getByRole("heading", { name: "Books you asked for" }).waitFor();
+    await goInApp(page, "/books/dracula");
+    await page.getByRole("heading", { level: 1, name: /Dracula/ }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("shows a Kids profile the weekly goal a grown-up set, in Goals", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

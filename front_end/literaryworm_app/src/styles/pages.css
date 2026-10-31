@@ -462,3 +462,16 @@
   margin: 28px 0 12px;
   font-size: 1.125rem;
 }
+
+/* "Ask a grown-up" on a book that isn't on a Kids profile's shelf. */
+.ask-grown-up {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+.ask-grown-up p {
+  margin: 0;
+  color: var(--ink);
+}

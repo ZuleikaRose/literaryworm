@@ -12,6 +12,7 @@ import { badgeAlerts, badges } from "./achievements";
 import { today } from "./reading";
 import { listeningAlert } from "./planLimits";
 import { useClubs } from "./useClubs";
+import { requestAlerts, waitingRequests } from "./bookRequests";
 
 /**
  * The notification bell for the active profile (lib/notifications.ts works out what counts).
@@ -99,12 +100,18 @@ export function useNotifications() {
     () => badgeAlerts(badges({ readingDays: data.readingDays, readingGoals: data.readingGoals, words: data.words, highlights }), now),
     [data.readingDays, data.readingGoals, data.words, highlights, now],
   );
+  // Kids profiles' book requests waiting for an answer: for the grown-ups.
+  const requests = useMemo(
+    () => (withClubs ? requestAlerts(waitingRequests(state.profiles, state.profileData)) : []),
+    [withClubs, state.profiles, state.profileData],
+  );
   const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [
     ...goals,
     ...newBadges,
     ...(renewal ? [renewal] : []),
     ...(offer ? [offer] : []),
     ...shownMeetings,
+    ...requests,
   ]);
 
   const markSeen = useCallback(async () => {
@@ -118,5 +125,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, offer, goals, badges: newBadges, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
 }

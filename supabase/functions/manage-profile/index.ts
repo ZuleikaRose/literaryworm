@@ -11,6 +11,7 @@
 //   { action: "unlock", profileId, password }
 //   { action: "set_aside", profileId, password }   (keeps everything; doesn't count towards the plan)
 //   { action: "bring_back", profileId, password }  (needs room on the plan)
+//   { action: "answer_request", profileId, bookId, approve, password }   (a Kids profile's book request)
 //   { action: "verify_pin", profileId, pin }
 
 import { preflight } from "../_shared/cors.ts";
@@ -177,6 +178,20 @@ Deno.serve(async (req) => {
           dbError(error);
         }
         if (!data?.length) throw new HttpError("not_found", "Profile not found, or already in use.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "answer_request": {
+        onlyKeys(body, ["action", "profileId", "bookId", "approve", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        const bookId = parseText(body.bookId, "bookId", 1, 64);
+        if (typeof body.approve !== "boolean") throw new HttpError("bad_request", "Say yes or no to the request.");
+        await confirmPassword(user.email, password);
+        // Answers a request that's waiting, or changes an earlier answer.
+        const { data, error } = await db.from("book_requests")
+          .update({ status: body.approve ? "approved" : "declined", answered_at: new Date().toISOString() })
+          .eq("profile_id", profileId).eq("user_id", user.id).eq("volume_id", bookId).select("volume_id");
+        if (error) dbError(error);
+        if (!data?.length) throw new HttpError("not_found", "That request isn't there any more.");
         return json(req, METHODS, { ok: true });
       }
       case "delete": {

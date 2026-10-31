@@ -25,7 +25,7 @@ function meetingWhen(iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, listening, renewal, offer, goals, badges, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, listening, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -41,7 +41,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && requests.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
   const offerPlan = offer ? planById.get(offer.planId) : undefined;
@@ -67,6 +67,27 @@ export function NotificationBell() {
             </p>
           ) : (
             <>
+              {requests.length > 0 && (
+                <>
+                  <p className="popover-label">Book requests</p>
+                  <ul className="bell-list" role="list">
+                    {requests.map(({ key, at, waiting }) => (
+                      <li key={key}>
+                        <Link className="bell-item" to="/account#family" onClick={() => close(false)}>
+                          <Icon name="bookOpen" size={18} />
+                          <span>
+                            <strong>
+                              {waiting.profile.name} asked for {waiting.book.title}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>Say yes or no in Account → Family.</small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
               {goals.length > 0 && (
                 <>
                   <p className="popover-label">Your reading</p>

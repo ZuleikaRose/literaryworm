@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
+    "kind": "feature",
+    "title": "Kids can ask for a book",
+    "body": "When a book isn't on a Kids profile's shelf, the child can tap Ask a grown-up. The request shows in the grown-ups' notifications and in Account → Family, where a grown-up says yes or no with the account password. A yes opens that one book for that profile.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
     "kind": "update",
     "title": "Twelve highlight colours",
     "body": "Highlights now come in twelve colours: lime, indigo, brown and grey join yellow, green, blue, pink, orange, purple, teal and red. Pick one when you highlight, or change a highlight's colour in Notes and highlights.",

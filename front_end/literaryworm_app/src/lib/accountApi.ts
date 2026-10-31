@@ -18,6 +18,7 @@ import type {
   RatingValue,
   Reminder,
   SavedWord,
+  BookRequest,
   QuizResult,
   ReadingStatus,
 } from "../types";
@@ -792,6 +793,7 @@ type ProtectedProfileChange =
   | { action: "unlock"; profileId: string }
   | { action: "set_aside"; profileId: string }
   | { action: "bring_back"; profileId: string }
+  | { action: "answer_request"; profileId: string; bookId: string; approve: boolean }
   | { action: "delete"; profileId: string };
 
 /** Changes a grown-up controls; the manage-profile function re-checks the account password. */
@@ -1120,6 +1122,7 @@ const emptyCollections = (): Collections => ({
   upNext: [],
   quizResults: [],
   readerFollows: [],
+  bookRequests: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
@@ -1176,6 +1179,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const w of await loadWords()) of(w.profileId).words.push(w.word);
   for (const r of await loadQuizResults()) of(r.profileId).quizResults.push(r.result);
   for (const f of await loadReaderFollows()) of(f.profileId).readerFollows.push(f.follow);
+  for (const r of await loadBookRequests()) of(r.profileId).bookRequests.push(r.request);
   for (const p of await loadProfileExtras()) {
     of(p.id).readingWpm = p.reading_wpm;
     of(p.id).upNext = p.up_next ?? [];
@@ -1548,6 +1552,40 @@ export async function removeWord(profileId: string, word: string): Promise<void>
 export async function setWordLearned(profileId: string, word: string, learned: boolean): Promise<void> {
   const { error } = await client().from("saved_words").update({ learned }).eq("profile_id", profileId).eq("word", word);
   if (error) throw new AccountError("We couldn't save that. Try again.");
+}
+
+// --- Book requests (book_requests; answers through manage-profile) ------------
+
+type BookRequestRow = { profile_id: string; volume_id: string; status: BookRequest["status"]; created_at: string; answered_at: string | null };
+
+/** Every Kids profile's book requests, newest first. An extra: if they can't load, the account still opens. */
+async function loadBookRequests(): Promise<{ profileId: string; request: BookRequest }[]> {
+  const { data, error } = await client()
+    .from("book_requests")
+    .select("profile_id, volume_id, status, created_at, answered_at")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("collections: couldn't load book requests:", error.message);
+    return [];
+  }
+  return (data as BookRequestRow[]).map((r) => ({
+    profileId: r.profile_id,
+    request: { bookId: r.volume_id, status: r.status, createdAt: Date.parse(r.created_at), answeredAt: r.answered_at ? Date.parse(r.answered_at) : null },
+  }));
+}
+
+/** A Kids profile asks for a book. Asked already (another tab) is fine. */
+export async function requestBook(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("book_requests").insert({ profile_id: profileId, user_id: await signedInUserId(), volume_id: bookId });
+  if (error && error.code !== "23505") {
+    throw new AccountError(error.message.includes("up to 50") ? "This profile has asked for 50 books. A grown-up can clear some in Account → Family." : "We couldn't send the request. Try again.");
+  }
+}
+
+/** Withdraws a request, or takes back an answer (the book closes again). */
+export async function removeBookRequest(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("book_requests").delete().eq("profile_id", profileId).eq("volume_id", bookId);
+  if (error) throw new AccountError("We couldn't remove the request. Try again.");
 }
 
 // --- Reading pace (reader_profiles.reading_wpm) -------------------------------

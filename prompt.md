@@ -103,6 +103,7 @@ Then members could add passkeys in Account → Sign-in (Face ID, Touch ID, Windo
 Then releases became dev first: a `dev` branch tested by CI against the Supabase dev branch (given production's policies and What's new), and `scripts/promote.sh`, which moves `main` only when every test passes. Developers and admins can announce planned work with maintenance notices, a banner across the site, and My library sorts by author Z–A as well.
 
 Highlights then went from eight colours to twelve: lime, indigo, brown and grey, shown as two rows of six in the reader's toolbar.
+Kids profiles can then ask a grown-up for a book that isn't on their shelf; the grown-up answers in Account → Family with the account password, and a yes opens that one book.
 
 The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 

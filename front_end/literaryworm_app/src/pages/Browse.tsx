@@ -11,6 +11,7 @@ import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
 import { fromFollowed } from "../lib/people";
+import { approvedBooks } from "../lib/bookRequests";
 import { continueSeries } from "../lib/series";
 import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
@@ -64,6 +65,8 @@ export default function Browse() {
 
   const visible = (b: Book | undefined): b is Book => !!b && isAllowed(b.ageRating, profile.ageRating);
   const catalog = books.filter(visible);
+  // Books above a Kids profile's rating that a grown-up said yes to (lib/bookRequests.ts).
+  const saidYes = profile.ageRating === "kids" ? approvedBooks(data.bookRequests) : [];
 
   // Most recent first; each card reopens the format used last, at the saved place.
   const started = Object.values(reading.progress)
@@ -137,6 +140,9 @@ export default function Browse() {
         <OutNow />
         {seriesNext.length > 0 && (
           <Shelf id="series-next" eyebrow="What comes next" title="Continue the series" items={seriesNext.map(fromLocal)} />
+        )}
+        {saidYes.length > 0 && (
+          <Shelf id="said-yes" eyebrow="You asked, a grown-up said yes" title="Books you asked for" items={saidYes.map(fromLocal)} />
         )}
         {followed.length > 0 && (
           <Shelf

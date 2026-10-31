@@ -9,6 +9,8 @@ import { RemindMe } from "../components/RemindMe";
 import { Dialog } from "../components/Dialog";
 import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
+import { AskGrownUp } from "../components/AskGrownUp";
+import { canAsk, mayOpen } from "../lib/bookRequests";
 import { LogCard } from "../components/LogCard";
 import { LogDialog } from "../components/LogDialog";
 import { Shelf } from "../components/Shelf";
@@ -34,7 +36,7 @@ import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
-import type { AgeRating, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
+import type { AgeRating, Book, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
 import NotFound from "./NotFound";
 
 /** Google Books volume ids (the same check the books Edge Function makes). */
@@ -53,10 +55,11 @@ export default function BookDetail() {
   // Kids profiles only see the LiteraryWorm catalog, so a Google title isn't even fetched.
   const kidsBlocked = isVolume && profile?.ageRating === "kids";
   const { state: volume, retry } = useVolume(isVolume && !kidsBlocked ? id : null);
+  const requests = useProfileData().bookRequests;
 
   if (!local && !isVolume) return <NotFound />;
-  if (kidsBlocked || (local && profile && !isAllowed(local.ageRating, profile.ageRating))) {
-    return <NotOnShelf profile={profile!} />;
+  if (kidsBlocked || (local && profile && !mayOpen(local, profile, requests))) {
+    return <NotOnShelf profile={profile!} book={local} />;
   }
   if (local) return <DetailPage key={id} view={fromCatalogBook(local)} />;
 
@@ -68,7 +71,7 @@ export default function BookDetail() {
   return <DetailPage key={id} view={fromVolume(volume.volume)} />;
 }
 
-function NotOnShelf({ profile }: { profile: Profile }) {
+function NotOnShelf({ profile, book }: { profile: Profile; book?: Book }) {
   useTitle("Not on this shelf");
   return (
     <section className="page empty-state">
@@ -81,7 +84,8 @@ function NotOnShelf({ profile }: { profile: Profile }) {
           ? "Kids profiles show books picked for younger readers. Ask a grown-up if you'd like this one."
           : "This title is rated for adults. A grown-up can open it from their own profile."}
       </p>
-      <Link className="primary-button" to="/browse">
+      {book && <AskGrownUp book={book} />}
+      <Link className={book && canAsk(book, profile) ? "secondary-button" : "primary-button"} to="/browse">
         Go to home
       </Link>
     </section>

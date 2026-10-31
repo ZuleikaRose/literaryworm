@@ -1030,6 +1030,47 @@
   font-weight: 400;
 }
 
+/* Book requests from Kids profiles (Account → Family). */
+.book-requests {
+  width: 100%;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.book-requests h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.book-request-list {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.book-request-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.book-request-list p {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.book-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  margin-top: 8px;
+}
+
 .gift-start {
   max-width: 320px;
 }

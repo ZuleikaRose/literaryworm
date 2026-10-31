@@ -104,6 +104,7 @@ export const emptyProfileData = (): ProfileData => ({
   upNext: [],
   quizResults: [],
   readerFollows: [],
+  bookRequests: [],
 });
 
 export const newId = () => crypto.randomUUID();

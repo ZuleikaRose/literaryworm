@@ -25,7 +25,8 @@ import { RemindersView } from "../components/RemindersView";
 import { SavedBookTile } from "../components/SavedBookTile";
 import { StatsView } from "../components/StatsView";
 import { UploadsView } from "../components/UploadsView";
-import { getBook, isAllowed } from "../data/books";
+import { getBook } from "../data/books";
+import { mayOpen } from "../lib/bookRequests";
 import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
@@ -50,8 +51,9 @@ import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
-import { useActiveProfile } from "../store/context";
+import { useActiveProfile, useProfileData } from "../store/context";
 import type {
+  BookRequest,
   CustomList,
   LibraryEntry,
   Profile,
@@ -95,11 +97,11 @@ const VIEWS: { id: View; label: string }[] = [
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
 /** Kids profiles see only catalog titles rated for them; everyone else sees the whole library. */
-function visibleTo(profile: Profile, bookId: string): boolean {
+function visibleTo(profile: Profile, bookId: string, requests: BookRequest[]): boolean {
   if (profile.ageRating === "all") return true;
   const book = getBook(bookId);
   return book
-    ? isAllowed(book.ageRating, profile.ageRating)
+    ? mayOpen(book, profile, requests)
     : profile.ageRating !== "kids";
 }
 
@@ -167,6 +169,7 @@ export default function Library() {
 // --- My library ---------------------------------------------------------------
 
 function LibraryView({ profile }: { profile: Profile }) {
+  const requests = useProfileData().bookRequests;
   const library = useLibrary();
   const [params, setParams] = useSearchParams();
   const raw = params.get("status");
@@ -197,7 +200,7 @@ function LibraryView({ profile }: { profile: Profile }) {
 
   const visible = Object.values(library.entries)
     // Uploaded books have their own tab, with Read and Delete.
-    .filter((e) => visibleTo(profile, e.bookId) && !isUploadId(e.bookId));
+    .filter((e) => visibleTo(profile, e.bookId, requests) && !isUploadId(e.bookId));
   const entries = sortLibrary(
     visible,
     sort,
@@ -599,8 +602,9 @@ function LibraryRow({
 
 function FavoritesView({ profile }: { profile: Profile }) {
   const { favorites } = useCollections();
+  const requests = useProfileData().bookRequests;
   // Newest first; Kids profiles see only catalog titles rated for them.
-  const shown = favorites.filter((id) => visibleTo(profile, id)).reverse();
+  const shown = favorites.filter((id) => visibleTo(profile, id, requests)).reverse();
   if (shown.length === 0) {
     return (
       <div className="library-empty">
@@ -626,6 +630,7 @@ function FavoritesView({ profile }: { profile: Profile }) {
 
 function ListsView({ profile }: { profile: Profile }) {
   const collections = useCollections();
+  const requests = useProfileData().bookRequests;
   const library = useLibrary();
   const [editing, setEditing] = useState<CustomList | "new" | null>(null);
   const [deleting, setDeleting] = useState<CustomList | null>(null);
@@ -636,7 +641,7 @@ function ListsView({ profile }: { profile: Profile }) {
   const lists = collections.lists;
   const sharing = lists.find((l) => l.id === sharingId) ?? null;
   const libraryBooks = Object.values(library.entries).filter((e) =>
-    visibleTo(profile, e.bookId),
+    visibleTo(profile, e.bookId, requests),
   );
 
   /** Runs a save; a failure shows above the lists and changes nothing. */

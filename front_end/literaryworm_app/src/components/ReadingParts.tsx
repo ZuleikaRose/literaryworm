@@ -2,11 +2,12 @@ import { type FormEvent, type ReactNode, useRef, useState } from "react";
 import { nextInSeries } from "../lib/series";
 import { Link, useParams } from "react-router-dom";
 import { useUploadedBook } from "../lib/uploads";
-import { getBook, isAllowed } from "../data/books";
+import { getBook } from "../data/books";
+import { mayOpen } from "../lib/bookRequests";
 import { EXTRA_MINUTES } from "../lib/useDailyLimit";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { useTitle } from "../lib/useTitle";
-import { useActiveProfile, useStore } from "../store/context";
+import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { Book, Bookmark, Format, PlanId } from "../types";
 import { AccountPasswordField } from "./AccountPasswordField";
 import { Dialog } from "./Dialog";
@@ -38,6 +39,7 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
   const book = getBook(id) ?? uploaded;
   const profile = useActiveProfile();
   const { account } = useStore().state;
+  const requests = useProfileData().bookRequests;
   // When the page opened; enough to tell whether a cancelled plan's end date has passed.
   const [openedAt] = useState(() => Date.now());
   const verb = format === "ebook" ? "read" : "listen to";
@@ -89,7 +91,7 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
       </ReadingMessage>
     );
   }
-  if (profile && !isAllowed(book.ageRating, profile.ageRating)) {
+  if (profile && !mayOpen(book, profile, requests)) {
     return (
       <ReadingMessage title={`This book isn't on ${profile.name}'s shelf`} icon="lock" action={<Link className="primary-button" to="/browse">Go to home</Link>}>
         <p>

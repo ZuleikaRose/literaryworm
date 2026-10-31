@@ -368,6 +368,17 @@ export interface ProfileData {
   quizResults: QuizResult[];
   /** Readers this profile follows (members who turned on their reader page), oldest first. */
   readerFollows: ReaderFollow[];
+  /** Kids profiles: catalog books asked for from a grown-up, newest first. */
+  bookRequests: BookRequest[];
+}
+
+/** A Kids profile asking a grown-up for a catalog book rated above it. */
+export interface BookRequest {
+  bookId: string;
+  status: "pending" | "approved" | "declined";
+  createdAt: number;
+  /** When a grown-up said yes or no (null while waiting). */
+  answeredAt: number | null;
 }
 
 export interface ReaderFollow {

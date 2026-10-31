@@ -39,6 +39,8 @@ import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
+import { answerable, type WaitingRequest } from "../lib/bookRequests";
+import { useBookRequests } from "../lib/useBookRequests";
 import { useTitle } from "../lib/useTitle";
 import { validateNewPassword } from "../lib/validation";
 import { useActiveProfile, useStore } from "../store/context";
@@ -1234,8 +1236,126 @@ function FamilySection() {
       <Link className="secondary-button" to="/profiles?manage=1">
         Manage profiles
       </Link>
+      <BookRequests />
       <KidsReport />
     </Section>
+  );
+}
+
+/**
+ * Books the Kids profiles asked for (lib/bookRequests.ts): waiting ones with Yes and No, which
+ * re-check the account password, then the answered ones, which can be changed or cleared.
+ */
+function BookRequests() {
+  const { state } = useStore();
+  const { answer, remove } = useBookRequests();
+  const [asking, setAsking] = useState<{ row: WaitingRequest; approve: boolean } | null>(null);
+  const [password, setPassword] = useState("");
+  const dialog = useAttempt();
+  const list = useAttempt();
+  const rows = answerable(state.profiles, state.profileData);
+  if (rows.length === 0) return null;
+  const waiting = rows.filter((r) => r.request.status === "pending").length;
+
+  const close = () => {
+    setAsking(null);
+    setPassword("");
+    dialog.setError(null);
+  };
+  const confirm = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!asking) return;
+    const { row, approve } = asking;
+    const ok = await dialog.attempt(() => answer(row.profile, row.book.id, approve, password));
+    if (ok) {
+      close();
+      void list.attempt(
+        async () => undefined,
+        approve ? `${row.profile.name} can open ${row.book.title} now.` : `${row.book.title} stays off ${row.profile.name}'s shelf.`,
+      );
+    }
+  };
+
+  return (
+    <section className="book-requests" aria-labelledby="book-requests-title">
+      <h3 id="book-requests-title">Book requests</h3>
+      <p className="field-hint">
+        {waiting > 0 ? `${waiting === 1 ? "1 request is" : `${waiting} requests are`} waiting. ` : ""}
+        A yes opens that one book for that profile; it stays off the shelves otherwise.
+      </p>
+      <ul className="book-request-list">
+        {rows.map((row) => (
+          <li key={`${row.profile.id}:${row.book.id}`}>
+            <Avatar name={row.profile.name} avatar={row.profile.avatar} size={36} />
+            <div>
+              <strong>
+                {row.profile.name} asked for <cite>{row.book.title}</cite>
+              </strong>
+              <p>
+                {row.book.author} · rated {ageRatingDetails[row.book.ageRating].label}
+                {row.request.status === "approved" ? " · You said yes" : row.request.status === "declined" ? " · You said no" : ""}
+              </p>
+              <div className="book-request-actions">
+                {row.request.status !== "approved" && (
+                  <button type="button" className="secondary-button" onClick={() => setAsking({ row, approve: true })}>
+                    Yes, open it
+                  </button>
+                )}
+                {row.request.status === "pending" && (
+                  <button type="button" className="text-button" onClick={() => setAsking({ row, approve: false })}>
+                    Not this one
+                  </button>
+                )}
+                {row.request.status !== "pending" && (
+                  <button
+                    type="button"
+                    className="text-button"
+                    disabled={list.busy}
+                    onClick={() =>
+                      void list.attempt(
+                        () => remove(row.profile, row.book.id),
+                        row.request.status === "approved" ? `${row.book.title} is off ${row.profile.name}'s shelf again.` : "Request cleared.",
+                      )
+                    }
+                  >
+                    {row.request.status === "approved" ? "Take back" : "Clear"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <Feedback error={list.error} done={list.done} />
+
+      <Dialog
+        open={asking !== null}
+        onClose={close}
+        size="sm"
+        eyebrow="Book requests"
+        title={asking?.approve ? `Open ${asking.row.book.title} for ${asking.row.profile.name}?` : `Say no to ${asking?.row.book.title ?? "this book"}?`}
+        description={<p>Enter the account password, so only a grown-up can answer.</p>}
+      >
+        <form noValidate onSubmit={confirm} className="two-step-form">
+          <AccountPasswordField
+            value={password}
+            onChange={(v) => {
+              setPassword(v);
+              dialog.setError(null);
+            }}
+            error={dialog.error}
+          />
+          <div className="modal-actions">
+            <button type="submit" className="primary-button" disabled={dialog.busy || !password}>
+              {dialog.busy ? "Saving…" : asking?.approve ? "Yes, open it" : "Say no"}
+            </button>
+            <button type="button" className="secondary-button" onClick={close}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Dialog>
+    </section>
   );
 }
 
