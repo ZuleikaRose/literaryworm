@@ -58,7 +58,7 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
           <h2 id={headingId}>{title}</h2>
         </div>
         <p className="results-count" aria-live="polite">
-          {items.length > 0 && `${items.length} books loaded`}
+          {items.length > 0 && `${items.length} ${items.length === 1 ? "book" : "books"} loaded`}
         </p>
       </div>
       {controls}
