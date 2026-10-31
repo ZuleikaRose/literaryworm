@@ -14,7 +14,7 @@ import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, requireMethod } from "../_shared/http.ts";
 import {
   authorQuery,
-  callGoogle,
+  callGoogleWithKeys,
   GENRE_QUERIES,
   GENRE_WORDS,
   HOME_QUERY,
@@ -39,7 +39,8 @@ const ALLOWED_PARAMS: Record<string, string[]> = {
 
 export type Deps = {
   fetcher?: typeof fetch;
-  apiKey?: string;
+  /** Google Books keys, main first then fallbacks (`googleKeys()`); none asks without a key. */
+  apiKeys?: (string | undefined)[];
   rateLimit?: (req: Request) => Promise<void>;
   /** Pause before re-asking Home after an empty first page (tests use 0). */
   emptyRetryMs?: number;
@@ -66,10 +67,11 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     }
 
     await deps.rateLimit?.(req);
+    const ask = (build: (key: string | undefined) => URL) => callGoogleWithKeys(build, deps.apiKeys, deps.fetcher);
 
     if (mode === "volume") {
       const id = parseVolumeId(params.get("id"));
-      const body = await callGoogle(volumeUrl(id, deps.apiKey), deps.fetcher);
+      const body = await ask((k) => volumeUrl(id, k));
       return json(req, METHODS, shapeDetail(body), 200, { "Cache-Control": "public, max-age=3600" });
     }
 
@@ -104,18 +106,18 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     }
     const sort = mode === "search" ? parseSort(params.get("sort")) : "relevance";
     const lang = mode === "search" ? parseLanguage(params.get("lang")) : null;
-    let body = await callGoogle(listUrl(q, page, deps.apiKey, sort, lang), deps.fetcher);
+    let body = await ask((k) => listUrl(q, page, k, sort, lang));
     if (isEmptyList(body)) {
       if (plain !== q) {
         // Google sometimes answers every `subject:` and `intitle:` query with nothing while
         // plain searches still work, so ask with the plain words (looser: they can match
         // anywhere in the book, not just the title or subject).
-        body = await callGoogle(listUrl(plain, page, deps.apiKey, sort, lang), deps.fetcher);
+        body = await ask((k) => listUrl(plain, page, k, sort, lang));
       } else if (page === 0) {
         // When Google is struggling it sometimes answers 200 with no results at all. A real
         // "nothing found" is rare for a first page, so ask once more before believing it.
         await new Promise((resolve) => setTimeout(resolve, deps.emptyRetryMs ?? 600));
-        body = await callGoogle(listUrl(q, page, deps.apiKey, sort, lang), deps.fetcher);
+        body = await ask((k) => listUrl(q, page, k, sort, lang));
       }
     }
     return json(req, METHODS, shapePage(body, page), 200, { "Cache-Control": "public, max-age=300" });

@@ -34,7 +34,7 @@ const fullPage = { totalItems: 500, items: Array.from({ length: 20 }, (_, i) => 
 
 Deno.test("home asks Google for technology with the key server-side and shapes the result", async () => {
   const { calls, fetcher } = stub(200, fullPage);
-  const res = await handle(get("mode=home&page=1"), { fetcher, apiKey: "test-key" });
+  const res = await handle(get("mode=home&page=1"), { fetcher, apiKeys: ["test-key"] });
   assertEquals(res.status, 200);
   const url = calls[0].url;
   assertEquals(url.searchParams.get("q"), "technology");
@@ -294,4 +294,57 @@ Deno.test("rate limiter runs before Google and its refusal is a 429", async () =
   });
   assertEquals(res.status, 429);
   assertEquals(calls.length, 0);
+});
+
+// Answers each call by the key in its URL: `byKey[key]` is the status, 200 gives a full page.
+function keyed(byKey: Record<string, number>, reason = "", ok: unknown = fullPage) {
+  const keys: (string | null)[] = [];
+  const fetcher = ((input: URL) => {
+    const key = new URL(input).searchParams.get("key");
+    keys.push(key);
+    const status = byKey[key ?? ""] ?? 200;
+    const body = status === 200 ? ok : { error: { code: status, message: reason } };
+    return Promise.resolve(new Response(JSON.stringify(body), { status }));
+  }) as typeof fetch;
+  return { keys, fetcher };
+}
+
+Deno.test("a rate-limited or refused key falls back to the next key", async () => {
+  for (const status of [429, 403]) {
+    const { keys, fetcher } = keyed({ main: status });
+    const res = await handle(get("mode=home"), { fetcher, apiKeys: ["main", "spare1", "spare2"] });
+    assertEquals(res.status, 200);
+    assertEquals(keys, ["main", "spare1"]);
+    assertEquals((await res.json()).items.length, 20);
+  }
+});
+
+Deno.test("a 400 about the key falls back, but a 400 about the book is not found", async () => {
+  let { keys, fetcher } = keyed({ main: 400 }, "API key not valid. Please pass a valid API key.", volume("abc123"));
+  let res = await handle(get("mode=volume&id=abc123"), { fetcher, apiKeys: ["main", "spare1"] });
+  assertEquals(res.status, 200);
+  assertEquals(keys, ["main", "spare1"]);
+  await res.body?.cancel();
+
+  ({ keys, fetcher } = keyed({ main: 400 }, "Invalid volume id", volume("abc123")));
+  res = await handle(get("mode=volume&id=abc123"), { fetcher, apiKeys: ["main", "spare1"] });
+  assertEquals(res.status, 404);
+  assertEquals(keys, ["main"]);
+  await res.body?.cancel();
+});
+
+Deno.test("every key is tried in order, and the last key's error is the answer", async () => {
+  const { keys, fetcher } = keyed({ main: 429, spare1: 429, spare2: 429 });
+  const res = await handle(get("mode=home"), { fetcher, apiKeys: ["main", "spare1", "spare2"] });
+  assertEquals(res.status, 429);
+  assertEquals(keys, ["main", "spare1", "spare2"]);
+  assertEquals((await res.json()).error.code, "rate_limited");
+});
+
+Deno.test("a 404 doesn't try the other keys", async () => {
+  const { keys, fetcher } = keyed({ main: 404, spare1: 404 });
+  const res = await handle(get("mode=volume&id=abc123"), { fetcher, apiKeys: ["main", "spare1"] });
+  assertEquals(res.status, 404);
+  assertEquals(keys, ["main"]);
+  await res.body?.cancel();
 });

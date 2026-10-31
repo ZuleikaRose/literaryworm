@@ -1,6 +1,7 @@
 // Google Books: build the request, call it with a timeout, and shape the
-// response down to what the UI shows. The API key comes only from the
-// GOOGLE_BOOKS_API_KEY function secret and never appears in a response.
+// response down to what the UI shows. The API keys come only from function
+// secrets (GOOGLE_BOOKS_API_KEY, then the fallbacks in KEY_SECRETS) and never
+// appear in a response or a log.
 
 import { HttpError } from "./http.ts";
 import { type Genre, type Language, PAGE_SIZE, type Sort } from "./validate.ts";
@@ -148,6 +149,48 @@ export function volumeUrl(id: string, key: string | undefined): URL {
 
 // --- Calling Google ----------------------------------------------------------
 
+/**
+ * The function secrets holding Google Books keys, in the order they're tried. The first is
+ * the main key; the others are fallbacks, asked only when Google refuses or fails a key
+ * (quota used up, the key rejected, or Google failing on it), so the rows keep filling.
+ */
+export const KEY_SECRETS = [
+  "GOOGLE_BOOKS_API_KEY",
+  "GOOGLE_BOOKS_API_KEY_1_AMILLAGE",
+  "GOOGLE_BOOKS_API_KEY_1_ALICEMILLAGE",
+] as const;
+
+/** The keys that are set, in order, without repeats; `[undefined]` (keyless) when none are. */
+export function googleKeys(read: (name: string) => string | undefined = (n) => Deno.env.get(n)): (string | undefined)[] {
+  const keys = [...new Set(KEY_SECRETS.map((n) => read(n)?.trim()).filter((k): k is string => !!k))];
+  return keys.length ? keys : [undefined];
+}
+
+/** A fallback key gets a shorter budget, so trying every key stays inside the app's patience. */
+const FALLBACK_TIMEOUT_MS = 5000;
+
+/**
+ * Calls Google with each key in turn until one answers. A key is passed over when Google
+ * rate-limits it, refuses it (403, or a 400 about the key), fails with a 5xx after the
+ * retries, or times out. A real answer, "not found" included, is returned at once.
+ */
+export async function callGoogleWithKeys(
+  build: (key: string | undefined) => URL,
+  keys: (string | undefined)[] = [undefined],
+  fetcher: Fetcher = fetch,
+): Promise<unknown> {
+  const list = keys.length ? keys : [undefined];
+  for (let i = 0; ; i++) {
+    try {
+      return await callGoogle(build(list[i]), fetcher, i === 0 ? TIMEOUT_MS : FALLBACK_TIMEOUT_MS);
+    } catch (err) {
+      if (i === list.length - 1 || !(err instanceof HttpError) || err.code === "not_found") throw err;
+      // The key's position only, never the key.
+      console.warn("google books: key", i + 1, "failed with", err.code, "- trying key", i + 2);
+    }
+  }
+}
+
 const MAX_ATTEMPTS = 6;
 const RETRY_DELAY_MS = 500;
 
@@ -156,8 +199,8 @@ const RETRY_DELAY_MS = 500;
  * "backendFailed" for a few seconds, so a 5xx is retried (waiting a little
  * longer each time, up to 6 attempts) while at least 1.5 seconds of the budget remain.
  */
-export async function callGoogle(url: URL, fetcher: Fetcher = fetch): Promise<unknown> {
-  const deadline = Date.now() + TIMEOUT_MS;
+export async function callGoogle(url: URL, fetcher: Fetcher = fetch, budgetMs = TIMEOUT_MS): Promise<unknown> {
+  const deadline = Date.now() + budgetMs;
   let res: Response;
   for (let attempt = 1; ; attempt++) {
     try {
@@ -189,6 +232,10 @@ export async function callGoogle(url: URL, fetcher: Fetcher = fetch): Promise<un
     // Log Google's status and reason for the function logs. Never log the URL: it holds the key.
     const reason = await res.text().then((t) => t.slice(0, 300)).catch(() => "");
     console.error("google books error", res.status, reason);
+    // A 400 about the key (invalid, expired, restricted) is the key's problem, not the book's.
+    if (res.status === 400 && /api[_ ]?key|keyInvalid|keyExpired/i.test(reason)) {
+      throw new HttpError("upstream_error", "The book service had a problem. Try again.");
+    }
     // 400 from Google on a bad id is a not-found for our purposes.
     if (res.status === 400) throw new HttpError("not_found", "We couldn't find that book.");
     throw new HttpError("upstream_error", "The book service had a problem. Try again.");

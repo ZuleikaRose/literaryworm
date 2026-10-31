@@ -73,6 +73,10 @@ All functions share `_shared/`: CORS with an origin allowlist (`ALLOWED_ORIGINS`
 
 ```bash
 supabase secrets set GOOGLE_BOOKS_API_KEY=<your key>
+# Optional fallbacks, tried in this order when Google rate-limits, refuses or fails the main key
+# (KEY_SECRETS in _shared/googleBooks.ts; books, summaries and author-news use them):
+supabase secrets set GOOGLE_BOOKS_API_KEY_1_AMILLAGE=<a second key>
+supabase secrets set GOOGLE_BOOKS_API_KEY_1_ALICEMILLAGE=<a third key>
 supabase secrets set ALLOWED_ORIGINS=https://literaryworm.com,https://www.literaryworm.com,http://localhost:5173
 supabase secrets set ANTHROPIC_API_KEY=<your Claude API key>   # used only by the summaries and ask functions
 supabase secrets set STRIPE_SECRET_KEY=<a restricted key, rk_>  # checkout, manage-account, stripe-webhook

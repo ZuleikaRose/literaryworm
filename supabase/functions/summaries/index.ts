@@ -1,5 +1,5 @@
 import { CATALOG } from "../_shared/catalog.ts";
-import { callGoogle, shapeDetail, volumeUrl } from "../_shared/googleBooks.ts";
+import { callGoogleWithKeys, googleKeys, shapeDetail, volumeUrl } from "../_shared/googleBooks.ts";
 import { clientIp } from "../_shared/http.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { serviceClient } from "../_shared/supabase.ts";
@@ -19,8 +19,9 @@ async function describe(id: string): Promise<BookFacts> {
       publicDomain: book.publicDomain,
     };
   }
-  // Any other id is a Google Books volume (callGoogle turns a 404 into not_found).
-  const detail = shapeDetail(await callGoogle(volumeUrl(id, Deno.env.get("GOOGLE_BOOKS_API_KEY"))));
+  // Any other id is a Google Books volume (callGoogle turns a 404 into not_found); the main
+  // key first, then the fallbacks.
+  const detail = shapeDetail(await callGoogleWithKeys((key) => volumeUrl(id, key), googleKeys()));
   return {
     id,
     title: detail.title,

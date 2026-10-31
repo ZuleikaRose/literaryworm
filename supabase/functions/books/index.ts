@@ -1,3 +1,4 @@
+import { googleKeys } from "../_shared/googleBooks.ts";
 import { clientIp } from "../_shared/http.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { handle } from "./handler.ts";
@@ -6,7 +7,8 @@ import { handle } from "./handler.ts";
 // Google Books quota through us.
 Deno.serve((req) =>
   handle(req, {
-    apiKey: Deno.env.get("GOOGLE_BOOKS_API_KEY"),
+    // The main key, then the fallbacks, tried in turn when Google refuses or fails one.
+    apiKeys: googleKeys(),
     rateLimit: (r) => enforceRateLimit(`books:${clientIp(r)}`, 60, 60),
   })
 );

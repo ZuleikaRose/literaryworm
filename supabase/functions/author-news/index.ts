@@ -1,7 +1,7 @@
 // Deploy with JWT verification off (pg_cron sends the Vault secret, not a Supabase token).
-// Google Books is asked with the GOOGLE_BOOKS_API_KEY function setting; emails go through
-// Mailgun's API (_shared/mailgun.ts). Nothing is hard-coded.
-import { authorQuery, callGoogle, listUrl } from "../_shared/googleBooks.ts";
+// Google Books is asked with the GOOGLE_BOOKS_API_KEY function setting, then its fallbacks
+// (KEY_SECRETS); emails go through Mailgun's API (_shared/mailgun.ts). Nothing is hard-coded.
+import { authorQuery, callGoogleWithKeys, googleKeys, listUrl } from "../_shared/googleBooks.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import type { NewBook } from "./email.ts";
@@ -20,7 +20,7 @@ interface ClaimedRow {
 }
 
 const site = publicSiteOrigin();
-const key = Deno.env.get("GOOGLE_BOOKS_API_KEY");
+const keys = googleKeys();
 
 Deno.serve((req) =>
   handle(req, {
@@ -36,7 +36,7 @@ Deno.serve((req) =>
     },
     // Newest first, the first page only: a new book is near the top. Google sees the name,
     // never who follows it.
-    searchAuthor: (name) => callGoogle(listUrl(authorQuery(name), 0, key, "newest")),
+    searchAuthor: (name) => callGoogleWithKeys((key) => listUrl(authorQuery(name), 0, key, "newest"), keys),
     async record(name, books) {
       const { data, error } = await serviceClient().rpc("record_author_news", { p_name: name, p_books: books });
       if (error) throw error;

@@ -294,6 +294,7 @@ Create an account with **Sign up** to use the real backend: your library and log
 | `VITE_SUPABASE_URL`             | `front_end/literaryworm_app/.env.development.local`, Vercel | Yes                                                                   |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Same (publishable / anon key)                           | Yes                                                                   |
 | `GOOGLE_BOOKS_API_KEY`          | Supabase → Edge Functions → Secrets only              | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
+| `GOOGLE_BOOKS_API_KEY_1_AMILLAGE`, `GOOGLE_BOOKS_API_KEY_1_ALICEMILLAGE` | Supabase → Edge Functions → Secrets only | **No.** Fallback Google Books keys, tried in turn when the main key is rate-limited, refused or failing. |
 | `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and literaryworm.com) |
 | `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries` and `ask` functions to ask Claude. |
 | `STRIPE_SECRET_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** A restricted Stripe key for `checkout`, `manage-account` and `stripe-webhook`. |
