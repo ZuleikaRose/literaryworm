@@ -426,5 +426,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | New Basic price: $9.99 a month ($99.90 a year), in the app, database (migration 6402) and Stripe | Done    |
 | —    | 300 more public-domain titles, 871 in all, each with its full text and LibriVox recording (What's new, migration 6404) | Done    |
 | —    | Plans and prices in search results: description, structured data and a sitemap, from `lib/seo.ts` | Done    |
+| —    | Search by ISBN as well as title and author (`by=isbn`), through the `books` function's new `isbn` mode; Google Books only, check digit checked first (migrations 6405 What's new, 6406 Privacy Policy) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
