@@ -645,7 +645,7 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("highlights in one of eight colours", async () => {
+  it("highlights in one of twelve colours", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     await goInApp(page, "/read/frankenstein");
@@ -653,9 +653,9 @@ describe("the demo household", () => {
     await page.locator(".reader-text p").first().click({ clickCount: 3 });
     const toolbar = page.getByRole("toolbar", { name: "Selected text" });
     await toolbar.waitFor();
-    expect(await toolbar.locator(".swatch").count()).toBe(8);
-    await toolbar.getByRole("button", { name: "Highlight in teal" }).click();
-    await page.locator(".reader-text mark.hl-teal").first().waitFor();
+    expect(await toolbar.locator(".swatch").count()).toBe(12);
+    await toolbar.getByRole("button", { name: "Highlight in indigo" }).click();
+    await page.locator(".reader-text mark.hl-indigo").first().waitFor();
     expect(errors()).toEqual([]);
   });
 
