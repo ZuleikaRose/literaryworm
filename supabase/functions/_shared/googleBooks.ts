@@ -158,6 +158,9 @@ export const KEY_SECRETS = [
   "GOOGLE_BOOKS_API_KEY",
   "GOOGLE_BOOKS_API_KEY_1_AMILLAGE",
   "GOOGLE_BOOKS_API_KEY_1_ALICEMILLAGE",
+  "GOOGLE_BOOKS_API_KEY_1_ROSEZULEIKA",
+  "GOOGLE_BOOKS_API_KEY_1_ALICESUCC",
+  "GOOGLE_BOOKS_API_KEY_1_FEMSHEP",
 ] as const;
 
 /** The keys that are set, in order, without repeats; `[undefined]` (keyless) when none are. */
@@ -168,6 +171,11 @@ export function googleKeys(read: (name: string) => string | undefined = (n) => D
 
 /** A fallback key gets a shorter budget, so trying every key stays inside the app's patience. */
 const FALLBACK_TIMEOUT_MS = 5000;
+/**
+ * No new key is started once this long has gone: a refused key answers in a moment, so every
+ * key still gets its turn when quotas run out, but slow failures can't add up past ~20 s.
+ */
+const ALL_KEYS_BUDGET_MS = 15000;
 
 /**
  * Calls Google with each key in turn until one answers. A key is passed over when Google
@@ -180,11 +188,13 @@ export async function callGoogleWithKeys(
   fetcher: Fetcher = fetch,
 ): Promise<unknown> {
   const list = keys.length ? keys : [undefined];
+  const started = Date.now();
   for (let i = 0; ; i++) {
     try {
       return await callGoogle(build(list[i]), fetcher, i === 0 ? TIMEOUT_MS : FALLBACK_TIMEOUT_MS);
     } catch (err) {
-      if (i === list.length - 1 || !(err instanceof HttpError) || err.code === "not_found") throw err;
+      const outOfTime = Date.now() - started > ALL_KEYS_BUDGET_MS;
+      if (i === list.length - 1 || outOfTime || !(err instanceof HttpError) || err.code === "not_found") throw err;
       // The key's position only, never the key.
       console.warn("google books: key", i + 1, "failed with", err.code, "- trying key", i + 2);
     }

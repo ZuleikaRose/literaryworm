@@ -341,6 +341,14 @@ Deno.test("every key is tried in order, and the last key's error is the answer",
   assertEquals((await res.json()).error.code, "rate_limited");
 });
 
+Deno.test("with six keys, the sixth still answers when the first five are refused", async () => {
+  const { keys, fetcher } = keyed({ k1: 429, k2: 403, k3: 429, k4: 429, k5: 403 });
+  const res = await handle(get("mode=home"), { fetcher, apiKeys: ["k1", "k2", "k3", "k4", "k5", "k6"] });
+  assertEquals(res.status, 200);
+  assertEquals(keys, ["k1", "k2", "k3", "k4", "k5", "k6"]);
+  await res.body?.cancel();
+});
+
 Deno.test("a 404 doesn't try the other keys", async () => {
   const { keys, fetcher } = keyed({ main: 404, spare1: 404 });
   const res = await handle(get("mode=volume&id=abc123"), { fetcher, apiKeys: ["main", "spare1"] });

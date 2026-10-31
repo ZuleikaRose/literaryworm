@@ -11,4 +11,6 @@ Deno.test("googleKeys lists the set keys in order, main first, without blanks or
   assertEquals(googleKeys((n) => env[n]), ["main", "spare"]);
   assertEquals(googleKeys((n) => (n === KEY_SECRETS[0] ? undefined : "same")), ["same"]);
   assertEquals(googleKeys(() => undefined), [undefined]);
+  // All six, in KEY_SECRETS order.
+  assertEquals(googleKeys((n) => `k${KEY_SECRETS.indexOf(n as typeof KEY_SECRETS[number])}`), ["k0", "k1", "k2", "k3", "k4", "k5"]);
 });
