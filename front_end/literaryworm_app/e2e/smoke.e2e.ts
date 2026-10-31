@@ -166,6 +166,18 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("opens a series from a book's page, in reading order", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/books/anne-of-avonlea`);
+    await page.getByText(/Book 2 of \d+ in/).waitFor();
+    await page.getByRole("link", { name: "Anne of Green Gables", exact: true }).first().click();
+    await page.waitForURL(/\/series\/Anne%20of%20Green%20Gables/);
+    await page.getByRole("heading", { level: 1, name: "Anne of Green Gables" }).waitFor();
+    const titles = await page.locator(".series-item h2").allTextContents();
+    expect(titles.slice(0, 2)).toEqual(["Anne of Green Gables", "Anne of Avonlea"]);
+    expect(errors()).toEqual([]);
+  });
+
   it("reads a policy page", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/legal/terms`);
@@ -403,6 +415,61 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("sorts My library A–Z, Z–A and by published year, keeping the status filter", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library");
+    const titles = () => page.locator(".library-row-title").allInnerTexts();
+    await page.locator(".library-row-title").first().waitFor();
+    const sortBy = page.getByLabel("Sort by");
+    const options = await sortBy.locator("option").allInnerTexts();
+    expect(options).toEqual(expect.arrayContaining(["Recently added", "Title A–Z", "Title Z–A", "Numbers first (0–9)", "Recently changed", "Published, newest", "Author A–Z"]));
+
+    const fold = (t: string) => t.replace(/^(the|an?)\s+/i, "").toLowerCase();
+    const sorted = (list: string[]) => [...list].sort((a, b) => fold(a).localeCompare(fold(b), "en", { numeric: true }));
+    // The list re-sorts on the next render, so wait for the order rather than reading it at once.
+    const settles = async (want: (now: string[]) => boolean) => {
+      for (let i = 0; i < 40; i++) {
+        if (want(await titles())) return;
+        await page.waitForTimeout(50);
+      }
+      throw new Error(`Not sorted: ${(await titles()).join(", ")}`);
+    };
+    const before = await titles();
+    expect(before.length).toBeGreaterThan(1);
+    const az = sorted(before);
+    await sortBy.selectOption("title");
+    await page.waitForURL(/sort=title/);
+    await settles((now) => now.join("|") === az.join("|"));
+    await sortBy.selectOption("title-desc");
+    await settles((now) => now.join("|") === [...az].reverse().join("|"));
+
+    // Filtering by status keeps the sort, and the sort keeps the filter.
+    await page.locator(".library-filter").getByText(/^Reading \(/).click();
+    await page.waitForURL(/status=reading/);
+    expect(page.url()).toContain("sort=title-desc");
+    await page.locator(".library-filter input:checked + span").getByText(/^Reading \(/).waitFor();
+    await sortBy.selectOption("published");
+    await page.waitForURL(/sort=published/);
+    expect(page.url()).toContain("status=reading");
+    expect(errors()).toEqual([]);
+  });
+
+  it("searches by author from the header's search box", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    const by = page.getByLabel("Search by", { exact: true });
+    // Without the backend there's no ISBN choice (Google Books only).
+    expect(await by.locator("option").allInnerTexts()).toEqual(["Title", "Author"]);
+    await by.selectOption("author");
+    await page.getByPlaceholder("Search by author").fill("shelley");
+    await page.keyboard.press("Enter");
+    await page.waitForURL(/by=author/);
+    expect(page.url()).toContain("q=shelley");
+    await page.getByText(/Results for books by “shelley”/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("imports a Goodreads export without counting old reads towards this year", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
@@ -547,6 +614,98 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("highlights in one of eight colours", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.locator(".reader-text p").first().click({ clickCount: 3 });
+    const toolbar = page.getByRole("toolbar", { name: "Selected text" });
+    await toolbar.waitFor();
+    expect(await toolbar.locator(".swatch").count()).toBe(8);
+    await toolbar.getByRole("button", { name: "Highlight in teal" }).click();
+    await page.locator(".reader-text mark.hl-teal").first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows the time left, and the reader's keyboard shortcuts", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/left in this chapter · .* in the book/).waitFor();
+    await page.keyboard.press("?");
+    const help = page.getByRole("dialog", { name: "Keyboard shortcuts" });
+    await help.getByText("Bookmark this page, or remove its bookmark").waitFor();
+    await page.keyboard.press("Escape");
+    await help.waitFor({ state: "hidden" });
+    await page.keyboard.press("n");
+    await page.getByRole("dialog", { name: "Notes and highlights" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("opens the chapter quiz, which says plainly when the backend isn't there", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.getByRole("button", { name: "Chapter quiz" }).click();
+    const dialog = page.getByRole("dialog", { name: "Chapter 1 quiz" });
+    await dialog.getByText(/Questions written by AI from chapter 1 only/).waitFor();
+    await dialog.getByRole("alert").getByText(/need the LiteraryWorm backend/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("queues an audiobook in Up next, moves it and removes it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/frankenstein");
+    await page.getByRole("button", { name: "Add to Up next" }).click();
+    await page.getByRole("button", { name: "In Up next" }).waitFor();
+    await goInApp(page, "/books/pride-and-prejudice");
+    await page.getByRole("button", { name: "Add to Up next" }).click();
+    await page.getByRole("button", { name: "In Up next" }).waitFor();
+    await goInApp(page, "/library?view=upnext");
+    const titles = () => page.locator(".up-next-text a").allTextContents();
+    await page.getByRole("heading", { name: "Up next" }).waitFor();
+    expect(await titles()).toEqual(["Frankenstein", "Pride and Prejudice"]);
+    await page.getByRole("button", { name: "Move Pride and Prejudice up" }).click();
+    await page.getByText("Pride and Prejudice moved up.").waitFor();
+    expect(await titles()).toEqual(["Pride and Prejudice", "Frankenstein"]);
+    await page.getByRole("button", { name: "Remove Frankenstein from Up next" }).click();
+    await page.getByText("Frankenstein removed from Up next.").waitFor();
+    expect(await titles()).toEqual(["Pride and Prejudice"]);
+    expect(errors()).toEqual([]);
+  });
+
+  it("opens car mode from the player, and goes back", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein");
+    await page.getByRole("link", { name: "Car mode" }).click();
+    await page.waitForURL(/view=car/);
+    await page.locator(".car-play").waitFor();
+    await page.getByText(/left in this chapter/).first().waitFor();
+    await page.getByRole("link", { name: "Exit car mode" }).click();
+    await page.getByRole("link", { name: "Car mode" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("lists badges, words, notes and readers in My Library", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=badges");
+    await page.getByRole("heading", { name: "Badges", level: 2 }).waitFor();
+    // The demo has finished books, so the first one is earned.
+    await page.locator(".badge-card.is-earned").filter({ hasText: "First finish" }).waitFor();
+    await goInApp(page, "/library?view=words");
+    await page.getByText(/choose Keep in My words/).waitFor();
+    await goInApp(page, "/library?view=notes");
+    await page.getByRole("heading", { name: /No highlights yet|Notes and highlights/ }).waitFor();
+    await goInApp(page, "/library?view=readers");
+    await page.getByRole("heading", { name: "Following readers is for members" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("turns the weekly author email off in Preferences", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
@@ -561,7 +720,7 @@ describe("the demo household", () => {
 });
 
 describe("on a phone", () => {
-  it.each(["/", "/plans", "/search?q=dune", "/legal/privacy"])("%s doesn't scroll sideways", async (path) => {
+  it.each(["/", "/plans", "/search?q=dune", "/legal/privacy", "/series/Oz"])("%s doesn't scroll sideways", async (path) => {
     const { page, errors } = await newPage(390, 844);
     await page.goto(`${BASE_URL}${path}`);
     await page.locator("main").waitFor();
@@ -576,6 +735,23 @@ describe("on a phone", () => {
     await goInApp(page, "/account");
     await page.locator("#plan").waitFor();
     await expect(scrollsSideways(page)).resolves.toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
+  it("the reader, car mode and the new Library tabs don't scroll sideways", async () => {
+    const { page, errors } = await newPage(390, 844);
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await expect(scrollsSideways(page)).resolves.toBe(false);
+    await goInApp(page, "/listen/frankenstein?view=car");
+    await page.locator(".car-play").waitFor();
+    await expect(scrollsSideways(page)).resolves.toBe(false);
+    for (const view of ["badges", "upnext", "words"]) {
+      await goInApp(page, `/library?view=${view}`);
+      await page.locator(".library-tabs").waitFor();
+      await expect(scrollsSideways(page)).resolves.toBe(false);
+    }
     expect(errors()).toEqual([]);
   });
 });

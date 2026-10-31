@@ -149,6 +149,8 @@ export interface Account {
   switchToMonthly: PlanId | null;
   /** When the membership began (ISO; real accounts only): monthly members near a year in are offered yearly billing. */
   memberSince: string | null;
+  /** Other readers may follow this account and see its logs on a reader page (members only; off until turned on). */
+  publicReader?: boolean;
 }
 
 export interface Profile {
@@ -208,7 +210,7 @@ export interface Bookmark {
   createdAt: number;
 }
 
-export type HighlightColor = "yellow" | "green" | "blue" | "pink";
+export type HighlightColor = "yellow" | "green" | "blue" | "pink" | "orange" | "purple" | "teal" | "red";
 
 /**
  * A passage marked on one reader page, with an optional note. The page is found by chapter
@@ -283,6 +285,10 @@ export interface LibraryEntry {
   bookId: string;
   status: ReadingStatus;
   addedAt: number;
+  /** When its status last changed (ms); missing means not since it was added. */
+  updatedAt?: number;
+  /** Google's publishedDate (YYYY, YYYY-MM or YYYY-MM-DD), for sorting by when it came out, when known. */
+  published?: string | null;
   /** What the Library page needs to show a Google Books title without asking again (when known). */
   title?: string;
   authors?: string[];
@@ -352,6 +358,47 @@ export interface ProfileData {
   notificationsSeenAt: number | null;
   /** New books from authors this profile follows, found by the author-news function (members only), newest first. */
   authorNews: AuthorNews[];
+  /** My words: words this profile looked up and kept, newest first. */
+  words: SavedWord[];
+  /** This profile's reading pace in words a minute, learnt in the reader (null until it has one). */
+  readingWpm: number | null;
+  /** Up next: catalog audiobooks queued to play after this one, in order. */
+  upNext: string[];
+  /** Chapter quizzes taken: the latest score for each book and chapter. */
+  quizResults: QuizResult[];
+  /** Readers this profile follows (members who turned on their reader page), oldest first. */
+  readerFollows: ReaderFollow[];
+}
+
+export interface ReaderFollow {
+  /** The reader's account id (their reader page is /readers/:id). */
+  readerId: string;
+  /** Their display name when followed. */
+  name: string;
+}
+
+export interface QuizResult {
+  bookId: string;
+  chapterIndex: number;
+  score: number;
+  outOf: number;
+  takenAt: number;
+}
+
+/** A word kept from the dictionary, with where it was met. */
+export interface SavedWord {
+  /** Lower case, as the dictionary looks it up. */
+  word: string;
+  /** The first sense, kept so lists and practice work without asking again. */
+  definition: string | null;
+  bookId: string | null;
+  chapterIndex: number | null;
+  page: number | null;
+  /** The sentence it came from. */
+  context: string | null;
+  /** Marked as known in Practise. */
+  learned: boolean;
+  createdAt: number;
 }
 
 /** A Google Books title by a followed author, out in the last 30 days when it was found. */
@@ -381,6 +428,8 @@ export interface ReadingLog {
   body: string;
   /** Optional 1–5. */
   rating: number | null;
+  /** The writer turned on their reader page, so their name links to it. */
+  publicReader?: boolean;
   createdAt: number;
   updatedAt: number;
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
 import { BackLink } from "../components/BackLink";
+import { UpNextButton } from "../components/UpNextButton";
 import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
@@ -27,6 +28,7 @@ import { useVolume } from "../lib/useVolume";
 import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
 import { personName, personPath } from "../lib/people";
 import { lostWithBook } from "../lib/reading";
+import { nextInSeries, seriesBooks, seriesPath, seriesPlace } from "../lib/series";
 import { isOut } from "../lib/release";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
@@ -217,7 +219,7 @@ function DetailPage({ view }: { view: DetailView }) {
   async function addToLibrary(status?: ReadingStatus) {
     if (!requireProfile()) return;
     const ok = await attempt(() =>
-      library.add({ bookId: view.id, title: view.title, authors: view.authors, cover: view.coverUrl }, status),
+      library.add({ bookId: view.id, title: view.title, authors: view.authors, cover: view.coverUrl, published: view.release?.date ?? null }, status),
     );
     if (ok) setAnnouncement(`Added ${view.title} to your library.`);
   }
@@ -296,6 +298,7 @@ function DetailPage({ view }: { view: DetailView }) {
           {view.kicker && <p className="eyebrow">{view.kicker}</p>}
           <h1 id="book-title">{view.title}</h1>
           {view.subtitle && <p className="book-subtitle">{view.subtitle}</p>}
+          {view.local && <SeriesLine bookId={view.id} />}
           <p className="byline">
             by{" "}
             {view.authors.length ? (
@@ -368,6 +371,7 @@ function DetailPage({ view }: { view: DetailView }) {
                   <Icon name="headphones" size={18} /> {resume("audiobook") ? `Continue listening${resume("audiobook")}` : "Listen"}
                 </Link>
               )}
+              <UpNextButton book={view.local} />
             </div>
           )}
 
@@ -569,7 +573,10 @@ function DetailPage({ view }: { view: DetailView }) {
 
       <div className="detail-more">
         {view.local ? (
-          <CatalogMoreLikeThis view={view} ageRating={profile?.ageRating ?? "all"} />
+          <>
+            <SeriesShelf bookId={view.id} ageRating={profile?.ageRating ?? "all"} />
+            <CatalogMoreLikeThis view={view} ageRating={profile?.ageRating ?? "all"} />
+          </>
         ) : (
           <GoogleMoreLikeThis view={view} ageRating={profile?.ageRating ?? "all"} />
         )}
@@ -614,6 +621,40 @@ function DetailPage({ view }: { view: DetailView }) {
         </div>
       </Dialog>
     </div>
+  );
+}
+
+/** "Book 2 of 6 in Anne of Green Gables", linking to the series page. */
+function SeriesLine({ bookId }: { bookId: string }) {
+  const place = seriesPlace(bookId);
+  if (!place) return null;
+  return (
+    <p className="book-subtitle">
+      {place.total > 1 ? `Book ${place.position} of ${place.total} in ` : "Part of "}
+      <Link to={seriesPath(place.series.name)}>{place.series.name}</Link>
+    </p>
+  );
+}
+
+/** The rest of the series, with what comes next first. */
+function SeriesShelf({ bookId, ageRating }: { bookId: string; ageRating: AgeRating }) {
+  const place = seriesPlace(bookId);
+  if (!place || place.total < 2) return null;
+  const next = nextInSeries(bookId, ageRating);
+  const items = seriesBooks(place.series, ageRating).filter((b) => b.id !== bookId);
+  if (!items.length) return null;
+  return (
+    <Shelf
+      id="series"
+      eyebrow={next ? `Next in the series: ${next.title}` : "The series"}
+      title={place.series.name}
+      items={items.map(fromLocal)}
+      action={
+        <Link className="secondary-button" to={seriesPath(place.series.name)}>
+          See the series
+        </Link>
+      }
+    />
   );
 }
 

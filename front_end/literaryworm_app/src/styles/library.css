@@ -1487,3 +1487,268 @@ body:has(.mini-player) .listen-along-bar {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* ---------- Notes and My words ---------- */
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 18px;
+}
+
+.section-head h2 {
+  margin: 0 0 4px;
+}
+
+.export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notes-books,
+.word-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notes-book {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.notes-book h3 {
+  margin: 0 0 2px;
+  font-size: 1rem;
+}
+
+.notes-book p {
+  margin: 0;
+}
+
+.word-item {
+  padding: 14px 16px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.word-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.word-head h3,
+.practise-word {
+  margin: 0;
+  font-family: var(--font-reading);
+  font-size: 1.375rem;
+}
+
+.word-known {
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--surface-high);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.word-definition {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+}
+
+.word-context {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-family: var(--font-reading);
+  font-style: italic;
+}
+
+.word-source {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+}
+
+.practise-card,
+.practise-done {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.practise-word {
+  font-size: 2rem;
+}
+
+/* ---------- Up next ---------- */
+
+.up-next-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.up-next-item {
+  display: grid;
+  grid-template-columns: 2rem 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.up-next-text {
+  display: grid;
+  min-width: 0;
+}
+
+.up-next-text a {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.up-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+  .up-next-item {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .up-next-item .series-number {
+    display: none;
+  }
+
+  .up-next-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* ---------- Badges ---------- */
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge-card {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.badge-card h3 {
+  margin: 0 0 2px;
+  font-size: 1rem;
+}
+
+.badge-card p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.badge-icon {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--surface-high);
+}
+
+.badge-card.is-earned {
+  border-color: var(--rust-bright);
+}
+
+.badge-card.is-earned .badge-icon {
+  color: var(--bg);
+  background: var(--rust-bright);
+}
+
+.badge-when {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px !important;
+  color: var(--ink-soft);
+}
+
+.badge-progress {
+  width: 100%;
+  height: 6px;
+  margin-top: 8px;
+  accent-color: var(--rust-bright);
+}
+
+/* ---------- Sorting My library ---------- */
+
+.library-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-bottom: 20px;
+}
+
+.library-controls .library-filter {
+  margin-bottom: 0;
+}
+
+.library-sort {
+  display: grid;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.library-sort label {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.library-sort .field-input {
+  min-height: 44px;
+}
+
+@media (max-width: 560px) {
+  .library-sort {
+    width: 100%;
+  }
+}

@@ -4,6 +4,7 @@ import { getBook } from "../data/books";
 import type { ListeningDevice } from "../lib/devicesApi";
 import { bookText } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
+import { startCast, useCast } from "../lib/cast";
 import { chapterIntro, chapterOutro, type IndexEntry, parseTime, searchText } from "../lib/playerNav";
 import { formatTime, PLAYBACK_SPEEDS, SKIP_CHOICES, SLEEP_MINUTES, spokenTime } from "../lib/reading";
 import type { PlayerControls } from "../lib/usePlayerControls";
@@ -536,5 +537,39 @@ export function HandoffPrompt() {
         </button>
       </div>
     </section>
+  );
+}
+
+/**
+ * Cast: plays the recording on a speaker or TV through the browser's own picker (Chromecast,
+ * AirPlay). Shown only when the browser finds somewhere to cast and the book's recording is
+ * playing (device voices speak on this device).
+ */
+export function CastButton({ className = "text-button", recording }: { className?: string; recording: boolean }) {
+  const cast = useCast();
+  const [error, setError] = useState<string | null>(null);
+  if (!recording || !cast.available) return null;
+  return (
+    <>
+      <button
+        type="button"
+        className={className}
+        aria-pressed={cast.connected}
+        onClick={() => {
+          setError(null);
+          startCast().catch((err: Error) => {
+            // Closing the picker without choosing isn't an error.
+            if (err.name !== "NotAllowedError" && err.name !== "AbortError") setError("We couldn't reach that device. Try again.");
+          });
+        }}
+      >
+        <Icon name="devices" size={16} /> {cast.connected ? "Casting" : cast.connecting ? "Connecting…" : "Cast to a speaker or TV"}
+      </button>
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
+    </>
   );
 }

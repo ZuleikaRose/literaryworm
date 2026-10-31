@@ -30,7 +30,7 @@ import {
 } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { readingTime } from "../lib/goals";
-import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal } from "../lib/kidsReport";
+import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal, quizWeek } from "../lib/kidsReport";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
@@ -767,7 +767,8 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
-  const { remote, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
+  const { remote, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
+  const readerHintId = useId();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
   const releaseHintId = useId();
@@ -777,6 +778,29 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
   const clubPostsHintId = useId();
   return (
     <Section id="preferences" title="Preferences">
+      {remote && (
+        <label className="switch-row">
+          <span>
+            <strong>Let other readers follow me</strong>
+            <small id={readerHintId}>
+              Gives you a reader page with the logs you publish, under your display name, and other members can follow it. Your library, lists
+              and reading stay private. Turning it off removes your followers.
+            </small>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            className="switch"
+            aria-describedby={readerHintId}
+            checked={Boolean(account.publicReader)}
+            disabled={busy}
+            onChange={(e) => {
+              const on = e.target.checked;
+              void attempt(() => setPublicReader(on), on ? "Your reader page is on. Others can follow you." : "Your reader page is off, and your followers were removed.");
+            }}
+          />
+        </label>
+      )}
       <label className="switch-row">
         <span>
           <strong>Emails about new releases and offers</strong>
@@ -988,8 +1012,9 @@ function KidsReport() {
     const days = state.profileData[profile.id]?.readingDays ?? {};
     const week = kidWeek(days, day);
     const goal = weeklyGoal(days, profile.weeklyGoalMinutes, day);
-    return { profile, week, goal, group: kidGroup(week.seconds, goal) };
+    return { profile, week, goal, group: kidGroup(week.seconds, goal), quizzes: quizWeek(state.profileData[profile.id]?.quizResults ?? [], day) };
   });
+  const quizzesOf = (id: string) => weeks.find((w) => w.profile.id === id)?.quizzes ?? null;
   const groups = groupKids(weeks, (k) => k.group);
   const row = (p: (typeof kids)[number], week: KidWeek, goal: WeeklyGoal | null) => {
     const titles = week.books.map((id) => getBook(id)?.title).filter((t): t is string => Boolean(t));
@@ -1016,6 +1041,11 @@ function KidsReport() {
             <p>
               Finished {week.finished === 1 ? "1 book" : `${week.finished} books`}
               {titles.length > 0 && `: ${titles.join(", ")}`}
+            </p>
+          )}
+          {quizzesOf(p.id) && (
+            <p>
+              {quizzesOf(p.id)!.taken === 1 ? "1 chapter quiz" : `${quizzesOf(p.id)!.taken} chapter quizzes`}: {quizzesOf(p.id)!.right} of {quizzesOf(p.id)!.of} answers right
             </p>
           )}
         </div>

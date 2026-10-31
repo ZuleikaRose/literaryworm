@@ -7,7 +7,7 @@ import { usePopover } from "../lib/usePopover";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
-import { DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "./PlayerControls";
+import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "./PlayerControls";
 
 type Panel = "jump" | "settings" | "devices" | null;
 
@@ -72,6 +72,11 @@ function MiniPlayerView({ book }: { book: Book }) {
         </span>
         <span className="visually-hidden">. Open the player</span>
       </Link>
+      {live.finished && controls.upNext && (
+        <button type="button" className="secondary-button small-button mini-next" onClick={controls.upNext.play}>
+          <Icon name="play" size={14} filled /> Play next<span className="mini-next-title">: {controls.upNext.book.title}</span>
+        </button>
+      )}
       <div className="mini-controls">
         <button type="button" className="icon-button mini-wide" disabled={locked || !controls.previousChapter} onClick={controls.previousChapter ?? undefined}>
           <Icon name="previousChapter" size={18} />
@@ -123,6 +128,21 @@ function MiniPlayerView({ book }: { book: Book }) {
                     <Icon name="nextChapter" size={16} /> Next chapter
                   </button>
                 </li>
+                <li>
+                  <Link className="menu-item" to={`/listen/${book.id}?view=car`} onClick={() => closeMenu()}>
+                    <Icon name="headphones" size={16} /> Car mode
+                  </Link>
+                </li>
+                <li>
+                  <CastButton className="menu-item" recording />
+                </li>
+                {controls.upNext && (
+                  <li>
+                    <button type="button" className="menu-item" onClick={choose(controls.upNext.play)}>
+                      <Icon name="list" size={16} /> Play next in Up next: {controls.upNext.book.title}
+                    </button>
+                  </li>
+                )}
                 <li>
                   <button type="button" className="menu-item" disabled={locked || !controls.beginning} onClick={choose(controls.beginning)}>
                     <Icon name="startOfBook" size={16} /> Beginning of the book

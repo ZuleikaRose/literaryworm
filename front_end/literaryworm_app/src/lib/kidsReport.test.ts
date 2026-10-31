@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { groupKids, kidGroup, kidWeek, lastSevenDays, weeklyGoal } from "./kidsReport";
+import { groupKids, kidGroup, kidWeek, lastSevenDays, weeklyGoal, quizWeek } from "./kidsReport";
 
 describe("a Kids profile's week", () => {
   it("covers the 7 days up to today, across a month's end", () => {
@@ -67,5 +67,19 @@ describe("grouping a big household's report", () => {
       ["Goal reached", ["Mia", "Ava"]],
     ]);
     expect(groupKids([], () => "reading")).toEqual([]);
+  });
+});
+
+describe("quizWeek", () => {
+  const at = (y: number, m: number, d: number) => new Date(y, m - 1, d, 12).getTime();
+  const result = (takenAt: number, score: number, outOf = 4) => ({ bookId: "alice-in-wonderland", chapterIndex: 0, score, outOf, takenAt });
+
+  it("adds up the quizzes from the last 7 days", () => {
+    expect(quizWeek([result(at(2026, 10, 30), 3), result(at(2026, 10, 25), 4), result(at(2026, 10, 1), 0)], "2026-10-31")).toEqual({ taken: 2, right: 7, of: 8 });
+  });
+
+  it("is null with no quizzes this week", () => {
+    expect(quizWeek([], "2026-10-31")).toBeNull();
+    expect(quizWeek([result(at(2026, 9, 1), 2)], "2026-10-31")).toBeNull();
   });
 });

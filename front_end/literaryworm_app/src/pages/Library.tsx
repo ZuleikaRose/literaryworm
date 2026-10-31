@@ -1,4 +1,11 @@
-import { type FormEvent, useId, useRef, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BookSummary } from "../components/BookSummary";
 import { ClubsView } from "../components/ClubsView";
@@ -9,6 +16,11 @@ import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
 import { ImportDialog } from "../components/ImportDialog";
 import { FollowingView } from "../components/FollowingView";
+import { NotesView } from "../components/NotesView";
+import { WordsView } from "../components/WordsView";
+import { UpNextView } from "../components/UpNextView";
+import { BadgesView } from "../components/BadgesView";
+import { ReadersView } from "../components/ReadersView";
 import { RemindersView } from "../components/RemindersView";
 import { SavedBookTile } from "../components/SavedBookTile";
 import { StatsView } from "../components/StatsView";
@@ -17,18 +29,50 @@ import { getBook, isAllowed } from "../data/books";
 import { readingStatusLabel } from "../data/logs";
 import { AccountError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
-import { LIST_BOOKS_MAX, LIST_DESCRIPTION_MAX, LIST_NAME_MAX, LISTS_MAX, shareUrl } from "../lib/collections";
+import {
+  LIST_BOOKS_MAX,
+  LIST_DESCRIPTION_MAX,
+  LIST_NAME_MAX,
+  LISTS_MAX,
+  shareUrl,
+} from "../lib/collections";
 import { ESSENTIAL } from "../lib/consent";
 import { fallbackCover } from "../lib/coverFallback";
+import {
+  LIBRARY_SORTS,
+  publishedYear,
+  readLibrarySort,
+  sortLibrary,
+  type SortDetails,
+} from "../lib/librarySort";
 import { isUploadId } from "../lib/uploads";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
 import { useActiveProfile } from "../store/context";
-import type { CustomList, LibraryEntry, Profile, ReadingStatus } from "../types";
+import type {
+  CustomList,
+  LibraryEntry,
+  Profile,
+  ReadingStatus,
+} from "../types";
 
-type View = "library" | "favorites" | "lists" | "following" | "reminders" | "uploads" | "goals" | "stats" | "clubs";
+type View =
+  | "library"
+  | "favorites"
+  | "lists"
+  | "following"
+  | "readers"
+  | "reminders"
+  | "uploads"
+  | "upnext"
+  | "notes"
+  | "words"
+  | "goals"
+  | "badges"
+  | "stats"
+  | "clubs";
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
@@ -36,9 +80,14 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
   { id: "following", label: "Following" },
+  { id: "readers", label: "Readers" },
   { id: "reminders", label: "Reminders" },
   { id: "uploads", label: "Uploads" },
+  { id: "upnext", label: "Up next" },
+  { id: "notes", label: "Notes" },
+  { id: "words", label: "Words" },
   { id: "goals", label: "Goals" },
+  { id: "badges", label: "Badges" },
   { id: "stats", label: "Stats" },
   { id: "clubs", label: "Clubs" },
 ];
@@ -49,7 +98,9 @@ const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 function visibleTo(profile: Profile, bookId: string): boolean {
   if (profile.ageRating === "all") return true;
   const book = getBook(bookId);
-  return book ? isAllowed(book.ageRating, profile.ageRating) : profile.ageRating !== "kids";
+  return book
+    ? isAllowed(book.ageRating, profile.ageRating)
+    : profile.ageRating !== "kids";
 }
 
 /**
@@ -60,13 +111,21 @@ export default function Library() {
   useTitle("My Library");
   const profile = useActiveProfile()!;
   const [params, setParams] = useSearchParams();
-  const view: View = VIEWS.some((v) => v.id === params.get("view")) ? (params.get("view") as View) : "library";
+  const view: View = VIEWS.some((v) => v.id === params.get("view"))
+    ? (params.get("view") as View)
+    : "library";
 
   return (
     <div className="library-page page-content">
       <header className="library-header">
         <h1>My Library</h1>
-        <p>Private to you{profile.ageRating === "kids" ? `, showing ${profile.name}'s books` : ""}. Logs you publish are public.</p>
+        <p>
+          Private to you
+          {profile.ageRating === "kids"
+            ? `, showing ${profile.name}'s books`
+            : ""}
+          . Logs you publish are public.
+        </p>
       </header>
       <nav className="library-tabs" aria-label="Library sections">
         <ul role="list">
@@ -75,7 +134,11 @@ export default function Library() {
               <Link
                 to={v.id === "library" ? "/library" : `/library?view=${v.id}`}
                 aria-current={v.id === view ? "page" : undefined}
-                onClick={() => setParams(v.id === "library" ? {} : { view: v.id }, { replace: true })}
+                onClick={() =>
+                  setParams(v.id === "library" ? {} : { view: v.id }, {
+                    replace: true,
+                  })
+                }
               >
                 {v.label}
               </Link>
@@ -87,9 +150,14 @@ export default function Library() {
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
       {view === "following" && <FollowingView profile={profile} />}
+      {view === "readers" && <ReadersView />}
       {view === "reminders" && <RemindersView />}
       {view === "uploads" && <UploadsView profile={profile} />}
+      {view === "upnext" && <UpNextView />}
+      {view === "notes" && <NotesView />}
+      {view === "words" && <WordsView />}
       {view === "goals" && <GoalsView profile={profile} />}
+      {view === "badges" && <BadgesView />}
       {view === "stats" && <StatsView profile={profile} />}
       {view === "clubs" && <ClubsView profile={profile} />}
     </div>
@@ -102,33 +170,75 @@ function LibraryView({ profile }: { profile: Profile }) {
   const library = useLibrary();
   const [params, setParams] = useSearchParams();
   const raw = params.get("status");
-  const filter: StatusFilter = raw === "want_to_read" || raw === "reading" || raw === "finished" ? raw : "all";
+  const filter: StatusFilter =
+    raw === "want_to_read" || raw === "reading" || raw === "finished"
+      ? raw
+      : "all";
   const [announcement, setAnnouncement] = useState("");
   const [removing, setRemoving] = useState<LibraryEntry | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const sort = readLibrarySort(params.get("sort"));
+  const sortId = useId();
+  // Titles, authors and years the rows looked up from Google Books, so sorting can use them too.
+  const [looked, setLooked] = useState<Record<string, SortDetails>>({});
+  const onDetails = useCallback((bookId: string, d: SortDetails) => {
+    setLooked((known) => {
+      const had = known[bookId];
+      return had &&
+        had.title === d.title &&
+        had.author === d.author &&
+        had.year === d.year
+        ? known
+        : { ...known, [bookId]: d };
+    });
+  }, []);
 
-  const entries = Object.values(library.entries)
+  const visible = Object.values(library.entries)
     // Uploaded books have their own tab, with Read and Delete.
-    .filter((e) => visibleTo(profile, e.bookId) && !isUploadId(e.bookId))
-    .sort((a, b) => b.addedAt - a.addedAt);
+    .filter((e) => visibleTo(profile, e.bookId) && !isUploadId(e.bookId));
+  const entries = sortLibrary(
+    visible,
+    sort,
+    (e) => looked[e.bookId] ?? sortDetails(e),
+  );
   const counts = {
     all: entries.length,
     want_to_read: entries.filter((e) => e.status === "want_to_read").length,
     reading: entries.filter((e) => e.status === "reading").length,
     finished: entries.filter((e) => e.status === "finished").length,
   };
-  const shown = filter === "all" ? entries : entries.filter((e) => e.status === filter);
+  const shown =
+    filter === "all" ? entries : entries.filter((e) => e.status === filter);
 
-  async function run(work: () => Promise<void>, done: string): Promise<boolean> {
+  /**
+   * Changes one setting in the address and keeps the others (status, sort). It starts from the
+   * live address, not `params`: navigation renders in a transition, so a quick second change
+   * could otherwise start from the last render and drop the first.
+   */
+  function setParam(key: string, value: string | null) {
+    const next = new URLSearchParams(window.location.search);
+    if (value === null) next.delete(key);
+    else next.set(key, value);
+    setParams(next, { replace: true });
+  }
+
+  async function run(
+    work: () => Promise<void>,
+    done: string,
+  ): Promise<boolean> {
     setError(null);
     try {
       await work();
       setAnnouncement(done);
       return true;
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof AccountError
+          ? err.message
+          : "Something went wrong. Try again.",
+      );
       return false;
     }
   }
@@ -137,12 +247,23 @@ function LibraryView({ profile }: { profile: Profile }) {
     if (!removing) return;
     const entry = removing;
     setRemoving(null);
-    if (await run(() => library.remove(entry.bookId), "Removed from your library.")) headingRef.current?.focus();
+    if (
+      await run(
+        () => library.remove(entry.bookId),
+        "Removed from your library.",
+      )
+    )
+      headingRef.current?.focus();
   }
 
   return (
     <section aria-labelledby="library-title">
-      <h2 id="library-title" className="visually-hidden" tabIndex={-1} ref={headingRef}>
+      <h2
+        id="library-title"
+        className="visually-hidden"
+        tabIndex={-1}
+        ref={headingRef}
+      >
         My library
       </h2>
       <p className="visually-hidden" role="status">
@@ -150,30 +271,63 @@ function LibraryView({ profile }: { profile: Profile }) {
       </p>
       {profile.ageRating !== "kids" && (
         <div className="library-tools">
-          <button type="button" className="secondary-button small-button" onClick={() => setImporting(true)}>
-            <Icon name="download" size={16} /> Import from Goodreads or StoryGraph
+          <button
+            type="button"
+            className="secondary-button small-button"
+            onClick={() => setImporting(true)}
+          >
+            <Icon name="download" size={16} /> Import from Goodreads or
+            StoryGraph
           </button>
         </div>
       )}
-      <ImportDialog open={importing} onClose={() => setImporting(false)} profile={profile} />
-      <fieldset className="filter-group library-filter">
-        <legend>Show</legend>
-        <div className="chip-group">
-          {(["all", "want_to_read", "reading", "finished"] as const).map((s) => (
-            <label key={s} className="chip">
-              <input
-                type="radio"
-                name="library-status"
-                checked={filter === s}
-                onChange={() => setParams(s === "all" ? {} : { status: s }, { replace: true })}
-              />
-              <span>
-                {s === "all" ? "All" : readingStatusLabel[s]} ({counts[s]})
-              </span>
-            </label>
-          ))}
+      <ImportDialog
+        open={importing}
+        onClose={() => setImporting(false)}
+        profile={profile}
+      />
+      <div className="library-controls">
+        <fieldset className="filter-group library-filter">
+          <legend>Show</legend>
+          <div className="chip-group">
+            {(["all", "want_to_read", "reading", "finished"] as const).map(
+              (s) => (
+                <label key={s} className="chip">
+                  <input
+                    type="radio"
+                    name="library-status"
+                    checked={filter === s}
+                    onChange={() => setParam("status", s === "all" ? null : s)}
+                  />
+                  <span>
+                    {s === "all" ? "All" : readingStatusLabel[s]} ({counts[s]})
+                  </span>
+                </label>
+              ),
+            )}
+          </div>
+        </fieldset>
+        <div className="library-sort">
+          <label htmlFor={sortId}>Sort by</label>
+          <select
+            id={sortId}
+            className="field-input"
+            value={sort}
+            onChange={(e) =>
+              setParam(
+                "sort",
+                e.target.value === "added" ? null : e.target.value,
+              )
+            }
+          >
+            {LIBRARY_SORTS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </fieldset>
+      </div>
 
       {error && (
         <div className="form-alert" role="alert">
@@ -185,7 +339,11 @@ function LibraryView({ profile }: { profile: Profile }) {
       {shown.length === 0 ? (
         <div className="library-empty">
           <Icon name="library" size={28} />
-          <h3>{entries.length === 0 ? "Your library is empty" : `Nothing marked ${readingStatusLabel[filter as ReadingStatus].toLowerCase()}`}</h3>
+          <h3>
+            {entries.length === 0
+              ? "Your library is empty"
+              : `Nothing marked ${readingStatusLabel[filter as ReadingStatus].toLowerCase()}`}
+          </h3>
           <p>
             {entries.length === 0
               ? "Open any book and choose Add to my library. Your library is private; only you see it."
@@ -203,8 +361,12 @@ function LibraryView({ profile }: { profile: Profile }) {
             <LibraryRow
               key={entry.bookId}
               entry={entry}
+              onDetails={onDetails}
               onStatus={(status) =>
-                run(() => library.setStatus(entry.bookId, status), `Marked as ${readingStatusLabel[status].toLowerCase()}.`)
+                run(
+                  () => library.setStatus(entry.bookId, status),
+                  `Marked as ${readingStatusLabel[status].toLowerCase()}.`,
+                )
               }
               onRemove={() => setRemoving(entry)}
             />
@@ -217,13 +379,26 @@ function LibraryView({ profile }: { profile: Profile }) {
         onClose={() => setRemoving(null)}
         size="sm"
         title="Remove this book?"
-        description={<p>Any logs you wrote about it, your place in it and its bookmarks are deleted too. This can't be undone.</p>}
+        description={
+          <p>
+            Any logs you wrote about it, your place in it and its bookmarks are
+            deleted too. This can't be undone.
+          </p>
+        }
       >
         <div className="modal-actions">
-          <button type="button" className="danger-button" onClick={confirmRemove}>
+          <button
+            type="button"
+            className="danger-button"
+            onClick={confirmRemove}
+          >
             Remove book
           </button>
-          <button type="button" className="secondary-button" onClick={() => setRemoving(null)}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setRemoving(null)}
+          >
             Keep it
           </button>
         </div>
@@ -233,50 +408,127 @@ function LibraryView({ profile }: { profile: Profile }) {
 }
 
 /** Title, author and cover for an entry: the catalog, what was saved with it, or Google Books. */
-function useEntryDetails(entry: Pick<LibraryEntry, "bookId" | "title" | "authors" | "cover">) {
+/** What sorting knows about an entry without looking anything up. */
+function sortDetails(entry: LibraryEntry): SortDetails {
   const book = getBook(entry.bookId);
-  const needsLookup = !book && !entry.title;
-  const { state } = useVolume(needsLookup ? entry.bookId : null);
-  if (book) return { title: book.title, author: book.author, cover: null, local: book, loading: false };
-  const volume = state?.status === "ready" ? state.volume : null;
+  if (book) return { title: book.title, author: book.author, year: book.year };
   return {
-    title: entry.title ?? volume?.title ?? (state?.status === "error" ? "Book details unavailable" : "Loading…"),
-    author: (entry.authors ?? volume?.authors ?? []).join(", ") || "Unknown author",
-    cover: entry.cover ?? volume?.cover ?? null,
-    local: undefined,
-    loading: needsLookup && state?.status === "loading",
+    title: entry.title ?? "",
+    author: (entry.authors ?? []).join(", "),
+    year: publishedYear(entry.published),
   };
 }
 
-function SmallCover({ bookId, details }: { bookId: string; details: ReturnType<typeof useEntryDetails> }) {
+function useEntryDetails(
+  entry: Pick<
+    LibraryEntry,
+    "bookId" | "title" | "authors" | "cover" | "published"
+  >,
+) {
+  const book = getBook(entry.bookId);
+  const needsLookup = !book && !entry.title;
+  const { state } = useVolume(needsLookup ? entry.bookId : null);
+  if (book)
+    return {
+      title: book.title,
+      author: book.author,
+      cover: null,
+      local: book,
+      loading: false,
+      year: book.year,
+    };
+  const volume = state?.status === "ready" ? state.volume : null;
+  return {
+    title:
+      entry.title ??
+      volume?.title ??
+      (state?.status === "error" ? "Book details unavailable" : "Loading…"),
+    author:
+      (entry.authors ?? volume?.authors ?? []).join(", ") || "Unknown author",
+    cover: entry.cover ?? volume?.cover ?? null,
+    local: undefined,
+    loading: needsLookup && state?.status === "loading",
+    year: publishedYear(entry.published ?? volume?.publishedDate),
+    looked: volume !== null,
+  };
+}
+
+function SmallCover({
+  bookId,
+  details,
+}: {
+  bookId: string;
+  details: ReturnType<typeof useEntryDetails>;
+}) {
   const [broken, setBroken] = useState(false);
   if (details.local) return <Cover book={details.local} size="sm" />;
   if (details.cover && !broken) {
     return (
       <span className="book-cover cover-sm cover-photo">
-        <img {...ESSENTIAL} src={details.cover} alt="" referrerPolicy="no-referrer" loading="lazy" onError={() => setBroken(true)} />
+        <img
+          {...ESSENTIAL}
+          src={details.cover}
+          alt=""
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          onError={() => setBroken(true)}
+        />
       </span>
     );
   }
-  return <Cover book={{ cover: fallbackCover(bookId), genres: [], title: details.title, author: details.author }} size="sm" />;
+  return (
+    <Cover
+      book={{
+        cover: fallbackCover(bookId),
+        genres: [],
+        title: details.title,
+        author: details.author,
+      }}
+      size="sm"
+    />
+  );
 }
 
 function LibraryRow({
   entry,
+  onDetails,
   onStatus,
   onRemove,
 }: {
   entry: LibraryEntry;
+  onDetails: (bookId: string, details: SortDetails) => void;
   onStatus: (status: ReadingStatus) => Promise<boolean>;
   onRemove: () => void;
 }) {
   const details = useEntryDetails(entry);
+  const looked = "looked" in details && details.looked;
+  // A Google Books title looked up here tells the list, so it sorts by its real title and year.
+  useEffect(() => {
+    if (looked)
+      onDetails(entry.bookId, {
+        title: details.title,
+        author: details.author,
+        year: details.year,
+      });
+  }, [
+    looked,
+    entry.bookId,
+    details.title,
+    details.author,
+    details.year,
+    onDetails,
+  ]);
   const selectId = useId();
   const [saving, setSaving] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   return (
     <li className="library-row" aria-busy={details.loading}>
-      <Link to={`/books/${entry.bookId}`} className="library-row-cover" tabIndex={-1} aria-hidden="true">
+      <Link
+        to={`/books/${entry.bookId}`}
+        className="library-row-cover"
+        tabIndex={-1}
+        aria-hidden="true"
+      >
         <SmallCover bookId={entry.bookId} details={details} />
       </Link>
       <div className="library-row-copy">
@@ -308,18 +560,35 @@ function LibraryRow({
           ))}
         </select>
         {usesBackend && (
-          <button type="button" className="ghost-button small-button" onClick={() => setSummaryOpen(true)}>
-            <Icon name="bookOpen" size={15} /> Summary<span className="visually-hidden"> of {details.title}</span>
+          <button
+            type="button"
+            className="ghost-button small-button"
+            onClick={() => setSummaryOpen(true)}
+          >
+            <Icon name="bookOpen" size={15} /> Summary
+            <span className="visually-hidden"> of {details.title}</span>
           </button>
         )}
-        <button type="button" className="ghost-button small-button" onClick={onRemove}>
-          <Icon name="trash" size={15} /> Remove<span className="visually-hidden"> {details.title}</span>
+        <button
+          type="button"
+          className="ghost-button small-button"
+          onClick={onRemove}
+        >
+          <Icon name="trash" size={15} /> Remove
+          <span className="visually-hidden"> {details.title}</span>
         </button>
       </div>
       {usesBackend && (
-        <Dialog open={summaryOpen} onClose={() => setSummaryOpen(false)} eyebrow="Written by AI" title={`${details.title}: summary`}>
+        <Dialog
+          open={summaryOpen}
+          onClose={() => setSummaryOpen(false)}
+          eyebrow="Written by AI"
+          title={`${details.title}: summary`}
+        >
           {/* Mounted only while open, so a summary is asked for only when someone wants it. */}
-          {summaryOpen && <BookSummary bookId={entry.bookId} title={details.title} inDialog />}
+          {summaryOpen && (
+            <BookSummary bookId={entry.bookId} title={details.title} inDialog />
+          )}
         </Dialog>
       )}
     </li>
@@ -337,7 +606,10 @@ function FavoritesView({ profile }: { profile: Profile }) {
       <div className="library-empty">
         <Icon name="star" size={28} />
         <h3>No favorites yet</h3>
-        <p>Choose Favorite on any book's page, from LiteraryWorm or Google Books, to keep it here.</p>
+        <p>
+          Choose Favorite on any book's page, from LiteraryWorm or Google Books,
+          to keep it here.
+        </p>
       </div>
     );
   }
@@ -363,10 +635,15 @@ function ListsView({ profile }: { profile: Profile }) {
   const [busy, setBusy] = useState(false);
   const lists = collections.lists;
   const sharing = lists.find((l) => l.id === sharingId) ?? null;
-  const libraryBooks = Object.values(library.entries).filter((e) => visibleTo(profile, e.bookId));
+  const libraryBooks = Object.values(library.entries).filter((e) =>
+    visibleTo(profile, e.bookId),
+  );
 
   /** Runs a save; a failure shows above the lists and changes nothing. */
-  async function run(work: () => Promise<void>, done: string): Promise<boolean> {
+  async function run(
+    work: () => Promise<void>,
+    done: string,
+  ): Promise<boolean> {
     setBusy(true);
     setError(null);
     try {
@@ -374,7 +651,11 @@ function ListsView({ profile }: { profile: Profile }) {
       setAnnouncement(done);
       return true;
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof AccountError
+          ? err.message
+          : "Something went wrong. Try again.",
+      );
       return false;
     } finally {
       setBusy(false);
@@ -384,10 +665,24 @@ function ListsView({ profile }: { profile: Profile }) {
   /** Moves a list, keeping keyboard focus on its move buttons even when one becomes disabled at an end. */
   async function move(list: CustomList, from: number, by: -1 | 1) {
     const to = from + by;
-    if (!(await run(() => collections.moveList(list.id, by), `${list.name} moved to position ${to + 1} of ${lists.length}.`))) return;
+    if (
+      !(await run(
+        () => collections.moveList(list.id, by),
+        `${list.name} moved to position ${to + 1} of ${lists.length}.`,
+      ))
+    )
+      return;
     const atEnd = to === 0 || to === lists.length - 1;
-    const keep = atEnd ? (by === -1 ? "down" : "up") : by === -1 ? "up" : "down";
-    requestAnimationFrame(() => document.getElementById(`move-${keep}-${list.id}`)?.focus());
+    const keep = atEnd
+      ? by === -1
+        ? "down"
+        : "up"
+      : by === -1
+        ? "up"
+        : "down";
+    requestAnimationFrame(() =>
+      document.getElementById(`move-${keep}-${list.id}`)?.focus(),
+    );
   }
 
   return (
@@ -396,7 +691,12 @@ function ListsView({ profile }: { profile: Profile }) {
         <h2 id="lists-title" tabIndex={-1}>
           Your lists
         </h2>
-        <button type="button" className="primary-button" disabled={lists.length >= LISTS_MAX} onClick={() => setEditing("new")}>
+        <button
+          type="button"
+          className="primary-button"
+          disabled={lists.length >= LISTS_MAX}
+          onClick={() => setEditing("new")}
+        >
           <Icon name="plus" size={17} /> New list
         </button>
       </div>
@@ -414,7 +714,10 @@ function ListsView({ profile }: { profile: Profile }) {
         <div className="library-empty">
           <Icon name="list" size={28} />
           <h3>No lists yet</h3>
-          <p>Make a list for a book club, a holiday stack or anything else, then add books from your library.</p>
+          <p>
+            Make a list for a book club, a holiday stack or anything else, then
+            add books from your library.
+          </p>
         </div>
       ) : (
         <ol className="custom-lists" role="list">
@@ -432,7 +735,8 @@ function ListsView({ profile }: { profile: Profile }) {
                   </h3>
                   {list.description && <p>{list.description}</p>}
                   <small>
-                    {list.bookIds.length} {list.bookIds.length === 1 ? "book" : "books"}
+                    {list.bookIds.length}{" "}
+                    {list.bookIds.length === 1 ? "book" : "books"}
                   </small>
                 </div>
                 <div className="custom-list-actions">
@@ -454,41 +758,75 @@ function ListsView({ profile }: { profile: Profile }) {
                     onClick={() => move(list, i, 1)}
                   >
                     <Icon name="chevronDown" size={18} />
-                    <span className="visually-hidden">Move {list.name} down</span>
+                    <span className="visually-hidden">
+                      Move {list.name} down
+                    </span>
                   </button>
                   {collections.canShare && (
-                    <button type="button" className="ghost-button small-button" onClick={() => setSharingId(list.id)}>
-                      <Icon name="share" size={15} /> Share<span className="visually-hidden"> {list.name}</span>
+                    <button
+                      type="button"
+                      className="ghost-button small-button"
+                      onClick={() => setSharingId(list.id)}
+                    >
+                      <Icon name="share" size={15} /> Share
+                      <span className="visually-hidden"> {list.name}</span>
                     </button>
                   )}
-                  <button type="button" className="ghost-button small-button" onClick={() => setEditing(list)}>
-                    <Icon name="edit" size={15} /> Rename<span className="visually-hidden"> {list.name}</span>
+                  <button
+                    type="button"
+                    className="ghost-button small-button"
+                    onClick={() => setEditing(list)}
+                  >
+                    <Icon name="edit" size={15} /> Rename
+                    <span className="visually-hidden"> {list.name}</span>
                   </button>
-                  <button type="button" className="ghost-button small-button danger-text" onClick={() => setDeleting(list)}>
-                    <Icon name="trash" size={15} /> Delete<span className="visually-hidden"> {list.name}</span>
+                  <button
+                    type="button"
+                    className="ghost-button small-button danger-text"
+                    onClick={() => setDeleting(list)}
+                  >
+                    <Icon name="trash" size={15} /> Delete
+                    <span className="visually-hidden"> {list.name}</span>
                   </button>
                 </div>
               </div>
-              <ListBooks list={list} libraryBooks={libraryBooks} busy={busy} run={run} />
+              <ListBooks
+                list={list}
+                libraryBooks={libraryBooks}
+                busy={busy}
+                run={run}
+              />
             </li>
           ))}
         </ol>
       )}
       {lists.length > 0 && !collections.canShare && (
         <p className="list-hint">
-          {collections.remote ? "Kids profiles can't share lists." : "Sharing a list by link needs a LiteraryWorm account; the demo can't publish links."}
+          {collections.remote
+            ? "Kids profiles can't share lists."
+            : "Sharing a list by link needs a LiteraryWorm account; the demo can't publish links."}
         </p>
       )}
 
-      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "New list" : "Rename list"} size="sm">
+      <Dialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing === "new" ? "New list" : "Rename list"}
+        size="sm"
+      >
         {editing !== null && (
           <ListForm
             initial={editing === "new" ? null : editing}
-            taken={lists.filter((l) => editing === "new" || l.id !== editing.id).map((l) => l.name.toLowerCase())}
+            taken={lists
+              .filter((l) => editing === "new" || l.id !== editing.id)
+              .map((l) => l.name.toLowerCase())}
             onSave={async (name, description) => {
-              if (editing === "new") await collections.createList(name, description);
+              if (editing === "new")
+                await collections.createList(name, description);
               else await collections.updateList(editing.id, name, description);
-              setAnnouncement(editing === "new" ? `Created ${name}.` : `Saved ${name}.`);
+              setAnnouncement(
+                editing === "new" ? `Created ${name}.` : `Saved ${name}.`,
+              );
               setEditing(null);
             }}
           />
@@ -502,7 +840,9 @@ function ListsView({ profile }: { profile: Profile }) {
         title={`Delete ${deleting?.name ?? "this list"}?`}
         description={
           <p>
-            The books stay in your library.{deleting?.shareSlug ? " Its shared link stops working." : ""} This can't be undone.
+            The books stay in your library.
+            {deleting?.shareSlug ? " Its shared link stops working." : ""} This
+            can't be undone.
           </p>
         }
       >
@@ -515,14 +855,25 @@ function ListsView({ profile }: { profile: Profile }) {
               if (!deleting) return;
               const list = deleting;
               setDeleting(null);
-              if (await run(() => collections.deleteList(list.id), `Deleted ${list.name}.`)) {
-                requestAnimationFrame(() => document.getElementById("lists-title")?.focus());
+              if (
+                await run(
+                  () => collections.deleteList(list.id),
+                  `Deleted ${list.name}.`,
+                )
+              ) {
+                requestAnimationFrame(() =>
+                  document.getElementById("lists-title")?.focus(),
+                );
               }
             }}
           >
             Delete list
           </button>
-          <button type="button" className="secondary-button" onClick={() => setDeleting(null)}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setDeleting(null)}
+          >
             Keep it
           </button>
         </div>
@@ -557,13 +908,19 @@ function ListForm({
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return setError("Give the list a name.");
-    if (trimmed.length > LIST_NAME_MAX) return setError(`Names can be up to ${LIST_NAME_MAX} characters.`);
-    if (taken.includes(trimmed.toLowerCase())) return setError("You already have a list with this name.");
+    if (trimmed.length > LIST_NAME_MAX)
+      return setError(`Names can be up to ${LIST_NAME_MAX} characters.`);
+    if (taken.includes(trimmed.toLowerCase()))
+      return setError("You already have a list with this name.");
     setSaving(true);
     try {
       await onSave(trimmed, description);
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof AccountError
+          ? err.message
+          : "Something went wrong. Try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -595,7 +952,11 @@ function ListForm({
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
-      <button type="submit" className="primary-button modal-submit" disabled={saving}>
+      <button
+        type="submit"
+        className="primary-button modal-submit"
+        disabled={saving}
+      >
         {saving ? "Saving…" : initial ? "Save list" : "Create list"}
       </button>
     </form>
@@ -627,7 +988,11 @@ function ShareDialog({
     try {
       await work();
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof AccountError
+          ? err.message
+          : "Something went wrong. Try again.",
+      );
     } finally {
       setBusy(false);
     }
@@ -640,7 +1005,9 @@ function ShareDialog({
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError("Your browser didn't allow copying. Select the link and copy it yourself.");
+      setError(
+        "Your browser didn't allow copying. Select the link and copy it yourself.",
+      );
     }
   }
 
@@ -657,8 +1024,9 @@ function ShareDialog({
       title={list?.name ?? "Share list"}
       description={
         <p>
-          Anyone with the link can see this list's name, description, your profile's name and its books. They never see your
-          account, library or reading history.
+          Anyone with the link can see this list's name, description, your
+          profile's name and its books. They never see your account, library or
+          reading history.
         </p>
       }
     >
@@ -670,21 +1038,43 @@ function ShareDialog({
                 Link to this list
               </label>
               <div className="share-link-row">
-                <input id={linkId} className="field-input" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
-                <button type="button" className="secondary-button" onClick={copy}>
-                  <Icon name={copied ? "check" : "share"} size={16} /> {copied ? "Copied" : "Copy link"}
+                <input
+                  id={linkId}
+                  className="field-input"
+                  readOnly
+                  value={link}
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={copy}
+                >
+                  <Icon name={copied ? "check" : "share"} size={16} />{" "}
+                  {copied ? "Copied" : "Copy link"}
                 </button>
               </div>
               <p className="visually-hidden" role="status">
                 {copied ? "Link copied." : ""}
               </p>
-              <button type="button" className="text-button danger-text" disabled={busy} onClick={() => attempt(() => onStop(list.id))}>
+              <button
+                type="button"
+                className="text-button danger-text"
+                disabled={busy}
+                onClick={() => attempt(() => onStop(list.id))}
+              >
                 {busy ? "Stopping…" : "Stop sharing"}
               </button>
             </>
           ) : (
-            <button type="button" className="primary-button" disabled={busy} onClick={() => attempt(() => onShare(list.id))}>
-              <Icon name="share" size={16} /> {busy ? "Making a link…" : "Share by link"}
+            <button
+              type="button"
+              className="primary-button"
+              disabled={busy}
+              onClick={() => attempt(() => onShare(list.id))}
+            >
+              <Icon name="share" size={16} />{" "}
+              {busy ? "Making a link…" : "Share by link"}
             </button>
           )}
           {error && (
@@ -720,14 +1110,23 @@ function ListBooks({
   return (
     <div className="list-books">
       {list.bookIds.length > 0 && (
-        <ul className="list-book-items" role="list" aria-labelledby={`list-${list.id}`}>
+        <ul
+          className="list-book-items"
+          role="list"
+          aria-labelledby={`list-${list.id}`}
+        >
           {list.bookIds.map((bookId) => (
             <ListBookItem
               key={bookId}
               bookId={bookId}
               entry={libraryBooks.find((e) => e.bookId === bookId)}
               busy={busy}
-              onRemove={(title) => run(() => removeFromList(list.id, bookId), `Removed ${title} from ${list.name}.`)}
+              onRemove={(title) =>
+                run(
+                  () => removeFromList(list.id, bookId),
+                  `Removed ${title} from ${list.name}.`,
+                )
+              }
             />
           ))}
         </ul>
@@ -738,28 +1137,49 @@ function ListBooks({
           onSubmit={async (e) => {
             e.preventDefault();
             if (!choice) return;
-            if (await run(() => addToList(list.id, choice), `Added to ${list.name}.`)) setChoice("");
+            if (
+              await run(
+                () => addToList(list.id, choice),
+                `Added to ${list.name}.`,
+              )
+            )
+              setChoice("");
           }}
         >
           <label className="field-label" htmlFor={selectId}>
             Add a book from your library
           </label>
           <div className="list-add-row">
-            <select id={selectId} className="field-input" value={choice} onChange={(e) => setChoice(e.target.value)}>
+            <select
+              id={selectId}
+              className="field-input"
+              value={choice}
+              onChange={(e) => setChoice(e.target.value)}
+            >
               <option value="">Choose a book</option>
               {addable.map((e) => (
                 <BookOption key={e.bookId} entry={e} />
               ))}
             </select>
-            <button type="submit" className="secondary-button" disabled={!choice || busy}>
+            <button
+              type="submit"
+              className="secondary-button"
+              disabled={!choice || busy}
+            >
               Add
             </button>
           </div>
         </form>
       ) : full ? (
-        <p className="list-hint">This list is full: a list can hold up to {LIST_BOOKS_MAX} books.</p>
+        <p className="list-hint">
+          This list is full: a list can hold up to {LIST_BOOKS_MAX} books.
+        </p>
       ) : (
-        list.bookIds.length === 0 && <p className="list-hint">Add books to your library first, then put them in this list.</p>
+        list.bookIds.length === 0 && (
+          <p className="list-hint">
+            Add books to your library first, then put them in this list.
+          </p>
+        )
       )}
     </div>
   );
@@ -786,9 +1206,16 @@ function ListBookItem({
     <li>
       <Link to={`/books/${bookId}`}>{details.title}</Link>
       <span>{details.author}</span>
-      <button type="button" className="icon-button" disabled={busy} onClick={() => onRemove(details.title)}>
+      <button
+        type="button"
+        className="icon-button"
+        disabled={busy}
+        onClick={() => onRemove(details.title)}
+      >
         <Icon name="close" size={15} />
-        <span className="visually-hidden">Remove {details.title} from this list</span>
+        <span className="visually-hidden">
+          Remove {details.title} from this list
+        </span>
       </button>
     </li>
   );

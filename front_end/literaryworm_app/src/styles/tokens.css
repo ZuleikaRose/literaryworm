@@ -82,22 +82,38 @@
   --paper-light-mark-green: #cdeac1;
   --paper-light-mark-blue: #cfe1f6;
   --paper-light-mark-pink: #f7d1de;
+  --paper-light-mark-orange: #fbd3ad;
+  --paper-light-mark-purple: #ddd2f3;
+  --paper-light-mark-teal: #bfe6e2;
+  --paper-light-mark-red: #f5c2bd;
   --paper-sepia-mark-yellow: #f0d47a;
   --paper-sepia-mark-green: #c6dba6;
   --paper-sepia-mark-blue: #c3d5e0;
   --paper-sepia-mark-pink: #ebbfc3;
+  --paper-sepia-mark-orange: #edbf8c;
+  --paper-sepia-mark-purple: #d3c3df;
+  --paper-sepia-mark-teal: #b4d6cc;
+  --paper-sepia-mark-red: #e6aea3;
   --paper-dark-mark-yellow: #5a4814;
   --paper-dark-mark-green: #2c4a2b;
   --paper-dark-mark-blue: #23405f;
   --paper-dark-mark-pink: #5b2638;
+  --paper-dark-mark-orange: #5e3a16;
+  --paper-dark-mark-purple: #3f2d5e;
+  --paper-dark-mark-teal: #164a47;
+  --paper-dark-mark-red: #622420;
 }
 
-/* The same four colours at full strength: swatches, and the colour bar beside a quote. */
+/* The same eight colours at full strength: swatches, and the colour bar beside a quote. */
 :root {
   --mark-yellow: #e2b53a;
   --mark-green: #5aa863;
   --mark-blue: #5591d4;
   --mark-pink: #d9688a;
+  --mark-orange: #e28a3a;
+  --mark-purple: #9a7ad6;
+  --mark-teal: #3aa9a0;
+  --mark-red: #d4554a;
 }
 
 :root[data-theme="light"] {

@@ -6668,3 +6668,327 @@ update public.legal_pages
 set sections = replace(sections::text, $lw$which sends only the search words, book ids$lw$, $lw$which sends only the search words or ISBN, book ids$lw$)::jsonb
 where slug in ($lw$privacy$lw$)
   and strpos(sections::text, $lw$which sends only the search words, book ids$lw$) > 0;
+
+-- =============================================================================
+-- 20261031006500_saved_words.sql
+-- =============================================================================
+-- My words: words a profile looked up in the reader's dictionary and kept.
+--
+-- Per profile, like follows: the word (lower case, the dictionary's own rules),
+-- its first sense, the book, chapter and page it was met on and the sentence
+-- around it. Practise marks words as known (`learned`, the only column that
+-- changes). Up to 500 a profile. Deleting the profile (or the account) deletes
+-- them through the foreign key.
+
+create table public.saved_words (
+  profile_id    uuid not null,
+  user_id       uuid not null,
+  word          text not null check (char_length(word) between 1 and 40 and word ~ '^[a-z]+([''-][a-z]+)*$'),
+  definition    text check (definition is null or char_length(btrim(definition)) between 1 and 500),
+  volume_id     text check (volume_id is null or char_length(volume_id) between 1 and 64),
+  chapter_index smallint check (chapter_index is null or chapter_index between 0 and 999),
+  page          smallint check (page is null or page between 0 and 999),
+  context       text check (context is null or char_length(btrim(context)) between 1 and 400),
+  learned       boolean not null default false,
+  created_at    timestamptz not null default now(),
+  -- Leads with (profile_id, user_id), so it also indexes the foreign key.
+  primary key (profile_id, user_id, word),
+  foreign key (profile_id, user_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+create or replace function private.enforce_saved_word_limit()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if (select count(*) from public.saved_words where profile_id = new.profile_id) >= 500 then
+    raise exception 'A profile can keep up to 500 words' using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function private.enforce_saved_word_limit() from public, anon, authenticated;
+
+create trigger saved_words_limit
+  before insert on public.saved_words
+  for each row execute function private.enforce_saved_word_limit();
+
+alter table public.saved_words enable row level security;
+
+create policy "Readers see their own words" on public.saved_words for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Readers keep words for their own profiles" on public.saved_words for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Readers mark their own words" on public.saved_words for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+create policy "Readers remove their own words" on public.saved_words for delete to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Two-step sign-in when turned on" on public.saved_words as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.saved_words from anon, authenticated;
+grant select, delete on public.saved_words to authenticated;
+grant insert (profile_id, user_id, word, definition, volume_id, chapter_index, page, context) on public.saved_words to authenticated;
+grant update (learned) on public.saved_words to authenticated;
+
+-- =============================================================================
+-- 20261031006501_more_highlight_colours.sql
+-- =============================================================================
+-- Eight highlight colours instead of four: orange, purple, teal and red join
+-- yellow, green, blue and pink. Existing highlights keep their colour.
+
+alter type public.highlight_color add value if not exists 'orange';
+alter type public.highlight_color add value if not exists 'purple';
+alter type public.highlight_color add value if not exists 'teal';
+alter type public.highlight_color add value if not exists 'red';
+
+-- =============================================================================
+-- 20261031006502_reading_pace.sql
+-- =============================================================================
+-- Time left: each profile's reading pace, in words a minute.
+--
+-- The reader learns it from how long the profile stays on each page and saves it
+-- here in the background, so every device works out the time left in a chapter
+-- and the book from the same pace. Null until the reader has one (it then uses a
+-- usual pace of 230 words a minute).
+
+alter table public.reader_profiles
+  add column reading_wpm smallint check (reading_wpm is null or reading_wpm between 60 and 1000);
+
+grant select (reading_wpm) on public.reader_profiles to authenticated;
+grant update (reading_wpm) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261031006503_up_next.sql
+-- =============================================================================
+-- Up next: each profile's listening queue, catalog audiobooks in the order
+-- they'll play. When a book finishes, the player offers the first one. Up to
+-- 50 book ids, each a valid volume id.
+
+alter table public.reader_profiles
+  add column up_next text[] not null default '{}'
+    check (cardinality(up_next) <= 50 and array_position(up_next, null) is null);
+
+grant select (up_next) on public.reader_profiles to authenticated;
+grant update (up_next) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261031006504_chapter_quizzes.sql
+-- =============================================================================
+-- Chapter quizzes: for a public-domain title, a few multiple-choice questions about one
+-- chapter, written for young readers. The `quiz` Edge Function asks Claude for a chapter's
+-- quiz the first time anyone needs it (sending only that chapter's text) and keeps it here,
+-- so every later reader gets the same quiz.
+--
+-- `chapter_quizzes` is the function's alone (service_role); browser roles have no access and
+-- go through the function. Nothing in it is about any member.
+--
+-- `quiz_results` is each profile's score per book and chapter (the latest try), so grown-ups
+-- see a Kids profile's quizzes in Account -> Family. Private to the account, like goals.
+
+create table public.chapter_quizzes (
+  volume_id     text        not null check (volume_id ~ '^[A-Za-z0-9_-]{1,40}$'),
+  -- 0-based, like the reader's chapter index.
+  chapter_index smallint    not null check (chapter_index between 0 and 999),
+  -- [{ question, choices, answer, explanation }], checked by the function before it's kept.
+  questions     jsonb       not null check (jsonb_typeof(questions) = 'array' and jsonb_array_length(questions) between 3 and 5),
+  -- The Claude model that wrote it, so quizzes can be rewritten when the model changes.
+  model         text        not null check (char_length(model) between 1 and 80),
+  created_at    timestamptz not null default now(),
+  primary key (volume_id, chapter_index)
+);
+
+alter table public.chapter_quizzes enable row level security;
+revoke all on public.chapter_quizzes from public, anon, authenticated;
+
+create policy "No browser access to chapter quizzes"
+  on public.chapter_quizzes as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+create table public.quiz_results (
+  profile_id    uuid        not null,
+  user_id       uuid        not null,
+  volume_id     text        not null check (volume_id ~ '^[A-Za-z0-9_-]{1,40}$'),
+  chapter_index smallint    not null check (chapter_index between 0 and 999),
+  score         smallint    not null check (score between 0 and 5),
+  out_of        smallint    not null check (out_of between 3 and 5 and score <= out_of),
+  taken_at      timestamptz not null default now(),
+  -- Leads with (profile_id, user_id), so it also indexes the foreign key.
+  primary key (profile_id, user_id, volume_id, chapter_index),
+  foreign key (profile_id, user_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+alter table public.quiz_results enable row level security;
+
+create policy "Readers see their household's quiz results" on public.quiz_results for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Readers record quiz results for their own profiles" on public.quiz_results for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Readers record a new try" on public.quiz_results for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+create policy "Readers remove quiz results" on public.quiz_results for delete to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Two-step sign-in when turned on" on public.quiz_results as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.quiz_results from anon, authenticated;
+grant select, delete on public.quiz_results to authenticated;
+grant insert (profile_id, user_id, volume_id, chapter_index, score, out_of, taken_at) on public.quiz_results to authenticated;
+grant update (score, out_of, taken_at) on public.quiz_results to authenticated;
+
+-- =============================================================================
+-- 20261031006505_reader_follows.sql
+-- =============================================================================
+-- Following readers: a member can turn on a reader page (profiles.public_reader, off
+-- by default), which lists the logs they publish under their display name; other
+-- members' grown-up and teen profiles can then follow them and see their newest logs
+-- in My Library -> Readers. Logs and display names were already public; the switch
+-- only gathers a reader's logs on one page and lets others follow it.
+--
+-- Who follows whom is private: only the follower's account reads its rows (no counts
+-- are shown). A reader can't be followed unless their page is on, nobody follows
+-- themselves, and turning the page off removes every follow of it. Up to 200 a profile.
+
+alter table public.profiles add column public_reader boolean not null default false;
+
+grant select (public_reader) on public.profiles to anon, authenticated;
+grant update (public_reader) on public.profiles to authenticated;
+
+create table public.reader_follows (
+  profile_id uuid not null,
+  user_id    uuid not null,
+  reader_id  uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  check (reader_id <> user_id),
+  -- Leads with (profile_id, user_id), so it also indexes that foreign key; reader_id's
+  -- index is in the 6506 migration.
+  primary key (profile_id, user_id, reader_id),
+  foreign key (profile_id, user_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+create or replace function private.enforce_reader_follow()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not exists (select 1 from public.profiles where id = new.reader_id and public_reader) then
+    raise exception 'This reader''s page isn''t open to followers' using errcode = 'insufficient_privilege';
+  end if;
+  if exists (select 1 from public.reader_profiles where id = new.profile_id and age_rating = 'kids') then
+    raise exception 'Kids profiles don''t follow readers' using errcode = 'insufficient_privilege';
+  end if;
+  if (select count(*) from public.reader_follows where profile_id = new.profile_id) >= 200 then
+    raise exception 'A profile can follow up to 200 readers' using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function private.enforce_reader_follow() from public, anon, authenticated;
+
+create trigger reader_follows_check
+  before insert on public.reader_follows
+  for each row execute function private.enforce_reader_follow();
+
+-- Turning the reader page off removes its followers.
+create or replace function private.drop_reader_followers()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  delete from public.reader_follows where reader_id = new.id;
+  return new;
+end;
+$$;
+revoke execute on function private.drop_reader_followers() from public, anon, authenticated;
+
+create trigger profiles_reader_page_off
+  after update of public_reader on public.profiles
+  for each row when (old.public_reader and not new.public_reader)
+  execute function private.drop_reader_followers();
+
+alter table public.reader_follows enable row level security;
+
+create policy "Readers see who they follow" on public.reader_follows for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Readers follow for their own profiles" on public.reader_follows for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Readers unfollow" on public.reader_follows for delete to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Two-step sign-in when turned on" on public.reader_follows as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.reader_follows from anon, authenticated;
+grant select, delete on public.reader_follows to authenticated;
+grant insert (profile_id, user_id, reader_id) on public.reader_follows to authenticated;
+
+-- =============================================================================
+-- 20261031006506_index_reader_follows_reader_id.sql
+-- =============================================================================
+create index concurrently if not exists reader_follows_reader_id_idx on public.reader_follows (reader_id);
+
+-- =============================================================================
+-- 20261031006507_whats_new_reading_tools.sql
+-- =============================================================================
+-- What's new: My words, export, series, time left, Up next, badges, shortcuts, chapter quizzes,
+-- following readers, car mode and casting, eight highlight colours, sorting My library, author and ISBN
+-- in the header search (src/data/changelog.json has the same).
+-- Data only; each skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Eight highlight colours$lw$, $lw$Highlights now come in eight colours: orange, purple, teal and red join yellow, green, blue and pink.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Eight highlight colours$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Keyboard shortcuts in the reader$lw$, $lw$Press ? in the reader to see its shortcuts: the arrows turn pages, C opens the chapters, N your notes, B bookmarks the page, D the dictionary and T the display settings.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Keyboard shortcuts in the reader$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Badges$lw$, $lw$My Library → Badges shows 14 milestones, from a first finish and a week in a row to Explorer, Classic reader and Series complete, with progress towards each. A new badge shows in the bell for a week.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Badges$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Time left$lw$, $lw$The reader shows about how long the rest of the chapter and the book will take, at your own pace, which it learns as you read (and remembers on all your devices). The player shows the time left at your speed.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Time left$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Export your notes and highlights$lw$, $lw$Save a book's notes and highlights as Markdown or plain text from the reader's Notes and highlights, or every book's at once from My Library → Notes. The file is made on your device; nothing is uploaded.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Export your notes and highlights$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$My words$lw$, $lw$In the reader's dictionary, Keep in My words saves a word with its meaning and the sentence it came from. Find them in My Library → Words, and Practise them as flashcards: the word first, then its meaning, I knew it or Not yet.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$My words$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Series pages$lw$, $lw$Books in a series now say so (Book 2 of 6 in Anne of Green Gables) and link to the series page, with every book in reading order and where you are. Finish one and Home's Continue the series row offers the next; the end of a book names it too. 40 series to start, from Oz and Sherlock Holmes to Barsetshire.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Series pages$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Up next$lw$, $lw$Line up audiobooks with Add to Up next on a book's page. When a book finishes, the player and the mini-player offer the next one, from your place in it. Reorder or remove them in My Library → Up next.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Up next$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Car mode and casting$lw$, $lw$The player has a Car mode: five big buttons, the title and the time left, and the screen kept on. Where your browser can, Cast to a speaker or TV plays a classic's recording on a Chromecast or AirPlay device. Both are in the mini-player's More menu too.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Car mode and casting$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Chapter quizzes$lw$, $lw$In the reader of a classic, Chapter quiz asks a few questions about the chapter you're on, with the answer explained after each, for every profile, Kids included. The questions are written by AI from that chapter only, so nothing later is given away, and nothing about you is sent. Grown-ups see a Kids profile's quizzes in Account → Family.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Chapter quizzes$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Follow other readers$lw$, $lw$Members can now follow other readers who share their logs. Turn on Let other readers follow me in Account → Preferences to get a reader page with the logs you publish; on a book's page, a sharing reader's name opens theirs, with Follow. Their newest logs are in My Library → Readers. Only you see who you follow, your library and reading stay private, and turning your page off removes your followers.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Follow other readers$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Sort My library$lw$, $lw$Sort My library by title (A–Z or Z–A), with titles that start with a number first, by author, by when you added a book or last changed it, or by when it was published. Uploads sort by the date you uploaded them. Your choice stays in the address with the Show filter.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Sort My library$lw$ and c.version = $lw$2026.10$lw$);
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Search by author or ISBN from the header$lw$, $lw$The search box at the top of every page now has Title, Author and ISBN (ISBN for grown-up and teen profiles, since it looks on Google Books), so you can search the way you like without opening Search first.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Search by author or ISBN from the header$lw$ and c.version = $lw$2026.10$lw$);

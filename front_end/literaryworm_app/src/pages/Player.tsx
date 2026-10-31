@@ -1,8 +1,9 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { CarMode } from "../components/CarMode";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
-import { DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "../components/PlayerControls";
+import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "../components/PlayerControls";
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
@@ -10,6 +11,7 @@ import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
 import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
 import { usePlayerControls } from "../lib/usePlayerControls";
+import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { useTitle } from "../lib/useTitle";
 import { useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
@@ -34,6 +36,9 @@ function PlayerView({ book }: { book: Book }) {
   const playback = usePlayback();
   const { open } = playback;
   const controls = usePlayerControls(book);
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const carMode = params.get("view") === "car";
   const { starts, total, places, player, settings } = controls;
   const bookmarks = activeReading(state)
     .bookmarks.filter((b) => b.bookId === book.id)
@@ -90,6 +95,7 @@ function PlayerView({ book }: { book: Book }) {
     return <ListeningAllowanceUsed {...live.allowance} bookId={book.id} />;
   }
 
+  if (carMode && !live.limitReached) return <CarMode book={book} controls={controls} />;
   if (live.limitReached && live.limitMinutes !== null) {
     return <DailyLimitReached limitMinutes={live.limitMinutes} onAllowMore={playback.allowMore} />;
   }
@@ -162,7 +168,20 @@ function PlayerView({ book }: { book: Book }) {
           )}
 
           {finished ? (
-            <FinishedPanel book={book} onRestart={playback.restart} />
+            <FinishedPanel
+              book={book}
+              onRestart={playback.restart}
+              upNext={
+                controls.upNext && {
+                  book: controls.upNext.book,
+                  play: () => {
+                    const next = controls.upNext!.book.id;
+                    controls.upNext!.play();
+                    navigate(`/listen/${next}`);
+                  },
+                }
+              }
+            />
           ) : (
             <>
               <div className="progress-track player-progress">
@@ -201,6 +220,13 @@ function PlayerView({ book }: { book: Book }) {
                 </span>
               </p>
 
+              {!live.finished && (
+                <p className="player-pace">
+                  {player.speed === 1 ? "" : `At ${player.speed}×: `}
+                  {formatTimeLeft(listeningSecondsLeft(places.chapterEnd - position, player.speed))} left in this chapter ·{" "}
+                  {formatTimeLeft(listeningSecondsLeft(total - position, player.speed))} in the book
+                </p>
+              )}
               {live.listeningLeft && (
                 <p className={`player-allowance${live.listeningLeft.seconds <= live.listeningLeft.hours * 3600 * 0.2 ? " player-allowance-low" : ""}`}>
                   <Icon name="headphones" size={14} /> {hoursAndMinutes(live.listeningLeft.seconds)} of this month's {live.listeningLeft.hours} hours left for the
@@ -249,6 +275,13 @@ function PlayerView({ book }: { book: Book }) {
               </div>
 
               <VolumeControl className="player-volume" />
+
+              <div className="player-extras">
+                <Link className="text-button" to={`/listen/${book.id}?view=car`}>
+                  <Icon name="headphones" size={16} /> Car mode
+                </Link>
+                <CastButton recording={narration.kind === "recording"} />
+              </div>
 
               <div className="player-settings">
                 <label className="player-select">

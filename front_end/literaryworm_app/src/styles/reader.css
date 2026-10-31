@@ -10,6 +10,10 @@
   --paper-mark-green: var(--paper-sepia-mark-green);
   --paper-mark-blue: var(--paper-sepia-mark-blue);
   --paper-mark-pink: var(--paper-sepia-mark-pink);
+  --paper-mark-orange: var(--paper-sepia-mark-orange);
+  --paper-mark-purple: var(--paper-sepia-mark-purple);
+  --paper-mark-teal: var(--paper-sepia-mark-teal);
+  --paper-mark-red: var(--paper-sepia-mark-red);
   --reader-font: var(--font-reading);
 
   position: relative;
@@ -35,6 +39,10 @@
   --paper-mark-green: var(--paper-light-mark-green);
   --paper-mark-blue: var(--paper-light-mark-blue);
   --paper-mark-pink: var(--paper-light-mark-pink);
+  --paper-mark-orange: var(--paper-light-mark-orange);
+  --paper-mark-purple: var(--paper-light-mark-purple);
+  --paper-mark-teal: var(--paper-light-mark-teal);
+  --paper-mark-red: var(--paper-light-mark-red);
 }
 
 .reader-theme-dark {
@@ -47,6 +55,10 @@
   --paper-mark-green: var(--paper-dark-mark-green);
   --paper-mark-blue: var(--paper-dark-mark-blue);
   --paper-mark-pink: var(--paper-dark-mark-pink);
+  --paper-mark-orange: var(--paper-dark-mark-orange);
+  --paper-mark-purple: var(--paper-dark-mark-purple);
+  --paper-mark-teal: var(--paper-dark-mark-teal);
+  --paper-mark-red: var(--paper-dark-mark-red);
   color-scheme: dark;
 }
 
@@ -230,6 +242,13 @@
 
 .reader-position span:last-child {
   flex: none;
+}
+
+.reader-pace {
+  margin: 4px 0 0;
+  color: var(--paper-ink, var(--ink));
+  font-size: 0.8125rem;
+  text-align: center;
 }
 
 .reader-sample-note {
@@ -872,4 +891,129 @@
 :root[data-reduce-motion] .controls-hidden .reader-top,
 :root[data-reduce-motion] .controls-hidden .reader-bottom {
   transform: none;
+}
+
+.player-pace {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+/* Keyboard shortcuts are for keyboards: the button hides on touch-only screens. */
+@media (hover: none) and (pointer: coarse) {
+  .reader-shortcuts-button {
+    display: none;
+  }
+}
+
+/* ---------- Car mode ---------- */
+
+.player-extras {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 18px;
+  margin-top: 8px;
+}
+
+.player-extras .text-button {
+  min-height: 44px;
+}
+
+.car-mode {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto auto;
+  gap: 16px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  color: var(--ink);
+  background: var(--bg-deep);
+}
+
+.car-top {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.car-now {
+  align-self: center;
+  text-align: center;
+}
+
+.car-now h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.75rem, 6vw, 3rem);
+  line-height: 1.1;
+}
+
+.car-now p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: clamp(1.125rem, 3.6vw, 1.5rem);
+}
+
+.car-now .car-left {
+  margin-top: 10px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.car-controls {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 60rem);
+  margin: 0 auto;
+}
+
+.car-button {
+  display: grid;
+  min-height: 112px;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 12px 4px;
+  border: 2px solid var(--line-strong);
+  border-radius: 20px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.car-button:disabled {
+  opacity: 0.4;
+}
+
+.car-play {
+  border-color: var(--rust-bright);
+  color: var(--bg);
+  background: var(--rust-bright);
+}
+
+.car-next {
+  justify-self: center;
+  min-height: 56px;
+  font-size: 1.125rem;
+}
+
+.car-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .car-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .car-play {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 140px;
+  }
 }

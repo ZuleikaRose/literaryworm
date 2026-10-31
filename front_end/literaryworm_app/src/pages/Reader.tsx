@@ -1,4 +1,4 @@
-import { type CSSProperties, type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import {
@@ -25,10 +25,16 @@ import { useDailyLimit } from "../lib/useDailyLimit";
 import { useHighlights } from "../lib/useHighlights";
 import { useReading } from "../lib/useReading";
 import { useTitle } from "../lib/useTitle";
+import { sentenceAround, type WordSource } from "../lib/words";
+import { countWords, formatTimeLeft, readingSecondsLeft } from "../lib/pace";
+import { useReadingPace } from "../lib/useReadingPace";
+import { readerAction } from "../lib/shortcuts";
+import { ShortcutsDialog } from "../components/ShortcutsDialog";
+import { QuizDialog } from "../components/QuizDialog";
 import { useActiveProfile, useProfileData } from "../store/context";
 import type { Book, Highlight, HighlightColor } from "../types";
 
-type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | null;
+type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | "shortcuts" | "quiz" | null;
 
 export default function Reader() {
   return <ReadingGate format="ebook">{(book) => <ReaderPages key={book.id} book={book} />}</ReadingGate>;
@@ -89,6 +95,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const [editing, setEditing] = useState<{ id: string; focusNote: boolean } | null>(null);
   const [sharing, setSharing] = useState<Highlight | null>(null);
   const [dictionaryWord, setDictionaryWord] = useState("");
+  const [dictionarySource, setDictionarySource] = useState<WordSource | null>(null);
   // The place this reader last opened at or saved. A different saved place means another device
   // moved on (useReadingSync reloads it when the tab comes back), and the reader offers to go there.
   const [ownFraction, setOwnFraction] = useState(() => reading.progress?.fraction ?? 0);
@@ -110,6 +117,14 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const hereLabel = `Chapter ${page.chapterIndex + 1}, page ${page.page + 1}`;
   const paragraphs = page.paragraphs ?? samplePage(book.id, page.chapterIndex, page.page);
   const offsets = paragraphOffsets(paragraphs);
+  // Words on every page, for time left (sample pages are made up of the same placeholder prose).
+  const pageWords = useMemo(
+    () => pages.map((p) => countWords(p.paragraphs ?? samplePage(book.id, p.chapterIndex, p.page))),
+    [pages, book.id],
+  );
+  const wpm = useReadingPace(index, pageWords[index] ?? 0);
+  const wordsLeftInChapter = pageWords.reduce((n, w, i) => (i >= index && pages[i].chapterIndex === page.chapterIndex ? n + w : n), 0);
+  const wordsLeftInBook = pageWords.reduce((n, w, i) => (i >= index ? n + w : n), 0);
   const pageText = paragraphs.join("\n");
   // Only highlights whose words are still there: ones made on the sample pages before a book had
   // its real text point at different words now, so they're listed but not drawn.
@@ -204,18 +219,35 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
     reading.save({ format: "ebook", fraction: 1, chapterIndex: book.chapters.length - 1, finished: true });
   };
 
-  // Arrow keys and Page Up/Down turn pages, unless a control that uses them has focus.
-  const latest = useRef({ next, previous });
+  // Keyboard shortcuts (lib/shortcuts.ts): arrows and Page Up/Down turn pages, letters open the
+  // panels, ? lists them; not while a control that uses keys has focus, or a dialog is open.
+  const toggleBookmark = () => {
+    const here = reading.bookmarks.find((b) => b.format === "ebook" && pageForFraction(b.fraction, total) === index);
+    if (here) void reading.removeBookmark(here.id).catch(() => undefined);
+    else
+      void reading
+        .addBookmark({ format: "ebook", fraction: pageFraction(index, total), chapterIndex: page.chapterIndex, label: hereLabel })
+        .catch(() => undefined);
+  };
+  const latest = useRef({ next, previous, toggleBookmark, finished });
   useEffect(() => {
-    latest.current = { next, previous };
+    latest.current = { next, previous, toggleBookmark, finished };
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest("input, select, textarea, dialog") || e.altKey || e.ctrlKey || e.metaKey) return;
-      if (e.key === "ArrowRight" || e.key === "PageDown") latest.current.next();
-      else if (e.key === "ArrowLeft" || e.key === "PageUp") latest.current.previous();
-      else return;
+      if (target.closest("input, select, textarea, dialog, [contenteditable]") || document.querySelector("dialog[open]")) return;
+      const action = readerAction(e);
+      if (!action) return;
+      const l = latest.current;
+      if (action === "next") l.next();
+      else if (action === "previous") l.previous();
+      else if (action === "bookmark") {
+        if (!l.finished) l.toggleBookmark();
+      } else if (action === "dictionary") {
+        setDictionaryWord("");
+        setPanel("dictionary");
+      } else setPanel(action === "help" ? "shortcuts" : action);
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
@@ -300,6 +332,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             className="icon-button"
             onClick={() => {
               setDictionaryWord("");
+              setDictionarySource({ bookId: book.id, chapterIndex: page.chapterIndex, page: page.page, context: null });
               setPanel("dictionary");
             }}
           >
@@ -320,9 +353,20 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               <span className="visually-hidden">Who's who</span>
             </button>
           )}
+          {/* Every profile, Kids too: only the book and chapter go to the AI service. */}
+          {book.recording && (
+            <button type="button" className="icon-button" onClick={() => setPanel("quiz")}>
+              <Icon name="star" size={20} />
+              <span className="visually-hidden">Chapter quiz</span>
+            </button>
+          )}
           <button type="button" className="icon-button" onClick={() => setPanel("display")}>
             <Icon name="type" size={20} />
             <span className="visually-hidden">Display settings</span>
+          </button>
+          <button type="button" className="icon-button reader-shortcuts-button" onClick={() => setPanel("shortcuts")}>
+            <Icon name="keyboard" size={20} />
+            <span className="visually-hidden">Keyboard shortcuts</span>
           </button>
         </div>
       </header>
@@ -446,6 +490,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             Page {index + 1} of {total} · {percent}%
           </span>
         </p>
+        {!finished && (
+          <p className="reader-pace">
+            {formatTimeLeft(readingSecondsLeft(wordsLeftInChapter, wpm))} left in this chapter · {formatTimeLeft(readingSecondsLeft(wordsLeftInBook, wpm))} in the book
+            {wpm === null && <span className="visually-hidden"> (at a usual reading pace until LiteraryWorm learns yours)</span>}
+          </p>
+        )}
         <p className="reader-sample-note">
           {book.recording
             ? "Public-domain text from Project Gutenberg."
@@ -484,6 +534,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         onRemove={(b) => reading.removeBookmark(b.id)}
       />
       <ReaderDisplayDialog open={panel === "display"} onClose={() => setPanel(null)} />
+      <ShortcutsDialog open={panel === "shortcuts"} onClose={() => setPanel(null)} />
+      {book.recording && <QuizDialog open={panel === "quiz"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
       <HighlightsDialog
         open={panel === "highlights"}
         book={book}
@@ -515,7 +567,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         }}
       />
       <QuoteCardDialog book={book} highlight={sharing} onClose={() => setSharing(null)} />
-      <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} onClose={() => setPanel(null)} />
+      <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} source={dictionarySource} onClose={() => setPanel(null)} />
       {book.recording && profile?.ageRating !== "kids" && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
       {book.recording && profile?.ageRating !== "kids" && (
         <CharactersDialog open={panel === "characters"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />
@@ -530,6 +582,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
           onNote={() => highlightSelection("yellow", true)}
           onDefine={() => {
             setDictionaryWord(singleWord(selection.quote) ?? "");
+            setDictionarySource({
+              bookId: book.id,
+              chapterIndex: page.chapterIndex,
+              page: page.page,
+              context: sentenceAround(pageText, selection.start, selection.end),
+            });
             clearSelection();
             setPanel("dictionary");
           }}

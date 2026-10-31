@@ -90,6 +90,27 @@
   font-size: 0.875rem;
 }
 
+/* Title, Author or ISBN: a quiet select inside the box, with a rule between it and the words. */
+.search-box-by {
+  flex: none;
+  height: 30px;
+  padding: 0 4px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.search-box-by:focus-visible {
+  outline: 2px solid var(--rust-bright);
+  outline-offset: 2px;
+}
+
 .search-box input::placeholder {
   color: var(--faint);
 }
@@ -729,4 +750,9 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
+}
+
+.search-box-by option {
+  color: var(--ink);
+  background: var(--surface-raised);
 }

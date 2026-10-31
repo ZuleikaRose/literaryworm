@@ -17,6 +17,8 @@ import type {
   Progress,
   RatingValue,
   Reminder,
+  SavedWord,
+  QuizResult,
   ReadingStatus,
 } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
@@ -307,8 +309,12 @@ export async function loadAccount(): Promise<Account | null> {
     db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
+  // The reader page switch came later (migration 6505): if it can't load, it reads as off.
+  const reader = await db.from("profiles").select("public_reader").eq("id", user.id).maybeSingle();
+  if (reader.error) console.error("account: couldn't load the reader page setting:", reader.error.message);
   return {
     userId: user.id,
+    publicReader: Boolean((reader.data as { public_reader?: boolean } | null)?.public_reader),
     name: profile.data?.display_name ?? "Reader",
     email: user.email ?? "",
     password: "",
@@ -767,12 +773,14 @@ interface LibraryRow {
   volume_id: string;
   status: ReadingStatus;
   created_at: string;
+  updated_at: string;
 }
 
 const toEntry = (row: LibraryRow): LibraryEntry => ({
   bookId: row.volume_id,
   status: row.status,
   addedAt: Date.parse(row.created_at),
+  updatedAt: Date.parse(row.updated_at),
 });
 
 export async function signedInUserId(): Promise<string> {
@@ -783,7 +791,7 @@ export async function signedInUserId(): Promise<string> {
 }
 
 export async function loadLibrary(): Promise<Record<string, LibraryEntry>> {
-  const { data, error } = await client().from("library_items").select("volume_id, status, created_at");
+  const { data, error } = await client().from("library_items").select("volume_id, status, created_at, updated_at");
   if (error) throw new AccountError("We couldn't load your library. Try again.");
   return Object.fromEntries((data as LibraryRow[]).map((row) => [row.volume_id, toEntry(row)]));
 }
@@ -792,7 +800,7 @@ export async function addLibraryItem(bookId: string, status: ReadingStatus): Pro
   const { data, error } = await client()
     .from("library_items")
     .insert({ user_id: await signedInUserId(), volume_id: bookId, status })
-    .select("volume_id, status, created_at")
+    .select("volume_id, status, created_at, updated_at")
     .single();
   if (error) throw new AccountError("We couldn't add this book to your library. Try again.");
   return toEntry(data as LibraryRow);
@@ -1055,6 +1063,11 @@ const emptyCollections = (): Collections => ({
   reminders: [],
   notificationsSeenAt: null,
   authorNews: [],
+  words: [],
+  readingWpm: null,
+  upNext: [],
+  quizResults: [],
+  readerFollows: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
@@ -1108,6 +1121,13 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
     of(f.profile_id).readingDays[f.finished_on] = { ...day, books: [...(day.books ?? []), f.volume_id] };
   }
   for (const u of await loadUploads()) of(u.profileId).uploads.push(u.book);
+  for (const w of await loadWords()) of(w.profileId).words.push(w.word);
+  for (const r of await loadQuizResults()) of(r.profileId).quizResults.push(r.result);
+  for (const f of await loadReaderFollows()) of(f.profileId).readerFollows.push(f.follow);
+  for (const p of await loadProfileExtras()) {
+    of(p.id).readingWpm = p.reading_wpm;
+    of(p.id).upNext = p.up_next ?? [];
+  }
   return byProfile;
 }
 
@@ -1410,4 +1430,170 @@ export async function listOfflineDevices(): Promise<OfflineDevice[]> {
   const { data, error } = await client().from("offline_devices").select("id, label, last_seen_at").order("last_seen_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load your offline devices.");
   return (data ?? []).map((d) => ({ id: d.id as string, label: d.label as string, lastSeenAt: Date.parse(d.last_seen_at as string) }));
+}
+
+// --- My words (saved_words) ---------------------------------------------------
+
+type WordRow = {
+  profile_id: string;
+  word: string;
+  definition: string | null;
+  volume_id: string | null;
+  chapter_index: number | null;
+  page: number | null;
+  context: string | null;
+  learned: boolean;
+  created_at: string;
+};
+
+/** Every profile's kept words, newest first. An extra: if they can't load, the account still opens. */
+async function loadWords(): Promise<{ profileId: string; word: SavedWord }[]> {
+  const { data, error } = await client()
+    .from("saved_words")
+    .select("profile_id, word, definition, volume_id, chapter_index, page, context, learned, created_at")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("collections: couldn't load My words:", error.message);
+    return [];
+  }
+  return (data as WordRow[]).map((r) => ({
+    profileId: r.profile_id,
+    word: {
+      word: r.word,
+      definition: r.definition,
+      bookId: r.volume_id,
+      chapterIndex: r.chapter_index,
+      page: r.page,
+      context: r.context,
+      learned: r.learned,
+      createdAt: Date.parse(r.created_at),
+    },
+  }));
+}
+
+export async function saveWord(profileId: string, w: SavedWord): Promise<void> {
+  const { error } = await client().from("saved_words").insert({
+    profile_id: profileId,
+    user_id: await signedInUserId(),
+    word: w.word,
+    definition: w.definition,
+    volume_id: w.bookId,
+    chapter_index: w.chapterIndex,
+    page: w.page,
+    context: w.context,
+  });
+  // Already kept (another tab): nothing to do.
+  if (error && error.code !== "23505") {
+    throw new AccountError(error.message.includes("up to 500") ? "My words keeps up to 500 words. Remove some to keep more." : "We couldn't keep the word. Try again.");
+  }
+}
+
+export async function removeWord(profileId: string, word: string): Promise<void> {
+  const { error } = await client().from("saved_words").delete().eq("profile_id", profileId).eq("word", word);
+  if (error) throw new AccountError("We couldn't remove the word. Try again.");
+}
+
+export async function setWordLearned(profileId: string, word: string, learned: boolean): Promise<void> {
+  const { error } = await client().from("saved_words").update({ learned }).eq("profile_id", profileId).eq("word", word);
+  if (error) throw new AccountError("We couldn't save that. Try again.");
+}
+
+// --- Reading pace (reader_profiles.reading_wpm) -------------------------------
+
+/** Every profile's reading pace and Up next queue. Extras: if they can't load, the account still opens. */
+async function loadProfileExtras(): Promise<{ id: string; reading_wpm: number | null; up_next: string[] | null }[]> {
+  const { data, error } = await client().from("reader_profiles").select("id, reading_wpm, up_next");
+  if (error) {
+    console.error("collections: couldn't load reading pace and Up next:", error.message);
+    return [];
+  }
+  return data as { id: string; reading_wpm: number | null; up_next: string[] | null }[];
+}
+
+export async function saveUpNext(profileId: string, ids: string[]): Promise<void> {
+  const { error } = await client().from("reader_profiles").update({ up_next: ids }).eq("id", profileId);
+  if (error) throw new AccountError("We couldn't change Up next. Try again.");
+}
+
+export async function saveReadingPace(profileId: string, wpm: number): Promise<void> {
+  const { error } = await client().from("reader_profiles").update({ reading_wpm: wpm }).eq("id", profileId);
+  if (error) throw new AccountError("We couldn't save your reading pace.");
+}
+
+// --- Chapter quiz results (quiz_results) --------------------------------------
+
+/** Every profile's quiz results, newest first. An extra: if they can't load, the account still opens. */
+async function loadQuizResults(): Promise<{ profileId: string; result: QuizResult }[]> {
+  const { data, error } = await client()
+    .from("quiz_results")
+    .select("profile_id, volume_id, chapter_index, score, out_of, taken_at")
+    .order("taken_at", { ascending: false });
+  if (error) {
+    console.error("collections: couldn't load quiz results:", error.message);
+    return [];
+  }
+  return (data as { profile_id: string; volume_id: string; chapter_index: number; score: number; out_of: number; taken_at: string }[]).map((r) => ({
+    profileId: r.profile_id,
+    result: { bookId: r.volume_id, chapterIndex: r.chapter_index, score: r.score, outOf: r.out_of, takenAt: Date.parse(r.taken_at) },
+  }));
+}
+
+export async function saveQuizResult(profileId: string, r: QuizResult): Promise<void> {
+  const { error } = await client()
+    .from("quiz_results")
+    .upsert(
+      {
+        profile_id: profileId,
+        user_id: await signedInUserId(),
+        volume_id: r.bookId,
+        chapter_index: r.chapterIndex,
+        score: r.score,
+        out_of: r.outOf,
+        taken_at: new Date(r.takenAt).toISOString(),
+      },
+      { onConflict: "profile_id,user_id,volume_id,chapter_index" },
+    );
+  if (error) throw new AccountError("We couldn't save the quiz score. Try again.");
+}
+
+// --- Following readers (reader_follows, profiles.public_reader) -------------------
+
+/** Every profile's followed readers, oldest first. An extra: if they can't load, the account still opens. */
+async function loadReaderFollows(): Promise<{ profileId: string; follow: { readerId: string; name: string } }[]> {
+  const { data, error } = await client()
+    .from("reader_follows")
+    .select("profile_id, reader_id, reader:profiles(display_name)")
+    .order("created_at");
+  if (error) {
+    console.error("collections: couldn't load followed readers:", error.message);
+    return [];
+  }
+  return (data as unknown as { profile_id: string; reader_id: string; reader: { display_name: string } | null }[]).map((r) => ({
+    profileId: r.profile_id,
+    follow: { readerId: r.reader_id, name: r.reader?.display_name ?? "A reader" },
+  }));
+}
+
+export async function followReader(profileId: string, readerId: string): Promise<void> {
+  const { error } = await client().from("reader_follows").insert({ profile_id: profileId, user_id: await signedInUserId(), reader_id: readerId });
+  if (error && error.code !== "23505") {
+    throw new AccountError(
+      error.message.includes("up to 200")
+        ? "A profile can follow up to 200 readers."
+        : error.code === "42501"
+          ? "This reader's page isn't open to followers."
+          : "We couldn't follow them. Try again.",
+    );
+  }
+}
+
+export async function unfollowReader(profileId: string, readerId: string): Promise<void> {
+  const { error } = await client().from("reader_follows").delete().eq("profile_id", profileId).eq("reader_id", readerId);
+  if (error) throw new AccountError("We couldn't unfollow them. Try again.");
+}
+
+/** Let other readers follow this account (profiles.public_reader). Turning it off removes its followers. */
+export async function setPublicReader(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("profiles").update({ public_reader: on }).eq("id", userId);
+  if (error) throw new AccountError("We couldn't change your reader page. Try again.");
 }

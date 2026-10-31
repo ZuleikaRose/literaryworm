@@ -11,6 +11,10 @@ export const HIGHLIGHT_COLORS: { value: HighlightColor; label: string }[] = [
   { value: "green", label: "Green" },
   { value: "blue", label: "Blue" },
   { value: "pink", label: "Pink" },
+  { value: "orange", label: "Orange" },
+  { value: "purple", label: "Purple" },
+  { value: "teal", label: "Teal" },
+  { value: "red", label: "Red" },
 ];
 
 export const NOTE_MAX = 2000;

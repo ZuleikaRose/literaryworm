@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6403, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6506, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -101,13 +101,14 @@
           cols: [
             ["pk fk", "id", "uuid"],
             ["", "display_name", "text 1–60"],
+            ["", "public_reader", "boolean (off)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "The brief's profiles table: only the display name is public (shown on logs). RLS: anyone reads; users rename only themselves. Created by the sign-up trigger, which validates the visitor's input.",
+          note: "The brief's profiles table: only the display name and public_reader are public (shown on logs; public_reader opens a reader page others can follow, and turning it off removes its followers). RLS: anyone reads; users rename only themselves. Created by the sign-up trigger, which validates the visitor's input.",
         },
         {
-          id: "account_private", color: colors.account, x: 0, y: 290, sub: "owner only",
+          id: "account_private", color: colors.account, x: 0, y: 320, sub: "owner only",
           cols: [
             ["pk fk", "user_id", "uuid"],
             ["", "date_of_birth", "date (18+ trigger)"],
@@ -189,7 +190,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "library_items", color: colors.reading, x: 840, y: 1000, sub: "private",
+          id: "library_items", color: colors.reading, x: 840, y: 1060, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -214,7 +215,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
         },
         {
-          id: "bookmarks", color: colors.reading, x: 840, y: 1300, sub: "private",
+          id: "bookmarks", color: colors.reading, x: 840, y: 1360, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -315,7 +316,7 @@
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "A passage on one reader page, in yellow, green, blue or pink, with an optional note. FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; browser edits color and note only.",
+          note: "A passage on one reader page, in one of eight colours (yellow, green, blue, pink, orange, purple, teal, red), with an optional note. FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; browser edits color and note only.",
         },
         {
           id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 12 per account",
@@ -344,10 +345,12 @@
             ["", "skip_forward_seconds", "smallint 5–60"],
             ["", "auto_skip_intro", "boolean"],
             ["", "auto_skip_outro", "boolean"],
+            ["", "reading_wpm", "smallint 60–1000", true],
+            ["", "up_next", "text[] ≤ 50"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger (profiles in use; set_aside_at set by manage-profile, or by a trigger when a smaller plan arrives). RLS: own account; browser edits name, avatar, genres, recent searches, player settings; notifications_seen_at via mark_notifications_seen(). PINs, limits, weekly goals, age ratings, Kids and deletes: manage-profile.",
+          note: "Unique (account_id, name_key) and (id, account_id). Plan limit by trigger (profiles in use; set_aside_at set by manage-profile, or by a trigger when a smaller plan arrives). RLS: own account; browser edits name, avatar, genres, recent searches, player settings; reading_wpm (time left), up_next (the listening queue); notifications_seen_at via mark_notifications_seen(). PINs, limits, weekly goals, age ratings, Kids and deletes: manage-profile.",
         },
         {
           id: "parental_consents", color: colors.household, x: 1260, y: 60, sub: "COPPA record",
@@ -477,6 +480,56 @@
             ["", "joined_at", "timestamptz"],
           ],
           note: "FK (challenge_id, user_id) → household_challenges and (profile_id, user_id) → reader_profiles, so both belong to the same account; on delete cascade. Kids profiles can join. RLS: owner only; joined and left. Index: (profile_id, user_id).",
+        },
+        {
+          id: "saved_words", color: colors.household, x: 0, y: 6720, sub: "per profile · My words",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "word", "text 1–40 (lower case)"],
+            ["", "definition", "text ≤ 500", true],
+            ["", "volume_id", "text", true],
+            ["", "chapter_index", "smallint", true],
+            ["", "page", "smallint", true],
+            ["", "context", "text ≤ 400", true],
+            ["", "learned", "boolean"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Words kept from the reader's dictionary, with the sentence they came from. FK as favorites; the key is its index. Up to 500 a profile (trigger). RLS: owner only; browser updates learned only.",
+        },
+        {
+          id: "quiz_results", color: colors.household, x: 420, y: 6720, sub: "per profile · chapter quizzes",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["pk", "chapter_index", "smallint 0–999"],
+            ["", "score", "smallint 0–5"],
+            ["", "out_of", "smallint 3–5"],
+            ["", "taken_at", "timestamptz"],
+          ],
+          note: "The latest try at each chapter's quiz, shown to grown-ups in Account → Family. FK as favorites; the key is its index. RLS: owner only.",
+        },
+        {
+          id: "reader_follows", color: colors.household, x: 840, y: 6720, sub: "per profile · readers followed",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk fk", "reader_id", "uuid"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Members who turned public_reader on, followed by another account's grown-up or teen profiles (trigger: page on, not Kids, up to 200, never yourself). FK (profile_id, user_id) → reader_profiles; reader_id → profiles; on delete cascade. RLS: owner only, so who follows whom stays private. Index: (reader_id).",
+        },
+        {
+          id: "chapter_quizzes", color: colors.server, x: 1260, y: 6720, sub: "chapter quiz · function only",
+          cols: [
+            ["pk", "volume_id", "text (book id)"],
+            ["pk", "chapter_index", "smallint 0–999"],
+            ["", "questions", "jsonb (3–5)"],
+            ["", "model", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "A chapter's quiz for a public-domain title, written by Claude from that chapter only the first time anyone asks, and kept. RLS on, no browser access; the quiz function reads and writes it.",
         },
         {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
@@ -786,6 +839,10 @@
         ["highlights", "volume_id", "library_items", "volume_id", "N : 1 (pair)"],
         ["favorites", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["saved_words", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["reader_follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["reader_follows", "reader_id", "profiles", "id", "N : 1"],
         ["author_news", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["household_challenges", "user_id", "auth.users", "id", "N : 1"],
         ["changelog_entries", "created_by", "auth.users", "id", "N : 1"],

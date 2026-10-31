@@ -1,4 +1,5 @@
 import { type FormEvent, type ReactNode, useRef, useState } from "react";
+import { nextInSeries } from "../lib/series";
 import { Link, useParams } from "react-router-dom";
 import { useUploadedBook } from "../lib/uploads";
 import { getBook, isAllowed } from "../data/books";
@@ -364,7 +365,18 @@ export function BookmarksDialog({
 }
 
 /** Shown once a book is marked finished. */
-export function FinishedPanel({ book, onRestart }: { book: Book; onRestart: () => void }) {
+export function FinishedPanel({
+  book,
+  onRestart,
+  upNext = null,
+}: {
+  book: Book;
+  onRestart: () => void;
+  /** The player's Up next: the first queued book and Play it. */
+  upNext?: { book: Book; play: () => void } | null;
+}) {
+  const profile = useActiveProfile();
+  const next = nextInSeries(book.id, profile?.ageRating ?? "all");
   return (
     <div className="finished-panel" role="status">
       <span className="empty-icon">
@@ -372,6 +384,18 @@ export function FinishedPanel({ book, onRestart }: { book: Book; onRestart: () =
       </span>
       <h2>You finished {book.title}</h2>
       <p>It's in Finished in your library. Tell other readers what you thought.</p>
+      {upNext && (
+        <p className="finished-next">
+          <button type="button" className="primary-button" onClick={upNext.play}>
+            <Icon name="play" size={16} filled /> Play next: {upNext.book.title}
+          </button>
+        </p>
+      )}
+      {next && (
+        <p className="finished-next">
+          Next in the series: <Link to={`/books/${next.id}`}>{next.title}</Link>
+        </p>
+      )}
       <div className="reading-message-actions">
         <Link className="primary-button" to={`/books/${book.id}#logs`}>
           Write a log

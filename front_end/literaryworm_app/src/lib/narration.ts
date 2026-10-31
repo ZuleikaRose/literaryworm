@@ -1,3 +1,4 @@
+import { setCastMedia } from "./cast";
 import { useEffect, useState } from "react";
 import { samplePageSentences } from "../data/sampleText";
 import { loadUploadText } from "./uploadsApi";
@@ -60,6 +61,7 @@ export function resolveNarration(book: Book, choice: string | null, voices: Spee
 export function recordingNarrator(tracks: RecordingTrack[], starts: number[], events: NarratorEvents): Narrator {
   const audio = new Audio();
   audio.preload = "auto";
+  setCastMedia(audio);
   let loaded = -1;
   let retried = false;
 
@@ -124,6 +126,7 @@ export function recordingNarrator(tracks: RecordingTrack[], starts: number[], ev
       audio.muted = volume === 0;
     },
     dispose: () => {
+      setCastMedia(null);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("waiting", onWaiting);
       audio.removeEventListener("playing", onPlaying);

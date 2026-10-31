@@ -82,7 +82,7 @@ export function fromCatalogBook(book: Book): DetailView {
   return {
     id: book.id,
     title: book.title,
-    subtitle: book.series ? `${book.series.name}, book ${book.series.order}` : null,
+    subtitle: null,
     authors: [book.author],
     coverUrl: null,
     local: book,

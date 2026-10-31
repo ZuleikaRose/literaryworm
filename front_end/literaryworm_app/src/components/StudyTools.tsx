@@ -1,8 +1,11 @@
 import { type FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { cleanWord, type DictionaryEntry, DictionaryError, lookUpWord } from "../lib/dictionaryApi";
 import { HIGHLIGHT_COLORS, highlightPlace, NOTE_MAX } from "../lib/highlights";
+import { useWords } from "../lib/useWords";
+import { firstDefinition, type WordSource } from "../lib/words";
 import type { Book, Highlight, HighlightColor } from "../types";
 import { Dialog } from "./Dialog";
+import { ExportButtons } from "./NotesView";
 import { Icon } from "./Icon";
 
 /** Runs a save and keeps its error for the control that started it. */
@@ -28,7 +31,7 @@ function useAttempt() {
 const TOOLBAR_GAP = 10;
 
 /**
- * The bar that floats over selected words: four highlight colours, Add note and, for one word,
+ * The bar that floats over selected words: eight highlight colours, Add note and, for one word,
  * Define. It sits above the selection, or below it when there's no room, and stays on screen.
  */
 export function SelectionToolbar({
@@ -82,13 +85,14 @@ export function SelectionToolbar({
       // Keep the selection: pressing a button mustn't move focus off the words first.
       onPointerDown={(e) => e.preventDefault()}
     >
-      <div className="selection-row">
+      <div className="selection-swatches">
         {HIGHLIGHT_COLORS.map((c) => (
           <button key={c.value} type="button" className={`swatch swatch-${c.value}`} disabled={busy} onClick={() => onHighlight(c.value)}>
             <span className="visually-hidden">Highlight in {c.label.toLowerCase()}</span>
           </button>
         ))}
-        <span className="selection-divider" aria-hidden="true" />
+      </div>
+      <div className="selection-row selection-actions">
         <button type="button" className="selection-action" disabled={busy} onClick={onNote}>
           <Icon name="edit" size={17} /> Add note
         </button>
@@ -296,6 +300,13 @@ export function HighlightsDialog({
         </p>
       }
     >
+      {highlights.length > 0 && (
+        <ExportButtons
+          books={[{ title: book.title, author: book.author, chapterTitles: book.chapters.map((c) => c.title), highlights }]}
+          name={book.title}
+          label="Export these notes and highlights"
+        />
+      )}
       {error && (
         <p className="field-error" role="alert">
           <Icon name="alert" size={15} /> {error}
@@ -342,17 +353,28 @@ export function HighlightsDialog({
 }
 
 /** Looks a word up. Opened with a word from the page, or empty to type one. */
-export function DictionaryDialog({ open, word, onClose }: { open: boolean; word: string; onClose: () => void }) {
+export function DictionaryDialog({
+  open,
+  word,
+  source = null,
+  onClose,
+}: {
+  open: boolean;
+  word: string;
+  /** Where the word was met, kept with it in My words. */
+  source?: WordSource | null;
+  onClose: () => void;
+}) {
   return (
     <Dialog open={open} onClose={onClose} title="Dictionary" size="sm">
-      {open && <DictionaryLookup key={word} initialWord={word} />}
+      {open && <DictionaryLookup key={word} initialWord={word} source={source} />}
     </Dialog>
   );
 }
 
 type Lookup = { status: "idle" } | { status: "loading"; word: string } | { status: "done"; entry: DictionaryEntry } | { status: "error"; message: string };
 
-function DictionaryLookup({ initialWord }: { initialWord: string }) {
+function DictionaryLookup({ initialWord, source }: { initialWord: string; source: WordSource | null }) {
   const [query, setQuery] = useState(initialWord);
   const [result, setResult] = useState<Lookup>({ status: "idle" });
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -427,8 +449,39 @@ function DictionaryLookup({ initialWord }: { initialWord: string }) {
             <span>{result.message}</span>
           </p>
         )}
-        {result.status === "done" && <DictionaryEntryView entry={result.entry} />}
+        {result.status === "done" && (
+          <>
+            <DictionaryEntryView entry={result.entry} />
+            {/* A word typed in isn't from the page, so it keeps only the book. */}
+            <KeepWord entry={result.entry} source={source && result.entry.word === cleanWord(initialWord) ? source : source && { ...source, context: null }} />
+          </>
+        )}
       </div>
+    </div>
+  );
+}
+
+/** Keep in My words: the word, its first sense and the sentence it came from. */
+function KeepWord({ entry, source }: { entry: DictionaryEntry; source: WordSource | null }) {
+  const words = useWords();
+  const { busy, error, attempt } = useAttempt();
+  const kept = words.has(entry.word);
+  return (
+    <div className="keep-word">
+      {kept ? (
+        <p className="keep-word-done" role="status">
+          <Icon name="check" size={16} /> In My words. Find it in My Library → Words.
+        </p>
+      ) : (
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => attempt(() => words.save(entry.word, firstDefinition(entry), source))}>
+          <Icon name="plus" size={16} /> Keep in My words
+        </button>
+      )}
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
     </div>
   );
 }

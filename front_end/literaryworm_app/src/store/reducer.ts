@@ -72,6 +72,8 @@ export type Action =
   | { type: "removeFromLibrary"; bookId: string }
   | { type: "toggleFavorite"; bookId: string }
   | { type: "toggleFollow"; follow: Follow }
+  /** Replaces some of a profile's data (the active profile's unless one is named): My words, Up next and the like. */
+  | { type: "patchProfileData"; patch: Partial<ProfileData>; profileId?: string }
   | { type: "addReminder"; reminder: Reminder }
   | { type: "removeReminder"; bookId: string }
   | { type: "rateBook"; bookId: string; rating: RatingValue | null }
@@ -330,7 +332,7 @@ export function reducer(state: AppState, action: Action): AppState {
     case "setReadingStatus":
       return withLibrary(state, (library) => {
         const entry = library[action.bookId];
-        return entry ? { ...library, [action.bookId]: { ...entry, status: action.status } } : library;
+        return entry ? { ...library, [action.bookId]: { ...entry, status: action.status, updatedAt: Date.now() } } : library;
       });
 
     case "removeFromLibrary": {
@@ -362,6 +364,9 @@ export function reducer(state: AppState, action: Action): AppState {
           ? data.favorites.filter((id) => id !== action.bookId)
           : [...data.favorites, action.bookId],
       }));
+
+    case "patchProfileData":
+      return withProfileData(state, (data) => ({ ...data, ...action.patch }), action.profileId);
 
     case "toggleFollow": {
       const { kind, name } = action.follow;

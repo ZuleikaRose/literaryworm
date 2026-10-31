@@ -1,4 +1,4 @@
-import type { ReadingDay } from "../types";
+import type { QuizResult, ReadingDay } from "../types";
 import { STREAK_SECONDS } from "./goals";
 
 /** A Kids profile's week, for the grown-ups (Account → Family, and the weekly email). */
@@ -77,4 +77,16 @@ export function kidGroup(seconds: number, goal: WeeklyGoal | null): KidGroup {
 /** The kids in their groups, in KID_GROUPS order and their own order within; empty groups left out. */
 export function groupKids<T>(kids: T[], groupOf: (kid: T) => KidGroup): { id: KidGroup; heading: string; kids: T[] }[] {
   return KID_GROUPS.map((g) => ({ ...g, kids: kids.filter((k) => groupOf(k) === g.id) })).filter((g) => g.kids.length > 0);
+}
+
+/** Chapter quizzes taken in the last 7 days (each chapter's latest try): how many, and the answers right. */
+export function quizWeek(results: QuizResult[], today: string): { taken: number; right: number; of: number } | null {
+  const days = new Set(lastSevenDays(today));
+  const local = (ms: number) => {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const week = results.filter((r) => days.has(local(r.takenAt)));
+  if (week.length === 0) return null;
+  return { taken: week.length, right: week.reduce((n, r) => n + r.score, 0), of: week.reduce((n, r) => n + r.outOf, 0) };
 }

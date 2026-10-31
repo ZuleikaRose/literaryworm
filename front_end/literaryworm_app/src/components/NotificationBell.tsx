@@ -25,7 +25,7 @@ function meetingWhen(iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, listening, renewal, offer, goals, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, listening, renewal, offer, goals, badges, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -41,7 +41,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && meetings.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
   const offerPlan = offer ? planById.get(offer.planId) : undefined;
@@ -91,6 +91,27 @@ export function NotificationBell() {
                                   ? `${g.goal - g.left} of ${g.goal} books finished this year.`
                                   : `${g.goal} ${g.goal === 1 ? "book" : "books"} finished. Well done! Set a bigger goal in Goals if you like.`}
                             </small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {badges.length > 0 && (
+                <>
+                  <p className="popover-label">Badges</p>
+                  <ul className="bell-list" role="list">
+                    {badges.map(({ badge, at }) => (
+                      <li key={badge.id}>
+                        <Link className="bell-item" to="/library?view=badges" onClick={() => close(false)}>
+                          <Icon name={badge.icon} size={18} />
+                          <span>
+                            <strong>
+                              You earned {badge.title}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>{badge.description}. See all your badges in My Library.</small>
                           </span>
                         </Link>
                       </li>

@@ -11,6 +11,7 @@ import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
 import { fromFollowed } from "../lib/people";
+import { continueSeries } from "../lib/series";
 import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
@@ -80,6 +81,12 @@ export default function Browse() {
   // Recommendations from what this profile finished, rated and favourited (lib/recommend.ts).
   const inLibrary = new Set(Object.keys(library.entries));
   const followed = fromFollowed(data.follows, profile.ageRating, (id) => inLibrary.has(id));
+  // The next book in each series this profile finished a book of, newest first.
+  const finishedNewestFirst = Object.entries(data.readingDays)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .flatMap(([, d]) => d.books ?? [])
+    .concat(Object.values(library.entries).filter((e) => e.status === "finished").sort((a, b) => b.addedAt - a.addedAt).map((e) => e.bookId));
+  const seriesNext = continueSeries([...new Set(finishedNewestFirst)], profile.ageRating).filter(visible);
   const taste = tasteSeeds(data, library.entries, (id) => {
     const book = getBook(id);
     return visible(book) ? book : undefined;
@@ -128,6 +135,9 @@ export default function Browse() {
           />
         )}
         <OutNow />
+        {seriesNext.length > 0 && (
+          <Shelf id="series-next" eyebrow="What comes next" title="Continue the series" items={seriesNext.map(fromLocal)} />
+        )}
         {followed.length > 0 && (
           <Shelf
             id="following"

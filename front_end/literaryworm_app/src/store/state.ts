@@ -99,6 +99,11 @@ export const emptyProfileData = (): ProfileData => ({
   reminders: [],
   notificationsSeenAt: null,
   authorNews: [],
+  words: [],
+  readingWpm: null,
+  upNext: [],
+  quizResults: [],
+  readerFollows: [],
 });
 
 export const newId = () => crypto.randomUUID();

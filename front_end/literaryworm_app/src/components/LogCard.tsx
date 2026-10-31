@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { Link } from "react-router-dom";
 import { initials } from "../lib/bookDetail";
 import type { ReadingLog } from "../types";
 import { Icon } from "./Icon";
@@ -29,7 +30,7 @@ export function LogCard({ log, onEdit, onDelete }: LogCardProps) {
         </span>
         <div className="log-byline">
           <h3 className="reader-name">
-            {log.displayName}
+            {log.publicReader && log.userId && !own ? <Link to={`/readers/${log.userId}`}>{log.displayName}</Link> : log.displayName}
             {own && <span className="own-tag">You</span>}
           </h3>
           <small>

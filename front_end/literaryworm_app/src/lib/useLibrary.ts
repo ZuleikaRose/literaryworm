@@ -4,7 +4,7 @@ import type { LibraryEntry, ReadingStatus } from "../types";
 import { addLibraryItem, recordReading, removeLibraryItem, setLibraryStatus } from "./accountApi";
 import { today } from "./reading";
 
-type NewEntry = Pick<LibraryEntry, "bookId"> & Partial<Pick<LibraryEntry, "title" | "authors" | "cover">>;
+type NewEntry = Pick<LibraryEntry, "bookId"> & Partial<Pick<LibraryEntry, "title" | "authors" | "cover" | "published">>;
 
 /**
  * The active library and how to change it. Real accounts write to Supabase first

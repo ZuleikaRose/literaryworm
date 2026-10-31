@@ -44,6 +44,11 @@ export function useAccount() {
     dispatch({ type: "updateAccount", patch: { marketingEmails: on } });
   }
 
+  async function setPublicReader(on: boolean) {
+    if (userId) await accountApi.setPublicReader(userId, on);
+    dispatch({ type: "updateAccount", patch: { publicReader: on } });
+  }
+
   async function setReleaseEmails(on: boolean) {
     if (userId) await accountApi.setReleaseEmails(userId, on);
     dispatch({ type: "updateAccount", patch: { releaseEmails: on } });
@@ -120,6 +125,11 @@ export function useAccount() {
           recentSearches: data?.recentSearches ?? [],
           follows: data?.follows ?? [],
           reminders: data?.reminders ?? [],
+          words: data?.words ?? [],
+          upNext: data?.upNext ?? [],
+          quizResults: (data?.quizResults ?? []).map(({ takenAt, ...r }) => ({ ...r, takenAt: new Date(takenAt).toISOString() })),
+          readersFollowed: (data?.readerFollows ?? []).map((f) => f.name),
+          readingWordsPerMinute: data?.readingWpm ?? null,
           newFromFollowedAuthors: (data?.authorNews ?? []).map(({ foundAt, ...n }) => ({ ...n, foundAt: new Date(foundAt).toISOString() })),
           player: data?.player ?? null,
           // What was uploaded (the books' text stays in the app; it's the member's own file).
@@ -144,5 +154,5 @@ export function useAccount() {
     URL.revokeObjectURL(url);
   }
 
-  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
+  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
 }

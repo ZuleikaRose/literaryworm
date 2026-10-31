@@ -17,6 +17,8 @@ import WhatsNew from "./pages/WhatsNew";
 import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
 import Person from "./pages/Person";
+import Series from "./pages/Series";
+import ReaderProfile from "./pages/ReaderProfile";
 import Plans from "./pages/Plans";
 import Profiles from "./pages/Profiles";
 import ResetPassword from "./pages/ResetPassword";
@@ -60,6 +62,8 @@ export default function App() {
           <Route path="book/:id" element={<LegacyBookRedirect />} />
           <Route path="authors/:name" element={<Person kind="author" />} />
           <Route path="narrators/:name" element={<Person kind="narrator" />} />
+          <Route path="series/:name" element={<Series />} />
+          <Route path="readers/:id" element={<ReaderProfile />} />
           {/* Search is public too (the brief); Kids profiles get the catalog only. */}
           <Route path="search" element={<Search />} />
           {/* A custom list shared by link: public, shows only what its owner shared. */}

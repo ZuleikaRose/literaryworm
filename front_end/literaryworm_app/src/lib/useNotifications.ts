@@ -8,6 +8,7 @@ import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notific
 import { renewalReminder, yearlyOffer } from "./billing";
 import { type MeetingAlert, meetingAlerts } from "./clubCalendar";
 import { goalAlerts } from "./goals";
+import { badgeAlerts, badges } from "./achievements";
 import { today } from "./reading";
 import { listeningAlert } from "./planLimits";
 import { useClubs } from "./useClubs";
@@ -92,7 +93,19 @@ export function useNotifications() {
     () => goalAlerts(data.readingDays, data.readingGoals, today(new Date(now)), new Date(now)),
     [data.readingDays, data.readingGoals, now],
   );
-  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [...goals, ...(renewal ? [renewal] : []), ...(offer ? [offer] : []), ...shownMeetings]);
+  // Badges earned in the last week (lib/achievements.ts): every profile, Kids included.
+  const highlights = activeReading(state).highlights;
+  const newBadges = useMemo(
+    () => badgeAlerts(badges({ readingDays: data.readingDays, readingGoals: data.readingGoals, words: data.words, highlights }), now),
+    [data.readingDays, data.readingGoals, data.words, highlights, now],
+  );
+  const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [
+    ...goals,
+    ...newBadges,
+    ...(renewal ? [renewal] : []),
+    ...(offer ? [offer] : []),
+    ...shownMeetings,
+  ]);
 
   const markSeen = useCallback(async () => {
     if (!profile) return;
@@ -105,5 +118,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, offer, goals, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, offer, goals, badges: newBadges, count, seenAt, withClubs, markSeen, refresh };
 }
