@@ -6591,3 +6591,25 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$2
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$250 more classics: 571 to read and hear$lw$, $lw$Trollope's Palliser and Barsetshire novels, more Scott, Hardy, Collins and Dumas, The Maltese Falcon, The Sun Also Rises, Kim, The Woman in White, Tom Swift, the Bobbsey Twins, more Tarzan, Wodehouse and 230 others are now in LiteraryWorm, each with the whole book to read and a LibriVox recording to listen to. That's 571 classics in all.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$250 more classics: 571 to read and hear$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261031006400_new_plan_prices.sql
+-- =============================================================================
+-- New prices for Standard ($14.99 a month, $149.90 a year) and Premium ($24.99, $249.90); Basic is
+-- unchanged. src/data/plans.ts and the checkout function's labels say the same. In Stripe each plan's
+-- new price took over its lookup key (literaryworm_<plan>_monthly / _yearly) and the old prices were
+-- archived: memberships already running keep the price they started on, new ones (and gifts, which
+-- read the Stripe price) pay the new one.
+
+update public.plans set price_cents = 1499, yearly_price_cents = 14990 where id = 'standard';
+update public.plans set price_cents = 2499, yearly_price_cents = 24990 where id = 'premium';
+
+-- =============================================================================
+-- 20261031006401_whats_new_new_prices.sql
+-- =============================================================================
+-- What's new: the new Standard and Premium prices (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$New prices for Standard and Premium$lw$, $lw$Standard is now $14.99 a month ($149.90 a year) and Premium $24.99 a month ($249.90 a year), for new memberships and gifts. Basic stays at $7.99. If you're already a member, your price stays as it is.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$New prices for Standard and Premium$lw$ and c.version = $lw$2026.10$lw$);

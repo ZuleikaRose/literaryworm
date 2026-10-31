@@ -28,8 +28,8 @@ export const plans: Plan[] = [
   {
     id: "standard",
     name: "Standard",
-    price: 12.99,
-    yearlyPrice: 129.9,
+    price: 14.99,
+    yearlyPrice: 149.9,
     summary: "Reading and listening for a small household.",
     profiles: 5,
     audioHours: "30 hours of audiobooks a month",
@@ -47,8 +47,8 @@ export const plans: Plan[] = [
   {
     id: "premium",
     name: "Premium",
-    price: 17.99,
-    yearlyPrice: 179.9,
+    price: 24.99,
+    yearlyPrice: 249.9,
     summary: "Unlimited listening for the whole family.",
     profiles: 12,
     audioHours: "Unlimited audiobooks",

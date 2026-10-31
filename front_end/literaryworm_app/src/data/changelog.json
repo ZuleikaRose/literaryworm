@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
+    "kind": "update",
+    "title": "New prices for Standard and Premium",
+    "body": "Standard is now $14.99 a month ($149.90 a year) and Premium $24.99 a month ($249.90 a year), for new memberships and gifts. Basic stays at $7.99. If you're already a member, your price stays as it is.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
     "kind": "feature",
     "title": "250 more classics: 571 to read and hear",
     "body": "Trollope's Palliser and Barsetshire novels, more Scott, Hardy, Collins and Dumas, The Maltese Falcon, The Sun Also Rises, Kim, The Woman in White, Tom Swift, the Bobbsey Twins, more Tarzan, Wodehouse and 230 others are now in LiteraryWorm, each with the whole book to read and a LibriVox recording to listen to. That's 571 classics in all.",

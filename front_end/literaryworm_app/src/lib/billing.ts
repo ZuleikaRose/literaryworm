@@ -145,7 +145,7 @@ export function discountLabel(d: MembershipDiscount): string {
 }
 
 /**
- * What the plan costs once a promo code stops applying: "Then $12.99 a month from January 5,
+ * What the plan costs once a promo code stops applying: "Then $14.99 a month from January 5,
  * 2027." Null for a code that lasts as long as the membership.
  */
 export function afterDiscountLabel(d: MembershipDiscount, price: string, interval: BillingInterval = "month"): string | null {

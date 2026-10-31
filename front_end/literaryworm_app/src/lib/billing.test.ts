@@ -39,15 +39,15 @@ describe("the price after a promo code", () => {
   });
 
   it("says when the full price starts for a code with an end date", () => {
-    expect(afterDiscountLabel(code({}), "$12.99")).toBe("Then $12.99 a month from January 5, 2027.");
+    expect(afterDiscountLabel(code({}), "$14.99")).toBe("Then $14.99 a month from January 5, 2027.");
   });
 
   it("says the full price follows a one-off code", () => {
-    expect(afterDiscountLabel(code({ duration: "once", ends: null }), "$12.99")).toBe("Then $12.99 a month after that.");
+    expect(afterDiscountLabel(code({ duration: "once", ends: null }), "$14.99")).toBe("Then $14.99 a month after that.");
   });
 
   it("says nothing for a code that lasts as long as the membership", () => {
-    expect(afterDiscountLabel(code({ duration: "forever", ends: null }), "$12.99")).toBeNull();
+    expect(afterDiscountLabel(code({ duration: "forever", ends: null }), "$14.99")).toBeNull();
   });
 });
 
@@ -132,7 +132,7 @@ describe("the yearly billing offer", () => {
   const day = 86_400_000;
 
   it("saves two months' price", () => {
-    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([15.98, 25.98, 35.98]);
+    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([15.98, 29.98, 49.98]);
   });
 
   it("counts months like Stripe, keeping the day or the month's last", () => {
@@ -142,7 +142,7 @@ describe("the yearly billing offer", () => {
 
   it("shows for 30 days from 11 months in", () => {
     expect(yearlyOffer(member, starts - 1)).toBeNull();
-    expect(yearlyOffer(member, starts)).toEqual({ at: starts, planId: "standard", saving: 25.98 });
+    expect(yearlyOffer(member, starts)).toEqual({ at: starts, planId: "standard", saving: 29.98 });
     expect(yearlyOffer(member, starts + 29 * day)).not.toBeNull();
     expect(yearlyOffer(member, starts + 30 * day)).toBeNull();
   });
