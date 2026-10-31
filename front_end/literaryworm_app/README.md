@@ -174,3 +174,5 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | A third 250 public-domain titles (571 in all); `build-texts.py` gains `"trim": 2` (glossaries, and anything after the book's last THE END); migration 6302 (What's new) |
 | — | New prices: `data/plans.ts`, `PRICES` in `checkout/index.ts`, `public.plans` (migration 6400), Stripe prices with the same lookup keys (old ones archived); migration 6401 (What's new) |
 | — | New Basic price ($9.99, $99.90 a year): `data/plans.ts`, `PRICES` in `checkout/index.ts`, `public.plans` (migration 6402), Stripe; migration 6403 (What's new) |
+| — | 300 more public-domain titles (871 in all); ten swapped where the Gutenberg edition wasn't the recorded book; migration 6404 (What's new) |
+| — | Search results: `index.html`'s description, Open Graph tags and JSON-LD (each plan's monthly and yearly Offer) from `lib/seo.ts` (`seo.test.ts` keeps them in step with `data/plans.ts`); `useTitle(title, description)`; `public/sitemap.xml` |

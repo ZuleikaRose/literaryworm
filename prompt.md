@@ -88,9 +88,11 @@ Then 50 more public-domain titles were added (71 in all), each with its LibriVox
 
 Then the texts moved to a public Supabase Storage bucket served at the same `/texts/` path, and 250 more titles were added (321 in all).
 
-Then a third 250 titles were added (571 in all).
+Then a third 250 titles were added (571 in all), and then 300 more (871 in all).
 
 Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a year), in the app, the database and Stripe; memberships already running keep their price. Basic then went to $9.99 ($99.90 a year) the same way.
+
+The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 
 ## Code
 
