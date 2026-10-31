@@ -6552,3 +6552,22 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$O
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-30$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$50 more classics to read and hear$lw$, $lw$Emma, Great Expectations, Wuthering Heights, Huckleberry Finn, The Hound of the Baskervilles, Heidi, The War of the Worlds and 43 more classics are now in LiteraryWorm, each with the whole book to read and a LibriVox recording to listen to, chapter by chapter. That's 71 in all.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$50 more classics to read and hear$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261030006300_book_texts_bucket.sql
+-- =============================================================================
+-- The public-domain books' full texts (one JSON file per catalog title, built by
+-- front_end/literaryworm_app/scripts/build-texts.py) move out of the site's deploy into a public
+-- Storage bucket. The site keeps asking for /texts/<id>.json: Vercel forwards that path here
+-- (vercel.json), so the reader, Read offline and the ask and characters functions don't change.
+--
+-- Public: anyone can read a file by its address, as they could on the site. Nobody writes from
+-- the browser (no policies on storage.objects for this bucket); the texts are uploaded with the
+-- service role by scripts/upload-texts.sh.
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('book-texts', 'book-texts', true, 8388608, array['application/json'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;

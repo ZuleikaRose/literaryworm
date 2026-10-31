@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/texts/:file",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/storage/v1/object/public/book-texts/:file"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

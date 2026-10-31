@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Book texts live in the book-texts Storage bucket (scripts/upload-texts.sh); git keeps only the
+# three the tests use.
+public/texts/*
+!public/texts/frankenstein.json
+!public/texts/pride-and-prejudice.json
+!public/texts/alice-in-wonderland.json

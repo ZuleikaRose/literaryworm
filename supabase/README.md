@@ -153,3 +153,7 @@ insert into public.staff_roles (user_id, role)
 select id, 'admin' from auth.users where lower(email) = lower('someone@example.com')
 on conflict do nothing;
 ```
+
+## Storage: book texts
+
+The public-domain titles' texts are in the public `book-texts` bucket (migration 6300; JSON only, 8 MB a file; no browser writes). The site serves them at `/texts/<id>.json` through `vercel.json`, so the reader, *Read offline* and the `ask` and `characters` functions (`_shared/bookText.ts`) ask the site as before. Upload new or rebuilt texts from `front_end/literaryworm_app` with `scripts/upload-texts.sh <id>` (the CLI logged in and linked; Storage won't overwrite, so the script removes the old file first).
