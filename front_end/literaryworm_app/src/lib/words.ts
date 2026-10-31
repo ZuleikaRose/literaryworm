@@ -59,3 +59,42 @@ export function wordsSummary(words: SavedWord[]): string {
   const known = words.filter((w) => w.learned).length;
   return `${words.length} word${words.length === 1 ? "" : "s"}${known ? `, ${known} known` : ""}`;
 }
+
+/**
+ * Review (spaced repetition): each word known in a row waits longer before it's asked again, 1,
+ * 3, 7, 14, 30 and 60 days; Not yet asks again tomorrow and starts over. Known after the last
+ * step, it's marked as known. Words marked known are never due.
+ */
+export const REVIEW_INTERVALS = [1, 3, 7, 14, 30, 60];
+
+const addDays = (day: string, n: number) => {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+
+export function isDue(word: SavedWord, today: string): boolean {
+  return !word.learned && (word.reviewDue === null || word.reviewDue <= today);
+}
+
+/** The words due today, the longest overdue first (new words, never reviewed, before them all). */
+export function dueWords(words: SavedWord[], today: string): SavedWord[] {
+  return words
+    .filter((w) => isDue(w, today))
+    .sort((a, b) => (a.reviewDue ?? "").localeCompare(b.reviewDue ?? "") || a.createdAt - b.createdAt);
+}
+
+/** What an answer changes: the next due day, the step, and whether the word is now known. */
+export function nextReview(word: Pick<SavedWord, "reviewStep">, knew: boolean, today: string): Pick<SavedWord, "reviewDue" | "reviewStep" | "learned"> {
+  if (!knew) return { reviewDue: addDays(today, 1), reviewStep: 0, learned: false };
+  const step = Math.min(word.reviewStep + 1, REVIEW_INTERVALS.length);
+  return { reviewDue: addDays(today, REVIEW_INTERVALS[step - 1]), reviewStep: step, learned: step === REVIEW_INTERVALS.length };
+}
+
+/** "Due today", "Due tomorrow", "Due in 6 days" for a word's next review. */
+export function dueLabel(word: SavedWord, today: string): string | null {
+  if (word.learned) return null;
+  if (isDue(word, today)) return "Due today";
+  const days = Math.round((Date.parse(`${word.reviewDue}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+  return days === 1 ? "Due tomorrow" : `Due in ${days} days`;
+}

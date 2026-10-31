@@ -14,6 +14,7 @@ import type {
   ReadingDay,
   ReadingLog,
   ReadingStatus,
+  SavedWord,
 } from "../types";
 
 /**
@@ -169,6 +170,10 @@ function demoReadingDays(now: number): Record<string, ReadingDay> {
   return days;
 }
 
+function demoWord(word: string, definition: string, bookId: string, reviewDue: string | null, reviewStep: number, createdAt: number): SavedWord {
+  return { word, definition, bookId, chapterIndex: 0, page: null, context: null, learned: false, reviewDue, reviewStep, createdAt };
+}
+
 export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
@@ -190,6 +195,12 @@ export function demoHousehold(): Household {
     ],
     readingGoals: { [new Date(now).getFullYear()]: 24 },
     readingDays: demoReadingDays(now),
+    // Three kept words for My words: two due for review today, one not until later.
+    words: [
+      demoWord("melancholy", "noun: a deep, lasting sadness", "frankenstein", null, 0, now - 9 * 86_400_000),
+      demoWord("candour", "noun: the quality of being open and honest", "pride-and-prejudice", today(new Date(now - 86_400_000)), 1, now - 6 * 86_400_000),
+      demoWord("ardent", "adjective: very enthusiastic or passionate", "pride-and-prejudice", today(new Date(now + 3 * 86_400_000)), 2, now - 4 * 86_400_000),
+    ],
     progress: {
       dune: { bookId: "dune", format: "audiobook", fraction: 0.42, chapterIndex: 9, updatedAt: now - 3_600_000, finished: false },
       "the-midnight-library": {

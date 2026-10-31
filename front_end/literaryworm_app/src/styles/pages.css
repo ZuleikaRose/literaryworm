@@ -475,3 +475,29 @@
   margin: 0;
   color: var(--ink);
 }
+
+/* Home: a one-line nudge above the rows (My words due for review). */
+.home-nudge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.home-nudge strong {
+  color: var(--ink);
+}
+
+.home-nudge svg {
+  flex: none;
+  color: var(--rust-bright);
+}
+
+.home-nudge:hover strong {
+  text-decoration: underline;
+}

@@ -1,7 +1,8 @@
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { SavedWord } from "../types";
 import * as accountApi from "./accountApi";
-import { hasWord, type WordSource, WORDS_MAX } from "./words";
+import { today } from "./reading";
+import { hasWord, nextReview, type WordSource, WORDS_MAX } from "./words";
 
 /**
  * My words for the active profile. Like favourites: real accounts save to Supabase
@@ -28,6 +29,8 @@ export function useWords() {
       page: source?.page ?? null,
       context: source?.context ?? null,
       learned: false,
+      reviewDue: null,
+      reviewStep: 0,
       createdAt: Date.now(),
     };
     if (remote) await accountApi.saveWord(profile.id, saved);
@@ -46,5 +49,14 @@ export function useWords() {
     set(words.map((w) => (w.word === word ? { ...w, learned } : w)));
   }
 
-  return { words, has: (word: string) => hasWord(words, word), save, remove, setLearned };
+  /** A review answer (lib/words.ts nextReview()): saved first for members, like the rest. */
+  async function review(word: string, knew: boolean) {
+    const w = words.find((x) => x.word === word);
+    if (!profile || !w) return;
+    const next = nextReview(w, knew, today());
+    if (remote) await accountApi.setWordReview(profile.id, word, next);
+    set(words.map((x) => (x.word === word ? { ...x, ...next } : x)));
+  }
+
+  return { words, has: (word: string) => hasWord(words, word), save, remove, setLearned, review };
 }

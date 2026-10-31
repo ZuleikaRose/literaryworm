@@ -766,11 +766,31 @@ describe("the demo household", () => {
     // The demo has finished books, so the first one is earned.
     await page.locator(".badge-card.is-earned").filter({ hasText: "First finish" }).waitFor();
     await goInApp(page, "/library?view=words");
-    await page.getByText(/choose Keep in My words/).waitFor();
+    await page.getByText(/3 words\. 2 to review today/).waitFor();
     await goInApp(page, "/library?view=notes");
     await page.getByRole("heading", { name: /No highlights yet|Notes and highlights/ }).waitFor();
     await goInApp(page, "/library?view=readers");
     await page.getByRole("heading", { name: "Following readers is for members" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("reviews the words due today from Home, and asks them again later", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await page.getByRole("link", { name: /2 words to review today/ }).click();
+    await page.waitForURL(/view=words/);
+    await page.getByRole("button", { name: "Review 2 words" }).click();
+    const dialog = page.getByRole("dialog", { name: "Review" });
+    await dialog.getByText("Word 1 of 2").waitFor();
+    await dialog.getByRole("button", { name: "Show the meaning" }).click();
+    await dialog.getByRole("button", { name: "I knew it" }).click();
+    await dialog.getByRole("button", { name: "Show the meaning" }).click();
+    await dialog.getByRole("button", { name: "Not yet" }).click();
+    await dialog.getByText("That's all 2 words: you knew 1.").waitFor();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    // Nothing is due now: known waits a day (step one), Not yet asks again tomorrow.
+    await page.getByText(/Nothing to review today/).waitFor();
+    await expect(page.getByText("Due tomorrow").count()).resolves.toBe(2);
     expect(errors()).toEqual([]);
   });
 

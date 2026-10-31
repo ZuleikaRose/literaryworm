@@ -191,3 +191,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Maintenance notices (`lib/maintenance.ts`, `lib/maintenanceApi.ts`, `MaintenanceBanner`, `pages/Maintenance.tsx`, `maintenance_notices`, migrations 6512–6514, What's new 6515); My library *Author Z–A* (What's new 6511); releases go dev first (`docs/releasing.md`, `scripts/promote.sh`) |
 | — | Book requests from Kids profiles: *Ask a grown-up*, the bell and Account → Family (`lib/bookRequests.ts`, `lib/useBookRequests.ts`, `AskGrownUp`, `book_requests`, `manage-profile` `answer_request`, migrations 6518–6519) |
 | — | Rest days: two a month keep a streak going (`streaks()` in `lib/goals.ts`, the streak card in Goals; What's new 6520) |
+| — | Word review: spaced repetition for My words, with *Review* and a Home link when words are due (`lib/words.ts`, `saved_words.review_due`, `review_step`; migrations 6521–6522) |

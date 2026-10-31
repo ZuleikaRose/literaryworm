@@ -65,6 +65,8 @@ describe("badges", () => {
       page: null,
       context: null,
       learned: false,
+      reviewDue: null,
+      reviewStep: 0,
       createdAt: 1000 + i,
     }));
     expect(byId(badges({ ...empty, words }), "words-10").earnedAt).toBe(1009);

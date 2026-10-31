@@ -7337,3 +7337,27 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$K
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Rest days for your streak$lw$, $lw$Every profile gets two rest days a month. Miss a day and a rest day is used for you, so your reading streak keeps going. Goals shows how many are left this month and which days your streak rested on, and the evening reminder only comes once they're used up.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Rest days for your streak$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261031006521_saved_words_review.sql
+-- =============================================================================
+-- My words review (spaced repetition): when each word is next asked, and how many times in a
+-- row it was known (lib/words.ts: 1, 3, 7, 14, 30 and 60 days). A word never reviewed has no
+-- due day and is asked straight away. The browser updates these with `learned`, which the last
+-- step sets.
+
+alter table public.saved_words
+  add column review_due  date,
+  add column review_step smallint not null default 0 check (review_step between 0 and 6);
+
+grant update (learned, review_due, review_step) on public.saved_words to authenticated;
+
+-- =============================================================================
+-- 20261031006522_whats_new_word_review.sql
+-- =============================================================================
+-- What's new: review for My words (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Review your words$lw$, $lw$My words now asks each word again just before you'd forget it: after 1, 3, 7, 14, 30 and 60 days while you know it, and tomorrow when you don't. Home says when words are due, and Review in My words goes through them.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Review your words$lw$ and c.version = $lw$2026.10$lw$);

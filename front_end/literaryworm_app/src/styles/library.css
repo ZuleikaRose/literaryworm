@@ -1764,3 +1764,15 @@ body:has(.mini-player) .listen-along-bar {
   flex: none;
   margin-top: 2px;
 }
+
+/* Review: when a word is next asked, and the Words view's two buttons. */
+.word-due {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+}
+
+.words-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

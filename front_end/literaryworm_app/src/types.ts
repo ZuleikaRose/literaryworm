@@ -409,6 +409,10 @@ export interface SavedWord {
   context: string | null;
   /** Marked as known in Practise. */
   learned: boolean;
+  /** Review: the local day (YYYY-MM-DD) it's next due, or null for a word not reviewed yet (due now). */
+  reviewDue: string | null;
+  /** Review: how many times in a row it was known (0–6); each step waits longer (REVIEW_INTERVALS). */
+  reviewStep: number;
   createdAt: number;
 }
 

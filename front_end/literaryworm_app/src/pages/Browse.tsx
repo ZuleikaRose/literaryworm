@@ -11,6 +11,8 @@ import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
 import { fromFollowed } from "../lib/people";
+import { dueWords } from "../lib/words";
+import { today } from "../lib/reading";
 import { approvedBooks } from "../lib/bookRequests";
 import { continueSeries } from "../lib/series";
 import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
@@ -65,6 +67,8 @@ export default function Browse() {
 
   const visible = (b: Book | undefined): b is Book => !!b && isAllowed(b.ageRating, profile.ageRating);
   const catalog = books.filter(visible);
+  // My words due for review today (lib/words.ts).
+  const wordsDue = dueWords(data.words, today()).length;
   // Books above a Kids profile's rating that a grown-up said yes to (lib/bookRequests.ts).
   const saidYes = profile.ageRating === "kids" ? approvedBooks(data.bookRequests) : [];
 
@@ -127,6 +131,14 @@ export default function Browse() {
       <FeaturedCarousel books={featured} />
 
       <div className="page-content home-rows">
+        {wordsDue > 0 && (
+          <Link className="home-nudge" to="/library?view=words">
+            <Icon name="clock" size={18} />
+            <span>
+              <strong>{wordsDue === 1 ? "1 word" : `${wordsDue} words`} to review today</strong> from My words. A minute's practice keeps them.
+            </span>
+          </Link>
+        )}
         {continueReading.length > 0 && (
           <Shelf
             id="continue"

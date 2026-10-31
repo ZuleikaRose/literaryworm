@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6519, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6522, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -493,9 +493,11 @@
             ["", "page", "smallint", true],
             ["", "context", "text ≤ 400", true],
             ["", "learned", "boolean"],
+            ["", "review_due", "date", true],
+            ["", "review_step", "smallint 0–6"],
             ["", "created_at", "timestamptz"],
           ],
-          note: "Words kept from the reader's dictionary, with the sentence they came from. FK as favorites; the key is its index. Up to 500 a profile (trigger). RLS: owner only; browser updates learned only.",
+          note: "Words kept from the reader's dictionary, with the sentence they came from, and when each is next reviewed (1, 3, 7, 14, 30, 60 days). FK as favorites; the key is its index. Up to 500 a profile (trigger). RLS: owner only; browser updates learned and the review columns only.",
         },
         {
           id: "quiz_results", color: colors.household, x: 420, y: 6720, sub: "per profile · chapter quizzes",

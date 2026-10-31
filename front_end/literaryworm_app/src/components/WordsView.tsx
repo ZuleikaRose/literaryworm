@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getBook } from "../data/books";
 import { useWords } from "../lib/useWords";
-import { practiceDeck, wordsSummary } from "../lib/words";
+import { today } from "../lib/reading";
+import { dueLabel, dueWords, practiceDeck, wordsSummary } from "../lib/words";
 import { activeLibrary } from "../store/reducer";
 import { useStore } from "../store/context";
 import type { SavedWord } from "../types";
@@ -15,7 +16,9 @@ export function WordsView() {
   const { state } = useStore();
   const library = activeLibrary(state);
   const [error, setError] = useState<string | null>(null);
-  const [practising, setPractising] = useState(false);
+  const [practising, setPractising] = useState<"review" | "all" | null>(null);
+  const [day] = useState(() => today());
+  const due = dueWords(words.words, day);
   const [announcement, setAnnouncement] = useState("");
 
   const bookTitle = (id: string | null) => (id ? (getBook(id)?.title ?? library[id]?.title ?? null) : null);
@@ -38,15 +41,28 @@ export function WordsView() {
           <p className="muted">
             {words.words.length === 0
               ? "Look a word up in the reader's dictionary, then choose Keep in My words."
-              : `${wordsSummary(words.words)}. Private to this profile.`}
+              : `${wordsSummary(words.words)}. ${due.length ? `${due.length} to review today. ` : "Nothing to review today. "}Private to this profile.`}
           </p>
         </div>
         {words.words.length > 0 && (
-          <button type="button" className="primary-button" onClick={() => setPractising(true)}>
-            <Icon name="star" size={17} /> Practise
-          </button>
+          <div className="words-actions">
+            {due.length > 0 && (
+              <button type="button" className="primary-button" onClick={() => setPractising("review")}>
+                <Icon name="clock" size={17} /> Review {due.length} {due.length === 1 ? "word" : "words"}
+              </button>
+            )}
+            <button type="button" className={due.length > 0 ? "secondary-button" : "primary-button"} onClick={() => setPractising("all")}>
+              <Icon name="star" size={17} /> Practise all
+            </button>
+          </div>
         )}
       </div>
+      {words.words.length > 0 && (
+        <p className="field-hint">
+          Review asks each word again after 1, 3, 7, 14, 30 and 60 days while you know it, and tomorrow when you don't. Known after
+          the last one, it's marked as known.
+        </p>
+      )}
       {error && (
         <p className="form-alert" role="alert">
           <Icon name="alert" size={17} /> <span>{error}</span>
@@ -62,7 +78,7 @@ export function WordsView() {
             <li key={w.word} className="word-item">
               <div className="word-head">
                 <h3 lang="en">{w.word}</h3>
-                {w.learned && <span className="word-known">Known</span>}
+                {w.learned ? <span className="word-known">Known</span> : <span className="word-due">{dueLabel(w, day)}</span>}
               </div>
               {w.definition && <p className="word-definition">{w.definition}</p>}
               {w.context && <q className="word-context">{w.context}</q>}
@@ -88,31 +104,26 @@ export function WordsView() {
           );
         })}
       </ul>
-      <PractiseDialog open={practising} words={words.words} onClose={() => setPractising(false)} onKnown={(w, known) => words.setLearned(w, known)} />
+      <Dialog open={practising !== null} onClose={() => setPractising(null)} title={practising === "review" ? "Review" : "Practise"} size="sm">
+        {practising === "review" && <Cards deck={due} onClose={() => setPractising(null)} onAnswer={(w, knew) => words.review(w.word, knew)} />}
+        {practising === "all" && (
+          <Cards
+            deck={practiceDeck(words.words)}
+            onClose={() => setPractising(null)}
+            onAnswer={async (w, knew) => {
+              if (knew !== w.learned) await words.setLearned(w.word, knew);
+            }}
+          />
+        )}
+      </Dialog>
     </section>
   );
 }
 
 /** Flashcards: the word first, then its meaning on request; I knew it or Not yet. */
-function PractiseDialog({
-  open,
-  words,
-  onClose,
-  onKnown,
-}: {
-  open: boolean;
-  words: SavedWord[];
-  onClose: () => void;
-  onKnown: (word: string, known: boolean) => Promise<void>;
-}) {
-  return (
-    <Dialog open={open} onClose={onClose} title="Practise" size="sm">
-      {open && <Cards deck={practiceDeck(words)} onClose={onClose} onKnown={onKnown} />}
-    </Dialog>
-  );
-}
-
-function Cards({ deck, onClose, onKnown }: { deck: SavedWord[]; onClose: () => void; onKnown: (word: string, known: boolean) => Promise<void> }) {
+function Cards({ deck: initial, onClose, onAnswer }: { deck: SavedWord[]; onClose: () => void; onAnswer: (word: SavedWord, knew: boolean) => Promise<void> }) {
+  // The deck as it was when the dialog opened, so answers don't reshuffle it.
+  const [deck] = useState(initial);
   const [at, setAt] = useState(0);
   const [shown, setShown] = useState(false);
   const [known, setKnown] = useState(0);
@@ -137,7 +148,7 @@ function Cards({ deck, onClose, onKnown }: { deck: SavedWord[]; onClose: () => v
   async function answer(knew: boolean) {
     setError(null);
     try {
-      if (knew !== card.learned) await onKnown(card.word, knew);
+      await onAnswer(card, knew);
       if (knew) setKnown((k) => k + 1);
       setShown(false);
       setAt((i) => i + 1);
