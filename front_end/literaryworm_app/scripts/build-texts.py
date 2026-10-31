@@ -54,6 +54,60 @@ BOOKS = {
     "the-picture-of-dorian-gray": {"ebook": 174, "heading": rf"(?:THE PREFACE|CHAPTER {ROMAN}\.)"},
     # The Introduction isn't in the recording; chapters start the text. "Home Again" is a few lines.
     "the-wonderful-wizard-of-oz": {"ebook": 55, "heading": rf"Chapter {ROMAN}", "min": 100},
+    # More public-domain titles (October 2026): headings found by matching the recording's tracks;
+    # "proportional" where this edition's chapters don't line up with them.
+    "emma": {"ebook": 158, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "sense-and-sensibility": {"ebook": 161, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "persuasion": {"ebook": 105, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "northanger-abbey": {"ebook": 121, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "end": r"^ A NOTE ON THE TEXT$(?![\s\S]*^ A NOTE ON THE TEXT$)"},  # the last one: the contents list names it too
+    "wuthering-heights": {"ebook": 768, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "great-expectations": {"ebook": 1400, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "a-tale-of-two-cities": {"ebook": 98, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-adventures-of-tom-sawyer": {"ebook": 74, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "start": r"^CHAPTER I$"},  # past the list of illustrations
+    # The last chapter is "CHAPTER THE LAST". The text starts at the "CHAPTER I." not followed by the
+    # contents list's "CHAPTER THE LAST." (the chapter itself has no full stop).
+    "adventures-of-huckleberry-finn": {"ebook": 76, "heading": rf"CHAPTER (?:{ROMAN}\.|THE LAST\.?)", "start": r"^CHAPTER I\.$(?![\s\S]*?^CHAPTER THE LAST\.$)"},
+    "the-war-of-the-worlds": {"ebook": 36, "heading": rf" *{ROMAN}\.?"},
+    "the-invisible-man": {"ebook": 5230, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-island-of-doctor-moreau": {"ebook": 159, "heading": rf" *{ROMAN}\.?", "proportional": True, "end": r"^NOTE\.$"},  # notes and printers' lines aren't read aloud
+    "twenty-thousand-leagues-under-the-sea": {"ebook": 2488, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-hound-of-the-baskervilles": {"ebook": 2852, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "a-study-in-scarlet": {"ebook": 244, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-sign-of-the-four": {"ebook": 2097, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "dr-jekyll-and-mr-hyde": {"ebook": 43, "heading": None, "proportional": True, "start": r"^STORY OF THE DOOR$"},  # past the title page and contents
+    "kidnapped": {"ebook": 421, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-jungle-book": {"ebook": 236, "heading": None, "proportional": True, "start": r"^Mowgli’s Brothers$"},  # past the title page and contents
+    "heart-of-darkness": {"ebook": 219, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-scarlet-letter": {"ebook": 33, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-last-of-the-mohicans": {"ebook": 940, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "robinson-crusoe": {"ebook": 521, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "gullivers-travels": {"ebook": 829, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "end": r"^FOOTNOTES:$"},  # notes and printers' lines aren't read aloud
+    "heidi": {"ebook": 1448, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-railway-children": {"ebook": 1874, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "a-little-princess": {"ebook": 146, "heading": r" *\d+\.?", "end": r"^End of Project Gutenberg"},  # notes and printers' lines aren't read aloud
+    "five-children-and-it": {"ebook": 778, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?", "end": r"^\*Project Gutenberg Etext"},  # notes and printers' lines aren't read aloud
+    "the-princess-and-the-goblin": {"ebook": 708, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "through-the-looking-glass": {"ebook": 12, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-prince-and-the-pauper": {"ebook": 1837, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "end": r"^FOOTNOTES AND TWAIN’S NOTES$"},  # notes and printers' lines aren't read aloud
+    "silas-marner": {"ebook": 550, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "cranford": {"ebook": 394, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^ +PRINTED BY$"},  # notes and printers' lines aren't read aloud
+    "the-turn-of-the-screw": {"ebook": 209, "heading": rf" *{ROMAN}\.?"},
+    "the-age-of-innocence": {"ebook": 541, "heading": rf" *{ROMAN}\.?", "end": r"^A Note on the Text"},  # notes and printers' lines aren't read aloud
+    "the-awakening": {"ebook": 160, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "ethan-frome": {"ebook": 4517, "heading": rf" *{ROMAN}\.?", "proportional": True},
+    "the-red-badge-of-courage": {"ebook": 463, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^\[Transcriber's Note"},  # notes and printers' lines aren't read aloud
+    "the-man-who-was-thursday": {"ebook": 1695, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    "the-phantom-of-the-opera": {"ebook": 175, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True, "end": r"^THE END$"},  # notes and printers' lines aren't read aloud
+    "king-solomons-mines": {"ebook": 2166, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-prisoner-of-zenda": {"ebook": 95, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "a-room-with-a-view": {"ebook": 2641, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "autobiography-of-benjamin-franklin": {"ebook": 20203, "heading": rf" *{ROMAN}\.?", "proportional": True, "end": r"^APPENDIX$"},  # notes and printers' lines aren't read aloud
+    "pinocchio": {"ebook": 500, "heading": r"(?:CHAPTER|Chapter) \d+\.?(?:[ .:—-].*)?"},
+    "rebecca-of-sunnybrook-farm": {"ebook": 498, "heading": rf" *{ROMAN}\.?"},
+    "pollyanna": {"ebook": 1450, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "white-fang": {"ebook": 910, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
+    "the-sea-wolf": {"ebook": 1074, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "end": r"^ +PRINTED IN GREAT BRITAIN"},  # notes and printers' lines aren't read aloud
+    "the-scarlet-pimpernel": {"ebook": 60, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?"},
 }
 
 # Shorter than this after a heading means a table-of-contents line, not a chapter.
@@ -152,7 +206,8 @@ def build(book_id: str, conf: dict, recording: dict) -> list[str]:
         body = body[cut_at(body, conf["start"], conf["ebook"]) :]  # past a contents list that names every chapter
     if conf.get("end"):
         body = body[: cut_at(body, conf["end"], conf["ebook"])]  # notes and indexes aren't read aloud
-    pieces = units(body, conf["heading"], conf.get("split"), conf.get("min", MIN_UNIT))
+    # No heading: the whole text, split by the tracks' lengths (an edition without chapter headings).
+    pieces = units(body, conf["heading"], conf.get("split"), conf.get("min", MIN_UNIT)) if conf.get("heading") else [clean(body)]
     if conf.get("proportional"):
         return proportional("\n\n".join(pieces), [t["seconds"] for t in tracks])
     groups = by_ranges(pieces, [t["title"] for t in tracks]) if conf.get("ranges") else conf.get("groups", [1] * len(tracks))

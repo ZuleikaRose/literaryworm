@@ -2564,5 +2564,6730 @@ export const recordings: Record<string, Recording> = {
         "seconds": 62
       }
     ]
+  },
+  "emma": {
+    "narrator": "Maria Therese",
+    "page": "https://librivox.org/emma-version-6-by-jane-austen/",
+    "tracks": [
+      {
+        "title": "01 - Volume 1, Chapter 1",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_01_janeausten_64kb.mp3",
+        "seconds": 1135
+      },
+      {
+        "title": "02 - Volume 1, Chapter 2",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_02_janeausten_64kb.mp3",
+        "seconds": 609
+      },
+      {
+        "title": "03 - Volume 1, Chapter 3",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_03_janeausten_64kb.mp3",
+        "seconds": 647
+      },
+      {
+        "title": "04 - Volume 1, Chapter 4",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_04_janeausten_64kb.mp3",
+        "seconds": 1197
+      },
+      {
+        "title": "05 - Volume 1, Chapter 4",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_05_janeausten_64kb.mp3",
+        "seconds": 678
+      },
+      {
+        "title": "06 - Volume 1, Chapter 6",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_06_janeausten_64kb.mp3",
+        "seconds": 950
+      },
+      {
+        "title": "07 - Volume 1, Chapter 7",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_07_janeausten_64kb.mp3",
+        "seconds": 850
+      },
+      {
+        "title": "08 - Volume 1, Chapter 8",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_08_janeausten_64kb.mp3",
+        "seconds": 1451
+      },
+      {
+        "title": "09 - Volume 1, Chapter 9",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_09_janeausten_64kb.mp3",
+        "seconds": 1638
+      },
+      {
+        "title": "10 - Volume 1, Chapter 10",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_10_janeausten_64kb.mp3",
+        "seconds": 883
+      },
+      {
+        "title": "11 - Volume 1, Chapter 11",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_11_janeausten_64kb.mp3",
+        "seconds": 755
+      },
+      {
+        "title": "12 - Volume 1, Chapter 12",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_12_janeausten_64kb.mp3",
+        "seconds": 1104
+      },
+      {
+        "title": "13 - Volume 1, Chapter 13",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_13_janeausten_64kb.mp3",
+        "seconds": 1018
+      },
+      {
+        "title": "14 - Volume 1, Chapter 14",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_14_janeausten_64kb.mp3",
+        "seconds": 809
+      },
+      {
+        "title": "15 - Volume 1, Chapter 15",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_15_janeausten_64kb.mp3",
+        "seconds": 1139
+      },
+      {
+        "title": "16 - Volume 1, Chapter 16",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_16_janeausten_64kb.mp3",
+        "seconds": 657
+      },
+      {
+        "title": "17 - Volume 1 Chapter 17",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_17_janeausten_64kb.mp3",
+        "seconds": 422
+      },
+      {
+        "title": "18 - Volume 1, Chapter 18",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_18_janeausten_64kb.mp3",
+        "seconds": 840
+      },
+      {
+        "title": "19 - Volume 2, Chapter 1",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_19_janeausten_64kb.mp3",
+        "seconds": 934
+      },
+      {
+        "title": "20 - Volume 2, Chapter 2",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_20_janeausten_64kb.mp3",
+        "seconds": 822
+      },
+      {
+        "title": "21 - Volume 2, Chapter 3",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_21_janeausten_64kb.mp3",
+        "seconds": 1267
+      },
+      {
+        "title": "22 - Volume 2, Chapter 4",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_22_janeausten_64kb.mp3",
+        "seconds": 591
+      },
+      {
+        "title": "23 - Volume 2, Chapter 5",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_23_janeausten_64kb.mp3",
+        "seconds": 1066
+      },
+      {
+        "title": "24 - Volume 2, Chapter 6",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_24_janeausten_64kb.mp3",
+        "seconds": 995
+      },
+      {
+        "title": "25 - Volume 2, Chapter 7",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_25_janeausten_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "26 - Volume 2, Chapter 8",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_26_janeausten_64kb.mp3",
+        "seconds": 2063
+      },
+      {
+        "title": "27 - Volume 2, Chapter 9",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_27_janeausten_64kb.mp3",
+        "seconds": 986
+      },
+      {
+        "title": "28 - Volume 2, Chapter 10",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_28_janeausten_64kb.mp3",
+        "seconds": 678
+      },
+      {
+        "title": "29 - Volume 2, Chapter 11",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_29_janeausten_64kb.mp3",
+        "seconds": 1061
+      },
+      {
+        "title": "30 - Volume 2, Chapter 12",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_30_janeausten_64kb.mp3",
+        "seconds": 720
+      },
+      {
+        "title": "31 - Volume 2, Chapter 13",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_31_janeausten_64kb.mp3",
+        "seconds": 655
+      },
+      {
+        "title": "32 - Volume 2, Chapter 14",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_32_janeausten_64kb.mp3",
+        "seconds": 1248
+      },
+      {
+        "title": "33 - Volume 2, Chapter 15",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_33_janeausten_64kb.mp3",
+        "seconds": 989
+      },
+      {
+        "title": "34 - Volume 2, Chapter 16",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_34_janeausten_64kb.mp3",
+        "seconds": 997
+      },
+      {
+        "title": "35 - Volume 2, Chapter 17",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_35_janeausten_64kb.mp3",
+        "seconds": 707
+      },
+      {
+        "title": "36 - Volume 2, Chapter 18",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_36_janeausten_64kb.mp3",
+        "seconds": 895
+      },
+      {
+        "title": "37 - Volume 3, Chapter 1",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_37_janeausten_64kb.mp3",
+        "seconds": 405
+      },
+      {
+        "title": "38 - Volume 3, Chapter 2",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_38_janeausten_64kb.mp3",
+        "seconds": 1431
+      },
+      {
+        "title": "39 - Volume 3, Chapter 3",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_39_janeausten_64kb.mp3",
+        "seconds": 556
+      },
+      {
+        "title": "40 - Volume 3, Chapter 4",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_40_janeausten_64kb.mp3",
+        "seconds": 708
+      },
+      {
+        "title": "41 - Volume 3, Chapter 5",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_41_janeausten_64kb.mp3",
+        "seconds": 964
+      },
+      {
+        "title": "42 - Volume 3, Chapter 6",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_42_janeausten_64kb.mp3",
+        "seconds": 1671
+      },
+      {
+        "title": "43 - Volume 3, Chapter 7",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_43_janeausten_64kb.mp3",
+        "seconds": 1133
+      },
+      {
+        "title": "44 - Volume 3, Chapter 8",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_44_janeausten_64kb.mp3",
+        "seconds": 867
+      },
+      {
+        "title": "45 - Volume 3, Chapter 9",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_45_janeausten_64kb.mp3",
+        "seconds": 802
+      },
+      {
+        "title": "46 - Volume 3, Chapter 10",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_46_janeausten_64kb.mp3",
+        "seconds": 1045
+      },
+      {
+        "title": "47 - Volume 3, Chapter 11",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_47_janeausten_64kb.mp3",
+        "seconds": 1420
+      },
+      {
+        "title": "48 - Volume 3, Chapter 12",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_48_janeausten_64kb.mp3",
+        "seconds": 968
+      },
+      {
+        "title": "49 - Volume 3, Chapter 13",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_49_janeausten_64kb.mp3",
+        "seconds": 1156
+      },
+      {
+        "title": "50 - Volume 3, Chapter 14",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_50_janeausten_64kb.mp3",
+        "seconds": 1152
+      },
+      {
+        "title": "51 - Volume 3, Chapter 15",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_51_janeausten_64kb.mp3",
+        "seconds": 795
+      },
+      {
+        "title": "52 - Volume 3, Chapter 16",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_52_janeausten_64kb.mp3",
+        "seconds": 1049
+      },
+      {
+        "title": "53 - Volume 3, Chapter 17",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_53_janeausten_64kb.mp3",
+        "seconds": 1016
+      },
+      {
+        "title": "54 - Volume 3, Chapter 18",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_54_janeausten_64kb.mp3",
+        "seconds": 1197
+      },
+      {
+        "title": "55 - Volume 3, Chapter 19",
+        "url": "https://archive.org/download/emma_mt_librivox/emma_55_janeausten_64kb.mp3",
+        "seconds": 426
+      }
+    ]
+  },
+  "sense-and-sensibility": {
+    "narrator": "Karen Savage",
+    "page": "https://librivox.org/sense-and-sensibility-by-jane-austen-version-4/",
+    "tracks": [
+      {
+        "title": "Chapter 01",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_01_austen_64kb.mp3",
+        "seconds": 561
+      },
+      {
+        "title": "Chapter 02",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_02_austen_64kb.mp3",
+        "seconds": 644
+      },
+      {
+        "title": "Chapter 03",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_03_austen_64kb.mp3",
+        "seconds": 526
+      },
+      {
+        "title": "Chapter 04",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_04_austen_64kb.mp3",
+        "seconds": 659
+      },
+      {
+        "title": "Chapter 05",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_05_austen_64kb.mp3",
+        "seconds": 357
+      },
+      {
+        "title": "Chapter 06",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_06_austen_64kb.mp3",
+        "seconds": 444
+      },
+      {
+        "title": "Chapter 07",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_07_austen_64kb.mp3",
+        "seconds": 449
+      },
+      {
+        "title": "Chapter 08",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_08_austen_64kb.mp3",
+        "seconds": 416
+      },
+      {
+        "title": "Chapter 09",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_09_austen_64kb.mp3",
+        "seconds": 600
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_10_austen_64kb.mp3",
+        "seconds": 702
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_11_austen_64kb.mp3",
+        "seconds": 505
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_12_austen_64kb.mp3",
+        "seconds": 553
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_13_austen_64kb.mp3",
+        "seconds": 676
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_14_austen_64kb.mp3",
+        "seconds": 486
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_15_austen_64kb.mp3",
+        "seconds": 841
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_16_austen_64kb.mp3",
+        "seconds": 688
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_17_austen_64kb.mp3",
+        "seconds": 548
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_18_austen_64kb.mp3",
+        "seconds": 505
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_19_austen_64kb.mp3",
+        "seconds": 927
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_20_austen_64kb.mp3",
+        "seconds": 713
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_21_austen_64kb.mp3",
+        "seconds": 970
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_22_austen_64kb.mp3",
+        "seconds": 925
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_23_austen_64kb.mp3",
+        "seconds": 786
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_24_austen_64kb.mp3",
+        "seconds": 681
+      },
+      {
+        "title": "Chapter 25",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_25_austen_64kb.mp3",
+        "seconds": 617
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_26_austen_64kb.mp3",
+        "seconds": 839
+      },
+      {
+        "title": "Chapter 27",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_27_austen_64kb.mp3",
+        "seconds": 880
+      },
+      {
+        "title": "Chapter 28",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_28_austen_64kb.mp3",
+        "seconds": 515
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_29_austen_64kb.mp3",
+        "seconds": 1293
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_30_austen_64kb.mp3",
+        "seconds": 1001
+      },
+      {
+        "title": "Chapter 31",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_31_austen_64kb.mp3",
+        "seconds": 1308
+      },
+      {
+        "title": "Chapter 32",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_32_austen_64kb.mp3",
+        "seconds": 842
+      },
+      {
+        "title": "Chapter 33",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_33_austen_64kb.mp3",
+        "seconds": 972
+      },
+      {
+        "title": "Chapter 34",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_34_austen_64kb.mp3",
+        "seconds": 906
+      },
+      {
+        "title": "Chapter 35",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_35_austen_64kb.mp3",
+        "seconds": 774
+      },
+      {
+        "title": "Chapter 36",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_36_austen_64kb.mp3",
+        "seconds": 961
+      },
+      {
+        "title": "Chapter 37",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_37_austen_64kb.mp3",
+        "seconds": 1356
+      },
+      {
+        "title": "Chapter 38",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_38_austen_64kb.mp3",
+        "seconds": 923
+      },
+      {
+        "title": "Chapter 39",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_39_austen_64kb.mp3",
+        "seconds": 654
+      },
+      {
+        "title": "Chapter 40",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_40_austen_64kb.mp3",
+        "seconds": 826
+      },
+      {
+        "title": "Chapter 41",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_41_austen_64kb.mp3",
+        "seconds": 810
+      },
+      {
+        "title": "Chapter 42",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_42_austen_64kb.mp3",
+        "seconds": 619
+      },
+      {
+        "title": "Chapter 43",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_43_austen_64kb.mp3",
+        "seconds": 1210
+      },
+      {
+        "title": "Chapter 44",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_44_austen_64kb.mp3",
+        "seconds": 1820
+      },
+      {
+        "title": "Chapter 45",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_45_austen_64kb.mp3",
+        "seconds": 763
+      },
+      {
+        "title": "Chapter 46",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_46_austen_64kb.mp3",
+        "seconds": 1019
+      },
+      {
+        "title": "Chapter 47",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_47_austen_64kb.mp3",
+        "seconds": 803
+      },
+      {
+        "title": "Chapter 48",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_48_austen_64kb.mp3",
+        "seconds": 453
+      },
+      {
+        "title": "Chapter 49",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_49_austen_64kb.mp3",
+        "seconds": 1388
+      },
+      {
+        "title": "Chapter 50",
+        "url": "https://archive.org/download/sense_sensibility_1104_librivox/sense-sensibility_50_austen_64kb.mp3",
+        "seconds": 896
+      }
+    ]
+  },
+  "persuasion": {
+    "narrator": "Madame Tusk",
+    "page": "https://librivox.org/persuasion-version-5-by-jane-austen/",
+    "tracks": [
+      {
+        "title": "01 - Chapter 01",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_01_austen_64kb.mp3",
+        "seconds": 941
+      },
+      {
+        "title": "02 - Chapter 02",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_02_austen_64kb.mp3",
+        "seconds": 669
+      },
+      {
+        "title": "03 - Chapter 03",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_03_austen_64kb.mp3",
+        "seconds": 904
+      },
+      {
+        "title": "04 - Chapter 04",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_04_austen_64kb.mp3",
+        "seconds": 652
+      },
+      {
+        "title": "05 - Chapter 05",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_05_austen_64kb.mp3",
+        "seconds": 1059
+      },
+      {
+        "title": "06 - Chapter 06",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_06_austen_64kb.mp3",
+        "seconds": 1160
+      },
+      {
+        "title": "07 - Chapter 07",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_07_austen_64kb.mp3",
+        "seconds": 1005
+      },
+      {
+        "title": "08 - Chapter 08",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_08_austen_64kb.mp3",
+        "seconds": 1021
+      },
+      {
+        "title": "09 - Chapter 09",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_09_austen_64kb.mp3",
+        "seconds": 892
+      },
+      {
+        "title": "10 - Chapter 10",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_10_austen_64kb.mp3",
+        "seconds": 1218
+      },
+      {
+        "title": "11 - Chapter 11",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_11_austen_64kb.mp3",
+        "seconds": 976
+      },
+      {
+        "title": "12 - Chapter 12",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_12_austen_64kb.mp3",
+        "seconds": 1690
+      },
+      {
+        "title": "13 - Chapter 13",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_13_austen_64kb.mp3",
+        "seconds": 844
+      },
+      {
+        "title": "14 - Chapter 14",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_14_austen_64kb.mp3",
+        "seconds": 763
+      },
+      {
+        "title": "15 - Chapter 15",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_15_austen_64kb.mp3",
+        "seconds": 907
+      },
+      {
+        "title": "16 - Chapter 16",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_16_austen_64kb.mp3",
+        "seconds": 793
+      },
+      {
+        "title": "17 - Chapter 17",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_17_austen_64kb.mp3",
+        "seconds": 1100
+      },
+      {
+        "title": "18 - Chapter 18",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_18_austen_64kb.mp3",
+        "seconds": 1201
+      },
+      {
+        "title": "19 - Chapter 19",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_19_austen_64kb.mp3",
+        "seconds": 761
+      },
+      {
+        "title": "20 - Chapter 20",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_20_austen_64kb.mp3",
+        "seconds": 1115
+      },
+      {
+        "title": "21 - Chapter 21",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_21_austen_64kb.mp3",
+        "seconds": 2072
+      },
+      {
+        "title": "22 - Chapter 22",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_22_austen_64kb.mp3",
+        "seconds": 1776
+      },
+      {
+        "title": "23 - Chapter 23",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_23_austen_64kb.mp3",
+        "seconds": 2079
+      },
+      {
+        "title": "24 - Chapter 24",
+        "url": "https://archive.org/download/persuasion_0912_librivox/persuasionr_24_austen_64kb.mp3",
+        "seconds": 516
+      }
+    ]
+  },
+  "northanger-abbey": {
+    "narrator": "Tony Addison",
+    "page": "https://librivox.org/northanger-abbey-version-4-by-jane-austen/",
+    "tracks": [
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_01_austen_64kb.mp3",
+        "seconds": 580
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_02_austen_64kb.mp3",
+        "seconds": 1000
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_03_austen_64kb.mp3",
+        "seconds": 748
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_04_austen_64kb.mp3",
+        "seconds": 593
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_05_austen_64kb.mp3",
+        "seconds": 557
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_06_austen_64kb.mp3",
+        "seconds": 692
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_07_austen_64kb.mp3",
+        "seconds": 1238
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_08_austen_64kb.mp3",
+        "seconds": 1087
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_09_austen_64kb.mp3",
+        "seconds": 1419
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_10_austen_64kb.mp3",
+        "seconds": 1576
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_11_austen_64kb.mp3",
+        "seconds": 1173
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_12_austen_64kb.mp3",
+        "seconds": 786
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_13_austen_64kb.mp3",
+        "seconds": 1416
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_14_austen_64kb.mp3",
+        "seconds": 1536
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_15_austen_64kb.mp3",
+        "seconds": 1357
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_16_austen_64kb.mp3",
+        "seconds": 1144
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_17_austen_64kb.mp3",
+        "seconds": 683
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_18_austen_64kb.mp3",
+        "seconds": 843
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_19_austen_64kb.mp3",
+        "seconds": 755
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_20_austen_64kb.mp3",
+        "seconds": 1430
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_21_austen_64kb.mp3",
+        "seconds": 1527
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_22_austen_64kb.mp3",
+        "seconds": 1814
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_23_austen_64kb.mp3",
+        "seconds": 1467
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_24_austen_64kb.mp3",
+        "seconds": 1599
+      },
+      {
+        "title": "Chapter 25",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_25_austen_64kb.mp3",
+        "seconds": 1430
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_26_austen_64kb.mp3",
+        "seconds": 1124
+      },
+      {
+        "title": "Chapter 27",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_27_austen_64kb.mp3",
+        "seconds": 488
+      },
+      {
+        "title": "Chapter 28",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_28_austen_64kb.mp3",
+        "seconds": 1694
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_29_austen_64kb.mp3",
+        "seconds": 1588
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_30_austen_64kb.mp3",
+        "seconds": 1448
+      },
+      {
+        "title": "Chapter 31",
+        "url": "https://archive.org/download/northangerabbey_v4_1511_librivox/northanger_31_austen_64kb.mp3",
+        "seconds": 613
+      }
+    ]
+  },
+  "wuthering-heights": {
+    "narrator": "Ruth Golding",
+    "page": "https://librivox.org/wuthering-heights-by-emily-bronte-2/",
+    "tracks": [
+      {
+        "title": "Chapter I",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_01_bronte_64kb.mp3",
+        "seconds": 935
+      },
+      {
+        "title": "Chapter II",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_02_bronte_64kb.mp3",
+        "seconds": 1517
+      },
+      {
+        "title": "Chapter III",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_03_bronte_64kb.mp3",
+        "seconds": 2228
+      },
+      {
+        "title": "Chapter IV",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_04_bronte_64kb.mp3",
+        "seconds": 1179
+      },
+      {
+        "title": "Chapter V",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_05_bronte_64kb.mp3",
+        "seconds": 667
+      },
+      {
+        "title": "Chapter VI",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_06_bronte_64kb.mp3",
+        "seconds": 1148
+      },
+      {
+        "title": "Chapter VII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_07_bronte_64kb.mp3",
+        "seconds": 1759
+      },
+      {
+        "title": "Chapter VIII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_08_bronte_64kb.mp3",
+        "seconds": 1537
+      },
+      {
+        "title": "Chapter IX",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_09_bronte_64kb.mp3",
+        "seconds": 2636
+      },
+      {
+        "title": "Chapter X",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_10_bronte_64kb.mp3",
+        "seconds": 2841
+      },
+      {
+        "title": "Chapter XI",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_11_bronte_64kb.mp3",
+        "seconds": 1865
+      },
+      {
+        "title": "Chapter XII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_12_bronte_64kb.mp3",
+        "seconds": 2296
+      },
+      {
+        "title": "Chapter XIII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_13_bronte_64kb.mp3",
+        "seconds": 1991
+      },
+      {
+        "title": "Chapter XIV",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_14_bronte_64kb.mp3",
+        "seconds": 1553
+      },
+      {
+        "title": "Chapter XV",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_15_bronte_64kb.mp3",
+        "seconds": 1533
+      },
+      {
+        "title": "Chapter XVI",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_16_bronte_64kb.mp3",
+        "seconds": 885
+      },
+      {
+        "title": "Chapter XVII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_17_bronte_64kb.mp3",
+        "seconds": 3049
+      },
+      {
+        "title": "Chapter XVIII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_18_bronte_64kb.mp3",
+        "seconds": 1597
+      },
+      {
+        "title": "Chapter XIX",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_19_bronte_64kb.mp3",
+        "seconds": 726
+      },
+      {
+        "title": "Chapter XX",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_20_bronte_64kb.mp3",
+        "seconds": 982
+      },
+      {
+        "title": "Chapter XXI",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_21_bronte_64kb.mp3",
+        "seconds": 2803
+      },
+      {
+        "title": "Chapter XXII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_22_bronte_64kb.mp3",
+        "seconds": 1078
+      },
+      {
+        "title": "Chapter XXIII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_23_bronte_64kb.mp3",
+        "seconds": 1375
+      },
+      {
+        "title": "Chapter XXIV",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_24_bronte_64kb.mp3",
+        "seconds": 1718
+      },
+      {
+        "title": "Chapter XXV",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_25_bronte_64kb.mp3",
+        "seconds": 670
+      },
+      {
+        "title": "Chapter XXVI",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_26_bronte_64kb.mp3",
+        "seconds": 731
+      },
+      {
+        "title": "Chapter XXVII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_27_bronte_64kb.mp3",
+        "seconds": 2172
+      },
+      {
+        "title": "Chapter XXVIII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_28_bronte_64kb.mp3",
+        "seconds": 1209
+      },
+      {
+        "title": "Chapter XXIX",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_29_bronte_64kb.mp3",
+        "seconds": 1133
+      },
+      {
+        "title": "Chapter XXX",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_30_bronte_64kb.mp3",
+        "seconds": 1005
+      },
+      {
+        "title": "Chapter XXXI",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_31_bronte_64kb.mp3",
+        "seconds": 956
+      },
+      {
+        "title": "Chapter XXXII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_32_bronte_64kb.mp3",
+        "seconds": 1834
+      },
+      {
+        "title": "Chapter XXXIII",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_33_bronte_64kb.mp3",
+        "seconds": 1573
+      },
+      {
+        "title": "Chapter XXXIV",
+        "url": "https://archive.org/download/wuthering_heights_rg_librivox/wutheringheights_34_bronte_64kb.mp3",
+        "seconds": 2141
+      }
+    ]
+  },
+  "great-expectations": {
+    "narrator": "Mil Nicholson",
+    "page": "https://librivox.org/great-expectations-version-3-by-charles-dickens/",
+    "tracks": [
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_01_dickens_64kb.mp3",
+        "seconds": 783
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_02_dickens_64kb.mp3",
+        "seconds": 1290
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_03_dickens_64kb.mp3",
+        "seconds": 768
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_04_dickens_64kb.mp3",
+        "seconds": 1349
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_05_dickens_64kb.mp3",
+        "seconds": 1610
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_06_dickens_64kb.mp3",
+        "seconds": 298
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_07_dickens_64kb.mp3",
+        "seconds": 1626
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_08_dickens_64kb.mp3",
+        "seconds": 1880
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_09_dickens_64kb.mp3",
+        "seconds": 1115
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_10_dickens_64kb.mp3",
+        "seconds": 995
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_11_dickens_64kb.mp3",
+        "seconds": 2064
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_12_dickens_64kb.mp3",
+        "seconds": 875
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_13_dickens_64kb.mp3",
+        "seconds": 1201
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_14_dickens_64kb.mp3",
+        "seconds": 335
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_15_dickens_64kb.mp3",
+        "seconds": 1725
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_16_dickens_64kb.mp3",
+        "seconds": 744
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_17_dickens_64kb.mp3",
+        "seconds": 1291
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_18_dickens_64kb.mp3",
+        "seconds": 1990
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_19_dickens_64kb.mp3",
+        "seconds": 2216
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_20_dickens_64kb.mp3",
+        "seconds": 1214
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_21_dickens_64kb.mp3",
+        "seconds": 691
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_22_dickens_64kb.mp3",
+        "seconds": 1853
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_23_dickens_64kb.mp3",
+        "seconds": 1206
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_24_dickens_64kb.mp3",
+        "seconds": 913
+      },
+      {
+        "title": "Chapter 25",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_25_dickens_64kb.mp3",
+        "seconds": 1119
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_26_dickens_64kb.mp3",
+        "seconds": 1097
+      },
+      {
+        "title": "Chapter 27",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_27_dickens_64kb.mp3",
+        "seconds": 1252
+      },
+      {
+        "title": "Chapter 28",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_28_dickens_64kb.mp3",
+        "seconds": 933
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_29_dickens_64kb.mp3",
+        "seconds": 1946
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_30_dickens_64kb.mp3",
+        "seconds": 1298
+      },
+      {
+        "title": "Chapter 31",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_31_dickens_64kb.mp3",
+        "seconds": 857
+      },
+      {
+        "title": "Chapter 32",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_32_dickens_64kb.mp3",
+        "seconds": 843
+      },
+      {
+        "title": "Chapter 33",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_33_dickens_64kb.mp3",
+        "seconds": 1027
+      },
+      {
+        "title": "Chapter 34",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_34_dickens_64kb.mp3",
+        "seconds": 878
+      },
+      {
+        "title": "Chapter 35",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_35_dickens_64kb.mp3",
+        "seconds": 1161
+      },
+      {
+        "title": "Chapter 36",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_36_dickens_64kb.mp3",
+        "seconds": 1034
+      },
+      {
+        "title": "Chapter 37",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_37_dickens_64kb.mp3",
+        "seconds": 1069
+      },
+      {
+        "title": "Chapter 38",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_38_dickens_64kb.mp3",
+        "seconds": 1908
+      },
+      {
+        "title": "Chapter 39",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_39_dickens_64kb.mp3",
+        "seconds": 1945
+      },
+      {
+        "title": "Chapter 40",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_40_dickens_64kb.mp3",
+        "seconds": 2093
+      },
+      {
+        "title": "Chapter 41",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_41_dickens_64kb.mp3",
+        "seconds": 832
+      },
+      {
+        "title": "Chapter 42",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_42_dickens_64kb.mp3",
+        "seconds": 1210
+      },
+      {
+        "title": "Chapter 43",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_43_dickens_64kb.mp3",
+        "seconds": 801
+      },
+      {
+        "title": "Chapter 44",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_44_dickens_64kb.mp3",
+        "seconds": 1198
+      },
+      {
+        "title": "Chapter 45",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_45_dickens_64kb.mp3",
+        "seconds": 1157
+      },
+      {
+        "title": "Chapter 46",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_46_dickens_64kb.mp3",
+        "seconds": 1141
+      },
+      {
+        "title": "Chapter 47",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_47_dickens_64kb.mp3",
+        "seconds": 965
+      },
+      {
+        "title": "Chapter 48",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_48_dickens_64kb.mp3",
+        "seconds": 1062
+      },
+      {
+        "title": "Chapter 49",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_49_dickens_64kb.mp3",
+        "seconds": 1446
+      },
+      {
+        "title": "Chapter 50",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_50_dickens_64kb.mp3",
+        "seconds": 565
+      },
+      {
+        "title": "Chapter 51",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_51_dickens_64kb.mp3",
+        "seconds": 1225
+      },
+      {
+        "title": "Chapter 52",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_52_dickens_64kb.mp3",
+        "seconds": 784
+      },
+      {
+        "title": "Chapter 53",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_53_dickens_64kb.mp3",
+        "seconds": 2005
+      },
+      {
+        "title": "Chapter 54",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_54_dickens_64kb.mp3",
+        "seconds": 2151
+      },
+      {
+        "title": "Chapter 55",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_55_dickens_64kb.mp3",
+        "seconds": 1088
+      },
+      {
+        "title": "Chapter 56",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_56_dickens_64kb.mp3",
+        "seconds": 865
+      },
+      {
+        "title": "Chapter 57",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_57_dickens_64kb.mp3",
+        "seconds": 1923
+      },
+      {
+        "title": "Chapter 58",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_58_dickens_64kb.mp3",
+        "seconds": 1246
+      },
+      {
+        "title": "Chapter 59",
+        "url": "https://archive.org/download/greatexpectations_1601_librivox/greatexpectations_59_dickens_64kb.mp3",
+        "seconds": 602
+      }
+    ]
+  },
+  "a-tale-of-two-cities": {
+    "narrator": "Richard Reiman",
+    "page": "https://librivox.org/a-tale-of-two-cities-by-charles-dickens-5/",
+    "tracks": [
+      {
+        "title": "The Period",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_01_dickens_64kb.mp3",
+        "seconds": 425
+      },
+      {
+        "title": "The Mail",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_02_dickens_64kb.mp3",
+        "seconds": 831
+      },
+      {
+        "title": "The Night Shadows",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_03_dickens_64kb.mp3",
+        "seconds": 726
+      },
+      {
+        "title": "The Preparation",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_04_dickens_64kb.mp3",
+        "seconds": 1799
+      },
+      {
+        "title": "The Wine-shop",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_05_dickens_64kb.mp3",
+        "seconds": 1909
+      },
+      {
+        "title": "The Shoemaker",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_06_dickens_64kb.mp3",
+        "seconds": 1705
+      },
+      {
+        "title": "Five Years Later",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_07_dickens_64kb.mp3",
+        "seconds": 965
+      },
+      {
+        "title": "A Sight",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_08_dickens_64kb.mp3",
+        "seconds": 971
+      },
+      {
+        "title": "A Disappointment",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_09_dickens_64kb.mp3",
+        "seconds": 1971
+      },
+      {
+        "title": "Congratulatory",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_10_dickens_64kb.mp3",
+        "seconds": 937
+      },
+      {
+        "title": "The Jackal",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_11_dickens_64kb.mp3",
+        "seconds": 942
+      },
+      {
+        "title": "Hundreds of People",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_12_dickens_64kb.mp3",
+        "seconds": 1991
+      },
+      {
+        "title": "Monseigneur in Town",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_13_dickens_64kb.mp3",
+        "seconds": 1525
+      },
+      {
+        "title": "Monseigneur in the Country",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_14_dickens_64kb.mp3",
+        "seconds": 811
+      },
+      {
+        "title": "The Gorgon's Head",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_15_dickens_64kb.mp3",
+        "seconds": 1729
+      },
+      {
+        "title": "Two Promises",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_16_dickens_64kb.mp3",
+        "seconds": 1188
+      },
+      {
+        "title": "A Companion Picture",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_17_dickens_64kb.mp3",
+        "seconds": 554
+      },
+      {
+        "title": "The Fellow of Delicacy",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_18_dickens_64kb.mp3",
+        "seconds": 1032
+      },
+      {
+        "title": "The Fellow of No Delicacy",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_19_dickens_64kb.mp3",
+        "seconds": 688
+      },
+      {
+        "title": "The Honest Tradesman",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_20_dickens_64kb.mp3",
+        "seconds": 1516
+      },
+      {
+        "title": "Knitting",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_21_dickens_64kb.mp3",
+        "seconds": 1577
+      },
+      {
+        "title": "Still Knitting",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_22_dickens_64kb.mp3",
+        "seconds": 1589
+      },
+      {
+        "title": "One Night",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_23_dickens_64kb.mp3",
+        "seconds": 736
+      },
+      {
+        "title": "Nine Days",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_24_dickens_64kb.mp3",
+        "seconds": 966
+      },
+      {
+        "title": "An Opinion",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_25_dickens_64kb.mp3",
+        "seconds": 1145
+      },
+      {
+        "title": "A Plea",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_26_dickens_64kb.mp3",
+        "seconds": 493
+      },
+      {
+        "title": "Echoing Footsteps",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_27_dickens_64kb.mp3",
+        "seconds": 1786
+      },
+      {
+        "title": "The Sea Still Rises",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_28_dickens_64kb.mp3",
+        "seconds": 841
+      },
+      {
+        "title": "Fire Rises",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_29_dickens_64kb.mp3",
+        "seconds": 1099
+      },
+      {
+        "title": "Drawn to the Loadstone Rock",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_30_dickens_64kb.mp3",
+        "seconds": 1788
+      },
+      {
+        "title": "In Secret",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_31_dickens_64kb.mp3",
+        "seconds": 1739
+      },
+      {
+        "title": "The Grindestone",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_32_dickens_64kb.mp3",
+        "seconds": 986
+      },
+      {
+        "title": "The Shadow",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_33_dickens_64kb.mp3",
+        "seconds": 706
+      },
+      {
+        "title": "Calm in Storm",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_34_dickens_64kb.mp3",
+        "seconds": 833
+      },
+      {
+        "title": "The Wood-Sawyer",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_35_dickens_64kb.mp3",
+        "seconds": 915
+      },
+      {
+        "title": "Triumph",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_36_dickens_64kb.mp3",
+        "seconds": 992
+      },
+      {
+        "title": "A Knock at the Door",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_37_dickens_64kb.mp3",
+        "seconds": 742
+      },
+      {
+        "title": "A Hand at Cards",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_38_dickens_64kb.mp3",
+        "seconds": 1800
+      },
+      {
+        "title": "The Game Made",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_39_dickens_64kb.mp3",
+        "seconds": 1803
+      },
+      {
+        "title": "The Substance of the Shadow",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_40_dickens_64kb.mp3",
+        "seconds": 2278
+      },
+      {
+        "title": "Dusk",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_41_dickens_64kb.mp3",
+        "seconds": 575
+      },
+      {
+        "title": "Darkness",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_42_dickens_64kb.mp3",
+        "seconds": 1352
+      },
+      {
+        "title": "Fifty-two",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_43_dickens_64kb.mp3",
+        "seconds": 1862
+      },
+      {
+        "title": "The Knitting Done",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_44_dickens_64kb.mp3",
+        "seconds": 1852
+      },
+      {
+        "title": "The Footsteps Die Out For Ever",
+        "url": "https://archive.org/download/taleoftwocities_2104_librivox/taleoftwocities_45_dickens_64kb.mp3",
+        "seconds": 989
+      }
+    ]
+  },
+  "the-adventures-of-tom-sawyer": {
+    "narrator": "John Greenman",
+    "page": "https://librivox.org/tom-sawyer-by-mark-twain/",
+    "tracks": [
+      {
+        "title": "Chapters 01 to 02",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_01-02_twain_64kb.mp3",
+        "seconds": 1598
+      },
+      {
+        "title": "Chapters 03 to 04",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_03-04_twain_64kb.mp3",
+        "seconds": 1978
+      },
+      {
+        "title": "Chapters 05 to 06",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_05-06_twain_64kb.mp3",
+        "seconds": 1911
+      },
+      {
+        "title": "Chapters 07 to 08",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_07-08_twain_64kb.mp3",
+        "seconds": 1280
+      },
+      {
+        "title": "Chapters 09 to 10",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_09-10_twain_64kb.mp3",
+        "seconds": 1415
+      },
+      {
+        "title": "Chapters 11 to 12",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_11-12_twain_64kb.mp3",
+        "seconds": 1141
+      },
+      {
+        "title": "Chapters 13 to 15",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_13-14-15_twain_64kb.mp3",
+        "seconds": 2124
+      },
+      {
+        "title": "Chapters 16 to 17",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_16-17_twain_64kb.mp3",
+        "seconds": 1496
+      },
+      {
+        "title": "Chapters 18 to 20",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_18-19-20_twain_64kb.mp3",
+        "seconds": 1735
+      },
+      {
+        "title": "Chapters 21 to 23",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_21-22-23_twain_64kb.mp3",
+        "seconds": 1897
+      },
+      {
+        "title": "Chapters 24 to 25",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_24-25_twain_64kb.mp3",
+        "seconds": 877
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_26_twain_64kb.mp3",
+        "seconds": 908
+      },
+      {
+        "title": "Chapters 27 to 28",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_27-28_twain_64kb.mp3",
+        "seconds": 687
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_29_twain_64kb.mp3",
+        "seconds": 886
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_30_twain_64kb.mp3",
+        "seconds": 1019
+      },
+      {
+        "title": "Chapters 31 to 32",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_31-32_twain_64kb.mp3",
+        "seconds": 1394
+      },
+      {
+        "title": "Chapters 33 to 35",
+        "url": "https://archive.org/download/tom_sawyer_librivox/TSawyer_33-34-35_twain_64kb.mp3",
+        "seconds": 2026
+      }
+    ]
+  },
+  "adventures-of-huckleberry-finn": {
+    "narrator": "Phil Chenevert",
+    "page": "https://librivox.org/the-adventures-of-huckleberry-finn-version-6-by-mark-twain/",
+    "tracks": [
+      {
+        "title": "CHAPTER I.  Civilizing Huck.—Miss Watson.—Tom Sawyer Waits",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_01_twain_64kb.mp3",
+        "seconds": 644
+      },
+      {
+        "title": "CHAPTER II. The Boys Escape Jim.—Torn Sawyer's Gang.—Deep-laid Plans.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_02_twain_64kb.mp3",
+        "seconds": 889
+      },
+      {
+        "title": "CHAPTER III. A Good Going-over.—Grace Triumphant.—\"One of Tom Sawyers's Lies\".",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_03_twain_64kb.mp3",
+        "seconds": 643
+      },
+      {
+        "title": "CHAPTER IV. Huck and the Judge.—Superstition.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_04_twain_64kb.mp3",
+        "seconds": 527
+      },
+      {
+        "title": "CHAPTER V. Huck's Father.—The Fond Parent.—Reform.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_05_twain_64kb.mp3",
+        "seconds": 655
+      },
+      {
+        "title": "CHAPTER VI. He Went for Judge Thatcher.—Huck Decided to Leave.—Political Economy.—Thrashing Around.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_06_twain_64kb.mp3",
+        "seconds": 1092
+      },
+      {
+        "title": "CHAPTER VII. Laying for Him.—Locked in the Cabin.—Sinking the Body.—Resting.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_07_twain_64kb.mp3",
+        "seconds": 927
+      },
+      {
+        "title": "CHAPTER VIII. Sleeping in the Woods.—Raising the Dead.—Exploring the Island.—Finding Jim.—Jim's Escape.—Signs.—Balum.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_08_twain_64kb.mp3",
+        "seconds": 1646
+      },
+      {
+        "title": "CHAPTER IX. The Cave.—The Floating House.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_09_twain_64kb.mp3",
+        "seconds": 581
+      },
+      {
+        "title": "CHAPTER X. The Find.—Old Hank Bunker.—In Disguise.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_10_twain_64kb.mp3",
+        "seconds": 507
+      },
+      {
+        "title": "CHAPTER XI. Huck and the Woman.—The Search.—Prevarication.—Going to Goshen.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_11_twain_64kb.mp3",
+        "seconds": 1060
+      },
+      {
+        "title": "CHAPTER XII. Slow Navigation.—Borrowing Things.—Boarding the Wreck.—The Plotters.—Hunting for the Boat.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_12_twain_64kb.mp3",
+        "seconds": 1090
+      },
+      {
+        "title": "CHAPTER XIII. Escaping from the Wreck.—The Watchman.—Sinking.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_13_twain_64kb.mp3",
+        "seconds": 742
+      },
+      {
+        "title": "CHAPTER XIV. A General Good Time.—The Harem.—French.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_14_twain_64kb.mp3",
+        "seconds": 591
+      },
+      {
+        "title": "CHAPTER XV. Huck Loses the Raft.—In the Fog.—Huck Finds the Raft.—Trash.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_15_twain_64kb.mp3",
+        "seconds": 884
+      },
+      {
+        "title": "CHAPTER XVI. Expectation.—A White Lie.—Floating Currency.—Running by Cairo.—Swimming Ashore.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_16_twain_64kb.mp3",
+        "seconds": 1221
+      },
+      {
+        "title": "CHAPTER XVII. An Evening Call.—The Farm in Arkansaw.—Interior Decorations.—Stephen Dowling Bots.—Poetical Effusions.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_17_twain_64kb.mp3",
+        "seconds": 1241
+      },
+      {
+        "title": "CHAPTER XVIII. Col. Grangerford.—Aristocracy.—Feuds.—The Testament.—Recovering the Raft.—The Wood—pile.—Pork and Cabbage.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_18_twain_64kb.mp3",
+        "seconds": 1733
+      },
+      {
+        "title": "CHAPTER XIX. Tying Up Day—times.—An Astronomical Theory.—Running a Temperance Revival.—The Duke of Bridgewater.—The Troubles of Royalty.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_19_twain_64kb.mp3",
+        "seconds": 1255
+      },
+      {
+        "title": "CHAPTER XX. Huck Explains.—Laying Out a Campaign.—Working the Camp—meeting.—A Pirate at the Camp—meeting.—The Duke as a Printer.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_20_twain_64kb.mp3",
+        "seconds": 1286
+      },
+      {
+        "title": "CHAPTER XXI. Sword Exercise.—Hamlet's Soliloquy.—They Loafed Around Town.—A Lazy Town.—Old Boggs.—Dead.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_21_twain_64kb.mp3",
+        "seconds": 1401
+      },
+      {
+        "title": "CHAPTER XXII. Sherburn.—Attending the Circus.—Intoxication in the Ring.—The Thrilling Tragedy.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_22_twain_64kb.mp3",
+        "seconds": 825
+      },
+      {
+        "title": "CHAPTER XXIII. Sold.—Royal Comparisons.—Jim Gets Home-sick.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_23_twain_64kb.mp3",
+        "seconds": 846
+      },
+      {
+        "title": "CHAPTER XXIV. Jim in Royal Robes.—They Take a Passenger.—Getting Information.—Family Grief.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_24_twain_64kb.mp3",
+        "seconds": 837
+      },
+      {
+        "title": "CHAPTER XXV. Is It Them?—Singing the \"Doxologer.\"—Awful Square—Funeral Orgies.—A Bad Investment .",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_25_twain_64kb.mp3",
+        "seconds": 1114
+      },
+      {
+        "title": "CHAPTER XXVI. A Pious King.—The King's Clergy.—She Asked His Pardon.—Hiding in the Room.—Huck Takes the Money.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_26_twain_64kb.mp3",
+        "seconds": 1052
+      },
+      {
+        "title": "CHAPTER XXVII. The Funeral.—Satisfying Curiosity.—Suspicious of Huck,—Quick Sales and Small.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_27_twain_64kb.mp3",
+        "seconds": 962
+      },
+      {
+        "title": "CHAPTER XXVIII. The Trip to England.—\"The Brute!\"—Mary Jane Decides to Leave.—Huck Parting with Mary Jane.—Mumps.—The Opposition Line.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_28_twain_64kb.mp3",
+        "seconds": 1280
+      },
+      {
+        "title": "CHAPTER XXIX. Contested Relationship.—The King Explains the Loss.—A Question of Handwriting.—Digging up the Corpse.—Huck Escapes.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_29_twain_64kb.mp3",
+        "seconds": 1379
+      },
+      {
+        "title": "CHAPTER XXX. The King Went for Him.—A Royal Row.—Powerful Mellow.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_30_twain_64kb.mp3",
+        "seconds": 460
+      },
+      {
+        "title": "CHAPTER XXXI. Ominous Plans.—News from Jim.—Old Recollections.—A Sheep Story.—Valuable Information.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_31_twain_64kb.mp3",
+        "seconds": 1340
+      },
+      {
+        "title": "CHAPTER XXXII. Still and Sunday—like.—Mistaken Identity.—Up a Stump.—In a Dilemma.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_32_twain_64kb.mp3",
+        "seconds": 849
+      },
+      {
+        "title": "CHAPTER XXXIII. A Nigger Stealer.—Southern Hospitality.—A Pretty Long Blessing.—Tar and Feathers.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_33_twain_64kb.mp3",
+        "seconds": 958
+      },
+      {
+        "title": "CHAPTER XXXIV. The Hut by the Ash Hopper.—Outrageous.—Climbing the Lightning Rod.—Troubled with Witches.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_34_twain_64kb.mp3",
+        "seconds": 808
+      },
+      {
+        "title": "CHAPTER XXXV. Escaping Properly.—Dark Schemes.—Discrimination in Stealing.—A Deep Hole.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_35_twain_64kb.mp3",
+        "seconds": 971
+      },
+      {
+        "title": "CHAPTER XXXVI. The Lightning Rod.—His Level Best.—A Bequest to Posterity.—A High Figure.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_36_twain_64kb.mp3",
+        "seconds": 796
+      },
+      {
+        "title": "CHAPTER XXXVII. The Last Shirt.—Mooning Around.—Sailing Orders.—The Witch Pie.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_37_twain_64kb.mp3",
+        "seconds": 897
+      },
+      {
+        "title": "CHAPTER XXXVIII. The Coat of Arms.—A Skilled Superintendent.—Unpleasant Glory.—A Tearful Subject.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_38_twain_64kb.mp3",
+        "seconds": 927
+      },
+      {
+        "title": "CHAPTER XXXIX. Rats.—Lively Bed—fellows.—The Straw Dummy.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_39_twain_64kb.mp3",
+        "seconds": 758
+      },
+      {
+        "title": "CHAPTER XL. Fishing.—The Vigilance Committee.—A Lively Run.—Jim Advises a Doctor.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_40_twain_64kb.mp3",
+        "seconds": 811
+      },
+      {
+        "title": "CHAPTER XLI. The Doctor.—Uncle Silas.—Sister Hotchkiss.—Aunt Sally in Trouble.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_41_twain_64kb.mp3",
+        "seconds": 932
+      },
+      {
+        "title": "CHAPTER XLII. Tom Sawyer Wounded.—The Doctor's Story.—Tom Confesses.—Aunt Polly Arrives.—Hand Out Them Letters    .",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_42_twain_64kb.mp3",
+        "seconds": 1117
+      },
+      {
+        "title": "CHAPTER THE LAST. Out of Bondage.—Paying the Captive.—Yours Truly, Huck Finn.",
+        "url": "https://archive.org/download/theadventuresofhuckleberryfinn_version_6_1703_librivox/adventuresofhuckleberryfinn_43_twain_64kb.mp3",
+        "seconds": 257
+      }
+    ]
+  },
+  "the-war-of-the-worlds": {
+    "narrator": "Cliff Stone",
+    "page": "https://librivox.org/the-war-of-the-worlds-by-h-g-wells/",
+    "tracks": [
+      {
+        "title": "The Eve of War",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_01_wells_64kb.mp3",
+        "seconds": 897
+      },
+      {
+        "title": "The Falling Star",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_02_wells_64kb.mp3",
+        "seconds": 516
+      },
+      {
+        "title": "On Horsell Common",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_03_wells_64kb.mp3",
+        "seconds": 390
+      },
+      {
+        "title": "The Cylinder Opens",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_04_wells_64kb.mp3",
+        "seconds": 449
+      },
+      {
+        "title": "The Heat-Ray",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_05_wells_64kb.mp3",
+        "seconds": 566
+      },
+      {
+        "title": "The Heat-Ray in the Chobham Road",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_06_wells_64kb.mp3",
+        "seconds": 329
+      },
+      {
+        "title": "How I Reached Home",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_07_wells_64kb.mp3",
+        "seconds": 507
+      },
+      {
+        "title": "Friday Night",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_08_wells_64kb.mp3",
+        "seconds": 387
+      },
+      {
+        "title": "The Fighting Begins",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_09_wells_64kb.mp3",
+        "seconds": 758
+      },
+      {
+        "title": "In the Storm",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_10_wells_64kb.mp3",
+        "seconds": 853
+      },
+      {
+        "title": "At the Window",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_11_wells_64kb.mp3",
+        "seconds": 797
+      },
+      {
+        "title": "What I Saw of the Destruction of Weybridge and Shepperton",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_12_wells_64kb.mp3",
+        "seconds": 1484
+      },
+      {
+        "title": "How I Fell in with the Curate",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_13_wells_64kb.mp3",
+        "seconds": 709
+      },
+      {
+        "title": "In London",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_14_wells_64kb.mp3",
+        "seconds": 1460
+      },
+      {
+        "title": "What had happened in Surrey",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_15_wells_64kb.mp3",
+        "seconds": 1097
+      },
+      {
+        "title": "The Exodus from London",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_16_wells_64kb.mp3",
+        "seconds": 1564
+      },
+      {
+        "title": "The \"Thunder Child\"",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_17_wells_64kb.mp3",
+        "seconds": 1231
+      },
+      {
+        "title": "Under Foot",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_18_wells_64kb.mp3",
+        "seconds": 987
+      },
+      {
+        "title": "What we saw from the Ruined House",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_19_wells_64kb.mp3",
+        "seconds": 1345
+      },
+      {
+        "title": "The Days of Imprisonment",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_20_wells_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "The Death of the Curate",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_21_wells_64kb.mp3",
+        "seconds": 655
+      },
+      {
+        "title": "The Stillness",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_22_wells_64kb.mp3",
+        "seconds": 394
+      },
+      {
+        "title": "The Work of Fifteen Days",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_23_wells_64kb.mp3",
+        "seconds": 500
+      },
+      {
+        "title": "The Man on Putney Hill",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_24_wells_64kb.mp3",
+        "seconds": 2168
+      },
+      {
+        "title": "Dead London",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_25_wells_64kb.mp3",
+        "seconds": 1269
+      },
+      {
+        "title": "Wreckage",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_26_wells_64kb.mp3",
+        "seconds": 738
+      },
+      {
+        "title": "The Epilogue",
+        "url": "https://archive.org/download/waroftheworlds_2103_librivox/waroftheworlds_27_wells_64kb.mp3",
+        "seconds": 549
+      }
+    ]
+  },
+  "the-invisible-man": {
+    "narrator": "Andrew Gaunce",
+    "page": "https://librivox.org/the-invisible-man-by-h-g-wells/",
+    "tracks": [
+      {
+        "title": "Chapters I and II",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_01_wells_64kb.mp3",
+        "seconds": 1362
+      },
+      {
+        "title": "Chapters III and IV",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_02_wells_64kb.mp3",
+        "seconds": 1481
+      },
+      {
+        "title": "Chapters V, VI and VII",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_03_wells_64kb.mp3",
+        "seconds": 1811
+      },
+      {
+        "title": "Chapters VIII, IX, X and XI",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_04_wells_64kb.mp3",
+        "seconds": 1551
+      },
+      {
+        "title": "Chapters XII, XIII and XVI",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_05_wells_64kb.mp3",
+        "seconds": 1635
+      },
+      {
+        "title": "Chapters XV, XVI and XVII",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_06_wells_64kb.mp3",
+        "seconds": 1672
+      },
+      {
+        "title": "Chapters XVIII and XIX",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_07_wells_64kb.mp3",
+        "seconds": 1202
+      },
+      {
+        "title": "Chapters XX and XXI",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_08_wells_64kb.mp3",
+        "seconds": 1909
+      },
+      {
+        "title": "Chapters XXII and XXIII",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_09_wells_64kb.mp3",
+        "seconds": 2038
+      },
+      {
+        "title": "Chapters XXIV, XXV and XXVI",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_10_wells_64kb.mp3",
+        "seconds": 1336
+      },
+      {
+        "title": "Chapters XXVII, XVIII and Epilogue",
+        "url": "https://archive.org/download/the_invisible_man_2102_librivox/invisibleman_11_wells_64kb.mp3",
+        "seconds": 2081
+      }
+    ]
+  },
+  "the-island-of-doctor-moreau": {
+    "narrator": "Veronica Maresh Mead ",
+    "page": "https://librivox.org/the-island-of-doctor-moreau-by-h-g-wells-2/",
+    "tracks": [
+      {
+        "title": "Introduction",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_01_wells_64kb.mp3",
+        "seconds": 183
+      },
+      {
+        "title": "In the Dingey of the \"Lady Vain\"",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_02_wells_64kb.mp3",
+        "seconds": 334
+      },
+      {
+        "title": "The Man Who Was Going Nowhere",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_03_wells_64kb.mp3",
+        "seconds": 347
+      },
+      {
+        "title": "The Strange Face",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_04_wells_64kb.mp3",
+        "seconds": 570
+      },
+      {
+        "title": "At the Schooner's Rail",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_05_wells_64kb.mp3",
+        "seconds": 377
+      },
+      {
+        "title": "The Man Who Had Nowhere to Go",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_06_wells_64kb.mp3",
+        "seconds": 427
+      },
+      {
+        "title": "The Evil-Looking Boatmen",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_07_wells_64kb.mp3",
+        "seconds": 545
+      },
+      {
+        "title": "The Locked Door",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_08_wells_64kb.mp3",
+        "seconds": 539
+      },
+      {
+        "title": "The Crying of the Puma",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_09_wells_64kb.mp3",
+        "seconds": 334
+      },
+      {
+        "title": "The Thing in the Forest",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_10_wells_64kb.mp3",
+        "seconds": 1080
+      },
+      {
+        "title": "The Crying of the Man",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_11_wells_64kb.mp3",
+        "seconds": 391
+      },
+      {
+        "title": "The Hunting of the Man",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_12_wells_64kb.mp3",
+        "seconds": 592
+      },
+      {
+        "title": "The Sayers of the Law",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_13_wells_64kb.mp3",
+        "seconds": 894
+      },
+      {
+        "title": "The Parley",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_14_wells_64kb.mp3",
+        "seconds": 497
+      },
+      {
+        "title": "Doctor Moreau Explains",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_15_wells_64kb.mp3",
+        "seconds": 1236
+      },
+      {
+        "title": "Concerning the Beast Folk",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_16_wells_64kb.mp3",
+        "seconds": 592
+      },
+      {
+        "title": "How the Beast Folk Taste Blood",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_17_wells_64kb.mp3",
+        "seconds": 1331
+      },
+      {
+        "title": "A Catastrophe",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_18_wells_64kb.mp3",
+        "seconds": 562
+      },
+      {
+        "title": "The Finding of Moreau",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_19_wells_64kb.mp3",
+        "seconds": 433
+      },
+      {
+        "title": "Montgomery's Bank Holiday",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_20_wells_64kb.mp3",
+        "seconds": 847
+      },
+      {
+        "title": "Alone With the Beast Folk",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_21_wells_64kb.mp3",
+        "seconds": 569
+      },
+      {
+        "title": "The Reversion of the Beast Folk",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_22_wells_64kb.mp3",
+        "seconds": 1349
+      },
+      {
+        "title": "The Man Alone",
+        "url": "https://archive.org/download/island_doctor_moreau_2110_librivox/islanddoctormoreau_23_wells_64kb.mp3",
+        "seconds": 385
+      }
+    ]
+  },
+  "twenty-thousand-leagues-under-the-sea": {
+    "narrator": "Michele Fry",
+    "page": "https://librivox.org/twenty-thousand-leagues-under-the-sea-by-jules-verne-2/",
+    "tracks": [
+      {
+        "title": "Introduction",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_00_verne_64kb.mp3",
+        "seconds": 721
+      },
+      {
+        "title": "1-1. A Runaway Reef",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_01_verne_64kb.mp3",
+        "seconds": 1023
+      },
+      {
+        "title": "1-2. The Pros and Cons",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_02_verne_64kb.mp3",
+        "seconds": 832
+      },
+      {
+        "title": "1-3. As Master Wishes",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_03_verne_64kb.mp3",
+        "seconds": 729
+      },
+      {
+        "title": "1-4. Ned Land",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_04_verne_64kb.mp3",
+        "seconds": 970
+      },
+      {
+        "title": "1-5. At Random!",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_05_verne_64kb.mp3",
+        "seconds": 901
+      },
+      {
+        "title": "1-6. At Full Steam",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_06_verne_64kb.mp3",
+        "seconds": 1096
+      },
+      {
+        "title": "1-7. A Whale of Unknown Species",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_07_verne_64kb.mp3",
+        "seconds": 1029
+      },
+      {
+        "title": "1-8. \"Mobilis in Mobili\"",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_08_verne_64kb.mp3",
+        "seconds": 1178
+      },
+      {
+        "title": "1-9. The Tantrums of Ned Land",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_09_verne_64kb.mp3",
+        "seconds": 980
+      },
+      {
+        "title": "1-10. The Man Of The Waters",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_10_verne_64kb.mp3",
+        "seconds": 1264
+      },
+      {
+        "title": "1-11. The Nautilus",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_11_verne_64kb.mp3",
+        "seconds": 1183
+      },
+      {
+        "title": "1-12. Everything through Electricity",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_12_verne_64kb.mp3",
+        "seconds": 1004
+      },
+      {
+        "title": "1-13. Some Figures",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_13_verne_64kb.mp3",
+        "seconds": 1016
+      },
+      {
+        "title": "1-14. The Black Current",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_14_verne_64kb.mp3",
+        "seconds": 1668
+      },
+      {
+        "title": "1-15. An Invitation in Writing",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_15_verne_64kb.mp3",
+        "seconds": 1148
+      },
+      {
+        "title": "1-16. Strolling the Plains",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_16_verne_64kb.mp3",
+        "seconds": 920
+      },
+      {
+        "title": "1-17. An Underwater Forest",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_17_verne_64kb.mp3",
+        "seconds": 1012
+      },
+      {
+        "title": "1-18. Four Thousand Leagues Under the Pacific",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_18_verne_64kb.mp3",
+        "seconds": 1239
+      },
+      {
+        "title": "1-19. Vanikoro",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_19_verne_64kb.mp3",
+        "seconds": 1500
+      },
+      {
+        "title": "1-20. The Torres Strait",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_20_verne_64kb.mp3",
+        "seconds": 1221
+      },
+      {
+        "title": "1-21. Some Days Ashore",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_21_verne_64kb.mp3",
+        "seconds": 1500
+      },
+      {
+        "title": "1-22. The Lightning Bolts of Captain Nemo",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_22_verne_64kb.mp3",
+        "seconds": 1489
+      },
+      {
+        "title": "1-23. \"Aegri Somnia\"",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_23_verne_64kb.mp3",
+        "seconds": 1239
+      },
+      {
+        "title": "1-24. The Coral Realm",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_24_verne_64kb.mp3",
+        "seconds": 1196
+      },
+      {
+        "title": "2-1. The Indian Ocean",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_25_verne_64kb.mp3",
+        "seconds": 1537
+      },
+      {
+        "title": "2-2. A New Proposition from Captain Nemo",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_26_verne_64kb.mp3",
+        "seconds": 1407
+      },
+      {
+        "title": "2-3. A Pearl Worth Ten Million",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_27_verne_64kb.mp3",
+        "seconds": 1691
+      },
+      {
+        "title": "2-4. The Red Sea",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_28_verne_64kb.mp3",
+        "seconds": 1826
+      },
+      {
+        "title": "2-5. Arabian Tunnel",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_29_verne_64kb.mp3",
+        "seconds": 1254
+      },
+      {
+        "title": "2-6. The Greek Islands",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_30_verne_64kb.mp3",
+        "seconds": 1532
+      },
+      {
+        "title": "2-7. The Mediterranean in Forty–Eight Hours",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_31_verne_64kb.mp3",
+        "seconds": 1507
+      },
+      {
+        "title": "2-8. The Bay of Vigo",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_32_verne_64kb.mp3",
+        "seconds": 1506
+      },
+      {
+        "title": "2-9. A Lost Continent",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_33_verne_64kb.mp3",
+        "seconds": 1568
+      },
+      {
+        "title": "2-10. The Underwater Coalfields",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_34_verne_64kb.mp3",
+        "seconds": 1588
+      },
+      {
+        "title": "2-11. The Sargasso Sea",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_35_verne_64kb.mp3",
+        "seconds": 1323
+      },
+      {
+        "title": "2-12. Sperm Whales and Baleen Whales",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_36_verne_64kb.mp3",
+        "seconds": 1494
+      },
+      {
+        "title": "2-13. The Ice Bank",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_37_verne_64kb.mp3",
+        "seconds": 1642
+      },
+      {
+        "title": "2-14. The South Pole",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_38_verne_64kb.mp3",
+        "seconds": 1947
+      },
+      {
+        "title": "2-15. Accident or Incident?",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_39_verne_64kb.mp3",
+        "seconds": 1054
+      },
+      {
+        "title": "2-16. Shortage of Air",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_40_verne_64kb.mp3",
+        "seconds": 1416
+      },
+      {
+        "title": "2-17. From Cape Horn to the Amazon",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_41_verne_64kb.mp3",
+        "seconds": 1398
+      },
+      {
+        "title": "2-18. The Devilfish",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_42_verne_64kb.mp3",
+        "seconds": 1421
+      },
+      {
+        "title": "2-19. The Gulf Stream",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_43_verne_64kb.mp3",
+        "seconds": 1498
+      },
+      {
+        "title": "2-20. In Latitude 47° 24' and Longitude 17° 28'",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_44_verne_64kb.mp3",
+        "seconds": 1189
+      },
+      {
+        "title": "2-21. A Mass Execution",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_45_verne_64kb.mp3",
+        "seconds": 1229
+      },
+      {
+        "title": "2-22. The Last Words of Captain Nemo",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_46_verne_64kb.mp3",
+        "seconds": 1043
+      },
+      {
+        "title": "2-23. Conclusion",
+        "url": "https://archive.org/download/twentythousandleagues_1311_librivox/twentythousandleagues_47_verne_64kb.mp3",
+        "seconds": 255
+      }
+    ]
+  },
+  "the-hound-of-the-baskervilles": {
+    "narrator": "David Clarke",
+    "page": "https://librivox.org/the-hound-of-the-baskervilles-version-4-by-sir-arthur-conan-doyle/",
+    "tracks": [
+      {
+        "title": "Mr Sherlock Holmes",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_01_doyle_64kb.mp3",
+        "seconds": 935
+      },
+      {
+        "title": "The Curse of the Baskervilles",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_02_doyle_64kb.mp3",
+        "seconds": 1477
+      },
+      {
+        "title": "The Problem",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_03_doyle_64kb.mp3",
+        "seconds": 1162
+      },
+      {
+        "title": "Sir Henry Baskerville",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_04_doyle_64kb.mp3",
+        "seconds": 1537
+      },
+      {
+        "title": "The Three Broken Threads",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_05_doyle_64kb.mp3",
+        "seconds": 1305
+      },
+      {
+        "title": "Baskerville Hall",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_06_doyle_64kb.mp3",
+        "seconds": 1320
+      },
+      {
+        "title": "The Stapletons of Meripit House",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_07_doyle_64kb.mp3",
+        "seconds": 1874
+      },
+      {
+        "title": "First Report of Dr Watson",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_08_doyle_64kb.mp3",
+        "seconds": 1022
+      },
+      {
+        "title": "The Light Upon the Moor (Second Report of Dr Watson",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_09_doyle_64kb.mp3",
+        "seconds": 2373
+      },
+      {
+        "title": "Extract from The Diary of Dr Watson",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_10_doyle_64kb.mp3",
+        "seconds": 1345
+      },
+      {
+        "title": "The Man on the Tor",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_11_doyle_64kb.mp3",
+        "seconds": 1661
+      },
+      {
+        "title": "Death on The Moor",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_12_doyle_64kb.mp3",
+        "seconds": 1601
+      },
+      {
+        "title": "Fixing The Nets",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_13_doyle_64kb.mp3",
+        "seconds": 1498
+      },
+      {
+        "title": "The Hound of the Baskervilles",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_14_doyle_64kb.mp3",
+        "seconds": 1578
+      },
+      {
+        "title": "A Retrospection",
+        "url": "https://archive.org/download/houndofthebaskervilles_1503_librivox/houndofthebaskervilles_15_doyle_64kb.mp3",
+        "seconds": 1544
+      }
+    ]
+  },
+  "a-study-in-scarlet": {
+    "narrator": "David Clarke",
+    "page": "https://librivox.org/a-study-in-scarlet-version-6-by-sir-arthur-conan-doyle/",
+    "tracks": [
+      {
+        "title": "Mr Sherlock Holmes",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_01_doyle_64kb.mp3",
+        "seconds": 1073
+      },
+      {
+        "title": "The Science of Deduction",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_02_doyle_64kb.mp3",
+        "seconds": 1345
+      },
+      {
+        "title": "The Lauriston Garden Mystery",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_03_doyle_64kb.mp3",
+        "seconds": 1445
+      },
+      {
+        "title": "What John Rance Had to Tell",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_04_doyle_64kb.mp3",
+        "seconds": 920
+      },
+      {
+        "title": "Our Advertisement Brings A Visitor",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_05_doyle_64kb.mp3",
+        "seconds": 939
+      },
+      {
+        "title": "Tobias Gregson Shows What He Can Do",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_06_doyle_64kb.mp3",
+        "seconds": 1248
+      },
+      {
+        "title": "Light In the Darkness",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_07_doyle_64kb.mp3",
+        "seconds": 1247
+      },
+      {
+        "title": "On The Great Alkali Plain",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_08_doyle_64kb.mp3",
+        "seconds": 1489
+      },
+      {
+        "title": "The Flower of Utah",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_09_doyle_64kb.mp3",
+        "seconds": 997
+      },
+      {
+        "title": "John Ferrier Talks With the Prophet",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_10_doyle_64kb.mp3",
+        "seconds": 756
+      },
+      {
+        "title": "A Flight For Life",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_11_doyle_64kb.mp3",
+        "seconds": 1296
+      },
+      {
+        "title": "The Avenging Angels",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_12_doyle_64kb.mp3",
+        "seconds": 1385
+      },
+      {
+        "title": "A Continuation of the Reminiscences of John Watson MD",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_13_doyle_64kb.mp3",
+        "seconds": 1651
+      },
+      {
+        "title": "The Conclusion",
+        "url": "https://archive.org/download/studyscarletv6_1412_librivox/studyinscarlet_14_doyle_64kb.mp3",
+        "seconds": 863
+      }
+    ]
+  },
+  "the-sign-of-the-four": {
+    "narrator": "David Clarke",
+    "page": "https://librivox.org/the-sign-of-the-four-version-3-by-sir-arthur-conan-doyle/",
+    "tracks": [
+      {
+        "title": "The Science of Deduction",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_01_doyle_64kb.mp3",
+        "seconds": 1231
+      },
+      {
+        "title": "The Statement of the Case",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_02_doyle_64kb.mp3",
+        "seconds": 777
+      },
+      {
+        "title": "In Quest of A Solution",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_03_doyle_64kb.mp3",
+        "seconds": 703
+      },
+      {
+        "title": "The Story of the Bald-Headed Man",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_04_doyle_64kb.mp3",
+        "seconds": 1465
+      },
+      {
+        "title": "The Tragedy of Pondicherry Lodge",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_05_doyle_64kb.mp3",
+        "seconds": 1002
+      },
+      {
+        "title": "Sherlock Holmes Gives A Demonstration",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_06_doyle_64kb.mp3",
+        "seconds": 1238
+      },
+      {
+        "title": "The Episode of the Barrel",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_07_doyle_64kb.mp3",
+        "seconds": 1587
+      },
+      {
+        "title": "The Baker Street Irregulars",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_08_doyle_64kb.mp3",
+        "seconds": 1287
+      },
+      {
+        "title": "A Break In the Chain",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_09_doyle_64kb.mp3",
+        "seconds": 1299
+      },
+      {
+        "title": "The End of The Islander",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_10_doyle_64kb.mp3",
+        "seconds": 1231
+      },
+      {
+        "title": "The Great Agra Treasure",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_11_doyle_64kb.mp3",
+        "seconds": 813
+      },
+      {
+        "title": "The Strange Story of Jonathan Small",
+        "url": "https://archive.org/download/signofthefour_1412_librivox/signofthefour_12_doyle_64kb.mp3",
+        "seconds": 3418
+      }
+    ]
+  },
+  "dr-jekyll-and-mr-hyde": {
+    "narrator": "Phil Chenevert",
+    "page": "https://librivox.org/the-strange-case-of-dr-jekyll-and-mr-hyde-by-robert-louis-stevenson-5/",
+    "tracks": [
+      {
+        "title": "STORY OF THE DOOR",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_01_stevenson_64kb.mp3",
+        "seconds": 972
+      },
+      {
+        "title": "SEARCH FOR MR. HYDE",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_02_stevenson_64kb.mp3",
+        "seconds": 1230
+      },
+      {
+        "title": "DR. JEKYLL WAS QUITE AT EASE",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_03_stevenson_64kb.mp3",
+        "seconds": 340
+      },
+      {
+        "title": "THE CAREW MURDER CASE",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_04_stevenson_64kb.mp3",
+        "seconds": 655
+      },
+      {
+        "title": "INCIDENT OF THE LETTER",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_05_stevenson_64kb.mp3",
+        "seconds": 682
+      },
+      {
+        "title": "INCIDENT OF DR. LANYON",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_06_stevenson_64kb.mp3",
+        "seconds": 621
+      },
+      {
+        "title": "INCIDENT AT THE WINDOW",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_07_stevenson_64kb.mp3",
+        "seconds": 233
+      },
+      {
+        "title": "THE LAST NIGHT",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_08_stevenson_64kb.mp3",
+        "seconds": 1762
+      },
+      {
+        "title": "DR. LANYON’S NARRATIVE",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_09_stevenson_64kb.mp3",
+        "seconds": 1151
+      },
+      {
+        "title": "HENRY JEKYLL’S FULL STATEMENT OF THE CASE",
+        "url": "https://archive.org/download/drjeckyll_and_mr_hyde_1901_librivox/drjeckyllandmrhyde_10_stevenson_64kb.mp3",
+        "seconds": 2780
+      }
+    ]
+  },
+  "kidnapped": {
+    "narrator": "Mark F. Smith",
+    "page": "https://librivox.org/kidnapped-by-robert-louis-stevenson/",
+    "tracks": [
+      {
+        "title": "Preface, Dedication, Disclaimer",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_00_stevenson_64kb.mp3",
+        "seconds": 686
+      },
+      {
+        "title": "I Journey to the House of Shaws",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_01_stevenson_64kb.mp3",
+        "seconds": 645
+      },
+      {
+        "title": "I Come to My Journey’s End",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_02_stevenson_64kb.mp3",
+        "seconds": 721
+      },
+      {
+        "title": "I Make Acquaintance of My Uncle",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_03_stevenson_64kb.mp3",
+        "seconds": 1019
+      },
+      {
+        "title": "I Run a Great Danger in the House of Shaws",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_04_stevenson_64kb.mp3",
+        "seconds": 1104
+      },
+      {
+        "title": "I Go to the Queen’s Ferry",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_05_stevenson_64kb.mp3",
+        "seconds": 895
+      },
+      {
+        "title": "What Befell at the Queen’s Ferry",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_06_stevenson_64kb.mp3",
+        "seconds": 691
+      },
+      {
+        "title": "I Go to Sea in the Brig",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_07_stevenson_64kb.mp3",
+        "seconds": 983
+      },
+      {
+        "title": "The Round House",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_08_stevenson_64kb.mp3",
+        "seconds": 692
+      },
+      {
+        "title": "The Man With the Belt of Gold",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_09_stevenson_64kb.mp3",
+        "seconds": 1213
+      },
+      {
+        "title": "Siege of the Roundhouse",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_10_stevenson_64kb.mp3",
+        "seconds": 888
+      },
+      {
+        "title": "The Captain Knuckles Under",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_11_stevenson_64kb.mp3",
+        "seconds": 614
+      },
+      {
+        "title": "I Hear of the Red Fox",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_12_stevenson_64kb.mp3",
+        "seconds": 1212
+      },
+      {
+        "title": "The Loss of the Brig",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_13_stevenson_64kb.mp3",
+        "seconds": 769
+      },
+      {
+        "title": "The Islet",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_14_stevenson_64kb.mp3",
+        "seconds": 1206
+      },
+      {
+        "title": "The Lad With the Silver Button: Through the Isle of Mull",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_15_stevenson_64kb.mp3",
+        "seconds": 1059
+      },
+      {
+        "title": "The Lad With the Silver Button: Across Morven",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_16_stevenson_64kb.mp3",
+        "seconds": 1005
+      },
+      {
+        "title": "The Death of the Red Fox",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_17_stevenson_64kb.mp3",
+        "seconds": 769
+      },
+      {
+        "title": "Talk With Alan in the Wood of Lettermore",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_18_stevenson_64kb.mp3",
+        "seconds": 1065
+      },
+      {
+        "title": "The House of Fear",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_19_stevenson_64kb.mp3",
+        "seconds": 845
+      },
+      {
+        "title": "The Flight in the Heather: The Rocks",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_20_stevenson_64kb.mp3",
+        "seconds": 1149
+      },
+      {
+        "title": "The Heugh of Corrynakiegh",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_21_stevenson_64kb.mp3",
+        "seconds": 980
+      },
+      {
+        "title": "The Moor",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_22_stevenson_64kb.mp3",
+        "seconds": 1058
+      },
+      {
+        "title": "Cluny’s Cage",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_23_stevenson_64kb.mp3",
+        "seconds": 1140
+      },
+      {
+        "title": "The Quarrel",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_24_stevenson_64kb.mp3",
+        "seconds": 1428
+      },
+      {
+        "title": "In Balquhidder",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_25_stevenson_64kb.mp3",
+        "seconds": 928
+      },
+      {
+        "title": "End of the Flight: We Pass the Forth",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_26_stevenson_64kb.mp3",
+        "seconds": 1426
+      },
+      {
+        "title": "I Come to Mr. Rankeillor",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_27_stevenson_64kb.mp3",
+        "seconds": 1094
+      },
+      {
+        "title": "I Go in Quest of my Inheritance",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_28_stevenson_64kb.mp3",
+        "seconds": 1045
+      },
+      {
+        "title": "I Come Into My Kingdom",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_29_stevenson_64kb.mp3",
+        "seconds": 940
+      },
+      {
+        "title": "Good-bye",
+        "url": "https://archive.org/download/kidnapped_0807_librivox/kidnapped_30_stevenson_64kb.mp3",
+        "seconds": 533
+      }
+    ]
+  },
+  "the-jungle-book": {
+    "narrator": "Phil Chenevert",
+    "page": "https://librivox.org/the-jungle-book-by-rudyard-kipling-2/",
+    "tracks": [
+      {
+        "title": "01 - Mowgli's Brothers (part 1)",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_01_kipling_64kb.mp3",
+        "seconds": 1243
+      },
+      {
+        "title": "02 - Mowgli's Brothers (part 2) + Hunting-Song of the Seeonee Pack",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_02_kipling_64kb.mp3",
+        "seconds": 1625
+      },
+      {
+        "title": "03 - Kaa's Hunting (part 1)",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_03_kipling_64kb.mp3",
+        "seconds": 2011
+      },
+      {
+        "title": "04 - Kaa's Hunting (part 2) + Road-Song of the Bandar-Log",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_04_kipling_64kb.mp3",
+        "seconds": 1684
+      },
+      {
+        "title": "05 - \"Tiger! Tiger!\" (part 1)",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_05_kipling_64kb.mp3",
+        "seconds": 1495
+      },
+      {
+        "title": "06 - \"Tiger! Tiger!\"  (part 2) + Mowgli's Song",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_06_kipling_64kb.mp3",
+        "seconds": 1137
+      },
+      {
+        "title": "07 - The White Seal (part 1)",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_07_kipling_64kb.mp3",
+        "seconds": 1601
+      },
+      {
+        "title": "08 - The White Seal (part 2) + Lukannon",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_08_kipling_64kb.mp3",
+        "seconds": 1239
+      },
+      {
+        "title": "09 - \"Rikki-Tikki-Tavi\" + Darzee's Chant",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_09_kipling_64kb.mp3",
+        "seconds": 2255
+      },
+      {
+        "title": "10 - Toomai of the Elephants + Shiv and the Grasshopper",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_10_kipling_64kb.mp3",
+        "seconds": 2888
+      },
+      {
+        "title": "11 - Her Majesty's Servants + Parade Song of the Camp Animals",
+        "url": "https://archive.org/download/thejunglebook_pc_librivox/junglebookthe_11_kipling_64kb.mp3",
+        "seconds": 2307
+      }
+    ]
+  },
+  "heart-of-darkness": {
+    "narrator": "Peter Dann",
+    "page": "https://librivox.org/heart-of-darkness-ver4-by-joseph-conrad/",
+    "tracks": [
+      {
+        "title": "Chapter I Part 1",
+        "url": "https://archive.org/download/heart_of_darkness_ver4_2110_librivox/heartofdarkness4_01_conrad_64kb.mp3",
+        "seconds": 2881
+      },
+      {
+        "title": "Chapter I Part 2",
+        "url": "https://archive.org/download/heart_of_darkness_ver4_2110_librivox/heartofdarkness4_02_conrad_64kb.mp3",
+        "seconds": 2595
+      },
+      {
+        "title": "Chapter II Part 1",
+        "url": "https://archive.org/download/heart_of_darkness_ver4_2110_librivox/heartofdarkness4_03_conrad_64kb.mp3",
+        "seconds": 2455
+      },
+      {
+        "title": "Chapter II Part 2",
+        "url": "https://archive.org/download/heart_of_darkness_ver4_2110_librivox/heartofdarkness4_04_conrad_64kb.mp3",
+        "seconds": 2017
+      },
+      {
+        "title": "Chapter III Part 1",
+        "url": "https://archive.org/download/heart_of_darkness_ver4_2110_librivox/heartofdarkness4_05_conrad_64kb.mp3",
+        "seconds": 2428
+      },
+      {
+        "title": "Chapter III Part 2",
+        "url": "https://archive.org/download/heart_of_darkness_ver4_2110_librivox/heartofdarkness4_06_conrad_64kb.mp3",
+        "seconds": 2204
+      }
+    ]
+  },
+  "the-scarlet-letter": {
+    "narrator": "Cori Samuel",
+    "page": "https://librivox.org/the-scarlet-letter-by-nathaniel-hawthorne-2/",
+    "tracks": [
+      {
+        "title": "00a - The Custom-House—Introductory to 'The Scarlet Letter'",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_00a_hawthorne_64kb.mp3",
+        "seconds": 1399
+      },
+      {
+        "title": "00b - The Custom-House—Continued",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_00b_hawthorne_64kb.mp3",
+        "seconds": 1847
+      },
+      {
+        "title": "00c - The Custom-House—Concluded",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_00c_hawthorne_64kb.mp3",
+        "seconds": 2866
+      },
+      {
+        "title": "01 - The Prison-Door",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_01_hawthorne_64kb.mp3",
+        "seconds": 209
+      },
+      {
+        "title": "02 - The Market-Place",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_02_hawthorne_64kb.mp3",
+        "seconds": 1388
+      },
+      {
+        "title": "03 - The Recognition",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_03_hawthorne_64kb.mp3",
+        "seconds": 1284
+      },
+      {
+        "title": "04 - The Interview",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_04_hawthorne_64kb.mp3",
+        "seconds": 963
+      },
+      {
+        "title": "05 - Hester at Her Needle",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_05_hawthorne_64kb.mp3",
+        "seconds": 1410
+      },
+      {
+        "title": "06 - Pearl",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_06_hawthorne_64kb.mp3",
+        "seconds": 1460
+      },
+      {
+        "title": "07 - The Governor's Hall",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_07_hawthorne_64kb.mp3",
+        "seconds": 975
+      },
+      {
+        "title": "08 - The Elf-Child and the Minister",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_08_hawthorne_64kb.mp3",
+        "seconds": 1239
+      },
+      {
+        "title": "09 - The Leech",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_09_hawthorne_64kb.mp3",
+        "seconds": 1421
+      },
+      {
+        "title": "10 - The Leech and His Patient",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_10_hawthorne_64kb.mp3",
+        "seconds": 1385
+      },
+      {
+        "title": "11 - The Interior of a Heart",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_11_hawthorne_64kb.mp3",
+        "seconds": 1064
+      },
+      {
+        "title": "12 - The Minister's Vigil",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_12_hawthorne_64kb.mp3",
+        "seconds": 1531
+      },
+      {
+        "title": "13 - Another View of Hester",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_13_hawthorne_64kb.mp3",
+        "seconds": 1173
+      },
+      {
+        "title": "14 - Hester and the Physician",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_14_hawthorne_64kb.mp3",
+        "seconds": 896
+      },
+      {
+        "title": "15 - Hester and Pearl",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_15_hawthorne_64kb.mp3",
+        "seconds": 900
+      },
+      {
+        "title": "16 - A Forest Walk",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_16_hawthorne_64kb.mp3",
+        "seconds": 839
+      },
+      {
+        "title": "17 - The Pastor and His Parishioner",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_17_hawthorne_64kb.mp3",
+        "seconds": 1396
+      },
+      {
+        "title": "18 - A Flood of Sunshine",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_18_hawthorne_64kb.mp3",
+        "seconds": 908
+      },
+      {
+        "title": "19 - The Child at the Brook-side",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_19_hawthorne_64kb.mp3",
+        "seconds": 1006
+      },
+      {
+        "title": "20 - The Minister in a Maze",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_20_hawthorne_64kb.mp3",
+        "seconds": 1530
+      },
+      {
+        "title": "21 - The New England Holiday",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_21_hawthorne_64kb.mp3",
+        "seconds": 1227
+      },
+      {
+        "title": "22 - The Procession",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_22_hawthorne_64kb.mp3",
+        "seconds": 1461
+      },
+      {
+        "title": "23 - The Revelation of the Scarlet Letter",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_23_hawthorne_64kb.mp3",
+        "seconds": 1253
+      },
+      {
+        "title": "24 - Conclusion",
+        "url": "https://archive.org/download/scarletletterver2_1501_librivox/scarletletter_24_hawthorne_64kb.mp3",
+        "seconds": 871
+      }
+    ]
+  },
+  "the-last-of-the-mohicans": {
+    "narrator": "Gary W. Sherwin",
+    "page": "https://librivox.org/the-last-of-the-mohicans-a-narrative-of-1757/",
+    "tracks": [
+      {
+        "title": "Introduction",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_00_cooper_64kb.mp3",
+        "seconds": 673
+      },
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_01_cooper_64kb.mp3",
+        "seconds": 1712
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_02_cooper_64kb.mp3",
+        "seconds": 1290
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_03_cooper_64kb.mp3",
+        "seconds": 1529
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_04_cooper_64kb.mp3",
+        "seconds": 1348
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_05_cooper_64kb.mp3",
+        "seconds": 1415
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_06_cooper_64kb.mp3",
+        "seconds": 1805
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_07_cooper_64kb.mp3",
+        "seconds": 1857
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_08_cooper_64kb.mp3",
+        "seconds": 1615
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_09_cooper_64kb.mp3",
+        "seconds": 1363
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_10_cooper_64kb.mp3",
+        "seconds": 1988
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_11_cooper_64kb.mp3",
+        "seconds": 2133
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_12_cooper_64kb.mp3",
+        "seconds": 2411
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_13_cooper_64kb.mp3",
+        "seconds": 1749
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_14_cooper_64kb.mp3",
+        "seconds": 2100
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_15_cooper_64kb.mp3",
+        "seconds": 1826
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_16_cooper_64kb.mp3",
+        "seconds": 1924
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_17_cooper_64kb.mp3",
+        "seconds": 2313
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_18_cooper_64kb.mp3",
+        "seconds": 1823
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_19_cooper_64kb.mp3",
+        "seconds": 1960
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_20_cooper_64kb.mp3",
+        "seconds": 1867
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_21_cooper_64kb.mp3",
+        "seconds": 1648
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_22_cooper_64kb.mp3",
+        "seconds": 1980
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_23_cooper_64kb.mp3",
+        "seconds": 2181
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_24_cooper_64kb.mp3",
+        "seconds": 1991
+      },
+      {
+        "title": "Chapter 25",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_25_cooper_64kb.mp3",
+        "seconds": 2126
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_26_cooper_64kb.mp3",
+        "seconds": 1740
+      },
+      {
+        "title": "Chapter 27",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_27_cooper_64kb.mp3",
+        "seconds": 1671
+      },
+      {
+        "title": "Chapter 28",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_28_cooper_64kb.mp3",
+        "seconds": 1706
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_29_cooper_64kb.mp3",
+        "seconds": 2300
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_30_cooper_64kb.mp3",
+        "seconds": 2086
+      },
+      {
+        "title": "Chapter 31",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_31_cooper_64kb.mp3",
+        "seconds": 1331
+      },
+      {
+        "title": "Chapter 32",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_32_cooper_64kb.mp3",
+        "seconds": 2398
+      },
+      {
+        "title": "Chapter 33",
+        "url": "https://archive.org/download/mohicans_gs_librivox/lastofthemohicans_33_cooper_64kb.mp3",
+        "seconds": 2405
+      }
+    ]
+  },
+  "robinson-crusoe": {
+    "narrator": "Mark F. Smith",
+    "page": "https://librivox.org/robinson-crusoe-by-daniel-defoe-2/",
+    "tracks": [
+      {
+        "title": "Chapter 1: Start in Life",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_01_defoe_64kb.mp3",
+        "seconds": 1875
+      },
+      {
+        "title": "Chapter 2:  Slavery & Escape",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_02_defoe_64kb.mp3",
+        "seconds": 1724
+      },
+      {
+        "title": "Chapter 3a: Wrecked On a Desert Island, Part 1",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_03_defoe_64kb.mp3",
+        "seconds": 1325
+      },
+      {
+        "title": "Chapter 3b, Part 2",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_04_defoe_64kb.mp3",
+        "seconds": 1262
+      },
+      {
+        "title": "Chapter 4a: First Weeks On the Island, Part 1",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_05_defoe_64kb.mp3",
+        "seconds": 1197
+      },
+      {
+        "title": "Chapter 4b, Part 2",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_06_defoe_64kb.mp3",
+        "seconds": 1827
+      },
+      {
+        "title": "Chapter 5: Builds a House - The Journal",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_07_defoe_64kb.mp3",
+        "seconds": 1872
+      },
+      {
+        "title": "Chapter 6: Ill and Conscience-Stricken",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_08_defoe_64kb.mp3",
+        "seconds": 1977
+      },
+      {
+        "title": "Chapter 7: Agricultural Experience",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_09_defoe_64kb.mp3",
+        "seconds": 1288
+      },
+      {
+        "title": "Chapter 8: Surveys His Position",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_10_defoe_64kb.mp3",
+        "seconds": 1470
+      },
+      {
+        "title": "Chapter 9: A Boat",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_11_defoe_64kb.mp3",
+        "seconds": 2326
+      },
+      {
+        "title": "Chapter 10: Tames Goats",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_12_defoe_64kb.mp3",
+        "seconds": 1635
+      },
+      {
+        "title": "Chapter 11: Finds Print of Man's Foot on the Sand",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_13_defoe_64kb.mp3",
+        "seconds": 1908
+      },
+      {
+        "title": "Chapter 12: A Cave Retreat",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_14_defoe_64kb.mp3",
+        "seconds": 2452
+      },
+      {
+        "title": "Chapter 13: Wreck of a Spanish Ship",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_15_defoe_64kb.mp3",
+        "seconds": 1884
+      },
+      {
+        "title": "Chapter 14: A Dream Realized",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_16_defoe_64kb.mp3",
+        "seconds": 2300
+      },
+      {
+        "title": "Chapter 15: Friday's Education",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_17_defoe_64kb.mp3",
+        "seconds": 2174
+      },
+      {
+        "title": "Chapter 16: Rescue of Prisoners From Cannibals",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_18_defoe_64kb.mp3",
+        "seconds": 2329
+      },
+      {
+        "title": "Chapter 17: Visit of Mutineers",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_19_defoe_64kb.mp3",
+        "seconds": 2168
+      },
+      {
+        "title": "Chapter 18: The Ship Recovered",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_20_defoe_64kb.mp3",
+        "seconds": 2283
+      },
+      {
+        "title": "Chapter 19: Return to England",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_21_defoe_64kb.mp3",
+        "seconds": 2074
+      },
+      {
+        "title": "Chapter 20: Fight Between Friday and a Bear",
+        "url": "https://archive.org/download/robinson_crusoe_1006_librivox/robinsoncrusoe_22_defoe_64kb.mp3",
+        "seconds": 1708
+      }
+    ]
+  },
+  "gullivers-travels": {
+    "narrator": "Peter Dann",
+    "page": "https://librivox.org/gullivers-travels-vers3-by-jonathan-swift/",
+    "tracks": [
+      {
+        "title": "The publisher to the reader",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_01_swift_64kb.mp3",
+        "seconds": 185
+      },
+      {
+        "title": "A letter from Captain Gulliver to his cousin Sympson",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_02_swift_64kb.mp3",
+        "seconds": 525
+      },
+      {
+        "title": "Part 1 (A voyage to Lilliput), chapter 1",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_03_swift_64kb.mp3",
+        "seconds": 1297
+      },
+      {
+        "title": "Part 1, chapter 2",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_04_swift_64kb.mp3",
+        "seconds": 1273
+      },
+      {
+        "title": "Part 1, chapter 3",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_05_swift_64kb.mp3",
+        "seconds": 986
+      },
+      {
+        "title": "Part 1, chapter 4",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_06_swift_64kb.mp3",
+        "seconds": 636
+      },
+      {
+        "title": "Part 1, chapter 5",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_07_swift_64kb.mp3",
+        "seconds": 821
+      },
+      {
+        "title": "Part 1, chapter 6",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_08_swift_64kb.mp3",
+        "seconds": 1297
+      },
+      {
+        "title": "Part 1, chapter 7",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_09_swift_64kb.mp3",
+        "seconds": 1026
+      },
+      {
+        "title": "Part 1, chapter 8",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_10_swift_64kb.mp3",
+        "seconds": 785
+      },
+      {
+        "title": "Part 2 (A voyage to Brobdingnag), chapter 1",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_11_swift_64kb.mp3",
+        "seconds": 1572
+      },
+      {
+        "title": "Part 2, chapter 2",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_12_swift_64kb.mp3",
+        "seconds": 721
+      },
+      {
+        "title": "Part 2, chapter 3",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_13_swift_64kb.mp3",
+        "seconds": 1299
+      },
+      {
+        "title": "Part 2, chapter 4",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_14_swift_64kb.mp3",
+        "seconds": 612
+      },
+      {
+        "title": "Part 2, chapter 5",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_15_swift_64kb.mp3",
+        "seconds": 1181
+      },
+      {
+        "title": "Part 2, chapter 6",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_16_swift_64kb.mp3",
+        "seconds": 1071
+      },
+      {
+        "title": "Part 2, chapter 7",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_17_swift_64kb.mp3",
+        "seconds": 838
+      },
+      {
+        "title": "Part 2, chapter 8",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_18_swift_64kb.mp3",
+        "seconds": 1447
+      },
+      {
+        "title": "Part 3 (A voyage to Laputa, Balnibarbi, Glubbdubdrib, Luggnagg and Japan), chapter 1",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_19_swift_64kb.mp3",
+        "seconds": 705
+      },
+      {
+        "title": "Part 3, chapter 2",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_20_swift_64kb.mp3",
+        "seconds": 1046
+      },
+      {
+        "title": "Part 3, chapter 3",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_21_swift_64kb.mp3",
+        "seconds": 909
+      },
+      {
+        "title": "Part 3, chapter 4",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_22_swift_64kb.mp3",
+        "seconds": 747
+      },
+      {
+        "title": "Part 3, chapter 5",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_23_swift_64kb.mp3",
+        "seconds": 906
+      },
+      {
+        "title": "Part 3, chapter 6",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_24_swift_64kb.mp3",
+        "seconds": 736
+      },
+      {
+        "title": "Part 3, chapter 7",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_25_swift_64kb.mp3",
+        "seconds": 515
+      },
+      {
+        "title": "Part 3, chapter 8",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_26_swift_64kb.mp3",
+        "seconds": 719
+      },
+      {
+        "title": "Part 3, chapter 9",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_27_swift_64kb.mp3",
+        "seconds": 479
+      },
+      {
+        "title": "Part 3, chapter 10",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_28_swift_64kb.mp3",
+        "seconds": 1052
+      },
+      {
+        "title": "Part 3, chapter 11",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_29_swift_64kb.mp3",
+        "seconds": 448
+      },
+      {
+        "title": "Part 4 (A voyage to the country of the Houyhnhnms), chapter 1",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_30_swift_64kb.mp3",
+        "seconds": 869
+      },
+      {
+        "title": "Part 4, chapter 2",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_31_swift_64kb.mp3",
+        "seconds": 751
+      },
+      {
+        "title": "Part 4, chapter 3",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_32_swift_64kb.mp3",
+        "seconds": 731
+      },
+      {
+        "title": "Part 4, chapter 4",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_33_swift_64kb.mp3",
+        "seconds": 678
+      },
+      {
+        "title": "Part 4, chapter 5",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_34_swift_64kb.mp3",
+        "seconds": 802
+      },
+      {
+        "title": "Part 4, chapter 6",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_35_swift_64kb.mp3",
+        "seconds": 876
+      },
+      {
+        "title": "Part 4, chapter 7",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_36_swift_64kb.mp3",
+        "seconds": 971
+      },
+      {
+        "title": "Part 4, chapter 8",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_37_swift_64kb.mp3",
+        "seconds": 756
+      },
+      {
+        "title": "Part 4, chapter 9",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_38_swift_64kb.mp3",
+        "seconds": 694
+      },
+      {
+        "title": "Part 4, chapter 10",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_39_swift_64kb.mp3",
+        "seconds": 988
+      },
+      {
+        "title": "Part 4, chapter 11",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_40_swift_64kb.mp3",
+        "seconds": 1019
+      },
+      {
+        "title": "Part 4, chapter 12",
+        "url": "https://archive.org/download/gulliverstravelsvers3_2504_librivox/gulliverstravels3_41_swift_64kb.mp3",
+        "seconds": 872
+      }
+    ]
+  },
+  "heidi": {
+    "narrator": "Kara Shallenberg",
+    "page": "https://librivox.org/heidi-by-johanna-spyri-solo/",
+    "tracks": [
+      {
+        "title": "Chapter 1 – Up the Mountain to Alm-Uncle",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_01_spyri_64kb.mp3",
+        "seconds": 1974
+      },
+      {
+        "title": "Chapter 2 – At Home with Grandfather",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_02_spyri_64kb.mp3",
+        "seconds": 1117
+      },
+      {
+        "title": "Chapter 3 – Out With The Goats",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_03_spyri_64kb.mp3",
+        "seconds": 1864
+      },
+      {
+        "title": "Chapter 4 – The Visit to Grandmother",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_04_spyri_64kb.mp3",
+        "seconds": 1892
+      },
+      {
+        "title": "Chapter 5 – Two Visits and What Came of Them",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_05_spyri_64kb.mp3",
+        "seconds": 1420
+      },
+      {
+        "title": "Chapter 6 – A New Chapter About New Things",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_06_spyri_64kb.mp3",
+        "seconds": 1121
+      },
+      {
+        "title": "Chapter 7 – Fraulein Rottenmeier Spends an Uncomfortable Day",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_07_spyri_64kb.mp3",
+        "seconds": 1908
+      },
+      {
+        "title": "Chapter 8 – There is Great Commotion in the Large House",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_08_spyri_64kb.mp3",
+        "seconds": 1457
+      },
+      {
+        "title": "Chapter 9 – Herr Sesemann Hears of Things Which are New to Him",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_09_spyri_64kb.mp3",
+        "seconds": 829
+      },
+      {
+        "title": "Chapter 10 – Another Grandmother",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_10_spyri_64kb.mp3",
+        "seconds": 1302
+      },
+      {
+        "title": "Chapter 11 – Heidi Gains in One Way and Loses in Another",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_11_spyri_64kb.mp3",
+        "seconds": 710
+      },
+      {
+        "title": "Chapter 12 – A Ghost in the House",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_12_spyri_64kb.mp3",
+        "seconds": 1528
+      },
+      {
+        "title": "Chapter 13 – A Summer Evening on the Mountain",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_13_spyri_64kb.mp3",
+        "seconds": 2253
+      },
+      {
+        "title": "Chapter 14 – Sunday Bells",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_14_spyri_64kb.mp3",
+        "seconds": 1803
+      },
+      {
+        "title": "Chapter 15 – Preparations for a Journey",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_15_spyri_64kb.mp3",
+        "seconds": 933
+      },
+      {
+        "title": "Chapter 16 – A Visitor",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_16_spyri_64kb.mp3",
+        "seconds": 1201
+      },
+      {
+        "title": "Chapter 17 – A Compensation",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_17_spyri_64kb.mp3",
+        "seconds": 1153
+      },
+      {
+        "title": "Chapter 18 – Winter in Dorfli",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_18_spyri_64kb.mp3",
+        "seconds": 1440
+      },
+      {
+        "title": "Chapter 19 – The Winter Continues",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_19_spyri_64kb.mp3",
+        "seconds": 997
+      },
+      {
+        "title": "Chapter 20 – News from Distant Friends",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_20_spyri_64kb.mp3",
+        "seconds": 2202
+      },
+      {
+        "title": "Chapter 21 – How Life Went on at Grandfather’s",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_21_spyri_64kb.mp3",
+        "seconds": 1133
+      },
+      {
+        "title": "Chapter 22 – Something Unexpected Happens",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_22_spyri_64kb.mp3",
+        "seconds": 1954
+      },
+      {
+        "title": "Chapter 23 – Goodbye Til We Meet Again",
+        "url": "https://archive.org/download/heidi_solo_librivox/heidi_23_spyri_64kb.mp3",
+        "seconds": 2929
+      }
+    ]
+  },
+  "the-railway-children": {
+    "narrator": "Kara Shallenberg",
+    "page": "https://librivox.org/the-railway-children-version-3-by-e-nesbit/",
+    "tracks": [
+      {
+        "title": "The Beginning of Things",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_01_nesbit_64kb.mp3",
+        "seconds": 1551
+      },
+      {
+        "title": "Peter's Coal Mine",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_02_nesbit_64kb.mp3",
+        "seconds": 1858
+      },
+      {
+        "title": "The Old Gentleman",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_03_nesbit_64kb.mp3",
+        "seconds": 1634
+      },
+      {
+        "title": "The Engine-burglar",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_04_nesbit_64kb.mp3",
+        "seconds": 1885
+      },
+      {
+        "title": "Prisoners and Captives",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_05_nesbit_64kb.mp3",
+        "seconds": 1404
+      },
+      {
+        "title": "Saviours of the Train",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_06_nesbit_64kb.mp3",
+        "seconds": 1490
+      },
+      {
+        "title": "For Valour",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_07_nesbit_64kb.mp3",
+        "seconds": 1650
+      },
+      {
+        "title": "The Amateur Firemen",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_08_nesbit_64kb.mp3",
+        "seconds": 1432
+      },
+      {
+        "title": "The Pride of Perks",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_09_nesbit_64kb.mp3",
+        "seconds": 1584
+      },
+      {
+        "title": "The Terrible Secret",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_10_nesbit_64kb.mp3",
+        "seconds": 1411
+      },
+      {
+        "title": "The Hound in the Red Jersey",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_11_nesbit_64kb.mp3",
+        "seconds": 1803
+      },
+      {
+        "title": "What Bobbie Brought Home",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_12_nesbit_64kb.mp3",
+        "seconds": 1393
+      },
+      {
+        "title": "The Hound's Grandfather",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_13_nesbit_64kb.mp3",
+        "seconds": 1520
+      },
+      {
+        "title": "The End",
+        "url": "https://archive.org/download/railway_children3_2008_librivox/railwaychildren3_14_nesbit_64kb.mp3",
+        "seconds": 1384
+      }
+    ]
+  },
+  "a-little-princess": {
+    "narrator": "Elizabeth Klett",
+    "page": "https://librivox.org/a-little-princess-by-frances-hodgson-burnett-3/",
+    "tracks": [
+      {
+        "title": "Chapter 1 - Sara",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_01_burnett_64kb.mp3",
+        "seconds": 1259
+      },
+      {
+        "title": "Chapter 2 - A French Lesson",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_02_burnett_64kb.mp3",
+        "seconds": 725
+      },
+      {
+        "title": "Chapter 3 - Ermengarde",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_03_burnett_64kb.mp3",
+        "seconds": 914
+      },
+      {
+        "title": "Chapter 4 - Lottie",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_04_burnett_64kb.mp3",
+        "seconds": 1056
+      },
+      {
+        "title": "Chapter 5 - Becky",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_05_burnett_64kb.mp3",
+        "seconds": 1232
+      },
+      {
+        "title": "Chapter 6 - The Diamond Mines",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_06_burnett_64kb.mp3",
+        "seconds": 1234
+      },
+      {
+        "title": "Chapter 7 - The Diamond Mines Again",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_07_burnett_64kb.mp3",
+        "seconds": 2308
+      },
+      {
+        "title": "Chapter 8 - In the Attic",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_08_burnett_64kb.mp3",
+        "seconds": 1197
+      },
+      {
+        "title": "Chapter 9 - Melchisedec",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_09_burnett_64kb.mp3",
+        "seconds": 1319
+      },
+      {
+        "title": "Chapter 10 - The Indian Gentleman",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_10_burnett_64kb.mp3",
+        "seconds": 1392
+      },
+      {
+        "title": "Chapter 11 - Ram Dass",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_11_burnett_64kb.mp3",
+        "seconds": 1074
+      },
+      {
+        "title": "Chapter 12 - The Other Side of the Wall",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_12_burnett_64kb.mp3",
+        "seconds": 968
+      },
+      {
+        "title": "Chapter 13 - One of the Populace",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_13_burnett_64kb.mp3",
+        "seconds": 1210
+      },
+      {
+        "title": "Chapter 14 - What Melchisedec Heard and Saw",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_14_burnett_64kb.mp3",
+        "seconds": 605
+      },
+      {
+        "title": "Chapter 15 - The Magic",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_15_burnett_64kb.mp3",
+        "seconds": 2894
+      },
+      {
+        "title": "Chapter 16 - The Visitor",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_16_burnett_64kb.mp3",
+        "seconds": 1837
+      },
+      {
+        "title": "Chapter 17 - \"It is the Child!\"",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_17_burnett_64kb.mp3",
+        "seconds": 849
+      },
+      {
+        "title": "Chapter 18 - \"I Tried Not to Be\"",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_18_burnett_64kb.mp3",
+        "seconds": 1332
+      },
+      {
+        "title": "Chapter 19 - Anne",
+        "url": "https://archive.org/download/littleprincess_1502_librivox/littleprincess_19_burnett_64kb.mp3",
+        "seconds": 820
+      }
+    ]
+  },
+  "five-children-and-it": {
+    "narrator": "James Pyle",
+    "page": "https://librivox.org/five-children-and-it-by-e-nesbit-2/",
+    "tracks": [
+      {
+        "title": "Beautiful as the Day",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_01_nesbit_64kb.mp3",
+        "seconds": 2133
+      },
+      {
+        "title": "Golden Guineas",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_02_nesbit_64kb.mp3",
+        "seconds": 1970
+      },
+      {
+        "title": "Being Wanted",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_03_nesbit_64kb.mp3",
+        "seconds": 2243
+      },
+      {
+        "title": "Wings",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_04_nesbit_64kb.mp3",
+        "seconds": 1998
+      },
+      {
+        "title": "No Wings",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_05_nesbit_64kb.mp3",
+        "seconds": 1093
+      },
+      {
+        "title": "A Castle and No Dinner",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_06_nesbit_64kb.mp3",
+        "seconds": 1469
+      },
+      {
+        "title": "A Siege and Bed",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_07_nesbit_64kb.mp3",
+        "seconds": 1215
+      },
+      {
+        "title": "Bigger Than the Baker's Boy",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_08_nesbit_64kb.mp3",
+        "seconds": 2009
+      },
+      {
+        "title": "Grown Up",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_09_nesbit_64kb.mp3",
+        "seconds": 1536
+      },
+      {
+        "title": "Scalps",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_10_nesbit_64kb.mp3",
+        "seconds": 1632
+      },
+      {
+        "title": "The Last Wish",
+        "url": "https://archive.org/download/fivechildrenandit_1804_librivox/fivechildrenandit_11_nesbit_64kb.mp3",
+        "seconds": 1527
+      }
+    ]
+  },
+  "the-princess-and-the-goblin": {
+    "narrator": "Andy Minter",
+    "page": "https://librivox.org/the-princess-and-the-goblin-by-george-macdonald-version-2/",
+    "tracks": [
+      {
+        "title": "Why the Princess Has a Story About Her",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_01_macdonald_64kb.mp3",
+        "seconds": 344
+      },
+      {
+        "title": "The Princess Loses Herself",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_02_macdonald_64kb.mp3",
+        "seconds": 326
+      },
+      {
+        "title": "The Princess and--We Shall See Who",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_03_macdonald_64kb.mp3",
+        "seconds": 749
+      },
+      {
+        "title": "What the Nurse Thought of It",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_04_macdonald_64kb.mp3",
+        "seconds": 445
+      },
+      {
+        "title": "The Princess Lets Well Alone",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_05_macdonald_64kb.mp3",
+        "seconds": 311
+      },
+      {
+        "title": "The Little Miner",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_06_macdonald_64kb.mp3",
+        "seconds": 1138
+      },
+      {
+        "title": "The Mines",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_07_macdonald_64kb.mp3",
+        "seconds": 455
+      },
+      {
+        "title": "The Goblins",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_08_macdonald_64kb.mp3",
+        "seconds": 871
+      },
+      {
+        "title": "The Hall of the Goblin Palace",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_09_macdonald_64kb.mp3",
+        "seconds": 946
+      },
+      {
+        "title": "Princess's King-Papa",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_10_macdonald_64kb.mp3",
+        "seconds": 544
+      },
+      {
+        "title": "The Old Lady's Bedroom",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_11_macdonald_64kb.mp3",
+        "seconds": 975
+      },
+      {
+        "title": "A Short Chapter About Curdie",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_12_macdonald_64kb.mp3",
+        "seconds": 279
+      },
+      {
+        "title": "The Cobs' Creatures",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_13_macdonald_64kb.mp3",
+        "seconds": 472
+      },
+      {
+        "title": "That Night Week",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_14_macdonald_64kb.mp3",
+        "seconds": 492
+      },
+      {
+        "title": "Woven and then Spun",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_15_macdonald_64kb.mp3",
+        "seconds": 1081
+      },
+      {
+        "title": "The Ring",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_16_macdonald_64kb.mp3",
+        "seconds": 257
+      },
+      {
+        "title": "Springtime",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_17_macdonald_64kb.mp3",
+        "seconds": 331
+      },
+      {
+        "title": "Curdie's Clue",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_18_macdonald_64kb.mp3",
+        "seconds": 958
+      },
+      {
+        "title": "Goblin Counsels",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_19_macdonald_64kb.mp3",
+        "seconds": 589
+      },
+      {
+        "title": "Irene's Clue",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_20_macdonald_64kb.mp3",
+        "seconds": 576
+      },
+      {
+        "title": "The Escape",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_21_macdonald_64kb.mp3",
+        "seconds": 1188
+      },
+      {
+        "title": "The Old Lady and Curdie",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_22_macdonald_64kb.mp3",
+        "seconds": 716
+      },
+      {
+        "title": "Curdie and His Mother",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_23_macdonald_64kb.mp3",
+        "seconds": 950
+      },
+      {
+        "title": "Irene Behaves Like a Princess",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_24_macdonald_64kb.mp3",
+        "seconds": 295
+      },
+      {
+        "title": "Curdie Comes to Grief",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_25_macdonald_64kb.mp3",
+        "seconds": 553
+      },
+      {
+        "title": "The Goblin-Miners",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_26_macdonald_64kb.mp3",
+        "seconds": 307
+      },
+      {
+        "title": "The Goblins in the King's House",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_27_macdonald_64kb.mp3",
+        "seconds": 720
+      },
+      {
+        "title": "Curdie's Guide",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_28_macdonald_64kb.mp3",
+        "seconds": 428
+      },
+      {
+        "title": "Masonwork",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_29_macdonald_64kb.mp3",
+        "seconds": 295
+      },
+      {
+        "title": "The King and the Kiss",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_30_macdonald_64kb.mp3",
+        "seconds": 353
+      },
+      {
+        "title": "The Subterranean Waters",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_31_macdonald_64kb.mp3",
+        "seconds": 568
+      },
+      {
+        "title": "The Last Chapter",
+        "url": "https://archive.org/download/princess_goblin_0907_librivox/princessandthegoblin_32_macdonald_64kb.mp3",
+        "seconds": 159
+      }
+    ]
+  },
+  "through-the-looking-glass": {
+    "narrator": "Craig Franklin",
+    "page": "https://librivox.org/through-the-looking-glass-version-6-by-lewis-carroll/",
+    "tracks": [
+      {
+        "title": "CHAPTER I. Looking-Glass house",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_01_carroll_64kb.mp3",
+        "seconds": 1375
+      },
+      {
+        "title": "CHAPTER II. The Garden of Live Flowers",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_02_carroll_64kb.mp3",
+        "seconds": 1215
+      },
+      {
+        "title": "CHAPTER III. Looking-Glass Insects",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_03_carroll_64kb.mp3",
+        "seconds": 1241
+      },
+      {
+        "title": "CHAPTER IV. Tweedledum And Tweedledee",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_04_carroll_64kb.mp3",
+        "seconds": 1237
+      },
+      {
+        "title": "CHAPTER V. Wool and Water",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_05_carroll_64kb.mp3",
+        "seconds": 1300
+      },
+      {
+        "title": "CHAPTER VI. Humpty Dumpty",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_06_carroll_64kb.mp3",
+        "seconds": 1362
+      },
+      {
+        "title": "CHAPTER VII. The Lion and the Unicorn",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_07_carroll_64kb.mp3",
+        "seconds": 1141
+      },
+      {
+        "title": "CHAPTER VIII. ‘It’s my own Invention’",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_08_carroll_64kb.mp3",
+        "seconds": 1594
+      },
+      {
+        "title": "CHAPTER IX. Queen Alice",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_09_carroll_64kb.mp3",
+        "seconds": 1764
+      },
+      {
+        "title": "CHAPTER X. Shaking",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_10_carroll_64kb.mp3",
+        "seconds": 49
+      },
+      {
+        "title": "CHAPTER XI. Waking",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_11_carroll_64kb.mp3",
+        "seconds": 27
+      },
+      {
+        "title": "CHAPTER XII. Which Dreamed it?",
+        "url": "https://archive.org/download/throughthelookingglass_2006_librivox/throughthelookingglass_12_carroll_64kb.mp3",
+        "seconds": 340
+      }
+    ]
+  },
+  "the-prince-and-the-pauper": {
+    "narrator": "Luke Sieburg",
+    "page": "https://librivox.org/the-prince-and-the-pauper-version-3-by-mark-twain/",
+    "tracks": [
+      {
+        "title": "The Birth of the Prince and the Pauper; Tom’s early life",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_01_twain_64kb.mp3",
+        "seconds": 829
+      },
+      {
+        "title": "Tom's Meeting with the Prince",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_02_twain_64kb.mp3",
+        "seconds": 878
+      },
+      {
+        "title": "The Prince's Troubles Begin",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_03_twain_64kb.mp3",
+        "seconds": 490
+      },
+      {
+        "title": "Tom as a Patrician",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_04_twain_64kb.mp3",
+        "seconds": 991
+      },
+      {
+        "title": "Tom Receives Instructions",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_05_twain_64kb.mp3",
+        "seconds": 940
+      },
+      {
+        "title": "Tom's First Royal Dinner;   The Question of the Seal; The River Pageant",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_06_twain_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "The Prince and the Toils",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_07_twain_64kb.mp3",
+        "seconds": 1509
+      },
+      {
+        "title": "At Guildhall",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_08_twain_64kb.mp3",
+        "seconds": 624
+      },
+      {
+        "title": "The Prince and His Deliverer",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_09_twain_64kb.mp3",
+        "seconds": 1413
+      },
+      {
+        "title": "The Disappearance of the Prince",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_10_twain_64kb.mp3",
+        "seconds": 523
+      },
+      {
+        "title": "‘Le Roi est mort— vive le Roi’",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_11_twain_64kb.mp3",
+        "seconds": 1380
+      },
+      {
+        "title": "Tom as King; The State Dinner",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_12_twain_64kb.mp3",
+        "seconds": 1763
+      },
+      {
+        "title": "Foo-foo the First",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_13_twain_64kb.mp3",
+        "seconds": 1355
+      },
+      {
+        "title": "The Prince with the Tramps",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_14_twain_64kb.mp3",
+        "seconds": 1113
+      },
+      {
+        "title": "The Prince with the Peasants",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_15_twain_64kb.mp3",
+        "seconds": 712
+      },
+      {
+        "title": "The Prince with the Hermit",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_16_twain_64kb.mp3",
+        "seconds": 830
+      },
+      {
+        "title": "Hendon to the Rescue",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_17_twain_64kb.mp3",
+        "seconds": 588
+      },
+      {
+        "title": "A Victim of Treachery",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_18_twain_64kb.mp3",
+        "seconds": 769
+      },
+      {
+        "title": "The Prince as a Prisoner",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_19_twain_64kb.mp3",
+        "seconds": 763
+      },
+      {
+        "title": "Hendon Hall",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_20_twain_64kb.mp3",
+        "seconds": 849
+      },
+      {
+        "title": "Disowned; In Prison",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_21_twain_64kb.mp3",
+        "seconds": 1938
+      },
+      {
+        "title": "The Sacrifice; To London; Tom's Progress",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_22_twain_64kb.mp3",
+        "seconds": 1092
+      },
+      {
+        "title": "The Recognition Procession; Coronation Day",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_23_twain_64kb.mp3",
+        "seconds": 2412
+      },
+      {
+        "title": "Edward as King; CONCLUSION - Justice and Retribution.",
+        "url": "https://archive.org/download/prince_and_pauper_1812_librivox/princeandthepauper_24_twain_64kb.mp3",
+        "seconds": 1382
+      }
+    ]
+  },
+  "silas-marner": {
+    "narrator": "Tadhg",
+    "page": "https://librivox.org/silas-marner-by-george-eliot-2/",
+    "tracks": [
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_01_eliot_64kb.mp3",
+        "seconds": 1543
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_02_eliot_64kb.mp3",
+        "seconds": 1121
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_03_eliot_64kb.mp3",
+        "seconds": 1520
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_04_eliot_64kb.mp3",
+        "seconds": 985
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_05_eliot_64kb.mp3",
+        "seconds": 700
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_06_eliot_64kb.mp3",
+        "seconds": 1323
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_07_eliot_64kb.mp3",
+        "seconds": 693
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_08_eliot_64kb.mp3",
+        "seconds": 1079
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_09_eliot_64kb.mp3",
+        "seconds": 881
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_10_eliot_64kb.mp3",
+        "seconds": 2028
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_11_eliot_64kb.mp3",
+        "seconds": 2545
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_12_eliot_64kb.mp3",
+        "seconds": 837
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_13_eliot_64kb.mp3",
+        "seconds": 967
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_14_eliot_64kb.mp3",
+        "seconds": 1673
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_15_eliot_64kb.mp3",
+        "seconds": 164
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_16_eliot_64kb.mp3",
+        "seconds": 1902
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_17_eliot_64kb.mp3",
+        "seconds": 1369
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_18_eliot_64kb.mp3",
+        "seconds": 462
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_19_eliot_64kb.mp3",
+        "seconds": 1208
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_20_eliot_64kb.mp3",
+        "seconds": 288
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_21_eliot_64kb.mp3",
+        "seconds": 436
+      },
+      {
+        "title": "Conclusion",
+        "url": "https://archive.org/download/silasmarner_1203_librivox/marner_22_eliot_64kb.mp3",
+        "seconds": 342
+      }
+    ]
+  },
+  "cranford": {
+    "narrator": "Sibella Denton",
+    "page": "https://librivox.org/cranford-by-elizabeth-gaskell/",
+    "tracks": [
+      {
+        "title": "Our Society",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_01_gaskell_64kb.mp3",
+        "seconds": 1312
+      },
+      {
+        "title": "The Captain",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_02_gaskell_64kb.mp3",
+        "seconds": 1769
+      },
+      {
+        "title": "A Love Affair of Long Ago",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_03_gaskell_64kb.mp3",
+        "seconds": 1067
+      },
+      {
+        "title": "A Visit to an Old Bachelor",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_04_gaskell_64kb.mp3",
+        "seconds": 1294
+      },
+      {
+        "title": "Old Letters",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_05_gaskell_64kb.mp3",
+        "seconds": 1331
+      },
+      {
+        "title": "Poor Peter",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_06_gaskell_64kb.mp3",
+        "seconds": 1422
+      },
+      {
+        "title": "Visiting",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_07_gaskell_64kb.mp3",
+        "seconds": 1244
+      },
+      {
+        "title": "\"Your Ladyship\"",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_08_gaskell_64kb.mp3",
+        "seconds": 1534
+      },
+      {
+        "title": "Signor Brunoni",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_09_gaskell_64kb.mp3",
+        "seconds": 1170
+      },
+      {
+        "title": "The Panic",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_10_gaskell_64kb.mp3",
+        "seconds": 1656
+      },
+      {
+        "title": "Samuel Brown",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_11_gaskell_64kb.mp3",
+        "seconds": 1352
+      },
+      {
+        "title": "Engaged to be Married",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_12_gaskell_64kb.mp3",
+        "seconds": 982
+      },
+      {
+        "title": "Stopped Payment",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_13_gaskell_64kb.mp3",
+        "seconds": 1322
+      },
+      {
+        "title": "Friends in Need",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_14_gaskell_64kb.mp3",
+        "seconds": 2105
+      },
+      {
+        "title": "A Happy Return",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_15_gaskell_64kb.mp3",
+        "seconds": 1504
+      },
+      {
+        "title": "Peace to Cranford",
+        "url": "https://archive.org/download/cranford_sd_librivox/cranford_16_gaskell_64kb.mp3",
+        "seconds": 936
+      }
+    ]
+  },
+  "the-turn-of-the-screw": {
+    "narrator": "Sandra Cullum",
+    "page": "https://librivox.org/the-turn-of-the-screw-version-3-by-henry-james/",
+    "tracks": [
+      {
+        "title": "Prologue",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_00_james_64kb.mp3",
+        "seconds": 1184
+      },
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_01_james_64kb.mp3",
+        "seconds": 709
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_02_james_64kb.mp3",
+        "seconds": 604
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_03_james_64kb.mp3",
+        "seconds": 889
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_04_james_64kb.mp3",
+        "seconds": 867
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_05_james_64kb.mp3",
+        "seconds": 560
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_06_james_64kb.mp3",
+        "seconds": 1115
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_07_james_64kb.mp3",
+        "seconds": 611
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_08_james_64kb.mp3",
+        "seconds": 822
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_09_james_64kb.mp3",
+        "seconds": 841
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_10_james_64kb.mp3",
+        "seconds": 737
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_11_james_64kb.mp3",
+        "seconds": 639
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_12_james_64kb.mp3",
+        "seconds": 516
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_13_james_64kb.mp3",
+        "seconds": 857
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_14_james_64kb.mp3",
+        "seconds": 570
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_15_james_64kb.mp3",
+        "seconds": 474
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_16_james_64kb.mp3",
+        "seconds": 402
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_17_james_64kb.mp3",
+        "seconds": 688
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_18_james_64kb.mp3",
+        "seconds": 505
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_19_james_64kb.mp3",
+        "seconds": 570
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_20_james_64kb.mp3",
+        "seconds": 768
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_21_james_64kb.mp3",
+        "seconds": 863
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_22_james_64kb.mp3",
+        "seconds": 616
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_23_james_64kb.mp3",
+        "seconds": 594
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/turn_of_the_screw_ver_3_sc_2006_librivox/turnofthescrew_24_james_64kb.mp3",
+        "seconds": 831
+      }
+    ]
+  },
+  "the-age-of-innocence": {
+    "narrator": "Elizabeth Klett",
+    "page": "https://librivox.org/the-age-of-innocence-version-2-by-edith-wharton/",
+    "tracks": [
+      {
+        "title": "01 - Book 1, Chapter 01",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_01_wharton_64kb.mp3",
+        "seconds": 844
+      },
+      {
+        "title": "02 - Book 1, Chapter 02",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_02_wharton_64kb.mp3",
+        "seconds": 703
+      },
+      {
+        "title": "03 - Book 1, Chapter 03",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_03_wharton_64kb.mp3",
+        "seconds": 801
+      },
+      {
+        "title": "04 - Book 1, Chapter 04",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_04_wharton_64kb.mp3",
+        "seconds": 641
+      },
+      {
+        "title": "05 - Book 1, Chapter 05",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_05_wharton_64kb.mp3",
+        "seconds": 1063
+      },
+      {
+        "title": "06 - Book 1, Chapter 06",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_06_wharton_64kb.mp3",
+        "seconds": 908
+      },
+      {
+        "title": "07 - Book 1, Chapter 07",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_07_wharton_64kb.mp3",
+        "seconds": 744
+      },
+      {
+        "title": "08 - Book 1, Chapter 08",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_08_wharton_64kb.mp3",
+        "seconds": 887
+      },
+      {
+        "title": "09 - Book 1, Chapter 09",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_09_wharton_64kb.mp3",
+        "seconds": 1388
+      },
+      {
+        "title": "10 - Book 1, Chapter 10",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_10_wharton_64kb.mp3",
+        "seconds": 1098
+      },
+      {
+        "title": "11 - Book 1, Chapter 11",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_11_wharton_64kb.mp3",
+        "seconds": 947
+      },
+      {
+        "title": "12 - Book 1, Chapter 12",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_12_wharton_64kb.mp3",
+        "seconds": 1341
+      },
+      {
+        "title": "13 - Book 1, Chapter 13",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_13_wharton_64kb.mp3",
+        "seconds": 755
+      },
+      {
+        "title": "14 - Book 1, Chapter 14",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_14_wharton_64kb.mp3",
+        "seconds": 788
+      },
+      {
+        "title": "15 - Book 1, Chapter 15",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_15_wharton_64kb.mp3",
+        "seconds": 1199
+      },
+      {
+        "title": "16 - Book 1, Chapter 16",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_16_wharton_64kb.mp3",
+        "seconds": 1085
+      },
+      {
+        "title": "17 - Book 1, Chapter 17",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_17_wharton_64kb.mp3",
+        "seconds": 1112
+      },
+      {
+        "title": "18 - Book 1, Chapter 18",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_18_wharton_64kb.mp3",
+        "seconds": 1328
+      },
+      {
+        "title": "19 - Book 2, Chapter 19",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_19_wharton_64kb.mp3",
+        "seconds": 1215
+      },
+      {
+        "title": "20 - Book 2, Chapter 20",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_20_wharton_64kb.mp3",
+        "seconds": 1343
+      },
+      {
+        "title": "21 - Book 2, Chapter 21",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_21_wharton_64kb.mp3",
+        "seconds": 1479
+      },
+      {
+        "title": "22 - Book 2, Chapter 22",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_22_wharton_64kb.mp3",
+        "seconds": 1011
+      },
+      {
+        "title": "23 - Book 2, Chapter 23",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_23_wharton_64kb.mp3",
+        "seconds": 1122
+      },
+      {
+        "title": "24 - Book 2, Chapter 24",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_24_wharton_64kb.mp3",
+        "seconds": 643
+      },
+      {
+        "title": "25 - Book 2, Chapter 25",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_25_wharton_64kb.mp3",
+        "seconds": 996
+      },
+      {
+        "title": "26 - Book 2, Chapter 26",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_26_wharton_64kb.mp3",
+        "seconds": 1203
+      },
+      {
+        "title": "27 - Book 2, Chapter 27",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_27_wharton_64kb.mp3",
+        "seconds": 760
+      },
+      {
+        "title": "28 - Book 2, Chapter 28",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_28_wharton_64kb.mp3",
+        "seconds": 717
+      },
+      {
+        "title": "29 - Book 2, Chapter 29",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_29_wharton_64kb.mp3",
+        "seconds": 802
+      },
+      {
+        "title": "30 - Book 2, Chapter 30",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_30_wharton_64kb.mp3",
+        "seconds": 1033
+      },
+      {
+        "title": "31 - Book 2, Chapter 31",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_31_wharton_64kb.mp3",
+        "seconds": 1283
+      },
+      {
+        "title": "32 - Book 2, Chapter 32",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_32_wharton_64kb.mp3",
+        "seconds": 1015
+      },
+      {
+        "title": "33 - Book 2, Chapter 33",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_33_wharton_64kb.mp3",
+        "seconds": 1690
+      },
+      {
+        "title": "34 - Book 2, Chapter 34",
+        "url": "https://archive.org/download/ageofinnocence_etk_librivox/ageofinnocence_34_wharton_64kb.mp3",
+        "seconds": 1892
+      }
+    ]
+  },
+  "the-awakening": {
+    "narrator": "Elizabeth Klett",
+    "page": "https://librivox.org/the-awakening-version-2-by-kate-chopin/",
+    "tracks": [
+      {
+        "title": "1 - Part 1 (Chapters 1-5)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_1_chopin_64kb.mp3",
+        "seconds": 1736
+      },
+      {
+        "title": "2 - Part 2 (Chapters 6-10)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_2_chopin_64kb.mp3",
+        "seconds": 2614
+      },
+      {
+        "title": "3 - Part 3 (Chapters 11-15)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_3_chopin_64kb.mp3",
+        "seconds": 2213
+      },
+      {
+        "title": "4 - Part 4 (Chapters 16-20)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_4_chopin_64kb.mp3",
+        "seconds": 2318
+      },
+      {
+        "title": "5 - Part 5 (Chapters 21-25)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_5_chopin_64kb.mp3",
+        "seconds": 2377
+      },
+      {
+        "title": "6 - Part 6 (Chapters 26-30)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_6_chopin_64kb.mp3",
+        "seconds": 1913
+      },
+      {
+        "title": "7 - Part 7 (Chapters 31-35)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_7_chopin_64kb.mp3",
+        "seconds": 1848
+      },
+      {
+        "title": "8 - Part 8 (Chapters 36-39)",
+        "url": "https://archive.org/download/awakening_1002_librivox/awakening_8_chopin_64kb.mp3",
+        "seconds": 1646
+      }
+    ]
+  },
+  "ethan-frome": {
+    "narrator": "Bob Neufeld",
+    "page": "https://librivox.org/ethan-frome-version-2-by-edith-wharton/",
+    "tracks": [
+      {
+        "title": "00 - Introduction",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_00_wharton_64kb.mp3",
+        "seconds": 1918
+      },
+      {
+        "title": "01 - Chapter 1",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_01_wharton_64kb.mp3",
+        "seconds": 1255
+      },
+      {
+        "title": "02 - Chapter 2",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_02_wharton_64kb.mp3",
+        "seconds": 1256
+      },
+      {
+        "title": "03 - Chapter 3",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_03_wharton_64kb.mp3",
+        "seconds": 826
+      },
+      {
+        "title": "04 - Chapter 4",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_04_wharton_64kb.mp3",
+        "seconds": 1745
+      },
+      {
+        "title": "05 - Chapter 5",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_05_wharton_64kb.mp3",
+        "seconds": 822
+      },
+      {
+        "title": "06 - Chapter 6",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_06_wharton_64kb.mp3",
+        "seconds": 668
+      },
+      {
+        "title": "07 - Chapter 7",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_07_wharton_64kb.mp3",
+        "seconds": 1739
+      },
+      {
+        "title": "08 - Chapter 8",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_08_wharton_64kb.mp3",
+        "seconds": 1199
+      },
+      {
+        "title": "09 - Chapter 9",
+        "url": "https://archive.org/download/ethanfrome_bn_librivox/ethanfrome_09_wharton_64kb.mp3",
+        "seconds": 2967
+      }
+    ]
+  },
+  "the-red-badge-of-courage": {
+    "narrator": "Mark F. Smith",
+    "page": "https://librivox.org/the-red-badge-of-courage-by-stephen-crane-2/",
+    "tracks": [
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_01_crane_64kb.mp3",
+        "seconds": 1551
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_02_crane_64kb.mp3",
+        "seconds": 1161
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_03_crane_64kb.mp3",
+        "seconds": 1217
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_04_crane_64kb.mp3",
+        "seconds": 477
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_05_crane_64kb.mp3",
+        "seconds": 917
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_06_crane_64kb.mp3",
+        "seconds": 904
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_07_crane_64kb.mp3",
+        "seconds": 561
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_08_crane_64kb.mp3",
+        "seconds": 743
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_09_crane_64kb.mp3",
+        "seconds": 727
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_10_crane_64kb.mp3",
+        "seconds": 590
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_11_crane_64kb.mp3",
+        "seconds": 883
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_12_crane_64kb.mp3",
+        "seconds": 903
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_13_crane_64kb.mp3",
+        "seconds": 781
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_14_crane_64kb.mp3",
+        "seconds": 711
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_15_crane_64kb.mp3",
+        "seconds": 466
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_16_crane_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_17_crane_64kb.mp3",
+        "seconds": 664
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_18_crane_64kb.mp3",
+        "seconds": 617
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_19_crane_64kb.mp3",
+        "seconds": 799
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_20_crane_64kb.mp3",
+        "seconds": 776
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_21_crane_64kb.mp3",
+        "seconds": 792
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_22_crane_64kb.mp3",
+        "seconds": 696
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_23_crane_64kb.mp3",
+        "seconds": 713
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/redbadge_2304_librivox/redbadgeofcourage_24_crane_64kb.mp3",
+        "seconds": 623
+      }
+    ]
+  },
+  "the-man-who-was-thursday": {
+    "narrator": "Anthony Ogus",
+    "page": "https://librivox.org/the-man-who-was-thursday-by-g-k-chesterton/",
+    "tracks": [
+      {
+        "title": "Dedication",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_00_chesterton_64kb.mp3",
+        "seconds": 258
+      },
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_01_chesterton_64kb.mp3",
+        "seconds": 1488
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_02_chesterton_64kb.mp3",
+        "seconds": 1181
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_03_chesterton_64kb.mp3",
+        "seconds": 1582
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_04_chesterton_64kb.mp3",
+        "seconds": 1450
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_05_chesterton_64kb.mp3",
+        "seconds": 1336
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_06_chesterton_64kb.mp3",
+        "seconds": 1223
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_07_chesterton_64kb.mp3",
+        "seconds": 1326
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_08_chesterton_64kb.mp3",
+        "seconds": 1758
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_09_chesterton_64kb.mp3",
+        "seconds": 2164
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_10_chesterton_64kb.mp3",
+        "seconds": 2195
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_11_chesterton_64kb.mp3",
+        "seconds": 1178
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_12_chesterton_64kb.mp3",
+        "seconds": 2223
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_13_chesterton_64kb.mp3",
+        "seconds": 1660
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_14_chesterton_64kb.mp3",
+        "seconds": 1644
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/man_who_was_thursday_2209_librivox/manwhowasthursday_15_chesterton_64kb.mp3",
+        "seconds": 1242
+      }
+    ]
+  },
+  "the-phantom-of-the-opera": {
+    "narrator": "Ralph Snelson",
+    "page": "https://librivox.org/the-phantom-of-the-opera-by-gaston-leroux-2/",
+    "tracks": [
+      {
+        "title": "00 - Prologue",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_00_leroux_64kb.mp3",
+        "seconds": 671
+      },
+      {
+        "title": "01 - Is it a Ghost?",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_01_leroux_64kb.mp3",
+        "seconds": 1145
+      },
+      {
+        "title": "02 - The New Margarita",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_02_leroux_64kb.mp3",
+        "seconds": 1140
+      },
+      {
+        "title": "03 - The Mysterious Reason",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_03_leroux_64kb.mp3",
+        "seconds": 949
+      },
+      {
+        "title": "04 - Box Five",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_04_leroux_64kb.mp3",
+        "seconds": 1469
+      },
+      {
+        "title": "05 - The Enchanted Violin",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_05_leroux_64kb.mp3",
+        "seconds": 1909
+      },
+      {
+        "title": "06 - A Visit to Box Five",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_06_leroux_64kb.mp3",
+        "seconds": 343
+      },
+      {
+        "title": "07 - Faust and What Followed",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_07_leroux_64kb.mp3",
+        "seconds": 1590
+      },
+      {
+        "title": "08 - The Mysterious Brougham",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_08_leroux_64kb.mp3",
+        "seconds": 918
+      },
+      {
+        "title": "09 - At the Masked Ball",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_09_leroux_64kb.mp3",
+        "seconds": 1168
+      },
+      {
+        "title": "10 - Forget the Name of the Man's Voice",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_10_leroux_64kb.mp3",
+        "seconds": 617
+      },
+      {
+        "title": "11 - Above the Trap-Doors",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_11_leroux_64kb.mp3",
+        "seconds": 870
+      },
+      {
+        "title": "12 - Apollo's Lyre",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_12_leroux_64kb.mp3",
+        "seconds": 2566
+      },
+      {
+        "title": "13 - A Master Stroke of the Trap-Door Lover",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_13_leroux_64kb.mp3",
+        "seconds": 1260
+      },
+      {
+        "title": "14 - The Singular Attitude of a Safety Pin",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_14_leroux_64kb.mp3",
+        "seconds": 693
+      },
+      {
+        "title": "15 - Christine! Christine!",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_15_leroux_64kb.mp3",
+        "seconds": 464
+      },
+      {
+        "title": "16 - Mme. Giry's Revelations",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_16_leroux_64kb.mp3",
+        "seconds": 1330
+      },
+      {
+        "title": "17 - The Safety-Pin Again",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_17_leroux_64kb.mp3",
+        "seconds": 726
+      },
+      {
+        "title": "18 - The Commissary, the Viscount and the Persian",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_18_leroux_64kb.mp3",
+        "seconds": 629
+      },
+      {
+        "title": "19 - The Viscount and the Persian",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_19_leroux_64kb.mp3",
+        "seconds": 787
+      },
+      {
+        "title": "20 - In the Cellars of the Opera",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_20_leroux_64kb.mp3",
+        "seconds": 1763
+      },
+      {
+        "title": "21 - Interesting Vicissitudes",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_21_leroux_64kb.mp3",
+        "seconds": 1773
+      },
+      {
+        "title": "22 - In the Torture Chamber",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_22_leroux_64kb.mp3",
+        "seconds": 852
+      },
+      {
+        "title": "23 - The Tortures Begin",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_23_leroux_64kb.mp3",
+        "seconds": 798
+      },
+      {
+        "title": "24 - Barrels! Barrels!",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_24_leroux_64kb.mp3",
+        "seconds": 1348
+      },
+      {
+        "title": "25 - The Scorpion or the Grasshoper: Which?",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_25_leroux_64kb.mp3",
+        "seconds": 983
+      },
+      {
+        "title": "26 - The End of the Ghost's Love Story",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_26_leroux_64kb.mp3",
+        "seconds": 1244
+      },
+      {
+        "title": "27 - Epilogue",
+        "url": "https://archive.org/download/phantom_opera_rs_librivox/phantomoftheopera_27_leroux_64kb.mp3",
+        "seconds": 1152
+      }
+    ]
+  },
+  "king-solomons-mines": {
+    "narrator": "John Nicholson",
+    "page": "https://librivox.org/king-solomons-mines-by-haggard/",
+    "tracks": [
+      {
+        "title": "Chapter 01",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_01_haggard_64kb.mp3",
+        "seconds": 1694
+      },
+      {
+        "title": "Chapter 02",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_02_haggard_64kb.mp3",
+        "seconds": 1387
+      },
+      {
+        "title": "Chapter 03",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_03_haggard_64kb.mp3",
+        "seconds": 1810
+      },
+      {
+        "title": "Chapter 04",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_04_haggard_64kb.mp3",
+        "seconds": 1470
+      },
+      {
+        "title": "Chapter 05",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_05_haggard_64kb.mp3",
+        "seconds": 2050
+      },
+      {
+        "title": "Chapter 06",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_06_haggard_64kb.mp3",
+        "seconds": 1673
+      },
+      {
+        "title": "Chapter 07",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_07_haggard_64kb.mp3",
+        "seconds": 2423
+      },
+      {
+        "title": "Chapter 08",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_08_haggard_64kb.mp3",
+        "seconds": 1270
+      },
+      {
+        "title": "Chapter 09",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_09_haggard_64kb.mp3",
+        "seconds": 1973
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_10_haggard_64kb.mp3",
+        "seconds": 2108
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_11_haggard_64kb.mp3",
+        "seconds": 2187
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_12_haggard_64kb.mp3",
+        "seconds": 1679
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_13_haggard_64kb.mp3",
+        "seconds": 1400
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_14_haggard_64kb.mp3",
+        "seconds": 2836
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_15_haggard_64kb.mp3",
+        "seconds": 1757
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_16_haggard_64kb.mp3",
+        "seconds": 1787
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_17_haggard_64kb.mp3",
+        "seconds": 1904
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_18_haggard_64kb.mp3",
+        "seconds": 1652
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_19_haggard_64kb.mp3",
+        "seconds": 1538
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/king_solomon_librivox/kingsolomonsmines_20_haggard_64kb.mp3",
+        "seconds": 873
+      }
+    ]
+  },
+  "the-prisoner-of-zenda": {
+    "narrator": "Andy Minter",
+    "page": "https://librivox.org/the-prisoner-of-zenda-by-anthony-hope/",
+    "tracks": [
+      {
+        "title": "The Rassendylls with a Word on the Elphbergs",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_01_hope_64kb.mp3",
+        "seconds": 821
+      },
+      {
+        "title": "Concerning the Colour of Men's Hair",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_02_hope_64kb.mp3",
+        "seconds": 873
+      },
+      {
+        "title": "A Merry Evening with a Distant Relative",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_03_hope_64kb.mp3",
+        "seconds": 1044
+      },
+      {
+        "title": "The King Keeps his Appointment",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_04_hope_64kb.mp3",
+        "seconds": 814
+      },
+      {
+        "title": "The Adventures of an Understudy",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_05_hope_64kb.mp3",
+        "seconds": 929
+      },
+      {
+        "title": "The Secret of a Cellar",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_06_hope_64kb.mp3",
+        "seconds": 865
+      },
+      {
+        "title": "His Majesty Sleeps in Strelsau",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_07_hope_64kb.mp3",
+        "seconds": 846
+      },
+      {
+        "title": "A Fair Cousin and a Dark Brother",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_08_hope_64kb.mp3",
+        "seconds": 1043
+      },
+      {
+        "title": "A New Use for a Tea-Table",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_09_hope_64kb.mp3",
+        "seconds": 1030
+      },
+      {
+        "title": "A Great Chance for a Villain",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_10_hope_64kb.mp3",
+        "seconds": 990
+      },
+      {
+        "title": "Hunting a Very Big Boar",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_11_hope_64kb.mp3",
+        "seconds": 1047
+      },
+      {
+        "title": "I Receive a Visitor and Bait a Hook",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_12_hope_64kb.mp3",
+        "seconds": 913
+      },
+      {
+        "title": "An Improvement on Jacob's Ladder",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_13_hope_64kb.mp3",
+        "seconds": 967
+      },
+      {
+        "title": "A Night Outside the Castle",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_14_hope_64kb.mp3",
+        "seconds": 918
+      },
+      {
+        "title": "I Talk with a Tempter",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_15_hope_64kb.mp3",
+        "seconds": 997
+      },
+      {
+        "title": "A Desperate Plan",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_16_hope_64kb.mp3",
+        "seconds": 917
+      },
+      {
+        "title": "Young Rupert's Midnight Diversions",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_17_hope_64kb.mp3",
+        "seconds": 894
+      },
+      {
+        "title": "The Forcing of the Trap",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_18_hope_64kb.mp3",
+        "seconds": 792
+      },
+      {
+        "title": "Face to Face in the Forest",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_19_hope_64kb.mp3",
+        "seconds": 865
+      },
+      {
+        "title": "The Prisoner and the King",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_20_hope_64kb.mp3",
+        "seconds": 1031
+      },
+      {
+        "title": "If Love Were All!",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_21_hope_64kb.mp3",
+        "seconds": 1004
+      },
+      {
+        "title": "Present, Past--and Future?",
+        "url": "https://archive.org/download/prisoner_of_zenda_librivox/prisoner_of_zenda_22_hope_64kb.mp3",
+        "seconds": 949
+      }
+    ]
+  },
+  "a-room-with-a-view": {
+    "narrator": "Elizabeth Klett",
+    "page": "https://librivox.org/a-room-with-a-view-version-2-by-e-m-forster/",
+    "tracks": [
+      {
+        "title": "The Bertolini",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_01_forster_64kb.mp3",
+        "seconds": 1519
+      },
+      {
+        "title": "In Santa Croce With No Baedeker",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_02_forster_64kb.mp3",
+        "seconds": 1841
+      },
+      {
+        "title": "Music, Violets, and the Letter S",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_03_forster_64kb.mp3",
+        "seconds": 1285
+      },
+      {
+        "title": "Fourth Chapter",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_04_forster_64kb.mp3",
+        "seconds": 815
+      },
+      {
+        "title": "Possibilities of a Pleasant Outing",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_05_forster_64kb.mp3",
+        "seconds": 1520
+      },
+      {
+        "title": "The Reverend Arthur Beebe, the Reverend Cuthbert Eager, Mr Emerson, Mr George Emerson, Miss Eleanor Lavish, Miss Charlotte Bartlett, and Miss Lucy Honeychurch, Drive out in Carriages to see a View: Italians Drive them",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_06_forster_64kb.mp3",
+        "seconds": 1414
+      },
+      {
+        "title": "They Return",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_07_forster_64kb.mp3",
+        "seconds": 1388
+      },
+      {
+        "title": "Medieval",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_08_forster_64kb.mp3",
+        "seconds": 1734
+      },
+      {
+        "title": "Lucy as a Work of Art",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_09_forster_64kb.mp3",
+        "seconds": 1542
+      },
+      {
+        "title": "Cecil as a Humorist",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_10_forster_64kb.mp3",
+        "seconds": 1021
+      },
+      {
+        "title": "In Mrs. Vyse's Well-Appointed Flat",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_11_forster_64kb.mp3",
+        "seconds": 665
+      },
+      {
+        "title": "Twelfth Chapter",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_12_forster_64kb.mp3",
+        "seconds": 1207
+      },
+      {
+        "title": "How Miss Bartlett's Boiler Was So Tiresome",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_13_forster_64kb.mp3",
+        "seconds": 1033
+      },
+      {
+        "title": "How Lucy Faced the External Situation Bravely",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_14_forster_64kb.mp3",
+        "seconds": 777
+      },
+      {
+        "title": "The Disaster Within",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_15_forster_64kb.mp3",
+        "seconds": 1710
+      },
+      {
+        "title": "Lying to George",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_16_forster_64kb.mp3",
+        "seconds": 1048
+      },
+      {
+        "title": "Lying to Cecil",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_17_forster_64kb.mp3",
+        "seconds": 782
+      },
+      {
+        "title": "Lying to Mr Beebe, Mrs Honeychurch, Freddy, and the Servants",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_18_forster_64kb.mp3",
+        "seconds": 1942
+      },
+      {
+        "title": "Lying to Mr Emerson",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_19_forster_64kb.mp3",
+        "seconds": 1879
+      },
+      {
+        "title": "The End of the Middle Ages",
+        "url": "https://archive.org/download/roomwithaview_etk_librivox/roomwithaview_20_forster_64kb.mp3",
+        "seconds": 655
+      }
+    ]
+  },
+  "autobiography-of-benjamin-franklin": {
+    "narrator": "Gary Gilberd",
+    "page": "https://librivox.org/the-autobigraphy-of-benjamin-franklin-ed-by-frank-woodworth-pine/",
+    "tracks": [
+      {
+        "title": "Introduction",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_00_pine_64kb.mp3",
+        "seconds": 1156
+      },
+      {
+        "title": "Chapter  1 Ancestry and Early Youth in Boston",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_01_pine_64kb.mp3",
+        "seconds": 1549
+      },
+      {
+        "title": "Chapter  2 Beginning Life as a Printer",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_02_pine_64kb.mp3",
+        "seconds": 1444
+      },
+      {
+        "title": "Chapter  3 Arrival in Philadelphia",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_03_pine_64kb.mp3",
+        "seconds": 1007
+      },
+      {
+        "title": "Chapter  4 First Visit to Boston",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_04_pine_64kb.mp3",
+        "seconds": 1080
+      },
+      {
+        "title": "Chapter  5 Early Friends in Philadelphia",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_05_pine_64kb.mp3",
+        "seconds": 607
+      },
+      {
+        "title": "Chapter  6 First Visit to London",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_06_pine_64kb.mp3",
+        "seconds": 1786
+      },
+      {
+        "title": "Chapter  7 Beginning Business in Philadelphia",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_07_pine_64kb.mp3",
+        "seconds": 2060
+      },
+      {
+        "title": "Chapter 8 Business Success and First Public Service",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_08_pine_64kb.mp3",
+        "seconds": 1670
+      },
+      {
+        "title": "Chapter  9 Plan for Attaining Moral Perfection",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_09_pine_64kb.mp3",
+        "seconds": 1901
+      },
+      {
+        "title": "Chapter 10 Poor Richard's Almanac and Other Activities",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_10_pine_64kb.mp3",
+        "seconds": 1293
+      },
+      {
+        "title": "Chapter 11 Interest in Public Affairs",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_11_pine_64kb.mp3",
+        "seconds": 1047
+      },
+      {
+        "title": "Chapter 12 Defense of the Province",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_12_pine_64kb.mp3",
+        "seconds": 1288
+      },
+      {
+        "title": "Chapter 13 Public Services and Duties",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_13_pine_64kb.mp3",
+        "seconds": 1949
+      },
+      {
+        "title": "Chapter 14 Albany Plan of Union",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_14_pine_64kb.mp3",
+        "seconds": 323
+      },
+      {
+        "title": "Chapter 15 Quarrels with the Proprietary Governors",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_15_pine_64kb.mp3",
+        "seconds": 473
+      },
+      {
+        "title": "Chapter 16 Braddock's Expedition",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_16_pine_64kb.mp3",
+        "seconds": 1601
+      },
+      {
+        "title": "Chapter 17 Franklin's Defense of the Frontier",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_17_pine_64kb.mp3",
+        "seconds": 1145
+      },
+      {
+        "title": "Chapter 18 Scientific Experiments",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_18_pine_64kb.mp3",
+        "seconds": 566
+      },
+      {
+        "title": "Chapter 19 Agent of Pennsylvania in London",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_19_pine_64kb.mp3",
+        "seconds": 2120
+      },
+      {
+        "title": "Appendix",
+        "url": "https://archive.org/download/franklin_autobio_gg_librivox/franklin_20_pine_64kb.mp3",
+        "seconds": 974
+      }
+    ]
+  },
+  "pinocchio": {
+    "narrator": "Mark F. Smith",
+    "page": "https://librivox.org/the-adventures-of-pinocchio-by-carlo-collodi/",
+    "tracks": [
+      {
+        "title": "Ch 01",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_01_collodi_64kb.mp3",
+        "seconds": 301
+      },
+      {
+        "title": "Ch 02",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_02_collodi_64kb.mp3",
+        "seconds": 306
+      },
+      {
+        "title": "Ch 03",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_03_collodi_64kb.mp3",
+        "seconds": 438
+      },
+      {
+        "title": "Ch 04",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_04_collodi_64kb.mp3",
+        "seconds": 269
+      },
+      {
+        "title": "Ch 05",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_05_collodi_64kb.mp3",
+        "seconds": 273
+      },
+      {
+        "title": "Ch 06",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_06_collodi_64kb.mp3",
+        "seconds": 193
+      },
+      {
+        "title": "Ch 07",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_07_collodi_64kb.mp3",
+        "seconds": 342
+      },
+      {
+        "title": "Ch 08",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_08_collodi_64kb.mp3",
+        "seconds": 268
+      },
+      {
+        "title": "Ch 09",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_09_collodi_64kb.mp3",
+        "seconds": 278
+      },
+      {
+        "title": "Ch 10",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_10_collodi_64kb.mp3",
+        "seconds": 276
+      },
+      {
+        "title": "Ch 11",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_11_collodi_64kb.mp3",
+        "seconds": 381
+      },
+      {
+        "title": "Ch 12",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_12_collodi_64kb.mp3",
+        "seconds": 560
+      },
+      {
+        "title": "Ch 13",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_13_collodi_64kb.mp3",
+        "seconds": 386
+      },
+      {
+        "title": "Ch 14",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_14_collodi_64kb.mp3",
+        "seconds": 374
+      },
+      {
+        "title": "Ch 15",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_15_collodi_64kb.mp3",
+        "seconds": 319
+      },
+      {
+        "title": "Ch 16",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_16_collodi_64kb.mp3",
+        "seconds": 416
+      },
+      {
+        "title": "Ch 17",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_17_collodi_64kb.mp3",
+        "seconds": 542
+      },
+      {
+        "title": "Ch 18",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_18_collodi_64kb.mp3",
+        "seconds": 539
+      },
+      {
+        "title": "Ch 19",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_19_collodi_64kb.mp3",
+        "seconds": 408
+      },
+      {
+        "title": "Ch 20",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_20_collodi_64kb.mp3",
+        "seconds": 303
+      },
+      {
+        "title": "Ch 21",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_21_collodi_64kb.mp3",
+        "seconds": 287
+      },
+      {
+        "title": "Ch 22",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_22_collodi_64kb.mp3",
+        "seconds": 358
+      },
+      {
+        "title": "Ch 23",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_23_collodi_64kb.mp3",
+        "seconds": 547
+      },
+      {
+        "title": "Ch 24",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_24_collodi_64kb.mp3",
+        "seconds": 621
+      },
+      {
+        "title": "Ch 25",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_25_collodi_64kb.mp3",
+        "seconds": 341
+      },
+      {
+        "title": "Ch 26",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_26_collodi_64kb.mp3",
+        "seconds": 286
+      },
+      {
+        "title": "Ch 27",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_27_collodi_64kb.mp3",
+        "seconds": 644
+      },
+      {
+        "title": "Ch 28",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_28_collodi_64kb.mp3",
+        "seconds": 569
+      },
+      {
+        "title": "Ch 29",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_29_collodi_64kb.mp3",
+        "seconds": 792
+      },
+      {
+        "title": "Ch 30",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_30_collodi_64kb.mp3",
+        "seconds": 535
+      },
+      {
+        "title": "Ch 31",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_31_collodi_64kb.mp3",
+        "seconds": 699
+      },
+      {
+        "title": "Ch 32",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_32_collodi_64kb.mp3",
+        "seconds": 636
+      },
+      {
+        "title": "Ch 33",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_33_collodi_64kb.mp3",
+        "seconds": 817
+      },
+      {
+        "title": "Ch 34",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_34_collodi_64kb.mp3",
+        "seconds": 756
+      },
+      {
+        "title": "Ch 35",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_35_collodi_64kb.mp3",
+        "seconds": 630
+      },
+      {
+        "title": "Ch 36",
+        "url": "https://archive.org/download/adventures_pinocchio_1207_librivox/pinocchio_36_collodi_64kb.mp3",
+        "seconds": 1195
+      }
+    ]
+  },
+  "rebecca-of-sunnybrook-farm": {
+    "narrator": "LibriVox volunteers",
+    "page": "https://librivox.org/rebecca-of-sunnybrook-farm-by-kate-douglas-wiggin/",
+    "tracks": [
+      {
+        "title": "Ch. I - \"We Are Seven\"",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_01_wiggin_64kb.mp3",
+        "seconds": 1578
+      },
+      {
+        "title": "Ch. II - Rebecca's Relations",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_02_wiggin_64kb.mp3",
+        "seconds": 641
+      },
+      {
+        "title": "Ch. III - A Difference In Hearts",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_03_wiggin_64kb.mp3",
+        "seconds": 900
+      },
+      {
+        "title": "Ch. IV - Rebecca's Point Of View",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_04_wiggin_64kb.mp3",
+        "seconds": 483
+      },
+      {
+        "title": "Ch. V - Wisdom's Ways",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_05_wiggin_64kb.mp3",
+        "seconds": 1140
+      },
+      {
+        "title": "Ch. VI - Sunshine In A Shady Place",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_06_wiggin_64kb.mp3",
+        "seconds": 770
+      },
+      {
+        "title": "Ch. VII - Riverboro Secrets",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_07_wiggin_64kb.mp3",
+        "seconds": 771
+      },
+      {
+        "title": "Ch. VIII - Color Of Rose",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_08_wiggin_64kb.mp3",
+        "seconds": 698
+      },
+      {
+        "title": "Ch. IX - Ashes Of Roses",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_09_wiggin_64kb.mp3",
+        "seconds": 931
+      },
+      {
+        "title": "Ch. X - Rainbow Bridges",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_10_wiggin_64kb.mp3",
+        "seconds": 833
+      },
+      {
+        "title": "Ch. XI - \"The Stirring Of The Powers\"",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_11_wiggin_64kb.mp3",
+        "seconds": 679
+      },
+      {
+        "title": "Ch. XII - \"See The Pale Martyr\"",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_12_wiggin_64kb.mp3",
+        "seconds": 992
+      },
+      {
+        "title": "Ch. XIII - Snow-White; Rose-Red",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_13_wiggin_64kb.mp3",
+        "seconds": 761
+      },
+      {
+        "title": "Ch. XIV - Mr. Aladdin",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_14_wiggin_64kb.mp3",
+        "seconds": 784
+      },
+      {
+        "title": "Ch. XV - The Banquet Lamp",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_15_wiggin_64kb.mp3",
+        "seconds": 705
+      },
+      {
+        "title": "Ch. XVI - Seasons Of Growth",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_16_wiggin_64kb.mp3",
+        "seconds": 1185
+      },
+      {
+        "title": "Ch. XVII - Gray Days And Gold",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_17_wiggin_64kb.mp3",
+        "seconds": 855
+      },
+      {
+        "title": "Ch. XVIII - Rebecca Represents The Family",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_18_wiggin_64kb.mp3",
+        "seconds": 1057
+      },
+      {
+        "title": "Ch. XIX - Deacon Israel's Successor",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_19_wiggin_64kb.mp3",
+        "seconds": 912
+      },
+      {
+        "title": "Ch. XX - A Change Of Heart",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_20_wiggin_64kb.mp3",
+        "seconds": 937
+      },
+      {
+        "title": "Ch. XXI - The Sky Line Widens",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_21_wiggin_64kb.mp3",
+        "seconds": 1134
+      },
+      {
+        "title": "Ch. XXII - Clover Blossoms And Sunflowers",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_22_wiggin_64kb.mp3",
+        "seconds": 1374
+      },
+      {
+        "title": "Ch. XXIII - The Hill Difficulty",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_23_wiggin_64kb.mp3",
+        "seconds": 786
+      },
+      {
+        "title": "Ch. XXIV - Aladdin Rubs His Lamp",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_24_wiggin_64kb.mp3",
+        "seconds": 913
+      },
+      {
+        "title": "Ch. XXV - Roses Of Joy",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_25_wiggin_64kb.mp3",
+        "seconds": 1243
+      },
+      {
+        "title": "Ch. XXVI - Over The Teacups",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_26_wiggin_64kb.mp3",
+        "seconds": 893
+      },
+      {
+        "title": "Ch. XXVII - \"The Vision Splendid\"",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_27_wiggin_64kb.mp3",
+        "seconds": 1015
+      },
+      {
+        "title": "Ch. XXVIII - \"Th' Inevitable Yoke\"",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_28_wiggin_64kb.mp3",
+        "seconds": 1195
+      },
+      {
+        "title": "Ch. XXIX - Mother And Daughter",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_29_wiggin_64kb.mp3",
+        "seconds": 959
+      },
+      {
+        "title": "Ch. XXX - \"Good-By, Sunnybrook!\"",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_30_wiggin_64kb.mp3",
+        "seconds": 787
+      },
+      {
+        "title": "Ch. XXXI - Aunt Miranda's Apology",
+        "url": "https://archive.org/download/rebecca_sunnybrook_0708_librivox/rebeccaofsunnybrookfarm_31_wiggin_64kb.mp3",
+        "seconds": 499
+      }
+    ]
+  },
+  "pollyanna": {
+    "narrator": "thestorygirl",
+    "page": "https://librivox.org/pollyanna-version-4-by-eleanor-h-porter/",
+    "tracks": [
+      {
+        "title": "Chapter 1, Miss Polly",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_01_porter_64kb.mp3",
+        "seconds": 685
+      },
+      {
+        "title": "Chapter 2, Old Tom and Nancy",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_02_porter_64kb.mp3",
+        "seconds": 517
+      },
+      {
+        "title": "Chapter 3, The Coming of Pollyanna",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_03_porter_64kb.mp3",
+        "seconds": 1056
+      },
+      {
+        "title": "Chapter 4, The Little Attic Room",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_04_porter_64kb.mp3",
+        "seconds": 1164
+      },
+      {
+        "title": "Chapter 5, The Game",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_05_porter_64kb.mp3",
+        "seconds": 749
+      },
+      {
+        "title": "Chapter 6, A Question of Duty",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_06_porter_64kb.mp3",
+        "seconds": 1192
+      },
+      {
+        "title": "Chapter 7, Pollyanna and Punishments",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_07_porter_64kb.mp3",
+        "seconds": 830
+      },
+      {
+        "title": "Chapter 8, Pollyanna Pays a Visit",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_08_porter_64kb.mp3",
+        "seconds": 1274
+      },
+      {
+        "title": "Chapter 9, Which Tells of the Man",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_09_porter_64kb.mp3",
+        "seconds": 608
+      },
+      {
+        "title": "Chapter 10, A Surprise for Mrs. Snow",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_10_porter_64kb.mp3",
+        "seconds": 1233
+      },
+      {
+        "title": "Chapter 11, Introducing Jimmy",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_11_porter_64kb.mp3",
+        "seconds": 1299
+      },
+      {
+        "title": "Chapter 12, Before the Ladies' Aid",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_12_porter_64kb.mp3",
+        "seconds": 550
+      },
+      {
+        "title": "Chapter 13, In Pendleton Woods",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_13_porter_64kb.mp3",
+        "seconds": 916
+      },
+      {
+        "title": "Chapter 14, Just a Matter of Jelly",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_14_porter_64kb.mp3",
+        "seconds": 764
+      },
+      {
+        "title": "Chapter 15, Dr. Chilton",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_15_porter_64kb.mp3",
+        "seconds": 1380
+      },
+      {
+        "title": "Chapter 16, A Red Rose and a Lace Shawl",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_16_porter_64kb.mp3",
+        "seconds": 1005
+      },
+      {
+        "title": "Chapter 17, 'Just Like a Book'",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_17_porter_64kb.mp3",
+        "seconds": 898
+      },
+      {
+        "title": "Chapter 18, Prisms",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_18_porter_64kb.mp3",
+        "seconds": 796
+      },
+      {
+        "title": "Chapter 19, Which is Somewhat Surprising",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_19_porter_64kb.mp3",
+        "seconds": 512
+      },
+      {
+        "title": "Chapter 20, Which is More Surprising",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_20_porter_64kb.mp3",
+        "seconds": 876
+      },
+      {
+        "title": "Chapter 21, A Question Answered",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_21_porter_64kb.mp3",
+        "seconds": 901
+      },
+      {
+        "title": "Chapter 22, Sermons and Woodboxes",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_22_porter_64kb.mp3",
+        "seconds": 1165
+      },
+      {
+        "title": "Chapter 23, An Accident",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_23_porter_64kb.mp3",
+        "seconds": 809
+      },
+      {
+        "title": "Chapter 24, John Pendleton",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_24_porter_64kb.mp3",
+        "seconds": 1023
+      },
+      {
+        "title": "Chapter 25, A Waiting Game",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_25_porter_64kb.mp3",
+        "seconds": 819
+      },
+      {
+        "title": "Chapter 26, A Door Ajar",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_26_porter_64kb.mp3",
+        "seconds": 513
+      },
+      {
+        "title": "Chapter 27, Two Visits",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_27_porter_64kb.mp3",
+        "seconds": 1095
+      },
+      {
+        "title": "Chapter 28, The Game and Its Players",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_28_porter_64kb.mp3",
+        "seconds": 1839
+      },
+      {
+        "title": "Chapter 29, Through an Open Window",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_29_porter_64kb.mp3",
+        "seconds": 662
+      },
+      {
+        "title": "Chapter 30, Jimmy Takes the Helm",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_30_porter_64kb.mp3",
+        "seconds": 388
+      },
+      {
+        "title": "Chapter 31, A New Uncle",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_31_porter_64kb.mp3",
+        "seconds": 262
+      },
+      {
+        "title": "Chapter 32, Which is a Letter from Pollyanna",
+        "url": "https://archive.org/download/pollyanna_version_4_1808_librivox/pollyannav4_32_porter_64kb.mp3",
+        "seconds": 161
+      }
+    ]
+  },
+  "white-fang": {
+    "narrator": "Mark F. Smith",
+    "page": "https://librivox.org/white-fang-by-jack-london-librivox-version-2/",
+    "tracks": [
+      {
+        "title": "Part 1, Ch 1 - The Trail of the Meat",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_01_london_64kb.mp3",
+        "seconds": 1048
+      },
+      {
+        "title": "Part 1, Ch 2 - The She-Wolf",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_02_london_64kb.mp3",
+        "seconds": 1304
+      },
+      {
+        "title": "Part 1, Ch 3 - The Hunger Cry",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_03_london_64kb.mp3",
+        "seconds": 1421
+      },
+      {
+        "title": "Part 2, Ch 1 - The Battle of the Fangs",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_04_london_64kb.mp3",
+        "seconds": 1328
+      },
+      {
+        "title": "Part 2, Ch 2 - The Lair",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_05_london_64kb.mp3",
+        "seconds": 1120
+      },
+      {
+        "title": "Part 2, Ch 3 - The Grey Cub",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_06_london_64kb.mp3",
+        "seconds": 725
+      },
+      {
+        "title": "Part 2, Ch 4 - The Wall of the World",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_07_london_64kb.mp3",
+        "seconds": 1449
+      },
+      {
+        "title": "Part 2, Ch 5 - The Law of Meat",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_08_london_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "Part 3, Ch 1 - The Makers of Fire",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_09_london_64kb.mp3",
+        "seconds": 1518
+      },
+      {
+        "title": "Part 3, Ch 2 - The Bondage",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_10_london_64kb.mp3",
+        "seconds": 1179
+      },
+      {
+        "title": "Part 3, Ch 3 - The Outcast",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_11_london_64kb.mp3",
+        "seconds": 640
+      },
+      {
+        "title": "Part 3, Ch 4 - The Trail of the Gods",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_12_london_64kb.mp3",
+        "seconds": 711
+      },
+      {
+        "title": "Part 3, Ch 5 - The Covenant",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_13_london_64kb.mp3",
+        "seconds": 1168
+      },
+      {
+        "title": "Part 3, Ch 6 - The Famine",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_14_london_64kb.mp3",
+        "seconds": 1185
+      },
+      {
+        "title": "Part 4, Ch 1 - The Enemy of His Kind",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_15_london_64kb.mp3",
+        "seconds": 1301
+      },
+      {
+        "title": "Part 4, Ch 2 - The Mad God",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_16_london_64kb.mp3",
+        "seconds": 1163
+      },
+      {
+        "title": "Part 4, Ch 3 - The Reign of Hate",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_17_london_64kb.mp3",
+        "seconds": 713
+      },
+      {
+        "title": "Part 4, Ch 4 - The Clinging Death",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_18_london_64kb.mp3",
+        "seconds": 1470
+      },
+      {
+        "title": "Part 4, Ch 5 - The Indomitable",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_19_london_64kb.mp3",
+        "seconds": 699
+      },
+      {
+        "title": "Part 4, Ch 6 - The Love-Master",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_20_london_64kb.mp3",
+        "seconds": 1911
+      },
+      {
+        "title": "Part 5, Ch 1 - The Long Trail",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_21_london_64kb.mp3",
+        "seconds": 677
+      },
+      {
+        "title": "Part 5, Ch 2 - The Southland",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_22_london_64kb.mp3",
+        "seconds": 879
+      },
+      {
+        "title": "Part 5, Ch 3 - The God's Domain",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_23_london_64kb.mp3",
+        "seconds": 1456
+      },
+      {
+        "title": "Part 5, Ch 4 - The Call of Kind",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_24_london_64kb.mp3",
+        "seconds": 853
+      },
+      {
+        "title": "Part 5, Ch 5 - The Sleeping Wolf",
+        "url": "https://archive.org/download/whitefang2_1010_librivox/whitefang2_25_london_64kb.mp3",
+        "seconds": 1149
+      }
+    ]
+  },
+  "the-sea-wolf": {
+    "narrator": "Nick Bulka",
+    "page": "https://librivox.org/the-sea-wolf-version-2-by-jack-london/",
+    "tracks": [
+      {
+        "title": "Chapter I",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_01_london_64kb.mp3",
+        "seconds": 1287
+      },
+      {
+        "title": "Chapter II",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_02_london_64kb.mp3",
+        "seconds": 1246
+      },
+      {
+        "title": "Chapter III",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_03_london_64kb.mp3",
+        "seconds": 1726
+      },
+      {
+        "title": "Chapter IV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_04_london_64kb.mp3",
+        "seconds": 1050
+      },
+      {
+        "title": "Chapter V",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_05_london_64kb.mp3",
+        "seconds": 1182
+      },
+      {
+        "title": "Chapter VI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_06_london_64kb.mp3",
+        "seconds": 2067
+      },
+      {
+        "title": "Chapter VII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_07_london_64kb.mp3",
+        "seconds": 568
+      },
+      {
+        "title": "Chapter VIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_08_london_64kb.mp3",
+        "seconds": 1136
+      },
+      {
+        "title": "Chapter IX",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_09_london_64kb.mp3",
+        "seconds": 1343
+      },
+      {
+        "title": "Chapter X",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_10_london_64kb.mp3",
+        "seconds": 1004
+      },
+      {
+        "title": "Chapter XI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_11_london_64kb.mp3",
+        "seconds": 946
+      },
+      {
+        "title": "Chapter XII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_12_london_64kb.mp3",
+        "seconds": 1497
+      },
+      {
+        "title": "Chapter XIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_13_london_64kb.mp3",
+        "seconds": 656
+      },
+      {
+        "title": "Chapter XIV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_14_london_64kb.mp3",
+        "seconds": 1093
+      },
+      {
+        "title": "Chapter XV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_15_london_64kb.mp3",
+        "seconds": 839
+      },
+      {
+        "title": "Chapter XVI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_16_london_64kb.mp3",
+        "seconds": 1015
+      },
+      {
+        "title": "Chapter XVII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_17_london_64kb.mp3",
+        "seconds": 2000
+      },
+      {
+        "title": "Chapter XVIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_18_london_64kb.mp3",
+        "seconds": 985
+      },
+      {
+        "title": "Chapter XIX",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_19_london_64kb.mp3",
+        "seconds": 973
+      },
+      {
+        "title": "Chapter XX",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_20_london_64kb.mp3",
+        "seconds": 1172
+      },
+      {
+        "title": "Chapter XXI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_21_london_64kb.mp3",
+        "seconds": 713
+      },
+      {
+        "title": "Chapter XXII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_22_london_64kb.mp3",
+        "seconds": 528
+      },
+      {
+        "title": "Chapter XXIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_23_london_64kb.mp3",
+        "seconds": 768
+      },
+      {
+        "title": "Chapter XXIV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_24_london_64kb.mp3",
+        "seconds": 1016
+      },
+      {
+        "title": "Chapter XXV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_25_london_64kb.mp3",
+        "seconds": 1905
+      },
+      {
+        "title": "Chapter XXVI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_26_london_64kb.mp3",
+        "seconds": 1933
+      },
+      {
+        "title": "Chapter XXVII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_27_london_64kb.mp3",
+        "seconds": 1119
+      },
+      {
+        "title": "Chapter XXVIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_28_london_64kb.mp3",
+        "seconds": 1047
+      },
+      {
+        "title": "Chapter XXIX",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_29_london_64kb.mp3",
+        "seconds": 779
+      },
+      {
+        "title": "Chapter XXX",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_30_london_64kb.mp3",
+        "seconds": 1087
+      },
+      {
+        "title": "Chapter XXXI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_31_london_64kb.mp3",
+        "seconds": 389
+      },
+      {
+        "title": "Chapter XXXII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_32_london_64kb.mp3",
+        "seconds": 1132
+      },
+      {
+        "title": "Chapter XXXIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_33_london_64kb.mp3",
+        "seconds": 829
+      },
+      {
+        "title": "Chapter XXXIV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_34_london_64kb.mp3",
+        "seconds": 736
+      },
+      {
+        "title": "Chapter XXXV",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_35_london_64kb.mp3",
+        "seconds": 902
+      },
+      {
+        "title": "Chapter XXXVI",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_36_london_64kb.mp3",
+        "seconds": 1393
+      },
+      {
+        "title": "Chapter XXXVII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_37_london_64kb.mp3",
+        "seconds": 1283
+      },
+      {
+        "title": "Chapter XXXVIII",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_38_london_64kb.mp3",
+        "seconds": 479
+      },
+      {
+        "title": "Chapter XXXIX",
+        "url": "https://archive.org/download/sea_wolf_2_nb_1603_librivox/seawolfversion2_39_london_64kb.mp3",
+        "seconds": 977
+      }
+    ]
+  },
+  "the-scarlet-pimpernel": {
+    "narrator": "Andrew Ash",
+    "page": "https://librivox.org/the-scarlet-pimpernel-version-4-by-baroness-emma-orczy/",
+    "tracks": [
+      {
+        "title": "Chapter 1",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_01_orczy_64kb.mp3",
+        "seconds": 1040
+      },
+      {
+        "title": "Chapter 2",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_02_orczy_64kb.mp3",
+        "seconds": 1079
+      },
+      {
+        "title": "Chapter 3",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_03_orczy_64kb.mp3",
+        "seconds": 858
+      },
+      {
+        "title": "Chapter 4",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_04_orczy_64kb.mp3",
+        "seconds": 912
+      },
+      {
+        "title": "Chapter 5",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_05_orczy_64kb.mp3",
+        "seconds": 657
+      },
+      {
+        "title": "Chapter 6",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_06_orczy_64kb.mp3",
+        "seconds": 1189
+      },
+      {
+        "title": "Chapter 7",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_07_orczy_64kb.mp3",
+        "seconds": 710
+      },
+      {
+        "title": "Chapter 8",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_08_orczy_64kb.mp3",
+        "seconds": 1341
+      },
+      {
+        "title": "Chapter 9",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_09_orczy_64kb.mp3",
+        "seconds": 709
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_10_orczy_64kb.mp3",
+        "seconds": 1695
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_11_orczy_64kb.mp3",
+        "seconds": 720
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_12_orczy_64kb.mp3",
+        "seconds": 961
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_13_orczy_64kb.mp3",
+        "seconds": 303
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_14_orczy_64kb.mp3",
+        "seconds": 978
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_15_orczy_64kb.mp3",
+        "seconds": 609
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_16_orczy_64kb.mp3",
+        "seconds": 1642
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_17_orczy_64kb.mp3",
+        "seconds": 799
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_18_orczy_64kb.mp3",
+        "seconds": 513
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_19_orczy_64kb.mp3",
+        "seconds": 1012
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_20_orczy_64kb.mp3",
+        "seconds": 722
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_21_orczy_64kb.mp3",
+        "seconds": 897
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_22_orczy_64kb.mp3",
+        "seconds": 1116
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_23_orczy_64kb.mp3",
+        "seconds": 752
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_24_orczy_64kb.mp3",
+        "seconds": 792
+      },
+      {
+        "title": "Chapter 25",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_25_orczy_64kb.mp3",
+        "seconds": 932
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_26_orczy_64kb.mp3",
+        "seconds": 1019
+      },
+      {
+        "title": "Chapter 27",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_27_orczy_64kb.mp3",
+        "seconds": 796
+      },
+      {
+        "title": "Chapter 28",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_28_orczy_64kb.mp3",
+        "seconds": 1039
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_29_orczy_64kb.mp3",
+        "seconds": 547
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_30_orczy_64kb.mp3",
+        "seconds": 1420
+      },
+      {
+        "title": "Chapter 31",
+        "url": "https://archive.org/download/scarletpimpernel_2606_librivox/scarletpimpernel_31_orczy_64kb.mp3",
+        "seconds": 1290
+      }
+    ]
   }
 };

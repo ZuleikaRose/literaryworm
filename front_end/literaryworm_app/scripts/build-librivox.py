@@ -34,6 +34,57 @@ PROJECTS = {
     "the-call-of-the-wild": 9909,  # Phil Chenevert
     "the-picture-of-dorian-gray": 6124,  # Bob Neufeld (1891 text)
     "the-wonderful-wizard-of-oz": 5827,  # Phil Chenevert
+    # More public-domain titles (October 2026)
+    "emma": 6866,  # solo
+    "sense-and-sensibility": 4358,  # solo
+    "persuasion": 2977,  # solo
+    "northanger-abbey": 10326,  # solo
+    "wuthering-heights": 2994,  # solo
+    "great-expectations": 9945,  # solo
+    "a-tale-of-two-cities": 15669,  # solo
+    "the-adventures-of-tom-sawyer": 448,  # solo
+    "adventures-of-huckleberry-finn": 9807,  # solo
+    "the-war-of-the-worlds": 16093,  # solo
+    "the-invisible-man": 16039,  # solo
+    "the-island-of-doctor-moreau": 17125,  # solo
+    "twenty-thousand-leagues-under-the-sea": 8216,  # solo
+    "the-hound-of-the-baskervilles": 6936,  # solo
+    "a-study-in-scarlet": 9379,  # solo
+    "the-sign-of-the-four": 9425,  # solo
+    "dr-jekyll-and-mr-hyde": 13584,  # solo
+    "kidnapped": 2317,  # solo
+    "the-jungle-book": 6712,  # solo
+    "heart-of-darkness": 17219,  # solo
+    "the-scarlet-letter": 9288,  # solo
+    "the-last-of-the-mohicans": 1379,  # solo
+    "robinson-crusoe": 4284,  # solo
+    "gullivers-travels": 21437,  # solo
+    "heidi": 491,  # solo
+    "the-railway-children": 12627,  # solo
+    "a-little-princess": 9592,  # solo
+    "five-children-and-it": 12347,  # solo
+    "the-princess-and-the-goblin": 3323,  # solo
+    "through-the-looking-glass": 15261,  # solo
+    "the-prince-and-the-pauper": 10678,  # solo
+    "silas-marner": 6314,  # solo
+    "cranford": 1937,  # solo
+    "the-turn-of-the-screw": 14780,  # solo
+    "the-age-of-innocence": 4612,  # solo
+    "the-awakening": 3902,  # solo
+    "ethan-frome": 5885,  # solo
+    "the-red-badge-of-courage": 19068,  # solo
+    "the-man-who-was-thursday": 17742,  # solo
+    "the-phantom-of-the-opera": 4487,  # solo
+    "king-solomons-mines": 544,  # solo
+    "the-prisoner-of-zenda": 523,  # solo
+    "a-room-with-a-view": 5307,  # solo
+    "autobiography-of-benjamin-franklin": 1143,  # solo
+    "pinocchio": 6787,  # solo
+    "rebecca-of-sunnybrook-farm": 1158,  # LibriVox volunteers
+    "pollyanna": 11704,  # solo
+    "white-fang": 4677,  # solo
+    "the-sea-wolf": 9796,  # solo
+    "the-scarlet-pimpernel": 22355,  # solo
 }
 
 API = "https://librivox.org/api/feed/audiobooks/?id={}&format=json&extended=1"
