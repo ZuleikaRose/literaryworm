@@ -1,5 +1,5 @@
 // Sending email through Mailgun's API, for release-emails and club-invite. The API key and
-// sending domain come from the SEND_MAILGUN_EMAIL and MAILGUN_DOMAIN function settings;
+// sending domain come from the MAILGUN_API_KEY and MAILGUN_DOMAIN function settings;
 // MAILGUN_API_BASE is https://api.eu.mailgun.net for an EU domain, and MAILGUN_FROM changes the
 // sender. Nothing is hard-coded. Auth's own emails go through Mailgun's SMTP instead.
 
@@ -53,7 +53,7 @@ export async function sendWithMailgun(message: MailgunMessage): Promise<void> {
   }
   const res = await fetch(`${base}/v3/${encodeURIComponent(domain)}/messages`, {
     method: "POST",
-    headers: { Authorization: `Basic ${btoa(`api:${env("SEND_MAILGUN_EMAIL")}`)}` },
+    headers: { Authorization: `Basic ${btoa(`api:${env("MAILGUN_API_KEY")}`)}` },
     body: form,
     signal: AbortSignal.timeout(15_000),
   });

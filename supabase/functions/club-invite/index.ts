@@ -1,4 +1,4 @@
-// Emails go through Mailgun's API (_shared/mailgun.ts: SEND_MAILGUN_EMAIL and MAILGUN_DOMAIN
+// Emails go through Mailgun's API (_shared/mailgun.ts: MAILGUN_API_KEY and MAILGUN_DOMAIN
 // function settings). Nothing is hard-coded.
 import { CATALOG } from "../_shared/catalog.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
