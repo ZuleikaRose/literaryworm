@@ -172,3 +172,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Book texts in Storage: the `book-texts` bucket (migration 6300), `vercel.json` sends `/texts/:file` there, `vite.config.ts` proxies it in dev and preview (a file kept in `public/texts` wins), `scripts/upload-texts.sh` uploads them; `.gitignore` keeps three texts for the tests |
 | — | 250 more public-domain titles: `src/data/books.ts`, `src/data/librivox.ts` (generated), texts uploaded to `book-texts`, `supabase/functions/_shared/catalog.ts`; migration 6301 (What's new) |
 | — | A third 250 public-domain titles (571 in all); `build-texts.py` gains `"trim": 2` (glossaries, and anything after the book's last THE END); migration 6302 (What's new) |
+| — | New prices: `data/plans.ts`, `PRICES` in `checkout/index.ts`, `public.plans` (migration 6400), Stripe prices with the same lookup keys (old ones archived); migration 6401 (What's new) |

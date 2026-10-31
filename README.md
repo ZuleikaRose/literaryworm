@@ -422,5 +422,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Book texts moved to a public Supabase Storage bucket (`book-texts`, migration 6300), served at the same `/texts/` path through Vercel, so deploys and the repo stay small | Done    |
 | —    | 250 more public-domain titles, 321 in all, each with its full text and LibriVox recording (What's new, migration 6301) | Done    |
 | —    | A third 250 public-domain titles, 571 in all, each with its full text and LibriVox recording (What's new, migration 6302) | Done    |
+| —    | New prices: Standard $14.99 a month ($149.90 a year), Premium $24.99 ($249.90); Basic unchanged. App, database (migration 6400) and Stripe (new prices took over the lookup keys; running memberships keep theirs) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
