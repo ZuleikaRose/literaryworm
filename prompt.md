@@ -84,6 +84,8 @@ The last round closed the gaps in moving down a plan and finished the household 
 
 Then the two gaps the build notes still named were closed: book club posts can be emailed once a day to members who turn it on (only chapters they've reached, who wrote and how many, never the text; the `club-digest` function), and a browser keeps its device id until sign-out, so a refresh is no longer a new device in *Listen on another device* (the second thing kept in local storage, in the Cookie Policy).
 
+Then 50 more public-domain titles were added (71 in all), each with its LibriVox recording and Project Gutenberg text lined up chapter by chapter by `scripts/build-librivox.py` and `scripts/build-texts.py`.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

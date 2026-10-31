@@ -3,6 +3,14 @@
     "releasedOn": "2026-10-30",
     "version": "2026.10",
     "kind": "feature",
+    "title": "50 more classics to read and hear",
+    "body": "Emma, Great Expectations, Wuthering Heights, Huckleberry Finn, The Hound of the Baskervilles, Heidi, The War of the Worlds and 43 more classics are now in LiteraryWorm, each with the whole book to read and a LibriVox recording to listen to, chapter by chapter. That's 71 in all.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-30",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Book club posts by email",
     "body": "Turn on Email me new book club posts in Account → Preferences and we'll send one email a day when there's something new in your clubs: which chapters, how many posts and who wrote them. Only chapters you've reached, so no spoilers; the posts themselves stay in the app.",
     "major": true
