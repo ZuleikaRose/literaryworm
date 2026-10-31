@@ -370,6 +370,19 @@ export interface ProfileData {
   readerFollows: ReaderFollow[];
   /** Kids profiles: catalog books asked for from a grown-up, newest first. */
   bookRequests: BookRequest[];
+  /** Reading journal: private dated entries about books, newest first. */
+  journal: JournalEntry[];
+}
+
+/** A private journal entry about a book, for the day it's about. */
+export interface JournalEntry {
+  id: string;
+  bookId: string;
+  body: string;
+  /** The day it's about, YYYY-MM-DD. */
+  writtenOn: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 /** A Kids profile asking a grown-up for a catalog book rated above it. */

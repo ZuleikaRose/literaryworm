@@ -10,6 +10,7 @@ import { Dialog } from "../components/Dialog";
 import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
 import { AskGrownUp } from "../components/AskGrownUp";
+import { JournalSection } from "../components/JournalSection";
 import { canAsk, mayOpen } from "../lib/bookRequests";
 import { LogCard } from "../components/LogCard";
 import { LogDialog } from "../components/LogDialog";
@@ -523,6 +524,8 @@ function DetailPage({ view }: { view: DetailView }) {
           )}
         </section>
       )}
+
+      {profile && <JournalSection bookId={view.id} title={view.title} />}
 
       <section className="logs-section" id="logs" aria-labelledby="logs-title">
         <div className="logs-intro">

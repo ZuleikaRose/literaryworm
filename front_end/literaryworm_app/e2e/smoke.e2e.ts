@@ -794,6 +794,29 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("writes, edits and deletes a private journal entry on a book's page", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/frankenstein");
+    const journal = page.getByRole("region", { name: "My journal" });
+    await journal.getByLabel("New entry").fill("Read the storm chapter on the train.");
+    await journal.getByRole("button", { name: "Add to journal" }).click();
+    const list = journal.getByRole("list", { name: "Journal entries for Frankenstein" });
+    await list.getByText("Read the storm chapter on the train.").waitFor();
+    await list.getByRole("button", { name: /^Edit/ }).click();
+    await journal.getByLabel("Edit the entry").fill("Read the storm chapter twice.");
+    await journal.getByRole("button", { name: "Save entry" }).click();
+    await list.getByText("Read the storm chapter twice.").waitFor();
+    // It's in My Library → Notes, ready to export.
+    await goInApp(page, "/library?view=notes");
+    await page.getByText(/1 journal entry in 1 book/).waitFor();
+    await goInApp(page, "/books/frankenstein");
+    await page.getByRole("region", { name: "My journal" }).getByRole("button", { name: /^Delete/ }).click();
+    await page.getByRole("dialog", { name: "Delete this journal entry?" }).getByRole("button", { name: "Delete entry" }).click();
+    await expect(page.getByRole("list", { name: "Journal entries for Frankenstein" }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("turns the weekly author email off in Preferences", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

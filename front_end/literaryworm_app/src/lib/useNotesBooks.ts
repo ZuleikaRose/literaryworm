@@ -8,9 +8,11 @@ import type { BookNotes } from "./exportNotes";
 export function useNotesBooks(): (BookNotes & { bookId: string })[] {
   const { state } = useStore();
   const library = activeLibrary(state);
-  const uploads = useProfileData().uploads;
+  const { uploads, journal } = useProfileData();
   const byBook = new Map<string, Highlight[]>();
   for (const h of activeReading(state).highlights) byBook.set(h.bookId, [...(byBook.get(h.bookId) ?? []), h]);
+  // Books with only journal entries are listed too.
+  for (const e of journal) if (!byBook.has(e.bookId)) byBook.set(e.bookId, []);
   return [...byBook.entries()]
     .map(([bookId, highlights]) => {
       const book = getBook(bookId);
@@ -22,6 +24,7 @@ export function useNotesBooks(): (BookNotes & { bookId: string })[] {
         author: book?.author ?? upload?.author ?? entry?.authors?.[0] ?? null,
         chapterTitles: book?.chapters.map((c) => c.title) ?? upload?.chapterTitles ?? [],
         highlights,
+        journal: journal.filter((e) => e.bookId === bookId),
       };
     })
     .sort((a, b) => a.title.localeCompare(b.title));

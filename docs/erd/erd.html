@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6522, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6526, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -562,6 +562,20 @@
           note: "A Kids profile asking for a catalog book above its rating; a yes opens that one book for it. FK as favorites; the key is its index. Up to 50 a profile (trigger). RLS: owner only; the browser inserts (Kids profiles, pending) and deletes; status is set by manage-profile after the account password.",
         },
         {
+          id: "journal_entries", color: colors.household, x: 840, y: 7200, sub: "per profile · reading journal",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "profile_id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "volume_id", "text"],
+            ["", "body", "text 1–5000"],
+            ["", "written_on", "date"],
+            ["", "created_at", "timestamptz"],
+            ["", "updated_at", "timestamptz"],
+          ],
+          note: "Private dated entries about a book, apart from the public logs. FK (profile_id, user_id) → reader_profiles, on delete cascade; index on the pair. Up to 1,000 a profile; written_on no later than today (trigger, which also keeps created_at and sets updated_at). RLS: owner only; browser updates body and written_on.",
+        },
+        {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -871,6 +885,7 @@
         ["follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["saved_words", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["book_requests", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["journal_entries", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "reader_id", "profiles", "id", "N : 1"],

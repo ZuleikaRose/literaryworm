@@ -7361,3 +7361,106 @@ grant update (learned, review_due, review_step) on public.saved_words to authent
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Review your words$lw$, $lw$My words now asks each word again just before you'd forget it: after 1, 3, 7, 14, 30 and 60 days while you know it, and tomorrow when you don't. Home says when words are due, and Review in My words goes through them.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Review your words$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261031006523_journal_entries.sql
+-- =============================================================================
+-- Reading journal: a profile's private, dated entries about a book, kept apart from the
+-- public logs (which carry the display name). Per profile, like saved_words; the browser makes
+-- the id. Up to 1,000 a profile. Deleting the profile (or the account) deletes them through
+-- the foreign key. Index on (profile_id, user_id) for the foreign key in the next migration.
+
+create table public.journal_entries (
+  id         uuid primary key,
+  profile_id uuid not null,
+  user_id    uuid not null,
+  volume_id  text not null check (char_length(volume_id) between 1 and 64),
+  body       text not null check (char_length(btrim(body)) between 1 and 5000),
+  written_on date not null default current_date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  foreign key (profile_id, user_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+create or replace function private.journal_entries_guard()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    if (select count(*) from public.journal_entries where profile_id = new.profile_id) >= 1000 then
+      raise exception 'A profile can keep up to 1000 journal entries' using errcode = 'check_violation';
+    end if;
+    new.created_at := now();
+  else
+    new.created_at := old.created_at;
+  end if;
+  -- Today or a day before, a day's leeway either side for time zones.
+  if new.written_on > current_date + 1 then
+    raise exception 'A journal entry is about today or a day before' using errcode = 'check_violation';
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$$;
+revoke execute on function private.journal_entries_guard() from public, anon, authenticated;
+
+create trigger journal_entries_guard
+  before insert or update on public.journal_entries
+  for each row execute function private.journal_entries_guard();
+
+alter table public.journal_entries enable row level security;
+
+create policy "Readers see their own journal" on public.journal_entries for select to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Readers write in their own journal" on public.journal_entries for insert to authenticated
+  with check (user_id = (select auth.uid()));
+create policy "Readers edit their own journal" on public.journal_entries for update to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+create policy "Readers delete from their own journal" on public.journal_entries for delete to authenticated
+  using (user_id = (select auth.uid()));
+create policy "Two-step sign-in when turned on" on public.journal_entries as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.journal_entries from anon, authenticated;
+grant select, delete on public.journal_entries to authenticated;
+grant insert (id, profile_id, user_id, volume_id, body, written_on) on public.journal_entries to authenticated;
+grant update (body, written_on) on public.journal_entries to authenticated;
+
+-- =============================================================================
+-- 20261031006524_index_journal_entries_profile.sql
+-- =============================================================================
+create index concurrently if not exists journal_entries_profile_id_user_id_idx on public.journal_entries (profile_id, user_id);
+
+-- =============================================================================
+-- 20261031006525_whats_new_journal.sql
+-- =============================================================================
+-- What's new: the reading journal (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$A private reading journal$lw$, $lw$Every book's page now has My journal: dated notes about the book that only you see, apart from the public reader logs. Write, edit and delete entries, and export them with your highlights from My Library → Notes.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A private reading journal$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261031006526_legal_journal_requests_review.sql
+-- =============================================================================
+-- Book requests, word review and the reading journal (src/data/legalPages.json has the same change):
+-- the Privacy Policy and the Children's Privacy Notice say they're kept. A page an editor has
+-- reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$the words you save from the dictionary (with the sentence you met them in)$lw$, $lw$the words you save from the dictionary (with the sentence you met them in and when each is next due for review), your private reading journal (dated entries about a book that only your account sees)$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$the words you save from the dictionary (with the sentence you met them in)$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$highlights, saved words, lists,$lw$, $lw$highlights, journal, saved words, lists,$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$highlights, saved words, lists,$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$the words it saves from the dictionary, its chapter quiz scores (which you can see in Account),$lw$, $lw$the words it saves from the dictionary, its private reading journal, the books it asks a grown-up for and your answers (which you give and can see in Account), its chapter quiz scores (which you can see in Account),$lw$)::jsonb, updated_at = now()
+where slug = $lw$childrens-privacy$lw$
+  and strpos(sections::text, $lw$the words it saves from the dictionary, its chapter quiz scores (which you can see in Account),$lw$) > 0;

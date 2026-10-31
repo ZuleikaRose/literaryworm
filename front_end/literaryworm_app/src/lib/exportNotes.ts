@@ -1,4 +1,4 @@
-import type { Highlight } from "../types";
+import type { Highlight, JournalEntry } from "../types";
 import { HIGHLIGHT_COLORS } from "./highlights";
 
 /**
@@ -13,11 +13,19 @@ export interface BookNotes {
   /** Chapter titles by index, where known. */
   chapterTitles: string[];
   highlights: Highlight[];
+  /** The profile's private journal entries about the book (any order). */
+  journal?: JournalEntry[];
 }
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { dateStyle: "long" });
 const colourLabel = (h: Highlight) => HIGHLIGHT_COLORS.find((c) => c.value === h.color)?.label ?? h.color;
 const chapterTitle = (book: BookNotes, index: number) => book.chapterTitles[index] ?? `Chapter ${index + 1}`;
+
+const dayFormat = new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" });
+/** Oldest first, so the journal reads as it was written. */
+const journalInOrder = (book: BookNotes) =>
+  [...(book.journal ?? [])].sort((a, b) => a.writtenOn.localeCompare(b.writtenOn) || a.createdAt - b.createdAt);
+const journalDate = (e: JournalEntry) => dayFormat.format(new Date(`${e.writtenOn}T00:00:00Z`));
 
 function inOrder(highlights: Highlight[]): Highlight[] {
   return [...highlights].sort((a, b) => a.chapterIndex - b.chapterIndex || a.page - b.page || a.start - b.start);
@@ -39,6 +47,11 @@ function bookMarkdown(book: BookNotes, level: number): string {
       if (h.note) lines.push("", `**Note:** ${h.note}`);
     }
   }
+  const journal = journalInOrder(book);
+  if (journal.length) {
+    lines.push("", `${hashes}# Journal`);
+    for (const e of journal) lines.push("", `**${journalDate(e)}**`, "", e.body);
+  }
   return lines.join("\n");
 }
 
@@ -53,12 +66,17 @@ function bookText(book: BookNotes): string {
       if (h.note) lines.push(`Note: ${h.note}`);
     }
   }
+  const journal = journalInOrder(book);
+  if (journal.length) {
+    lines.push("", "Journal", "-------");
+    for (const e of journal) lines.push("", journalDate(e), e.body);
+  }
   return lines.join("\n");
 }
 
 /** One book, or several under a heading of their own. */
 export function exportNotes(books: BookNotes[], format: ExportFormat, now = new Date()): string {
-  const withNotes = books.filter((b) => b.highlights.length > 0);
+  const withNotes = books.filter((b) => b.highlights.length > 0 || (b.journal?.length ?? 0) > 0);
   const stamp = `Exported from LiteraryWorm on ${dateFormat.format(now)}.`;
   if (format === "markdown") {
     if (withNotes.length === 1) return `${bookMarkdown(withNotes[0], 1)}\n\n---\n\n${stamp}\n`;

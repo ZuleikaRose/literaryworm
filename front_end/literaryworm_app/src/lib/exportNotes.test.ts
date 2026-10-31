@@ -83,3 +83,21 @@ describe("exportFileName", () => {
     expect(exportFileName("   ", "text")).toBe("notes-notes.txt");
   });
 });
+
+describe("exportNotes with a journal", () => {
+  const entry = (id: string, writtenOn: string, body: string) => ({ id, bookId: "b", body, writtenOn, createdAt: 0, updatedAt: 0 });
+  const withJournal: BookNotes = { ...book, journal: [entry("2", "2026-10-30", "Finished the ball."), entry("1", "2026-10-02", "Started it.")] };
+
+  it("adds the journal after the highlights, oldest first", () => {
+    const md = exportNotes([withJournal], "markdown", day);
+    expect(md).toContain("## Journal\n\n**2 October 2026**\n\nStarted it.\n\n**30 October 2026**\n\nFinished the ball.");
+    const text = exportNotes([withJournal], "text", day);
+    expect(text).toContain("Journal\n-------\n\n2 October 2026\nStarted it.\n\n30 October 2026\nFinished the ball.");
+  });
+
+  it("exports a book with only journal entries", () => {
+    const md = exportNotes([{ ...withJournal, highlights: [] }], "markdown", day);
+    expect(md).toMatch(/^# Pride and Prejudice/);
+    expect(md).toContain("Started it.");
+  });
+});

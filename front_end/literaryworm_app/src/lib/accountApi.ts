@@ -19,6 +19,7 @@ import type {
   Reminder,
   SavedWord,
   BookRequest,
+  JournalEntry,
   QuizResult,
   ReadingStatus,
 } from "../types";
@@ -1123,6 +1124,7 @@ const emptyCollections = (): Collections => ({
   quizResults: [],
   readerFollows: [],
   bookRequests: [],
+  journal: [],
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
@@ -1180,6 +1182,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const r of await loadQuizResults()) of(r.profileId).quizResults.push(r.result);
   for (const f of await loadReaderFollows()) of(f.profileId).readerFollows.push(f.follow);
   for (const r of await loadBookRequests()) of(r.profileId).bookRequests.push(r.request);
+  for (const j of await loadJournal()) of(j.profileId).journal.push(j.entry);
   for (const p of await loadProfileExtras()) {
     of(p.id).readingWpm = p.reading_wpm;
     of(p.id).upNext = p.up_next ?? [];
@@ -1600,6 +1603,62 @@ export async function requestBook(profileId: string, bookId: string): Promise<vo
 export async function removeBookRequest(profileId: string, bookId: string): Promise<void> {
   const { error } = await client().from("book_requests").delete().eq("profile_id", profileId).eq("volume_id", bookId);
   if (error) throw new AccountError("We couldn't remove the request. Try again.");
+}
+
+// --- Reading journal (journal_entries) ----------------------------------------
+
+type JournalRow = { id: string; profile_id: string; volume_id: string; body: string; written_on: string; created_at: string; updated_at: string };
+
+const toJournal = (r: JournalRow): JournalEntry => ({
+  id: r.id,
+  bookId: r.volume_id,
+  body: r.body,
+  writtenOn: r.written_on,
+  createdAt: Date.parse(r.created_at),
+  updatedAt: Date.parse(r.updated_at),
+});
+
+/** Every profile's journal entries, newest first. An extra: if they can't load, the account still opens. */
+async function loadJournal(): Promise<{ profileId: string; entry: JournalEntry }[]> {
+  const { data, error } = await client()
+    .from("journal_entries")
+    .select("id, profile_id, volume_id, body, written_on, created_at, updated_at")
+    .order("written_on", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("collections: couldn't load the reading journal:", error.message);
+    return [];
+  }
+  return (data as JournalRow[]).map((r) => ({ profileId: r.profile_id, entry: toJournal(r) }));
+}
+
+const journalProblem = (message: string, fallback: string) =>
+  new AccountError(message.includes("up to 1000") ? "The journal keeps up to 1,000 entries a profile. Delete some to write more." : fallback);
+
+export async function addJournalEntry(profileId: string, e: Pick<JournalEntry, "id" | "bookId" | "body" | "writtenOn">): Promise<JournalEntry> {
+  const { data, error } = await client()
+    .from("journal_entries")
+    .insert({ id: e.id, profile_id: profileId, user_id: await signedInUserId(), volume_id: e.bookId, body: e.body, written_on: e.writtenOn })
+    .select("id, profile_id, volume_id, body, written_on, created_at, updated_at")
+    .single();
+  if (error) throw journalProblem(error.message, "We couldn't save the entry. Try again.");
+  return toJournal(data as JournalRow);
+}
+
+export async function updateJournalEntry(id: string, change: Pick<JournalEntry, "body" | "writtenOn">): Promise<JournalEntry> {
+  const { data, error } = await client()
+    .from("journal_entries")
+    .update({ body: change.body, written_on: change.writtenOn })
+    .eq("id", id)
+    .select("id, profile_id, volume_id, body, written_on, created_at, updated_at")
+    .single();
+  if (error) throw new AccountError("We couldn't save the entry. Try again.");
+  return toJournal(data as JournalRow);
+}
+
+export async function deleteJournalEntry(id: string): Promise<void> {
+  const { error } = await client().from("journal_entries").delete().eq("id", id);
+  if (error) throw new AccountError("We couldn't delete the entry. Try again.");
 }
 
 // --- Reading pace (reader_profiles.reading_wpm) -------------------------------

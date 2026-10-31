@@ -810,3 +810,84 @@
   border-radius: var(--radius);
   background: var(--paper-light);
 }
+
+/* ---------- My journal (private, beside the reader logs' layout) ---------- */
+
+.journal-section {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 65px);
+  padding: 52px clamp(0px, 3vw, 55px) 0;
+}
+
+.journal-body {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.journal-form {
+  padding: 21px 23px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.journal-textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+}
+
+.journal-form-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 12px;
+}
+
+.journal-day {
+  margin: 0;
+}
+
+.journal-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.journal-list {
+  display: grid;
+  gap: 13px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journal-entry {
+  padding: 18px 23px;
+  border-left: 3px solid var(--rust-deep);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+.journal-entry h3 {
+  margin: 0 0 6px;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.journal-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 860px) {
+  .journal-section {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

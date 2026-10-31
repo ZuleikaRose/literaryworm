@@ -192,3 +192,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Book requests from Kids profiles: *Ask a grown-up*, the bell and Account → Family (`lib/bookRequests.ts`, `lib/useBookRequests.ts`, `AskGrownUp`, `book_requests`, `manage-profile` `answer_request`, migrations 6518–6519) |
 | — | Rest days: two a month keep a streak going (`streaks()` in `lib/goals.ts`, the streak card in Goals; What's new 6520) |
 | — | Word review: spaced repetition for My words, with *Review* and a Home link when words are due (`lib/words.ts`, `saved_words.review_due`, `review_step`; migrations 6521–6522) |
+| — | Reading journal: *My journal* on the book page, private and dated, exported with the notes (`lib/journal.ts`, `lib/useJournal.ts`, `JournalSection`, `journal_entries`; migrations 6523–6525); privacy pages (6526) |

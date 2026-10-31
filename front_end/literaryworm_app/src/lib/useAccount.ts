@@ -129,6 +129,7 @@ export function useAccount() {
           upNext: data?.upNext ?? [],
           quizResults: (data?.quizResults ?? []).map(({ takenAt, ...r }) => ({ ...r, takenAt: new Date(takenAt).toISOString() })),
           readersFollowed: (data?.readerFollows ?? []).map((f) => f.name),
+          journal: (data?.journal ?? []).map((e) => ({ bookId: e.bookId, day: e.writtenOn, text: e.body, written: new Date(e.createdAt).toISOString() })),
           bookRequests: (data?.bookRequests ?? []).map((r) => ({
             bookId: r.bookId,
             status: r.status,

@@ -435,5 +435,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Book requests: a Kids profile asks a grown-up for a book above its rating, and a grown-up says yes or no in Account → Family with the account password (migrations 6518–6519) | Done    |
 | —    | Rest days: two a month cover missed days so reading streaks keep going (migration 6520) | Done    |
 | —    | Word review: My words asks each word again after 1, 3, 7, 14, 30 and 60 days while it's known (migrations 6521–6522) | Done    |
+| —    | Reading journal: private, dated entries on each book's page, exported with notes and highlights (migrations 6523–6526) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
