@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
+    "kind": "feature",
+    "title": "Log in with a passkey",
+    "body": "Add a passkey in Account → Sign-in and log in with your face, fingerprint, screen lock or a security key instead of typing your password. Give each passkey a name you'll recognise, rename it or remove it there too. Your device keeps the passkey, and your face and fingerprint never leave it. If two-step sign-in is on, you'll still enter the code from your app.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
     "kind": "update",
     "title": "Sort My library",
     "body": "Sort My library by title (A–Z or Z–A), with titles that start with a number first, by author, by when you added a book or last changed it, or by when it was published. Uploads sort by the date you uploaded them. Your choice stays in the address with the Show filter.",

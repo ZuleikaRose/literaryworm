@@ -23,6 +23,7 @@ import type {
 } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { forgetDeviceId } from "./deviceId";
+import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey } from "./passkeys";
 import { defaultPlayerSettings } from "./reading";
 import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
@@ -294,6 +295,57 @@ export async function turnOffTwoStep(code: string): Promise<void> {
   for (const f of await verifiedFactors()) {
     const { error } = await client().auth.mfa.unenroll({ factorId: f.id });
     if (error) throw new AccountError("We couldn't turn off two-step sign-in. Try again.");
+  }
+}
+
+// --- Passkeys (Supabase Auth WebAuthn; rules and words in passkeys.ts) ---
+
+/** The account's passkeys, newest first. */
+export async function listPasskeys(): Promise<Passkey[]> {
+  const { data, error } = await client().auth.passkey.list();
+  if (error || !data) throw new AccountError("We couldn't load your passkeys. Refresh the page to try again.");
+  return sortPasskeys(data.map(toPasskey));
+}
+
+/**
+ * Adds a passkey on this device (the browser asks for Face ID, a fingerprint, the screen lock or a
+ * security key). The account password is checked first, so an unlocked, signed-in browser left
+ * alone can't quietly add a way in.
+ */
+export async function addPasskey(email: string, password: string): Promise<Passkey> {
+  if (!(await verifyPassword(email, password))) throw new AccountError("That password isn't right. Check it and try again.");
+  const { data, error } = await client().auth.registerPasskey();
+  if (error || !data) throw new AccountError(passkeyMessage(error ?? {}, "add"));
+  return toPasskey(data);
+}
+
+export async function renamePasskey(passkeyId: string, name: string): Promise<Passkey> {
+  const problem = passkeyNameError(name);
+  if (problem) throw new AccountError(problem);
+  const { data, error } = await client().auth.passkey.update({ passkeyId, friendlyName: name.trim() });
+  if (error || !data) throw new AccountError("We couldn't rename the passkey. Try again.");
+  return toPasskey(data);
+}
+
+/** Removes a passkey from the account. The device may still list it; it just won't log in any more. */
+export async function deletePasskey(passkeyId: string): Promise<void> {
+  const { error } = await client().auth.passkey.delete({ passkeyId });
+  if (error) throw new AccountError("We couldn't remove the passkey. Try again.");
+}
+
+/**
+ * Logs in with a passkey: the browser offers the passkeys it has for literaryworm.com and the person
+ * picks one, so no email is typed. useAuthSync takes it from there, including asking for the
+ * authenticator code when two-step sign-in is on (a passkey replaces the password, not the code).
+ */
+export async function signInWithPasskey(): Promise<void> {
+  // A sign-in made here, like signIn(): useAuthSync treats it as fresh, not a restored session.
+  signingInHere = true;
+  const { error } = await client().auth.signInWithPasskey();
+  if (error) {
+    signingInHere = false;
+    if (error.code === "email_not_confirmed") throw new UnconfirmedEmailError(passkeyMessage(error, "signin"));
+    throw new AccountError(passkeyMessage(error, "signin"));
   }
 }
 

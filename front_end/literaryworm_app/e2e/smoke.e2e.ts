@@ -15,6 +15,15 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("offers the demo but not passkeys on the log-in page when there's no backend", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/signin`);
+    await page.getByRole("button", { name: "Try the demo" }).waitFor();
+    // Passkeys need Supabase Auth; this copy of the app runs without it.
+    await expect(page.getByRole("button", { name: /Log in with a passkey/ }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/plans`);
@@ -528,6 +537,17 @@ describe("the demo household", () => {
     await usage.getByRole("heading", { name: "This month" }).waitFor();
     // The demo household is on Premium.
     await usage.getByText(/listened\. Unlimited on this plan\./).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("lists passkeys with two-step sign-in in Account, and says the demo can't add them", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#sign-in");
+    const passkeys = page.locator(".account-form", { has: page.getByRole("heading", { name: "Passkeys" }) });
+    await passkeys.getByText("The demo household can't add passkeys.").waitFor();
+    await expect(passkeys.getByRole("button", { name: /Add a passkey/ }).count()).resolves.toBe(0);
+    await page.getByRole("heading", { name: "Two-step sign-in" }).waitFor();
     expect(errors()).toEqual([]);
   });
 

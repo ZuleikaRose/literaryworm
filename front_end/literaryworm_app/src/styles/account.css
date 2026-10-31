@@ -413,6 +413,64 @@
   gap: 16px;
 }
 
+/* Passkeys: one row each, the name and dates beside a key icon, Rename and Remove at the end. */
+.passkey-list {
+  display: grid;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.passkey-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.passkey-item > .icon {
+  color: var(--rust-bright);
+}
+
+.passkey-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.passkey-text strong {
+  overflow-wrap: anywhere;
+}
+
+.passkey-text small {
+  color: var(--muted);
+}
+
+.passkey-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.passkey-actions .text-button {
+  min-height: 44px;
+  padding-inline: 10px;
+}
+
+@media (max-width: 480px) {
+  .passkey-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .passkey-actions {
+    grid-column: 2;
+    margin-left: -10px;
+  }
+}
+
 /* A light square in every theme, so authenticator apps can read the dark modules. */
 .two-step-qr {
   justify-self: center;

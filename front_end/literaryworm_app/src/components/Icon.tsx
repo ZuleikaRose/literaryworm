@@ -39,6 +39,12 @@ const paths = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  key: (
+    <>
+      <circle cx="7.5" cy="15.5" r="4.5" />
+      <path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2" />
+    </>
+  ),
   check: <path d="m5 12 5 5L20 7" />,
   play: <path d="M7 4v16l13-8Z" />,
   pause: <path d="M7 4h3v16H7zM14 4h3v16h-3z" />,

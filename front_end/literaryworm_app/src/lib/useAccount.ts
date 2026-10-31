@@ -144,6 +144,17 @@ export function useAccount() {
       highlights: reading.highlights,
       logs,
       householdChallenges: userId ? await listChallenges() : [],
+      // Each passkey's name and dates (the key itself stays on the device; Supabase keeps only the public half).
+      passkeys: userId
+        ? (await accountApi.listPasskeys().catch((err: Error) => {
+            console.error("download: couldn't list passkeys:", err.message);
+            return [];
+          })).map((p) => ({
+            name: p.name,
+            addedAt: new Date(p.createdAt).toISOString(),
+            lastUsedAt: p.lastUsedAt ? new Date(p.lastUsedAt).toISOString() : null,
+          }))
+        : [],
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);

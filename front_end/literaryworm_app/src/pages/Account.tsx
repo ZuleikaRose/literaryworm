@@ -17,12 +17,16 @@ import { getBook } from "../data/books";
 import { formatPrice, perPeriod, planById, priceFor } from "../data/plans";
 import {
   AccountError,
+  addPasskey,
   cancelTwoStep,
+  deletePasskey,
   changeBillingDay,
   choosePlan,
   finishTwoStep,
+  listPasskeys,
   type MembershipAction,
   paymentMethodUrl,
+  renamePasskey,
   startTwoStep,
   turnOffTwoStep,
   type TwoStepSetup,
@@ -30,6 +34,7 @@ import {
 } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { readingTime } from "../lib/goals";
+import { type Passkey, PASSKEY_NAME_MAX, passkeyNameError, passkeysSupported, sortPasskeys } from "../lib/passkeys";
 import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal, quizWeek } from "../lib/kidsReport";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
@@ -562,8 +567,248 @@ function SignInSection({ account }: { account: AccountDetails }) {
         <Feedback error={password.error} done={password.done} />
       </form>
 
+      <Passkeys account={account} />
+
       <TwoStepSignIn account={account} />
     </Section>
+  );
+}
+
+const passkeyDate = (ms: number) => new Date(ms).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+/**
+ * Passkeys: log in with the device itself (Face ID, Touch ID, Windows Hello, a phone's screen lock,
+ * a password manager or a security key) instead of the password. Members add, rename and remove them;
+ * adding one asks for the account password first.
+ */
+function Passkeys({ account }: { account: AccountDetails }) {
+  const { remote } = useAccount();
+  const [list, setList] = useState<Passkey[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [renaming, setRenaming] = useState<Passkey | null>(null);
+  const [newName, setNewName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<Passkey | null>(null);
+  const add = useAttempt();
+  const rename = useAttempt();
+  const remove = useAttempt();
+  const supported = passkeysSupported();
+
+  useEffect(() => {
+    if (!remote) return;
+    let live = true;
+    listPasskeys().then(
+      (value) => live && setList(value),
+      (err: Error) => live && setLoadError(err.message),
+    );
+    return () => {
+      live = false;
+    };
+  }, [remote]);
+
+  if (!remote) {
+    return (
+      <div className="account-form">
+        <h3>Passkeys</h3>
+        <p className="field-hint">{account.isDemo ? "The demo household can't add passkeys." : "Passkeys need a LiteraryWorm account."}</p>
+      </div>
+    );
+  }
+
+  const confirmAdd = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!password) {
+      add.setError("Enter your account password.");
+      return;
+    }
+    let added: Passkey | null = null;
+    const ok = await add.attempt(async () => {
+      added = await addPasskey(account.email, password);
+    });
+    if (ok && added) {
+      const made: Passkey = added;
+      setList((current) => sortPasskeys([made, ...(current ?? []).filter((p) => p.id !== made.id)]));
+      setAddOpen(false);
+      setPassword("");
+      setNotice(`Passkey added (${made.name}). Next time, choose Log in with a passkey.`);
+    }
+  };
+
+  const confirmRename = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!renaming) return;
+    const problem = passkeyNameError(newName);
+    setNameError(problem);
+    if (problem) return;
+    let saved: Passkey | null = null;
+    const ok = await rename.attempt(async () => {
+      saved = await renamePasskey(renaming.id, newName);
+    });
+    if (ok && saved) {
+      const updated: Passkey = saved;
+      setList((current) => (current ?? []).map((p) => (p.id === updated.id ? { ...p, name: updated.name } : p)));
+      setRenaming(null);
+      setNotice(`Renamed to ${updated.name}.`);
+    }
+  };
+
+  const confirmRemove = async () => {
+    if (!removing) return;
+    const gone = removing;
+    const ok = await remove.attempt(() => deletePasskey(gone.id));
+    if (ok) {
+      setList((current) => (current ?? []).filter((p) => p.id !== gone.id));
+      setRemoving(null);
+      setNotice(`${gone.name} removed. It can't log in to this account any more.`);
+    }
+  };
+
+  return (
+    <div className="account-form">
+      <h3>Passkeys</h3>
+      <p className="field-hint">
+        Log in with your face, fingerprint, screen lock or a security key instead of typing your password. Your device keeps
+        the passkey; your face and fingerprint never leave it. Your password still works.
+      </p>
+      {!supported && <p className="field-hint">This browser can't make passkeys. Try a recent Chrome, Safari, Edge or Firefox.</p>}
+      {list && list.length > 0 && (
+        <ul className="passkey-list" aria-label="Your passkeys">
+          {list.map((p) => (
+            <li key={p.id} className="passkey-item">
+              <Icon name="key" size={20} />
+              <div className="passkey-text">
+                <strong>{p.name}</strong>
+                <small>
+                  Added {passkeyDate(p.createdAt)}
+                  {p.lastUsedAt ? ` · last used ${passkeyDate(p.lastUsedAt)}` : " · not used yet"}
+                </small>
+              </div>
+              <div className="passkey-actions">
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => {
+                    setRenaming(p);
+                    setNewName(p.name);
+                    setNameError(null);
+                    rename.setError(null);
+                  }}
+                >
+                  Rename<span className="visually-hidden"> {p.name}</span>
+                </button>
+                <button
+                  type="button"
+                  className="text-button danger-text"
+                  onClick={() => {
+                    setRemoving(p);
+                    remove.setError(null);
+                  }}
+                >
+                  Remove<span className="visually-hidden"> {p.name}</span>
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {list && list.length === 0 && <p className="field-hint">No passkeys yet.</p>}
+      {supported && list && (
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            setNotice(null);
+            add.setError(null);
+            setAddOpen(true);
+          }}
+        >
+          <Icon name="plus" size={16} /> Add a passkey
+        </button>
+      )}
+      <Feedback error={loadError} done={notice} />
+
+      <Dialog
+        open={addOpen}
+        onClose={() => {
+          setAddOpen(false);
+          setPassword("");
+        }}
+        size="sm"
+        eyebrow="Passkeys"
+        title="Add a passkey"
+        description={<p>Enter your account password. Your browser then asks for your face, fingerprint, screen lock or security key.</p>}
+      >
+        <form noValidate onSubmit={confirmAdd} className="two-step-form">
+          <AccountPasswordField
+            value={password}
+            onChange={(v) => {
+              setPassword(v);
+              add.setError(null);
+            }}
+            error={add.error}
+          />
+          <div className="modal-actions">
+            <button type="submit" className="primary-button" disabled={add.busy}>
+              {add.busy ? "Waiting for your device…" : "Continue"}
+            </button>
+            <button type="button" className="secondary-button" onClick={() => setAddOpen(false)}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog open={renaming !== null} onClose={() => setRenaming(null)} size="sm" eyebrow="Passkeys" title="Rename passkey">
+        <form noValidate onSubmit={confirmRename} className="two-step-form">
+          <Field
+            label="Name"
+            hint="Something that tells you which device it's on, such as Work laptop."
+            maxLength={PASSKEY_NAME_MAX}
+            value={newName}
+            onChange={(e) => {
+              setNewName(e.target.value);
+              setNameError(null);
+            }}
+            error={nameError ?? rename.error}
+          />
+          <div className="modal-actions">
+            <button type="submit" className="primary-button" disabled={rename.busy}>
+              {rename.busy ? "Saving…" : "Save name"}
+            </button>
+            <button type="button" className="secondary-button" onClick={() => setRenaming(null)}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog
+        open={removing !== null}
+        onClose={() => setRemoving(null)}
+        size="sm"
+        eyebrow="Passkeys"
+        title={`Remove ${removing?.name ?? "passkey"}?`}
+        description={
+          <p>
+            It won't log in to this account any more. Your device may still list it; you can delete it there too.
+            {list && list.length === 1 ? " You'll log in with your password." : ""}
+          </p>
+        }
+      >
+        <Feedback error={remove.error} done={null} />
+        <div className="modal-actions">
+          <button type="button" className="danger-button" disabled={remove.busy} onClick={confirmRemove}>
+            {remove.busy ? "Removing…" : "Remove"}
+          </button>
+          <button type="button" className="secondary-button" onClick={() => setRemoving(null)}>
+            Keep it
+          </button>
+        </div>
+      </Dialog>
+    </div>
   );
 }
 

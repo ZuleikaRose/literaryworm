@@ -8,6 +8,7 @@ import { ResendConfirmation } from "../components/ResendConfirmation";
 import * as accountApi from "../lib/accountApi";
 import { AccountError, UnconfirmedEmailError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
+import { passkeysSupported } from "../lib/passkeys";
 import { useTitle } from "../lib/useTitle";
 import { credentialsMatch, validateEmail } from "../lib/validation";
 import { useStore } from "../store/context";
@@ -74,6 +75,20 @@ export default function SignIn() {
     }
     dispatch({ type: "signIn", email });
     afterSignIn();
+  };
+
+  // A passkey picks the account itself, so no email is typed. Members only (the demo has none).
+  const passkeyLogIn = async () => {
+    setBusy(true);
+    setFormError(null);
+    setUnconfirmed(null);
+    try {
+      await accountApi.signInWithPasskey();
+      // useAuthSync loads the account (or asks for the two-step code); the redirect above then takes over.
+    } catch (err) {
+      setFormError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setBusy(false);
+    }
   };
 
   const tryDemo = async () => {
@@ -219,6 +234,11 @@ export default function SignIn() {
       <div className="auth-divider">
         <span>or</span>
       </div>
+      {usesBackend && passkeysSupported() && (
+        <button type="button" className="secondary-button auth-submit" onClick={passkeyLogIn} disabled={busy}>
+          <Icon name="key" size={16} /> Log in with a passkey
+        </button>
+      )}
       <button type="button" className="secondary-button auth-submit" onClick={tryDemo}>
         Try the demo
       </button>
