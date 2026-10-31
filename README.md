@@ -427,5 +427,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | 300 more public-domain titles, 871 in all, each with its full text and LibriVox recording (What's new, migration 6404) | Done    |
 | —    | Plans and prices in search results: description, structured data and a sitemap, from `lib/seo.ts` | Done    |
 | —    | Search by ISBN as well as title and author (`by=isbn`), through the `books` function's new `isbn` mode; Google Books only, check digit checked first (migrations 6405 What's new, 6406 Privacy Policy) | Done    |
+| —    | Ten reading tools: My words (saved from the dictionary, with flashcards), export of notes and highlights, series pages, time left at your own pace, an Up next queue, badges, reader keyboard shortcuts, chapter quizzes written by Claude (the `quiz` function), following other readers through an opt-in reader page, and Car mode with Cast; eight highlight colours (migrations 6500–6506) | Done    |
+| —    | Sort My library (title A–Z and Z–A, numbers first, author, added, changed, published) and uploads (date uploaded, title); *Search by* title, author or ISBN in the header's search box; What's new (6507) and the policies (6508) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
