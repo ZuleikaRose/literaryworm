@@ -300,7 +300,7 @@
       {
         "heading": "18. What we collect",
         "paragraphs": [
-          "Your account: your email address, display name, password, date of birth (to confirm you're 18 or over), whether you'd like marketing emails, emails when a reminded book is out, weekly emails about new books from authors you follow, the monthly What's new email and the weekly Kids reading report (both off until you turn them on), book club meeting emails (reminders, and when a meeting moves or is cancelled; on until you turn them off), when you accepted the Terms, and your plan. Your password is handled by our sign-in provider and kept only as a one-way hash; we never see it.",
+          "Your account: your email address, display name, password, date of birth (to confirm you're 18 or over), whether you'd like marketing emails, emails when a reminded book is out, weekly emails about new books from authors you follow, the monthly What's new email and the weekly Kids reading report (both off until you turn them on), book club meeting emails (reminders, and when a meeting moves or is cancelled; on until you turn them off), when you accepted the Terms, and your plan. Your password is handled by our sign-in provider and kept only as a one-way hash; we never see it. If you add passkeys, our sign-in provider keeps each one's public key, its name and when it was added and last used; the private key stays on your device, browser or password manager, and your face or fingerprint never leaves your device. You can rename or remove passkeys in Account → Sign-in, and Download my data lists them.",
           "Your household: each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal and player settings, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent.",
           "Your reading: your library, reading progress, bookmarks, highlights and notes, the words you save from the dictionary (with the sentence you met them in), ratings, favourites and lists, your Up next queue, the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days, the new books we find by the authors you follow), release reminders, recent searches, reading goals, the household challenges your profiles start or join, time read and listened each day, your reading pace (words a minute, used to show the time left in a chapter), chapter quiz scores, and the books you finish. If you turn on your reader page (it's off until you do), the reading logs you've already made public are listed together on one public page under your display name, and other members can follow it; who follows whom is never shown, and turning the page off removes its followers. Exports of your highlights and notes are made in your browser and downloaded to your device; they're never uploaded.",
           "Things you share or add: reading logs (public, with your display name), book club posts and whether you're coming to a club's meetings (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text only).",
@@ -374,7 +374,7 @@
       {
         "heading": "Similar technologies: what we keep in your browser",
         "paragraphs": [
-          "Signed in: when you log in, your browser keeps your sign-in session (in local storage, under literaryworm-session) so you stay signed in after a refresh. It's strictly necessary for your account to work, and it's removed when you log out. Next to it the app keeps which of your devices this browser is (under literaryworm-device: a random id and your account's id, nothing else), so a refresh or a second tab isn't listed as a new device in Listen on another device; it's removed when you log out too.",
+          "Signed in: when you log in, your browser keeps your sign-in session (in local storage, under literaryworm-session) so you stay signed in after a refresh. It's strictly necessary for your account to work, and it's removed when you log out. Next to it the app keeps which of your devices this browser is (under literaryworm-device: a random id and your account's id, nothing else), so a refresh or a second tab isn't listed as a new device in Listen on another device; it's removed when you log out too. Passkeys you add are kept by your device, browser or password manager, not by LiteraryWorm in your browser's storage, and logging out doesn't remove them.",
           "Your cookie choice: Termly keeps the choice you make in the banner, a random identifier for this browser and a count of visits in local storage (under TERMLY_API_CACHE), for up to 12 months, so the banner doesn't ask again on every visit. It sets no cookies. Your browser loads the banner from Termly (app.termly.io) on each visit, so Termly receives those requests, including your IP address, under its own privacy policy.",
           "The app itself: so LiteraryWorm opens quickly and without a connection, your browser keeps a copy of the app's own files (its pages, code, icons and app manifest). This holds nothing about you.",
           "Books you save for offline: when you choose Read offline, the book's text, and its audio if you ask, are kept on your device until you remove them from the book's page. Next to them the app keeps a small note of which account's offline place this device holds (a random id, not your name or email), so the place can be freed from another device; it goes when the books do.",
@@ -1268,7 +1268,7 @@
       {
         "heading": "Your account and household",
         "paragraphs": [
-          "Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time.",
+          "Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use. You can cancel or pause online at any time.",
           "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one."
         ]
       },
@@ -1279,7 +1279,7 @@
         ]
       }
     ],
-    "updated": "2026-10-29"
+    "updated": "2026-10-31"
   },
   {
     "slug": "status",

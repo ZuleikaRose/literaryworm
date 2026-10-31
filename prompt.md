@@ -98,6 +98,8 @@ Then came ten reading tools, built in phases: My words (saving words from the di
 
 My library then gained *Sort by* (title, numbers first, author, when added or changed, published date; uploads by date uploaded or title), and the header's search box a *Search by* choice of title, author or ISBN.
 
+Then members could add passkeys in Account → Sign-in (Face ID, Touch ID, Windows Hello, a phone's screen lock, a password manager or a security key), rename and remove them, and log in with one instead of the password, through Supabase Auth's passkey API.
+
 The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 
 ## Code

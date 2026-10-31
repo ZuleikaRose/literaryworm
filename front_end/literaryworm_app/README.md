@@ -185,3 +185,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Badges (`lib/achievements.ts`, `BadgesView`), reader shortcuts (`lib/shortcuts.ts`, `ShortcutsDialog`) |
 | — | Chapter quizzes (`quiz` function, `chapter_quizzes`, `quiz_results`, `QuizDialog`, migration 6504), following readers (`reader_follows`, `profiles.public_reader`, `pages/ReaderProfile.tsx`, migrations 6505 and 6506), Car mode and Cast (`CarMode`, `lib/cast.ts`) |
 | — | My library *Sort by* (`lib/librarySort.ts`, `?sort=`), uploads sorted by date or title, and *Search by* in the header's search box; What's new (migration 6507), the policies (6508) |
+| — | Passkeys: Account → Sign-in adds (password first), lists, renames and removes them, and the log-in page has *Log in with a passkey* (`lib/passkeys.ts`, the passkey calls in `lib/accountApi.ts`, Supabase Auth WebAuthn, supabase-js 2.117.3); What's new (migration 6509) and the Privacy, Cookie and Help pages (6510) |
