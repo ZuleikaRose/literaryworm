@@ -1046,3 +1046,117 @@
   min-height: 88px;
   resize: vertical;
 }
+
+/* ---------- Maintenance notices (/maintenance, developers and admins) ---------- */
+
+.maintenance-page .maintenance-form {
+  display: grid;
+  align-items: stretch;
+  max-width: 760px;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+
+.maintenance-form h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.maintenance-form .field {
+  margin: 0;
+}
+
+.maintenance-times {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 16px;
+}
+
+.maintenance-preview {
+  display: grid;
+  gap: 6px;
+}
+
+.maintenance-preview .maintenance-notice {
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+}
+
+.maintenance-list {
+  max-width: 760px;
+  margin-top: 32px;
+}
+
+.maintenance-list ul {
+  display: grid;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.maintenance-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.maintenance-item p {
+  margin: 2px 0;
+}
+
+.maintenance-item.is-over {
+  opacity: 0.75;
+}
+
+.maintenance-item-head strong {
+  overflow-wrap: anywhere;
+}
+
+.maintenance-pill {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-high);
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.maintenance-item.is-announced .maintenance-pill {
+  background: var(--rust-wash);
+  color: var(--rust-bright);
+}
+
+.maintenance-item.is-under-way .maintenance-pill {
+  background: var(--danger-wash);
+  color: var(--danger);
+}
+
+.maintenance-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.maintenance-actions .text-button {
+  min-height: 44px;
+  padding-inline: 10px;
+}
+
+@media (max-width: 560px) {
+  .maintenance-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .maintenance-actions {
+    margin-left: -10px;
+  }
+}

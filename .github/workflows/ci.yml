@@ -1,4 +1,4 @@
-# Checks every push and pull request to main: the app builds, lints and passes its unit tests
+# Checks every push to dev and main, and every pull request to them: the app builds, lints and passes its unit tests
 # (Jest), then its end-to-end smoke tests (Jest driving Chromium through the Playwright library).
 # Separately, the Supabase Edge Functions type-check and pass their Deno tests (auth, the
 # database and Stripe are stubbed, so that job needs no settings either).
@@ -6,11 +6,13 @@
 # secrets: it uses the demo household and the sample catalog.
 name: CI
 
+# dev is where changes land first; scripts/promote.sh moves dev to main only when this run is green
+# for dev's latest commit (see docs/releasing.md).
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
   pull_request:
-    branches: [main]
+    branches: [dev, main]
 
 permissions:
   contents: read

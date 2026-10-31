@@ -27,7 +27,7 @@ export function TeamAccess({ roles }: { roles: StaffRole[] }) {
         Every role comes with a complimentary Premium membership, never charged, for as long as it's held. When someone's last
         role is removed, it ends and they can choose a plan.
       </p>
-      {(hasRole(roles, "billing") || hasRole(roles, "customer_service")) && (
+      {(hasRole(roles, "billing") || hasRole(roles, "customer_service") || hasRole(roles, "developer")) && (
         <p className="team-tools">
           {hasRole(roles, "billing") && (
             <Link className="secondary-button" to="/dashboard">
@@ -37,6 +37,11 @@ export function TeamAccess({ roles }: { roles: StaffRole[] }) {
           {hasRole(roles, "customer_service") && (
             <Link className="secondary-button" to="/support">
               Look up a member
+            </Link>
+          )}
+          {hasRole(roles, "developer") && (
+            <Link className="secondary-button" to="/maintenance">
+              Maintenance notices
             </Link>
           )}
         </p>

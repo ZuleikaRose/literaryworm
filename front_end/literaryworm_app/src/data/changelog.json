@@ -3,6 +3,22 @@
     "releasedOn": "2026-10-31",
     "version": "2026.10",
     "kind": "feature",
+    "title": "Notices before planned updates",
+    "body": "When we plan an update that might log you out or slow things down for a moment, a notice across the top of every page says when, in your own time zone. Hide it with the cross; it goes by itself when the work is done.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
+    "kind": "update",
+    "title": "Sort My library by author Z–A",
+    "body": "My library's Sort by now has Author Z–A as well as A–Z, by the author's surname.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
+    "kind": "feature",
     "title": "Log in with a passkey",
     "body": "Add a passkey in Account → Sign-in and log in with your face, fingerprint, screen lock or a security key instead of typing your password. Give each passkey a name you'll recognise, rename it or remove it there too. Your device keeps the passkey, and your face and fingerprint never leave it. If two-step sign-in is on, you'll still enter the code from your app.",
     "major": true

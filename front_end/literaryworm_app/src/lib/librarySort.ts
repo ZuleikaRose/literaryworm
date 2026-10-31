@@ -1,7 +1,7 @@
 import type { LibraryEntry } from "../types";
 
 /** How My Library can be ordered (`?sort=` in the address; "added" when it's missing). */
-export type LibrarySort = "added" | "added-oldest" | "updated" | "title" | "title-desc" | "numbers" | "author" | "published" | "published-oldest";
+export type LibrarySort = "added" | "added-oldest" | "updated" | "title" | "title-desc" | "numbers" | "author" | "author-desc" | "published" | "published-oldest";
 
 export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
   { value: "added", label: "Recently added" },
@@ -11,6 +11,7 @@ export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
   { value: "title-desc", label: "Title Z–A" },
   { value: "numbers", label: "Numbers first (0–9)" },
   { value: "author", label: "Author A–Z" },
+  { value: "author-desc", label: "Author Z–A" },
   { value: "published", label: "Published, newest" },
   { value: "published-oldest", label: "Published, oldest" },
 ];
@@ -98,6 +99,9 @@ export function sortLibrary(entries: LibraryEntry[], sort: LibrarySort, details:
         break;
       case "author":
         order = collator.compare(authorKey(x.d.author), authorKey(y.d.author));
+        break;
+      case "author-desc":
+        order = collator.compare(authorKey(y.d.author), authorKey(x.d.author));
         break;
       case "published":
       case "published-oldest": {

@@ -432,7 +432,7 @@ describe("the demo household", () => {
     await page.locator(".library-row-title").first().waitFor();
     const sortBy = page.getByLabel("Sort by");
     const options = await sortBy.locator("option").allInnerTexts();
-    expect(options).toEqual(expect.arrayContaining(["Recently added", "Title A–Z", "Title Z–A", "Numbers first (0–9)", "Recently changed", "Published, newest", "Author A–Z"]));
+    expect(options).toEqual(expect.arrayContaining(["Recently added", "Title A–Z", "Title Z–A", "Numbers first (0–9)", "Recently changed", "Published, newest", "Author A–Z", "Author Z–A"]));
 
     const fold = (t: string) => t.replace(/^(the|an?)\s+/i, "").toLowerCase();
     const sorted = (list: string[]) => [...list].sort((a, b) => fold(a).localeCompare(fold(b), "en", { numeric: true }));
@@ -537,6 +537,17 @@ describe("the demo household", () => {
     await usage.getByRole("heading", { name: "This month" }).waitFor();
     // The demo household is on Premium.
     await usage.getByText(/listened\. Unlimited on this plan\./).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("keeps maintenance notices to developers and admins, and shows no banner without the backend", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/maintenance");
+    await page.getByRole("heading", { level: 1, name: "Maintenance notices" }).waitFor();
+    await page.getByText("The demo household has no staff access.").waitFor();
+    await expect(page.locator(".maintenance-form").count()).resolves.toBe(0);
+    await expect(page.getByRole("region", { name: "Planned updates" }).count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
 

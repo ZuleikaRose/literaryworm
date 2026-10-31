@@ -40,6 +40,14 @@ describe("sortLibrary", () => {
     expect(ids("author")).toEqual(["2s", "dune", "1984", "apple", "hobbit", "20k"]);
   });
 
+  it("sorts authors by surname Z–A, with ties still by title A–Z", () => {
+    expect(ids("author-desc")).toEqual(["20k", "hobbit", "apple", "1984", "dune", "2s"]);
+    const sameAuthor = [entry("hobbit", 1), entry("dune", 2)];
+    const one = (): { title: string; author: string; year: null } => ({ title: "", author: "Same Writer", year: null });
+    const titled = (e: { bookId: string }) => ({ ...one(), title: e.bookId === "hobbit" ? "The Hobbit" : "Dune" });
+    expect(sortLibrary(sameAuthor, "author-desc", titled).map((e) => e.bookId)).toEqual(["dune", "hobbit"]);
+  });
+
   it("sorts by published year with unknown years last both ways", () => {
     expect(ids("published")).toEqual(["apple", "dune", "1984", "hobbit", "20k", "2s"]);
     expect(ids("published-oldest")).toEqual(["20k", "hobbit", "1984", "dune", "apple", "2s"]);
@@ -81,6 +89,7 @@ describe("helpers", () => {
     expect(readLibrarySort(null)).toBe("added");
     expect(readLibrarySort("nonsense")).toBe("added");
     expect(readLibrarySort("author")).toBe("author");
+    expect(readLibrarySort("author-desc")).toBe("author-desc");
     expect(readUploadSort(null)).toBe("uploaded");
     expect(readUploadSort("title-desc")).toBe("title-desc");
   });

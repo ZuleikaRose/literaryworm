@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
+import { MaintenanceBanner } from "../components/MaintenanceBanner";
 import { MiniPlayer } from "../components/MiniPlayer";
 import { HandoffPrompt } from "../components/PlayerControls";
 import { TabBar } from "../components/TabBar";
@@ -52,6 +53,7 @@ export function SiteLayout() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
+      <MaintenanceBanner />
       <Header />
       <main id="main" tabIndex={-1}>
         <Outlet />
