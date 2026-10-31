@@ -431,5 +431,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Sort My library (title A–Z and Z–A, numbers first, author, added, changed, published) and uploads (date uploaded, title); *Search by* title, author or ISBN in the header's search box; What's new (6507) and the policies (6508) | Done    |
 | —    | Passkeys: add (password first), rename and remove them in Account → Sign-in, and log in with Face ID, Touch ID, Windows Hello, a phone's screen lock, a password manager or a security key (Supabase Auth WebAuthn; What's new 6509, policies 6510) | Done    |
 | —    | Maintenance notices: developers and admins schedule a banner before planned work at `/maintenance`; releases go to the `dev` branch and the Supabase dev branch first and reach the live site through `scripts/promote.sh` once every test passes (`docs/releasing.md`); My library sorts by author Z–A (migrations 6511–6515) | Done    |
+| —    | Twelve highlight colours: lime, indigo, brown and grey join the eight (migrations 6516–6517) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

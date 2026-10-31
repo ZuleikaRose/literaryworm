@@ -85,6 +85,10 @@
   --paper-light-mark-orange: #fbd3ad;
   --paper-light-mark-purple: #ddd2f3;
   --paper-light-mark-teal: #bfe6e2;
+  --paper-light-mark-lime: #e2efb6;
+  --paper-light-mark-indigo: #d4d9f6;
+  --paper-light-mark-brown: #ead8c6;
+  --paper-light-mark-gray: #e0e2e4;
   --paper-light-mark-red: #f5c2bd;
   --paper-sepia-mark-yellow: #f0d47a;
   --paper-sepia-mark-green: #c6dba6;
@@ -93,6 +97,10 @@
   --paper-sepia-mark-orange: #edbf8c;
   --paper-sepia-mark-purple: #d3c3df;
   --paper-sepia-mark-teal: #b4d6cc;
+  --paper-sepia-mark-lime: #d4e09d;
+  --paper-sepia-mark-indigo: #c7cae4;
+  --paper-sepia-mark-brown: #dcc4a8;
+  --paper-sepia-mark-gray: #d4d0c7;
   --paper-sepia-mark-red: #e6aea3;
   --paper-dark-mark-yellow: #5a4814;
   --paper-dark-mark-green: #2c4a2b;
@@ -101,10 +109,14 @@
   --paper-dark-mark-orange: #5e3a16;
   --paper-dark-mark-purple: #3f2d5e;
   --paper-dark-mark-teal: #164a47;
+  --paper-dark-mark-lime: #3c4913;
+  --paper-dark-mark-indigo: #272e60;
+  --paper-dark-mark-brown: #4b3423;
+  --paper-dark-mark-gray: #3a3e42;
   --paper-dark-mark-red: #622420;
 }
 
-/* The same eight colours at full strength: swatches, and the colour bar beside a quote. */
+/* The same twelve colours at full strength: swatches, and the colour bar beside a quote. */
 :root {
   --mark-yellow: #e2b53a;
   --mark-green: #5aa863;
@@ -114,6 +126,10 @@
   --mark-purple: #9a7ad6;
   --mark-teal: #3aa9a0;
   --mark-red: #d4554a;
+  --mark-lime: #93b93a;
+  --mark-indigo: #5f6fd8;
+  --mark-brown: #a57a52;
+  --mark-gray: #8e9599;
 }
 
 :root[data-theme="light"] {

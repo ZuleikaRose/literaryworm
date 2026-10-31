@@ -31,7 +31,7 @@ function useAttempt() {
 const TOOLBAR_GAP = 10;
 
 /**
- * The bar that floats over selected words: eight highlight colours, Add note and, for one word,
+ * The bar that floats over selected words: twelve highlight colours, Add note and, for one word,
  * Define. It sits above the selection, or below it when there's no room, and stays on screen.
  */
 export function SelectionToolbar({

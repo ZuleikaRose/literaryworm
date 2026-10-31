@@ -181,6 +181,7 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Search results: `index.html`'s description, Open Graph tags and JSON-LD (each plan's monthly and yearly Offer) from `lib/seo.ts` (`seo.test.ts` keeps them in step with `data/plans.ts`); `useTitle(title, description)`; `public/sitemap.xml` |
 | — | Search by ISBN: `by=isbn`, `cleanIsbn()` and `queryError()` in `lib/search.ts`, the `isbn` feed in `lib/booksApi.ts`, the `books` function's `isbn` mode (`parseIsbn()` in `_shared/validate.ts`); no filters, not for Kids profiles; migrations 6405 (What's new) and 6406 (Privacy Policy) |
 | — | Eight highlight colours (`--mark-*`, migration 6501) |
+| — | Twelve highlight colours: lime, indigo, brown and grey (`--mark-*`, migration 6516; What's new 6517) |
 | — | My words (`lib/words.ts`, `useWords`, `WordsView`, `saved_words`, migration 6500) and exporting notes and highlights (`lib/exportNotes.ts`, `NotesView`) |
 | — | Series (`data/series.ts`, `lib/series.ts`, `pages/Series.tsx`), time left (`lib/pace.ts`, `useReadingPace`, `reading_wpm`, migration 6502), Up next (`lib/upNext.ts`, `useUpNext`, `up_next`, migration 6503) |
 | — | Badges (`lib/achievements.ts`, `BadgesView`), reader shortcuts (`lib/shortcuts.ts`, `ShortcutsDialog`) |

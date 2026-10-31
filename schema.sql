@@ -7231,3 +7231,24 @@ create index concurrently if not exists maintenance_notices_updated_by_idx on pu
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$feature$lw$, $lw$Notices before planned updates$lw$, $lw$When we plan an update that might log you out or slow things down for a moment, a notice across the top of every page says when, in your own time zone. Hide it with the cross; it goes by itself when the work is done.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Notices before planned updates$lw$ and c.version = $lw$2026.10$lw$);
+
+-- =============================================================================
+-- 20261031006516_twelve_highlight_colours.sql
+-- =============================================================================
+-- Twelve highlight colours instead of eight: lime, indigo, brown and grey join yellow, green, blue,
+-- pink, orange, purple, teal and red. Existing highlights keep their colour.
+
+alter type public.highlight_color add value if not exists 'lime';
+alter type public.highlight_color add value if not exists 'indigo';
+alter type public.highlight_color add value if not exists 'brown';
+alter type public.highlight_color add value if not exists 'gray';
+
+-- =============================================================================
+-- 20261031006517_whats_new_twelve_colours.sql
+-- =============================================================================
+-- What's new: twelve highlight colours (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-10-31$lw$::date, $lw$2026.10$lw$, $lw$update$lw$, $lw$Twelve highlight colours$lw$, $lw$Highlights now come in twelve colours: lime, indigo, brown and grey join yellow, green, blue, pink, orange, purple, teal and red. Pick one when you highlight, or change a highlight's colour in Notes and highlights.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Twelve highlight colours$lw$ and c.version = $lw$2026.10$lw$);

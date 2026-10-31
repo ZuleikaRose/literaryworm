@@ -41,6 +41,22 @@
   background: var(--paper-mark-red);
 }
 
+.reader-text .hl-lime {
+  background: var(--paper-mark-lime);
+}
+
+.reader-text .hl-indigo {
+  background: var(--paper-mark-indigo);
+}
+
+.reader-text .hl-brown {
+  background: var(--paper-mark-brown);
+}
+
+.reader-text .hl-gray {
+  background: var(--paper-mark-gray);
+}
+
 /* A note shows without relying on colour: a dotted underline and a small mark after the passage. */
 .reader-text .hl-has-note {
   text-decoration: underline dotted color-mix(in srgb, var(--paper-ink) 55%, transparent);
@@ -99,17 +115,11 @@
   gap: 2px;
 }
 
-/* Eight colours: their own row above the actions, four a line on the narrowest phones. */
+/* Twelve colours: two rows of six above the actions (276px wide, so it fits the narrowest phones too). */
 .selection-swatches {
   display: grid;
-  grid-template-columns: repeat(8, 44px);
+  grid-template-columns: repeat(6, 44px);
   gap: 2px;
-}
-
-@media (max-width: 380px) {
-  .selection-swatches {
-    grid-template-columns: repeat(4, 44px);
-  }
 }
 
 .selection-actions {
@@ -169,6 +179,22 @@
 
 .swatch-red {
   --swatch: var(--mark-red);
+}
+
+.swatch-lime {
+  --swatch: var(--mark-lime);
+}
+
+.swatch-indigo {
+  --swatch: var(--mark-indigo);
+}
+
+.swatch-brown {
+  --swatch: var(--mark-brown);
+}
+
+.swatch-gray {
+  --swatch: var(--mark-gray);
 }
 
 .selection-divider {
@@ -264,6 +290,22 @@
 
 .quote-red {
   --quote: var(--mark-red);
+}
+
+.quote-lime {
+  --quote: var(--mark-lime);
+}
+
+.quote-indigo {
+  --quote: var(--mark-indigo);
+}
+
+.quote-brown {
+  --quote: var(--mark-brown);
+}
+
+.quote-gray {
+  --quote: var(--mark-gray);
 }
 
 .swatch-row {

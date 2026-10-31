@@ -210,7 +210,7 @@ export interface Bookmark {
   createdAt: number;
 }
 
-export type HighlightColor = "yellow" | "green" | "blue" | "pink" | "orange" | "purple" | "teal" | "red";
+export type HighlightColor = "yellow" | "green" | "blue" | "pink" | "orange" | "purple" | "teal" | "red" | "lime" | "indigo" | "brown" | "gray";
 
 /**
  * A passage marked on one reader page, with an optional note. The page is found by chapter

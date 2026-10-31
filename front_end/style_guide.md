@@ -156,7 +156,9 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Player.** Cover beside the controls on desktop, stacked on phones. A 76px rust play button between 56px outlined ±15 buttons, with previous and next chapter beside them; Speed and Sleep timer are labelled native selects. The sleep timer's state reads as one line of rust text under them.
 
-**Highlights.** Eight colours, as `--mark-yellow`, `--mark-green`, `--mark-blue`, `--mark-pink`, `--mark-orange`, `--mark-purple`, `--mark-teal` and `--mark-red` tokens (each swatch named for screen readers) set per paper theme so the text keeps its contrast on light, sepia and dark pages. A highlight is a soft background under the words, never a colour change of the text; one with a note also gets a dotted underline and a small note icon after it, so the difference doesn't rely on colour.
+**Highlights.** Twelve colours, as `--mark-yellow`, `--mark-green`, `--mark-blue`, `--mark-pink`, `--mark-orange`, `--mark-purple`, `--mark-teal`, `--mark-red`, `--mark-lime`, `--mark-indigo`, `--mark-brown` and `--mark-gray` tokens (each swatch named for screen readers) set per paper theme so the text keeps its contrast on light, sepia and dark pages. A highlight is a soft background under the words, never a colour change of the text; one with a note also gets a dotted underline and a small note icon after it, so the difference doesn't rely on colour.
+
+The selection toolbar lays the twelve swatches out as two rows of six (44px each, 276px wide), so the bar is the same on phones and computers.
 
 **Selection toolbar.** A dark floating bar above the selection (below it when there's no room): four 44px colour swatches with names for screen readers, then *Add note* and *Define*. It appears with a 140ms fade and scale from 0.96 and closes when the selection goes or on Escape.
 

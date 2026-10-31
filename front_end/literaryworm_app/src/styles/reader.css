@@ -14,6 +14,10 @@
   --paper-mark-purple: var(--paper-sepia-mark-purple);
   --paper-mark-teal: var(--paper-sepia-mark-teal);
   --paper-mark-red: var(--paper-sepia-mark-red);
+  --paper-mark-lime: var(--paper-sepia-mark-lime);
+  --paper-mark-indigo: var(--paper-sepia-mark-indigo);
+  --paper-mark-brown: var(--paper-sepia-mark-brown);
+  --paper-mark-gray: var(--paper-sepia-mark-gray);
   --reader-font: var(--font-reading);
 
   position: relative;
@@ -43,6 +47,10 @@
   --paper-mark-purple: var(--paper-light-mark-purple);
   --paper-mark-teal: var(--paper-light-mark-teal);
   --paper-mark-red: var(--paper-light-mark-red);
+  --paper-mark-lime: var(--paper-light-mark-lime);
+  --paper-mark-indigo: var(--paper-light-mark-indigo);
+  --paper-mark-brown: var(--paper-light-mark-brown);
+  --paper-mark-gray: var(--paper-light-mark-gray);
 }
 
 .reader-theme-dark {
@@ -59,6 +67,10 @@
   --paper-mark-purple: var(--paper-dark-mark-purple);
   --paper-mark-teal: var(--paper-dark-mark-teal);
   --paper-mark-red: var(--paper-dark-mark-red);
+  --paper-mark-lime: var(--paper-dark-mark-lime);
+  --paper-mark-indigo: var(--paper-dark-mark-indigo);
+  --paper-mark-brown: var(--paper-dark-mark-brown);
+  --paper-mark-gray: var(--paper-dark-mark-gray);
   color-scheme: dark;
 }
 
