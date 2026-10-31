@@ -193,3 +193,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Rest days: two a month keep a streak going (`streaks()` in `lib/goals.ts`, the streak card in Goals; What's new 6520) |
 | — | Word review: spaced repetition for My words, with *Review* and a Home link when words are due (`lib/words.ts`, `saved_words.review_due`, `review_step`; migrations 6521–6522) |
 | — | Reading journal: *My journal* on the book page, private and dated, exported with the notes (`lib/journal.ts`, `lib/useJournal.ts`, `JournalSection`, `journal_entries`; migrations 6523–6525); privacy pages (6526) |
+| — | Plans cards, the Kids FAQ (`data/plans.ts`) and Help (migration 6527) describe the journal, word review, rest days and book requests |

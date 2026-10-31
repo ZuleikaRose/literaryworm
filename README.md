@@ -255,6 +255,7 @@ Your project will be assessed across these areas:
 | `user_stories.md`                       | User stories with a build-status table.                                                                                                                                       |
 | `CLAUDE.md`                             | Conventions and rules for Claude Code.                                                                                                                                        |
 | `prompt.md`                             | The build brief and phase plan.                                                                                                                                               |
+| `docs/releasing.md`                     | How a change reaches the live site: the `dev` branch and Supabase dev branch first, then `main` through `scripts/promote.sh`.                                               |
 
 ### How the brief's hard parts are handled
 
@@ -436,5 +437,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Rest days: two a month cover missed days so reading streaks keep going (migration 6520) | Done    |
 | —    | Word review: My words asks each word again after 1, 3, 7, 14, 30 and 60 days while it's known (migrations 6521–6522) | Done    |
 | —    | Reading journal: private, dated entries on each book's page, exported with notes and highlights (migrations 6523–6526) | Done    |
+| —    | Plans, the Kids FAQ and Help describe the journal, word review, rest days and book requests; live on www.literaryworm.com, with migrations 6518–6527 on production (main = dev) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
