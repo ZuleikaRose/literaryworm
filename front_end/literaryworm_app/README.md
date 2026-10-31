@@ -194,3 +194,5 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Word review: spaced repetition for My words, with *Review* and a Home link when words are due (`lib/words.ts`, `saved_words.review_due`, `review_step`; migrations 6521–6522) |
 | — | Reading journal: *My journal* on the book page, private and dated, exported with the notes (`lib/journal.ts`, `lib/useJournal.ts`, `JournalSection`, `journal_entries`; migrations 6523–6525); privacy pages (6526) |
 | — | Plans cards, the Kids FAQ (`data/plans.ts`) and Help (migration 6527) describe the journal, word review, rest days and book requests |
+| — | Home page tour: *More than a reader* cards (`data/landingFeatures.ts`); What's new newest first (`sortEntries()` in `lib/changelog.ts`; migration 6528) |
+| — | Book rows keep loading: the `books`, `summaries` and `author-news` functions fall back through six Google Books keys (`_shared/googleBooks.ts`; What's new 6529) |

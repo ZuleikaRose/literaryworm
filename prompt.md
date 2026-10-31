@@ -105,6 +105,8 @@ Then releases became dev first: a `dev` branch tested by CI against the Supabase
 Highlights then went from eight colours to twelve: lime, indigo, brown and grey, shown as two rows of six in the reader's toolbar.
 Each book's page then got a private reading journal: dated entries only the profile sees, exported with the notes and highlights.
 The Plans cards, the Kids FAQ and Help were then brought up to date with the four.
+The public home page then got a tour of the tools (*More than a reader*), and What's new put the most recent change first.
+The Google Books calls then got five fallback keys, tried in turn when one is rate-limited or failing, so the book rows keep loading.
 My words then gained review: spaced repetition that asks each word again just before it would be forgotten, with Home saying when words are due.
 Streaks then got rest days: two a month, used automatically, so one missed day doesn't undo weeks of reading.
 Kids profiles can then ask a grown-up for a book that isn't on their shelf; the grown-up answers in Account → Family with the account password, and a yes opens that one book.

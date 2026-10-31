@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
+    "kind": "fix",
+    "title": "Book rows keep loading",
+    "body": "When Google Books turns our requests away for a while, LiteraryWorm now asks again another way, so the rows on Home, Search, the genre pages and author pages keep filling instead of saying they couldn't load.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-10-31",
+    "version": "2026.10",
     "kind": "update",
     "title": "A tour of LiteraryWorm on the home page",
     "body": "The home page now shows what LiteraryWorm does beyond reading and listening: highlights and word review, Ask the book, goals and streaks, the private journal, book clubs, listening anywhere, reading offline and following authors. It also says how Kids profiles can ask a grown-up for a book.",
