@@ -15,9 +15,12 @@ export const EXTRA_MINUTES = 30;
  * when today's time is used up. A grown-up can allow 30 more minutes with the account password.
  * `profileId` pins the counting to one profile (the mini-player), so time still lands on the
  * profile that was listening if someone switches profile while it plays. `listening` counts the
- * time as listening rather than reading (for stats).
+ * time as listening rather than reading (for stats). `track` says which book is open and where
+ * (0–1), so the time also counts towards that book's statistics; it's read when time is added.
  */
-export function useDailyLimit(counting: boolean, profileId?: string, listening = false) {
+export type TrackBook = () => { bookId: string; fraction: number | null } | null;
+
+export function useDailyLimit(counting: boolean, profileId?: string, listening = false, track?: TrackBook) {
   const { state, dispatch } = useStore();
   const profile = useActiveProfile();
   // Members' reading time also goes to Supabase, for goals and streaks.
@@ -31,13 +34,18 @@ export function useDailyLimit(counting: boolean, profileId?: string, listening =
   const remainingSeconds = Math.max(0, allowedSeconds - used.seconds);
   const reached = remainingSeconds <= 0;
   const unsaved = useRef(0);
+  const tracked = useRef(track);
+  useEffect(() => {
+    tracked.current = track;
+  });
 
   useEffect(() => {
     if (!counting || reached) return;
     const add = (seconds: number) => {
       const day = today();
-      dispatch({ type: "addTimeUsed", day, seconds, profileId, listening });
-      if (remote && countedProfile) addReadingSeconds(countedProfile, day, seconds, listening);
+      const book = tracked.current?.() ?? null;
+      dispatch({ type: "addTimeUsed", day, seconds, profileId, listening, bookId: book?.bookId, fraction: book?.fraction ?? null });
+      if (remote && countedProfile) addReadingSeconds(countedProfile, day, seconds, listening, book);
     };
     // Counted by the clock rather than by ticks: browsers slow timers in background tabs, and
     // listening carries on there (reading doesn't count while the tab is hidden).

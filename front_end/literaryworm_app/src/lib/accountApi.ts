@@ -1,6 +1,7 @@
 import type { AccountReading } from "../store/state";
 import type { Collections } from "./collections";
 import type {
+  BookDay,
   AgeRating,
   Account,
   Bookmark,
@@ -23,6 +24,7 @@ import type {
   QuizResult,
   ReadingStatus,
 } from "../types";
+import { bookDaysFromRows } from "./bookStats";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { forgetDeviceId } from "./deviceId";
 import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey, usedPasskey } from "./passkeys";
@@ -1326,9 +1328,18 @@ export async function setReadingGoal(profileId: string, year: number, books: num
 
 /**
  * Adds minutes read or listened (up to 60, of which `listening` were listening) and a finished
- * book (0 or 1, which book if known) to a profile's day.
+ * book (0 or 1, which book if known) to a profile's day. With a book and minutes, they count
+ * towards that book's statistics too, with where in the book the reader is (`fraction`, 0–1).
  */
-export async function recordReading(profileId: string, day: string, minutes: number, finished: number, listening = 0, bookId?: string): Promise<void> {
+export async function recordReading(
+  profileId: string,
+  day: string,
+  minutes: number,
+  finished: number,
+  listening = 0,
+  bookId?: string,
+  fraction: number | null = null,
+): Promise<void> {
   const { error } = await client().rpc("record_reading", {
     p_profile_id: profileId,
     p_day: day,
@@ -1336,8 +1347,22 @@ export async function recordReading(profileId: string, day: string, minutes: num
     p_finished: finished,
     p_listening_minutes: listening,
     p_volume_id: bookId ?? null,
+    p_fraction: fraction === null || !Number.isFinite(fraction) ? null : Math.round(Math.min(1, Math.max(0, fraction)) * 10000) / 10000,
   });
   if (error) throw new AccountError("We couldn't save today's reading time.");
+}
+
+/** A profile's days with one book, for the book page's statistics. */
+export async function loadBookDays(profileId: string, bookId: string): Promise<Record<string, BookDay>> {
+  const { data, error } = await client()
+    .from("book_reading_days")
+    .select("day, minutes, listening_minutes, fraction_from, fraction_to")
+    .eq("profile_id", profileId)
+    .eq("volume_id", bookId)
+    .order("day")
+    .limit(1000);
+  if (error) throw new AccountError("We couldn't load your time with this book.");
+  return bookDaysFromRows(data ?? []);
 }
 
 export async function addFavorite(profileId: string, bookId: string): Promise<void> {

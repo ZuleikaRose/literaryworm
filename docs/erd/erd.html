@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6553, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6557, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -611,6 +611,20 @@
           note: "One meeting notification per member and start time (claim_meeting_pushes()), so a moved meeting is announced again. FK meeting_id → club_meetings and user_id → auth.users, on delete cascade; index on user_id. No browser access.",
         },
         {
+          id: "book_reading_days", color: colors.household, x: 1260, y: 7680, sub: "per profile · stats by book",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text 1–64"],
+            ["pk", "day", "date"],
+            ["", "minutes", "smallint 0–1440"],
+            ["", "listening_minutes", "smallint ≤ minutes"],
+            ["", "fraction_from", "numeric 0–1?"],
+            ["", "fraction_to", "numeric 0–1?"],
+          ],
+          note: "A profile's time with one book on one day and where in the book the day started and ended, for the book page's Your time with this book. Added to by record_reading() when the app names the book. FK as reading_goals. Index: user_id. RLS: owner only.",
+        },
+        {
           id: "family_shelf", color: colors.household, x: 420, y: 7680, sub: "per account · family shelf",
           cols: [
             ["pk fk", "user_id", "uuid"],
@@ -935,6 +949,7 @@
         ["journal_entries", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["trusted_passkeys", "user_id", "auth.users", "id", "N : 1"],
         ["push_subscriptions", "user_id", "auth.users", "id", "N : 1"],
+        ["book_reading_days", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["family_shelf", "user_id", "auth.users", "id", "N : 1"],
         ["family_shelf", "added_by", "reader_profiles", "id", "N : 1"],
         ["club_meeting_pushes", "meeting_id", "club_meetings", "id", "N : 1"],

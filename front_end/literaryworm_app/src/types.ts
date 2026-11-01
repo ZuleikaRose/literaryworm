@@ -277,6 +277,17 @@ export interface ReadingDay {
   books?: string[];
 }
 
+/** One day of a profile's time with one book (reading statistics by book). */
+export interface BookDay {
+  /** Seconds read or listened that day (members' days load in whole minutes). */
+  seconds: number;
+  /** Of `seconds`, how many were listening. */
+  listened: number;
+  /** Where in the book (0–1) the day started and ended, when known. */
+  from: number | null;
+  to: number | null;
+}
+
 /** The brief's reading statuses (the library's "update" operation). */
 export type ReadingStatus = "want_to_read" | "reading" | "finished";
 
@@ -348,6 +359,8 @@ export interface ProfileData {
   readingGoals: Record<number, number>;
   /** Keyed by local date, YYYY-MM-DD; days with nothing read aren't kept. */
   readingDays: Record<string, ReadingDay>;
+  /** Time with each book by local day (book id → day → time), for the book page's statistics. Members' come from Supabase. */
+  bookDays?: Record<string, Record<string, BookDay>>;
   /** Books this profile uploaded, newest first. */
   uploads: UploadedBook[];
   /** Authors and narrators this profile follows, oldest first. */

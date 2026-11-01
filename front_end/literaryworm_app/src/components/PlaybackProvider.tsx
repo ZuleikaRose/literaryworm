@@ -212,7 +212,8 @@ function Engine({
     setSleptAt(at);
   };
   const [finished, setFinished] = useState(false);
-  const limit = useDailyLimit(playing, profileId, true);
+  // Listening counts towards this book's statistics too, with the place in the recording.
+  const limit = useDailyLimit(playing, profileId, true, () => ({ bookId: book.id, fraction: total ? position / total : null }));
   const allowance = useListeningAllowance(playing);
   const { reached: allowanceReached, hours: allowanceHours, planId: allowancePlan, planName, resumesOn, leftSeconds } = allowance;
   // Whole minutes, so the snapshot changes once a minute rather than every step.

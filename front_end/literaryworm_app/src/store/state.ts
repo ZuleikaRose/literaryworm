@@ -11,6 +11,7 @@ import type {
   Profile,
   ProfileData,
   Progress,
+  BookDay,
   ReadingDay,
   ReadingLog,
   ReadingStatus,
@@ -171,6 +172,21 @@ function demoReadingDays(now: number): Record<string, ReadingDay> {
   return days;
 }
 
+/** Avery's sample days with Dune (42% through), for the book page's *Your time with this book*. */
+function demoDuneDays(now: number): Record<string, BookDay> {
+  const days: [number, number, number, number, number][] = [
+    // days ago, minutes, listening minutes, from, to
+    [9, 35, 0, 0, 0.06],
+    [6, 50, 30, 0.06, 0.15],
+    [4, 25, 0, 0.15, 0.2],
+    [2, 70, 45, 0.2, 0.34],
+    [1, 40, 0, 0.34, 0.42],
+  ];
+  return Object.fromEntries(
+    days.map(([ago, minutes, listening, from, to]) => [today(new Date(now - ago * 86_400_000)), { seconds: minutes * 60, listened: listening * 60, from, to }]),
+  );
+}
+
 function demoWord(word: string, definition: string, bookId: string, reviewDue: string | null, reviewStep: number, createdAt: number): SavedWord {
   return { word, definition, bookId, chapterIndex: 0, page: null, context: null, learned: false, reviewDue, reviewStep, createdAt };
 }
@@ -196,6 +212,7 @@ export function demoHousehold(): Household {
     ],
     readingGoals: { [new Date(now).getFullYear()]: 24 },
     readingDays: demoReadingDays(now),
+    bookDays: { dune: demoDuneDays(now) },
     // Three kept words for My words: two due for review today, one not until later.
     words: [
       demoWord("melancholy", "noun: a deep, lasting sadness", "frankenstein", null, 0, now - 9 * 86_400_000),

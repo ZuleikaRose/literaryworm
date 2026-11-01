@@ -77,10 +77,11 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const profile = useActiveProfile();
   const reading = useReading(book);
   const study = useHighlights(book, reading.addToLibrary);
-  const limit = useDailyLimit(true);
   const playback = usePlayback();
   const starts = chapterStarts(pages);
   const total = pages.length;
+  // Counted towards this book's statistics too, with the page the reader is on.
+  const limit = useDailyLimit(true, undefined, false, () => ({ bookId: book.id, fraction: total ? index / total : null }));
 
   // Start where the account stopped (unless the book was finished: then from the start).
   const [index, setIndex] = useState(() =>

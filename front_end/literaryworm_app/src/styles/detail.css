@@ -891,3 +891,73 @@
     gap: 20px;
   }
 }
+
+/* ---------- Your time with this book (private statistics) ---------- */
+
+.book-stats {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 65px);
+  padding: 52px clamp(0px, 3vw, 55px) 0;
+}
+
+.book-stats-body {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
+.book-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 13px;
+  margin: 0;
+}
+
+.book-stats-grid > div {
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.book-stats-grid dt {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.book-stats-grid dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.book-stats-subtitle {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.book-stats-days {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.book-stats-days li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 10px 16px;
+  border-left: 3px solid var(--rust-deep);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+@media (max-width: 860px) {
+  .book-stats {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

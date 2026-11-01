@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("More notifications, your choice");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Your time with each book");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -904,6 +904,23 @@ describe("the demo household", () => {
     await page.getByRole("region", { name: "My journal" }).getByRole("button", { name: /^Delete/ }).click();
     await page.getByRole("dialog", { name: "Delete this journal entry?" }).getByRole("button", { name: "Delete entry" }).click();
     await expect(page.getByRole("list", { name: "Journal entries for Frankenstein" }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows the time spent with a book, the pace and the biggest days", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/dune");
+    const stats = page.getByRole("region", { name: "Your time with this book" });
+    await stats.getByText("3 hr 40 min").waitFor();
+    await stats.getByText("2 hr 25 min reading, 1 hr 15 min listening").waitFor();
+    await stats.getByText("About 11% of the book an hour").waitFor();
+    await stats.getByText(/to the end$/).waitFor();
+    await expect(stats.getByRole("listitem").count()).resolves.toBe(3);
+    // A book with no time yet has no statistics.
+    await goInApp(page, "/books/babel");
+    await page.getByRole("heading", { level: 1 }).waitFor();
+    await expect(page.getByRole("region", { name: "Your time with this book" }).count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
 

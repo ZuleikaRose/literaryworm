@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Your time with each book",
+    "body": "A book's page now shows Your time with this book once you've read or listened to it: the time you've spent, reading and listening, the days, your pace through the book with the time left at that pace, and your biggest days. It's private to your profile.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "More notifications, your choice",
     "body": "Notifications on your devices can now also tell you about a club meeting coming up, new posts in your clubs (only up to your chapter), an evening nudge to keep a reading streak, and a grown-up's answer to a Kids book request. Choose which in Account → Preferences, under Notifications on this device.",
     "major": false

@@ -1,3 +1,4 @@
+import { addBookTime } from "../lib/bookStats";
 import { LOG_MAX } from "../data/logs";
 import { type Collections, withRecentSearch } from "../lib/collections";
 import { isFollowing } from "../lib/people";
@@ -103,7 +104,7 @@ export type Action =
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
-  | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean }
+  | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean; bookId?: string; fraction?: number | null }
   | { type: "allowExtraTime"; day: string; minutes: number }
   /** The active profile's goal for a year; null clears it. */
   | { type: "setReadingGoal"; year: number; books: number | null }
@@ -560,6 +561,7 @@ export function reducer(state: AppState, action: Action): AppState {
           const day = data.readingDays[action.day] ?? { seconds: 0, finished: 0 };
           return {
             ...data,
+            bookDays: action.bookId ? addBookTime(data.bookDays, action.bookId, action.day, action.seconds, Boolean(action.listening), action.fraction ?? null) : data.bookDays,
             timeUsed: { ...used, seconds: used.seconds + action.seconds },
             readingDays: {
               ...data.readingDays,
