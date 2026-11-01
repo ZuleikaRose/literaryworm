@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CarMode } from "../components/CarMode";
 import { RecapDialog } from "../components/RecapDialog";
+import { ClipDialog } from "../components/ClipDialog";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
@@ -19,7 +20,7 @@ import { useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 
-type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | null;
+type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | "clip" | null;
 
 export default function Player() {
   return <ReadingGate format="audiobook">{(book) => <PlayerView key={book.id} book={book} />}</ReadingGate>;
@@ -290,6 +291,11 @@ function PlayerView({ book }: { book: Book }) {
                   <Icon name="headphones" size={16} /> Car mode
                 </Link>
                 <CastButton recording={narration.kind === "recording"} />
+                {book.recording && (
+                  <button type="button" className="text-button" onClick={() => setPanel("clip")}>
+                    <Icon name="share" size={16} /> Share a clip
+                  </button>
+                )}
               </div>
 
               <div className="player-settings">
@@ -382,6 +388,7 @@ function PlayerView({ book }: { book: Book }) {
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
       <RecapDialog open={panel === "recap"} book={book} chapterIndex={chapterIndex} onClose={() => setPanel(null)} />
+      {panel === "clip" && <ClipDialog open book={book} chapterIndex={chapterIndex} offset={position - chapterStart} onClose={() => setPanel(null)} />}
       <BookmarksDialog
         open={panel === "bookmarks"}
         onClose={() => setPanel(null)}

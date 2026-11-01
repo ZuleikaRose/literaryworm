@@ -1110,6 +1110,26 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shares a clip from the player, and the clip page shows it to anyone", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein");
+    await page.getByRole("button", { name: "Share a clip" }).click();
+    const dialog = page.getByRole("dialog", { name: "Share a clip" });
+    await dialog.getByText("15 seconds").click();
+    const link = await dialog.getByLabel("Clip link").inputValue();
+    expect(link).toMatch(/\/clips\/frankenstein\?c=\d+&s=\d+&e=\d+$/);
+    // A visitor opens it (signed out, in a new page).
+    const visitor = await newPage();
+    await visitor.page.goto(`${BASE_URL}${new URL(link).pathname}${new URL(link).search}`);
+    await visitor.page.getByRole("heading", { level: 1, name: "Frankenstein" }).waitFor();
+    await visitor.page.getByRole("button", { name: "Play clip" }).waitFor();
+    await goInApp(visitor.page, "/clips/frankenstein?c=0&s=0&e=500");
+    await visitor.page.getByRole("heading", { level: 1, name: "Clip not found" }).waitFor();
+    expect(errors()).toEqual([]);
+    expect(visitor.errors()).toEqual([]);
+  });
+
   it("makes a reading plan with a day's share, shows it on Home, and removes it", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

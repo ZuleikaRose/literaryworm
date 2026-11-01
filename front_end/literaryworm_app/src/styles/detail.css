@@ -1085,3 +1085,25 @@
 .translate-result p {
   margin: 0;
 }
+
+/* A shared audio clip (pages/Clip.tsx) */
+.clip-page {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  max-width: 880px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.clip-info {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.clip-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0;
+}

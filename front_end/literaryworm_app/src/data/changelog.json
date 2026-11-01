@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Share a clip of an audiobook",
+    "body": "In the player, or the mini-player's More menu, choose Share a clip to share the last 15, 30 or 60 seconds you heard of a LibriVox recording as a link. Anyone can open it and play that stretch, with the book and narrator named. The recordings are in the public domain, and nothing is recorded or uploaded: the clip page plays it straight from the Internet Archive.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Translate a passage",
     "body": "In the classics, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. It's handy for the French, German and Spanish classics, and works in every public-domain title. The translation is written by AI, and only the words you selected are sent. Not on Kids profiles.",
     "major": true
