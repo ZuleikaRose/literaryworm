@@ -1847,3 +1847,24 @@ body:has(.mini-player) .listen-along-bar {
   height: 100%;
   background: var(--rust-bright);
 }
+
+/* Smart lists in My Library (lib/smartLists.ts). */
+.smart-lists {
+  display: grid;
+  gap: 32px;
+}
+
+.smart-list h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.smart-list-count {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--muted);
+  font-size: 0.85rem;
+}

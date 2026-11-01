@@ -144,7 +144,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("See where your club is");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Smart lists");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -393,6 +393,16 @@ describe("the demo household", () => {
     await signInDemo(page);
     await goInApp(page, "/listen/frankenstein");
     await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows the four smart lists in My Library", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=smart");
+    for (const name of ["Almost there", "Waiting for you", "From authors you follow", "Loved it"]) {
+      await page.getByRole("heading", { level: 2, name: new RegExp(`^${name}`) }).waitFor();
+    }
     expect(errors()).toEqual([]);
   });
 

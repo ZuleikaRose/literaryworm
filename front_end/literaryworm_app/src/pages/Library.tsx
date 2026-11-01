@@ -51,7 +51,9 @@ import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
 import { useVolume } from "../lib/useVolume";
-import { useActiveProfile, useProfileData } from "../store/context";
+import { useActiveProfile, useProfileData, useStore } from "../store/context";
+import { activeLibrary, activeReading } from "../store/reducer";
+import { smartLists } from "../lib/smartLists";
 import type {
   BookRequest,
   CustomList,
@@ -64,6 +66,7 @@ type View =
   | "library"
   | "favorites"
   | "lists"
+  | "smart"
   | "following"
   | "readers"
   | "reminders"
@@ -81,6 +84,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "library", label: "My library" },
   { id: "favorites", label: "Favorites" },
   { id: "lists", label: "Lists" },
+  { id: "smart", label: "Smart lists" },
   { id: "following", label: "Following" },
   { id: "readers", label: "Readers" },
   { id: "reminders", label: "Reminders" },
@@ -151,6 +155,7 @@ export default function Library() {
       {view === "library" && <LibraryView profile={profile} />}
       {view === "favorites" && <FavoritesView profile={profile} />}
       {view === "lists" && <ListsView profile={profile} />}
+      {view === "smart" && <SmartListsView profile={profile} />}
       {view === "following" && <FollowingView profile={profile} />}
       {view === "readers" && <ReadersView />}
       {view === "reminders" && <RemindersView />}
@@ -623,6 +628,48 @@ function FavoritesView({ profile }: { profile: Profile }) {
         <SavedBookTile key={id} bookId={id} ageRating={profile.ageRating} />
       ))}
     </ul>
+  );
+}
+
+// --- Smart lists (lib/smartLists.ts) -------------------------------------------------
+
+function SmartListsView({ profile }: { profile: Profile }) {
+  const { state } = useStore();
+  const data = useProfileData();
+  const library = activeLibrary(state);
+  const progress = activeReading(state).progress;
+  const lists = smartLists({
+    entries: Object.values(library).filter((e) => visibleTo(profile, e.bookId, data.bookRequests)),
+    progress,
+    ratings: data.ratings,
+    follows: data.follows,
+    authorsOf: (e) => {
+      const book = getBook(e.bookId);
+      return book ? [book.author] : (e.authors ?? []);
+    },
+    now: Date.now(),
+  });
+  return (
+    <div className="smart-lists">
+      <p className="goal-hint">These lists fill themselves from your library, your place in each book, your ratings and who you follow.</p>
+      {lists.map((list) => (
+        <section key={list.id} className="smart-list" aria-labelledby={`smart-${list.id}`}>
+          <h2 id={`smart-${list.id}`}>
+            {list.title} <span className="smart-list-count">{list.bookIds.length}</span>
+          </h2>
+          <p className="goal-hint">{list.description}</p>
+          {list.bookIds.length === 0 ? (
+            <p className="muted">{list.empty}</p>
+          ) : (
+            <ul className="catalog-grid library-grid" role="list">
+              {list.bookIds.map((id) => (
+                <SavedBookTile key={id} bookId={id} ageRating={profile.ageRating} />
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </div>
   );
 }
 
