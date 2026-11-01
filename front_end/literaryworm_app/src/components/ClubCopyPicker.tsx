@@ -69,7 +69,7 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Title, author or ISBN"
+              placeholder="Title, Author or ISBN"
               hint={isbnNote ?? undefined}
               autoComplete="off"
             />

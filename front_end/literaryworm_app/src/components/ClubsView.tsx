@@ -236,7 +236,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Title, author or ISBN"
+        placeholder="Title, Author or ISBN"
         hint={isbnNote ?? undefined}
         autoComplete="off"
       />
