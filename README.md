@@ -246,7 +246,7 @@ Your project will be assessed across these areas:
 | Path                                    | What it is                                                                                                                                                                    |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `front_end/literaryworm_app/`               | The React + TypeScript + Vite app (React Router DOM, `BrowserRouter`). See its [README](front_end/literaryworm_app/README.md) for routes and source layout.                        |
-| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `stripe-webhook`, `dictionary`, `summaries`, `ask`), Auth email templates and security tests. See [supabase/README.md](supabase/README.md). |
+| `supabase/`                             | Database migrations, Edge Functions (`books`, `manage-profile`, `checkout`, `manage-account`, `stripe-webhook`, `release-emails`, `club-invite`, `author-news`, `dictionary`, `characters`, `whats-new`, `kids-report`, `club-meetings`, `club-digest`, `gift-reminders`, `club-calendar`, `unsubscribe`, `summaries`, `ask`, `quiz`, `recaps`), Auth email templates and security tests. See [supabase/README.md](supabase/README.md). |
 | `schema.sql`                            | The whole database schema, generated from `supabase/migrations/`. Row Level Security on every table.                                                                           |
 | `drawsql.png`                           | ERD for `schema.sql`, rendered from [`docs/erd/erd.html`](docs/erd/README.md).                                                                                                 |
 | `front_end/BookWorm_web_app_wireframe/` | The Figma Make wireframe the UI is built from.                                                                                                                                |
@@ -296,9 +296,11 @@ Create an account with **Sign up** to use the real backend: your library and log
 | `GOOGLE_BOOKS_API_KEY`          | Supabase → Edge Functions → Secrets only              | **No.** Never in a `VITE_` variable, a file in the repo, or a prompt. |
 | `GOOGLE_BOOKS_API_KEY_1_AMILLAGE`, `_1_ALICEMILLAGE`, `_1_ROSEZULEIKA`, `_1_ALICESUCC`, `_1_FEMSHEP` | Supabase → Edge Functions → Secrets only | **No.** Fallback Google Books keys, tried in turn when the main key is rate-limited, refused or failing. |
 | `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and literaryworm.com) |
-| `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries` and `ask` functions to ask Claude. |
+| `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries`, `ask`, `characters`, `quiz` and `recaps` functions to ask Claude. |
 | `STRIPE_SECRET_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** A restricted Stripe key for `checkout`, `manage-account` and `stripe-webhook`. |
 | `STRIPE_WEBHOOK_SECRET`         | Supabase → Edge Functions → Secrets only              | **No.** Checks the signature on Stripe's webhook calls. |
+| `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` | Supabase → Edge Functions → Secrets only | **No.** The app's own emails (book out, club invites and meetings, new books from followed authors, What's new, Kids report, gifts, deletion confirmation). |
+| `VAPID_PRIVATE_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Signs notifications on members' devices (Web Push). Its public half is in the code (`src/lib/push.ts`, `_shared/webpush.ts`); change both halves together. |
 | Mailgun SMTP (host, user, password) | Supabase → Authentication → SMTP settings only    | **No.** Not an environment variable: Supabase Auth sends its emails with it; nothing in the repo or the functions. |
 
 ### Supabase
@@ -442,5 +444,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Plans, the Kids FAQ and Help describe the journal, word review, rest days and book requests; live on www.literaryworm.com, with migrations 6518–6527 on production (main = dev) | Done    |
 | —    | Home page tour (*More than a reader*) and What's new newest first (migration 6528) | Done    |
 | —    | Book rows keep loading: Google Books calls fall back through six keys (`books`, `summaries`, `author-news`); What's new entry (migration 6529, on dev and production) | Done    |
+| —    | 1 November 2026: notifications on members' devices (release day, club meetings and posts, streak, request answers), the family shelf, the year as a story, where everyone is in a club, smart lists, six classics in French, German and Spanish, your time with each book, and Previously… recaps (`recaps` function); live on www.literaryworm.com with migrations 6534–6560 on production (main = dev = 8860505) | Done    |
+| —    | Discover's *In their own language* row and Search's links; Plans, the FAQs and the home page's tools describe the new features; What's new (migration 6561) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
