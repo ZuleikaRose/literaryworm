@@ -1107,3 +1107,31 @@
   gap: 14px;
   margin: 18px 0;
 }
+
+/* Content notes (components/ContentNotes.tsx) */
+.content-notes {
+  margin-top: 14px;
+}
+
+.content-notes.compact {
+  margin-top: 6px;
+}
+
+.content-notes-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.content-notes-list dt {
+  font-weight: 600;
+}
+
+.content-notes-list dd {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+}
+
+.content-level {
+  font-weight: 700;
+}

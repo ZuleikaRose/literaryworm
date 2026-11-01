@@ -9724,3 +9724,42 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$T
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Share a clip of an audiobook$lw$, $lw$In the player, or the mini-player's More menu, choose Share a clip to share the last 15, 30 or 60 seconds you heard of a LibriVox recording as a link. Anyone can open it and play that stretch, with the book and narrator named. The recordings are in the public domain, and nothing is recorded or uploaded: the clip page plays it straight from the Internet Archive.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Share a clip of an audiobook$lw$ and c.version = $lw$2026.11$lw$);
+
+-- =============================================================================
+-- 20261101006610_book_content_notes.sql
+-- =============================================================================
+-- AI-written content notes, one set per catalog book: for each of eight topics (violence, death,
+-- frightening, language, sexual_content, substance_use, discrimination, self_harm) a level (none,
+-- mild, moderate, strong) and a short note, plus one line overall. The `content-notes` Edge Function
+-- writes them the first time anyone asks (Claude, from the book's title, author, year and synopsis;
+-- nothing about the reader) and keeps them here, so every reader and every parent sees the same
+-- notes. Only the function (service_role) reads and writes these rows; browser roles go through it.
+
+create table public.book_content_notes (
+  volume_id  text        primary key check (volume_id ~ '^[A-Za-z0-9_-]{1,40}$'),
+  overall    text        not null check (char_length(btrim(overall)) between 1 and 300),
+  notes      jsonb       not null check (jsonb_typeof(notes) = 'array' and jsonb_array_length(notes) = 8),
+  -- The Claude model that wrote them, so they can be rewritten when the model changes.
+  model      text        not null check (char_length(model) between 1 and 80),
+  created_at timestamptz not null default now()
+);
+
+alter table public.book_content_notes enable row level security;
+revoke all on public.book_content_notes from public, anon, authenticated;
+
+-- Says out loud what RLS already does with no permissive policy: browser roles can't touch them.
+create policy "No browser access to content notes"
+  on public.book_content_notes as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+-- =============================================================================
+-- 20261101006611_whats_new_content_notes.sql
+-- =============================================================================
+-- What's new: content notes (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Content notes$lw$, $lw$Every LiteraryWorm title's page now has Content notes: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice, and self-harm a book has (none, mild, moderate or strong), each with a short note and no spoilers, and a line on who it suits. Grown-ups see them under a Kids profile's book requests in Account → Family too. They're written by AI from the book's details, the same for everyone, and nothing about you is sent.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Content notes$lw$ and c.version = $lw$2026.11$lw$);

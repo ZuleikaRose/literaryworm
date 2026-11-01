@@ -8,6 +8,7 @@ import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
 import { MoodPicker } from "../components/MoodPicker";
+import { ContentNotes } from "../components/ContentNotes";
 import { Dialog } from "../components/Dialog";
 import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
@@ -494,6 +495,7 @@ function DetailPage({ view }: { view: DetailView }) {
             </div>
           )}
           {profile && <MoodPicker bookId={view.id} />}
+          {view.local && usesBackend && <ContentNotes bookId={view.id} />}
 
           <p className="privacy-note">
             <Icon name="lock" size={15} />

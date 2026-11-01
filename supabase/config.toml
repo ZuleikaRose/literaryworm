@@ -62,6 +62,12 @@ verify_jwt = false
 # calls) per IP and per day.
 verify_jwt = false
 
+[functions.content-notes]
+# Public like summaries: the demo household and parents read without a session. The function
+# validates the id, answers only for catalog titles, sends Claude only the book's details
+# (nothing about the reader), keeps each book's notes, and limits new ones per IP and per day.
+verify_jwt = false
+
 [functions.quiz]
 # Public like characters: the demo household uses chapter quizzes without a session. The
 # function validates every field, works only for public-domain catalog titles, keeps each

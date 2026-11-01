@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { AccountPasswordField } from "../components/AccountPasswordField";
 import { BillingHistory } from "../components/BillingHistory";
 import { Avatar } from "../components/Avatar";
+import { ContentNotes } from "../components/ContentNotes";
+import { usesBackend } from "../lib/backend";
 import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { PlanUsage } from "../components/PlanUsage";
@@ -1448,6 +1450,7 @@ function BookRequests() {
                 {row.book.author} · rated {ageRatingDetails[row.book.ageRating].label}
                 {row.request.status === "approved" ? " · You said yes" : row.request.status === "declined" ? " · You said no" : ""}
               </p>
+              {usesBackend && <ContentNotes bookId={row.book.id} compact />}
               <div className="book-request-actions">
                 {row.request.status !== "approved" && (
                   <button type="button" className="secondary-button" onClick={() => setAsking({ row, approve: true })}>
