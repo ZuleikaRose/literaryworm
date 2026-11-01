@@ -216,3 +216,10 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Club book sorting and series filter: `CLUB_BOOK_SORTS`, `sortClubBooks()`, `seriesInTitle()` (`lib/librarySort.ts`), `lib/clubBookChoices.ts`; migration 6596 |
 | — | Club book search by ISBN: `isbnMatches()` in `lib/clubBookChoices.ts`, `fetchBookPage({ mode: "isbn" })`; migration 6597 |
 | — | Help, FAQ and home page describe the club book search, sort and series filter (migration 6598); ERD subtitle to 6597 |
+| — | Didn't finish and rereads: `lib/rereads.ts`, `useLibrary().readAgain()`; migration 6600 |
+| — | Moods and pace: `lib/moods.ts`, `components/MoodPicker.tsx`, `book_moods`; migration 6604 |
+| — | Bedtime: `lib/bedtime.ts` in `useDailyLimit`, manage-profile `set_bedtime`; migration 6606 |
+| — | Translate: `lib/translate.ts`, `lib/translateApi.ts`, `components/TranslateDialog.tsx`, the `translate` function |
+| — | Audio clips: `lib/clips.ts`, `components/ClipDialog.tsx`, `pages/Clip.tsx` |
+| — | Content notes: `lib/contentNotes.ts`, `components/ContentNotes.tsx`, the `content-notes` function; migration 6610 |
+| — | Buddy reads: `components/BuddyReadButton.tsx`, `buddyName()` in `lib/clubs.ts`; migration 6612 |

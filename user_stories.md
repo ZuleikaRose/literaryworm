@@ -404,3 +404,10 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | 66. Read-along transcripts | 9 | Partly | The player's transcript marks the sentence being read and follows it; size and English or Spanish are kept with the accessibility settings. The transcript is sample text until publishers' transcripts are licensed, so it's hidden while a real recording plays. |
 | 63. Accessibility Policy in footer | 0, 22 | Done | Footer on every page; the policy is written in full (from Termly's statement): features, conformance (partially conformant with WCAG 2.2 AA), known limits, how it's tested, and accessibility@literaryworm.com for feedback. |
 | 70. Cookie choices | Cookie Policy, after 22 | Done | Termly's consent banner asks on a first visit and *Consent Preferences* in the footer changes the choice. LiteraryWorm sets only essential cookies, so nothing optional is set either way; Google Books covers are marked essential so they still load when a visitor declines. The Cookie Policy lists what the browser keeps (the sign-in session, Termly's choice, the app's files, books saved for offline) and why. |
+| Didn't finish and rereads | after 22 | Done | A fourth status with its own tab; *Read again* on a finished book; reads counted from finish days. |
+| Moods and pace | after 22 | Done | Up to three moods and a pace per profile and book; a Mood filter and *Feel-good picks*. |
+| Bedtime for Kids | after 22 | Done | Set by a grown-up with the account password; *Time for bed* in the reader and player; 15 more minutes with the password. |
+| Translate a passage | after 22 | Done | Public-domain titles, seven languages, AI-written and labelled; not on Kids profiles. |
+| Share an audio clip | after 22 | Done | A link to 15–60 seconds of a LibriVox recording; nothing recorded or stored. |
+| Content notes | after 22 | Done | AI-written, eight topics, no spoilers; on book pages and under Kids book requests. |
+| Buddy reads | after 22 | Done | A club for two from a book's page; a third reader can't join. |

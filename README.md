@@ -452,5 +452,13 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Start a club: sort the book list by title, author, numbers or series and filter by series, for catalog books and uploads (migration 6596) | Done    |
 | —    | Start a club: find the book by ISBN too, for catalog books and uploads (migration 6597) | Done    |
 | —    | Club book search by title, Author or ISBN and the same Sort by / Series under My uploads; Help, FAQ, home page and llms.txt say so; schema.sql and drawsql.png current to migration 6598 | Done    |
+| —    | Didn't finish and Read again (6600) | Done    |
+| —    | Moods and pace, with a mood filter and Feel-good picks (6604) | Done    |
+| —    | Bedtime for Kids profiles (6606) | Done    |
+| —    | Translate a passage (`translate` function) | Done    |
+| —    | Share a clip of an audiobook (`/clips/:bookId`) | Done    |
+| —    | Content notes (`content-notes` function, 6610) | Done    |
+| —    | Buddy reads (6612) | Done    |
+| —    | Children's Privacy Notice rewritten (6602); policies, Help and FAQ in short paragraphs (6614, 6615); schema.sql and drawsql.png current to 6615 | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

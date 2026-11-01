@@ -74,7 +74,7 @@ export const planFaqs = [
   },
   {
     q: "What does each plan cost and include?",
-    a: "Basic is $15.00 a month ($150.00 a year): 1 profile, 5 hours of audiobooks a month and Read offline on 1 device. Standard is $20.00 a month ($200.00 a year): up to 3 profiles, 30 hours of audiobooks a month and 10 offline devices. Premium is $30.00 a month ($300.00 a year): up to 12 profiles, unlimited audiobooks and 24 offline devices. Every plan has the whole catalog, the reader and player, book clubs, goals and stats, AI summaries, uploads and imports. Prices are in US dollars, plus any applicable tax.",
+    a: "Basic is $15.00 a month ($150.00 a year): 1 profile, 5 hours of audiobooks a month and Read offline on 1 device. Standard is $20.00 a month ($200.00 a year): up to 3 profiles, 30 hours of audiobooks a month and 10 offline devices. Premium is $30.00 a month ($300.00 a year): up to 12 profiles, unlimited audiobooks and 24 offline devices.\n\nEvery plan has the whole catalog, the reader and player, book clubs, goals and stats, AI summaries, uploads and imports. Prices are in US dollars, plus any applicable tax.",
   },
   {
     q: "What's the difference between the plans?",
@@ -94,7 +94,7 @@ export const planFaqs = [
   },
   {
     q: "How does yearly billing work?",
-    a: "A year costs ten times the monthly price, so two months are free. It starts the day you pay and renews on that date each year until you cancel; the bell reminds you 30 days before. Moving from monthly to yearly starts your year straight away, with the unused part of the month taken off. A yearly membership can move to a bigger plan at any time (you pay the difference for the rest of the year), can't be paused, and moves to monthly billing only when the year ends.",
+    a: "A year costs ten times the monthly price, so two months are free. It starts the day you pay and renews on that date each year until you cancel; the bell reminds you 30 days before.\n\nMoving from monthly to yearly starts your year straight away, with the unused part of the month taken off. A yearly membership can move to a bigger plan at any time (you pay the difference for the rest of the year), can't be paused, and moves to monthly billing only when the year ends.",
   },
   {
     q: "Can I pause instead of cancelling?",
@@ -106,11 +106,11 @@ export const planFaqs = [
   },
   {
     q: "Is LiteraryWorm safe for my kids?",
-    a: "Kids profiles show only Kids-rated titles, with no chat, public reviews, sharing, payments or AI assistant. A child can ask for a book that isn't on their shelf; it opens only if a grown-up says yes in Account → Family with the account password. You can lock other profiles with a PIN and set daily reading limits.",
+    a: "Kids profiles show only Kids-rated titles, with no chat, public reviews, sharing, payments or AI assistant. A child can ask for a book that isn't on their shelf; it opens only if a grown-up says yes in Account → Family with the account password. You can lock other profiles with a PIN and set daily reading limits.\n\nA Kids profile can have a bedtime, when books and audiobooks wait until morning. Every LiteraryWorm title's page also has content notes, written by AI, on violence, frightening scenes and more, so you can check a book before saying yes.",
   },
   {
     q: "Where do the books come from?",
-    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox. To read a book you own, upload it (up to 20 EPUBs at a time, each up to 50 MB): for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads. It opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
+    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox.\n\nTo read a book you own, upload it (up to 20 EPUBs at a time, each up to 50 MB): for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads.\n\nIt opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
   },
   {
     q: "What happens when the month's listening runs out?",
@@ -138,7 +138,7 @@ export const planFaqs = [
   },
   {
     q: "Can I read in other languages?",
-    a: "Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.",
+    a: "Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles).",
   },
   {
     q: "Who can see what I read?",
@@ -146,7 +146,7 @@ export const planFaqs = [
   },
   {
     q: "Are the book summaries written by AI?",
-    a: "Yes. Summaries, Ask the book and Previously… recaps are written by Claude, an AI model made by Anthropic, and are labelled as AI-written. Ask the book only reads up to your place in the book, and a Previously… recap only the chapters before yours, so neither spoils what comes next.",
+    a: "Yes. Summaries, content notes, Ask the book, Translate and Previously… recaps are written by Claude, an AI model made by Anthropic, and are labelled as AI-written. Ask the book only reads up to your place in the book, and a Previously… recap only the chapters before yours, so neither spoils what comes next.",
   },
   {
     q: "Which devices work?",

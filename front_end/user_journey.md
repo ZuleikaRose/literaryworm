@@ -760,6 +760,24 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 184. **Where the new tools are described.** The Plans cards list the reading journal and word review (Basic and up), rest days with the streaks, and book requests with the Kids profiles (Standard and up); the *Is LiteraryWorm safe for my kids?* answer says a child can ask for a book and only a grown-up's yes opens it. Help → *Reading and listening* and *Your account and household* say the same (migration 6527).
 185. **A tour on the home page.** Below *Read on the train, listen on the walk home*, *More than a reader* has a card for each kind of tool (highlights and words, Ask the book, goals and streaks, the journal, book clubs, listening anywhere, reading offline, following authors) and the What's new link (migration 6528). What's new lists the most recent change first, within a day and within a release.
 186. **Book rows keep loading.** When Google Books turns a request away (its daily quota used up, the key refused, or Google failing), the `books` function asks again with the next of six keys, so Home, Search, the genre rows and author pages keep filling; visitors see nothing change. What's new says so (*Book rows keep loading*, migration 6529).
+221. **Policies in short paragraphs.** Long policy paragraphs are split between sentences, and one-sentence lists become a lead-in with one paragraph per item. The words are the same (migration 6615). FAQ answers show as short paragraphs too.
+
+220. **Buddy reads.** *Read with a friend* on a LiteraryWorm title's page starts a book club for two in one tap. A third reader can't join it (migration 6612).
+
+219. **Content notes.** A title's page has *Content notes (written by AI)*: eight topics from none to strong, without spoilers. Grown-ups see a one-line version under a Kids profile's book request (migration 6610).
+
+218. **Share a clip.** The player and the mini-player's *More* make a link to the last 15, 30 or 60 seconds of a LibriVox recording. `/clips/:bookId` plays just that stretch, for anyone.
+
+217. **Translate a passage.** In a public-domain title, select words and choose *Translate*. Only the passage goes to Claude, and only if it's in that chapter. Not on Kids profiles.
+
+216. **Bedtime for Kids profiles.** A grown-up sets a bedtime and a wake-up time in the profile editor, with the account password. Between them, the reader and player show *Time for bed* (migration 6606).
+
+215. **Moods and pace.** *How did it feel?* on a book's page takes up to three moods and a pace. My Library filters by mood, and *Feel-good picks* gathers the cheerful ones (migration 6604).
+
+214. **Read again.** A finished book's page has *Read again*: back to Reading from the start. Reads are counted from finish days, so the page says *Your 2nd read* or *Read twice*.
+
+213. **Didn't finish.** A fourth library status with its own Library tab. Recommendations push similar books down, and imports and exports carry it (migration 6600).
+
 212. **A club's book by ISBN.** *Find a book* (LiteraryWorm books) and *Find one of your uploads* (My uploads) under *Start a club*, and *Find your copy* on an upload club's page, also take an ISBN-10 or ISBN-13 (dashes and spaces fine, check digit checked). Google Books says which book it is (*ISBN 9780141439518: Pride and Prejudice by Jane Austen.*) and the list keeps the LiteraryWorm titles or uploads with that title and author, or says the book isn't a LiteraryWorm title (*try My uploads*) or that Google doesn't know the ISBN (migration 6597).
 211. **Sorting and filtering a club's book.** Under *Start a club*, *Sort by* orders the *Book* list by title A–Z or Z–A (leading *The*/*A*/*An* ignored, numbers as numbers), author A–Z or Z–A (surname), *Numbers first (0–9)* or *Series, in reading order*, and *Series* filters to one series or *Not in a series*. It works the same, with the same options, for LiteraryWorm books and for *My uploads* → *Find one of your uploads* (uploaded DRM-free EPUBs, bought or not), and shows under *My uploads* even before the first upload; an upload's series is read from its title when it says so the usual way, such as *Leviathan Wakes (The Expanse, #1)* (migration 6596).
 210. **Up to 20 uploads at a time.** My Library → Uploads' *Choose EPUBs* takes up to 20 DRM-free EPUBs in one choice, each still up to 50 MB; they're read one after another (*Reading 3 of 12…*), then it says how many are ready and lists any not added with the reason (not an EPUB, over 50 MB, the profile's 50 reached, or more than 20 chosen). The home page (*Bring your own books*), Plans, the FAQ, Help and `llms.txt` say so (migrations 6594–6595).
