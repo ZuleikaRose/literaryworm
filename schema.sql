@@ -9704,3 +9704,13 @@ create trigger reader_profiles_clear_bedtime
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Bedtime for Kids profiles$lw$, $lw$Grown-ups can now set a bedtime for a Kids profile in its profile editor, from 7pm to 10pm, and when reading starts again in the morning. From bedtime until then, books and audiobooks show Time for bed, on that device's clock, and the place is saved. The account password allows 15 more minutes.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Bedtime for Kids profiles$lw$ and c.version = $lw$2026.11$lw$);
+
+-- =============================================================================
+-- 20261101006608_whats_new_translate.sql
+-- =============================================================================
+-- What's new: translate a passage (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Translate a passage$lw$, $lw$In the classics, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. It's handy for the French, German and Spanish classics, and works in every public-domain title. The translation is written by AI, and only the words you selected are sent. Not on Kids profiles.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Translate a passage$lw$ and c.version = $lw$2026.11$lw$);

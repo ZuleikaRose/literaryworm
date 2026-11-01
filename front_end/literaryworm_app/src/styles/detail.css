@@ -1067,3 +1067,21 @@
 .mood-group .taste-row {
   margin-top: 8px;
 }
+
+/* Translate (components/TranslateDialog.tsx) */
+.translate-original {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--line-strong);
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.translate-result {
+  margin-top: 14px;
+  min-height: 2.5em;
+}
+
+.translate-result p {
+  margin: 0;
+}

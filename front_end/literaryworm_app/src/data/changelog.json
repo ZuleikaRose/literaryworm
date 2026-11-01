@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Translate a passage",
+    "body": "In the classics, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. It's handy for the French, German and Spanish classics, and works in every public-domain title. The translation is written by AI, and only the words you selected are sent. Not on Kids profiles.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Bedtime for Kids profiles",
     "body": "Grown-ups can now set a bedtime for a Kids profile in its profile editor, from 7pm to 10pm, and when reading starts again in the morning. From bedtime until then, books and audiobooks show Time for bed, on that device's clock, and the place is saved. The account password allows 15 more minutes.",
     "major": true

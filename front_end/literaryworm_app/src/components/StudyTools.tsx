@@ -31,26 +31,31 @@ function useAttempt() {
 const TOOLBAR_GAP = 10;
 
 /**
- * The bar that floats over selected words: twelve highlight colours, Add note and, for one word,
- * Define. It sits above the selection, or below it when there's no room, and stays on screen.
+ * The bar that floats over selected words: twelve highlight colours, Add note, for one word
+ * Define, and Translate where it's offered. It sits above the selection, or below it when there's no room, and stays on screen.
  */
 export function SelectionToolbar({
   rect,
   canDefine,
+  canTranslate = false,
   error,
   busy,
   onHighlight,
   onNote,
   onDefine,
+  onTranslate,
   onDismiss,
 }: {
   rect: DOMRect;
   canDefine: boolean;
+  /** Public-domain titles, not Kids profiles, with the backend (TranslateDialog). */
+  canTranslate?: boolean;
   error: string | null;
   busy: boolean;
   onHighlight: (color: HighlightColor) => void;
   onNote: () => void;
   onDefine: () => void;
+  onTranslate?: () => void;
   onDismiss: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -65,7 +70,7 @@ export function SelectionToolbar({
     const top = above >= margin ? above : Math.min(rect.bottom + TOOLBAR_GAP, window.innerHeight - height - margin);
     const left = Math.min(Math.max(margin, rect.left + rect.width / 2 - width / 2), window.innerWidth - width - margin);
     setPosition({ top, left });
-  }, [rect, canDefine, error]);
+  }, [rect, canDefine, canTranslate, error]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -99,6 +104,11 @@ export function SelectionToolbar({
         {canDefine && (
           <button type="button" className="selection-action" onClick={onDefine}>
             <Icon name="bookOpen" size={17} /> Define
+          </button>
+        )}
+        {canTranslate && onTranslate && (
+          <button type="button" className="selection-action" onClick={onTranslate}>
+            <Icon name="globe" size={17} /> Translate
           </button>
         )}
       </div>

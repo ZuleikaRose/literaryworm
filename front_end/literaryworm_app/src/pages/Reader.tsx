@@ -11,6 +11,8 @@ import {
   ReadingMessage,
 } from "../components/ReadingParts";
 import { AskDialog } from "../components/AskDialog";
+import { TranslateDialog } from "../components/TranslateDialog";
+import { usesBackend } from "../lib/backend";
 import { CharactersDialog } from "../components/CharactersDialog";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
 import { QuoteCardDialog } from "../components/QuoteCardDialog";
@@ -78,6 +80,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   useTitle(`Reading ${book.title}`);
   const settings = useProfileData().readerSettings;
   const profile = useActiveProfile();
+  // Translate: public-domain titles (full text on the server), not Kids profiles, with the backend.
+  const canTranslate = Boolean(book.recording) && profile?.ageRating !== "kids" && usesBackend;
   const reading = useReading(book);
   const study = useHighlights(book, reading.addToLibrary);
   const playback = usePlayback();
@@ -104,6 +108,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const [editing, setEditing] = useState<{ id: string; focusNote: boolean } | null>(null);
   const [sharing, setSharing] = useState<Highlight | null>(null);
   const [dictionaryWord, setDictionaryWord] = useState("");
+  // Translate (lib/translateApi.ts): the selected words, while the dialog is open.
+  const [translating, setTranslating] = useState<string | null>(null);
   const [dictionarySource, setDictionarySource] = useState<WordSource | null>(null);
   // The place this reader last opened at or saved. A different saved place means another device
   // moved on (useReadingSync reloads it when the tab comes back), and the reader offers to go there.
@@ -599,6 +605,11 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         <SelectionToolbar
           rect={selection.rect}
           canDefine={singleWord(selection.quote) !== null}
+          canTranslate={canTranslate}
+          onTranslate={() => {
+            setTranslating(selection.quote);
+            clearSelection();
+          }}
           error={selectionError}
           busy={selectionBusy}
           onHighlight={(color) => highlightSelection(color, false)}
@@ -617,6 +628,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
           onDismiss={clearSelection}
         />
       )}
+      {canTranslate && <TranslateDialog book={book} chapterIndex={page.chapterIndex} text={translating} onClose={() => setTranslating(null)} />}
       <MarkFinishedDialog open={asking} title={book.title} onFinish={finish} onCancel={() => setAsking(false)} />
     </div>
   );
