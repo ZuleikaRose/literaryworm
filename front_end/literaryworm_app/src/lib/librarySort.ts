@@ -26,6 +26,18 @@ export const UPLOAD_SORTS: { value: UploadSort; label: string }[] = [
   { value: "title-desc", label: "Title Z–A" },
 ];
 
+/** The book list when starting a book club (LiteraryWorm titles or the profile's uploads). */
+export type ClubBookSort = "title" | "title-desc" | "author" | "author-desc" | "numbers" | "series";
+
+export const CLUB_BOOK_SORTS: { value: ClubBookSort; label: string }[] = [
+  { value: "title", label: "Title A–Z" },
+  { value: "title-desc", label: "Title Z–A" },
+  { value: "author", label: "Author A–Z" },
+  { value: "author-desc", label: "Author Z–A" },
+  { value: "numbers", label: "Numbers first (0–9)" },
+  { value: "series", label: "Series, in reading order" },
+];
+
 export function readLibrarySort(raw: string | null): LibrarySort {
   return LIBRARY_SORTS.some((s) => s.value === raw) ? (raw as LibrarySort) : "added";
 }
@@ -129,5 +141,61 @@ export function sortUploads<T extends { title: string; createdAt: number }>(book
       case "title-desc":
         return collator.compare(sortTitle(b.title), sortTitle(a.title)) || b.createdAt - a.createdAt;
     }
+  });
+}
+
+/** A book's place in a series: its name and number (1 for the first). */
+export interface SeriesPlace {
+  name: string;
+  order: number;
+}
+
+// "Leviathan Wakes (The Expanse, #1)" or "Dune (Dune Chronicles #1)": how EPUBs and Goodreads name a series.
+const SERIES_IN_TITLE = /\(([^()]+?),?\s*#(\d+(?:\.\d+)?)\)\s*$/;
+
+/** The series an uploaded book's title names, if it names one the usual way. */
+export function seriesInTitle(title: string): SeriesPlace | undefined {
+  const match = title.match(SERIES_IN_TITLE);
+  return match ? { name: match[1].trim(), order: Number(match[2]) } : undefined;
+}
+
+/**
+ * Orders the books offered when starting a club. Titles drop a leading The/A/An and compare
+ * numbers as numbers; authors go by surname; *Numbers first* puts titles starting with a digit
+ * first; *Series* groups each series (A–Z) in reading order, then the books in none by title.
+ */
+export function sortClubBooks<T extends { id: string; title: string; author: string }>(
+  books: T[],
+  sort: ClubBookSort,
+  seriesFor: (book: T) => SeriesPlace | undefined,
+): T[] {
+  const title = (a: T, b: T) => collator.compare(sortTitle(a.title), sortTitle(b.title));
+  return [...books].sort((a, b) => {
+    let order = 0;
+    switch (sort) {
+      case "title":
+        order = title(a, b);
+        break;
+      case "title-desc":
+        order = title(b, a);
+        break;
+      case "author":
+        order = collator.compare(authorKey(a.author), authorKey(b.author));
+        break;
+      case "author-desc":
+        order = collator.compare(authorKey(b.author), authorKey(a.author));
+        break;
+      case "numbers":
+        order = Number(startsWithNumber(b.title)) - Number(startsWithNumber(a.title));
+        break;
+      case "series": {
+        const sa = seriesFor(a);
+        const sb = seriesFor(b);
+        if (!sa || !sb) order = sa === sb ? 0 : sa ? -1 : 1;
+        else order = collator.compare(sa.name, sb.name) || sa.order - sb.order;
+        break;
+      }
+    }
+    return order || title(a, b) || a.id.localeCompare(b.id);
   });
 }

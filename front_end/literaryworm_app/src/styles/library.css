@@ -2016,3 +2016,10 @@ body:has(.mini-player) .listen-along-bar {
 .club-copy-list .small-button {
   min-height: 44px;
 }
+
+/* Starting a club: Sort by and Series side by side, stacked on phones. */
+.club-book-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0 16px;
+}

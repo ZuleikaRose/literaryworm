@@ -17,6 +17,8 @@ import {
   spoilerFreeUpTo,
   unreadUpTo,
 } from "../lib/clubs";
+import { arrangeChoices, catalogChoice, choiceLabel, seriesNames, uploadChoice } from "../lib/clubBookChoices";
+import { CLUB_BOOK_SORTS, type ClubBookSort } from "../lib/librarySort";
 import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { activeReading } from "../store/reducer";
@@ -159,13 +161,17 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, profile.ageRating)), [profile.ageRating]);
   const [source, setSource] = useState<BookSource>("catalog");
   const [query, setQuery] = useState("");
-  // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, narrowed by the search.
+  const [sort, setSort] = useState<ClubBookSort>("title");
+  const [series, setSeries] = useState("");
+  // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, with their series.
+  const all = useMemo(() => (source === "uploads" ? uploads.map(uploadChoice) : catalog.map(catalogChoice)), [source, uploads, catalog]);
+  const seriesList = useMemo(() => seriesNames(all), [all]);
+  // A series from the other source isn't offered: fall back to every book.
+  const seriesShown = series === "" || series === "none" || seriesList.includes(series) ? series : "";
+  // Narrowed by the search and the series, in the chosen order.
   const choices = useMemo(
-    () =>
-      (source === "uploads" ? uploads.map((u) => ({ id: u.id, title: u.title, author: u.author })) : catalog)
-        .filter((b) => matchesBook(b, query))
-        .sort((a, b) => (source === "uploads" ? a.title.localeCompare(b.title) : 0)),
-    [source, uploads, catalog, query],
+    () => arrangeChoices(all.filter((b) => matchesBook(b, query)), sort, seriesShown),
+    [all, query, sort, seriesShown],
   );
   const [name, setName] = useState("");
   const [picked, setPicked] = useState("");
@@ -179,7 +185,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
     const trimmed = name.trim();
     if (!trimmed || trimmed.length > CLUB_NAME_MAX) return setError(`Give the club a name of up to ${CLUB_NAME_MAX} characters.`);
     const upload = source === "uploads" ? uploads.find((u) => u.id === bookId) : undefined;
-    if (source === "uploads" ? !upload : !getBook(bookId)) return setError(query ? "No book matches that search. Try other words." : "Choose a book.");
+    if (source === "uploads" ? !upload : !getBook(bookId)) return setError(query || seriesShown ? "No book matches the search and series. Try other words or All books." : "Choose a book.");
     if (!(finishesOn > now && finishesOn <= addDays(now, CLUB_DAYS_MAX))) return setError("Choose a finish date after today and within a year.");
     setBusy(true);
     setError(null);
@@ -227,6 +233,36 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
         placeholder="Title or author"
         autoComplete="off"
       />
+      {!(source === "uploads" && uploads.length === 0) && (
+        <div className="club-book-tools">
+          <div className="field">
+            <label className="field-label" htmlFor="club-book-sort">
+              Sort by
+            </label>
+            <select id="club-book-sort" className="field-input" value={sort} onChange={(e) => setSort(e.target.value as ClubBookSort)}>
+              {CLUB_BOOK_SORTS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="club-book-series">
+              Series
+            </label>
+            <select id="club-book-series" className="field-input" value={seriesShown} onChange={(e) => setSeries(e.target.value)}>
+              <option value="">All books</option>
+              <option value="none">Not in a series</option>
+              {seriesList.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
       {source === "uploads" && uploads.length === 0 ? (
         <p className="goal-hint">
           You haven't uploaded any books yet. Add a DRM-free EPUB, such as one you bought, in{" "}
@@ -235,7 +271,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
       ) : (
         <div className="field">
           <label className="field-label" htmlFor="club-book">
-            Book{query && ` (${choices.length} ${choices.length === 1 ? "match" : "matches"})`}
+            Book{(query || seriesShown) && ` (${choices.length} ${choices.length === 1 ? "match" : "matches"})`}
           </label>
           <select
             id="club-book"
@@ -245,11 +281,10 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
             disabled={choices.length === 0}
             aria-describedby={source === "uploads" ? "club-book-hint" : undefined}
           >
-            {choices.length === 0 && <option value="">No book matches that search</option>}
+            {choices.length === 0 && <option value="">No book matches the search and series</option>}
             {choices.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.title}
-                {b.author ? ` (${b.author})` : ""}
+                {choiceLabel(b)}
               </option>
             ))}
           </select>

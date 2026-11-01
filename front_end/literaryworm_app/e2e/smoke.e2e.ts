@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Upload up to 20 books at a time");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Sort and filter books when starting a club");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -320,6 +320,16 @@ describe("the demo household", () => {
     await page.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel(/^Book \(1 match\)/).waitFor();
     await expect(page.getByLabel(/^Book/).locator("option").first().textContent()).resolves.toContain("Pride and Prejudice");
+    const form = page.locator(".club-form");
+    // Sorted by series in reading order, filtered to one series, then back to every book.
+    await form.getByLabel("Find a book").fill("");
+    await form.getByLabel("Sort by").selectOption("series");
+    await form.getByLabel("Series", { exact: true }).selectOption("Anne of Green Gables");
+    await expect(form.getByLabel(/^Book/).locator("option").first().textContent()).resolves.toContain("Anne of Green Gables");
+    await expect(form.getByLabel(/^Book/).locator("option").nth(1).textContent()).resolves.toContain("Anne of Avonlea");
+    await form.getByLabel("Series", { exact: true }).selectOption("");
+    await form.getByLabel("Sort by").selectOption("title");
+    await form.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel("Club name").fill("Austen fans");
     await page.getByRole("button", { name: "Start club" }).click();
     await page.waitForURL(/\/clubs\/[0-9a-f-]{36}$/);

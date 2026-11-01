@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "update",
+    "title": "Sort and filter books when starting a club",
+    "body": "When you start a book club, the Book list can be sorted by title (A–Z or Z–A), author, numbers first or series in reading order, and filtered to one series or to books in none. It works for LiteraryWorm titles and for your uploaded DRM-free EPUBs, including ones you bought; an upload's series comes from its title, such as \"(The Expanse, #1)\".",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Upload up to 20 books at a time",
     "body": "In My Library → Uploads you can now choose up to 20 DRM-free EPUBs at once. Each can still be up to 50 MB, and LiteraryWorm reads them one after another, then tells you which are ready and which weren't added and why.",
     "major": false
