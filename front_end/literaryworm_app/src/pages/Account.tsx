@@ -41,6 +41,7 @@ import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
+import { PushError, type PushState, readPushState, turnOffPush, turnOnPush } from "../lib/push";
 import { answerable, type WaitingRequest } from "../lib/bookRequests";
 import { useBookRequests } from "../lib/useBookRequests";
 import { useTitle } from "../lib/useTitle";
@@ -1055,6 +1056,66 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 
 // --- Preferences -------------------------------------------------------------------
 
+const PUSH_HINTS: Record<PushState, string> = {
+  on: "This device gets a notification when a book any profile set Remind me on comes out. Turn it off here, or log out.",
+  off: "Get a notification on this device when a book any profile set Remind me on comes out, as well as or instead of the email.",
+  blocked: "Your browser is blocking notifications from LiteraryWorm. Allow them in its site settings to turn this on.",
+  "install-first": "On iPhone and iPad, add LiteraryWorm to your Home Screen (Share, then Add to Home Screen) and open it from there to turn this on.",
+  unsupported: "This browser can't show notifications from LiteraryWorm. Try the app added to your Home Screen, or another browser.",
+};
+
+/** Notifications on this device (Web Push, lib/push.ts): per browser, for members. */
+function DeviceNotifications() {
+  const hintId = useId();
+  const [state, setState] = useState<PushState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    readPushState().then((s) => live && setState(s), () => live && setState("unsupported"));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (state === null) return null;
+  const change = async (on: boolean) => {
+    setBusy(true);
+    setError(null);
+    setDone(null);
+    try {
+      if (on) await turnOnPush();
+      else await turnOffPush();
+      setDone(on ? "Notifications are on for this device." : "Notifications are off for this device.");
+    } catch (err) {
+      setError(err instanceof PushError ? err.message : "Something went wrong. Try again.");
+    } finally {
+      setState(await readPushState().catch(() => "unsupported" as const));
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <label className="switch-row">
+        <span>
+          <strong>Notifications on this device</strong>
+          <small id={hintId}>{PUSH_HINTS[state]}</small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={hintId}
+          checked={state === "on"}
+          disabled={busy || (state !== "on" && state !== "off")}
+          onChange={(e) => void change(e.target.checked)}
+        />
+      </label>
+      <Feedback error={error} done={done} />
+    </>
+  );
+}
+
 function PreferencesSection({ account }: { account: AccountDetails }) {
   const { remote, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
   const readerHintId = useId();
@@ -1133,6 +1194,7 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
           }}
         />
       </label>
+      {remote && <DeviceNotifications />}
       <label className="switch-row">
         <span>
           <strong>Email me new books from authors I follow</strong>

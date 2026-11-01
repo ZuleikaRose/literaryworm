@@ -15,6 +15,8 @@ export interface Deps {
   release: (reminders: DueReminder[]) => Promise<void>;
   send: (email: Email) => Promise<void>;
   siteOrigin: string;
+  /** Release-day notifications on members' devices (push.ts), after the emails. */
+  push?: () => Promise<unknown>;
 }
 
 /** Most reminders handled in one run; the rest wait an hour. */
@@ -62,7 +64,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         await deps.release(books).catch((e) => console.error(`release-emails: handing back account ${books[0].userId}'s reminders failed`, e));
       }
     }
-    return reply(200, { accounts: sent + failed, sent, failed });
+    // Notifications fail on their own: the emails above are already sent.
+    const pushes = deps.push ? await deps.push().catch((err) => (console.error("release-emails: notifications failed", err), { error: true })) : null;
+    return reply(200, { accounts: sent + failed, sent, failed, pushes });
   } catch (err) {
     console.error("release-emails: run failed", err);
     return reply(500, { error: { code: "server_error", message: "Something went wrong. Try again." } });

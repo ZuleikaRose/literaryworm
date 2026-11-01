@@ -27,6 +27,7 @@ import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { forgetDeviceId } from "./deviceId";
 import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey, usedPasskey } from "./passkeys";
 import { defaultPlayerSettings } from "./reading";
+import { forgetPushOnSignOut } from "./push";
 import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
@@ -133,6 +134,8 @@ export async function signOut(): Promise<void> {
   await forgetAllUploadsOffline().catch((err: unknown) => console.error("uploads: couldn't clear offline copies at sign-out:", err));
   // Nor which member's device this browser was.
   forgetDeviceId();
+  // Nor this account's notifications (while still signed in, so its row can be deleted).
+  await forgetPushOnSignOut();
   if (!supabase) return;
   let failed = false;
   try {

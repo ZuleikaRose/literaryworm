@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6533, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6538, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -260,8 +260,9 @@
             ["", "release_date", "date"],
             ["", "created_at", "timestamptz"],
             ["", "emailed_at", "timestamptz?"],
+            ["", "pushed_at", "timestamptz?"],
           ],
-          note: "FK as favorites; the key is its index. Only for books not out yet, up to 100 a profile (trigger). RLS: owner only; set and removed. emailed_at: set by the release-emails function only (claim_release_emails, hourly via pg_cron).",
+          note: "FK as favorites; the key is its index. Only for books not out yet, up to 100 a profile (trigger). RLS: owner only; set and removed. emailed_at and pushed_at: set by the release-emails function only (claim_release_emails, claim_release_pushes, hourly via pg_cron).",
         },
         {
           id: "book_ratings", color: colors.household, x: 0, y: 1680, sub: "per profile",
@@ -585,6 +586,20 @@
           note: "Passkeys added from a session that gave the two-step code (trust_passkey()). second_step_done() accepts a passkey log-in only when every passkey on the account is here. FK user_id → auth.users, on delete cascade; index on user_id. No browser access.",
         },
         {
+          id: "push_subscriptions", color: colors.auth, x: 0, y: 7680, sub: "per device · notifications",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "endpoint", "text https, unique"],
+            ["", "p256dh", "text (browser key)"],
+            ["", "auth", "text (browser auth key)"],
+            ["", "device_label", "text ≤ 120"],
+            ["", "created_at", "timestamptz"],
+            ["", "last_sent_at", "timestamptz?"],
+          ],
+          note: "A browser's Web Push subscription, saved only through save_push_subscription() (moves an endpoint to whoever signed in on it last; up to 20 an account). FK user_id → auth.users, on delete cascade; index on user_id. RLS: owner reads (not the keys) and deletes; the release-emails function sends and forgets unsubscribed ones.",
+        },
+        {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -896,6 +911,7 @@
         ["book_requests", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["journal_entries", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["trusted_passkeys", "user_id", "auth.users", "id", "N : 1"],
+        ["push_subscriptions", "user_id", "auth.users", "id", "N : 1"],
         ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "reader_id", "profiles", "id", "N : 1"],

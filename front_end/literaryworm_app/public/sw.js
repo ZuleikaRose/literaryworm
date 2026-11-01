@@ -109,3 +109,38 @@ async function savedAudio(request) {
     },
   });
 }
+
+// Notifications (Web Push; src/lib/push.ts subscribes, the release-emails function sends). The
+// message arrives encrypted and the browser decrypts it: { title, body, url, tag }.
+self.addEventListener("push", (event) => {
+  let message = {};
+  try {
+    message = event.data ? event.data.json() : {};
+  } catch {
+    message = { body: event.data ? event.data.text() : "" };
+  }
+  const url = typeof message.url === "string" && message.url.startsWith("/") ? message.url : "/";
+  event.waitUntil(
+    self.registration.showNotification(message.title || "LiteraryWorm", {
+      body: message.body || "",
+      tag: message.tag,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url },
+    }),
+  );
+});
+
+// Tapping a notification opens its page: in a LiteraryWorm window already open, or a new one.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((w) => new URL(w.url).origin === self.location.origin);
+      // A window the worker doesn't control can't be moved: open the page in a new one instead.
+      if (open) return open.focus().then((w) => w.navigate(url)).catch(() => self.clients.openWindow(url));
+      return self.clients.openWindow(url);
+    }),
+  );
+});

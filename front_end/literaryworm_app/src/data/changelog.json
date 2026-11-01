@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Notifications on your devices",
+    "body": "Turn on Notifications on this device in Account → Preferences, and a book any profile set Remind me on tells you the day it comes out, on your phone, tablet or computer. Tap it to open the book. Turn it on for each device you like; logging out turns it off there. On iPhone and iPad, add LiteraryWorm to your Home Screen first.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "update",
     "title": "A gentler sleep timer",
     "body": "A sleep timer set for minutes now fades the narrator out over its last 30 seconds instead of stopping mid-sentence. When it pauses the book, 15 more minutes is one tap away in the player and the mini-player, and pressing play again starts 30 seconds earlier, in case you were drifting off.",
