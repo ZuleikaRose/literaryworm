@@ -13,6 +13,8 @@ interface ShareImageProps<T extends string> {
   text: string;
   copyLabel: string;
   copiedMessage: string;
+  /** The picture's height at 1080 wide: 1350 for cards, 1920 for story screens. */
+  height?: number;
 }
 
 /**
@@ -20,7 +22,7 @@ interface ShareImageProps<T extends string> {
  * that can share files), Download, and Copy as text. Nothing is uploaded. Used by the quote card
  * and the Year in Review card.
  */
-export function ShareImage<T extends string>({ themes, draw, fileName, shareTitle, text, copyLabel, copiedMessage }: ShareImageProps<T>) {
+export function ShareImage<T extends string>({ themes, draw, fileName, shareTitle, text, copyLabel, copiedMessage, height = 1350 }: ShareImageProps<T>) {
   const [theme, setTheme] = useState<T>(themes[0].value);
   const [card, setCard] = useState<{ theme: T; blob: Blob; url: string } | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
@@ -98,7 +100,7 @@ export function ShareImage<T extends string>({ themes, draw, fileName, shareTitl
             <Icon name="alert" size={15} /> {failed}
           </p>
         ) : ready ? (
-          <img src={ready.url} width={1080} height={1350} alt={`Picture: ${text}`} />
+          <img src={ready.url} width={1080} height={height} alt={`Picture: ${text}`} />
         ) : (
           <p className="quote-card-loading">Drawing the card…</p>
         )}

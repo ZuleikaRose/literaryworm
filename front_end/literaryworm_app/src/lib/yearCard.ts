@@ -54,14 +54,14 @@ export function yearCardFacts(name: string, s: YearStats, goal: number | null): 
   };
 }
 
-function palette(theme: YearCardTheme) {
+export function palette(theme: YearCardTheme) {
   // Canvas colours, not CSS: the card keeps the same look whatever theme the app is in.
   return theme === "light"
     ? { bg: "#f6f1e8", ink: "#1c1a17", muted: "#5d574f", accent: "#a24e2f", panel: "#ebe3d4" }
     : { bg: "#14171a", ink: "#f1ece4", muted: "#a3a7a9", accent: "#e07a52", panel: "#1f2428" };
 }
 
-async function loadFonts(): Promise<void> {
+export async function loadFonts(): Promise<void> {
   try {
     await Promise.all([document.fonts.load('800 120px "Manrope"'), document.fonts.load('700 56px "Manrope"'), document.fonts.load('500 30px "DM Sans"')]);
   } catch {

@@ -144,7 +144,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("The family shelf");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Your year as a story");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -429,6 +429,26 @@ describe("the demo household", () => {
     await plan.getByText(/^Cancelled: ends /).waitFor();
     await plan.getByRole("button", { name: "Keep my membership" }).click();
     await plan.getByText("Active", { exact: true }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("plays the Year in Review as a story, one screen at a time, each a story-sized picture", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=stats");
+    await page.getByRole("button", { name: "Play as a story" }).click();
+    const dialog = page.getByRole("dialog", { name: "Your year as a story" });
+    await dialog.getByText(/^Screen 1 of \d+$/).waitFor();
+    const picture = dialog.getByRole("img", { name: /^Picture: Year in review: \d{4} .+'s year in books/ });
+    await picture.waitFor();
+    await expect(picture.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).resolves.toEqual([1080, 1920]);
+    await expect(dialog.getByRole("button", { name: "Previous" }).isDisabled()).resolves.toBe(true);
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await dialog.getByText(/^Screen 2 of \d+$/).waitFor();
+    await dialog.getByRole("img", { name: /^Picture: Time with books: / }).waitFor();
+    await dialog.getByRole("button", { name: "Previous" }).focus();
+    await page.keyboard.press("ArrowRight");
+    await dialog.getByText(/^Screen 3 of \d+$/).waitFor();
     expect(errors()).toEqual([]);
   });
 

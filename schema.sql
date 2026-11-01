@@ -7904,3 +7904,13 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$The family shelf$lw$, $lw$Grown-up and teen profiles can put a book on the family shelf from its page, and it shows on Home for everyone at home. Kids profiles see the books on it that their rating allows, so a shelf of bedtime stories or holiday reading is one place for the whole household.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$The family shelf$lw$ and c.version = $lw$2026.11$lw$);
+
+-- =============================================================================
+-- 20261101006543_whats_new_year_story.sql
+-- =============================================================================
+-- What's new: your year as a story (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Your year as a story$lw$, $lw$In My Library → Stats, Play as a story walks through your year one screen at a time: your time with books, books finished, your best streak, favourites and busiest month. Each screen is sized for Instagram, Facebook and TikTok stories, to share, download or copy. It's drawn on your device; nothing is uploaded.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Your year as a story$lw$ and c.version = $lw$2026.11$lw$);

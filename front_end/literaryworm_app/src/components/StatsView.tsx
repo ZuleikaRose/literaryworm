@@ -10,6 +10,7 @@ import type { Profile } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 import { YearCardDialog } from "./YearCardDialog";
+import { YearStoryDialog } from "./YearStoryDialog";
 
 const MONTHS = Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat(undefined, { month: "short", timeZone: "UTC" }).format(Date.UTC(2024, m, 1)));
 const MONTHS_LONG = Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat(undefined, { month: "long", timeZone: "UTC" }).format(Date.UTC(2024, m, 1)));
@@ -32,6 +33,7 @@ export function StatsView({ profile }: { profile: Profile }) {
   const highlights = activeReading(state).highlights;
   // Kept between renders so the share card isn't redrawn for nothing.
   const s = useMemo(() => yearStats(days, highlights, year), [days, highlights, year]);
+  const [story, setStory] = useState(false);
   const [sharing, setSharing] = useState(false);
   const hasReading = s.seconds > 0 || s.finished > 0;
   const goal = goals[year] ?? null;
@@ -48,6 +50,11 @@ export function StatsView({ profile }: { profile: Profile }) {
           {hasReading && (
             <button type="button" className="secondary-button small-button" onClick={() => setSharing(true)}>
               <Icon name="share" size={16} /> Share as a picture
+            </button>
+          )}
+          {hasReading && (
+            <button type="button" className="secondary-button small-button" onClick={() => setStory(true)}>
+              <Icon name="play" size={16} /> Play as a story
             </button>
           )}
         {years.length > 1 && (
@@ -67,6 +74,7 @@ export function StatsView({ profile }: { profile: Profile }) {
         </div>
       </header>
       <YearCardDialog open={sharing} onClose={() => setSharing(false)} name={profile.name} stats={s} goal={goal} />
+      <YearStoryDialog open={story} onClose={() => setStory(false)} name={profile.name} stats={s} goal={goal} />
 
       {!hasReading ? (
         <p className="stats-empty">

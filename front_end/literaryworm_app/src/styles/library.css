@@ -1776,3 +1776,36 @@ body:has(.mini-player) .listen-along-bar {
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Year in Review as a story (components/YearStoryDialog.tsx). */
+.year-story-count {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.year-story-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-reduce-motion]) .year-story-slide {
+    animation: story-in var(--dur) var(--ease-out);
+  }
+}
+
+@keyframes story-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+/* Story screens are 9:16, not the cards' 4:5. */
+.year-story .quote-card-preview {
+  aspect-ratio: 9 / 16;
+  max-width: calc(min(56vh, 520px) * 0.5625);
+}

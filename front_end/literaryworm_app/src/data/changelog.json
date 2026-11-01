@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Your year as a story",
+    "body": "In My Library → Stats, Play as a story walks through your year one screen at a time: your time with books, books finished, your best streak, favourites and busiest month. Each screen is sized for Instagram, Facebook and TikTok stories, to share, download or copy. It's drawn on your device; nothing is uploaded.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "The family shelf",
     "body": "Grown-up and teen profiles can put a book on the family shelf from its page, and it shows on Home for everyone at home. Kids profiles see the books on it that their rating allows, so a shelf of bedtime stories or holiday reading is one place for the whole household.",
     "major": false
