@@ -10,6 +10,7 @@ import { WhatsNewLink } from "../components/WhatsNewLink";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
+import { otherLanguageBooks } from "../lib/languages";
 import { fromFollowed } from "../lib/people";
 import { dueWords } from "../lib/words";
 import { today } from "../lib/reading";
@@ -89,6 +90,8 @@ export default function Browse() {
   const trending = catalog.filter((b) => b.trendingRank).sort((a, b) => a.trendingRank! - b.trendingRank!);
   const newReleases = catalog.filter((b) => b.newRelease);
   const topTen = [...catalog].sort((a, b) => b.rating - a.rating || b.ratingsCount - a.ratingsCount).slice(0, 10);
+  // The classics in French, German and Spanish this profile may see (lib/languages.ts).
+  const otherLanguages = otherLanguageBooks(profile.ageRating);
 
   // Recommendations from what this profile finished, rated and favourited (lib/recommend.ts).
   const inLibrary = new Set(Object.keys(library.entries));
@@ -210,6 +213,14 @@ export default function Browse() {
         <Shelf id="top-ten" eyebrow="Highest rated" title="Top 10 on LiteraryWorm" items={topTen.map(fromLocal)} ranked />
         {newReleases.length > 0 && (
           <Shelf id="new" eyebrow="Just added" title="New releases" items={newReleases.map(fromLocal)} />
+        )}
+        {otherLanguages.length > 0 && (
+          <Shelf
+            id="languages"
+            eyebrow="Classics in French, German and Spanish"
+            title="In their own language"
+            items={otherLanguages.map(fromLocal)}
+          />
         )}
         {/* With no history yet, the "Because you saved" row below says the same thing. */}
         {picked.length >= 3 && (taste.length > 0 || becauseSaved.length === 0) && (

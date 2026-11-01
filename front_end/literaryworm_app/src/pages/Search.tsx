@@ -9,12 +9,14 @@ import { SearchFilters } from "../components/SearchFilters";
 import { browseGenres, genreHref, genreLabel } from "../data/genres";
 import { type BookSummary, usesBackend } from "../lib/booksApi";
 import { fetchFollowerCounts } from "../lib/followersApi";
+import { otherLanguageBooks } from "../lib/languages";
 import { type AuthorMatch, followerCountNow, followersShort, matchingAuthors, personInitials, personPath } from "../lib/people";
 import { useFollows } from "../lib/useFollows";
 import {
   catalogMatches,
   cleanIsbn,
   didYouMean,
+  languageCode,
   normalizeQuery,
   QUERY_MAX,
   queryError,
@@ -175,6 +177,7 @@ function StartHere() {
   const profile = useActiveProfile();
   const recent = profile ? collections.recentSearches : [];
   const genreBase = profile ? "/browse" : "/";
+  const otherLanguages = otherLanguageBooks(profile?.ageRating ?? "all");
 
   return (
     <div className="search-start">
@@ -213,6 +216,22 @@ function StartHere() {
           </ul>
         </nav>
       </section>
+      {otherLanguages.length > 0 && (
+        <section aria-labelledby="languages-title">
+          <h2 id="languages-title">Or read a classic in its own language</h2>
+          <nav className="genre-nav" aria-label="Classics in other languages">
+            <ul role="list">
+              {otherLanguages.map((b) => (
+                <li key={b.id}>
+                  <Link to={`/books/${b.id}`}>
+                    <span lang={languageCode(b.language)}>{b.title}</span> ({b.language})
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </section>
+      )}
     </div>
   );
 }

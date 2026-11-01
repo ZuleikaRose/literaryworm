@@ -197,3 +197,7 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Plans cards, the Kids FAQ (`data/plans.ts`) and Help (migration 6527) describe the journal, word review, rest days and book requests |
 | — | Home page tour: *More than a reader* cards (`data/landingFeatures.ts`); What's new newest first (`sortEntries()` in `lib/changelog.ts`; migration 6528) |
 | — | Book rows keep loading: the `books`, `summaries` and `author-news` functions fall back through six Google Books keys (`_shared/googleBooks.ts`; What's new 6529) |
+| — | Notifications on a device (Web Push: `lib/push.ts`, `lib/pushState.ts`, `public/sw.js`, `push_subscriptions`, `account_private.push_kinds`; release day, meetings, club posts, streak, request answers; migrations 6535–6538, 6550–6553) |
+| — | The family shelf (`lib/familyShelf.ts`, `lib/useFamilyShelf.ts`, `FamilyShelfButton`, `family_shelf`; migrations 6539–6542), the year as a story (`lib/yearStory.ts`, `YearStoryDialog`; 6543), where everyone is in a club (`ClubPlaces`, `club_places()`; 6544–6546), smart lists (`lib/smartLists.ts`; 6547–6548) |
+| — | Six classics in French, German and Spanish (6549), with Discover's *In their own language* row and Search's links (`lib/languages.ts`; 6561) |
+| — | Your time with each book (`lib/bookStats.ts`, `BookStatsSection`, `book_reading_days`; migrations 6554–6557) and Previously… recaps (`lib/recapApi.ts`, `RecapDialog`, `recaps` function, `chapter_recaps`; 6558–6560); Plans cards, FAQs and the home page's tools describe them |

@@ -19,12 +19,12 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "ask",
     title: "Ask the book, without spoilers",
-    body: "On the classics, ask a question, see who's who or take a chapter quiz. The answers only use the pages you've reached.",
+    body: "On the classics, ask a question, see who's who, take a chapter quiz or catch up with Previously…. The answers only use the pages you've reached.",
   },
   {
     icon: "star",
     title: "Goals, streaks and badges",
-    body: "Set a yearly goal, keep a streak with two rest days a month, earn badges, and start a reading challenge with the whole household.",
+    body: "Set a yearly goal, keep a streak with two rest days a month, see your time with each book, earn badges, and start a reading challenge with the whole household.",
   },
   {
     icon: "edit",
@@ -34,7 +34,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "users",
     title: "Book clubs",
-    body: "Talk about a book without spoilers: posts past your chapter stay hidden. Plan meetings and add them to your calendar.",
+    body: "Talk about a book without spoilers: posts past your chapter stay hidden. See where everyone is, plan meetings and add them to your calendar.",
   },
   {
     icon: "headphones",
@@ -48,7 +48,7 @@ export const landingFeatures: LandingFeature[] = [
   },
   {
     icon: "bell",
-    title: "Follow authors",
-    body: "Follow the authors and narrators you love, and hear when a book you're waiting for comes out.",
+    title: "Follow authors, get notified",
+    body: "Follow the authors and narrators you love, and get a notification on your phone or computer when a book you're waiting for comes out.",
   },
 ];

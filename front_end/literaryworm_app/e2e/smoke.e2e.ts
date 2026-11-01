@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Previously\u2026, a recap when you come back");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Classics in their own language, easier to find");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -919,6 +919,19 @@ describe("the demo household", () => {
     await page.getByRole("region", { name: "My journal" }).getByRole("button", { name: /^Delete/ }).click();
     await page.getByRole("dialog", { name: "Delete this journal entry?" }).getByRole("button", { name: "Delete entry" }).click();
     await expect(page.getByRole("list", { name: "Journal entries for Frankenstein" }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("lists the classics in their own language on Discover and Search", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/browse");
+    const row = page.getByRole("region", { name: "In their own language" });
+    await row.getByRole("link", { name: /Effi Briest/ }).first().waitFor();
+    await goInApp(page, "/search");
+    const links = page.getByRole("navigation", { name: "Classics in other languages" });
+    await links.getByRole("link", { name: "Madame Bovary (French)" }).waitFor();
+    await expect(links.getByRole("link").count()).resolves.toBeGreaterThan(0);
     expect(errors()).toEqual([]);
   });
 

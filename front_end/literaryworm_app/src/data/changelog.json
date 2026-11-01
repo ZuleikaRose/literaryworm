@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Classics in their own language, easier to find",
+    "body": "Discover has a new row, In their own language, with the classics in French, German and Spanish, and Search lists them under Or read a classic in its own language. Plans and the home page now describe notifications on your devices, Previously… recaps, your time with each book and where everyone is in a club.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Previously…, a recap when you come back",
     "body": "Coming back to a classic audiobook? Previously… in the player (and in the mini-player's More) catches you up from the second chapter on: the story so far and what happened last time. It's written by AI from the chapters before yours only, so nothing ahead is given away.",

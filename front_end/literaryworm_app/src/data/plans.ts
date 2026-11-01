@@ -13,14 +13,15 @@ export const plans: Plan[] = [
     offlineDevices: 1,
     downloads: "Read offline on 1 device",
     features: [
-      "Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics",
+      "Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics, six of them in French, German or Spanish",
       "Search almost any book on Google Books and keep it in your library",
       "Highlights in twelve colours, notes, bookmarks and a dictionary in the reader",
       "A private reading journal on every book, and My words with spaced review",
-      "Favourites, custom lists, ratings and reading logs",
-      "AI book summaries, and Ask the book on the classics",
-      "Reading goals, streaks with two rest days a month, stats and a shareable Year in Review",
-      "Book clubs with spoiler-free discussion and listening along",
+      "Favourites, custom lists, smart lists that fill themselves, ratings and reading logs",
+      "AI book summaries, and Ask the book and Previously… recaps on the classics",
+      "Reading goals, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
+      "Book clubs with spoiler-free discussion, listening along and where everyone is in the book",
+      "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, and read offline",
       "Import your reading from Goodreads or StoryGraph",
       "Accessibility menu and read-along transcripts",
@@ -113,11 +114,19 @@ export const planFaqs = [
   },
   {
     q: "Are there audiobooks?",
-    a: "Yes. The public-domain classics play their LibriVox recordings, read by volunteers, with a mini-player that keeps going while you browse and controls on your lock screen. Other titles can be read aloud by your device's own voice, and you can carry on listening on another device where you left off.",
+    a: "Yes. The public-domain classics play their LibriVox recordings, read by volunteers, with a mini-player that keeps going while you browse and controls on your lock screen. Other titles can be read aloud by your device's own voice, and you can carry on listening on another device where you left off. Coming back after a break, Previously… in the player catches you up on the story so far.",
   },
   {
     q: "Can I bring my reading history from Goodreads or StoryGraph?",
     a: "Yes. Export your library from either site, then choose Import from Goodreads or StoryGraph in My Library. The file is read on your device; we find each book, show you what we found, and add the ones you tick with your shelf and star rating. Books you'd already read don't count towards this year's goal.",
+  },
+  {
+    q: "Can LiteraryWorm send notifications to my phone?",
+    a: "Yes. Turn on Notifications on this device in Account → Preferences, on each phone, tablet or computer you like, and choose what you hear about: books you're waiting for coming out, club meetings, new club posts up to your chapter, an evening nudge for your streak, and answers to Kids book requests. On iPhone and iPad, add LiteraryWorm to your Home Screen first. Logging out turns them off on that device.",
+  },
+  {
+    q: "Can I read in other languages?",
+    a: "Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.",
   },
   {
     q: "Who can see what I read?",
@@ -125,7 +134,7 @@ export const planFaqs = [
   },
   {
     q: "Are the book summaries written by AI?",
-    a: "Yes. Summaries and Ask the book are written by Claude, an AI model made by Anthropic, and are labelled as AI-written. Ask the book only reads up to your place in the book, so it won't spoil what comes next.",
+    a: "Yes. Summaries, Ask the book and Previously… recaps are written by Claude, an AI model made by Anthropic, and are labelled as AI-written. Ask the book only reads up to your place in the book, and a Previously… recap only the chapters before yours, so neither spoils what comes next.",
   },
   {
     q: "Which devices work?",

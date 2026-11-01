@@ -113,6 +113,8 @@ Kids profiles can then ask a grown-up for a book that isn't on their shelf; the 
 
 The site's description, structured data and sitemap then gave search engines the plans and prices (`lib/seo.ts`).
 
+Then, on 1 November 2026: a gentler sleep timer; notifications on members' devices (Web Push) for release days, club meetings, club posts up to the reader's chapter, the evening streak and Kids book-request answers, each kind a choice; the family shelf; the year as a story for social media; where everyone is in a club; smart lists; six classics in French, German and Spanish, with their own row on Discover and links on Search; reading statistics for each book; and *Previously…*, a spoiler-free recap written by Claude from the chapters before the listener's. Plans, the public home page and its FAQs describe them.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.
