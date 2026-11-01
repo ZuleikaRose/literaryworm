@@ -191,6 +191,11 @@ function demoWord(word: string, definition: string, bookId: string, reviewDue: s
   return { word, definition, bookId, chapterIndex: 0, page: null, context: null, learned: false, reviewDue, reviewStep, createdAt };
 }
 
+/** A demo highlight on Frankenstein's first page (its real words and offsets). */
+function demoHighlight(id: string, quote: string, start: number, color: Highlight["color"], note: string | null, createdAt: number): Highlight {
+  return { id, bookId: "frankenstein", chapterIndex: 0, page: 0, start, end: start + quote.length, quote, color, note, createdAt, reviewDue: null, reviewStep: 0 };
+}
+
 export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
@@ -279,7 +284,7 @@ export function demoHousehold(): Household {
       memberSince: null,
     },
     profiles: [avery, sam, mia],
-    profileData: { [avery.id]: averyData, [sam.id]: emptyProfileData(), [mia.id]: miaData },
+    profileData: { [avery.id]: averyData, [sam.id]: samData(now), [mia.id]: miaData },
   };
 }
 
@@ -298,3 +303,20 @@ export const initialState: AppState = {
   a11y: defaultA11y,
   households: { [DEMO_EMAIL]: demoHousehold() },
 };
+
+/**
+ * Sam's demo data: Frankenstein, with two highlights made last week, so Notes has a highlights
+ * review due (lib/highlightReview.ts) and Home says so.
+ */
+function samData(now: number): ProfileData {
+  const intro = "The event on which this fiction is founded has been supposed, by Dr. Darwin, and some of the physiological writers of Germany, as not of impossible occurrence.";
+  const weaving = "I have not considered myself as merely weaving a series of supernatural terrors.";
+  return {
+    ...emptyProfileData(),
+    library: Object.fromEntries([catalogEntry("frankenstein", "reading", now - 8 * 86_400_000)]),
+    highlights: [
+      demoHighlight("demo-highlight-1", intro, 0, "yellow", "Mary Shelley defending the premise before the story starts.", now - 7 * 86_400_000),
+      demoHighlight("demo-highlight-2", weaving, 311, "blue", null, now - 6 * 86_400_000),
+    ],
+  };
+}

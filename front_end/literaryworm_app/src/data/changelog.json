@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Review your highlights",
+    "body": "My Library → Notes now has Review for your highlights: each passage you marked comes back the day after, then after 1, 3, 7, 14, 30 and 60 days while it still matters, with your note and a link to the page. Up to 10 a day, and Home tells you when some are due.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "update",
     "title": "Classics in their own language, easier to find",
     "body": "Discover has a new row, In their own language, with the classics in French, German and Spanish, and Search lists them under Or read a classic in its own language. Plans and the home page now describe notifications on your devices, Previously… recaps, your time with each book and where everyone is in a club.",

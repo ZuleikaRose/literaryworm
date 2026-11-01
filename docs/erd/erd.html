@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6561, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6564, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -314,10 +314,12 @@
             ["", "quote", "text 1–2000"],
             ["", "color", "highlight_color (12)"],
             ["", "note", "text 1–2000", true],
+            ["", "review_due", "date", true],
+            ["", "review_step", "smallint 0–6"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "A passage on one reader page, in one of eight colours (yellow, green, blue, pink, orange, purple, teal, red), with an optional note. FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; browser edits color and note only.",
+          note: "A passage on one reader page, in one of twelve colours, with an optional note. review_due and review_step drive highlights review (spaced, like word review; 6562). FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; browser edits color, note and the review columns only.",
         },
         {
           id: "reader_profiles", color: colors.household, x: 840, y: 0, sub: "up to 12 per account",

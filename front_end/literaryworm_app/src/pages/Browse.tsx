@@ -13,6 +13,7 @@ import { fromLocal } from "../lib/booksApi";
 import { otherLanguageBooks } from "../lib/languages";
 import { fromFollowed } from "../lib/people";
 import { dueWords } from "../lib/words";
+import { useHighlightReview } from "../lib/useHighlightReview";
 import { today } from "../lib/reading";
 import { approvedBooks } from "../lib/bookRequests";
 import { shelfFor } from "../lib/familyShelf";
@@ -72,6 +73,8 @@ export default function Browse() {
   const catalog = books.filter(visible);
   // My words due for review today (lib/words.ts).
   const wordsDue = dueWords(data.words, today()).length;
+  // Highlights due for review today (lib/highlightReview.ts).
+  const highlightsDue = useHighlightReview().due.length;
   // Books above a Kids profile's rating that a grown-up said yes to (lib/bookRequests.ts).
   const saidYes = profile.ageRating === "kids" ? approvedBooks(data.bookRequests) : [];
   // The family shelf, as this profile may see it (lib/familyShelf.ts).
@@ -144,6 +147,15 @@ export default function Browse() {
             <Icon name="clock" size={18} />
             <span>
               <strong>{wordsDue === 1 ? "1 word" : `${wordsDue} words`} to review today</strong> from My words. A minute's practice keeps them.
+            </span>
+          </Link>
+        )}
+        {highlightsDue > 0 && (
+          <Link className="home-nudge" to="/library?view=notes">
+            <Icon name="highlighter" size={18} />
+            <span>
+              <strong>{highlightsDue === 1 ? "1 highlight" : `${highlightsDue} highlights`} to review today</strong> in Notes. Passages you
+              marked, back just before they fade.
             </span>
           </Link>
         )}

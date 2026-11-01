@@ -14,7 +14,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "highlighter",
     title: "Highlights, notes and words",
-    body: "Highlight in twelve colours, add notes, and look up any word. Words you keep come back for review just before you'd forget them.",
+    body: "Highlight in twelve colours, add notes, and look up any word. Words and passages you keep come back for review just before you'd forget them.",
   },
   {
     icon: "ask",

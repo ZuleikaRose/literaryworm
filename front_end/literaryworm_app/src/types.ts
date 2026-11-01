@@ -229,6 +229,10 @@ export interface Highlight {
   color: HighlightColor;
   note: string | null;
   createdAt: number;
+  /** Highlights review (lib/highlightReview.ts): the next review day (YYYY-MM-DD), null until the first. */
+  reviewDue?: string | null;
+  /** 0–6: how many times in a row it still mattered. */
+  reviewStep?: number;
 }
 
 /** The reader's display choices, kept per profile for the session. */

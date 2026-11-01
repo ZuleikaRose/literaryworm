@@ -16,7 +16,7 @@ export const plans: Plan[] = [
       "Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics, six of them in French, German or Spanish",
       "Search almost any book on Google Books and keep it in your library",
       "Highlights in twelve colours, notes, bookmarks and a dictionary in the reader",
-      "A private reading journal on every book, and My words with spaced review",
+      "A private reading journal on every book, and spaced review for My words and your highlights",
       "Favourites, custom lists, smart lists that fill themselves, ratings and reading logs",
       "AI book summaries, and Ask the book and Previously… recaps on the classics",
       "Reading goals, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",

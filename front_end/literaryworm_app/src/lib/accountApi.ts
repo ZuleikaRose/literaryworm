@@ -998,6 +998,8 @@ interface HighlightRow {
   color: HighlightColor;
   note: string | null;
   created_at: string;
+  review_due: string | null;
+  review_step: number;
 }
 
 const toHighlight = (row: HighlightRow): Highlight => ({
@@ -1011,10 +1013,12 @@ const toHighlight = (row: HighlightRow): Highlight => ({
   color: row.color,
   note: row.note,
   createdAt: Date.parse(row.created_at),
+  reviewDue: row.review_due,
+  reviewStep: row.review_step,
 });
 
 const PROGRESS_COLUMNS = "volume_id, format, chapter_index, position, finished, updated_at";
-const HIGHLIGHT_COLUMNS = "id, volume_id, chapter_index, page, start_offset, end_offset, quote, color, note, created_at";
+const HIGHLIGHT_COLUMNS = "id, volume_id, chapter_index, page, start_offset, end_offset, quote, color, note, created_at, review_due, review_step";
 const BOOKMARK_COLUMNS = "id, volume_id, format, chapter_index, position, label, created_at";
 
 /** The column's numeric(5,4): four decimal places, 0 to 1. */
@@ -1114,6 +1118,16 @@ export async function addHighlight(highlight: Omit<Highlight, "id" | "createdAt"
 export async function updateHighlight(id: string, patch: Partial<Pick<Highlight, "color" | "note">>): Promise<void> {
   const { error } = await client().from("highlights").update(patch).eq("id", id).eq("user_id", await signedInUserId());
   if (error) throw new AccountError(patch.note !== undefined ? "We couldn't save the note. Try again." : "We couldn't change the colour. Try again.");
+}
+
+/** Saves a highlights-review answer (lib/highlightReview.ts): the next review day and step. */
+export async function reviewHighlight(id: string, review: { reviewDue: string; reviewStep: number }): Promise<void> {
+  const { error } = await client()
+    .from("highlights")
+    .update({ review_due: review.reviewDue, review_step: review.reviewStep })
+    .eq("id", id)
+    .eq("user_id", await signedInUserId());
+  if (error) throw new AccountError("We couldn't save that. Try again.");
 }
 
 export async function removeHighlight(id: string): Promise<void> {

@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Classics in their own language, easier to find");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Review your highlights");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -919,6 +919,30 @@ describe("the demo household", () => {
     await page.getByRole("region", { name: "My journal" }).getByRole("button", { name: /^Delete/ }).click();
     await page.getByRole("dialog", { name: "Delete this journal entry?" }).getByRole("button", { name: "Delete entry" }).click();
     await expect(page.getByRole("list", { name: "Journal entries for Frankenstein" }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("reviews highlights that are due, from Home's nudge to Notes", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /^Sam/ }).click();
+    // Sam's two highlights from last week are due.
+    await page.getByRole("link", { name: /2 highlights to review today/ }).click();
+    await page.waitForURL(/view=notes/);
+    await page.getByRole("button", { name: "Review 2 highlights" }).click();
+    const dialog = page.getByRole("dialog", { name: "Review highlights" });
+    await dialog.getByText("Highlight 1 of 2").waitFor();
+    await dialog.getByText(/Mary Shelley defending the premise/).waitFor();
+    await dialog.getByRole("button", { name: "Still matters" }).click();
+    await dialog.getByText("Highlight 2 of 2").waitFor();
+    await dialog.getByRole("button", { name: "Again soon" }).click();
+    await dialog.getByText("That's all 2 highlights for today.").waitFor();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await page.getByText("No highlights to review today.").waitFor();
+    await goInApp(page, "/browse");
+    await page.getByRole("heading", { name: "Home for Sam" }).waitFor();
+    await expect(page.getByRole("link", { name: /highlights? to review today/ }).count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
 

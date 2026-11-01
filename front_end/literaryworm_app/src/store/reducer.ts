@@ -99,7 +99,7 @@ export type Action =
   | { type: "addBookmark"; bookmark: Bookmark }
   | { type: "removeBookmark"; id: string }
   | { type: "addHighlight"; highlight: Highlight }
-  | { type: "updateHighlight"; id: string; patch: Partial<Pick<Highlight, "color" | "note">> }
+  | { type: "updateHighlight"; id: string; patch: Partial<Pick<Highlight, "color" | "note" | "reviewDue" | "reviewStep">> }
   | { type: "removeHighlight"; id: string }
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setNarrationVoice"; voice: string | null }

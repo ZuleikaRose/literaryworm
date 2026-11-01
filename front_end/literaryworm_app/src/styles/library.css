@@ -1883,3 +1883,21 @@ body:has(.mini-player) .listen-along-bar {
   padding: 0 6px;
   font-weight: 700;
 }
+
+/* ---------- Highlights review ---------- */
+
+.highlight-review {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 20px;
+  justify-items: start;
+}
+
+.highlight-review-quote {
+  border-left: 4px solid var(--quote);
+}
+
+.highlight-review-note {
+  margin: 0;
+  font-size: 0.9375rem;
+}

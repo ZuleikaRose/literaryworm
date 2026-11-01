@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { type BookNotes, downloadText, exportFileName, exportNotes, type ExportFormat } from "../lib/exportNotes";
 import { useNotesBooks } from "../lib/useNotesBooks";
+import { HighlightReviewButton } from "./HighlightReview";
 import { Icon } from "./Icon";
 
 /** Markdown and Text buttons that save the notes as a file. */
@@ -49,6 +50,7 @@ export function NotesView() {
         </div>
         <ExportButtons books={books} name="my-literaryworm" label="Export all notes and highlights" />
       </div>
+      <HighlightReviewButton />
       <ul className="notes-books" role="list">
         {books.map((b) => {
           const notes = b.highlights.filter((h) => h.note).length;
