@@ -65,8 +65,13 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       }
     }
     // Notifications fail on their own: the emails above are already sent.
-    const pushes = deps.push ? await deps.push().catch((err) => (console.error("release-emails: notifications failed", err), { error: true })) : null;
-    return reply(200, { accounts: sent + failed, sent, failed, pushes });
+    const emails = { accounts: sent + failed, sent, failed };
+    if (!deps.push) return reply(200, emails);
+    const pushes = await deps.push().catch((err) => {
+      console.error("release-emails: notifications failed", err);
+      return { error: true };
+    });
+    return reply(200, { ...emails, pushes });
   } catch (err) {
     console.error("release-emails: run failed", err);
     return reply(500, { error: { code: "server_error", message: "Something went wrong. Try again." } });

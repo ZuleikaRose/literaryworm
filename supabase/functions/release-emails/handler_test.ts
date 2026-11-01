@@ -156,3 +156,28 @@ Deno.test("sameSecret", () => {
   assertFalse(sameSecret("abc", "abcd"));
   assertFalse(sameSecret("", "a"));
 });
+
+Deno.test("sends the notifications after the emails, and a failure there keeps the emails' answer", async () => {
+  const order: string[] = [];
+  const { deps } = setup([reminder()], {
+    send: () => Promise.resolve(void order.push("email")),
+    push: () => {
+      order.push("push");
+      return Promise.resolve({ accounts: 1, sent: 2, gone: 0, failed: 0 });
+    },
+  });
+  const res = await handle(post(`Bearer ${SECRET}`), deps);
+  assertEquals(await res.json(), { accounts: 1, sent: 1, failed: 0, pushes: { accounts: 1, sent: 2, gone: 0, failed: 0 } });
+  assertEquals(order, ["email", "push"]);
+  const broken = setup([], { push: () => Promise.reject(new Error("push service down")) });
+  const after = await handle(post(`Bearer ${SECRET}`), broken.deps);
+  assertEquals(after.status, 200);
+  assertEquals(await after.json(), { accounts: 0, sent: 0, failed: 0, pushes: { error: true } });
+});
+
+Deno.test("refused callers trigger no notifications", async () => {
+  let pushed = false;
+  const { deps } = setup([], { push: () => Promise.resolve(void (pushed = true)) });
+  assertEquals((await handle(post("Bearer wrong"), deps)).status, 401);
+  assertEquals(pushed, false);
+});
