@@ -210,3 +210,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Library export for Goodreads and StoryGraph (`lib/exportLibraryCsv.ts`, `ExportLibraryButtons`; migrations 6577–6578) |
 | — | OpenDyslexic, reading ruler and line focus (`lib/readingGuide.ts`, `ReadingGuide`, `@fontsource/opendyslexic`; migrations 6579–6580) |
 | — | Offline listening on a schedule (`lib/offlineSchedule.ts`, `ListenSchedule`, `ScheduledDownloads`; migrations 6581–6582) |
+| — | New prices and a 3-profile Standard: `data/plans.ts` (prices, `planFaqs`), `PRICES` in `checkout/index.ts`, `PLAN_ROOM` in `_shared/stripe.ts`, `index.html` from `lib/seo.ts`, the Terms, `WhatsNewLink` on Search; Stripe lookup keys moved to new prices (migrations 6585–6587) |

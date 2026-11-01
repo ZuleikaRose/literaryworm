@@ -30,10 +30,10 @@ describe("a visitor", () => {
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/plans`);
-    await page.getByText("$9.99").first().waitFor();
+    await page.getByText("$15.00").first().waitFor();
     await page.getByRole("radio", { name: /Yearly/ }).check({ force: true });
-    await page.getByText("$99.90").first().waitFor();
-    await page.getByText(/\$8\.33 a month, instead of \$9\.99/).waitFor();
+    await page.getByText("$150.00").first().waitFor();
+    await page.getByText(/\$12\.50 a month, instead of \$15\.00/).waitFor();
     // ?billing=yearly opens on yearly prices.
     await page.goto(`${BASE_URL}/plans?billing=yearly`);
     expect(await page.getByRole("radio", { name: /Yearly/ }).isChecked()).toBe(true);
@@ -168,9 +168,9 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("links to What's new from Home and Plans, not only the footer", async () => {
+  it("links to What's new from Home, Plans and Search, not only the footer", async () => {
     const { page, errors } = await newPage();
-    for (const path of ["/", "/plans"]) {
+    for (const path of ["/", "/search", "/plans"]) {
       await page.goto(`${BASE_URL}${path}`);
       const link = page.locator("main .whats-new-link").getByRole("link", { name: "See everything that's new" });
       await expect(link.getAttribute("href")).resolves.toBe("/whats-new");

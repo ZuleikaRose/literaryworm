@@ -3,7 +3,7 @@ import { formatPrice, plans } from "../data/plans";
 /** What search engines show for the site. index.html carries the same text and data (seo.test.ts checks). */
 export const SITE_URL = "https://www.literaryworm.com";
 
-/** "Basic $9.99, Standard $14.99 or Premium $24.99 a month" */
+/** "Basic $15.00, Standard $20.00 or Premium $30.00 a month" */
 export const planPrices = () =>
   `${plans
     .map((p) => `${p.name} ${formatPrice(p.price)}`)

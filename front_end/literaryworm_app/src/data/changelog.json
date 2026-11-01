@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "update",
+    "title": "New plan prices, and Standard with 3 profiles",
+    "body": "Basic is now $15.00 a month ($150.00 a year), Standard $20.00 ($200.00) with up to 3 profiles, and Premium $30.00 ($300.00) with up to 12 profiles and unlimited listening. A year is still ten months' price. If you're already a member, your price stays as it is, and a Standard household that already has more than 3 profiles keeps them. Questions about plans now covers each plan's features and more about the app.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Help when logging in doesn't respond",
     "body": "If Log in or Log in with a passkey does nothing, check your browser's site settings: LiteraryWorm never needs access to your local network, and allowing it can stop logging in from working. Help, the log-in page, the Privacy Policy and the Cookie Policy now say how to turn it off.",
     "major": false

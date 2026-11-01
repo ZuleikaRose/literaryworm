@@ -210,7 +210,7 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 
 **Weekly goal (grown-ups).** The same card as the Kids weekly goal; before a goal is set it holds a short question, the *Weekly reading goal* select (field width) and a primary *Save weekly goal*; once set, ghost *Change goal* and *Remove goal* buttons like the yearly goal's.
 
-**Moving to a smaller plan.** When the household doesn't fit the chosen plan, the checkout panel holds a `form-alert` instead of the form: one sentence per limit (*Standard has room for 5 profiles and your household has 8. Remove 3 in Who's reading? first.*), then a wrapping row of 44px-tall links, *Who's reading?* and *Account*, and a *Keep my plan* text button. Numbers are written as digits; the sentence says what to do, not that something is wrong.
+**Moving to a smaller plan.** When the household doesn't fit the chosen plan, the checkout panel holds a `form-alert` instead of the form: one sentence per limit (*Standard has room for 3 profiles and your household uses 8. Set aside or remove 5 in Who's reading? first.*), then a wrapping row of 44px-tall links, *Who's reading?* and *Account*, and a *Keep my plan* text button. Numbers are written as digits; the sentence says what to do, not that something is wrong.
 
 **Follower counts on author cards.** After the muted *3 books below*, a middle dot and *12 followers*, in the same small muted text; nothing until someone follows.
 

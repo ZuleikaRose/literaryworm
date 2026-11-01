@@ -9,8 +9,8 @@ const meta = (attr: string) => html.match(new RegExp(`<meta ${attr} content="([^
 
 describe("search results", () => {
   it("names every plan's monthly price", () => {
-    expect(planPrices()).toBe("Basic $9.99, Standard $14.99 or Premium $24.99 a month");
-    expect(plansDescription()).toContain("Yearly: Basic $99.90, Standard $149.90, Premium $249.90.");
+    expect(planPrices()).toBe("Basic $15.00, Standard $20.00 or Premium $30.00 a month");
+    expect(plansDescription()).toContain("Yearly: Basic $150.00, Standard $200.00, Premium $300.00.");
   });
 
   it("keeps index.html's description in step with the plans", () => {
@@ -23,6 +23,6 @@ describe("search results", () => {
     expect(JSON.parse(ld ?? "null")).toEqual(structuredData());
     const offers = structuredData()[1].offers ?? [];
     expect(offers).toHaveLength(plans.length * 2);
-    expect(offers.map((o) => o.price)).toEqual(["9.99", "99.90", "14.99", "149.90", "24.99", "249.90"]);
+    expect(offers.map((o) => o.price)).toEqual(["15.00", "150.00", "20.00", "200.00", "30.00", "300.00"]);
   });
 });

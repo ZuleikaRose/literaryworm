@@ -6,6 +6,7 @@ import { Dialog } from "../components/Dialog";
 import { FollowButton } from "../components/FollowButton";
 import { Icon } from "../components/Icon";
 import { SearchFilters } from "../components/SearchFilters";
+import { WhatsNewLink } from "../components/WhatsNewLink";
 import { browseGenres, genreHref, genreLabel } from "../data/genres";
 import { type BookSummary, usesBackend } from "../lib/booksApi";
 import { fetchFollowerCounts } from "../lib/followersApi";
@@ -386,6 +387,8 @@ function Results({ search }: { search: SearchParams }) {
             <Icon name="lock" size={15} /> {profile?.name}'s profile searches books picked for younger readers.
           </p>
         )}
+
+        <WhatsNewLink />
       </div>
 
       <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters" size="sm">

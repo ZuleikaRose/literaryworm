@@ -4,8 +4,8 @@ export const plans: Plan[] = [
   {
     id: "basic",
     name: "Basic",
-    price: 9.99,
-    yearlyPrice: 99.9,
+    price: 15,
+    yearlyPrice: 150,
     summary: "Ebooks for one reader.",
     profiles: 1,
     audioHours: "5 hours of audiobooks a month",
@@ -30,10 +30,10 @@ export const plans: Plan[] = [
   {
     id: "standard",
     name: "Standard",
-    price: 14.99,
-    yearlyPrice: 149.9,
+    price: 20,
+    yearlyPrice: 200,
     summary: "Reading and listening for a small household.",
-    profiles: 5,
+    profiles: 3,
     audioHours: "30 hours of audiobooks a month",
     audioHoursPerMonth: 30,
     offlineDevices: 10,
@@ -51,8 +51,8 @@ export const plans: Plan[] = [
   {
     id: "premium",
     name: "Premium",
-    price: 24.99,
-    yearlyPrice: 249.9,
+    price: 30,
+    yearlyPrice: 300,
     summary: "Unlimited listening for the whole family.",
     profiles: 12,
     audioHours: "Unlimited audiobooks",
@@ -61,8 +61,8 @@ export const plans: Plan[] = [
     downloads: "Read offline on 24 devices",
     features: [
       "Everything in Standard",
-      "Seven more profiles than Standard, for bigger households",
-      "About $1.50 a profile each month",
+      "Nine more profiles than Standard, for bigger households",
+      "$2.50 a profile each month with all 12 in use",
     ],
   },
 ];
@@ -73,8 +73,16 @@ export const planFaqs = [
     a: "Yes. Cancel online from Account in a few clicks, with no phone call needed. Cancel at least 48 hours before your next billing date to stop that charge; cancelling later still ends your membership, but after one more month (or one more year, if you pay yearly). You keep access until the end of the period you've paid for, and there are no refunds.",
   },
   {
+    q: "What does each plan cost and include?",
+    a: "Basic is $15.00 a month ($150.00 a year): 1 profile, 5 hours of audiobooks a month and Read offline on 1 device. Standard is $20.00 a month ($200.00 a year): up to 3 profiles, 30 hours of audiobooks a month and 10 offline devices. Premium is $30.00 a month ($300.00 a year): up to 12 profiles, unlimited audiobooks and 24 offline devices. Every plan has the whole catalog, the reader and player, book clubs, goals and stats, AI summaries, uploads and imports. Prices are in US dollars, plus any applicable tax.",
+  },
+  {
     q: "What's the difference between the plans?",
-    a: "How many people can read: Basic has one profile, Standard five and Premium twelve, with more listening time and devices as you go up. Kids and Teen profiles, PIN locks and household challenges need room for more than one profile, so they start with Standard. Every other feature is in every plan.",
+    a: "How many people can read: Basic has one profile, Standard three and Premium twelve, with more listening time and devices as you go up. Kids and Teen profiles, PIN locks and household challenges need room for more than one profile, so they start with Standard. Every other feature is in every plan. If your household already had more than 3 profiles on Standard before it changed to 3, you keep them; you just can't add more until there's room.",
+  },
+  {
+    q: "What is LiteraryWorm?",
+    a: "A reading and listening app for the whole household: ebooks and audiobooks in one library, with a profile for each person. Read in the reader with highlights, notes and a dictionary, listen with the player and mini-player, keep goals and streaks, join book clubs, and keep any book you find on Google Books in your library.",
   },
   {
     q: "Can I try it before I pay?",
@@ -138,7 +146,19 @@ export const planFaqs = [
   },
   {
     q: "Which devices work?",
-    a: "Any modern browser on a phone, tablet or computer. You can also install LiteraryWorm as an app from your browser.",
+    a: "Any modern browser on a phone, tablet or computer. You can also install LiteraryWorm as an app from your browser (on iPhone and iPad, Share → Add to Home Screen); there's nothing to download from an app store.",
+  },
+  {
+    q: "Can I pick up where I left off on another device?",
+    a: "Yes. Your place, bookmarks, highlights and notes follow you to every device you log in on, and an open book offers to jump to a place saved elsewhere. In the player, Listen on another device moves an audiobook to your phone, tablet or computer at the same spot.",
+  },
+  {
+    q: "Does LiteraryWorm need access to my local network?",
+    a: "No. If your browser asks whether LiteraryWorm can reach devices on your local network, choose Block. Allowing it can stop logging in from working; if Log in does nothing, set Local network access to Block in the site's settings and reload.",
+  },
+  {
+    q: "How do I keep my account secure?",
+    a: "Turn on two-step sign-in with an authenticator app, or add a passkey, in Account → Sign-in. Grown-ups can lock any profile with a PIN, and changes to Kids profiles always ask for the account password.",
   },
 ];
 

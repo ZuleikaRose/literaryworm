@@ -124,7 +124,7 @@ Deno.test("moving down a plan needs the household to fit it first; nothing touch
   assertEquals(res.status, 400);
   assertEquals(
     res.body.error.message,
-    "Standard has room for 5 profiles and your household uses 8. Set aside or remove 3 in Who's reading? first. " +
+    "Standard has room for 3 profiles and your household uses 8. Set aside or remove 5 in Who's reading? first. " +
       "Standard keeps books offline on 10 devices and 12 are saving books now. Free 2 in Account first.",
   );
   assertEquals(state.planChanges.length, 0);

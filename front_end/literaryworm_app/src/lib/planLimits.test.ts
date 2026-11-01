@@ -104,13 +104,13 @@ describe("moving down a plan", () => {
   const basic = planById.get("basic")!;
 
   it("fits when the household is no bigger than the plan", () => {
-    expect(tooBigFor(standard, { profiles: 5, offlineDevices: 10 })).toEqual([]);
+    expect(tooBigFor(standard, { profiles: 3, offlineDevices: 10 })).toEqual([]);
     expect(tooBigFor(planById.get("premium")!, { profiles: 12, offlineDevices: 24 })).toEqual([]);
   });
 
   it("says how many profiles and offline devices have to go, as the checkout function does", () => {
     expect(tooBigFor(standard, { profiles: 8, offlineDevices: 12 })).toEqual([
-      "Standard has room for 5 profiles and your household uses 8. Set aside or remove 3 in Who's reading? first.",
+      "Standard has room for 3 profiles and your household uses 8. Set aside or remove 5 in Who's reading? first.",
       "Standard keeps books offline on 10 devices and 12 are saving books now. Free 2 in Account first.",
     ]);
     expect(tooBigFor(basic, { profiles: 2, offlineDevices: 1 })).toEqual([

@@ -39,7 +39,7 @@ export const PLAN_NAMES: Record<PlanId, string> = { basic: "Basic", standard: "S
 /** Each plan's profiles and Read offline devices (public.plans and src/data/plans.ts have the same numbers). */
 export const PLAN_ROOM: Record<PlanId, { profiles: number; offlineDevices: number }> = {
   basic: { profiles: 1, offlineDevices: 1 },
-  standard: { profiles: 5, offlineDevices: 10 },
+  standard: { profiles: 3, offlineDevices: 10 },
   premium: { profiles: 12, offlineDevices: 24 },
 };
 

@@ -90,7 +90,7 @@ Then the texts moved to a public Supabase Storage bucket served at the same `/te
 
 Then a third 250 titles were added (571 in all), and then 300 more (871 in all).
 
-Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a year), in the app, the database and Stripe; memberships already running keep their price. Basic then went to $9.99 ($99.90 a year) the same way.
+Then Standard went to $14.99 and Premium to $24.99 a month (ten times that a year), in the app, the database and Stripe; memberships already running keep their price. Basic then went to $9.99 ($99.90 a year) the same way. On 1 November 2026 the prices became Basic $15.00, Standard $20.00 and Premium $30.00 a month (yearly ten times that), and Standard went to up to 3 profiles; households already over 3 keep theirs until their plan next changes.
 
 Then Search gained a third *Search by* choice, ISBN: the `books` function's new `isbn` mode asks Google Books for the edition, with the ISBN's check digit checked in the browser and in the function; Google Books only, since the catalog keeps no ISBNs.
 
