@@ -10,6 +10,7 @@ import type {
   CustomList,
   Follow,
   Highlight,
+  ReadingPlan,
   LibraryEntry,
   PlanId,
   PlayerSettings,
@@ -101,6 +102,7 @@ export type Action =
   | { type: "addHighlight"; highlight: Highlight }
   | { type: "updateHighlight"; id: string; patch: Partial<Pick<Highlight, "color" | "note" | "reviewDue" | "reviewStep">> }
   | { type: "removeHighlight"; id: string }
+  | { type: "setReadingPlans"; plans: ReadingPlan[] }
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
@@ -536,6 +538,9 @@ export function reducer(state: AppState, action: Action): AppState {
         ...reading,
         highlights: reading.highlights.map((h) => (h.id === action.id ? { ...h, ...action.patch } : h)),
       }));
+
+    case "setReadingPlans":
+      return withProfileData(state, (data) => ({ ...data, readingPlans: action.plans }));
 
     case "removeHighlight":
       return withReading(state, (reading) => ({

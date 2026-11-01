@@ -24,7 +24,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "star",
     title: "Goals, streaks and badges",
-    body: "Set a yearly goal, keep a streak with two rest days a month, see your time with each book, earn badges, and start a reading challenge with the whole household.",
+    body: "Set a yearly goal, plan to finish a book by a date, keep a streak with two rest days a month, see your time with each book, earn badges, and start a reading challenge with the whole household.",
   },
   {
     icon: "edit",

@@ -339,6 +339,16 @@ export interface Reminder {
   releaseDate: string;
 }
 
+/** A reading plan, "finish this book by a date" (lib/readingPlans.ts). */
+export interface ReadingPlan {
+  bookId: string;
+  /** The day to finish by (YYYY-MM-DD, local). */
+  finishBy: string;
+  /** Where the reader was when the plan started (0–1), and that day. */
+  startFraction: number;
+  startedOn: string;
+}
+
 export interface ProfileData {
   /** Keyed by book id. Replaces the old Reading List: "want to read" entries are that list. */
   library: Record<string, LibraryEntry>;
@@ -365,6 +375,8 @@ export interface ProfileData {
   readingDays: Record<string, ReadingDay>;
   /** Time with each book by local day (book id → day → time), for the book page's statistics. Members' come from Supabase. */
   bookDays?: Record<string, Record<string, BookDay>>;
+  /** In-memory accounts' reading plans (lib/readingPlans.ts); members' are in `reading_plans`. */
+  readingPlans?: ReadingPlan[];
   /** Books this profile uploaded, newest first. */
   uploads: UploadedBook[];
   /** Authors and narrators this profile follows, oldest first. */

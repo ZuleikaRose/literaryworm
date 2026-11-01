@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6569, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6573, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -654,6 +654,19 @@
           note: "A member's own highlight of the club's book, shared with the club; hidden past each reader's chapter like posts. The browser sends club, highlight and share_note; a trigger copies the passage, chapter, colour and (if asked) note, checks the book and caps 300 per member per club. FK (club_id, user_id) → club_members and highlight_id → highlights, both on delete cascade; both indexed. RLS: members read; insert and delete own.",
         },
         {
+          id: "reading_plans", color: colors.household, x: 840, y: 8160, sub: "per profile · finish by a date",
+          cols: [
+            ["pk fk", "profile_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text"],
+            ["", "finish_by", "date"],
+            ["", "start_fraction", "numeric 0–1"],
+            ["", "started_on", "date"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "A reading plan: the day to finish a book by, and where the reader was when it started (for ahead or behind); the app works out pages and minutes a day. Up to 20 per profile, today to two years ahead (trigger). FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; index on user_id. RLS: owner only.",
+        },
+        {
           id: "chapter_recaps", color: colors.server, x: 0, y: 8160, sub: "previously… · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -983,6 +996,7 @@
         ["family_shelf", "user_id", "auth.users", "id", "N : 1"],
         ["family_shelf", "added_by", "reader_profiles", "id", "N : 1"],
         ["club_highlights", "club_id", "club_members", "club_id", "N : 1 (pair)"],
+        ["reading_plans", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["club_highlights", "highlight_id", "highlights", "id", "N : 1"],
         ["club_meeting_pushes", "meeting_id", "club_meetings", "id", "N : 1"],
         ["club_meeting_pushes", "user_id", "auth.users", "id", "N : 1"],

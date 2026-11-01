@@ -4,6 +4,7 @@ import { FeaturedCarousel } from "../components/FeaturedCarousel";
 import { GenreNav } from "../components/GenreNav";
 import { MostFollowed } from "../components/MostFollowed";
 import { OutNow } from "../components/RemindersView";
+import { ReadingPlansCard } from "../components/ReadingPlansCard";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
 import { WhatsNewLink } from "../components/WhatsNewLink";
@@ -159,6 +160,7 @@ export default function Browse() {
             </span>
           </Link>
         )}
+        <ReadingPlansCard />
         {continueReading.length > 0 && (
           <Shelf
             id="continue"

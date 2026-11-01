@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Reading plans: finish by a date",
+    "body": "On any book's page, choose a day to finish it by. Reading plan works out about how many minutes (at your own pace) or pages a day get you there, and tells you whether you're on track, ahead or behind. Home lists your plans with the days left. Change the date or remove a plan any time.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Share highlights with your book club",
     "body": "On a club's page, Shared highlights shows the passages members marked in the book, with their notes if they chose to share them. Ones from chapters you haven't reached stay hidden until you choose to see them, like posts. Share one of your own from the list there, and stop sharing it whenever you like.",
     "major": true

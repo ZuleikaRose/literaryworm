@@ -961,3 +961,52 @@
     gap: 20px;
   }
 }
+
+/* ---------- Reading plan ---------- */
+
+.reading-plan {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 65px);
+  padding: 52px clamp(0px, 3vw, 55px) 0;
+}
+
+.reading-plan-body,
+.reading-plan-form {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.reading-plan-form {
+  gap: 6px;
+}
+
+.reading-plan-row,
+.reading-plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.reading-plan-row input {
+  min-height: 44px;
+}
+
+.plan-ahead,
+.plan-done {
+  color: var(--success);
+}
+
+.plan-behind,
+.plan-overdue {
+  color: var(--danger);
+}
+
+@media (max-width: 860px) {
+  .reading-plan {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

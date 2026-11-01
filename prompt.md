@@ -119,6 +119,8 @@ Then highlights review: spaced repetition for highlights in My Library → Notes
 
 Then shared highlights in book clubs: members share their own highlights of the club's book, hidden past each reader's chapter like posts.
 
+Then reading plans: "finish this book by a date", with a day's share in minutes at the reader's own pace or pages, and on track, ahead or behind.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

@@ -19,7 +19,7 @@ export const plans: Plan[] = [
       "A private reading journal on every book, and spaced review for My words and your highlights",
       "Favourites, custom lists, smart lists that fill themselves, ratings and reading logs",
       "AI book summaries, and Ask the book and Previously… recaps on the classics",
-      "Reading goals, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
+      "Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
       "Book clubs with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, and read offline",

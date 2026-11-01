@@ -22,6 +22,7 @@ import type {
   BookRequest,
   JournalEntry,
   QuizResult,
+  ReadingPlan,
   ReadingStatus,
 } from "../types";
 import { bookDaysFromRows } from "./bookStats";
@@ -1856,4 +1857,47 @@ export async function addToFamilyShelf(profileId: string, bookId: string): Promi
 export async function removeFromFamilyShelf(bookId: string): Promise<void> {
   const { error } = await client().from("family_shelf").delete().eq("volume_id", bookId);
   if (error) throw new AccountError("We couldn't take it off the family shelf. Try again.");
+}
+
+// ---------- Reading plans (reading_plans, migration 6570) ----------
+
+interface PlanRow {
+  volume_id: string;
+  finish_by: string;
+  start_fraction: number | string;
+  started_on: string;
+}
+
+/** A profile's reading plans. */
+export async function loadReadingPlans(profileId: string): Promise<ReadingPlan[]> {
+  const { data, error } = await client().from("reading_plans").select("volume_id, finish_by, start_fraction, started_on").eq("profile_id", profileId).order("finish_by");
+  if (error) throw new AccountError("We couldn't load your reading plans. Try again.");
+  return (data as PlanRow[]).map((r) => ({ bookId: r.volume_id, finishBy: r.finish_by, startFraction: Number(r.start_fraction), startedOn: r.started_on }));
+}
+
+/** Makes a plan, or changes the date of one (starting it again from where the reader is now). */
+export async function saveReadingPlan(profileId: string, plan: ReadingPlan): Promise<void> {
+  const { error } = await client()
+    .from("reading_plans")
+    .upsert(
+      {
+        profile_id: profileId,
+        user_id: await signedInUserId(),
+        volume_id: plan.bookId,
+        finish_by: plan.finishBy,
+        start_fraction: Math.round(plan.startFraction * 10_000) / 10_000,
+        started_on: plan.startedOn,
+      },
+      { onConflict: "profile_id,user_id,volume_id" },
+    );
+  if (error) {
+    if (error.message.includes("up to 20")) throw new AccountError("A profile can have up to 20 reading plans. Remove one to make another.");
+    if (error.message.includes("two years")) throw new AccountError("Choose a day from today to two years ahead.");
+    throw new AccountError("We couldn't save the plan. Try again.");
+  }
+}
+
+export async function removeReadingPlan(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("reading_plans").delete().eq("profile_id", profileId).eq("volume_id", bookId).eq("user_id", await signedInUserId());
+  if (error) throw new AccountError("We couldn't remove the plan. Try again.");
 }

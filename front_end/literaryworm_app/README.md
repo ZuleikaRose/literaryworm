@@ -203,3 +203,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Your time with each book (`lib/bookStats.ts`, `BookStatsSection`, `book_reading_days`; migrations 6554–6557) and Previously… recaps (`lib/recapApi.ts`, `RecapDialog`, `recaps` function, `chapter_recaps`; 6558–6560); Plans cards, FAQs and the home page's tools describe them |
 | — | Highlights review: spaced review in Notes and a Home nudge (`lib/highlightReview.ts`, `lib/useHighlightReview.ts`, `HighlightReview`, `highlights.review_due`, `review_step`; migrations 6562–6564) |
 | — | Shared highlights in book clubs (`lib/clubHighlights.ts`, `lib/useClubHighlights.ts`, `ClubHighlights`, `club_highlights`; migrations 6565–6569) |
+| — | Reading plans: finish by a date (`lib/readingPlans.ts`, `lib/useReadingPlans.ts`, `ReadingPlanSection`, `ReadingPlansCard`, `reading_plans`; migrations 6570–6573) |

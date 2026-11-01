@@ -112,6 +112,12 @@ export function useAccount() {
       : state.logs.filter((l) => l.profileId && state.profiles.some((p) => p.id === l.profileId));
     const { password: _password, ...details } = account;
     const reading = activeReading(state);
+    // Reading plans aren't kept in memory for members; read each profile's (none if that fails).
+    const plans = Object.fromEntries(
+      await Promise.all(
+        state.profiles.map(async (p) => [p.id, userId ? await accountApi.loadReadingPlans(p.id).catch(() => []) : (state.profileData[p.id]?.readingPlans ?? [])] as const),
+      ),
+    );
     const data = {
       exportedAt: new Date().toISOString(),
       account: details,
@@ -136,6 +142,7 @@ export function useAccount() {
             askedAt: new Date(r.createdAt).toISOString(),
             answeredAt: r.answeredAt ? new Date(r.answeredAt).toISOString() : null,
           })),
+          readingPlans: plans[profile.id] ?? [],
           readingWordsPerMinute: data?.readingWpm ?? null,
           newFromFollowedAuthors: (data?.authorNews ?? []).map(({ foundAt, ...n }) => ({ ...n, foundAt: new Date(foundAt).toISOString() })),
           player: data?.player ?? null,

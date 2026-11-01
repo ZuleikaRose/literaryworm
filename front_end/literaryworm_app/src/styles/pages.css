@@ -501,3 +501,46 @@
 .home-nudge:hover strong {
   text-decoration: underline;
 }
+
+/* Home: Your reading plans (components/ReadingPlansCard.tsx). */
+.reading-plans-card {
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.reading-plans-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1.0625rem;
+}
+
+.reading-plans-card h2 svg {
+  color: var(--rust-bright);
+}
+
+.reading-plans-card ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reading-plans-card li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  min-height: 44px;
+}
+
+.reading-plans-card li a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}

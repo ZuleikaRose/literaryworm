@@ -12,6 +12,7 @@ import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
 import { AskGrownUp } from "../components/AskGrownUp";
 import { BookStatsSection } from "../components/BookStatsSection";
+import { ReadingPlanSection } from "../components/ReadingPlanSection";
 import { JournalSection } from "../components/JournalSection";
 import { canAsk, mayOpen } from "../lib/bookRequests";
 import { LogCard } from "../components/LogCard";
@@ -529,6 +530,10 @@ function DetailPage({ view }: { view: DetailView }) {
       )}
 
       {profile && <BookStatsSection bookId={view.id} at={place?.fraction ?? null} finished={Boolean(place?.finished)} />}
+
+      {profile && (
+        <ReadingPlanSection bookId={view.id} title={view.title} pages={view.pageCount} at={place?.fraction ?? 0} finished={Boolean(place?.finished)} />
+      )}
 
       {profile && <JournalSection bookId={view.id} title={view.title} />}
 

@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Share highlights with your book club");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Reading plans: finish by a date");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -943,6 +943,35 @@ describe("the demo household", () => {
     await goInApp(page, "/browse");
     await page.getByRole("heading", { name: "Home for Sam" }).waitFor();
     await expect(page.getByRole("link", { name: /highlights? to review today/ }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("makes a reading plan with a day's share, shows it on Home, and removes it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/the-midnight-library");
+    const plan = page.getByRole("region", { name: "Reading plan" });
+    // A day already gone is refused, with the reason next to the field.
+    await plan.getByLabel("Finish by").fill("2020-01-01");
+    await plan.getByRole("button", { name: "Make a plan" }).click();
+    await plan.getByText("Choose today or a day still to come.").waitFor();
+    // Two weeks from today (the browser's own calendar).
+    const inTwoWeeks = await page.evaluate(() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 13);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    });
+    await plan.getByLabel("Finish by").fill(inTwoWeeks);
+    await plan.getByRole("button", { name: "Make a plan" }).click();
+    await plan.getByText("14 days left", { exact: false }).waitFor();
+    await plan.getByText(/^About \d+ (minutes?|hr).* a day$/).waitFor();
+    await plan.getByText("On track").waitFor();
+    await goInApp(page, "/browse");
+    const card = page.getByRole("region", { name: "Your reading plans" });
+    await card.getByRole("link", { name: "The Midnight Library" }).click();
+    await page.waitForURL(/\/books\/the-midnight-library/);
+    await page.getByRole("region", { name: "Reading plan" }).getByRole("button", { name: "Remove the plan" }).click();
+    await page.getByRole("region", { name: "Reading plan" }).getByRole("button", { name: "Make a plan" }).waitFor();
     expect(errors()).toEqual([]);
   });
 
