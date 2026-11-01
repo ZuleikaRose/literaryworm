@@ -74,6 +74,50 @@ describe("badges", () => {
   });
 });
 
+describe("the newer badges", () => {
+  it("has 30 badges, each with its own id", () => {
+    expect(BADGE_RULES).toHaveLength(30);
+    expect(new Set(BADGE_RULES.map((r) => r.id)).size).toBe(30);
+  });
+
+  it("counts reading days, a marathon day and the first hour listened", () => {
+    const list = badges({ ...empty, readingDays: { ...run(100), "2026-07-01": { seconds: 3 * 3600, finished: 0, listened: 3600 } } });
+    expect(byId(list, "days-100").earnedAt).toBe(new Date(2026, 5, 8).getTime());
+    expect(byId(list, "marathon").earnedAt).toBe(new Date(2026, 6, 1).getTime());
+    expect(byId(list, "listener-1").earnedAt).toBe(new Date(2026, 6, 1).getTime());
+    expect(byId(list, "streak-14").earnedAt).toBe(new Date(2026, 2, 14).getTime());
+    expect(byId(list, "streak-100").earnedAt).toBe(new Date(2026, 5, 8).getTime());
+    // 100 days of half an hour is 50 hours on 8 June.
+    expect(byId(list, "hours-50").earnedAt).toBe(new Date(2026, 5, 8).getTime());
+    expect(byId(badges({ ...empty, readingDays: run(99) }), "days-100").earnedAt).toBeNull();
+  });
+
+  it("earns World reader for a classic in its own language, not for an English one", () => {
+    const french = badges({ ...empty, readingDays: { "2026-03-04": { seconds: 600, finished: 1, books: ["candide-fr"] } } });
+    expect(byId(french, "language-1").earnedAt).toBe(new Date(2026, 2, 4).getTime());
+    const english = badges({ ...empty, readingDays: { "2026-03-04": { seconds: 600, finished: 1, books: ["candide"] } } });
+    expect(byId(english, "language-1").earnedAt).toBeNull();
+  });
+
+  it("counts every series finished, not just the first", () => {
+    const list = badges({
+      ...empty,
+      readingDays: {
+        "2026-03-01": { seconds: 600, finished: 2, books: ["alice-in-wonderland", "through-the-looking-glass"] },
+      },
+    });
+    expect(byId(list, "series-1").progress).toBe(1);
+    expect(byId(list, "series-3").progress).toBe(1);
+    expect(byId(list, "series-3").earnedAt).toBeNull();
+  });
+
+  it("caps progress at the target", () => {
+    const list = badges({ ...empty, readingDays: run(120) });
+    expect(byId(list, "days-100").progress).toBe(100);
+    expect(byId(list, "streak-14").progress).toBe(14);
+  });
+});
+
 describe("badgeAlerts", () => {
   it("shows badges from the last week only", () => {
     const list = badges({ ...empty, readingDays: { "2026-03-04": { seconds: 600, finished: 1, books: ["frankenstein"] } } });

@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Book clubs on books you uploaded");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("16 new badges");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -916,6 +916,9 @@ describe("the demo household", () => {
     await page.getByRole("heading", { name: "Badges", level: 2 }).waitFor();
     // The demo has finished books, so the first one is earned.
     await page.locator(".badge-card.is-earned").filter({ hasText: "First finish" }).waitFor();
+    // All 30, the 16 added in November among them.
+    await page.getByText(/ of 30 earned\./).waitFor();
+    await page.locator(".badge-card").filter({ hasText: "World reader" }).waitFor();
     await goInApp(page, "/library?view=words");
     await page.getByText(/3 words\. 2 to review today/).waitFor();
     await goInApp(page, "/library?view=notes");

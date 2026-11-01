@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "16 new badges",
+    "body": "My Library → Badges now has 30 badges. New ones: 25 and 100 books, two weeks and 100 days in a row, 100 reading days, a three-hour marathon day, 50 and 250 hours, your first hour and 50 hours of listening, 10 genres, a book in another language, 25 classics, three series, 50 words and 100 highlights. They're worked out from what you already read, listen to and keep, so any you've already earned show straight away.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Book clubs on books you uploaded",
     "body": "Start a book club around a book you uploaded, such as a DRM-free EPUB you bought: choose My uploads when you start one, and search by title or author to find it. Your file stays private. The club sees the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion, where everyone is and shared highlights follow their place in it without spoilers.",
     "major": true
