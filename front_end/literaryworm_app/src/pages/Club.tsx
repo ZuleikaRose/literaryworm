@@ -24,6 +24,7 @@ import {
 import { AccountError } from "../lib/accountApi";
 import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
+import { ClubPlaces } from "../components/ClubPlaces";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
 import { usePlayback } from "../lib/playback";
@@ -693,6 +694,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         <aside className="club-side">
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
+          <ClubPlaces clubId={club.id} members={members} me={me} />
           <section className="goal-card" aria-labelledby="invite-title">
             <h2 id="invite-title">Invite</h2>
             <InviteByEmail clubId={club.id} />

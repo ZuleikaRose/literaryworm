@@ -1809,3 +1809,41 @@ body:has(.mini-player) .listen-along-bar {
   aspect-ratio: 9 / 16;
   max-width: calc(min(56vh, 520px) * 0.5625);
 }
+
+/* Where everyone is (components/ClubPlaces.tsx). */
+.club-places-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.club-places-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+}
+
+.club-place-name {
+  font-weight: 700;
+}
+
+.club-place-where {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.club-place-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.club-place-bar span {
+  display: block;
+  height: 100%;
+  background: var(--rust-bright);
+}

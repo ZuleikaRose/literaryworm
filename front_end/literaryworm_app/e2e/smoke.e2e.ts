@@ -144,7 +144,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Your year as a story");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("See where your club is");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -269,6 +269,19 @@ describe("the demo household", () => {
     expect(file.suggestedFilename()).toMatch(/^sunday-classics-\d{4}-\d{2}-\d{2}\.ics$/);
     // The demo member didn't start this club, so only its owner's tools are missing.
     expect(await meetings.getByRole("button", { name: /Schedule a meeting/ }).count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows where the club's members are, and lets this member show their own place", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const places = page.getByRole("region", { name: "Where everyone is" });
+    await places.getByText(/^Chapter \d+ · \d+%$/).first().waitFor();
+    const share = places.getByRole("switch", { name: /Show my place to this club/ });
+    await expect(share.isChecked()).resolves.toBe(false);
+    await share.check({ force: true });
+    await expect(share.isChecked()).resolves.toBe(true);
     expect(errors()).toEqual([]);
   });
 

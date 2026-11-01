@@ -296,3 +296,31 @@ export function watchClubPosts(onPost: (event: ClubPostEvent) => void): () => vo
     void db.removeChannel(channel);
   };
 }
+
+// --- Where everyone is (lib/clubPlaces.ts) ---
+
+/** Places of the members who show theirs. Members only (club_places()). */
+export async function fetchClubPlaces(clubId: string): Promise<import("./clubPlaces").ClubPlace[]> {
+  const { data, error } = await client().rpc("club_places", { p_club: clubId });
+  if (error) throw new Error("We couldn't load where everyone is. Try again in a moment.");
+  return (data as { user_id: string; display_name: string | null; chapter_index: number; fraction: number; finished: boolean; updated_at: string }[]).map((r) => ({
+    userId: r.user_id,
+    name: r.display_name ?? "A member",
+    chapterIndex: r.chapter_index,
+    fraction: Number(r.fraction),
+    finished: r.finished,
+    updatedAt: Date.parse(r.updated_at),
+  }));
+}
+
+/** Whether this account shows its place in the club. */
+export async function loadSharePlace(clubId: string): Promise<boolean> {
+  const { data, error } = await client().from("club_members").select("share_place").eq("club_id", clubId).eq("user_id", await signedInUserId()).maybeSingle();
+  if (error) throw new Error("We couldn't load your club settings.");
+  return Boolean(data?.share_place);
+}
+
+export async function setSharePlace(clubId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("club_members").update({ share_place: on }).eq("club_id", clubId).eq("user_id", await signedInUserId());
+  if (error) throw new Error("We couldn't change that. Try again.");
+}

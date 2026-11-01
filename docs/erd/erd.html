@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6542, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6546, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -707,8 +707,9 @@
             ["", "joined_at", "timestamptz"],
             ["", "last_read_at", "timestamptz"],
             ["", "notify", "boolean"],
+            ["", "share_place", "boolean"],
           ],
-          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited). Members change only their own notify; mark_club_read() and club_unread() keep and count new posts.",
+          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited). Members change only their own notify and share_place; mark_club_read() and club_unread() keep and count new posts; club_places() gives members the places of those who share.",
         },
         {
           id: "club_posts", color: colors.reading, x: 1260, y: 2400, sub: "discussion by chapter",

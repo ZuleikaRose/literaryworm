@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "See where your club is",
+    "body": "A book club's page now shows where everyone is in the book: each member's chapter and how far through they are, for members who turn on Show my place to this club. It's off until you choose, it shows nothing else about your reading, and posts past your chapter stay hidden as before.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Your year as a story",
     "body": "In My Library → Stats, Play as a story walks through your year one screen at a time: your time with books, books finished, your best streak, favourites and busiest month. Each screen is sized for Instagram, Facebook and TikTok stories, to share, download or copy. It's drawn on your device; nothing is uploaded.",
     "major": false
