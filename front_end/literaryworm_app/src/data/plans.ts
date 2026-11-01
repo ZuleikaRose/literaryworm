@@ -23,7 +23,7 @@ export const plans: Plan[] = [
       "Book clubs with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, and read offline",
-      "Import your reading from Goodreads or StoryGraph",
+      "Import your reading from Goodreads or StoryGraph, and export it back in either's format",
       "Accessibility menu and read-along transcripts",
     ],
   },

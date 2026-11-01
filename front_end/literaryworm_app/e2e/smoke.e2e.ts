@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Gift a book or a list with a membership");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Export your library for Goodreads or StoryGraph");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -943,6 +943,24 @@ describe("the demo household", () => {
     await goInApp(page, "/browse");
     await page.getByRole("heading", { name: "Home for Sam" }).waitFor();
     await expect(page.getByRole("link", { name: /highlights? to review today/ }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("exports the library as a Goodreads CSV that names its books and shelves", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library");
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export for Goodreads" }).click()]);
+    expect(download.suggestedFilename()).toMatch(/^literaryworm-goodreads-\d{4}-\d{2}-\d{2}\.csv$/);
+    const stream = await download.createReadStream();
+    let text = "";
+    for await (const chunk of stream) text += chunk.toString("utf8");
+    expect(text).toContain("Book Id,Title,Author,Author l-f");
+    // Avery's demo library: Dune is being read, Babel is to read.
+    expect(text).toMatch(/,Dune,Frank Herbert,"Herbert, Frank",/);
+    expect(text).toContain("currently-reading");
+    expect(text).toContain("to-read");
+    await page.getByText(/Saved \d+ books as a Goodreads file\./).waitFor({ state: "attached" });
     expect(errors()).toEqual([]);
   });
 

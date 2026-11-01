@@ -205,3 +205,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Shared highlights in book clubs (`lib/clubHighlights.ts`, `lib/useClubHighlights.ts`, `ClubHighlights`, `club_highlights`; migrations 6565–6569) |
 | — | Reading plans: finish by a date (`lib/readingPlans.ts`, `lib/useReadingPlans.ts`, `ReadingPlanSection`, `ReadingPlansCard`, `reading_plans`; migrations 6570–6573) |
 | — | Gift a book or a list with a membership (`GiftBooksPicker`, `addGiftBooks()` in `lib/gifts.ts`; `checkout`, `stripe-webhook`, `gift-reminders`, `manage-account`; `gift_codes.books`; migrations 6574–6576) |
+| — | Library export for Goodreads and StoryGraph (`lib/exportLibraryCsv.ts`, `ExportLibraryButtons`; migrations 6577–6578) |

@@ -14,6 +14,7 @@ import { Dialog } from "../components/Dialog";
 import { Field } from "../components/Field";
 import { GoalsView } from "../components/GoalsView";
 import { Icon } from "../components/Icon";
+import { ExportLibraryButtons } from "../components/ExportLibraryButtons";
 import { ImportDialog } from "../components/ImportDialog";
 import { FollowingView } from "../components/FollowingView";
 import { NotesView } from "../components/NotesView";
@@ -287,6 +288,7 @@ function LibraryView({ profile }: { profile: Profile }) {
             <Icon name="download" size={16} /> Import from Goodreads or
             StoryGraph
           </button>
+          <ExportLibraryButtons />
         </div>
       )}
       <ImportDialog

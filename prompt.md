@@ -123,6 +123,8 @@ Then reading plans: "finish this book by a date", with a day's share in minutes 
 
 Then gifts with books: a gift membership can come with up to 10 LiteraryWorm books, chosen by title or from a list, named in the recipient's email and added to their library when they redeem it.
 
+Then library export: the library as a Goodreads or StoryGraph CSV, made in the browser.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.
