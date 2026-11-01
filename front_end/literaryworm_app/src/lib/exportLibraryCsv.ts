@@ -17,6 +17,8 @@ export interface ExportBook {
   addedAt: number;
   /** The day it was finished (YYYY-MM-DD), when known. */
   finishedOn: string | null;
+  /** Every day it was finished here, oldest first (rereads, lib/rereads.ts), when known. */
+  readDays?: string[];
   pages: number | null;
   year: number | null;
   rating: RatingValue | null;
@@ -24,7 +26,7 @@ export interface ExportBook {
 
 export const STARS: Record<RatingValue, number> = { love: 5, like: 4, "not-for-me": 2 };
 
-const SHELF: Record<ReadingStatus, string> = { finished: "read", reading: "currently-reading", want_to_read: "to-read" };
+const SHELF: Record<ReadingStatus, string> = { finished: "read", reading: "currently-reading", want_to_read: "to-read", did_not_finish: "did-not-finish" };
 
 /** A CSV cell: quoted when it needs to be; a leading =, + or @ is kept as text so spreadsheets don't run it as a formula. */
 export function csvCell(value: string | number | null | undefined): string {
@@ -68,6 +70,13 @@ export const STORYGRAPH_HEADER = [
   "Star Rating", "Review", "Content Warnings", "Content Warning Description", "Tags", "Owned?",
 ];
 
+/** Read Count: the finish days, else 1 for a Finished book. */
+const readCount = (b: ExportBook) => Math.max(b.readDays?.length ?? 0, b.status === "finished" ? 1 : 0);
+
+/** StoryGraph's Dates Read: each read as a day range, comma-separated ("2025/01/10-2025/01/10, 2026/03/02-2026/03/02"). */
+const datesRead = (b: ExportBook) =>
+  b.readDays?.length ? b.readDays.map((d) => `${slashDate(d)}-${slashDate(d)}`).join(", ") : b.status === "finished" && b.finishedOn ? slashDate(b.finishedOn) : "";
+
 export function toCsv(books: ExportBook[], format: ExportFormat): string {
   const lines =
     format === "goodreads"
@@ -78,7 +87,7 @@ export function toCsv(books: ExportBook[], format: ExportFormat): string {
             return row([
               "", b.title, b.authors[0] ?? "", b.authors[0] ? lastFirst(b.authors[0]) : "", b.authors.slice(1).join(", "), "", "",
               b.rating ? STARS[b.rating] : 0, "", "", "", b.pages, b.year, b.year, b.status === "finished" ? slashDate(b.finishedOn) : "",
-              slashDate(b.addedAt), "", "", shelf, "", "", "", b.status === "finished" ? 1 : 0, 0,
+              slashDate(b.addedAt), "", "", shelf, "", "", "", readCount(b), 0,
             ]);
           }),
         ]
@@ -87,7 +96,7 @@ export function toCsv(books: ExportBook[], format: ExportFormat): string {
           ...books.map((b) =>
             row([
               b.title, b.authors.join(", "), "", "", "digital", SHELF[b.status], slashDate(b.addedAt), b.status === "finished" ? slashDate(b.finishedOn) : "",
-              b.status === "finished" && b.finishedOn ? slashDate(b.finishedOn) : "", b.status === "finished" ? 1 : 0, "", "", "", "", "", "", "",
+              datesRead(b), readCount(b), "", "", "", "", "", "", "",
               b.rating ? STARS[b.rating].toFixed(1) : "", "", "", "", "", "No",
             ]),
           ),

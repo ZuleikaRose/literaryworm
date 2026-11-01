@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getBook } from "../data/books";
 import { downloadCsv, type ExportBook, exportCsvName, type ExportFormat, lastFinished, toCsv } from "../lib/exportLibraryCsv";
 import { today } from "../lib/reading";
+import { finishDays } from "../lib/rereads";
 import { useProfileData, useStore } from "../store/context";
 import { activeLibrary } from "../store/reducer";
 import { Icon } from "./Icon";
@@ -35,6 +36,7 @@ export function ExportLibraryButtons() {
           addedAt: e.addedAt,
           // The day it was finished here, else when its status last changed.
           finishedOn: finished[e.bookId] ?? (e.status === "finished" && e.updatedAt ? today(new Date(e.updatedAt)) : null),
+          readDays: finishDays(data.readingDays, e.bookId),
           pages: book?.pages ?? null,
           year: book?.year ?? (published && Number.isFinite(published) ? published : null),
           rating: data.ratings[e.bookId] ?? null,

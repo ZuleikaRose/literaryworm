@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Didn't finish, and reading a book again",
+    "body": "Your library has a fourth status, Didn't finish, for books you put down; it has its own tab in My Library, and recommendations stop pushing books like it. A finished book now has Read again on its page: it goes back to Reading from the start, and finishing it again counts as another read, so the page says \"Your 2nd read\" or \"Read twice\". Exports for Goodreads and StoryGraph carry both, and imports read StoryGraph's did-not-finish.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "update",
     "title": "Find a club's book by ISBN",
     "body": "When you start a book club, Find a book and, under My uploads, Find one of your uploads also take an ISBN (10 or 13 digits, with or without dashes), and so does Find your copy on a club's page. We look it up on Google Books and show the LiteraryWorm title or your uploaded EPUB with that title and author.",

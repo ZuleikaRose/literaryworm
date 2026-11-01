@@ -1,6 +1,10 @@
 import { afterAll, describe, expect, it } from "@jest/globals";
 import { closeBrowser, goInApp, newPage, scrollsSideways, signInDemo } from "./browser";
+import { readFileSync } from "node:fs";
 import { BASE_URL } from "./config";
+
+/** The newest What's new entry's title (the top of src/data/changelog.json; tests run in the app folder). */
+const NEWEST_CHANGE = (JSON.parse(readFileSync("src/data/changelog.json", "utf8")) as { title: string }[])[0].title;
 
 afterAll(closeBrowser);
 
@@ -153,7 +157,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Find a club's book by ISBN");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain(NEWEST_CHANGE);
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -1050,6 +1054,23 @@ describe("the demo household", () => {
     expect(text).toContain("currently-reading");
     expect(text).toContain("to-read");
     await page.getByText(/Saved \d+ books as a Goodreads file\./).waitFor({ state: "attached" });
+    expect(errors()).toEqual([]);
+  });
+
+  it("marks a book Didn't finish, then finished, and reads it again as a 2nd read", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/dune");
+    const status = page.getByLabel("Reading status");
+    await status.selectOption({ label: "Didn't finish" });
+    await page.getByText("Marked as didn't finish.").waitFor({ state: "attached" });
+    await goInApp(page, "/library?status=did_not_finish");
+    await page.getByRole("radio", { name: /Didn't finish \(1\)/ }).waitFor({ state: "attached" });
+    await goInApp(page, "/books/dune");
+    await page.getByLabel("Reading status").selectOption({ label: "Finished" });
+    await page.getByRole("button", { name: "Read again" }).click();
+    await page.getByText("Your 2nd read").waitFor();
+    await expect(page.getByLabel("Reading status").inputValue()).resolves.toBe("reading");
     expect(errors()).toEqual([]);
   });
 

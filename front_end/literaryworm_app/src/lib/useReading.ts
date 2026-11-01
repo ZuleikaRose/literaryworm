@@ -72,7 +72,7 @@ export function useReading(book: Book, profileId?: string) {
           }
           knownStatus.current = status;
           if (finished) countFinished();
-        } else if (known !== status && (finished || known === "want_to_read")) {
+        } else if (known !== status && (finished || known === "want_to_read" || known === "did_not_finish")) {
           if (isRemote) await accountApi.setLibraryStatus(book.id, status);
           dispatch({ type: "setReadingStatus", bookId: book.id, status });
           knownStatus.current = status;

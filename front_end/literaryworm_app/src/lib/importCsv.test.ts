@@ -49,12 +49,13 @@ describe("readImport", () => {
     ]);
   });
 
-  it("reads a StoryGraph export, leaving out books not finished and taking the first author", () => {
+  it("reads a StoryGraph export, did-not-finish as Didn't finish, taking the first author", () => {
     const file = readImport(STORYGRAPH);
     expect(file.source).toBe("storygraph");
-    expect(file.skipped).toBe(1);
+    expect(file.skipped).toBe(0);
     expect(file.rows).toEqual([
       { line: 2, title: "Frankenstein", author: "Mary Shelley", status: "finished", rating: "love" },
+      { line: 3, title: "Good Omens", author: "Terry Pratchett", status: "did_not_finish", rating: null },
       { line: 4, title: "Babel", author: "R.F. Kuang", status: "reading", rating: "not-for-me" },
     ]);
   });
@@ -64,6 +65,11 @@ describe("readImport", () => {
     expect(() => readImport("")).toThrow(/Goodreads or StoryGraph/);
     const header = "Title,Author,Exclusive Shelf\n";
     expect(() => readImport(header + "Dune,Frank Herbert,read\n".repeat(IMPORT_MAX_ROWS + 1))).toThrow(/up to 1000/);
+  });
+
+  it("reads Goodreads' did-not-finish shelf (as our export writes it)", () => {
+    const file = readImport("Title,Author,Exclusive Shelf\nDune,Frank Herbert,did-not-finish\nCirce,Madeline Miller,DNF\n");
+    expect(file.rows.map((r) => r.status)).toEqual(["did_not_finish", "did_not_finish"]);
   });
 
   it("skips rows without a title and treats unknown shelves as want to read", () => {

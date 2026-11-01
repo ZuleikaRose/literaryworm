@@ -70,6 +70,24 @@ describe("toCsv", () => {
     expect(parseCsv(csv)[2][STORYGRAPH_HEADER.indexOf("Authors")]).toBe("Ursula K. Le Guin, Someone Else");
   });
 
+  it("writes Didn't finish as did-not-finish and rereads as Read Count and Dates Read, and reads them back", () => {
+    const more: ExportBook[] = [
+      { ...books[0], readDays: ["2025-01-10", "2026-10-20"] },
+      { bookId: "g3", title: "Moods", authors: ["Louisa May Alcott"], status: "did_not_finish", addedAt: added, finishedOn: null, pages: null, year: null, rating: null },
+    ];
+    const gr = parseCsv(toCsv(more, "goodreads"));
+    expect(gr[1][GOODREADS_HEADER.indexOf("Read Count")]).toBe("2");
+    expect(gr[2][GOODREADS_HEADER.indexOf("Exclusive Shelf")]).toBe("did-not-finish");
+    expect(gr[2][GOODREADS_HEADER.indexOf("Read Count")]).toBe("0");
+    const sgCsv = toCsv(more, "storygraph");
+    const sg = parseCsv(sgCsv);
+    expect(sg[1][STORYGRAPH_HEADER.indexOf("Dates Read")]).toBe("2025/01/10-2025/01/10, 2026/10/20-2026/10/20");
+    expect(sg[1][STORYGRAPH_HEADER.indexOf("Read Count")]).toBe("2");
+    expect(sg[2][STORYGRAPH_HEADER.indexOf("Read Status")]).toBe("did-not-finish");
+    expect(readImport(sgCsv).rows.map((r) => r.status)).toEqual(["finished", "did_not_finish"]);
+    expect(readImport(toCsv(more, "goodreads")).rows.map((r) => r.status)).toEqual(["finished", "did_not_finish"]);
+  });
+
   it("is just the header for an empty library, with a byte-order mark and CRLF line ends", () => {
     const csv = toCsv([], "goodreads");
     expect(csv.startsWith("﻿Book Id,Title")).toBe(true);

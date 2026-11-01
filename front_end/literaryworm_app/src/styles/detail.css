@@ -1038,3 +1038,10 @@
   flex: 1 1 220px;
   min-height: 44px;
 }
+
+/* "Your 2nd read" / "Read twice" under the library actions (lib/rereads.ts). */
+.book-reads {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}

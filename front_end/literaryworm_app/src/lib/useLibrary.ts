@@ -1,7 +1,7 @@
 import { useStore } from "../store/context";
-import { activeLibrary } from "../store/reducer";
+import { activeLibrary, activeReading } from "../store/reducer";
 import type { LibraryEntry, ReadingStatus } from "../types";
-import { addLibraryItem, recordReading, removeLibraryItem, setLibraryStatus } from "./accountApi";
+import { addLibraryItem, recordReading, removeLibraryItem, saveProgress, setLibraryStatus } from "./accountApi";
 import { today } from "./reading";
 
 type NewEntry = Pick<LibraryEntry, "bookId"> & Partial<Pick<LibraryEntry, "title" | "authors" | "cover" | "published">>;
@@ -47,10 +47,23 @@ export function useLibrary() {
     if (status === "finished" && !wasFinished) countFinished(bookId);
   }
 
+  /**
+   * *Read again* (lib/rereads.ts): a finished book goes back to Reading with its place at the start,
+   * so finishing it again counts as another read. Status first, then the place (members: saved first).
+   */
+  async function readAgain(bookId: string) {
+    await setStatus(bookId, "reading");
+    const had = activeReading(state).progress[bookId];
+    if (!had) return;
+    const progress = { ...had, fraction: 0, chapterIndex: 0, finished: false, updatedAt: Date.now() };
+    if (remote) await saveProgress(progress);
+    dispatch({ type: "saveProgress", progress });
+  }
+
   async function remove(bookId: string) {
     if (remote) await removeLibraryItem(bookId);
     dispatch({ type: "removeFromLibrary", bookId });
   }
 
-  return { entries: activeLibrary(state), remote, add, setStatus, remove };
+  return { entries: activeLibrary(state), remote, add, setStatus, readAgain, remove };
 }

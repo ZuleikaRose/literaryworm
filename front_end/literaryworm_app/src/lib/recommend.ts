@@ -3,14 +3,14 @@ import type { Book, LibraryEntry, ProfileData, RatingValue } from "../types";
 
 /**
  * Recommendations for one profile, worked out in the browser from what the profile already
- * did: books finished, loved, liked and favourited pull similar books up; "not for me" pushes
- * them down; the profile's favourite genres break ties. Only catalog titles the profile may
+ * did: books finished, loved, liked and favourited pull similar books up; "not for me" and
+ * Didn't finish push them down; the profile's favourite genres break ties. Only catalog titles the profile may
  * see are suggested (callers pass that list, so Kids profiles stay in their catalog), and
  * never a book already in the library. Nothing leaves the device.
  */
 
 /** How much each thing a reader did says about their taste. */
-const WEIGHTS = { finished: 1.4, love: 2, like: 1, favorite: 1.5, notForMe: -1.6 } as const;
+const WEIGHTS = { finished: 1.4, love: 2, like: 1, favorite: 1.5, notForMe: -1.6, didNotFinish: -1.2 } as const;
 
 export interface Seed {
   book: Book;
@@ -67,6 +67,8 @@ export function tasteSeeds(data: Pick<ProfileData, "readingDays" | "ratings" | "
     else add(id, WEIGHTS.notForMe, "liked");
   }
   for (const id of data.favorites) add(id, WEIGHTS.favorite, "favourited");
+  // A book put down is a quieter "not for me" (finishing it before, or loving it, still outweighs it).
+  for (const e of Object.values(library)) if (e.status === "did_not_finish") add(e.bookId, WEIGHTS.didNotFinish, "liked");
   return [...byId.values()].map(({ book, weight, reason }) => ({ book, weight, reason })).sort((a, b) => b.weight - a.weight);
 }
 

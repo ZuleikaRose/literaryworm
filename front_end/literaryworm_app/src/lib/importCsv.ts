@@ -79,13 +79,14 @@ export function detectSource(header: string[]): ImportSource | null {
   return null;
 }
 
-const GOODREADS_SHELF: Record<string, ReadingStatus> = { read: "finished", "currently-reading": "reading", "to-read": "want_to_read" };
+// Goodreads has three built-in shelves; "did-not-finish" is the custom exclusive shelf most readers make (and our export writes).
+const GOODREADS_SHELF: Record<string, ReadingStatus> = { read: "finished", "currently-reading": "reading", "to-read": "want_to_read", "did-not-finish": "did_not_finish", dnf: "did_not_finish" };
 const STORYGRAPH_STATUS: Record<string, ReadingStatus | null> = {
   read: "finished",
   "currently-reading": "reading",
   paused: "reading",
   "to-read": "want_to_read",
-  "did-not-finish": null,
+  "did-not-finish": "did_not_finish",
 };
 
 /** Stars (0 = none; StoryGraph has quarter stars) as LiteraryWorm's three ratings. */
@@ -173,4 +174,4 @@ export function pickMatch<T extends { title: string; authors: string[] }>(row: P
 }
 
 /** "Read" → what LiteraryWorm calls it. */
-export const STATUS_LABEL: Record<ReadingStatus, string> = { want_to_read: "Want to read", reading: "Reading", finished: "Finished" };
+export const STATUS_LABEL: Record<ReadingStatus, string> = { want_to_read: "Want to read", reading: "Reading", finished: "Finished", did_not_finish: "Didn't finish" };

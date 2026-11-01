@@ -180,7 +180,7 @@ function LibraryView({ profile }: { profile: Profile }) {
   const [params, setParams] = useSearchParams();
   const raw = params.get("status");
   const filter: StatusFilter =
-    raw === "want_to_read" || raw === "reading" || raw === "finished"
+    raw === "want_to_read" || raw === "reading" || raw === "finished" || raw === "did_not_finish"
       ? raw
       : "all";
   const [announcement, setAnnouncement] = useState("");
@@ -217,6 +217,7 @@ function LibraryView({ profile }: { profile: Profile }) {
     want_to_read: entries.filter((e) => e.status === "want_to_read").length,
     reading: entries.filter((e) => e.status === "reading").length,
     finished: entries.filter((e) => e.status === "finished").length,
+    did_not_finish: entries.filter((e) => e.status === "did_not_finish").length,
   };
   const shown =
     filter === "all" ? entries : entries.filter((e) => e.status === filter);
@@ -300,7 +301,7 @@ function LibraryView({ profile }: { profile: Profile }) {
         <fieldset className="filter-group library-filter">
           <legend>Show</legend>
           <div className="chip-group">
-            {(["all", "want_to_read", "reading", "finished"] as const).map(
+            {(["all", "want_to_read", "reading", "finished", "did_not_finish"] as const).map(
               (s) => (
                 <label key={s} className="chip">
                   <input

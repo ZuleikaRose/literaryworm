@@ -42,6 +42,14 @@ describe("tasteSeeds", () => {
     const library = { dune: { bookId: "dune", status: "finished" } as LibraryEntry };
     expect(tasteSeeds(history({}), library, getBook)[0]).toMatchObject({ reason: "finished" });
   });
+
+  it("counts Didn't finish against similar books, more gently than Not for me", () => {
+    const library = { dune: { bookId: "dune", status: "did_not_finish" } as LibraryEntry };
+    const [put] = tasteSeeds(history({}), library, getBook);
+    expect(put.weight).toBeLessThan(0);
+    const [disliked] = tasteSeeds(history({ ratings: { dune: "not-for-me" } }), {}, getBook);
+    expect(put.weight).toBeGreaterThan(disliked.weight);
+  });
 });
 
 describe("recommend", () => {

@@ -38,6 +38,7 @@ import { nextInSeries, seriesBooks, seriesPath, seriesPlace } from "../lib/serie
 import { isOut } from "../lib/release";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
+import { finishDays, readsLine } from "../lib/rereads";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { AgeRating, Book, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
@@ -189,6 +190,8 @@ function DetailPage({ view }: { view: DetailView }) {
   const resume = (format: "ebook" | "audiobook") =>
     place && !place.finished && place.format === format ? ` · ${Math.round(place.fraction * 100)}%` : null;
   const canWriteLogs = Boolean(profile && profile.ageRating !== "kids");
+  // "Your 2nd read" / "Read twice" (lib/rereads.ts, from the profile's finish days).
+  const reads = profile ? readsLine(entry, finishDays(data.readingDays, view.id)) : "";
   const author = view.authors.join(", ") || "Unknown author";
 
   // This session's logs (sample ones and any written here) plus everyone's from Supabase.
@@ -408,6 +411,19 @@ function DetailPage({ view }: { view: DetailView }) {
                   </select>
                   <Icon name="chevronDown" size={14} />
                 </label>
+                {entry.status === "finished" && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={busy}
+                    onClick={async () => {
+                      if (await attempt(() => library.readAgain(view.id)))
+                        setAnnouncement("Moved to Reading, from the start. Finishing it again counts as another read.");
+                    }}
+                  >
+                    <Icon name="bookOpen" size={17} /> Read again
+                  </button>
+                )}
                 {canWriteLogs && (
                   <button type="button" className="secondary-button" onClick={() => setWriting({})}>
                     <Icon name="edit" size={17} /> Write a log
@@ -433,6 +449,8 @@ function DetailPage({ view }: { view: DetailView }) {
               </button>
             )}
           </div>
+
+          {reads && <p className="book-reads">{reads}</p>}
 
           {profile && view.release && !isOut(view.release.date) && <RemindMe view={view} release={view.release} />}
 

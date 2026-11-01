@@ -295,7 +295,8 @@ export interface BookDay {
 }
 
 /** The brief's reading statuses (the library's "update" operation). */
-export type ReadingStatus = "want_to_read" | "reading" | "finished";
+/** The brief's three, plus Didn't finish (migration 6600). */
+export type ReadingStatus = "want_to_read" | "reading" | "finished" | "did_not_finish";
 
 /** A book in a profile's library. Private: only its own profile sees it. */
 export interface LibraryEntry {

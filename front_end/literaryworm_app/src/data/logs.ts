@@ -46,4 +46,5 @@ export const readingStatusLabel = {
   want_to_read: "Want to read",
   reading: "Reading",
   finished: "Finished",
+  did_not_finish: "Didn't finish",
 } as const;
