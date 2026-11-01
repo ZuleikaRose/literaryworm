@@ -74,8 +74,9 @@ export default function Legal() {
               {page.sections.map((section) => (
                 <section key={section.heading} className="legal-section">
                   <h2>{section.heading}</h2>
-                  {section.paragraphs.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
+                  {/* Keyed by place: a policy can repeat a sentence as its own paragraph, and the list is only shown. */}
+                  {section.paragraphs.map((paragraph, i) => (
+                    <p key={i}>{paragraph}</p>
                   ))}
                 </section>
               ))}

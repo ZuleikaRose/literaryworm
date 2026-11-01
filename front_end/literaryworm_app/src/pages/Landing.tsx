@@ -248,8 +248,8 @@ export default function Landing() {
                   {f.q}
                   <Icon name="chevronDown" size={18} />
                 </summary>
-                {f.a.split("\n\n").map((para) => (
-                <p key={para.slice(0, 40)}>{para}</p>
+                {f.a.split("\n\n").map((para, i) => (
+                <p key={i}>{para}</p>
               ))}
               </details>
             ))}
