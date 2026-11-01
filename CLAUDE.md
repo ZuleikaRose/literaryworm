@@ -126,6 +126,7 @@ Build in phases (see `prompt.md`). At the end of each phase:
 
 ## Rules that must not be broken
 
+- Always fix and update the website's schema (the schema.org structured data in `lib/seo.ts`, `components/StructuredData.tsx` and `index.html`) with every change, so it stays true to each page and the app; and fix and update the sitemap (`scripts/build-sitemap.py`). See step 4 of the phase workflow.
 - Never commit secrets. `.env*` files stay local; only `.env.example` (no real values) is shared. Never put a secret in a `VITE_` variable.
 - The browser must never call Google Books directly (backend phases: go through a Supabase Edge Function).
 - Don't edit, delete or rewrite anything in `prompt-records/` or the hooks in `.claude/hooks/`.
