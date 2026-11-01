@@ -44,6 +44,7 @@ export const plans: Plan[] = [
       "PIN locks and daily reading limits for any profile",
       "Each profile keeps its own favourites, lists, goals and stats",
       "Household reading challenges to take on together",
+      "A family shelf of books grown-ups put out for everyone at home",
     ],
   },
   {

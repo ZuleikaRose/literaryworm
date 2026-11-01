@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6538, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6542, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -600,6 +600,17 @@
           note: "A browser's Web Push subscription, saved only through save_push_subscription() (moves an endpoint to whoever signed in on it last; up to 20 an account). FK user_id → auth.users, on delete cascade; index on user_id. RLS: owner reads (not the keys) and deletes; the release-emails function sends and forgets unsubscribed ones.",
         },
         {
+          id: "family_shelf", color: colors.household, x: 420, y: 7680, sub: "per account · family shelf",
+          cols: [
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "volume_id", "text (catalog id)"],
+            ["fk", "added_by", "uuid? (profile)"],
+            ["", "note", "text ≤ 200"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Catalog books a grown-up or teen profile puts out for the household (Home row; Kids profiles see only what they may open). Up to 100; added_by must be a non-Kids profile of the account (trigger). FK user_id → auth.users and added_by → reader_profiles (on delete set null); index on added_by. RLS: owner; insert and delete.",
+        },
+        {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -912,6 +923,8 @@
         ["journal_entries", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["trusted_passkeys", "user_id", "auth.users", "id", "N : 1"],
         ["push_subscriptions", "user_id", "auth.users", "id", "N : 1"],
+        ["family_shelf", "user_id", "auth.users", "id", "N : 1"],
+        ["family_shelf", "added_by", "reader_profiles", "id", "N : 1"],
         ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "reader_id", "profiles", "id", "N : 1"],

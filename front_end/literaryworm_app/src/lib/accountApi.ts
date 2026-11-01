@@ -1798,3 +1798,23 @@ export async function setPublicReader(userId: string, on: boolean): Promise<void
   const { error } = await client().from("profiles").update({ public_reader: on }).eq("id", userId);
   if (error) throw new AccountError("We couldn't change your reader page. Try again.");
 }
+
+// --- The family shelf (lib/familyShelf.ts) ---
+
+export async function loadFamilyShelf(): Promise<import("./familyShelf").FamilyShelfItem[]> {
+  const { data, error } = await client().from("family_shelf").select("volume_id, added_by, created_at").order("created_at", { ascending: false });
+  if (error) throw new AccountError("We couldn't load the family shelf. Refresh the page to try again.");
+  return (data ?? []).map((r) => ({ bookId: r.volume_id as string, addedBy: (r.added_by as string | null) ?? null, addedAt: Date.parse(r.created_at as string) }));
+}
+
+export async function addToFamilyShelf(profileId: string, bookId: string): Promise<void> {
+  const { error } = await client().from("family_shelf").insert({ user_id: await signedInUserId(), volume_id: bookId, added_by: profileId });
+  if (error && error.code !== "23505") {
+    throw new AccountError(error.message.includes("up to 100") ? "The family shelf holds up to 100 books. Take one off first." : "We couldn't add it to the family shelf. Try again.");
+  }
+}
+
+export async function removeFromFamilyShelf(bookId: string): Promise<void> {
+  const { error } = await client().from("family_shelf").delete().eq("volume_id", bookId);
+  if (error) throw new AccountError("We couldn't take it off the family shelf. Try again.");
+}

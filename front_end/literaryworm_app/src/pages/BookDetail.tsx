@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
 import { BackLink } from "../components/BackLink";
 import { UpNextButton } from "../components/UpNextButton";
+import { FamilyShelfButton } from "../components/FamilyShelfButton";
 import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
@@ -377,6 +378,7 @@ function DetailPage({ view }: { view: DetailView }) {
                 </Link>
               )}
               <UpNextButton book={view.local} />
+              <FamilyShelfButton bookId={view.local.id} />
             </div>
           )}
 

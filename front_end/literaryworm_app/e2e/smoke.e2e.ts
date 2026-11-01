@@ -144,7 +144,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Notifications on your devices");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("The family shelf");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -380,6 +380,20 @@ describe("the demo household", () => {
     await signInDemo(page);
     await goInApp(page, "/listen/frankenstein");
     await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("puts a book on the family shelf from its page, and Home shows it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    const row = page.getByRole("region", { name: "The family shelf" });
+    await row.getByRole("heading", { name: "The family shelf" }).waitFor();
+    await row.getByRole("link", { name: /The Secret Garden/ }).first().waitFor();
+    await goInApp(page, "/books/treasure-island");
+    await page.getByRole("button", { name: "Add to the family shelf" }).click();
+    await page.getByRole("button", { name: "On the family shelf" }).waitFor();
+    await goInApp(page, "/browse");
+    await row.getByRole("link", { name: /Treasure Island/ }).first().waitFor();
     expect(errors()).toEqual([]);
   });
 

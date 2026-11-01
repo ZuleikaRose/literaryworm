@@ -14,6 +14,8 @@ import { fromFollowed } from "../lib/people";
 import { dueWords } from "../lib/words";
 import { today } from "../lib/reading";
 import { approvedBooks } from "../lib/bookRequests";
+import { shelfFor } from "../lib/familyShelf";
+import { useFamilyShelf } from "../lib/useFamilyShelf";
 import { continueSeries } from "../lib/series";
 import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
@@ -71,6 +73,9 @@ export default function Browse() {
   const wordsDue = dueWords(data.words, today()).length;
   // Books above a Kids profile's rating that a grown-up said yes to (lib/bookRequests.ts).
   const saidYes = profile.ageRating === "kids" ? approvedBooks(data.bookRequests) : [];
+  // The family shelf, as this profile may see it (lib/familyShelf.ts).
+  const family = useFamilyShelf();
+  const familyBooks = shelfFor(family.items, profile, data.bookRequests, getBook);
 
   // Most recent first; each card reopens the format used last, at the saved place.
   const started = Object.values(reading.progress)
@@ -152,6 +157,9 @@ export default function Browse() {
         <OutNow />
         {seriesNext.length > 0 && (
           <Shelf id="series-next" eyebrow="What comes next" title="Continue the series" items={seriesNext.map(fromLocal)} />
+        )}
+        {familyBooks.length > 0 && (
+          <Shelf id="family-shelf" eyebrow="Put out by your household" title="The family shelf" items={familyBooks.map(fromLocal)} />
         )}
         {saidYes.length > 0 && (
           <Shelf id="said-yes" eyebrow="You asked, a grown-up said yes" title="Books you asked for" items={saidYes.map(fromLocal)} />

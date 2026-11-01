@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "The family shelf",
+    "body": "Grown-up and teen profiles can put a book on the family shelf from its page, and it shows on Home for everyone at home. Kids profiles see the books on it that their rating allows, so a shelf of bedtime stories or holiday reading is one place for the whole household.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Notifications on your devices",
     "body": "Turn on Notifications on this device in Account → Preferences, and a book any profile set Remind me on tells you the day it comes out, on your phone, tablet or computer. Tap it to open the book. Turn it on for each device you like; logging out turns it off there. On iPhone and iPad, add LiteraryWorm to your Home Screen first.",
     "major": true
