@@ -1,7 +1,7 @@
 import type { Book, UploadedBook } from "../types";
 import type { ClubMeeting } from "./clubCalendar";
 import { chapterAt, chapterTimes } from "./reading";
-import { isUploadId, uploadToBook } from "./uploads";
+import { isUploadId, uploadToBook } from "./uploadBook";
 
 /**
  * A book club: one book read together to a finish date. The book is a LiteraryWorm title, or a book

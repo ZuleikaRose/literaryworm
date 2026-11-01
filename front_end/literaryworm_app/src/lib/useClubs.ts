@@ -5,7 +5,7 @@ import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeti
 import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
-import { isUploadId } from "./uploads";
+import { isUploadId } from "./uploadBook";
 
 /** The demo's own id in its sample club. */
 export const DEMO_USER = "demo-you";
