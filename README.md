@@ -460,5 +460,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Content notes (`content-notes` function, 6610) | Done    |
 | —    | Buddy reads (6612) | Done    |
 | —    | Children's Privacy Notice rewritten (6602); policies, Help and FAQ in short paragraphs (6614, 6615); schema.sql and drawsql.png current to 6615 | Done    |
+| —    | Structured data true to each page: WebSite and Organization everywhere, the membership and FAQ on Home and Plans, a Book on each title's page (6616) | Done    |
+| —    | Feel-good picks on Discover, moods on Search, new features on Plans and the home page; schema.sql and drawsql.png current to 6617 | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

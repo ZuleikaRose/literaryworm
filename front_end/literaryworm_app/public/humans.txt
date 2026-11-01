@@ -10,7 +10,7 @@ Doctype: HTML5
 IDE: Visual Studio Code
 
 /* THANKS */
-Books: Project Gutenberg (texts) and LibriVox volunteers (recordings) for the public-domain classics
+Books: Project Gutenberg (texts) and LibriVox volunteers (recordings) for the public-domain classics; audio clips stream from the Internet Archive
 Book search: Google Books API
 Fonts: Literata, Manrope, DM Sans, Lexend (Google Fonts) and OpenDyslexic (SIL Open Font License)
 
@@ -20,7 +20,8 @@ Hosting: Vercel
 Database and sign-in: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
 Payments: Stripe
 Email: Mailgun
-AI summaries and recaps: Claude by Anthropic
+AI summaries, content notes, recaps, quizzes, translations and Ask the book: Claude by Anthropic
+Structured data: schema.org (WebSite, Organization, Product, FAQPage, Book)
 Standards: HTML5, CSS3, WCAG 2.2 Level AA (partially conformant: see the Accessibility Policy), installable web app (PWA)
 
 /* RECOGNITION */
