@@ -24,7 +24,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "star",
     title: "Goals, streaks and badges",
-    body: "Set a yearly goal, plan to finish a book by a date, keep a streak with two rest days a month, see your time with each book, earn badges, and start a reading challenge with the whole household.",
+    body: "Set a yearly goal, plan to finish a book by a date, keep a streak with two rest days a month, see your time with each book, earn 30 badges, and start a reading challenge with the whole household.",
   },
   {
     icon: "edit",
@@ -34,7 +34,12 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "users",
     title: "Book clubs",
-    body: "Talk about a book without spoilers: posts and shared highlights past your chapter stay hidden. See where everyone is, plan meetings and add them to your calendar.",
+    body: "Talk about a book without spoilers: posts and shared highlights past your chapter stay hidden. Read a LiteraryWorm title or a book you uploaded, see where everyone is, plan meetings and add them to your calendar.",
+  },
+  {
+    icon: "bookOpen",
+    title: "Bring your own books",
+    body: "Upload up to 20 DRM-free EPUBs at a time, each up to 50 MB, such as books you bought. They stay private to your profile and open in the reader with your place, highlights and notes.",
   },
   {
     icon: "headphones",

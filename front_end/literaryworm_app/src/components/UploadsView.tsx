@@ -6,6 +6,7 @@ import type { Profile, UploadedBook } from "../types";
 import { readUploadSort, sortUploads, UPLOAD_SORTS } from "../lib/librarySort";
 import { uploadToBook } from "../lib/uploads";
 import { useUploads } from "../lib/useUploads";
+import { batchSummary, planBatch, type Skipped, UPLOADS_AT_ONCE } from "../lib/uploadBatch";
 import { Cover } from "./Cover";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
@@ -24,7 +25,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
   const sort = readUploadSort(params.get("sort"));
   const sortId = useId();
   const sorted = sortUploads(uploads, sort);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [removing, setRemoving] = useState<UploadedBook | null>(null);
@@ -48,31 +49,35 @@ export function UploadsView({ profile }: { profile: Profile }) {
     );
   }
 
+  // Up to UPLOADS_AT_ONCE EPUBs per choice, each up to 50 MB, read one after another.
   const choose = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
     setError(null);
     setDone(null);
-    if (!/\.epub$/i.test(file.name)) {
-      setError("Choose an EPUB file (it ends in .epub).");
-      button.current?.focus();
-      return;
+    const { take, skipped, overLimit } = planBatch(files);
+    const added: string[] = [];
+    const failed: Skipped[] = [...skipped];
+    for (const [i, file] of take.entries()) {
+      setBusy(take.length === 1 ? "Reading the EPUB…" : `Reading ${i + 1} of ${take.length}…`);
+      try {
+        added.push((await add(file)).title);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : "couldn't be read. Try another file.";
+        failed.push({ name: file.name, reason: `couldn't be added (${reason.replace(/\.$/, "")})` });
+        // The profile is full: the rest would fail the same way.
+        if (/up to 50/.test(reason)) {
+          for (const rest of take.slice(i + 1)) failed.push({ name: rest.name, reason: "wasn't added (this profile has 50 uploads)" });
+          break;
+        }
+      }
     }
-    setBusy(true);
-    try {
-      const upload = await add(file);
-      setDone(`${upload.title} is ready to read.`);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "We couldn't read that EPUB. Try another file.",
-      );
-      button.current?.focus();
-    } finally {
-      setBusy(false);
-    }
+    setBusy(null);
+    const summary = batchSummary(added, failed, overLimit);
+    setDone(summary.done);
+    setError(summary.problem);
+    if (summary.problem) button.current?.focus();
   };
 
   return (
@@ -80,7 +85,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
       <section className="goal-card upload-card" aria-labelledby="upload-title">
         <h2 id="upload-title">Add a book you own</h2>
         <p className="goal-hint" id={hintId}>
-          Choose an EPUB without DRM (up to 50 MB). LiteraryWorm keeps its text
+          Choose up to {UPLOADS_AT_ONCE} EPUBs without DRM at a time, each up to 50 MB. LiteraryWorm keeps their text
           only, privately for {profile.name}
           {remote ? "" : " in this tab: the demo forgets it when you refresh"}.
           Upload only books you have the right to read.
@@ -89,26 +94,27 @@ export function UploadsView({ profile }: { profile: Profile }) {
           ref={button}
           type="button"
           className="primary-button small-button"
-          disabled={busy}
+          disabled={busy !== null}
           aria-describedby={[hintId, error ? errorId : null]
             .filter(Boolean)
             .join(" ")}
           onClick={() => input.current?.click()}
         >
           <Icon name="plus" size={15} />{" "}
-          {busy ? "Reading the EPUB…" : "Choose an EPUB"}
+          {busy ?? "Choose EPUBs"}
         </button>
         {/* The button opens it; it isn't reached on its own. */}
         <input
           ref={input}
           type="file"
           accept=".epub,application/epub+zip"
+          multiple
           hidden
           tabIndex={-1}
           onChange={choose}
         />
         <p className="visually-hidden" role="status">
-          {busy ? "Reading the EPUB…" : (done ?? "")}
+          {busy ?? done ?? ""}
         </p>
         {error && (
           <p className="field-error" id={errorId} role="alert">

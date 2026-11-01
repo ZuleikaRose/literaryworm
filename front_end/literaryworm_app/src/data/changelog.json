@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Upload up to 20 books at a time",
+    "body": "In My Library → Uploads you can now choose up to 20 DRM-free EPUBs at once. Each can still be up to 50 MB, and LiteraryWorm reads them one after another, then tells you which are ready and which weren't added and why.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "feature",
     "title": "16 new badges",
     "body": "My Library → Badges now has 30 badges. New ones: 25 and 100 books, two weeks and 100 days in a row, 100 reading days, a three-hour marathon day, 50 and 250 hours, your first hour and 50 hours of listening, 10 genres, a book in another language, 25 classics, three series, 50 words and 100 highlights. They're worked out from what you already read, listen to and keep, so any you've already earned show straight away.",

@@ -22,7 +22,7 @@ export const plans: Plan[] = [
       "Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
       "Book clubs around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
-      "Upload your own DRM-free EPUBs, and read offline",
+      "Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, and read offline",
       "Import your reading from Goodreads or StoryGraph, and export it back in either's format",
       "Accessibility menu, OpenDyslexic, a reading ruler and line focus, and read-along transcripts",
     ],
@@ -110,7 +110,7 @@ export const planFaqs = [
   },
   {
     q: "Where do the books come from?",
-    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox. To read a book you own, upload it: for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads. It opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
+    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox. To read a book you own, upload it (up to 20 EPUBs at a time, each up to 50 MB): for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads. It opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
   },
   {
     q: "What happens when the month's listening runs out?",
