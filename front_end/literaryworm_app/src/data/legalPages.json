@@ -69,7 +69,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-10-31",
+    "updated": "2026-11-01",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -304,7 +304,7 @@
           "Your household: each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal and player settings, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent.",
           "Your reading: your library, reading progress, bookmarks, highlights and notes (with when each highlight is next due for review), the words you save from the dictionary (with the sentence you met them in and when each is next due for review), your private reading journal (dated entries about a book that only your account sees), ratings, favourites and lists, your Up next queue, the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days, the new books we find by the authors you follow), release reminders, recent searches, reading goals, the household challenges your profiles start or join, time read and listened each day, the time each profile spends with each book on each day and where in the book the day started and ended (for the book page's Your time with this book), reading plans (the day a profile chose to finish a book by, and where it was in the book when the plan started), your reading pace (words a minute, used to show the time left in a chapter), chapter quiz scores, and the books you finish. If you turn on your reader page (it's off until you do), the reading logs you've already made public are listed together on one public page under your display name, and other members can follow it; who follows whom is never shown, and turning the page off removes its followers. Exports of your highlights and notes are made in your browser and downloaded to your device; they're never uploaded. So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings and dates); we don't send them to either site.",
           "Things you share or add: reading logs (public, with your display name), book club posts and whether you're coming to a club's meetings (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text only).",
-          "Devices: while you're signed in, a short label for each browser you use the app in (such as \"Chrome on Windows\") so you can send a book to another device. For each device that keeps books with Read offline, the same kind of label and when it was last used, so your plan's offline devices can be counted and you can free one."
+          "Devices: while you're signed in, a short label for each browser you use the app in (such as \"Chrome on Windows\") so you can send a book to another device. For each device that keeps books with Read offline, the same kind of label and when it was last used, so your plan's offline devices can be counted and you can free one. LiteraryWorm never asks for access to your local network (the other devices on your home Wi-Fi) and doesn't need it for anything, including Listen on another device and playing on a speaker or TV. If your browser asks, choose Block."
         ]
       },
       {
@@ -333,7 +333,7 @@
     "slug": "cookies",
     "title": "Cookie Policy",
     "summary": "This Cookie Policy explains how LiteraryWorm (\"Company,\" \"we,\" \"us,\" and \"our\") uses cookies and similar technologies to recognize you when you visit our website at https://www.literaryworm.com (\"Website\"). It explains what these technologies are and why we use them, as well as your rights to control our use of them.",
-    "updated": "2026-10-31",
+    "updated": "2026-11-01",
     "sections": [
       {
         "heading": "About this policy",
@@ -393,7 +393,7 @@
       {
         "heading": "How can I control cookies on my browser?",
         "paragraphs": [
-          "As the means by which you can refuse cookies through your web browser controls vary from browser to browser, you should visit your browser's help menu for more information. This applies to the most popular browsers: Chrome, Internet Explorer, Firefox, Safari, Edge and Opera.",
+          "As the means by which you can refuse cookies through your web browser controls vary from browser to browser, you should visit your browser's help menu for more information. This applies to the most popular browsers: Chrome, Internet Explorer, Firefox, Safari, Edge and Opera. Your browser may also ask whether LiteraryWorm can reach devices on your local network. Choose Block: the app never needs it, and allowing it can stop logging in from working in that browser. If you allowed it, turn it off in the site's settings (in Chrome and Edge, select the icon beside the address, then Site settings, and set Local network access to Block).",
           "In addition, most advertising networks offer you a way to opt out of targeted advertising. If you would like to find out more information, please visit the Digital Advertising Alliance, the Digital Advertising Alliance of Canada or the European Interactive Digital Advertising Alliance."
         ]
       },
@@ -1273,13 +1273,20 @@
         ]
       },
       {
+        "heading": "Trouble logging in?",
+        "paragraphs": [
+          "If Log in or Log in with a passkey does nothing, check that your browser isn't letting LiteraryWorm access your local network. LiteraryWorm never needs that permission, and allowing it can stop logging in from working. In Chrome and Edge, select the icon beside the address, choose Site settings, set Local network access to Block, then reload the page and log in again. If your browser asks whether LiteraryWorm can find devices on your local network, choose Block.",
+          "Still stuck? Try a private or incognito window. If that works, a browser extension or something saved in your usual window is in the way. Otherwise, email support@literaryworm.com with your device and browser."
+        ]
+      },
+      {
         "heading": "Report a problem",
         "paragraphs": [
           "Tell us what you were doing, the page you were on, and your device and browser, by email to support@literaryworm.com."
         ]
       }
     ],
-    "updated": "2026-10-31"
+    "updated": "2026-11-01"
   },
   {
     "slug": "status",

@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Help when logging in doesn't respond",
+    "body": "If Log in or Log in with a passkey does nothing, check your browser's site settings: LiteraryWorm never needs access to your local network, and allowing it can stop logging in from working. Help, the log-in page, the Privacy Policy and the Cookie Policy now say how to turn it off.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Offline listening on a schedule",
     "body": "On an audiobook's page, Read offline now has Listen offline on a schedule: as you listen, this device keeps the chapter you're on and the next 1, 3, 5 or 10 saved, on Wi-Fi only if you like, and can remove the ones you've finished. The next part is always there for the commute, without saving the whole book.",

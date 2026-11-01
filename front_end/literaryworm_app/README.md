@@ -30,6 +30,8 @@ npm run test:e2e # end-to-end smoke tests (Jest driving Chromium)
 
 Use **Try the demo** on the sign-in page to get a household with three profiles: Avery (All), Sam (Teen) and Mia (Kids).
 
+If Log in or Log in with a passkey does nothing (no request to Supabase Auth in the Network tab), check the browser's site settings for the site: **Local network access must be Block**. LiteraryWorm never needs it, and allowing it stopped log-in from working (2026-11-01). Help, the log-in page and the Privacy and Cookie Policies tell members the same.
+
 ## Routes
 
 | Route | Page | Access |

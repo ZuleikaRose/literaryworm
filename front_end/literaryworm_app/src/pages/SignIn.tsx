@@ -246,6 +246,11 @@ export default function SignIn() {
         Opens a sample household with three profiles. You can also log in with <strong>{DEMO_EMAIL}</strong> and{" "}
         <strong>{DEMO_ACCOUNT_PASSWORD}</strong>. The demo can't make payments.
       </p>
+      <p className="auth-note">
+        Log in not responding? LiteraryWorm never needs access to your local network. If your browser asks, choose
+        Block. If you allowed it, set Local network access to Block in this site's settings, then reload.{" "}
+        <Link to="/legal/help">Help with logging in</Link>
+      </p>
     </AuthCard>
   );
 }
