@@ -53,6 +53,7 @@ export default function Search() {
       {/* Keyed so the box shows the query from the URL after Back, a recent search or Did you mean. */}
       <SearchHeader key={`${search.by}|${search.q}`} search={search} serverError={invalid} />
       {searching ? <Results search={search} /> : <StartHere />}
+      <WhatsNewLink />
     </div>
   );
 }
@@ -387,8 +388,6 @@ function Results({ search }: { search: SearchParams }) {
             <Icon name="lock" size={15} /> {profile?.name}'s profile searches books picked for younger readers.
           </p>
         )}
-
-        <WhatsNewLink />
       </div>
 
       <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters" size="sm">
