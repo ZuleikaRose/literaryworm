@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { getBook } from "../data/books";
-import { arrangeChoices, catalogChoice, type ClubBookChoice, choiceLabel, seriesNames, uploadChoice } from "./clubBookChoices";
+import { arrangeChoices, catalogChoice, type ClubBookChoice, choiceLabel, isbnMatches, seriesNames, uploadChoice } from "./clubBookChoices";
 import { seriesInTitle } from "./librarySort";
 
 const book = (id: string, title: string, author: string, series?: { name: string; order: number }): ClubBookChoice => ({ id, title, author, series });
@@ -63,5 +63,19 @@ describe("where a book's series comes from", () => {
   it("shows the series and number in the list, unless the title already does", () => {
     expect(choiceLabel(list[2])).toBe("Caliban's War (James S. A. Corey) · The Expanse #2");
     expect(choiceLabel(uploadChoice({ id: "u-1", title: "Leviathan Wakes (The Expanse, #1)", author: "" }))).toBe("Leviathan Wakes (The Expanse, #1)");
+  });
+});
+
+describe("finding a club's book by ISBN", () => {
+  it("keeps the books that are the edition Google Books gives for the ISBN", () => {
+    const pride = catalogChoice(getBook("pride-and-prejudice")!);
+    const upload = uploadChoice({ id: "u-2", title: "Caliban's War (The Expanse, #2)", author: "James S. A. Corey" });
+    const choices = [pride, upload, ...list];
+    expect(isbnMatches(choices, [{ title: "Pride and Prejudice", authors: ["Jane Austen"] }]).map((c) => c.id)).toEqual(["pride-and-prejudice"]);
+    // An upload named with its series still matches; a subtitle on Google's side doesn't stop it.
+    expect(isbnMatches(choices, [{ title: "Caliban's War: Book 2 of the Expanse", authors: ["James S. A. Corey"] }]).map((c) => c.id)).toEqual(["u-2", "c"]);
+    // Same title, another author: not the same book.
+    expect(isbnMatches(choices, [{ title: "Pride and Prejudice", authors: ["Someone Else"] }])).toEqual([]);
+    expect(isbnMatches(choices, [])).toEqual([]);
   });
 });

@@ -450,5 +450,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Book clubs on uploaded books: choose *My uploads* and search when starting a club; each member links their own copy, never sharing files (migrations 6589–6592). Sitemap of 943 public pages; robots.txt, llms.txt and humans.txt updated | Done    |
 | —    | 16 more badges (30 in all); upload up to 20 EPUBs at a time (50 MB each), listed on the home page, Plans, FAQ and Help (migrations 6593–6595) | Done    |
 | —    | Start a club: sort the book list by title, author, numbers or series and filter by series, for catalog books and uploads (migration 6596) | Done    |
+| —    | Start a club: find the book by ISBN too, for catalog books and uploads (migration 6597) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

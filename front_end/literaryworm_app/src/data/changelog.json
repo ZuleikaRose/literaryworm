@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "update",
+    "title": "Find a club's book by ISBN",
+    "body": "When you start a book club, Find a book and, under My uploads, Find one of your uploads also take an ISBN (10 or 13 digits, with or without dashes), and so does Find your copy on a club's page. We look it up on Google Books and show the LiteraryWorm title or your uploaded EPUB with that title and author.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Sort and filter books when starting a club",
     "body": "When you start a book club, the Book list can be sorted by title (A–Z or Z–A), author, numbers first or series in reading order, and filtered to one series or to books in none. It works for LiteraryWorm titles and for your uploaded DRM-free EPUBs, including ones you bought; an upload's series comes from its title, such as \"(The Expanse, #1)\".",
     "major": false

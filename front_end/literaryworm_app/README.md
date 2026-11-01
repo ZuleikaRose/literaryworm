@@ -214,3 +214,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Book clubs on uploaded books: `ClubsView` (Book from, search), `ClubCopyPicker`, `clubBook()` / `copyChoices()` in `lib/clubs.ts`, `linkOwnCopy()`; `scripts/build-sitemap.py` (migrations 6589–6592) |
 | — | 30 badges (`BADGE_RULES`); uploads 20 at a time (`lib/uploadBatch.ts`, `UploadsView`); migrations 6593–6595 |
 | — | Club book sorting and series filter: `CLUB_BOOK_SORTS`, `sortClubBooks()`, `seriesInTitle()` (`lib/librarySort.ts`), `lib/clubBookChoices.ts`; migration 6596 |
+| — | Club book search by ISBN: `isbnMatches()` in `lib/clubBookChoices.ts`, `fetchBookPage({ mode: "isbn" })`; migration 6597 |

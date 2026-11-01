@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Sort and filter books when starting a club");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Find a club's book by ISBN");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -315,6 +315,10 @@ describe("the demo household", () => {
     // Uploads: none on the demo yet, so it says where to add one.
     await page.getByText(/^My uploads/).click();
     await page.getByRole("link", { name: "My Library → Uploads" }).waitFor();
+    // Find one of your uploads takes an ISBN too (looked up on Google Books, so not in this test copy).
+    await page.getByLabel("Find one of your uploads").fill("9780141439518");
+    await page.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).first().waitFor();
+    await page.getByLabel("Find one of your uploads").fill("");
     // LiteraryWorm books, narrowed by title or author.
     await page.getByText("LiteraryWorm books").click();
     await page.getByLabel("Find a book").fill("pride prejudice");
@@ -329,6 +333,9 @@ describe("the demo household", () => {
     await expect(form.getByLabel(/^Book/).locator("option").nth(1).textContent()).resolves.toContain("Anne of Avonlea");
     await form.getByLabel("Series", { exact: true }).selectOption("");
     await form.getByLabel("Sort by").selectOption("title");
+    // An ISBN is looked up on Google Books, which needs the servers this test copy doesn't use.
+    await form.getByLabel("Find a book").fill("978-0-14-143951-8");
+    await form.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).waitFor();
     await form.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel("Club name").fill("Austen fans");
     await page.getByRole("button", { name: "Start club" }).click();

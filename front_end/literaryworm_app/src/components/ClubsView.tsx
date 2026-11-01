@@ -17,7 +17,8 @@ import {
   spoilerFreeUpTo,
   unreadUpTo,
 } from "../lib/clubs";
-import { arrangeChoices, catalogChoice, choiceLabel, seriesNames, uploadChoice } from "../lib/clubBookChoices";
+import { arrangeChoices, catalogChoice, choiceLabel, isbnMatches, seriesNames, uploadChoice } from "../lib/clubBookChoices";
+import { isbnNoteFor, useIsbnLookup } from "../lib/useIsbnLookup";
 import { CLUB_BOOK_SORTS, type ClubBookSort } from "../lib/librarySort";
 import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
@@ -168,11 +169,16 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const seriesList = useMemo(() => seriesNames(all), [all]);
   // A series from the other source isn't offered: fall back to every book.
   const seriesShown = series === "" || series === "none" || seriesList.includes(series) ? series : "";
-  // Narrowed by the search and the series, in the chosen order.
+  // An ISBN in the search box (in LiteraryWorm books or My uploads): Google Books says which book
+  // it is, and the books with that title and author are shown.
+  const lookup = useIsbnLookup(query);
+  const isbn = lookup.isbn;
+  // Narrowed by the search (or the ISBN's book) and the series, in the chosen order.
   const choices = useMemo(
-    () => arrangeChoices(all.filter((b) => matchesBook(b, query)), sort, seriesShown),
-    [all, query, sort, seriesShown],
+    () => arrangeChoices(isbn ? (lookup.editions ? isbnMatches(all, lookup.editions) : []) : all.filter((b) => matchesBook(b, query)), sort, seriesShown),
+    [all, query, isbn, lookup.editions, sort, seriesShown],
   );
+  const isbnNote = isbnNoteFor(lookup, choices.length, source);
   const [name, setName] = useState("");
   const [picked, setPicked] = useState("");
   const bookId = choices.some((b) => b.id === picked) ? picked : (choices[0]?.id ?? "");
@@ -230,9 +236,13 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Title or author"
+        placeholder="Title, author or ISBN"
+        hint={isbnNote ?? undefined}
         autoComplete="off"
       />
+      <p className="visually-hidden" role="status">
+        {isbnNote ?? ""}
+      </p>
       {!(source === "uploads" && uploads.length === 0) && (
         <div className="club-book-tools">
           <div className="field">
@@ -271,7 +281,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
       ) : (
         <div className="field">
           <label className="field-label" htmlFor="club-book">
-            Book{(query || seriesShown) && ` (${choices.length} ${choices.length === 1 ? "match" : "matches"})`}
+            Book{(query || seriesShown) && (!isbn || lookup.done) && ` (${choices.length} ${choices.length === 1 ? "match" : "matches"})`}
           </label>
           <select
             id="club-book"
@@ -281,7 +291,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
             disabled={choices.length === 0}
             aria-describedby={source === "uploads" ? "club-book-hint" : undefined}
           >
-            {choices.length === 0 && <option value="">No book matches the search and series</option>}
+            {choices.length === 0 && <option value="">{isbn && !lookup.done ? "Looking up the ISBN…" : "No book matches the search and series"}</option>}
             {choices.map((b) => (
               <option key={b.id} value={b.id}>
                 {choiceLabel(b)}

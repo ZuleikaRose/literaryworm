@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { isbnMatches, uploadChoice } from "../lib/clubBookChoices";
 import { type Club, copyChoices } from "../lib/clubs";
 import { useClubs } from "../lib/useClubs";
+import { isbnNoteFor, useIsbnLookup } from "../lib/useIsbnLookup";
 import type { UploadedBook } from "../types";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
@@ -17,7 +19,15 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const choices = copyChoices(uploads, club, query);
+  // A title, author or ISBN: an ISBN is looked up on Google Books and matched by title and author.
+  const lookup = useIsbnLookup(query);
+  const ranked = copyChoices(uploads, club, lookup.isbn ? "" : query);
+  const choices = lookup.isbn
+    ? lookup.editions
+      ? ranked.filter((u) => isbnMatches([uploadChoice(u)], lookup.editions!).length > 0)
+      : []
+    : ranked;
+  const isbnNote = isbnNoteFor(lookup, choices.length, "uploads");
   const book = club.bookTitle ?? "the club's book";
 
   const use = async (upload: UploadedBook) => {
@@ -54,10 +64,21 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
           <p className="goal-hint">You haven't uploaded any books on this profile yet.</p>
         ) : (
           <>
-            <Field label="Find your copy" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Title or author" autoComplete="off" />
+            <Field
+              label="Find your copy"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Title, author or ISBN"
+              hint={isbnNote ?? undefined}
+              autoComplete="off"
+            />
+            <p className="visually-hidden" role="status">
+              {isbnNote ?? ""}
+            </p>
             {choices.length === 0 ? (
               <p className="goal-hint" role="status">
-                None of your uploads match that search.
+                {lookup.isbn && !lookup.done ? "Looking up that ISBN…" : "None of your uploads match that search."}
               </p>
             ) : (
               <ul className="club-copy-list" role="list">

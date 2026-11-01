@@ -1,4 +1,5 @@
 import type { Book, UploadedBook } from "../types";
+import { sameBook } from "./importCsv";
 import { type ClubBookSort, type SeriesPlace, seriesInTitle, sortClubBooks } from "./librarySort";
 import { seriesOf } from "./series";
 
@@ -39,3 +40,18 @@ export function arrangeChoices(choices: ClubBookChoice[], sort: ClubBookSort, se
 /** The label in the Book list: title, author, and the series and number when there is one. */
 export const choiceLabel = (c: ClubBookChoice) =>
   `${c.title}${c.author ? ` (${c.author})` : ""}${c.series && !c.title.includes(`#${c.series.order}`) ? ` · ${c.series.name} #${c.series.order}` : ""}`;
+
+/** A book Google Books gives for an ISBN: its title and authors. */
+export interface IsbnBook {
+  title: string;
+  authors: string[];
+}
+
+/**
+ * The choices that are the book an ISBN names. Neither our catalog nor uploads keep ISBNs, so the
+ * ISBN is looked up on Google Books (the `books` function's isbn mode) and its editions are matched
+ * by title and author's surname (`sameBook()`, which ignores a series in brackets and subtitles).
+ */
+export function isbnMatches(choices: ClubBookChoice[], editions: IsbnBook[]): ClubBookChoice[] {
+  return choices.filter((c) => editions.some((e) => sameBook({ title: c.title, author: c.author }, e)));
+}
