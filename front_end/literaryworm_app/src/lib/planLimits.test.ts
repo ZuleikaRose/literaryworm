@@ -135,8 +135,8 @@ describe("how many profiles a household may use", () => {
     expect(profileRoom({ planId: "premium", switchToMonthly: "standard" })).toBe(3);
     expect(profileRoom({ planId: "standard", switchToMonthly: "basic" })).toBe(1);
     // Moving to monthly on the same or a bigger plan changes nothing now.
-    expect(profileRoom({ planId: "standard", switchToMonthly: "premium" })).toBe(5);
-    expect(profileRoom({ planId: "standard", switchToMonthly: null })).toBe(5);
+    expect(profileRoom({ planId: "standard", switchToMonthly: "premium" })).toBe(3);
+    expect(profileRoom({ planId: "standard", switchToMonthly: null })).toBe(3);
   });
 
   it("counts only the profiles in use, not those set aside", () => {
