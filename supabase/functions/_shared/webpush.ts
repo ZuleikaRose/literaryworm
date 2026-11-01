@@ -19,18 +19,18 @@ export interface PushSubscriptionKeys {
 
 const enc = new TextEncoder();
 
-export function b64urlToBytes(value: string): Uint8Array {
+export function b64urlToBytes(value: string): Uint8Array<ArrayBuffer> {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
   return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 }
 
-export function bytesToB64url(bytes: Uint8Array): string {
+export function bytesToB64url(bytes: Uint8Array<ArrayBuffer>): string {
   let s = "";
   for (const b of bytes) s += String.fromCharCode(b);
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function concat(...parts: Uint8Array[]): Uint8Array {
+function concat(...parts: Uint8Array<ArrayBuffer>[]): Uint8Array<ArrayBuffer> {
   const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
   let at = 0;
   for (const p of parts) {
@@ -40,13 +40,13 @@ function concat(...parts: Uint8Array[]): Uint8Array {
   return out;
 }
 
-async function hmac(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
+async function hmac(key: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
   const k = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return new Uint8Array(await crypto.subtle.sign("HMAC", k, data));
 }
 
 /** HKDF-SHA-256 with one block of output, which is all RFC 8291 needs. */
-async function hkdf(salt: Uint8Array, ikm: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
+async function hkdf(salt: Uint8Array<ArrayBuffer>, ikm: Uint8Array<ArrayBuffer>, info: Uint8Array<ArrayBuffer>, length: number): Promise<Uint8Array<ArrayBuffer>> {
   const prk = await hmac(salt, ikm);
   return (await hmac(prk, concat(info, new Uint8Array([1])))).slice(0, length);
 }
@@ -57,10 +57,10 @@ async function hkdf(salt: Uint8Array, ikm: Uint8Array, info: Uint8Array, length:
  */
 export async function encryptPayload(
   sub: Pick<PushSubscriptionKeys, "p256dh" | "auth">,
-  payload: Uint8Array,
+  payload: Uint8Array<ArrayBuffer>,
   local?: CryptoKeyPair,
-  salt: Uint8Array = crypto.getRandomValues(new Uint8Array(16)),
-): Promise<Uint8Array> {
+  salt: Uint8Array<ArrayBuffer> = crypto.getRandomValues(new Uint8Array(16)),
+): Promise<Uint8Array<ArrayBuffer>> {
   const uaPublic = b64urlToBytes(sub.p256dh);
   const authSecret = b64urlToBytes(sub.auth);
   if (uaPublic.length !== 65 || authSecret.length !== 16) throw new Error("That push subscription's keys aren't valid.");
