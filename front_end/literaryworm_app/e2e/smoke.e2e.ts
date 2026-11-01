@@ -335,7 +335,7 @@ describe("the demo household", () => {
     await form.getByLabel("Sort by").selectOption("title");
     // An ISBN is looked up on Google Books, which needs the servers this test copy doesn't use.
     await form.getByLabel("Find a book").fill("978-0-14-143951-8");
-    await form.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).waitFor();
+    await form.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).first().waitFor();
     await form.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel("Club name").fill("Austen fans");
     await page.getByRole("button", { name: "Start club" }).click();
