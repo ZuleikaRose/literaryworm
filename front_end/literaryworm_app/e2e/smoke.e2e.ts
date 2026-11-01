@@ -933,8 +933,9 @@ describe("the demo household", () => {
     await stats.getByText(/to the end$/).waitFor();
     await expect(stats.getByRole("listitem").count()).resolves.toBe(3);
     // A book with no time yet has no statistics.
+    // Wait for Babel's own heading: Dune's is still showing for a moment after the navigation.
     await goInApp(page, "/books/babel");
-    await page.getByRole("heading", { level: 1 }).waitFor();
+    await page.getByRole("heading", { level: 1, name: "Babel" }).waitFor();
     await expect(page.getByRole("region", { name: "Your time with this book" }).count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
