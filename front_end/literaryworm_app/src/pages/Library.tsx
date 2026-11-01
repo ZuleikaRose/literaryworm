@@ -55,6 +55,7 @@ import { useVolume } from "../lib/useVolume";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeLibrary, activeReading } from "../store/reducer";
 import { smartLists } from "../lib/smartLists";
+import { isMood, moodLabel, MOODS } from "../lib/moods";
 import type {
   BookRequest,
   CustomList,
@@ -190,6 +191,11 @@ function LibraryView({ profile }: { profile: Profile }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const sort = readLibrarySort(params.get("sort"));
   const sortId = useId();
+  // ?mood= keeps only books this profile tagged with that mood (lib/moods.ts).
+  const rawMood = params.get("mood");
+  const mood = isMood(rawMood) ? rawMood : null;
+  const moods = useProfileData().moods;
+  const moodId = useId();
   // Titles, authors and years the rows looked up from Google Books, so sorting can use them too.
   const [looked, setLooked] = useState<Record<string, SortDetails>>({});
   const onDetails = useCallback((bookId: string, d: SortDetails) => {
@@ -206,7 +212,8 @@ function LibraryView({ profile }: { profile: Profile }) {
 
   const visible = Object.values(library.entries)
     // Uploaded books have their own tab, with Read and Delete.
-    .filter((e) => visibleTo(profile, e.bookId, requests) && !isUploadId(e.bookId));
+    .filter((e) => visibleTo(profile, e.bookId, requests) && !isUploadId(e.bookId))
+    .filter((e) => !mood || Boolean(moods[e.bookId]?.moods.includes(mood)));
   const entries = sortLibrary(
     visible,
     sort,
@@ -319,6 +326,17 @@ function LibraryView({ profile }: { profile: Profile }) {
           </div>
         </fieldset>
         <div className="library-sort">
+          <label htmlFor={moodId}>Mood</label>
+          <select id={moodId} className="field-input" value={mood ?? ""} onChange={(e) => setParam("mood", e.target.value || null)}>
+            <option value="">Any mood</option>
+            {MOODS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="library-sort">
           <label htmlFor={sortId}>Sort by</label>
           <select
             id={sortId}
@@ -352,15 +370,19 @@ function LibraryView({ profile }: { profile: Profile }) {
           <Icon name="library" size={28} />
           <h3>
             {entries.length === 0
-              ? "Your library is empty"
+              ? mood
+                ? `Nothing tagged ${moodLabel(mood).toLowerCase()}`
+                : "Your library is empty"
               : `Nothing marked ${readingStatusLabel[filter as ReadingStatus].toLowerCase()}`}
           </h3>
           <p>
-            {entries.length === 0
-              ? "Open any book and choose Add to my library. Your library is private; only you see it."
-              : "Change a book's status here or on its page."}
+            {entries.length === 0 && mood
+              ? "Tag a book's moods on its page under How did it feel?, or choose Any mood."
+              : entries.length === 0
+                ? "Open any book and choose Add to my library. Your library is private; only you see it."
+                : "Change a book's status here or on its page."}
           </p>
-          {entries.length === 0 && (
+          {entries.length === 0 && !mood && (
             <Link className="primary-button" to="/browse">
               Find a book
             </Link>
@@ -645,6 +667,7 @@ function SmartListsView({ profile }: { profile: Profile }) {
     entries: Object.values(library).filter((e) => visibleTo(profile, e.bookId, data.bookRequests)),
     progress,
     ratings: data.ratings,
+    moods: data.moods,
     follows: data.follows,
     authorsOf: (e) => {
       const book = getBook(e.bookId);
@@ -654,7 +677,7 @@ function SmartListsView({ profile }: { profile: Profile }) {
   });
   return (
     <div className="smart-lists">
-      <p className="goal-hint">These lists fill themselves from your library, your place in each book, your ratings and who you follow.</p>
+      <p className="goal-hint">These lists fill themselves from your library, your place in each book, your ratings, moods and who you follow.</p>
       {lists.map((list) => (
         <section key={list.id} className="smart-list" aria-labelledby={`smart-${list.id}`}>
           <h2 id={`smart-${list.id}`}>

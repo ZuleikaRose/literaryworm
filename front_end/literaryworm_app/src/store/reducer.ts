@@ -21,7 +21,7 @@ import type {
   RatingValue,
   Reminder,
   ReaderSettings,
-  ReadingStatus, UploadedBook } from "../types";
+  ReadingStatus, UploadedBook, BookMood } from "../types";
 import {
   type AccountReading,
   type AppState,
@@ -79,6 +79,7 @@ export type Action =
   | { type: "addReminder"; reminder: Reminder }
   | { type: "removeReminder"; bookId: string }
   | { type: "rateBook"; bookId: string; rating: RatingValue | null }
+  | { type: "setBookMood"; bookId: string; mood: BookMood }
   | { type: "addLog"; bookId: string; body: string; rating: number | null }
   | { type: "updateLog"; id: string; body: string; rating: number | null }
   | { type: "deleteLog"; id: string }
@@ -398,6 +399,14 @@ export function reducer(state: AppState, action: Action): AppState {
         if (action.rating) ratings[action.bookId] = action.rating;
         else delete ratings[action.bookId];
         return { ...data, ratings };
+      });
+
+    case "setBookMood":
+      return withProfileData(state, (data) => {
+        const moods = { ...data.moods };
+        if (action.mood.moods.length || action.mood.pace) moods[action.bookId] = action.mood;
+        else delete moods[action.bookId];
+        return { ...data, moods };
       });
 
     case "addLog": {

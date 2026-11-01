@@ -1,4 +1,4 @@
-import type { RatingValue, ReadingStatus } from "../types";
+import type { BookMood, RatingValue, ReadingStatus } from "../types";
 
 /**
  * Library export as CSV, in Goodreads' and StoryGraph's own export layouts, so either site's
@@ -22,6 +22,8 @@ export interface ExportBook {
   pages: number | null;
   year: number | null;
   rating: RatingValue | null;
+  /** Moods and pace the profile tagged (lib/moods.ts), for StoryGraph's Moods and Pace columns. */
+  mood?: BookMood | null;
 }
 
 export const STARS: Record<RatingValue, number> = { love: 5, like: 4, "not-for-me": 2 };
@@ -96,7 +98,7 @@ export function toCsv(books: ExportBook[], format: ExportFormat): string {
           ...books.map((b) =>
             row([
               b.title, b.authors.join(", "), "", "", "digital", SHELF[b.status], slashDate(b.addedAt), b.status === "finished" ? slashDate(b.finishedOn) : "",
-              datesRead(b), readCount(b), "", "", "", "", "", "", "",
+              datesRead(b), readCount(b), b.mood?.moods.join(", ") ?? "", b.mood?.pace ?? "", "", "", "", "", "",
               b.rating ? STARS[b.rating].toFixed(1) : "", "", "", "", "", "No",
             ]),
           ),

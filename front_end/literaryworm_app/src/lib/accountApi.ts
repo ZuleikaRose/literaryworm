@@ -2,6 +2,9 @@ import type { AccountReading } from "../store/state";
 import type { Collections } from "./collections";
 import type {
   BookDay,
+  BookMood,
+  Mood,
+  Pace,
   AgeRating,
   Account,
   Bookmark,
@@ -1187,6 +1190,7 @@ const emptyCollections = (): Collections => ({
   readerFollows: [],
   bookRequests: [],
   journal: [],
+  moods: {},
 });
 
 /** Every profile's favourites, ratings, lists (in order, with their books) and recent searches, keyed by profile id. */
@@ -1245,6 +1249,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const f of await loadReaderFollows()) of(f.profileId).readerFollows.push(f.follow);
   for (const r of await loadBookRequests()) of(r.profileId).bookRequests.push(r.request);
   for (const j of await loadJournal()) of(j.profileId).journal.push(j.entry);
+  for (const m of await loadMoods()) of(m.profileId).moods[m.bookId] = m.mood;
   for (const p of await loadProfileExtras()) {
     of(p.id).readingWpm = p.reading_wpm;
     of(p.id).upNext = p.up_next ?? [];
@@ -1704,6 +1709,42 @@ const toJournal = (r: JournalRow): JournalEntry => ({
 });
 
 /** Every profile's journal entries, newest first. An extra: if they can't load, the account still opens. */
+type MoodRow = { profile_id: string; volume_id: string; moods: Mood[]; pace: Pace | null };
+
+/** Every profile's moods and pace (migration 6604). An extra: if they can't load, the rest still opens. */
+async function loadMoods(): Promise<{ profileId: string; bookId: string; mood: BookMood }[]> {
+  const { data, error } = await client().from("book_moods").select("profile_id, volume_id, moods, pace");
+  if (error) {
+    console.error("collections: couldn't load moods:", error.message);
+    return [];
+  }
+  return (data as MoodRow[]).map((r) => ({ profileId: r.profile_id, bookId: r.volume_id, mood: { moods: r.moods, pace: r.pace } }));
+}
+
+/** Saves how a book felt to a profile, or clears it (nothing tagged). */
+export async function setBookMood(profileId: string, bookId: string, mood: BookMood): Promise<void> {
+  const db = client();
+  const failed = new AccountError("We couldn't save the moods. Try again.");
+  if (mood.moods.length === 0 && mood.pace === null) {
+    const { error } = await db.from("book_moods").delete().eq("profile_id", profileId).eq("volume_id", bookId);
+    if (error) throw failed;
+    return;
+  }
+  // Update first (the browser may change only moods and pace), then add the row the first time.
+  const updated = await db
+    .from("book_moods")
+    .update({ moods: mood.moods, pace: mood.pace })
+    .eq("profile_id", profileId)
+    .eq("volume_id", bookId)
+    .select("volume_id");
+  if (updated.error) throw failed;
+  if (updated.data.length > 0) return;
+  const { error } = await db
+    .from("book_moods")
+    .insert({ profile_id: profileId, user_id: await signedInUserId(), volume_id: bookId, moods: mood.moods, pace: mood.pace });
+  if (error) throw failed;
+}
+
 async function loadJournal(): Promise<{ profileId: string; entry: JournalEntry }[]> {
   const { data, error } = await client()
     .from("journal_entries")

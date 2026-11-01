@@ -40,6 +40,7 @@ export function ExportLibraryButtons() {
           pages: book?.pages ?? null,
           year: book?.year ?? (published && Number.isFinite(published) ? published : null),
           rating: data.ratings[e.bookId] ?? null,
+          mood: data.moods[e.bookId] ?? null,
         };
       });
     downloadCsv(toCsv(books, format), exportCsvName(format, today()));

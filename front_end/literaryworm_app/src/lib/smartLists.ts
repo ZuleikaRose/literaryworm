@@ -1,4 +1,5 @@
-import type { Follow, LibraryEntry, Progress, RatingValue } from "../types";
+import type { BookMood, Follow, LibraryEntry, Progress, RatingValue } from "../types";
+import { FEEL_GOOD } from "./moods";
 
 /**
  * Smart lists in My Library: lists that fill themselves from the library, reading progress,
@@ -6,7 +7,7 @@ import type { Follow, LibraryEntry, Progress, RatingValue } from "../types";
  */
 
 export interface SmartList {
-  id: "almost-there" | "waiting" | "followed" | "loved";
+  id: "almost-there" | "waiting" | "followed" | "loved" | "feel-good";
   title: string;
   description: string;
   empty: string;
@@ -17,6 +18,8 @@ export interface SmartListInput {
   entries: LibraryEntry[];
   progress: Record<string, Progress>;
   ratings: Record<string, RatingValue>;
+  /** Moods and pace the profile tagged (lib/moods.ts); missing means none. */
+  moods?: Record<string, BookMood>;
   follows: Follow[];
   /** A book's authors: the catalog's, or the ones its library row keeps for Google titles. */
   authorsOf: (entry: LibraryEntry) => string[];
@@ -28,7 +31,7 @@ export const STALLED_DAYS = 30;
 const DAY_MS = 86_400_000;
 const norm = (name: string) => name.trim().toLowerCase();
 
-export function smartLists({ entries, progress, ratings, follows, authorsOf, now }: SmartListInput): SmartList[] {
+export function smartLists({ entries, progress, ratings, moods = {}, follows, authorsOf, now }: SmartListInput): SmartList[] {
   const reading = entries.filter((e) => e.status === "reading");
   const lastTouched = (e: LibraryEntry) => progress[e.bookId]?.updatedAt ?? e.updatedAt ?? e.addedAt;
 
@@ -43,6 +46,10 @@ export function smartLists({ entries, progress, ratings, follows, authorsOf, now
 
   const loved = entries.filter((e) => ratings[e.bookId] === "love").sort((a, b) => (b.updatedAt ?? b.addedAt) - (a.updatedAt ?? a.addedAt));
 
+  // Books tagged with a feel-good mood, the most feel-good moods first, then the latest added.
+  const cheer = (e: LibraryEntry) => moods[e.bookId]?.moods.filter((m) => FEEL_GOOD.includes(m)).length ?? 0;
+  const feelGood = entries.filter((e) => cheer(e) > 0).sort((a, b) => cheer(b) - cheer(a) || b.addedAt - a.addedAt);
+
   const ids = (list: LibraryEntry[]) => list.map((e) => e.bookId);
   return [
     { id: "almost-there", title: "Almost there", description: "Books you're more than halfway through.", empty: "Nothing past halfway yet.", bookIds: ids(almost) },
@@ -55,5 +62,12 @@ export function smartLists({ entries, progress, ratings, follows, authorsOf, now
     },
     { id: "followed", title: "From authors you follow", description: "Books in your library by authors you follow.", empty: "Follow an author on their page, and their books in your library show here.", bookIds: ids(byFollowed) },
     { id: "loved", title: "Loved it", description: "Books you rated Love it.", empty: "Rate a book Love it on its page, and it shows here.", bookIds: ids(loved) },
+    {
+      id: "feel-good",
+      title: "Feel-good picks",
+      description: "Books you tagged funny, hopeful, lighthearted, relaxing or inspiring.",
+      empty: "Tag a book's moods on its page (How did it feel?), and the cheerful ones show here.",
+      bookIds: ids(feelGood),
+    },
   ];
 }

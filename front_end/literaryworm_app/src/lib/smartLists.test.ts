@@ -17,6 +17,7 @@ const lists = smartLists({
   ],
   progress: { a: prog("a", 0.8, 2), b: prog("b", 0.55, 45), c: prog("c", 0.1, 90) },
   ratings: { d: "love", a: "like" },
+  moods: { d: { moods: ["funny", "hopeful"], pace: "fast" }, c: { moods: ["dark", "lighthearted"], pace: null }, a: { moods: ["tense"], pace: null } },
   follows: [{ kind: "author", name: "ursula k. le guin" }, { kind: "narrator", name: "Jim Dale" }],
   authorsOf: (e) => e.authors ?? (e.bookId === "a" ? ["Jim Dale"] : []),
   now,
@@ -38,5 +39,8 @@ describe("smartLists", () => {
 
   it("Loved it: rated Love it", () => {
     expect(get("loved")).toEqual(["d"]);
+  });
+  it("Feel-good picks: books tagged with cheerful moods, the most first", () => {
+    expect(get("feel-good")).toEqual(["d", "c"]);
   });
 });

@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Moods and pace",
+    "body": "Tag how a book felt on its page, under How did it feel?: up to three moods, such as funny, hopeful, dark or tense, and a pace (slow, medium or fast). Each profile keeps its own. My Library can show only the books with one mood, the Feel-good picks smart list gathers the cheerful ones, and the StoryGraph export carries your moods and pace.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "update",
     "title": "A clearer Children's Privacy Notice",
     "body": "We rewrote the Children's Privacy Notice for parents and guardians. It now starts with a short summary, groups what a Kids profile keeps, lists what we never collect, explains the AI features a Kids profile can use (only the book's own text reaches Anthropic), says who can see a child's reading and for how long it's kept, and how to withdraw consent or ask us a question.",

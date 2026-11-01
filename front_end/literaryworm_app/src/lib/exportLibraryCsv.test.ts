@@ -72,7 +72,7 @@ describe("toCsv", () => {
 
   it("writes Didn't finish as did-not-finish and rereads as Read Count and Dates Read, and reads them back", () => {
     const more: ExportBook[] = [
-      { ...books[0], readDays: ["2025-01-10", "2026-10-20"] },
+      { ...books[0], readDays: ["2025-01-10", "2026-10-20"], mood: { moods: ["dark", "tense"], pace: "slow" } },
       { bookId: "g3", title: "Moods", authors: ["Louisa May Alcott"], status: "did_not_finish", addedAt: added, finishedOn: null, pages: null, year: null, rating: null },
     ];
     const gr = parseCsv(toCsv(more, "goodreads"));
@@ -83,6 +83,8 @@ describe("toCsv", () => {
     const sg = parseCsv(sgCsv);
     expect(sg[1][STORYGRAPH_HEADER.indexOf("Dates Read")]).toBe("2025/01/10-2025/01/10, 2026/10/20-2026/10/20");
     expect(sg[1][STORYGRAPH_HEADER.indexOf("Read Count")]).toBe("2");
+    expect(sg[1][STORYGRAPH_HEADER.indexOf("Moods")]).toBe("dark, tense");
+    expect(sg[1][STORYGRAPH_HEADER.indexOf("Pace")]).toBe("slow");
     expect(sg[2][STORYGRAPH_HEADER.indexOf("Read Status")]).toBe("did-not-finish");
     expect(readImport(sgCsv).rows.map((r) => r.status)).toEqual(["finished", "did_not_finish"]);
     expect(readImport(toCsv(more, "goodreads")).rows.map((r) => r.status)).toEqual(["finished", "did_not_finish"]);

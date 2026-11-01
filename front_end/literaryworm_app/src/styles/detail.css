@@ -1045,3 +1045,25 @@
   color: var(--ink-soft);
   font-size: 0.9375rem;
 }
+
+/* How did it feel? (components/MoodPicker.tsx) */
+.mood-picker {
+  margin-top: 14px;
+}
+
+.mood-group {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.mood-group legend {
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mood-group .taste-row {
+  margin-top: 8px;
+}

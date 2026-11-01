@@ -127,6 +127,7 @@ export function useAccount() {
           ...profile,
           favorites: data?.favorites ?? [],
           ratings: data?.ratings ?? {},
+          moods: data?.moods ?? {},
           customLists: data?.customLists ?? [],
           recentSearches: data?.recentSearches ?? [],
           follows: data?.follows ?? [],

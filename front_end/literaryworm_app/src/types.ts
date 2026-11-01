@@ -404,6 +404,20 @@ export interface ProfileData {
   bookRequests: BookRequest[];
   /** Reading journal: private dated entries about books, newest first. */
   journal: JournalEntry[];
+  /** Moods and pace this profile tagged books with, by book id (lib/moods.ts). */
+  moods: Record<string, BookMood>;
+}
+
+/** StoryGraph's moods (lib/moods.ts has the labels; the database checks the same list). */
+export type Mood =
+  | "adventurous" | "challenging" | "dark" | "emotional" | "funny" | "hopeful" | "informative"
+  | "inspiring" | "lighthearted" | "mysterious" | "reflective" | "relaxing" | "sad" | "tense";
+export type Pace = "slow" | "medium" | "fast";
+
+/** How a book felt to one profile: up to three moods and a pace. */
+export interface BookMood {
+  moods: Mood[];
+  pace: Pace | null;
 }
 
 /** A private journal entry about a book, for the day it's about. */

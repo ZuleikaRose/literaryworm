@@ -1,5 +1,5 @@
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
-import type { RatingValue } from "../types";
+import type { BookMood, RatingValue } from "../types";
 import * as accountApi from "./accountApi";
 import { newShareSlug, withRecentSearch } from "./collections";
 
@@ -30,6 +30,13 @@ export function useCollections() {
     if (!profileId) return;
     if (remote) await accountApi.setRating(profileId, bookId, rating);
     dispatch({ type: "rateBook", bookId, rating });
+  }
+
+  /** Moods and pace for a book (lib/moods.ts); nothing tagged clears it. */
+  async function setMood(bookId: string, mood: BookMood) {
+    if (!profileId) return;
+    if (remote) await accountApi.setBookMood(profileId, bookId, mood);
+    dispatch({ type: "setBookMood", bookId, mood });
   }
 
   async function createList(name: string, description: string) {
@@ -110,12 +117,14 @@ export function useCollections() {
   return {
     favorites: data.favorites,
     ratings: data.ratings,
+    moods: data.moods,
     lists: data.customLists,
     recentSearches: data.recentSearches,
     remote,
     canShare,
     toggleFavorite,
     rate,
+    setMood,
     createList,
     updateList,
     deleteList,

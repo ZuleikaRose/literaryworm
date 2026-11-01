@@ -108,6 +108,7 @@ export const emptyProfileData = (): ProfileData => ({
   readerFollows: [],
   bookRequests: [],
   journal: [],
+  moods: {},
 });
 
 export const newId = () => crypto.randomUUID();
@@ -217,6 +218,8 @@ export function demoHousehold(): Household {
     ],
     readingGoals: { [new Date(now).getFullYear()]: 24 },
     readingDays: demoReadingDays(now),
+    // How two books felt (lib/moods.ts): The Midnight Library shows in Feel-good picks.
+    moods: { dune: { moods: ["adventurous", "tense"], pace: "medium" }, "the-midnight-library": { moods: ["hopeful", "reflective"], pace: "fast" } },
     bookDays: { dune: demoDuneDays(now) },
     // Three kept words for My words: two due for review today, one not until later.
     words: [

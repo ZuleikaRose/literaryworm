@@ -1074,6 +1074,22 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("tags a book's moods and pace, then filters My Library by mood", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/babel");
+    await page.getByRole("button", { name: /How did it feel\?/ }).click();
+    const moods = page.getByRole("group", { name: "Moods (up to 3)" });
+    await moods.getByRole("button", { name: "Funny" }).click();
+    await page.getByText("Added funny.").waitFor({ state: "attached" });
+    await page.getByRole("group", { name: "Pace" }).getByRole("button", { name: "Fast" }).click();
+    await page.getByRole("button", { name: "How it felt: Funny · Fast pace" }).waitFor();
+    await goInApp(page, "/library?mood=funny");
+    await page.locator(".library-list").getByText("Babel").first().waitFor();
+    await expect(page.locator(".library-list").getByText("Dune").count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("makes a reading plan with a day's share, shows it on Home, and removes it", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
