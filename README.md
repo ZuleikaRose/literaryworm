@@ -451,5 +451,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | 16 more badges (30 in all); upload up to 20 EPUBs at a time (50 MB each), listed on the home page, Plans, FAQ and Help (migrations 6593–6595) | Done    |
 | —    | Start a club: sort the book list by title, author, numbers or series and filter by series, for catalog books and uploads (migration 6596) | Done    |
 | —    | Start a club: find the book by ISBN too, for catalog books and uploads (migration 6597) | Done    |
+| —    | Club book search by title, Author or ISBN and the same Sort by / Series under My uploads; Help, FAQ, home page and llms.txt say so; schema.sql and drawsql.png current to migration 6598 | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

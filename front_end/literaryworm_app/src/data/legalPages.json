@@ -1283,7 +1283,7 @@
       {
         "heading": "Book clubs on your own books",
         "paragraphs": [
-          "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose My uploads under Book from and search by title or author to find it.",
+          "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose LiteraryWorm books or My uploads under Book from, then find the book by title, author or ISBN (an ISBN is looked up on Google Books and matched by title and author). Sort the list by title, author, numbers first or series in reading order, and filter it to one series.",
           "Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. An uploaded book has no recording, so there's no listening along."
         ]
       },
