@@ -7,7 +7,7 @@ import { usePopover } from "../lib/usePopover";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
-import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "./PlayerControls";
+import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "./PlayerControls";
 
 type Panel = "jump" | "settings" | "devices" | null;
 
@@ -216,6 +216,7 @@ function MiniPlayerView({ book }: { book: Book }) {
           <span className="visually-hidden">Close the mini-player</span>
         </button>
       </div>
+      <SleepMore className="mini-sleep-more" />
       <p className="visually-hidden" role="status">
         {live.notice ?? ""}
       </p>

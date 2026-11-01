@@ -20,6 +20,8 @@ export interface PlaybackSnapshot {
   sleep: SleepTimer;
   /** Seconds of playing left on a minutes sleep timer. */
   sleepLeft: number;
+  /** Where the sleep timer paused the book (seconds), until it plays again or moves; views offer more minutes. */
+  sleptAt: number | null;
   /** A one-line message (sleep timer stopped, daily limit). */
   notice: string | null;
   limitReached: boolean;

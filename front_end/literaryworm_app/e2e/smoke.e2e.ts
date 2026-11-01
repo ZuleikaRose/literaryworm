@@ -144,7 +144,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Passkeys skip the code");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("A gentler sleep timer");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -380,6 +380,25 @@ describe("the demo household", () => {
     await signInDemo(page);
     await goInApp(page, "/listen/frankenstein");
     await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("pauses on the sleep timer, then offers 15 more minutes from a little earlier", async () => {
+    const { page, errors } = await newPage();
+    // The page's clock, so five minutes of listening pass in a moment.
+    await page.clock.install();
+    await signInDemo(page);
+    await goInApp(page, "/listen/dune");
+    await page.getByLabel("Voice").selectOption({ label: "No voice (silent sample)" });
+    await page.getByLabel("Sleep timer").selectOption("5");
+    await page.getByRole("button", { name: "Play", exact: true }).first().click();
+    await page.clock.runFor(5 * 60 * 1000 + 2000);
+    await page.getByText("Sleep timer: paused. Play goes back 30 seconds.").waitFor();
+    const more = page.getByRole("button", { name: "15 more minutes" });
+    await more.first().waitFor();
+    await more.first().click();
+    await page.getByText(/Sleep timer: pauses after 1[45]:\d\d more of playing/).waitFor();
+    await expect(more.count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
 

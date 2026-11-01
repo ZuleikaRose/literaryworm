@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "@jest/globals";
 import { getBook } from "../data/books";
 import {
+  resumeAfterSleep,
+  SLEEP_FADE_SECONDS,
+  sleepVolume,
   PAGE_CHARS,
   chapterAt,
   chapterStarts,
@@ -110,5 +113,21 @@ describe("lostWithBook", () => {
     expect(lostWithBook(2, true, 3, 1)).toBe(
       "Your 2 logs, your place in the book, your 3 bookmarks and your highlight will be deleted too. This can't be undone.",
     );
+  });
+});
+
+describe("the sleep timer", () => {
+  it("keeps the volume until the fade, then brings it down to silence", () => {
+    expect(sleepVolume(0.8, 120)).toBe(0.8);
+    expect(sleepVolume(0.8, SLEEP_FADE_SECONDS)).toBe(0.8);
+    expect(sleepVolume(0.8, SLEEP_FADE_SECONDS / 2)).toBeCloseTo(0.4);
+    expect(sleepVolume(0.8, 0)).toBe(0);
+    expect(sleepVolume(0.8, -3)).toBe(0);
+  });
+
+  it("goes back 30 seconds when playing again, but not before the start", () => {
+    expect(resumeAfterSleep(600)).toBe(570);
+    expect(resumeAfterSleep(20)).toBe(0);
+    expect(resumeAfterSleep(100, 90)).toBe(90);
   });
 });

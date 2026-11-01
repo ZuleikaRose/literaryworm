@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "A gentler sleep timer",
+    "body": "A sleep timer set for minutes now fades the narrator out over its last 30 seconds instead of stopping mid-sentence. When it pauses the book, 15 more minutes is one tap away in the player and the mini-player, and pressing play again starts 30 seconds earlier, in case you were drifting off.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-10-31",
     "version": "2026.10",
     "kind": "update",

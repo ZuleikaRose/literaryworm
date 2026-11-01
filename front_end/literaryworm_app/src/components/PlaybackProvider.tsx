@@ -3,7 +3,7 @@ import { getBook, isAllowed } from "../data/books";
 import { loadDevices, sendHandoff } from "../lib/devicesApi";
 import { type DeviceLink, type Playback, PlaybackContext, type PlaybackEngine, type PlaybackSnapshot, type StartAt } from "../lib/playback";
 import { bookStart, chapterIntro, chapterOutro } from "../lib/playerNav";
-import { chapterAt, chapterTimes, type SleepTimer } from "../lib/reading";
+import { chapterAt, chapterTimes, resumeAfterSleep, SLEEP_FADE_SECONDS, SLEEP_REWIND_SECONDS, sleepVolume, type SleepTimer } from "../lib/reading";
 import { useDeviceLink } from "../lib/useDeviceLink";
 import { useDailyLimit } from "../lib/useDailyLimit";
 import { useListeningAllowance } from "../lib/useListeningAllowance";
@@ -204,6 +204,13 @@ function Engine({
   const [sleep, setSleep] = useState<SleepTimer>(null);
   const [sleepLeft, setSleepLeft] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
+  // Where the sleep timer paused, so Play can go back a little and the views can offer more minutes.
+  const [sleptAt, setSleptAt] = useState<number | null>(null);
+  const sleptRef = useRef<number | null>(null);
+  const slept = (at: number | null) => {
+    sleptRef.current = at;
+    setSleptAt(at);
+  };
   const [finished, setFinished] = useState(false);
   const limit = useDailyLimit(playing, profileId, true);
   const allowance = useListeningAllowance(playing);
@@ -251,7 +258,8 @@ function Engine({
     if (c.sleep?.kind === "chapter") {
       setSleep(null);
       setPlaying(false);
-      setNotice("Sleep timer: paused at the end of the chapter.");
+      slept(next);
+      setNotice(`Sleep timer: paused at the end of the chapter. Play goes back ${SLEEP_REWIND_SECONDS} seconds.`);
       c.save(next);
       return;
     }
@@ -319,6 +327,8 @@ function Engine({
 
   const seek = (seconds: number) => {
     const next = Math.min(total, Math.max(0, seconds));
+    // Choosing a place replaces going back after the sleep timer.
+    slept(null);
     setPosition(next);
     save(next);
     const n = narrator.current;
@@ -375,9 +385,12 @@ function Engine({
           setPosition(next);
           setSleep(null);
           setPlaying(false);
-          setNotice("Sleep timer: playback paused.");
+          slept(next);
+          setNotice(`Sleep timer: paused. Play goes back ${SLEEP_REWIND_SECONDS} seconds.`);
           return;
         }
+        // The last seconds fade out rather than stopping mid-sentence.
+        if (left < SLEEP_FADE_SECONDS) narrator.current?.setVolume(sleepVolume(c.volume, left));
         c.sleepLeft = left;
         setSleepLeft(left);
       }
@@ -415,6 +428,7 @@ function Engine({
       finished,
       sleep,
       sleepLeft,
+      sleptAt,
       notice,
       limitReached: limit.reached,
       limitMinutes: limit.limitMinutes,
@@ -422,7 +436,7 @@ function Engine({
       listeningLeft,
       saveError,
     });
-  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, notice, limit.reached, limit.limitMinutes, allowanceUsed, listeningLeft, saveError]);
+  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, sleptAt, notice, limit.reached, limit.limitMinutes, allowanceUsed, listeningLeft, saveError]);
 
   // The controls, for the provider to call. Kept current with the latest render.
   const latest = useRef({ position, seek, reading, limit, allowance, finished });
@@ -434,6 +448,10 @@ function Engine({
       play: () => {
         const l = latest.current;
         setNotice(null);
+        // After the sleep timer: a little earlier, at the full volume again.
+        const sleptHere = sleptRef.current;
+        if (sleptHere !== null) l.seek(resumeAfterSleep(sleptHere, bookStart(book, clock.current.autoSkipIntro)));
+        narrator.current?.setVolume(clock.current.volume);
         if (l.finished || l.position >= total) {
           setFinished(false);
           l.seek(bookStart(book, clock.current.autoSkipIntro));
@@ -449,6 +467,8 @@ function Engine({
       seek: (seconds) => latest.current.seek(seconds),
       setSleep: (value) => {
         setNotice(null);
+        // Changing the timer mid-fade brings the volume back.
+        narrator.current?.setVolume(clock.current.volume);
         if (value === "off") setSleep(null);
         else if (value === "chapter") setSleep({ kind: "chapter" });
         else {

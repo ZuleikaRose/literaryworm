@@ -1227,3 +1227,11 @@ kbd {
   font-size: 1.25rem;
   font-weight: 700;
 }
+
+/* After the sleep timer paused: "15 more minutes" sits just above the mini-player. */
+.mini-sleep-more {
+  position: absolute;
+  right: 8px;
+  bottom: calc(100% + 8px);
+  box-shadow: var(--shadow-float);
+}

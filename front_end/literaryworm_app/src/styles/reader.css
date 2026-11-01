@@ -1029,3 +1029,8 @@
     min-height: 140px;
   }
 }
+
+/* After the sleep timer paused: "15 more minutes", under the status line. */
+.sleep-more {
+  margin-top: 12px;
+}

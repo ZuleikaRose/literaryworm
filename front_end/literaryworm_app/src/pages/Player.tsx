@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CarMode } from "../components/CarMode";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
-import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, VolumeControl } from "../components/PlayerControls";
+import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
@@ -332,6 +332,7 @@ function PlayerView({ book }: { book: Book }) {
                       ? "Sleep timer: pauses at the end of this chapter"
                       : "")}
               </p>
+              <SleepMore />
             </>
           )}
 

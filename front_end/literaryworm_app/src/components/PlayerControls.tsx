@@ -6,7 +6,7 @@ import { bookText } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
 import { startCast, useCast } from "../lib/cast";
 import { chapterIntro, chapterOutro, type IndexEntry, parseTime, searchText } from "../lib/playerNav";
-import { formatTime, PLAYBACK_SPEEDS, SKIP_CHOICES, SLEEP_MINUTES, spokenTime } from "../lib/reading";
+import { formatTime, PLAYBACK_SPEEDS, SKIP_CHOICES, SLEEP_MINUTES, SLEEP_MORE_MINUTES, spokenTime } from "../lib/reading";
 import type { PlayerControls } from "../lib/usePlayerControls";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useStore } from "../store/context";
@@ -21,6 +21,28 @@ import { Icon } from "./Icon";
  * references, a time), player settings, listening on another device, and the prompt that
  * offers a book sent here from another device.
  */
+
+/**
+ * After the sleep timer paused the book: one tap plays on for another few minutes (from a little
+ * earlier, like Play). Shows nothing otherwise.
+ */
+export function SleepMore({ className }: { className?: string }) {
+  const playback = usePlayback();
+  const live = playback.snapshot;
+  if (!live || live.playing || live.sleptAt === null) return null;
+  return (
+    <button
+      type="button"
+      className={`secondary-button sleep-more${className ? ` ${className}` : ""}`}
+      onClick={() => {
+        playback.setSleep(String(SLEEP_MORE_MINUTES));
+        playback.play();
+      }}
+    >
+      <Icon name="play" size={16} /> {SLEEP_MORE_MINUTES} more minutes
+    </button>
+  );
+}
 
 /** Mute and a volume slider. */
 export function VolumeControl({ className }: { className?: string }) {

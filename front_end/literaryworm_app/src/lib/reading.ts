@@ -144,6 +144,23 @@ export const CREDITS_SECONDS = 30;
 
 export type SleepTimer = { kind: "minutes"; minutes: number } | { kind: "chapter" } | null;
 export const SLEEP_MINUTES = [5, 15, 30, 45, 60];
+/** A minutes sleep timer fades the volume down over its last seconds instead of cutting off. */
+export const SLEEP_FADE_SECONDS = 30;
+/** Playing again after the sleep timer paused goes back this far: the listener was likely drifting off. */
+export const SLEEP_REWIND_SECONDS = 30;
+/** *More minutes* after the sleep timer paused starts a timer this long. */
+export const SLEEP_MORE_MINUTES = 15;
+
+/** The volume `secondsLeft` before a minutes sleep timer pauses: full, then down to silence over the fade. */
+export function sleepVolume(volume: number, secondsLeft: number): number {
+  if (secondsLeft >= SLEEP_FADE_SECONDS) return volume;
+  return volume * Math.max(0, secondsLeft) / SLEEP_FADE_SECONDS;
+}
+
+/** Where playing again starts after the sleep timer paused at `position`: a little earlier, not before `start`. */
+export function resumeAfterSleep(position: number, start = 0): number {
+  return Math.max(start, position - SLEEP_REWIND_SECONDS);
+}
 
 export const READER_SIZES = [16, 18, 20, 23, 26, 30];
 
