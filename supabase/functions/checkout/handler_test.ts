@@ -133,7 +133,7 @@ Deno.test("moving down a plan needs the household to fit it first; nothing touch
   assertEquals((await call(lapsed.deps, choice({ planId: "basic" }))).body.error.message, "Basic has room for 1 profile and your household uses 2. Set aside or remove 1 in Who's reading? first.");
   assertEquals(lapsed.state.checkouts.length, 0);
   // Once it fits, the change goes ahead.
-  size.profiles = 5;
+  size.profiles = 3;
   size.offlineDevices = 10;
   assertEquals((await call(deps, choice({ planId: "standard" }))).status, 200);
   assertEquals(state.planChanges, [["sub_1", "standard", "month", "month"]]);

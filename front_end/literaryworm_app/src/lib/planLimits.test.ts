@@ -127,12 +127,12 @@ describe("how many profiles a household may use", () => {
     expect(profileRoom(null)).toBe(1);
     expect(profileRoom({ planId: null })).toBe(1);
     expect(profileRoom({ planId: "basic" })).toBe(1);
-    expect(profileRoom({ planId: "standard" })).toBe(5);
+    expect(profileRoom({ planId: "standard" })).toBe(3);
     expect(profileRoom({ planId: "premium" })).toBe(12);
   });
 
   it("is the smaller plan's while a yearly membership waits to move to it at renewal", () => {
-    expect(profileRoom({ planId: "premium", switchToMonthly: "standard" })).toBe(5);
+    expect(profileRoom({ planId: "premium", switchToMonthly: "standard" })).toBe(3);
     expect(profileRoom({ planId: "standard", switchToMonthly: "basic" })).toBe(1);
     // Moving to monthly on the same or a bigger plan changes nothing now.
     expect(profileRoom({ planId: "standard", switchToMonthly: "premium" })).toBe(5);
