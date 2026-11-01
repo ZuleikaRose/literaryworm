@@ -1901,3 +1901,70 @@ body:has(.mini-player) .listen-along-bar {
   margin: 0;
   font-size: 0.9375rem;
 }
+
+/* ---------- Shared highlights in a club ---------- */
+
+.club-highlights {
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.club-highlights h2,
+.club-highlights h3 {
+  margin: 0;
+}
+
+.club-highlight-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.club-highlight {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.club-highlight p {
+  margin: 0;
+}
+
+.club-highlight > .text-button {
+  justify-self: start;
+}
+
+.club-highlight-note {
+  font-size: 0.9375rem;
+}
+
+.club-highlight-share {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.club-highlight-share form {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.club-highlight-share select {
+  width: 100%;
+  min-height: 44px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}

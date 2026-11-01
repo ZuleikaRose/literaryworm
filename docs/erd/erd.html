@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6564, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6569, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -638,6 +638,22 @@
           note: "Catalog books a grown-up or teen profile puts out for the household (Home row; Kids profiles see only what they may open). Up to 100; added_by must be a non-Kids profile of the account (trigger). FK user_id → auth.users and added_by → reader_profiles (on delete set null); index on added_by. RLS: owner; insert and delete.",
         },
         {
+          id: "club_highlights", color: colors.reading, x: 420, y: 8160, sub: "shared with a club · spoiler-safe",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "club_id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["fk", "highlight_id", "uuid"],
+            ["", "share_note", "boolean"],
+            ["", "chapter_index", "smallint 0–999"],
+            ["", "quote", "text ≤ 2000"],
+            ["", "color", "highlight_color"],
+            ["", "note", "text ≤ 2000", true],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "A member's own highlight of the club's book, shared with the club; hidden past each reader's chapter like posts. The browser sends club, highlight and share_note; a trigger copies the passage, chapter, colour and (if asked) note, checks the book and caps 300 per member per club. FK (club_id, user_id) → club_members and highlight_id → highlights, both on delete cascade; both indexed. RLS: members read; insert and delete own.",
+        },
+        {
           id: "chapter_recaps", color: colors.server, x: 0, y: 8160, sub: "previously… · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -966,6 +982,8 @@
         ["book_reading_days", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["family_shelf", "user_id", "auth.users", "id", "N : 1"],
         ["family_shelf", "added_by", "reader_profiles", "id", "N : 1"],
+        ["club_highlights", "club_id", "club_members", "club_id", "N : 1 (pair)"],
+        ["club_highlights", "highlight_id", "highlights", "id", "N : 1"],
         ["club_meeting_pushes", "meeting_id", "club_meetings", "id", "N : 1"],
         ["club_meeting_pushes", "user_id", "auth.users", "id", "N : 1"],
         ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Share highlights with your book club",
+    "body": "On a club's page, Shared highlights shows the passages members marked in the book, with their notes if they chose to share them. Ones from chapters you haven't reached stay hidden until you choose to see them, like posts. Share one of your own from the list there, and stop sharing it whenever you like.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Review your highlights",
     "body": "My Library → Notes now has Review for your highlights: each passage you marked comes back the day after, then after 1, 3, 7, 14, 30 and 60 days while it still matters, with your note and a link to the page. Up to 10 a day, and Home tells you when some are due.",
     "major": false

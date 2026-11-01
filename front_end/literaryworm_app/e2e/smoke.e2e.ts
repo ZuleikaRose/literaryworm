@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Review your highlights");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Share highlights with your book club");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -943,6 +943,23 @@ describe("the demo household", () => {
     await goInApp(page, "/browse");
     await page.getByRole("heading", { name: "Home for Sam" }).waitFor();
     await expect(page.getByRole("link", { name: /highlights? to review today/ }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows a club's shared highlights, holding back ones past the reader's chapter", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const section = page.getByRole("region", { name: "Shared highlights" });
+    // Jordan's is from chapter 1, open to everyone; Priya's is much later in the book.
+    await section.getByText(/a single man in possession of a good fortune/).waitFor();
+    await section.getByText("The most famous first line, and it's a joke.").waitFor();
+    await expect(section.getByText("In vain have I struggled.").count()).resolves.toBe(0);
+    await section.getByText(/1 more is from chapters you haven't reached/).waitFor();
+    await section.getByRole("button", { name: "Show it anyway" }).click();
+    await section.getByText("In vain have I struggled.").waitFor();
+    // With no highlights of the book yet, it says how to make one.
+    await section.getByRole("link", { name: "Pride and Prejudice" }).waitFor();
     expect(errors()).toEqual([]);
   });
 

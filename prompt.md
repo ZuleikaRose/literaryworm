@@ -117,6 +117,8 @@ Then, on 1 November 2026: a gentler sleep timer; notifications on members' devic
 
 Then highlights review: spaced repetition for highlights in My Library → Notes, like word review, with a nudge on Home.
 
+Then shared highlights in book clubs: members share their own highlights of the club's book, hidden past each reader's chapter like posts.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

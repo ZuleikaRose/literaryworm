@@ -24,6 +24,7 @@ import {
 import { AccountError } from "../lib/accountApi";
 import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
+import { ClubHighlights } from "../components/ClubHighlights";
 import { ClubPlaces } from "../components/ClubPlaces";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
@@ -555,6 +556,7 @@ export default function ClubPage() {
 
 function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: Book }) {
   const clubs = useClubs();
+  const profile = useActiveProfile();
   const navigate = useNavigate();
   const { state } = useStore();
   const { club, members } = detail;
@@ -689,6 +691,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
               })}
             </ol>
           )}
+          <ClubHighlights clubId={club.id} book={book} me={me} myName={profile?.name ?? "You"} upTo={Math.max(0, mine)} />
         </section>
 
         <aside className="club-side">

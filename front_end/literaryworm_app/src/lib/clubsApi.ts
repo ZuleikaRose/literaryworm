@@ -2,6 +2,8 @@ import { AccountError, callFunction, signedInUserId } from "./accountApi";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeting } from "./clubCalendar";
 import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "./clubs";
+import type { ClubHighlight } from "./clubHighlights";
+import type { HighlightColor } from "../types";
 import { supabase } from "./supabase";
 
 /**
@@ -323,4 +325,59 @@ export async function loadSharePlace(clubId: string): Promise<boolean> {
 export async function setSharePlace(clubId: string, on: boolean): Promise<void> {
   const { error } = await client().from("club_members").update({ share_place: on }).eq("club_id", clubId).eq("user_id", await signedInUserId());
   if (error) throw new Error("We couldn't change that. Try again.");
+}
+
+// ---------- Shared highlights (club_highlights, migration 6565) ----------
+
+const SHARED_COLUMNS = "id, user_id, highlight_id, chapter_index, quote, color, note, created_at, author:profiles(display_name)";
+
+interface SharedRow {
+  id: string;
+  user_id: string;
+  highlight_id: string;
+  chapter_index: number;
+  quote: string;
+  color: HighlightColor;
+  note: string | null;
+  created_at: string;
+  author: { display_name: string } | null;
+}
+
+const toShared = (row: SharedRow): ClubHighlight => ({
+  id: row.id,
+  userId: row.user_id,
+  author: row.author?.display_name ?? "A member",
+  highlightId: row.highlight_id,
+  chapterIndex: row.chapter_index,
+  quote: row.quote,
+  color: row.color,
+  note: row.note,
+  createdAt: Date.parse(row.created_at),
+});
+
+/** The highlights members have shared with a club (members only, by RLS). */
+export async function loadClubHighlights(clubId: string): Promise<ClubHighlight[]> {
+  const { data, error } = await client().from("club_highlights").select(SHARED_COLUMNS).eq("club_id", clubId).order("created_at");
+  if (error) throw new AccountError("We couldn't load the shared highlights. Try again.");
+  return (data as unknown as SharedRow[]).map(toShared);
+}
+
+/** Shares one of this account's highlights of the club's book; the database copies the passage. */
+export async function shareHighlight(clubId: string, highlightId: string, shareNote: boolean): Promise<ClubHighlight> {
+  const { data, error } = await client()
+    .from("club_highlights")
+    .insert({ club_id: clubId, user_id: await signedInUserId(), highlight_id: highlightId, share_note: shareNote })
+    .select(SHARED_COLUMNS)
+    .single();
+  if (error) {
+    if (error.message.includes("up to 300")) throw new AccountError("You can share up to 300 highlights in a club.");
+    if (error.code === "23505") throw new AccountError("You've already shared that highlight here.");
+    throw new AccountError("We couldn't share that highlight. Try again.");
+  }
+  return toShared(data as unknown as SharedRow);
+}
+
+export async function unshareHighlight(id: string): Promise<void> {
+  const { error } = await client().from("club_highlights").delete().eq("id", id);
+  if (error) throw new AccountError("We couldn't stop sharing that highlight. Try again.");
 }

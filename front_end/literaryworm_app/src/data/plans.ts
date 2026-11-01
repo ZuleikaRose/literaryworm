@@ -20,7 +20,7 @@ export const plans: Plan[] = [
       "Favourites, custom lists, smart lists that fill themselves, ratings and reading logs",
       "AI book summaries, and Ask the book and Previously… recaps on the classics",
       "Reading goals, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
-      "Book clubs with spoiler-free discussion, listening along and where everyone is in the book",
+      "Book clubs with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, and read offline",
       "Import your reading from Goodreads or StoryGraph",
@@ -130,7 +130,7 @@ export const planFaqs = [
   },
   {
     q: "Who can see what I read?",
-    a: "Your library, progress, highlights and notes are private to your household. Reading logs you write are public on the book's page with your display name. Book club posts are seen only by the club's members, and a list is seen only by people you send its link to.",
+    a: "Your library, progress, highlights and notes are private to your household. Reading logs you write are public on the book's page with your display name. Book club posts, and highlights you choose to share with a club, are seen only by the club's members, and a list is seen only by people you send its link to.",
   },
   {
     q: "Are the book summaries written by AI?",

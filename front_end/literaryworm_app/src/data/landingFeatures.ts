@@ -34,7 +34,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "users",
     title: "Book clubs",
-    body: "Talk about a book without spoilers: posts past your chapter stay hidden. See where everyone is, plan meetings and add them to your calendar.",
+    body: "Talk about a book without spoilers: posts and shared highlights past your chapter stay hidden. See where everyone is, plan meetings and add them to your calendar.",
   },
   {
     icon: "headphones",
