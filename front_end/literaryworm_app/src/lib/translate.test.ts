@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { codeOf, defaultTarget, passageFor, TRANSLATE_LANGUAGES, TRANSLATE_MAX } from "./translateApi";
+import { codeOf, defaultTarget, passageFor, TRANSLATE_LANGUAGES, TRANSLATE_MAX } from "./translate";
 
 describe("translate", () => {
   it("offers seven languages and maps names to codes", () => {

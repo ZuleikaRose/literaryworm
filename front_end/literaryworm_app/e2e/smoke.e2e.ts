@@ -238,6 +238,7 @@ describe("the demo household", () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     await goInApp(page, "/profiles?manage=1");
+    await page.getByRole("heading", { name: "Manage profiles" }).waitFor();
     await page.getByRole("button", { name: /^Mia/ }).click();
     let dialog = page.getByRole("dialog", { name: "Edit Mia" });
     await dialog.getByLabel("Bedtime").selectOption({ label: "7:30pm" });
