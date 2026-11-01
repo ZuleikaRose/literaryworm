@@ -129,6 +129,21 @@ Then OpenDyslexic, a reading ruler and line focus in the reader's Display settin
 
 Then offline listening on a schedule: keep the next chapters of an audiobook on the device as it plays, on Wi-Fi only if chosen.
 
+Then a second list, built on 1 November 2026, one feature at a time:
+
+- Didn't finish: a fourth library status, with its own tab, that pushes similar books down in recommendations.
+- Rereads: Read again on a finished book, counted from the days it was finished.
+- Moods and pace: up to three moods and a pace per book, a mood filter, Feel-good picks on Discover and moods on Search.
+- Bedtime for Kids profiles: set by a grown-up with the account password, shown as Time for bed.
+- Translate a passage in the classics, with Claude, sending only the words selected.
+- Audio clips: a link to 15 to 60 seconds of a LibriVox recording, nothing recorded or stored.
+- Content notes, written by AI from a book's details, on book pages and under Kids book requests.
+- Buddy reads: a book club for two, started from a book's page.
+
+Saved for later: public library lending (Libby or OverDrive) and Kids reading aloud recordings.
+
+Alongside them: a clearer Children's Privacy Notice, every policy in short paragraphs, and schema.org data true to each page.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

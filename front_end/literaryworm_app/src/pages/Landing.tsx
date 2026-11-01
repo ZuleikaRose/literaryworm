@@ -21,7 +21,7 @@ import type { AgeRating } from "../types";
 const household: { name: string; avatar: number; rating: AgeRating; note: string }[] = [
   { name: "Avery", avatar: 0, rating: "all", note: "Everything in the catalog, plus the Account settings." },
   { name: "Sam", avatar: 2, rating: "teen", note: "Teen and Kids titles. Reviews show a display name only." },
-  { name: "Mia", avatar: 4, rating: "kids", note: "Kids titles, big covers, no chat or payments. A daily limit if you set one." },
+  { name: "Mia", avatar: 4, rating: "kids", note: "Kids titles, big covers, no chat or payments. A daily limit and a bedtime if you set them." },
 ];
 
 const hours = (minutes: number) => `${Math.round(minutes / 60)} hours`;
@@ -189,8 +189,8 @@ export default function Landing() {
             <h2 id="household-title">A shelf for everyone at home</h2>
             <p>
               Up to 12 profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, set a
-              daily limit and a weekly goal for younger readers, and get their week by email. Kids can ask you for a book
-              above their shelf, and you say yes or no.
+              daily limit, a weekly goal and a bedtime for younger readers, and get their week by email. Kids can ask you for a
+              book above their shelf, and you check its content notes and say yes or no.
             </p>
           </div>
           <ul className="household-list">

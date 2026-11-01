@@ -12,6 +12,7 @@ import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
 import { fromLocal } from "../lib/booksApi";
 import { otherLanguageBooks } from "../lib/languages";
+import { FEEL_GOOD } from "../lib/moods";
 import { fromFollowed } from "../lib/people";
 import { dueWords } from "../lib/words";
 import { useHighlightReview } from "../lib/useHighlightReview";
@@ -94,6 +95,13 @@ export default function Browse() {
   const trending = catalog.filter((b) => b.trendingRank).sort((a, b) => a.trendingRank! - b.trendingRank!);
   const newReleases = catalog.filter((b) => b.newRelease);
   const topTen = [...catalog].sort((a, b) => b.rating - a.rating || b.ratingsCount - a.ratingsCount).slice(0, 10);
+  // Books this profile tagged with a cheerful mood (lib/moods.ts), to read again: the most cheerful first.
+  const cheer = (id: string) => data.moods[id]?.moods.filter((m) => FEEL_GOOD.includes(m)).length ?? 0;
+  const feelGood = Object.keys(data.moods)
+    .filter((id) => cheer(id) > 0)
+    .sort((a, b) => cheer(b) - cheer(a))
+    .map((id) => getBook(id))
+    .filter(visible);
   // The classics in French, German and Spanish this profile may see (lib/languages.ts).
   const otherLanguages = otherLanguageBooks(profile.ageRating);
 
@@ -228,6 +236,7 @@ export default function Browse() {
         {newReleases.length > 0 && (
           <Shelf id="new" eyebrow="Just added" title="New releases" items={newReleases.map(fromLocal)} />
         )}
+        {feelGood.length > 0 && <Shelf id="feel-good" eyebrow="Books you tagged funny, hopeful and more" title="Feel-good picks" items={feelGood.map(fromLocal)} />}
         {otherLanguages.length > 0 && (
           <Shelf
             id="languages"

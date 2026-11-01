@@ -19,12 +19,17 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "ask",
     title: "Ask the book, without spoilers",
-    body: "On the classics, ask a question, see who's who, take a chapter quiz or catch up with Previously…. The answers only use the pages you've reached.",
+    body: "On the classics, ask a question, see who's who, translate a passage, take a chapter quiz or catch up with Previously…. The answers only use the pages you've reached. Every title has content notes too.",
   },
   {
     icon: "star",
     title: "Goals, streaks and badges",
     body: "Set a yearly goal, plan to finish a book by a date, keep a streak with two rest days a month, see your time with each book, earn 30 badges, and start a reading challenge with the whole household.",
+  },
+  {
+    icon: "heart",
+    title: "How a book felt",
+    body: "Tag a book's moods and pace, mark the ones you didn't finish, and read your favourites again: each reread counts. Feel-good picks gathers the cheerful ones.",
   },
   {
     icon: "edit",
@@ -33,8 +38,8 @@ export const landingFeatures: LandingFeature[] = [
   },
   {
     icon: "users",
-    title: "Book clubs",
-    body: "Talk about a book without spoilers: posts and shared highlights past your chapter stay hidden. Read a LiteraryWorm title or a book you uploaded (find it by title, author or ISBN), see where everyone is, plan meetings and add them to your calendar.",
+    title: "Book clubs and buddy reads",
+    body: "Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden. Read a LiteraryWorm title or a book you uploaded (find it by title, author or ISBN), see where everyone is, plan meetings and add them to your calendar.",
   },
   {
     icon: "bookOpen",
@@ -44,7 +49,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "headphones",
     title: "Listen anywhere",
-    body: "Keep listening while you browse, queue what's next, use car mode, cast to a speaker, or pick up on another device.",
+    body: "Keep listening while you browse, queue what's next, use car mode, cast to a speaker, pick up on another device, or share a clip of what you just heard.",
   },
   {
     icon: "download",

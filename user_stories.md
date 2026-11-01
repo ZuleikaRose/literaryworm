@@ -411,3 +411,5 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Share an audio clip | after 22 | Done | A link to 15–60 seconds of a LibriVox recording; nothing recorded or stored. |
 | Content notes | after 22 | Done | AI-written, eight topics, no spoilers; on book pages and under Kids book requests. |
 | Buddy reads | after 22 | Done | A club for two from a book's page; a third reader can't join. |
+| Moods on Discover and Search | after 22 | Done | *Feel-good picks* on Discover; mood links on Search's start; Plans and home page name the new features. |
+| Structured data per page | after 22 | Done | WebSite and Organization everywhere; Product and FAQPage on Home and Plans; Book on each title's page. |

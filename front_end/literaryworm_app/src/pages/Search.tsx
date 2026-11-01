@@ -33,6 +33,7 @@ import {
 import { useCollections } from "../lib/useCollections";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile } from "../store/context";
+import { MOODS } from "../lib/moods";
 
 /**
  * /search, public. Search by title (the brief), or by author or ISBN when the reader chooses
@@ -180,6 +181,8 @@ function StartHere() {
   const recent = profile ? collections.recentSearches : [];
   const genreBase = profile ? "/browse" : "/";
   const otherLanguages = otherLanguageBooks(profile?.ageRating ?? "all");
+  // The moods this profile has tagged books with (lib/moods.ts), each a link to those books in My Library.
+  const tagged = profile ? MOODS.filter((m) => Object.values(collections.moods).some((x) => x.moods.includes(m.value))) : [];
 
   return (
     <div className="search-start">
@@ -228,6 +231,23 @@ function StartHere() {
                   <Link to={`/books/${b.id}`}>
                     <span lang={languageCode(b.language)}>{b.title}</span> ({b.language})
                   </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          {profile?.ageRating !== "kids" && (
+            <p className="field-hint">In any classic, select a passage and choose Translate to read it in English or another language.</p>
+          )}
+        </section>
+      )}
+      {tagged.length > 0 && (
+        <section aria-labelledby="moods-title">
+          <h2 id="moods-title">Or find a book by how it felt</h2>
+          <nav className="genre-nav" aria-label="Your moods">
+            <ul role="list">
+              {tagged.map((m) => (
+                <li key={m.value}>
+                  <Link to={`/library?mood=${m.value}`}>{m.label}</Link>
                 </li>
               ))}
             </ul>

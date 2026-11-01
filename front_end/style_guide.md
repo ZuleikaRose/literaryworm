@@ -364,6 +364,18 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 
 **Mark as finished? and daily limit.** Small dialogs and full-screen messages use the empty-state pattern (icon in a rust circle, title, one sentence, actions). The finished state pops its check icon in once.
 
+**Mood and pace chips.** *How did it feel?* is a text button that opens two labelled groups of 44px taste chips (moods, then pace), pressed chips in the rust wash like the rating row. Closed, the button says what's tagged (*How it felt: Funny, hopeful · Fast pace*). A fourth mood shows a field error instead of turning on.
+
+**Time for bed.** The daily limit's full-screen message with the moon icon: *Time for bed*, one sentence with the wake-up time (*from 7am*), and *Ask a grown-up for more time* for 15 minutes with the account password.
+
+**Content notes.** A text button with a chevron (*Content notes (written by AI)*). Open, one sentence on who the book suits, then a definition list of the flagged topics, strongest first, each level in bold, and a muted line that AI can miss things. Under a Kids book request, one line: *Strong: frightening scenes. Moderate: violence.*
+
+**Translate and Share a clip.** Small dialogs. Translate: a language select, the original in an italic quote with a left rule, then the translation (*Translating…* while it waits). Share a clip: length as radio chips (15, 30, 60 seconds), the chapter and times, the link in a read-only field, then *Share*, *Copy link* and *Open the clip*. The clip page puts the cover beside the title, a *Play clip* button with the time, and the LibriVox credit.
+
+**Buddy reads.** *Read with a friend* is a secondary button with the people icon among a book's actions. A buddy read's page has the eyebrow *Buddy read · 2 readers*, and its invite card says *Invite your reading buddy* until the second reader joins.
+
+**Policies in short paragraphs.** Policy and Help paragraphs stay under about 400 characters; a long list is a lead-in line ending in a colon, then one paragraph per item. FAQ answers break into paragraphs the same way.
+
 **Header on narrow phones.** The logo is the book mark plus the wordmark "Literary**Worm**" ("Worm" in rust). Up to 480px the wordmark is set at 1rem so the header still fits, and at 400px and under *Log in* and *Sign up* have 8px side padding; if a wider fallback font is showing (while DM Sans loads, or when it's blocked), the wordmark ends in an ellipsis rather than push *Sign up* off the screen; below 390px it is hidden visually (not with `display: none`), so the logo link is still announced as "LiteraryWorm, home".
 
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
