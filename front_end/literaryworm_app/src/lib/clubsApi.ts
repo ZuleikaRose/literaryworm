@@ -27,6 +27,7 @@ type ClubRow = {
   owner_id: string;
   book_title: string | null;
   book_author: string | null;
+  buddy?: boolean;
   club_members?: { count: number }[];
 };
 type PostRow = { id: string; user_id: string; chapter_index: number; body: string; created_at: string; author: { display_name: string } | null };
@@ -53,7 +54,7 @@ const toMeeting = (row: MeetingRow): ClubMeeting => ({
   rsvps: Object.fromEntries((row.club_meeting_rsvps ?? []).map((r) => [r.user_id, r.answer])),
 });
 
-const CLUB_COLUMNS = "id, name, volume_id, book_title, book_author, starts_on, finishes_on, invite_code, owner_id, club_members(count)";
+const CLUB_COLUMNS = "id, name, volume_id, book_title, book_author, starts_on, finishes_on, invite_code, owner_id, buddy, club_members(count)";
 const POST_COLUMNS = "id, user_id, chapter_index, body, created_at, author:profiles(display_name)";
 
 const toClub = (row: ClubRow, myCopy: string | null = null): Club => ({
@@ -68,6 +69,7 @@ const toClub = (row: ClubRow, myCopy: string | null = null): Club => ({
   inviteCode: row.invite_code,
   ownerId: row.owner_id,
   memberCount: row.club_members?.[0]?.count ?? 1,
+  buddy: Boolean(row.buddy),
 });
 
 const toPost = (row: PostRow): ClubPost => ({
@@ -191,7 +193,7 @@ export async function loadSoonMeetings(): Promise<UpcomingMeeting[]> {
   return (data as unknown as (MeetingRow & { club: { name: string } | null })[]).map((row) => ({ ...toMeeting(row), clubName: row.club?.name ?? "Your book club" }));
 }
 
-export async function createClub(input: { id: string; name: string; bookId: string; startsOn: string; finishesOn: string; inviteCode: string }): Promise<void> {
+export async function createClub(input: { id: string; name: string; bookId: string; startsOn: string; finishesOn: string; inviteCode: string; buddy?: boolean }): Promise<void> {
   const { error } = await client().from("book_clubs").insert({
     id: input.id,
     owner_id: await signedInUserId(),
@@ -200,6 +202,7 @@ export async function createClub(input: { id: string; name: string; bookId: stri
     starts_on: input.startsOn,
     finishes_on: input.finishesOn,
     invite_code: input.inviteCode,
+    buddy: Boolean(input.buddy),
   });
   if (error) {
     if (error.message.includes("20 clubs")) throw new AccountError("An account can run up to 20 clubs. Delete one to start another.");
@@ -228,6 +231,7 @@ export async function calendarFeedUrl(clubId: string): Promise<string> {
 export async function joinClub(code: string): Promise<string | null> {
   const { data, error } = await client().rpc("join_club", { p_code: code });
   if (error) {
+    if (error.message.includes("two readers")) throw new AccountError("This buddy read already has two readers.");
     if (error.message.includes("full")) throw new AccountError("This club is full (50 members).");
     if (error.message.includes("Too many")) throw new AccountError("Too many tries. Wait an hour and try again.");
     throw new AccountError("We couldn't join the club. Try again.");

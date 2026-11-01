@@ -1130,6 +1130,18 @@ describe("the demo household", () => {
     expect(visitor.errors()).toEqual([]);
   });
 
+  it("starts a buddy read from a book's page and shows its invite code", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/dracula");
+    await page.getByRole("button", { name: "Read with a friend" }).click();
+    await page.waitForURL(/\/clubs\//);
+    await page.getByRole("heading", { level: 1, name: "Buddy read: Dracula" }).waitFor();
+    await page.getByText("Buddy read · 2 readers").waitFor();
+    await page.getByRole("heading", { name: "Invite your reading buddy" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("makes a reading plan with a day's share, shows it on Home, and removes it", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

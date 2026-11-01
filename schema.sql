@@ -9763,3 +9763,61 @@ create policy "No browser access to content notes"
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Content notes$lw$, $lw$Every LiteraryWorm title's page now has Content notes: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice, and self-harm a book has (none, mild, moderate or strong), each with a short note and no spoilers, and a line on who it suits. Grown-ups see them under a Kids profile's book requests in Account → Family too. They're written by AI from the book's details, the same for everyone, and nothing about you is sent.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Content notes$lw$ and c.version = $lw$2026.11$lw$);
+
+-- =============================================================================
+-- 20261101006612_buddy_reads.sql
+-- =============================================================================
+-- Buddy reads: a club for two, started from a book's page in one tap. It's an ordinary club with
+-- book_clubs.buddy set, so everything clubs have (spoiler-safe posts, meetings, shared highlights,
+-- where everyone is) works the same; join_club() lets in one other reader and no more. The club
+-- row is locked while joining, so two people using the code at once can't both get in.
+
+alter table public.book_clubs add column buddy boolean not null default false;
+grant insert (buddy) on public.book_clubs to authenticated;
+
+create or replace function public.join_club(p_code text)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user uuid := (select auth.uid());
+  v_club uuid;
+  v_buddy boolean;
+begin
+  if v_user is null or not public.second_step_done() then
+    raise exception 'Log in to join a club' using errcode = 'insufficient_privilege';
+  end if;
+  if not public.check_rate_limit('join_club:' || v_user::text, 20, 3600) then
+    raise exception 'Too many tries. Wait an hour and try again.' using errcode = 'check_violation';
+  end if;
+  if p_code is null or p_code !~ '^[A-Za-z0-9]{10}$' then
+    return null;
+  end if;
+  select id, buddy into v_club, v_buddy from public.book_clubs where invite_code = p_code for update;
+  if v_club is null then
+    return null;
+  end if;
+  if not exists (select 1 from public.club_members where club_id = v_club and user_id = v_user) then
+    if v_buddy and (select count(*) from public.club_members where club_id = v_club) >= 2 then
+      raise exception 'This buddy read already has two readers' using errcode = 'check_violation';
+    end if;
+    if (select count(*) from public.club_members where club_id = v_club) >= 50 then
+      raise exception 'This club is full (50 members)' using errcode = 'check_violation';
+    end if;
+    insert into public.club_members (club_id, user_id) values (v_club, v_user);
+  end if;
+  return v_club;
+end;
+$$;
+
+-- =============================================================================
+-- 20261101006613_whats_new_buddy_reads.sql
+-- =============================================================================
+-- What's new: buddy reads (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Buddy reads$lw$, $lw$Read a book with one friend: choose Read with a friend on any LiteraryWorm title's page and a buddy read starts straight away, with an invite code to send them. It's a book club for two, with spoiler-safe posts by chapter, meetings, shared highlights and where you each are, and it takes your friend and no one else.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Buddy reads$lw$ and c.version = $lw$2026.11$lw$);

@@ -8,6 +8,7 @@ import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
 import { MoodPicker } from "../components/MoodPicker";
+import { BuddyReadButton } from "../components/BuddyReadButton";
 import { ContentNotes } from "../components/ContentNotes";
 import { Dialog } from "../components/Dialog";
 import { GooglePreview } from "../components/GooglePreview";
@@ -386,6 +387,7 @@ function DetailPage({ view }: { view: DetailView }) {
               )}
               <UpNextButton book={view.local} />
               <FamilyShelfButton bookId={view.local.id} />
+              <BuddyReadButton book={view.local} />
             </div>
           )}
 

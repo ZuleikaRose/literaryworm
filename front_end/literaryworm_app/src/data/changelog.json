@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Buddy reads",
+    "body": "Read a book with one friend: choose Read with a friend on any LiteraryWorm title's page and a buddy read starts straight away, with an invite code to send them. It's a book club for two, with spoiler-safe posts by chapter, meetings, shared highlights and where you each are, and it takes your friend and no one else.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Content notes",
     "body": "Every LiteraryWorm title's page now has Content notes: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice, and self-harm a book has (none, mild, moderate or strong), each with a short note and no spoilers, and a line on who it suits. Grown-ups see them under a Kids profile's book requests in Account → Family too. They're written by AI from the book's details, the same for everyone, and nothing about you is sent.",
     "major": true

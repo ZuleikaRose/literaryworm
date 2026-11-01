@@ -561,6 +561,17 @@ select pg_temp.expect_error('select public.staff_dashboard()', 'an editor openin
 reset role;
 insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-0000-0000-00000000000e', 'New.Person@test', '{"display_name":"Nell","date_of_birth":"1990-01-01","terms_accepted":true}');
 select pg_temp.check((select role = 'blog' from public.staff_roles where user_id = '00000000-0000-0000-0000-00000000000e') and (select count(*) = 0 from public.staff_invites), 'signing up picks up a waiting role');
+-- Buddy reads: two readers and no more.
+insert into public.book_clubs (id, owner_id, name, volume_id, starts_on, finishes_on, invite_code, buddy)
+  values ('00000000-0000-0000-0000-0000000000c9', '00000000-0000-0000-0000-00000000000a', 'Buddy read: Dracula', 'dracula', current_date, current_date + 30, 'BuddyRead1', true);
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check(public.join_club('BuddyRead1') = '00000000-0000-0000-0000-0000000000c9', 'a second reader joins a buddy read');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000e';
+select pg_temp.expect_error($$select public.join_club('BuddyRead1')$$, 'a third reader joining a buddy read');
+reset role;
+select pg_temp.check((select count(*) from public.club_members where club_id = '00000000-0000-0000-0000-0000000000c9') = 2, 'a buddy read keeps two readers');
+delete from public.book_clubs where id = '00000000-0000-0000-0000-0000000000c9';
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select public.revoke_staff_role('b@test', 'editor');

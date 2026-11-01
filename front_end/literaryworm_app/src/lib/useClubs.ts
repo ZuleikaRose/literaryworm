@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccountError } from "./accountApi";
 import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeting } from "./clubCalendar";
-import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
+import { BUDDY_READERS, type Club, type ClubDetail, type ClubMembership, type ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
 import { isUploadId } from "./uploadBook";
@@ -126,6 +126,9 @@ export function useClubs() {
     async (code: string): Promise<string | null> => {
       if (remote) return clubsApi.joinClub(code);
       const found = demo().find((c) => c.club.inviteCode === code);
+      if (found?.club.buddy && found.members.length >= BUDDY_READERS && !found.members.some((m) => m.userId === DEMO_USER)) {
+        throw new AccountError("This buddy read already has two readers.");
+      }
       if (found && !found.members.some((m) => m.userId === DEMO_USER)) found.members.push({ userId: DEMO_USER, name: you });
       return found?.club.id ?? null;
     },

@@ -24,7 +24,26 @@ export interface Club {
   inviteCode: string;
   ownerId: string;
   memberCount: number;
+  /** A buddy read: a club for two, started from a book's page (book_clubs.buddy, migration 6612). */
+  buddy?: boolean;
 }
+
+/** How many readers a buddy read takes (join_club() checks the same). */
+export const BUDDY_READERS = 2;
+/** How long a new buddy read runs before its finish date; it can be changed like any club's. */
+export const BUDDY_DAYS = 30;
+
+/** "Buddy read: Dracula", within a club name's 60 characters. */
+export function buddyName(title: string): string {
+  const name = `Buddy read: ${title.trim()}`;
+  return name.length <= 60 ? name : `${name.slice(0, 59).trimEnd()}…`;
+}
+
+/** A new buddy read's finish date: BUDDY_DAYS after `day` (YYYY-MM-DD). */
+export const buddyFinish = (day: string) => new Date(Date.parse(`${day}T00:00:00Z`) + BUDDY_DAYS * 86_400_000).toISOString().slice(0, 10);
+
+/** True while a buddy read is waiting for its second reader. */
+export const buddyOpen = (club: Pick<Club, "buddy" | "memberCount">) => Boolean(club.buddy) && club.memberCount < BUDDY_READERS;
 
 /** This account's own settings in a club: whether new posts alert it, and posts since it last looked. */
 export interface ClubMembership {

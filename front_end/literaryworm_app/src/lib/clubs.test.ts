@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 import { getBook } from "../data/books";
 import type { UploadedBook } from "../types";
-import { clubBook, clubBookTitle, copyChoices, isUploadClub, matchesBook } from "./clubs";
+import { BUDDY_READERS, buddyFinish, buddyName, buddyOpen, clubBook, clubBookTitle, copyChoices, isUploadClub, matchesBook } from "./clubs";
 
 const upload = (id: string, title: string, author: string): UploadedBook => ({
   id: `u-${id.padEnd(32, "0")}`,
@@ -50,5 +50,22 @@ describe("finding a book", () => {
     const sameTitle = upload("c3", "the bought novel", "Someone Else");
     expect(copyChoices([other, sameTitle, mine], uploadClub).map((u) => u.id)).toEqual([mine.id, sameTitle.id, other.id]);
     expect(copyChoices([other, sameTitle, mine], uploadClub, "author").map((u) => u.id)).toEqual([other.id]);
+  });
+});
+
+describe("buddy reads", () => {
+  it("are named for the book, within 60 characters", () => {
+    expect(buddyName("Dracula")).toBe("Buddy read: Dracula");
+    const long = buddyName("A".repeat(80));
+    expect(long.length).toBeLessThanOrEqual(60);
+    expect(long.endsWith("…")).toBe(true);
+  });
+
+  it("finish 30 days on, and wait for one more reader", () => {
+    expect(buddyFinish("2026-11-01")).toBe("2026-12-01");
+    expect(BUDDY_READERS).toBe(2);
+    expect(buddyOpen({ buddy: true, memberCount: 1 })).toBe(true);
+    expect(buddyOpen({ buddy: true, memberCount: 2 })).toBe(false);
+    expect(buddyOpen({ buddy: false, memberCount: 1 })).toBe(false);
   });
 });

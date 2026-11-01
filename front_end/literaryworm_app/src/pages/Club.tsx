@@ -30,7 +30,7 @@ import { ClubCopyPicker } from "../components/ClubCopyPicker";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
 import { usePlayback } from "../lib/playback";
-import { type Club, clubBook, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft, isUploadClub } from "../lib/clubs";
+import { BUDDY_READERS, buddyOpen, type Club, clubBook, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft, isUploadClub } from "../lib/clubs";
 import { chapterAt, chapterLabel, chapterTimes, today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { useTitle } from "../lib/useTitle";
@@ -625,6 +625,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         <Cover book={book} size="md" />
         <div>
           <p className="eyebrow">Book club</p>
+          {club.buddy && <p className="eyebrow">Buddy read · {BUDDY_READERS} readers</p>}
           <h1>{club.name}</h1>
           <p>
             Reading <Link to={`/books/${book.id}`}>{book.title}</Link> by {book.author}
@@ -704,8 +705,9 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <ClubPlaces clubId={club.id} members={members} me={me} />
+          {(!club.buddy || buddyOpen(club)) && (
           <section className="goal-card" aria-labelledby="invite-title">
-            <h2 id="invite-title">Invite</h2>
+            <h2 id="invite-title">{club.buddy ? "Invite your reading buddy" : "Invite"}</h2>
             <InviteByEmail clubId={club.id} />
             <p className="goal-hint">Or share the code. Members join from My Library → Clubs, or at {joinPath(club.inviteCode)}.</p>
             <p className="club-code">
@@ -718,6 +720,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
               {copied}
             </p>
           </section>
+          )}
           <ClubNotifications clubId={club.id} />
           <section className="goal-card" aria-labelledby="members-title">
             <h2 id="members-title">
