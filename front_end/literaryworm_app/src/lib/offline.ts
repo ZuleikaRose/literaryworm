@@ -121,12 +121,16 @@ export async function savedTracks(book: Book): Promise<Set<number>> {
 }
 
 /** Saves the text and these audio tracks (scheduled downloads); already-saved ones are skipped. */
-export async function saveTracks(book: Book, indices: number[]): Promise<void> {
+export async function saveTracks(book: Book, indices: number[], stopped: () => boolean = () => false): Promise<void> {
   if (!offlineSupported() || indices.length === 0) return;
   const cache = await caches.open(BOOKS);
   if (!(await cache.match(textUrl(book)))) await save(cache, textUrl(book));
   const urls = audioUrls(book);
-  for (const i of indices) if (urls[i] && !(await cache.match(urls[i]))) await save(cache, urls[i]);
+  // `stopped` is checked before each track, so a newer run (the chapter moved on) takes over cleanly.
+  for (const i of indices) {
+    if (stopped()) return;
+    if (urls[i] && !(await cache.match(urls[i]))) await save(cache, urls[i]);
+  }
 }
 
 /** Removes these audio tracks from the device (played chapters a schedule clears). */

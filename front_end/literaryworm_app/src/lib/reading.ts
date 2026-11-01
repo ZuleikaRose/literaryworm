@@ -194,3 +194,15 @@ export function today(now = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
+
+/**
+ * The page a link to a passage names (`?chapter=&page=`, a highlight's chapter and page in it), or
+ * null when the link names none or a place the book doesn't have.
+ */
+export function linkedPage(starts: number[], total: number, chapter: string | null, page: string | null): number | null {
+  if (chapter === null || !/^\d{1,4}$/.test(chapter) || (page !== null && !/^\d{1,5}$/.test(page))) return null;
+  const start = starts[Number(chapter)];
+  if (start === undefined) return null;
+  const end = starts[Number(chapter) + 1] ?? total;
+  return Math.min(end - 1, start + Number(page ?? 0));
+}

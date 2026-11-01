@@ -68,7 +68,7 @@ const toClub = (row: ClubRow): Club => ({
 const toPost = (row: PostRow): ClubPost => ({
   id: row.id,
   userId: row.user_id,
-  author: row.author?.display_name ?? "A member",
+  author: row.membership?.member?.display_name ?? "A member",
   chapterIndex: row.chapter_index,
   body: row.body,
   createdAt: Date.parse(row.created_at),
@@ -329,7 +329,8 @@ export async function setSharePlace(clubId: string, on: boolean): Promise<void> 
 
 // ---------- Shared highlights (club_highlights, migration 6565) ----------
 
-const SHARED_COLUMNS = "id, user_id, highlight_id, chapter_index, quote, color, note, created_at, author:profiles(display_name)";
+// club_highlights has no foreign key to profiles: the author comes through the membership it belongs to.
+const SHARED_COLUMNS = "id, user_id, highlight_id, chapter_index, quote, color, note, created_at, membership:club_members(member:profiles(display_name))";
 
 interface SharedRow {
   id: string;
@@ -340,7 +341,7 @@ interface SharedRow {
   color: HighlightColor;
   note: string | null;
   created_at: string;
-  author: { display_name: string } | null;
+  membership: { member: { display_name: string } | null } | null;
 }
 
 const toShared = (row: SharedRow): ClubHighlight => ({

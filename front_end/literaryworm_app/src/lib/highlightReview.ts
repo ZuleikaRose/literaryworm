@@ -29,6 +29,22 @@ export function isHighlightDue(h: Highlight, today: string): boolean {
   return due === null ? madeOn(h) < today : due <= today;
 }
 
+/**
+ * Answered today: the review day an answer today would have set. *Again soon* sets tomorrow at step
+ * 0; *Still matters* sets the step's interval from today. Nothing else gives those pairs, so no
+ * extra column is needed to count today's reviews.
+ */
+export function reviewedToday(h: Pick<Highlight, "reviewDue" | "reviewStep">, today: string): boolean {
+  if (!h.reviewDue) return false;
+  const step = h.reviewStep ?? 0;
+  return h.reviewDue === addDays(today, step === 0 ? 1 : HIGHLIGHT_INTERVALS[Math.min(step, HIGHLIGHT_INTERVALS.length) - 1]);
+}
+
+/** What's left of today's `DAILY_HIGHLIGHTS` once today's answers are counted. */
+export function reviewsLeftToday(highlights: Highlight[], today: string, daily = DAILY_HIGHLIGHTS): number {
+  return Math.max(0, daily - highlights.filter((h) => reviewedToday(h, today)).length);
+}
+
 /** Today's review: due highlights, the longest waiting first, at most `limit`. */
 export function dueHighlights(highlights: Highlight[], today: string, limit = DAILY_HIGHLIGHTS): Highlight[] {
   const waitingSince = (h: Highlight) => h.reviewDue ?? madeOn(h);

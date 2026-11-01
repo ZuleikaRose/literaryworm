@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import type { Highlight } from "../types";
-import { DAILY_HIGHLIGHTS, dueHighlights, HIGHLIGHT_INTERVALS, isHighlightDue, nextHighlightReview } from "./highlightReview";
+import { DAILY_HIGHLIGHTS, dueHighlights, HIGHLIGHT_INTERVALS, isHighlightDue, nextHighlightReview, reviewedToday, reviewsLeftToday } from "./highlightReview";
 
 const at = (day: string) => new Date(`${day}T12:00:00`).getTime();
 const highlight = (id: string, made: string, patch: Partial<Highlight> = {}): Highlight => ({
@@ -77,5 +77,28 @@ describe("nextHighlightReview", () => {
   it("brings it back tomorrow at the first step for Again soon, and treats a missing step as 0", () => {
     expect(nextHighlightReview({ reviewStep: 4 }, false, "2026-12-31")).toEqual({ reviewDue: "2027-01-01", reviewStep: 0 });
     expect(nextHighlightReview({ reviewStep: undefined }, true, "2026-11-02")).toEqual({ reviewDue: "2026-11-03", reviewStep: 1 });
+  });
+});
+
+describe("the daily limit across sittings", () => {
+  const day = "2026-11-01";
+
+  it("knows an answer given today from the date it set", () => {
+    for (const still of [true, false]) {
+      for (const step of [0, 2, 5, 6]) {
+        expect(reviewedToday(nextHighlightReview({ reviewStep: step }, still, day), day)).toBe(true);
+      }
+    }
+    expect(reviewedToday({ reviewDue: null, reviewStep: 0 }, day)).toBe(false);
+    expect(reviewedToday({ reviewDue: "2026-11-05", reviewStep: 2 }, day)).toBe(false);
+  });
+
+  it("doesn't offer a new ten after closing and reopening", () => {
+    const answered = Array.from({ length: DAILY_HIGHLIGHTS }, (_, i) => highlight(`a${i}`, "2026-09-01", nextHighlightReview({ reviewStep: 1 }, true, day)));
+    const waiting = Array.from({ length: 5 }, (_, i) => highlight(`w${i}`, "2026-09-01"));
+    const all = [...answered, ...waiting];
+    expect(reviewsLeftToday(all, day)).toBe(0);
+    expect(dueHighlights(all, day, reviewsLeftToday(all, day))).toEqual([]);
+    expect(dueHighlights(all.slice(3), day, reviewsLeftToday(all.slice(3), day))).toHaveLength(3);
   });
 });

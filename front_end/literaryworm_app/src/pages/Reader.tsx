@@ -1,5 +1,5 @@
 import { type CSSProperties, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import {
   BookmarksDialog,
@@ -18,7 +18,7 @@ import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar }
 import { samplePage } from "../data/sampleText";
 import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
 import { usePlayback } from "../lib/playback";
-import { chapterStarts, pageForFraction, pageFraction, READER_SIZES, type ReaderPage } from "../lib/reading";
+import { chapterStarts, linkedPage, pageForFraction, pageFraction, READER_SIZES, type ReaderPage } from "../lib/reading";
 import { useBookPages } from "../lib/useBookPages";
 import { useControlsVisibility } from "../lib/useControlsVisibility";
 import { useDailyLimit } from "../lib/useDailyLimit";
@@ -86,9 +86,14 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   // Counted towards this book's statistics too, with the page the reader is on.
   const limit = useDailyLimit(true, undefined, false, () => ({ bookId: book.id, fraction: total ? index / total : null }));
 
-  // Start where the account stopped (unless the book was finished: then from the start).
-  const [index, setIndex] = useState(() =>
-    reading.progress && !reading.progress.finished ? pageForFraction(reading.progress.fraction, total) : 0,
+  // A link to a passage (?chapter=&page=, from highlights review) opens there; otherwise start where
+  // the account stopped (unless the book was finished: then from the start). The saved place moves
+  // only when the reader turns a page.
+  const [params] = useSearchParams();
+  const [index, setIndex] = useState(
+    () =>
+      linkedPage(starts, total, params.get("chapter"), params.get("page")) ??
+      (reading.progress && !reading.progress.finished ? pageForFraction(reading.progress.fraction, total) : 0),
   );
   const [panel, setPanel] = useState<Panel>(null);
   const [asking, setAsking] = useState(false);

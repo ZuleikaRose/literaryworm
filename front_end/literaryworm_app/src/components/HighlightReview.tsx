@@ -96,7 +96,7 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClos
       )}
       <p className="word-source">
         From{" "}
-        <Link to={`/read/${card.bookId}`}>
+        <Link to={`/read/${card.bookId}?chapter=${card.chapterIndex}&page=${card.page}`}>
           {title}, {chapter}
         </Link>
       </p>

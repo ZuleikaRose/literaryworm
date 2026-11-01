@@ -2,7 +2,7 @@ import { useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Highlight } from "../types";
 import * as accountApi from "./accountApi";
-import { dueHighlights, nextHighlightReview } from "./highlightReview";
+import { dueHighlights, nextHighlightReview, reviewsLeftToday } from "./highlightReview";
 import { today } from "./reading";
 
 /**
@@ -14,7 +14,8 @@ export function useHighlightReview() {
   const { state, dispatch } = useStore();
   const remote = Boolean(state.account?.userId);
   const all = activeReading(state).highlights;
-  const due = dueHighlights(all, today());
+  // At most DAILY_HIGHLIGHTS a day: answers already given today count, so reopening doesn't start a new ten.
+  const due = dueHighlights(all, today(), reviewsLeftToday(all, today()));
 
   async function answer(highlight: Highlight, stillMatters: boolean) {
     const next = nextHighlightReview(highlight, stillMatters, today());

@@ -2,22 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "@jest/globals";
 import { getBook } from "../data/books";
-import {
-  resumeAfterSleep,
-  SLEEP_FADE_SECONDS,
-  sleepVolume,
-  PAGE_CHARS,
-  chapterAt,
-  chapterStarts,
-  chapterTimes,
-  formatTime,
-  lostWithBook,
-  pageForFraction,
-  readerPages,
-  spokenTime,
-  textPages,
-  today,
-} from "./reading";
+import { chapterAt, chapterStarts, chapterTimes, formatTime, linkedPage, lostWithBook, PAGE_CHARS, pageForFraction, readerPages, resumeAfterSleep, SLEEP_FADE_SECONDS, sleepVolume, spokenTime, textPages, today } from "./reading";
 
 const bookText = (id: string): string[] => JSON.parse(readFileSync(`public/texts/${id}.json`, "utf8")).chapters;
 
@@ -129,5 +114,23 @@ describe("the sleep timer", () => {
     expect(resumeAfterSleep(600)).toBe(570);
     expect(resumeAfterSleep(20)).toBe(0);
     expect(resumeAfterSleep(100, 90)).toBe(90);
+  });
+});
+
+describe("a link to a passage", () => {
+  // Three chapters: pages 0–3, 4–5 and 6–9.
+  const starts = [0, 4, 6];
+
+  it("opens at the chapter and page it names", () => {
+    expect(linkedPage(starts, 10, "1", "1")).toBe(5);
+    expect(linkedPage(starts, 10, "2", null)).toBe(6);
+  });
+
+  it("stays inside the chapter, and ignores places the book doesn't have", () => {
+    expect(linkedPage(starts, 10, "1", "7")).toBe(5);
+    expect(linkedPage(starts, 10, "3", "0")).toBeNull();
+    expect(linkedPage(starts, 10, null, "2")).toBeNull();
+    expect(linkedPage(starts, 10, "-1", "0")).toBeNull();
+    expect(linkedPage(starts, 10, "1", "x")).toBeNull();
   });
 });

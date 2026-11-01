@@ -1,6 +1,16 @@
 import { useEffect, useId, useState } from "react";
 import { readNote, writeNote } from "../lib/offline";
-import { type ConnectionInfo, DEFAULT_SCHEDULE, knowsConnectionType, type ListenSchedule as Schedule, parseSchedule, SCHEDULE_CHAPTERS, schedulePath } from "../lib/offlineSchedule";
+import {
+  announceScheduleChange,
+  type ConnectionInfo,
+  DEFAULT_SCHEDULE,
+  knowsConnectionType,
+  type ListenSchedule as Schedule,
+  parseSchedule,
+  SCHEDULE_CHANGED,
+  SCHEDULE_CHAPTERS,
+  schedulePath,
+} from "../lib/offlineSchedule";
 import { Icon } from "./Icon";
 
 /**
@@ -9,13 +19,21 @@ import { Icon } from "./Icon";
  * ones if chosen. `claimPlace` takes the device's offline place first (members); it resolves false
  * when the plan's places are full (Read offline then shows what to free).
  */
-export function ListenSchedule({ bookId, claimPlace }: { bookId: string; claimPlace: () => Promise<boolean> }) {
+export function ListenSchedule({ bookId, claimPlace }: { bookId: string; claimPlace: (schedule: Schedule) => Promise<boolean> }) {
   const id = useId();
   const [saved, setSaved] = useState<Schedule | null | undefined>(undefined);
   const [draft, setDraft] = useState<Schedule>(DEFAULT_SCHEDULE);
   const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
   const known = knowsConnectionType((navigator as Navigator & { connection?: ConnectionInfo }).connection);
+
+  // Read the saved schedule, and again when one is saved elsewhere (after freeing an offline place).
+  const [changes, setChanges] = useState(0);
+  useEffect(() => {
+    const changed = (e: Event) => (e as CustomEvent<string>).detail === bookId && setChanges((n) => n + 1);
+    window.addEventListener(SCHEDULE_CHANGED, changed);
+    return () => window.removeEventListener(SCHEDULE_CHANGED, changed);
+  }, [bookId]);
 
   useEffect(() => {
     let live = true;
@@ -31,15 +49,16 @@ export function ListenSchedule({ bookId, claimPlace }: { bookId: string; claimPl
     return () => {
       live = false;
     };
-  }, [bookId]);
+  }, [bookId, changes]);
 
   if (saved === undefined) return null;
 
   async function save(next: Schedule | null) {
     setError(null);
     try {
-      if (next && !(await claimPlace())) return;
+      if (next && !(await claimPlace(next))) return;
       await writeNote(schedulePath(bookId), next);
+      announceScheduleChange(bookId);
       setSaved(next);
       setStatus(
         next

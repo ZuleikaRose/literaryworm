@@ -19,6 +19,10 @@ export const DEFAULT_SCHEDULE: ListenSchedule = { chapters: 3, wifiOnly: true, r
 
 export const schedulePath = (bookId: string) => `/__lw/schedule/${encodeURIComponent(bookId)}.json`;
 
+/** Fired on window when a book's schedule is saved, so the downloader and the settings re-read it. */
+export const SCHEDULE_CHANGED = "lw:schedule-changed";
+export const announceScheduleChange = (bookId: string) => window.dispatchEvent(new CustomEvent(SCHEDULE_CHANGED, { detail: bookId }));
+
 /** A schedule read back from the cache, checked; null when it isn't one. */
 export function parseSchedule(raw: unknown): ListenSchedule | null {
   if (!raw || typeof raw !== "object") return null;

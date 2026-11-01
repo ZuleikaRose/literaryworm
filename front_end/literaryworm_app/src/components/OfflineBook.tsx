@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { planById } from "../data/plans";
 import { freeOfflineDevice, type OfflineDevice } from "../lib/accountApi";
-import { audioMegabytes, offlineState, type OfflineState, offlineSupported, removeOffline, saveOffline } from "../lib/offline";
+import { audioMegabytes, offlineState, type OfflineState, offlineSupported, removeOffline, saveOffline, writeNote } from "../lib/offline";
+import { announceScheduleChange, type ListenSchedule as Schedule, schedulePath } from "../lib/offlineSchedule";
 import { takeOfflinePlace } from "../lib/offlinePlaces";
 import { ListenSchedule } from "./ListenSchedule";
 import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
@@ -17,6 +18,8 @@ interface PlacesFull {
   devices: OfflineDevice[];
   /** What was being saved, so freeing a place carries on with it. */
   withAudio: boolean;
+  /** A schedule waiting for a place: freeing one saves the schedule, not the whole audiobook. */
+  schedule?: Schedule;
 }
 
 /**
@@ -73,20 +76,28 @@ export function OfflineBook({ book }: { book: Book }) {
   };
 
   /** For a schedule: takes this device's offline place (members); false when the plan's places are full. */
-  const claimPlace = async () => {
+  const claimPlace = async (schedule: Schedule) => {
     if (!userId) return true;
     const claim = await takeOfflinePlace(userId);
     if (claim.status === "full") {
-      setFull({ ...claim, withAudio: true });
+      setFull({ ...claim, withAudio: true, schedule });
       return false;
     }
     return true;
   };
 
-  const free = (device: OfflineDevice, withAudio: boolean) =>
+  const free = (device: OfflineDevice, pending: PlacesFull) =>
     run(`Freeing ${device.label}…`, async () => {
       await freeOfflineDevice(device.id);
-      await save(withAudio, (done, total) => setBusy(`Saving the audio: chapter ${done} of ${total}…`))();
+      if (pending.schedule) {
+        // Take the freed place, then turn on the schedule that was waiting; the downloader keeps
+        // only the chapters it asks for.
+        if (userId && (await takeOfflinePlace(userId)).status === "full") throw new Error("That place was taken again. Try another device.");
+        await writeNote(schedulePath(book.id), pending.schedule);
+        announceScheduleChange(book.id);
+        return;
+      }
+      await save(pending.withAudio, (done, total) => setBusy(`Saving the audio: chapter ${done} of ${total}…`))();
     });
 
   const fullNext = full ? nextPlanUp(full.planId) : null;
@@ -129,7 +140,7 @@ export function OfflineBook({ book }: { book: Book }) {
                   {d.label}
                   <span className="muted"> · last used {new Date(d.lastSeenAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</span>
                 </span>
-                <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => free(d, full.withAudio)}>
+                <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => free(d, full)}>
                   Free<span className="visually-hidden"> {d.label}</span>
                 </button>
               </li>
