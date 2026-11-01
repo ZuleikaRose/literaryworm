@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Better search results",
+    "body": "LiteraryWorm now tells search engines more, and more accurately: each LiteraryWorm title's page describes the book, its ebook and its LibriVox audiobook; Plans and the home page describe the membership, each plan's monthly and yearly price, and the questions about plans; and every page names LiteraryWorm, its support address and its search.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Buddy reads",
     "body": "Read a book with one friend: choose Read with a friend on any LiteraryWorm title's page and a buddy read starts straight away, with an invite code to send them. It's a book club for two, with spoiler-safe posts by chapter, meetings, shared highlights and where you each are, and it takes your friend and no one else.",

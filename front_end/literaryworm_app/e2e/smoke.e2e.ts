@@ -1142,6 +1142,19 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("adds schema.org data for the page shown: the membership on Plans, the book on its page", async () => {
+    const { page, errors } = await newPage();
+    const types = () =>
+      page.locator('script[type="application/ld+json"]').evaluateAll((els) => els.flatMap((el) => [JSON.parse(el.textContent ?? "null")].flat().map((d) => d["@type"])));
+    await page.goto(`${BASE_URL}/plans`);
+    await page.getByRole("heading", { name: "Questions about plans" }).waitFor();
+    await expect(types()).resolves.toEqual(expect.arrayContaining(["WebSite", "Organization", "Product", "FAQPage"]));
+    await goInApp(page, "/books/frankenstein");
+    await page.getByRole("heading", { level: 1, name: /Frankenstein/ }).waitFor();
+    await expect(types()).resolves.toEqual(["WebSite", "Organization", "Book"]);
+    expect(errors()).toEqual([]);
+  });
+
   it("makes a reading plan with a day's share, shows it on Home, and removes it", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -11,8 +11,9 @@ import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../dat
 import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
 import { landingFeatures } from "../data/landingFeatures";
 import { formatPrice, planFaqs, plans } from "../data/plans";
+import { StructuredData } from "../components/StructuredData";
 import { useBookFeed } from "../lib/useBookFeed";
-import { siteDescription } from "../lib/seo";
+import { faqData, membershipData, siteDescription } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { AgeRating } from "../types";
@@ -239,6 +240,8 @@ export default function Landing() {
           </ul>
         </section>
 
+        <StructuredData id="membership" data={membershipData()} />
+        <StructuredData id="faq" data={faqData(planFaqs)} />
         <section className="faq" aria-labelledby="landing-faq-title">
           <h2 id="landing-faq-title">Common questions</h2>
           <div className="faq-list">

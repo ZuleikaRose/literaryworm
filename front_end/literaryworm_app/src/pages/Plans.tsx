@@ -4,10 +4,11 @@ import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
+import { StructuredData } from "../components/StructuredData";
 import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
 import { profilesInUse, tooBigFor } from "../lib/planLimits";
-import { plansDescription } from "../lib/seo";
+import { faqData, membershipData, plansDescription } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { BillingInterval, Plan, PlanId } from "../types";
@@ -498,6 +499,8 @@ export default function Plans() {
         </section>
       )}
 
+      <StructuredData id="membership" data={membershipData()} />
+      <StructuredData id="faq" data={faqData(planFaqs)} />
       <section className="faq" aria-labelledby="faq-title">
         <h2 id="faq-title">Questions about plans</h2>
         <div className="faq-list">

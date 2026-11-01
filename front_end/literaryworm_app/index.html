@@ -20,118 +20,43 @@
     <meta property="og:url" content="https://www.literaryworm.com/" />
     <meta property="og:image" content="https://www.literaryworm.com/icons/icon-512.png" />
     <meta name="twitter:card" content="summary" />
-    <!-- Plans and prices for search results: built from src/lib/seo.ts (seo.test.ts checks they match). -->
+    <!-- Site-wide structured data, built from src/lib/seo.ts (seo.test.ts checks they match); pages add their own. -->
     <script type="application/ld+json">
       [
         {
           "@context": "https://schema.org",
           "@type": "WebSite",
+          "@id": "https://www.literaryworm.com/#website",
           "name": "LiteraryWorm",
           "url": "https://www.literaryworm.com/",
-          "description": "Read ebooks and listen to audiobooks in one place, with a profile for everyone at home. Basic $15.00, Standard $20.00 or Premium $30.00 a month, or pay yearly and get two months free."
+          "description": "Read ebooks and listen to audiobooks in one place, with a profile for everyone at home. Basic $15.00, Standard $20.00 or Premium $30.00 a month, or pay yearly and get two months free.",
+          "inLanguage": "en",
+          "publisher": {
+            "@id": "https://www.literaryworm.com/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://www.literaryworm.com/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
         },
         {
           "@context": "https://schema.org",
-          "@type": "Product",
-          "name": "LiteraryWorm membership",
-          "description": "Ebooks and audiobooks with household profiles, billed monthly or yearly.",
-          "brand": {
-            "@type": "Brand",
-            "name": "LiteraryWorm"
-          },
-          "url": "https://www.literaryworm.com/plans",
-          "offers": [
-            {
-              "@type": "Offer",
-              "name": "Basic, monthly",
-              "price": "15.00",
-              "priceCurrency": "USD",
-              "url": "https://www.literaryworm.com/plans",
-              "availability": "https://schema.org/InStock",
-              "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "15.00",
-                "priceCurrency": "USD",
-                "billingDuration": "P1M",
-                "unitCode": "MON"
-              }
-            },
-            {
-              "@type": "Offer",
-              "name": "Basic, yearly",
-              "price": "150.00",
-              "priceCurrency": "USD",
-              "url": "https://www.literaryworm.com/plans",
-              "availability": "https://schema.org/InStock",
-              "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "150.00",
-                "priceCurrency": "USD",
-                "billingDuration": "P1Y",
-                "unitCode": "ANN"
-              }
-            },
-            {
-              "@type": "Offer",
-              "name": "Standard, monthly",
-              "price": "20.00",
-              "priceCurrency": "USD",
-              "url": "https://www.literaryworm.com/plans",
-              "availability": "https://schema.org/InStock",
-              "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "20.00",
-                "priceCurrency": "USD",
-                "billingDuration": "P1M",
-                "unitCode": "MON"
-              }
-            },
-            {
-              "@type": "Offer",
-              "name": "Standard, yearly",
-              "price": "200.00",
-              "priceCurrency": "USD",
-              "url": "https://www.literaryworm.com/plans",
-              "availability": "https://schema.org/InStock",
-              "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "200.00",
-                "priceCurrency": "USD",
-                "billingDuration": "P1Y",
-                "unitCode": "ANN"
-              }
-            },
-            {
-              "@type": "Offer",
-              "name": "Premium, monthly",
-              "price": "30.00",
-              "priceCurrency": "USD",
-              "url": "https://www.literaryworm.com/plans",
-              "availability": "https://schema.org/InStock",
-              "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "30.00",
-                "priceCurrency": "USD",
-                "billingDuration": "P1M",
-                "unitCode": "MON"
-              }
-            },
-            {
-              "@type": "Offer",
-              "name": "Premium, yearly",
-              "price": "300.00",
-              "priceCurrency": "USD",
-              "url": "https://www.literaryworm.com/plans",
-              "availability": "https://schema.org/InStock",
-              "priceSpecification": {
-                "@type": "UnitPriceSpecification",
-                "price": "300.00",
-                "priceCurrency": "USD",
-                "billingDuration": "P1Y",
-                "unitCode": "ANN"
-              }
-            }
-          ]
+          "@type": "Organization",
+          "@id": "https://www.literaryworm.com/#organization",
+          "name": "LiteraryWorm",
+          "url": "https://www.literaryworm.com/",
+          "logo": "https://www.literaryworm.com/icons/icon-512.png",
+          "email": "support@literaryworm.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@literaryworm.com",
+            "availableLanguage": "English"
+          }
         }
       ]
     </script>

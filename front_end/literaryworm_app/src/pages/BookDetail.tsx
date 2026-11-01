@@ -8,6 +8,8 @@ import { BookSummary } from "../components/BookSummary";
 import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
 import { MoodPicker } from "../components/MoodPicker";
+import { StructuredData } from "../components/StructuredData";
+import { bookData } from "../lib/seo";
 import { BuddyReadButton } from "../components/BuddyReadButton";
 import { ContentNotes } from "../components/ContentNotes";
 import { Dialog } from "../components/Dialog";
@@ -303,6 +305,8 @@ function DetailPage({ view }: { view: DetailView }) {
       <p className="visually-hidden" role="status" aria-live="polite">
         {announcement}
       </p>
+      {/* A LiteraryWorm title's own schema.org data (lib/seo.ts); Google Books titles and uploads have none. */}
+      {view.local?.source === "literaryworm" && <StructuredData id="book" data={bookData(view.local)} />}
 
       <section className="book-hero" aria-labelledby="book-title">
         <div className="detail-cover">
