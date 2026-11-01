@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Previously…, a recap when you come back",
+    "body": "Coming back to a classic audiobook? Previously… in the player (and in the mini-player's More) catches you up from the second chapter on: the story so far and what happened last time. It's written by AI from the chapters before yours only, so nothing ahead is given away.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Your time with each book",
     "body": "A book's page now shows Your time with this book once you've read or listened to it: the time you've spent, reading and listening, the days, your pace through the book with the time left at that pace, and your biggest days. It's private to your profile.",
     "major": false

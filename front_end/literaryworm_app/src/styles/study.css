@@ -1235,3 +1235,20 @@ kbd {
   bottom: calc(100% + 8px);
   box-shadow: var(--shadow-float);
 }
+
+/* ---------- Previously… (chapter recaps in the player) ---------- */
+
+.recap {
+  display: grid;
+  gap: 10px;
+  max-width: 36rem;
+}
+
+.recap p {
+  margin: 0;
+}
+
+.recap-heading {
+  margin: 10px 0 0;
+  font-size: 1rem;
+}

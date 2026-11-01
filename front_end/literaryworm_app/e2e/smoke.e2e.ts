@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Your time with each book");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Previously\u2026, a recap when you come back");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -402,6 +402,21 @@ describe("the demo household", () => {
     await signInDemo(page);
     await goInApp(page, "/listen/frankenstein");
     await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("offers Previously… from chapter 2, which says plainly when the backend isn't there", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein");
+    await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    // Nothing comes before the first chapter.
+    await expect(page.getByRole("button", { name: /^Previously…/ }).count()).resolves.toBe(0);
+    await page.locator("main").getByRole("button", { name: "Next chapter" }).click();
+    await page.getByRole("button", { name: /^Previously…/ }).click();
+    const dialog = page.getByRole("dialog", { name: "Previously…" });
+    await dialog.getByText(/Written by AI from chapters 1 to 1 only/).waitFor();
+    await dialog.getByRole("alert").getByText(/need the LiteraryWorm backend/).waitFor();
     expect(errors()).toEqual([]);
   });
 

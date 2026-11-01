@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6557, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6560, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -634,6 +634,18 @@
             ["", "created_at", "timestamptz"],
           ],
           note: "Catalog books a grown-up or teen profile puts out for the household (Home row; Kids profiles see only what they may open). Up to 100; added_by must be a non-Kids profile of the account (trigger). FK user_id → auth.users and added_by → reader_profiles (on delete set null); index on added_by. RLS: owner; insert and delete.",
+        },
+        {
+          id: "chapter_recaps", color: colors.server, x: 0, y: 8160, sub: "previously… · function only",
+          cols: [
+            ["pk", "volume_id", "text (book id)"],
+            ["pk", "chapter_index", "smallint 1–999"],
+            ["", "so_far", "text 1–1500"],
+            ["", "last_chapter", "text 1–800"],
+            ["", "model", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "The Previously… recap of a public-domain title before a chapter, from the chapters before it only, written by Claude the first time anyone asks and kept, so later listeners get the same one. RLS on, no browser access; the recaps function reads and writes it.",
         },
         {
           id: "book_characters", color: colors.server, x: 840, y: 4720, sub: "who's who · function only",

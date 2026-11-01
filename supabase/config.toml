@@ -48,6 +48,13 @@ verify_jwt = false
 # and limits new lists (Claude calls) per IP and per day.
 verify_jwt = false
 
+[functions.recaps]
+# Public like characters: the demo household uses "Previously…" without a session. The
+# function validates every field, works only for public-domain catalog titles, keeps each
+# recap, sends Claude only the book's text before the listener's chapter (nothing about the
+# listener), and limits new recaps (Claude calls) per IP and per day.
+verify_jwt = false
+
 [functions.quiz]
 # Public like characters: the demo household uses chapter quizzes without a session. The
 # function validates every field, works only for public-domain catalog titles, keeps each

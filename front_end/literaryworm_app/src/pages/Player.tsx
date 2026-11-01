@@ -1,6 +1,7 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CarMode } from "../components/CarMode";
+import { RecapDialog } from "../components/RecapDialog";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
@@ -11,13 +12,14 @@ import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
 import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
 import { usePlayerControls } from "../lib/usePlayerControls";
+import { canRecap } from "../lib/recap";
 import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { useTitle } from "../lib/useTitle";
 import { useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 
-type Panel = "jump" | "bookmarks" | "settings" | "devices" | null;
+type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | null;
 
 export default function Player() {
   return <ReadingGate format="audiobook">{(book) => <PlayerView key={book.id} book={book} />}</ReadingGate>;
@@ -124,6 +126,12 @@ function PlayerView({ book }: { book: Book }) {
             <Icon name="bookmark" size={20} filled={isHereMarked} />
             <span className="visually-hidden">Bookmarks</span>
           </button>
+          {canRecap(book, chapterIndex) && (
+            <button type="button" className="icon-button" onClick={() => setPanel("recap")}>
+              <Icon name="bookOpen" size={20} />
+              <span className="visually-hidden">Previously…: catch up on the story so far</span>
+            </button>
+          )}
           <button type="button" className="icon-button" onClick={() => setPanel("devices")}>
             <Icon name="devices" size={20} />
             <span className="visually-hidden">Listen on another device</span>
@@ -372,6 +380,7 @@ function PlayerView({ book }: { book: Book }) {
       <JumpDialog open={panel === "jump"} onClose={() => setPanel(null)} book={book} controls={controls} section={section} onSection={setSection} />
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
+      <RecapDialog open={panel === "recap"} book={book} chapterIndex={chapterIndex} onClose={() => setPanel(null)} />
       <BookmarksDialog
         open={panel === "bookmarks"}
         onClose={() => setPanel(null)}

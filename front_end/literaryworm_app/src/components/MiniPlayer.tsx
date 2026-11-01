@@ -3,13 +3,15 @@ import { Link } from "react-router-dom";
 import { usePlayback } from "../lib/playback";
 import { formatTime } from "../lib/reading";
 import { usePlayerControls } from "../lib/usePlayerControls";
+import { canRecap } from "../lib/recap";
+import { RecapDialog } from "./RecapDialog";
 import { usePopover } from "../lib/usePopover";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "./PlayerControls";
 
-type Panel = "jump" | "settings" | "devices" | null;
+type Panel = "jump" | "settings" | "devices" | "recap" | null;
 
 /**
  * The audiobook that's playing, at the bottom of every page (above the tab bar on phones), so
@@ -197,6 +199,13 @@ function MiniPlayerView({ book }: { book: Book }) {
                     <Icon name="settings" size={16} /> Speed, sleep timer and skipping
                   </button>
                 </li>
+                {canRecap(book, places.chapterIndex) && (
+                  <li>
+                    <button type="button" className="menu-item" onClick={choose(() => setPanel("recap"))}>
+                      <Icon name="bookOpen" size={16} /> Previously…
+                    </button>
+                  </li>
+                )}
                 <li>
                   <button type="button" className="menu-item" onClick={choose(() => setPanel("devices"))}>
                     <Icon name="devices" size={16} /> Listen on another device
@@ -231,6 +240,7 @@ function MiniPlayerView({ book }: { book: Book }) {
       />
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} withPlayback />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
+      <RecapDialog open={panel === "recap"} book={book} chapterIndex={places.chapterIndex} onClose={() => setPanel(null)} />
     </section>
   );
 }
