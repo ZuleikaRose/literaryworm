@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "OpenDyslexic, a reading ruler and line focus",
+    "body": "The reader's Display settings now offer OpenDyslexic, a font made for readers with dyslexia, and a Reading guide: a ruler that marks the line you're on, or line focus, which dims everything but three lines. It follows your pointer or a tap, and J and K move it a line.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Export your library for Goodreads or StoryGraph",
     "body": "My Library has Export for Goodreads and Export for StoryGraph: a CSV of your books, shelves, star ratings and the days you added and finished them, in that site's own layout, ready to import there. It's made on your device; nothing is uploaded.",
     "major": false

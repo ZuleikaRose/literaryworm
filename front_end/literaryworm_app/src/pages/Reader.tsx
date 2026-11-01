@@ -31,6 +31,9 @@ import { useReadingPace } from "../lib/useReadingPace";
 import { readerAction } from "../lib/shortcuts";
 import { ShortcutsDialog } from "../components/ShortcutsDialog";
 import { QuizDialog } from "../components/QuizDialog";
+import { ReadingGuide } from "../components/ReadingGuide";
+import "@fontsource/opendyslexic/400.css";
+import "@fontsource/opendyslexic/700.css";
 import { useActiveProfile, useProfileData } from "../store/context";
 import type { Book, Highlight, HighlightColor } from "../types";
 
@@ -231,6 +234,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         .catch(() => undefined);
   };
   const latest = useRef({ next, previous, toggleBookmark, finished });
+  // The reading guide (Display → Reading guide): J and K move it a line.
+  const [guideStep, setGuideStep] = useState<{ n: number; dir: 1 | -1 }>({ n: 0, dir: 1 });
+  const latestGuide = useRef(settings.guide);
+  useEffect(() => {
+    latestGuide.current = settings.guide;
+  });
   useEffect(() => {
     latest.current = { next, previous, toggleBookmark, finished };
   });
@@ -241,7 +250,11 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       const action = readerAction(e);
       if (!action) return;
       const l = latest.current;
-      if (action === "next") l.next();
+      if (action === "guideDown" || action === "guideUp") {
+        // Only while the reading guide is on (Display); otherwise the keys do nothing.
+        if (latestGuide.current === "off") return;
+        setGuideStep((s) => ({ n: s.n + 1, dir: action === "guideDown" ? 1 : -1 }));
+      } else if (action === "next") l.next();
       else if (action === "previous") l.previous();
       else if (action === "bookmark") {
         if (!l.finished) l.toggleBookmark();
@@ -447,6 +460,9 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
                 );
               })}
             </article>
+            {settings.guide !== "off" && (
+              <ReadingGuide mode={settings.guide} pageRef={pageRef} textRef={articleRef} pageKey={`${index}`} step={guideStep} />
+            )}
           </div>
         )}
       </main>

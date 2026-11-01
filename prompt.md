@@ -125,6 +125,8 @@ Then gifts with books: a gift membership can come with up to 10 LiteraryWorm boo
 
 Then library export: the library as a Goodreads or StoryGraph CSV, made in the browser.
 
+Then OpenDyslexic, a reading ruler and line focus in the reader's Display settings.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

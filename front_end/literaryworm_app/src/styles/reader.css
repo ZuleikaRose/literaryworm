@@ -82,6 +82,40 @@
   --reader-font: "Lexend", system-ui, sans-serif;
 }
 
+/* OpenDyslexic (SIL Open Font License), served from the app itself (@fontsource/opendyslexic). */
+.reader-font-dyslexic {
+  --reader-font: "OpenDyslexic", "Lexend", system-ui, sans-serif;
+}
+
+/* The reading guide (components/ReadingGuide.tsx): a ruler band, or dimming outside line focus's window. */
+.reader-page {
+  position: relative;
+}
+
+.reading-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.reading-guide-ruler {
+  background: color-mix(in srgb, var(--rust-bright) 18%, transparent);
+  border-block: 1px solid color-mix(in srgb, var(--rust-bright) 45%, transparent);
+}
+
+.reading-guide-dim {
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+}
+
+@media (forced-colors: active) {
+  .reading-guide-ruler {
+    border-block: 2px solid Highlight;
+    background: transparent;
+  }
+}
+
 /* The bars sit over the page and fade away while reading. */
 .reader-bar {
   position: relative;

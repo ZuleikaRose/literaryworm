@@ -34,7 +34,7 @@ function Choices<K extends keyof ReaderSettings>({ legend, setting, options }: {
   );
 }
 
-/** Font, size, line spacing, margins and theme. Kept for the profile until the page is refreshed. */
+/** Font, size, reading guide, line spacing, margins and theme. Kept for the profile until the page is refreshed. */
 export function ReaderDisplayDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { dispatch } = useStore();
   const { size } = useProfileData().readerSettings;
@@ -59,6 +59,7 @@ export function ReaderDisplayDialog({ open, onClose }: { open: boolean; onClose:
             { value: "serif", label: "Literata (serif)" },
             { value: "sans", label: "DM Sans" },
             { value: "readable", label: "Lexend (easier reading)" },
+            { value: "dyslexic", label: "OpenDyslexic" },
           ]}
         />
         <fieldset className="filter-group">
@@ -75,6 +76,16 @@ export function ReaderDisplayDialog({ open, onClose }: { open: boolean; onClose:
             </button>
           </div>
         </fieldset>
+        <Choices
+          legend="Reading guide"
+          setting="guide"
+          options={[
+            { value: "off", label: "Off" },
+            { value: "ruler", label: "Reading ruler" },
+            { value: "focus", label: "Line focus" },
+          ]}
+        />
+        <p className="field-hint reader-guide-hint">The guide follows your pointer or a tap; J and K move it a line down or up.</p>
         <Choices
           legend="Line spacing"
           setting="spacing"

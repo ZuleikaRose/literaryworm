@@ -170,6 +170,7 @@ export const defaultReaderSettings: ReaderSettings = {
   spacing: "normal",
   margins: "normal",
   theme: "sepia",
+  guide: "off",
 };
 
 /**

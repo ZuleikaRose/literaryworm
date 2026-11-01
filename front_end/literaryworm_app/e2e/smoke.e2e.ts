@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Export your library for Goodreads or StoryGraph");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("OpenDyslexic, a reading ruler and line focus");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -381,6 +381,32 @@ describe("the demo household", () => {
     await page.getByText(/^Page 1 of \d+/).first().waitFor();
     await page.getByRole("button", { name: "Next page" }).click();
     await page.getByText(/^Page 2 of \d+/).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("reads in OpenDyslexic with a reading ruler that J and K move, and line focus", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.keyboard.press("t");
+    const display = page.getByRole("dialog", { name: "Display" });
+    await display.getByLabel("OpenDyslexic").check();
+    await display.getByLabel("Reading ruler").check();
+    await display.getByRole("button", { name: "Done" }).click();
+    await expect(page.locator(".reader-text").evaluate((el) => getComputedStyle(el).fontFamily)).resolves.toContain("OpenDyslexic");
+    const ruler = page.getByTestId("reading-guide");
+    await ruler.waitFor({ state: "attached" });
+    const before = await ruler.evaluate((el) => (el as HTMLElement).offsetTop);
+    await page.keyboard.press("j");
+    await page.keyboard.press("j");
+    await page.waitForFunction((top) => (document.querySelector("[data-testid=reading-guide]") as HTMLElement | null)!.offsetTop > top, before);
+    await page.keyboard.press("k");
+    // Line focus dims above and below a window of lines.
+    await page.keyboard.press("t");
+    await display.getByLabel("Line focus").check();
+    await display.getByRole("button", { name: "Done" }).click();
+    await expect(page.locator(".reading-guide-dim").count()).resolves.toBe(2);
     expect(errors()).toEqual([]);
   });
 

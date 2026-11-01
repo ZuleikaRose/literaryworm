@@ -12,6 +12,7 @@
     "test:e2e": "jest -c jest.e2e.config.js"
   },
   "dependencies": {
+    "@fontsource/opendyslexic": "^5.3.0",
     "@supabase/supabase-js": "2.117.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

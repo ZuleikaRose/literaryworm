@@ -2,7 +2,7 @@
  * The reader's keyboard shortcuts. They work whenever focus isn't in a field or a dialog, and
  * never with Ctrl, Alt or Cmd held, so the browser's own shortcuts still work.
  */
-export type ReaderAction = "next" | "previous" | "chapters" | "highlights" | "bookmark" | "dictionary" | "display" | "help";
+export type ReaderAction = "next" | "previous" | "chapters" | "highlights" | "bookmark" | "dictionary" | "display" | "help" | "guideDown" | "guideUp";
 
 export const READER_SHORTCUTS: { keys: string[]; label: string; action: ReaderAction }[] = [
   { keys: ["→", "Page Down"], label: "Next page", action: "next" },
@@ -12,6 +12,8 @@ export const READER_SHORTCUTS: { keys: string[]; label: string; action: ReaderAc
   { keys: ["B"], label: "Bookmark this page, or remove its bookmark", action: "bookmark" },
   { keys: ["D"], label: "Dictionary", action: "dictionary" },
   { keys: ["T"], label: "Display settings", action: "display" },
+  { keys: ["J"], label: "Move the reading guide down a line (when it's on)", action: "guideDown" },
+  { keys: ["K"], label: "Move the reading guide up a line (when it's on)", action: "guideUp" },
   { keys: ["?"], label: "These shortcuts", action: "help" },
 ];
 
@@ -29,5 +31,5 @@ export function readerAction(e: { key: string; altKey: boolean; ctrlKey: boolean
       return "help";
   }
   const letter = e.key.length === 1 ? e.key.toLowerCase() : "";
-  return ({ c: "chapters", n: "highlights", b: "bookmark", d: "dictionary", t: "display" } as Record<string, ReaderAction>)[letter] ?? null;
+  return ({ c: "chapters", n: "highlights", b: "bookmark", d: "dictionary", t: "display", j: "guideDown", k: "guideUp" } as Record<string, ReaderAction>)[letter] ?? null;
 }

@@ -237,12 +237,14 @@ export interface Highlight {
 
 /** The reader's display choices, kept per profile for the session. */
 export interface ReaderSettings {
-  font: "serif" | "sans" | "readable";
+  font: "serif" | "sans" | "readable" | "dyslexic";
   /** Index into READER_SIZES. */
   size: number;
   spacing: "compact" | "normal" | "relaxed";
   margins: "narrow" | "normal" | "wide";
   theme: "light" | "sepia" | "dark";
+  /** A reading ruler or line focus (lib/readingGuide.ts), off by default. */
+  guide: "off" | "ruler" | "focus";
 }
 
 /** Reading and listening time used today, for the profile's daily limit. */
