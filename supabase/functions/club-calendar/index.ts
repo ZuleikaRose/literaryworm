@@ -30,9 +30,9 @@ Deno.serve((req) =>
       return (count ?? 0) > 0;
     },
     async club(clubId) {
-      const { data, error } = await serviceClient().from("book_clubs").select("id, name, volume_id").eq("id", clubId).maybeSingle();
+      const { data, error } = await serviceClient().from("book_clubs").select("id, name, volume_id, book_title").eq("id", clubId).maybeSingle();
       if (error) throw error;
-      return data ? { id: data.id, name: data.name, volumeId: data.volume_id } : null;
+      return data ? { id: data.id, name: data.name, volumeId: data.volume_id, bookTitle: data.book_title } : null;
     },
     async meetings(clubId, since) {
       const { data, error } = await serviceClient().from("club_meetings")

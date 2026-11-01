@@ -1,12 +1,23 @@
-import type { Book } from "../types";
+import type { Book, UploadedBook } from "../types";
 import type { ClubMeeting } from "./clubCalendar";
 import { chapterAt, chapterTimes } from "./reading";
+import { isUploadId, uploadToBook } from "./uploads";
 
-/** A book club: one LiteraryWorm title, read together to a finish date. */
+/**
+ * A book club: one book read together to a finish date. The book is a LiteraryWorm title, or a book
+ * the owner uploaded (a DRM-free EPUB, perhaps bought elsewhere): uploads are private copies, so the
+ * club keeps only its title and author, and each member reads their own upload of it (`myCopy`).
+ */
 export interface Club {
   id: string;
   name: string;
+  /** A catalog id, or the owner's upload id ("u-…") for an uploaded book. */
   bookId: string;
+  /** An uploaded book's title and author (book_clubs.book_title, book_author); null for a catalog title. */
+  bookTitle?: string | null;
+  bookAuthor?: string | null;
+  /** This account's own copy of an uploaded book (club_members.own_copy); null until linked. */
+  myCopy?: string | null;
   /** Local dates, YYYY-MM-DD. */
   startsOn: string;
   finishesOn: string;
@@ -100,4 +111,51 @@ export function spoilerFreeUpTo(progress: { finished: boolean; chapterIndex: num
 /** Unread posts the reader can see now: chapters up to `upTo`. */
 export function unreadUpTo(unread: Record<number, number>, upTo: number): number {
   return Object.entries(unread).reduce((sum, [chapter, count]) => (Number(chapter) <= upTo ? sum + count : sum), 0);
+}
+
+/** True when the club reads a book its owner uploaded, rather than a LiteraryWorm title. */
+export const isUploadClub = (club: Pick<Club, "bookId">) => isUploadId(club.bookId);
+
+/**
+ * The book this reader reads for the club: the catalog title, or for an uploaded book their own
+ * linked copy among `uploads` (undefined until they link one). Its id is the one their progress,
+ * highlights and spoiler protection go by.
+ */
+export function clubBook(club: Pick<Club, "bookId" | "myCopy">, uploads: UploadedBook[], catalog: (id: string) => Book | undefined): Book | undefined {
+  if (!isUploadClub(club)) return catalog(club.bookId);
+  const copy = club.myCopy ? uploads.find((u) => u.id === club.myCopy) : undefined;
+  return copy ? uploadToBook(copy) : undefined;
+}
+
+/** The book's name for lists and headings: the uploaded title, the catalog title, or a stand-in. */
+export function clubBookTitle(club: Pick<Club, "bookId" | "bookTitle">, catalog: (id: string) => Book | undefined): string {
+  return (isUploadClub(club) ? club.bookTitle : catalog(club.bookId)?.title) ?? "A LiteraryWorm title";
+}
+
+const fold = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+/** True when every word of `query` is in the title or author (accents and case ignored). */
+export function matchesBook(book: { title: string; author: string }, query: string): boolean {
+  const words = fold(query).split(" ").filter(Boolean);
+  const hay = ` ${fold(`${book.title} ${book.author}`)} `;
+  return words.every((w) => hay.includes(` ${w}`));
+}
+
+/**
+ * Uploads to offer as a member's copy of the club's book, filtered by `query`: copies with the same
+ * title (and author, when both have one) first, then the rest A–Z.
+ */
+export function copyChoices(uploads: UploadedBook[], club: Pick<Club, "bookTitle" | "bookAuthor">, query = ""): UploadedBook[] {
+  const title = fold(club.bookTitle ?? "");
+  const author = fold(club.bookAuthor ?? "");
+  const score = (u: UploadedBook) => (fold(u.title) === title ? 2 : 0) + (author && fold(u.author) === author ? 1 : 0);
+  return uploads
+    .filter((u) => matchesBook(u, query))
+    .sort((a, b) => score(b) - score(a) || a.title.localeCompare(b.title));
 }

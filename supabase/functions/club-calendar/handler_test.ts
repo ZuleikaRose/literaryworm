@@ -1,7 +1,7 @@
 // deno test --allow-env supabase/functions/club-calendar — runs offline with a stand-in database.
 import { assert, assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { checkFeedToken, feedToken } from "./feed.ts";
+import { checkFeedToken, clubFeed, feedToken } from "./feed.ts";
 import { type Deps, handle } from "./handler.ts";
 
 const KEY = "feed-signing-key";
@@ -85,4 +85,12 @@ Deno.test("a made-up, changed or someone else's token gets nothing; so does a me
 Deno.test("too many feed reads are turned away plainly", async () => {
   const { deps } = setup({ rateLimit: () => Promise.reject(new HttpError("rate_limited", "Too many requests.", 3600)) });
   assertEquals((await handle(get(await feedToken(CLUB, ANN, KEY)), deps)).status, 429);
+});
+
+Deno.test("an uploaded book's club names the book from the club, not the catalog", () => {
+  const meeting = { id: "m1", startsAt: "2027-01-05T19:00:00Z", minutes: 60, title: "Part one", note: null };
+  const upload = clubFeed({ id: "c1", name: "Our club", volumeId: `u-${"a".repeat(32)}`, bookTitle: "My Bought Novel" }, [meeting], "https://www.literaryworm.com");
+  assertStringIncludes(upload, "My Bought Novel");
+  const unnamed = clubFeed({ id: "c1", name: "Our club", volumeId: `u-${"a".repeat(32)}` }, [meeting], "https://www.literaryworm.com");
+  assertStringIncludes(unnamed, "your book");
 });

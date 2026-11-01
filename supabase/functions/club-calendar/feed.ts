@@ -36,6 +36,8 @@ export interface FeedClub {
   id: string;
   name: string;
   volumeId: string;
+  /** An uploaded book's title (book_clubs.book_title); null for a catalog title. */
+  bookTitle?: string | null;
 }
 
 export interface FeedMeeting {
@@ -54,7 +56,7 @@ export interface FeedMeeting {
  */
 export function clubFeed(club: FeedClub, meetings: FeedMeeting[], site: string, now = new Date()): string {
   const url = `${site}/clubs/${club.id}`;
-  const book = CATALOG[club.volumeId]?.title ?? "your book";
+  const book = CATALOG[club.volumeId]?.title ?? club.bookTitle ?? "your book";
   const events = meetings.flatMap((m) => {
     const start = new Date(m.startsAt);
     const end = new Date(start.getTime() + m.minutes * 60_000);
