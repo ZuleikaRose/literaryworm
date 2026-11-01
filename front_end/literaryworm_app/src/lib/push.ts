@@ -13,7 +13,7 @@ export type { PushState } from "./pushState";
  */
 
 /** Public by design (the browser needs it); supabase/functions/_shared/webpush.ts has the same. */
-export const VAPID_PUBLIC_KEY = "BMpYPJ6jc-6y83Uq2wk9Jqs4ix-WpHYIGbA_iJitoh1bA4UCwIuU5rkh4wj5OXuUbXC8bFeje_Ito_CCWbUdfsY";
+export const VAPID_PUBLIC_KEY = "BLp6UmXs6IWfUtuiaaCiuDyv3nv-PdJFOfmUFmBkoRMf3Jfoukb-9X0m6_I7gekWC1v0uqnJyCUctzZgIBVAwyU";
 
 const isApple = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const isStandalone = () => window.matchMedia?.("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;

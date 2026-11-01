@@ -6,7 +6,7 @@
 // same). The private half is the VAPID_PRIVATE_KEY function setting (the key's `d`, base64url),
 // never in the repo.
 
-export const VAPID_PUBLIC_KEY = "BMpYPJ6jc-6y83Uq2wk9Jqs4ix-WpHYIGbA_iJitoh1bA4UCwIuU5rkh4wj5OXuUbXC8bFeje_Ito_CCWbUdfsY";
+export const VAPID_PUBLIC_KEY = "BLp6UmXs6IWfUtuiaaCiuDyv3nv-PdJFOfmUFmBkoRMf3Jfoukb-9X0m6_I7gekWC1v0uqnJyCUctzZgIBVAwyU";
 const VAPID_SUBJECT = "mailto:hello@literaryworm.com";
 
 export interface PushSubscriptionKeys {
