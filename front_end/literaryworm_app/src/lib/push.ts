@@ -1,5 +1,5 @@
 import { deviceLabel } from "./devicesApi";
-import { base64UrlToBytes, type PushState, pushState } from "./pushState";
+import { base64UrlToBytes, isPushKind, PUSH_KINDS, type PushKind, type PushState, pushState } from "./pushState";
 import { supabase } from "./supabase";
 
 export type { PushState } from "./pushState";
@@ -58,7 +58,9 @@ export async function turnOnPush(): Promise<void> {
     (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(VAPID_PUBLIC_KEY) }));
   const keys = sub.toJSON().keys ?? {};
   if (!keys.p256dh || !keys.auth) throw new PushError("This browser didn't give the keys notifications need. Try another browser.");
-  const { error } = await supabase.rpc("save_push_subscription", { p_endpoint: sub.endpoint, p_p256dh: keys.p256dh, p_auth: keys.auth, p_label: deviceLabel() });
+  // The time zone sets "evening" for the streak nudge.
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const { error } = await supabase.rpc("save_push_subscription", { p_endpoint: sub.endpoint, p_p256dh: keys.p256dh, p_auth: keys.auth, p_label: deviceLabel(), p_time_zone: zone });
   if (error) {
     await sub.unsubscribe().catch(() => undefined);
     throw new PushError(error.message.includes("20 devices") ? error.message : "We couldn't turn on notifications. Try again.");
@@ -79,4 +81,20 @@ export async function turnOffPush(): Promise<void> {
 /** At sign-out: a shared device stops getting this account's notifications. Never throws. */
 export async function forgetPushOnSignOut(): Promise<void> {
   await turnOffPush().catch((err: unknown) => console.error("notifications: couldn't turn off at sign-out:", err));
+}
+
+/** The kinds of notification the account's devices get (account_private.push_kinds). */
+export async function loadPushKinds(): Promise<PushKind[]> {
+  if (!supabase) return [...PUSH_KINDS.map((k) => k.id)];
+  const { data: auth } = await supabase.auth.getUser();
+  const { data, error } = await supabase.from("account_private").select("push_kinds").eq("user_id", auth.user?.id ?? "").maybeSingle();
+  if (error || !data) throw new PushError("We couldn't load which notifications you get.");
+  return (data.push_kinds as string[]).filter(isPushKind);
+}
+
+export async function savePushKinds(kinds: PushKind[]): Promise<void> {
+  if (!supabase) return;
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from("account_private").update({ push_kinds: kinds }).eq("user_id", auth.user?.id ?? "");
+  if (error) throw new PushError("We couldn't save that. Try again.");
 }

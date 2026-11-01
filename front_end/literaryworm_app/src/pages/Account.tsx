@@ -41,7 +41,8 @@ import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
-import { PushError, type PushState, readPushState, turnOffPush, turnOnPush } from "../lib/push";
+import { loadPushKinds, PushError, type PushState, readPushState, savePushKinds, turnOffPush, turnOnPush } from "../lib/push";
+import { PUSH_KINDS, type PushKind, toggleKind } from "../lib/pushState";
 import { answerable, type WaitingRequest } from "../lib/bookRequests";
 import { useBookRequests } from "../lib/useBookRequests";
 import { useTitle } from "../lib/useTitle";
@@ -1057,8 +1058,8 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 // --- Preferences -------------------------------------------------------------------
 
 const PUSH_HINTS: Record<PushState, string> = {
-  on: "This device gets a notification when a book any profile set Remind me on comes out. Turn it off here, or log out.",
-  off: "Get a notification on this device when a book any profile set Remind me on comes out, as well as or instead of the email.",
+  on: "This device gets the notifications chosen below. Turn it off here, or log out.",
+  off: "Get notifications on this device: a book you're waiting for is out, a club meeting is coming, new club posts, an evening streak nudge and answers to Kids book requests. You choose which.",
   blocked: "Your browser is blocking notifications from LiteraryWorm. Allow them in its site settings to turn this on.",
   "install-first": "On iPhone and iPad, add LiteraryWorm to your Home Screen (Share, then Add to Home Screen) and open it from there to turn this on.",
   unsupported: "This browser can't show notifications from LiteraryWorm. Try the app added to your Home Screen, or another browser.",
@@ -1112,7 +1113,55 @@ function DeviceNotifications() {
         />
       </label>
       <Feedback error={error} done={done} />
+      {state === "on" && <PushKinds />}
     </>
+  );
+}
+
+/** Which kinds of notification the account's devices get (account_private.push_kinds). */
+function PushKinds() {
+  const [kinds, setKinds] = useState<PushKind[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let live = true;
+    loadPushKinds().then(
+      (k) => live && setKinds(k),
+      (err: unknown) => live && setError(err instanceof Error ? err.message : "We couldn't load which notifications you get."),
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!kinds) return error ? <Feedback error={error} done={null} /> : null;
+  return (
+    <fieldset className="push-kinds">
+      <legend>Notify me when… (on every device with notifications on)</legend>
+      {PUSH_KINDS.map((k) => (
+        <label key={k.id} className="check-row">
+          <input
+            type="checkbox"
+            checked={kinds.includes(k.id)}
+            disabled={busy}
+            onChange={async (e) => {
+              const next = toggleKind(kinds, k.id, e.target.checked);
+              setBusy(true);
+              setError(null);
+              try {
+                await savePushKinds(next);
+                setKinds(next);
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "We couldn't save that. Try again.");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+          <span>{k.label}</span>
+        </label>
+      ))}
+      <Feedback error={error} done={null} />
+    </fieldset>
   );
 }
 

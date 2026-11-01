@@ -3,7 +3,8 @@
 // function settings). Nothing is hard-coded.
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
-import { sendPush } from "../_shared/webpush.ts";
+import { serviceDeviceDeps } from "../_shared/pushAccount.ts";
+import { pushMore } from "./more.ts";
 import { type DuePush, pushReleases } from "./push.ts";
 import type { DueReminder } from "./email.ts";
 import { handle } from "./handler.ts";
@@ -60,8 +61,10 @@ Deno.serve((req) =>
     },
     send: (email) => sendWithMailgun({ ...email, tag: "release-reminder", unsubscribeUrl: `${site}/account#preferences` }),
     siteOrigin: site,
-    push: () =>
-      pushReleases({
+    push: async () => {
+      const devices = serviceDeviceDeps();
+      const releases = await pushReleases({
+        ...devices,
         async claim(max) {
           const { data, error } = await serviceClient().rpc("claim_release_pushes", { max_count: max });
           if (error) throw error;
@@ -69,20 +72,35 @@ Deno.serve((req) =>
             (r): DuePush => ({ userId: r.user_id, profileName: r.profile_name, volumeId: r.volume_id, title: r.title, author: r.author }),
           );
         },
-        async devices(userIds) {
-          const { data, error } = await serviceClient().from("push_subscriptions").select("id, user_id, endpoint, p256dh, auth").in("user_id", userIds);
-          if (error) throw error;
-          return data.map((d) => ({ id: d.id, userId: d.user_id, endpoint: d.endpoint, p256dh: d.p256dh, auth: d.auth }));
-        },
-        send: (device, message) => sendPush(device, message),
-        async forget(ids) {
-          const { error } = await serviceClient().from("push_subscriptions").delete().in("id", ids);
-          if (error) throw error;
-        },
-        async touch(ids) {
-          const { error } = await serviceClient().from("push_subscriptions").update({ last_sent_at: new Date().toISOString() }).in("id", ids);
-          if (error) throw error;
-        },
-      }),
+      });
+      const rpc = async <T>(name: string, max: number): Promise<T[]> => {
+        const { data, error } = await serviceClient().rpc(name, { max_count: max });
+        if (error) throw error;
+        return data as T[];
+      };
+      const others = await pushMore({
+        ...devices,
+        meetings: async (max) =>
+          (await rpc<{ user_id: string; club_id: string; club_name: string; title: string; starts_at: string }>("claim_meeting_pushes", max)).map((r) => ({
+            userId: r.user_id,
+            clubId: r.club_id,
+            clubName: r.club_name,
+            title: r.title,
+            startsAt: r.starts_at,
+          })),
+        posts: async (max) =>
+          (await rpc<{ user_id: string; club_id: string; club_name: string; last_chapter: number; posts: number; authors: string[] }>("claim_club_post_pushes", max)).map((r) => ({
+            userId: r.user_id,
+            clubId: r.club_id,
+            clubName: r.club_name,
+            lastChapter: r.last_chapter,
+            posts: Number(r.posts),
+            authors: r.authors,
+          })),
+        streaks: async (max) =>
+          (await rpc<{ user_id: string; profile_name: string; days: number }>("claim_streak_pushes", max)).map((r) => ({ userId: r.user_id, profileName: r.profile_name, days: r.days })),
+      });
+      return { releases, others };
+    },
   })
 );

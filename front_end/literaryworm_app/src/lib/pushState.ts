@@ -40,3 +40,23 @@ export function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
   for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
   return bytes;
 }
+
+/** The kinds of notification an account chooses from (account_private.push_kinds, all on to begin with). */
+export const PUSH_KINDS = [
+  { id: "release", label: "A book I'm waiting for comes out" },
+  { id: "meeting", label: "A book club meeting is coming up" },
+  { id: "club_posts", label: "New posts in my book clubs (only up to my chapter)" },
+  { id: "streak", label: "An evening nudge to keep a reading streak" },
+  { id: "request", label: "A grown-up answers a Kids profile's book request" },
+] as const;
+export type PushKind = (typeof PUSH_KINDS)[number]["id"];
+
+export const isPushKind = (value: string): value is PushKind => PUSH_KINDS.some((k) => k.id === value);
+
+/** Turns one kind on or off, keeping the list's order. */
+export function toggleKind(kinds: PushKind[], kind: PushKind, on: boolean): PushKind[] {
+  const next = new Set(kinds);
+  if (on) next.add(kind);
+  else next.delete(kind);
+  return PUSH_KINDS.map((k) => k.id).filter((k) => next.has(k));
+}

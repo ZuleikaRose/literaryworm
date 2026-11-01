@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6546, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6553, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -594,10 +594,21 @@
             ["", "p256dh", "text (browser key)"],
             ["", "auth", "text (browser auth key)"],
             ["", "device_label", "text ≤ 120"],
+            ["", "time_zone", "text (for the evening nudge)"],
             ["", "created_at", "timestamptz"],
             ["", "last_sent_at", "timestamptz?"],
           ],
-          note: "A browser's Web Push subscription, saved only through save_push_subscription() (moves an endpoint to whoever signed in on it last; up to 20 an account). FK user_id → auth.users, on delete cascade; index on user_id. RLS: owner reads (not the keys) and deletes; the release-emails function sends and forgets unsubscribed ones.",
+          note: "A browser's Web Push subscription, saved only through save_push_subscription() (moves an endpoint to whoever signed in on it last; up to 20 an account). FK user_id → auth.users, on delete cascade; index on user_id. RLS: owner reads (not the keys) and deletes; the release-emails function sends and forgets unsubscribed ones. The kinds sent are account_private.push_kinds.",
+        },
+        {
+          id: "club_meeting_pushes", color: colors.server, x: 840, y: 7680, sub: "meeting notifications sent",
+          cols: [
+            ["pk fk", "meeting_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["pk", "starts_at", "timestamptz"],
+            ["", "sent_at", "timestamptz"],
+          ],
+          note: "One meeting notification per member and start time (claim_meeting_pushes()), so a moved meeting is announced again. FK meeting_id → club_meetings and user_id → auth.users, on delete cascade; index on user_id. No browser access.",
         },
         {
           id: "family_shelf", color: colors.household, x: 420, y: 7680, sub: "per account · family shelf",
@@ -926,6 +937,8 @@
         ["push_subscriptions", "user_id", "auth.users", "id", "N : 1"],
         ["family_shelf", "user_id", "auth.users", "id", "N : 1"],
         ["family_shelf", "added_by", "reader_profiles", "id", "N : 1"],
+        ["club_meeting_pushes", "meeting_id", "club_meetings", "id", "N : 1"],
+        ["club_meeting_pushes", "user_id", "auth.users", "id", "N : 1"],
         ["quiz_results", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["reader_follows", "reader_id", "profiles", "id", "N : 1"],

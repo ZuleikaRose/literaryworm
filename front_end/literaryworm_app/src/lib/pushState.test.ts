@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { base64UrlToBytes, type PushEnvironment, pushState } from "./pushState";
+import { base64UrlToBytes, isPushKind, type PushEnvironment, pushState, toggleKind } from "./pushState";
 
 const env = (overrides: Partial<PushEnvironment> = {}): PushEnvironment => ({
   hasServiceWorker: true,
@@ -49,5 +49,17 @@ describe("base64UrlToBytes", () => {
   it("handles padding and the URL-safe letters", () => {
     expect([...base64UrlToBytes("-_8")]).toEqual([0xfb, 0xff]);
     expect([...base64UrlToBytes("YQ")]).toEqual([0x61]);
+  });
+});
+
+describe("notification kinds", () => {
+  it("turns one on or off and keeps the list in order", () => {
+    expect(toggleKind(["streak", "release"], "meeting", true)).toEqual(["release", "meeting", "streak"]);
+    expect(toggleKind(["release", "meeting"], "release", false)).toEqual(["meeting"]);
+  });
+
+  it("knows the kinds the database allows", () => {
+    expect(isPushKind("club_posts")).toBe(true);
+    expect(isPushKind("anything")).toBe(false);
   });
 });

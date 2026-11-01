@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "More notifications, your choice",
+    "body": "Notifications on your devices can now also tell you about a club meeting coming up, new posts in your clubs (only up to your chapter), an evening nudge to keep a reading streak, and a grown-up's answer to a Kids book request. Choose which in Account → Preferences, under Notifications on this device.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Classics in French, German and Spanish",
     "body": "Six classics to read and hear in their own language: Voltaire's Candide and Flaubert's Madame Bovary in French, Fontane's Effi Briest and Busch's Max und Moritz in German, and Pérez Galdós's Marianela and Lazarillo de Tormes in Spanish. Each has the full text and a LibriVox recording in that language. Find them with Search's language filter.",
     "major": true

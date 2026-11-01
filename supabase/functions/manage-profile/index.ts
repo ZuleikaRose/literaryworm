@@ -19,6 +19,8 @@ import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
 import { onlyKeys, parseInt, parseText, parseUuid } from "../_shared/validate.ts";
+import { CATALOG } from "../_shared/catalog.ts";
+import { notifyAccount, requestPush } from "../_shared/pushAccount.ts";
 
 const METHODS = "POST";
 const DAILY_LIMITS = [30, 60, 90, 120, 180, 240];
@@ -192,6 +194,9 @@ Deno.serve(async (req) => {
           .eq("profile_id", profileId).eq("user_id", user.id).eq("volume_id", bookId).select("volume_id");
         if (error) dbError(error);
         if (!data?.length) throw new HttpError("not_found", "That request isn't there any more.");
+        // Tell the household's devices (if it keeps that kind on); never fails the answer.
+        const { data: kid } = await db.from("reader_profiles").select("name").eq("id", profileId).eq("account_id", user.id).maybeSingle();
+        await notifyAccount(user.id, "request", requestPush(kid?.name ?? "Your Kids profile", CATALOG[bookId]?.title ?? "that book", bookId, body.approve));
         return json(req, METHODS, { ok: true });
       }
       case "delete": {
