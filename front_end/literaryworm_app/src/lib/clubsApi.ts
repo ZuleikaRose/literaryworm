@@ -68,7 +68,7 @@ const toClub = (row: ClubRow): Club => ({
 const toPost = (row: PostRow): ClubPost => ({
   id: row.id,
   userId: row.user_id,
-  author: row.membership?.member?.display_name ?? "A member",
+  author: row.author?.display_name ?? "A member",
   chapterIndex: row.chapter_index,
   body: row.body,
   createdAt: Date.parse(row.created_at),
@@ -347,7 +347,7 @@ interface SharedRow {
 const toShared = (row: SharedRow): ClubHighlight => ({
   id: row.id,
   userId: row.user_id,
-  author: row.author?.display_name ?? "A member",
+  author: row.membership?.member?.display_name ?? "A member",
   highlightId: row.highlight_id,
   chapterIndex: row.chapter_index,
   quote: row.quote,
