@@ -110,3 +110,43 @@ export function registerServiceWorker(): void {
     navigator.serviceWorker.register("/sw.js").catch((err: unknown) => console.error("offline: service worker failed to start", err));
   });
 }
+
+/** Which of a book's audio tracks (chapters) are saved on this device, by index. */
+export async function savedTracks(book: Book): Promise<Set<number>> {
+  if (!offlineSupported()) return new Set();
+  const cache = await caches.open(BOOKS);
+  const urls = audioUrls(book);
+  const found = await Promise.all(urls.map((url) => cache.match(url)));
+  return new Set(found.flatMap((hit, i) => (hit ? [i] : [])));
+}
+
+/** Saves the text and these audio tracks (scheduled downloads); already-saved ones are skipped. */
+export async function saveTracks(book: Book, indices: number[]): Promise<void> {
+  if (!offlineSupported() || indices.length === 0) return;
+  const cache = await caches.open(BOOKS);
+  if (!(await cache.match(textUrl(book)))) await save(cache, textUrl(book));
+  const urls = audioUrls(book);
+  for (const i of indices) if (urls[i] && !(await cache.match(urls[i]))) await save(cache, urls[i]);
+}
+
+/** Removes these audio tracks from the device (played chapters a schedule clears). */
+export async function removeTracks(book: Book, indices: number[]): Promise<void> {
+  if (!offlineSupported() || indices.length === 0) return;
+  const cache = await caches.open(BOOKS);
+  const urls = audioUrls(book);
+  await Promise.all(indices.map((i) => (urls[i] ? cache.delete(urls[i]) : Promise.resolve(false))));
+}
+
+/** A small JSON note kept with the books (schedules; see lib/offlineSchedule.ts). */
+export async function readNote<T>(path: string): Promise<T | null> {
+  if (!offlineSupported()) return null;
+  const res = await (await caches.open(BOOKS)).match(path);
+  return res ? ((await res.json().catch(() => null)) as T | null) : null;
+}
+
+export async function writeNote(path: string, value: unknown | null): Promise<void> {
+  if (!offlineSupported()) return;
+  const cache = await caches.open(BOOKS);
+  if (value === null) await cache.delete(path);
+  else await cache.put(path, new Response(JSON.stringify(value), { headers: { "Content-Type": "application/json" } }));
+}

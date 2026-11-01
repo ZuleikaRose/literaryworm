@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppEffects, ImmersiveLayout, RequireAccount, RequireProfile, SiteLayout } from "./layouts/Layouts";
 import { ClubAlerts } from "./components/ClubAlerts";
 import { ListenAlong } from "./components/ListenAlong";
+import { ScheduledDownloads } from "./components/ScheduledDownloads";
 import { MediaSession } from "./components/MediaSession";
 import Account from "./pages/Account";
 import Gifts from "./pages/Gifts";
@@ -45,6 +46,7 @@ export default function App() {
     <>
       <AppEffects />
       <MediaSession />
+      <ScheduledDownloads />
       <ClubAlerts />
       <ListenAlong />
       <Routes>

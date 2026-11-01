@@ -44,7 +44,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "download",
     title: "Read offline",
-    body: "Save books to your device for the plane or the commute, and install LiteraryWorm like an app.",
+    body: "Save books to your device for the plane, have an audiobook keep its next chapters ready for the commute, and install LiteraryWorm like an app.",
   },
   {
     icon: "bell",

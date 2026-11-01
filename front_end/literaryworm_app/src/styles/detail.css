@@ -1010,3 +1010,31 @@
     gap: 20px;
   }
 }
+
+/* Listen offline on a schedule (components/ListenSchedule.tsx), inside Read offline. */
+.listen-schedule {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.listen-schedule legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.listen-schedule-row,
+.listen-schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.listen-schedule-row select {
+  flex: 1 1 220px;
+  min-height: 44px;
+}

@@ -127,6 +127,8 @@ Then library export: the library as a Goodreads or StoryGraph CSV, made in the b
 
 Then OpenDyslexic, a reading ruler and line focus in the reader's Display settings.
 
+Then offline listening on a schedule: keep the next chapters of an audiobook on the device as it plays, on Wi-Fi only if chosen.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("OpenDyslexic, a reading ruler and line focus");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Offline listening on a schedule");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -969,6 +969,24 @@ describe("the demo household", () => {
     await goInApp(page, "/browse");
     await page.getByRole("heading", { name: "Home for Sam" }).waitFor();
     await expect(page.getByRole("link", { name: /highlights? to review today/ }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("turns on offline listening on a schedule for an audiobook, and off again", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/books/frankenstein");
+    const schedule = page.getByRole("group", { name: "Listen offline on a schedule" });
+    await schedule.getByLabel("Keep").selectOption({ label: "the next 5 chapters" });
+    await schedule.getByLabel("On Wi-Fi only").waitFor();
+    await schedule.getByRole("button", { name: "Turn on" }).click();
+    await schedule.getByText("Keeping the next 5 chapters on this device as you listen, on Wi-Fi only.").waitFor();
+    // It stays on the device: a fresh look at the page shows it on.
+    await goInApp(page, "/books/dune");
+    await goInApp(page, "/books/frankenstein");
+    await page.getByRole("group", { name: "Listen offline on a schedule" }).getByText(/^On: the next 5 chapters, on Wi-Fi only\.$/).waitFor();
+    await page.getByRole("group", { name: "Listen offline on a schedule" }).getByRole("button", { name: "Turn off" }).click();
+    await page.getByRole("group", { name: "Listen offline on a schedule" }).getByRole("button", { name: "Turn on" }).waitFor();
     expect(errors()).toEqual([]);
   });
 

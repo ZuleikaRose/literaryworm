@@ -1,0 +1,103 @@
+import { useEffect, useId, useState } from "react";
+import { readNote, writeNote } from "../lib/offline";
+import { type ConnectionInfo, DEFAULT_SCHEDULE, knowsConnectionType, type ListenSchedule as Schedule, parseSchedule, SCHEDULE_CHAPTERS, schedulePath } from "../lib/offlineSchedule";
+import { Icon } from "./Icon";
+
+/**
+ * *Listen offline on a schedule* inside Read offline (lib/offlineSchedule.ts): keep the next
+ * chapters of this audiobook on this device as it plays, on Wi-Fi only if chosen, removing played
+ * ones if chosen. `claimPlace` takes the device's offline place first (members); it resolves false
+ * when the plan's places are full (Read offline then shows what to free).
+ */
+export function ListenSchedule({ bookId, claimPlace }: { bookId: string; claimPlace: () => Promise<boolean> }) {
+  const id = useId();
+  const [saved, setSaved] = useState<Schedule | null | undefined>(undefined);
+  const [draft, setDraft] = useState<Schedule>(DEFAULT_SCHEDULE);
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const known = knowsConnectionType((navigator as Navigator & { connection?: ConnectionInfo }).connection);
+
+  useEffect(() => {
+    let live = true;
+    readNote(schedulePath(bookId)).then(
+      (raw) => {
+        if (!live) return;
+        const s = parseSchedule(raw);
+        setSaved(s);
+        if (s) setDraft(s);
+      },
+      () => live && setSaved(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [bookId]);
+
+  if (saved === undefined) return null;
+
+  async function save(next: Schedule | null) {
+    setError(null);
+    try {
+      if (next && !(await claimPlace())) return;
+      await writeNote(schedulePath(bookId), next);
+      setSaved(next);
+      setStatus(
+        next
+          ? `Keeping the next ${next.chapters === 1 ? "chapter" : `${next.chapters} chapters`} on this device as you listen${next.wifiOnly ? ", on Wi-Fi only" : ""}.`
+          : "Scheduled downloads are off for this book.",
+      );
+    } catch {
+      setError("We couldn't save that on this device. Try again.");
+    }
+  }
+
+  return (
+    <fieldset className="listen-schedule">
+      <legend>Listen offline on a schedule</legend>
+      <p className="field-hint">
+        As you listen, this device keeps the chapter you're on and the next ones, so the next part is there without a connection.
+      </p>
+      <div className="listen-schedule-row">
+        <label htmlFor={`${id}-chapters`}>Keep</label>
+        <select id={`${id}-chapters`} className="field-input" value={draft.chapters} onChange={(e) => setDraft({ ...draft, chapters: Number(e.target.value) })}>
+          {SCHEDULE_CHAPTERS.map((n) => (
+            <option key={n} value={n}>
+              {n === 1 ? "the chapter I'm on" : `the next ${n} chapters`}
+            </option>
+          ))}
+        </select>
+      </div>
+      <label className="checkbox-row">
+        <input type="checkbox" checked={draft.wifiOnly} onChange={(e) => setDraft({ ...draft, wifiOnly: e.target.checked })} /> On Wi-Fi only
+      </label>
+      {draft.wifiOnly && !known && (
+        <p className="field-hint">This browser doesn't say what kind of connection it's on, so it downloads whenever it's online (never with Data Saver on).</p>
+      )}
+      <label className="checkbox-row">
+        <input type="checkbox" checked={draft.removePlayed} onChange={(e) => setDraft({ ...draft, removePlayed: e.target.checked })} /> Remove chapters
+        I've finished, to save space
+      </label>
+      <div className="listen-schedule-actions">
+        <button type="button" className="secondary-button" onClick={() => save(draft)}>
+          <Icon name="download" size={16} /> {saved ? "Save the schedule" : "Turn on"}
+        </button>
+        {saved && (
+          <button type="button" className="text-button" onClick={() => save(null)}>
+            Turn off
+          </button>
+        )}
+      </div>
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} /> {error}
+        </p>
+      )}
+      <p className={saved ? "goal-hint" : "visually-hidden"} role="status">
+        {status ||
+          (saved
+            ? `On: the next ${saved.chapters === 1 ? "chapter" : `${saved.chapters} chapters`}${saved.wifiOnly ? ", on Wi-Fi only" : ""}${saved.removePlayed ? ", removing finished ones" : ""}.`
+            : "")}
+      </p>
+    </fieldset>
+  );
+}

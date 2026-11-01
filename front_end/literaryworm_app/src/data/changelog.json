@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Offline listening on a schedule",
+    "body": "On an audiobook's page, Read offline now has Listen offline on a schedule: as you listen, this device keeps the chapter you're on and the next 1, 3, 5 or 10 saved, on Wi-Fi only if you like, and can remove the ones you've finished. The next part is always there for the commute, without saving the whole book.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "OpenDyslexic, a reading ruler and line focus",
     "body": "The reader's Display settings now offer OpenDyslexic, a font made for readers with dyslexia, and a Reading guide: a ruler that marks the line you're on, or line focus, which dims everything but three lines. It follows your pointer or a tap, and J and K move it a line.",
     "major": true

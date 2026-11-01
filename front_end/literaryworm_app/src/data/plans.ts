@@ -110,7 +110,7 @@ export const planFaqs = [
   },
   {
     q: "Can I read without a connection?",
-    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device. Basic keeps offline books on 1 device, Standard on 10 and Premium on 24; free a device in Account to use another. Books you upload keep working if your connection drops, once you've opened them on that device.",
+    a: "Yes. Choose Read offline on a public-domain book's page to keep its text, and its audio if you like, on your device, or have an audiobook keep its next few chapters as you listen, on Wi-Fi only if you like. Basic keeps offline books on 1 device, Standard on 10 and Premium on 24; free a device in Account to use another. Books you upload keep working if your connection drops, once you've opened them on that device.",
   },
   {
     q: "Are there audiobooks?",

@@ -4,6 +4,7 @@ import { planById } from "../data/plans";
 import { freeOfflineDevice, type OfflineDevice } from "../lib/accountApi";
 import { audioMegabytes, offlineState, type OfflineState, offlineSupported, removeOffline, saveOffline } from "../lib/offline";
 import { takeOfflinePlace } from "../lib/offlinePlaces";
+import { ListenSchedule } from "./ListenSchedule";
 import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
 import { useStore } from "../store/context";
 import type { Book, PlanId } from "../types";
@@ -69,6 +70,17 @@ export function OfflineBook({ book }: { book: Book }) {
       }
     }
     await saveOffline(book, withAudio, progress);
+  };
+
+  /** For a schedule: takes this device's offline place (members); false when the plan's places are full. */
+  const claimPlace = async () => {
+    if (!userId) return true;
+    const claim = await takeOfflinePlace(userId);
+    if (claim.status === "full") {
+      setFull({ ...claim, withAudio: true });
+      return false;
+    }
+    return true;
   };
 
   const free = (device: OfflineDevice, withAudio: boolean) =>
@@ -147,6 +159,7 @@ export function OfflineBook({ book }: { book: Book }) {
           </button>
         )}
       </div>
+      {state !== null && state.tracks > 0 && <ListenSchedule bookId={book.id} claimPlace={claimPlace} />}
     </section>
   );
 }
