@@ -1968,3 +1968,51 @@ body:has(.mini-player) .listen-along-bar {
   gap: 8px;
   min-height: 44px;
 }
+
+/* A club on an uploaded book, before the member has chosen their own copy (ClubCopyPicker). */
+.club-header-plain {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.club-copy {
+  margin-top: 28px;
+  max-width: 44rem;
+}
+
+.club-copy h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+}
+
+.club-copy-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.club-copy-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.club-copy-list li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.club-copy-list small {
+  color: var(--muted);
+}
+
+.club-copy-list .small-button {
+  min-height: 44px;
+}

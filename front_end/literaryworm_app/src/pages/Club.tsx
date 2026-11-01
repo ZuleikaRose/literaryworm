@@ -26,10 +26,11 @@ import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
 import { ClubHighlights } from "../components/ClubHighlights";
 import { ClubPlaces } from "../components/ClubPlaces";
+import { ClubCopyPicker } from "../components/ClubCopyPicker";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
 import { usePlayback } from "../lib/playback";
-import { type Club, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft } from "../lib/clubs";
+import { type Club, clubBook, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft, isUploadClub } from "../lib/clubs";
 import { chapterAt, chapterLabel, chapterTimes, today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { useTitle } from "../lib/useTitle";
@@ -506,6 +507,7 @@ export default function ClubPage() {
   const profile = useActiveProfile();
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
+  const { uploads } = useProfileData();
   useTitle(load.status === "ready" ? load.detail.club.name : "Book club");
 
   useEffect(() => {
@@ -549,8 +551,12 @@ export default function ClubPage() {
       </main>
     );
   }
-  const book = getBook(load.detail.club.bookId);
-  if (!book) return null;
+  // A catalog title, or for a club on an uploaded book this member's own linked copy.
+  const book = clubBook(load.detail.club, uploads, getBook);
+  if (!book) {
+    if (!isUploadClub(load.detail.club)) return null;
+    return <ClubCopyPicker club={load.detail.club} uploads={uploads} onLinked={() => setAttempt((n) => n + 1)} />;
+  }
   return <ClubView key={load.detail.club.id} detail={load.detail} me={load.me} book={book} />;
 }
 

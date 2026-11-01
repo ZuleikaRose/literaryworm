@@ -1,12 +1,26 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { books, getBook, isAllowed } from "../data/books";
 import { onClubPost } from "../lib/clubEvents";
-import { type Club, CLUB_DAYS_MAX, CLUB_NAME_MAX, clubChapterToday, clubDate, type ClubMembership, isInviteCode, newInviteCode, spoilerFreeUpTo, unreadUpTo } from "../lib/clubs";
+import {
+  type Club,
+  clubBook,
+  clubBookTitle,
+  CLUB_DAYS_MAX,
+  CLUB_NAME_MAX,
+  clubChapterToday,
+  clubDate,
+  type ClubMembership,
+  isInviteCode,
+  matchesBook,
+  newInviteCode,
+  spoilerFreeUpTo,
+  unreadUpTo,
+} from "../lib/clubs";
 import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { activeReading } from "../store/reducer";
-import { useStore } from "../store/context";
+import { useProfileData, useStore } from "../store/context";
 import type { Profile } from "../types";
 import { Cover } from "./Cover";
 import { Field } from "./Field";
@@ -24,6 +38,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
   const [starting, setStarting] = useState(false);
   const [memberships, setMemberships] = useState<Record<string, ClubMembership>>({});
   const progress = activeReading(useStore().state).progress;
+  const { uploads } = useProfileData();
 
   // New posts per club: loaded with the list, and again when one arrives while this is open.
   useEffect(() => {
@@ -88,7 +103,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
         ) : (
           <ul className="club-list" role="list">
             {load.clubs.map((club) => {
-              const book = getBook(club.bookId);
+              const book = clubBook(club, uploads, getBook);
               // Posts about chapters past the reader's place aren't counted: the count can't spoil anything.
               const fresh = book ? unreadUpTo(memberships[club.id]?.unread ?? {}, spoilerFreeUpTo(progress[book.id], book)) : 0;
               return (
@@ -99,7 +114,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
                       {club.name}
                       {fresh > 0 && <span className="club-new"> {fresh} new</span>}
                     </Link>
-                    <p>{book?.title ?? "A LiteraryWorm title"}</p>
+                    <p>{clubBookTitle(club, getBook)}</p>
                     <small>
                       {club.memberCount} {club.memberCount === 1 ? "member" : "members"} · finishing {clubDate(club.finishesOn)}
                       {book && ` · today: chapter ${clubChapterToday(club, book, now) + 1}`}
@@ -134,13 +149,27 @@ export function ClubsView({ profile }: { profile: Profile }) {
   );
 }
 
+type BookSource = "catalog" | "uploads";
+
 function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () => void }) {
   const clubs = useClubs();
   const navigate = useNavigate();
+  const { uploads } = useProfileData();
   const now = today();
-  const choices = books.filter((b) => isAllowed(b.ageRating, profile.ageRating));
+  const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, profile.ageRating)), [profile.ageRating]);
+  const [source, setSource] = useState<BookSource>("catalog");
+  const [query, setQuery] = useState("");
+  // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, narrowed by the search.
+  const choices = useMemo(
+    () =>
+      (source === "uploads" ? uploads.map((u) => ({ id: u.id, title: u.title, author: u.author })) : catalog)
+        .filter((b) => matchesBook(b, query))
+        .sort((a, b) => (source === "uploads" ? a.title.localeCompare(b.title) : 0)),
+    [source, uploads, catalog, query],
+  );
   const [name, setName] = useState("");
-  const [bookId, setBookId] = useState(choices[0]?.id ?? "");
+  const [picked, setPicked] = useState("");
+  const bookId = choices.some((b) => b.id === picked) ? picked : (choices[0]?.id ?? "");
   const [finishesOn, setFinishesOn] = useState(addDays(now, 28));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -149,12 +178,22 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed || trimmed.length > CLUB_NAME_MAX) return setError(`Give the club a name of up to ${CLUB_NAME_MAX} characters.`);
-    if (!getBook(bookId)) return setError("Choose a book.");
+    const upload = source === "uploads" ? uploads.find((u) => u.id === bookId) : undefined;
+    if (source === "uploads" ? !upload : !getBook(bookId)) return setError(query ? "No book matches that search. Try other words." : "Choose a book.");
     if (!(finishesOn > now && finishesOn <= addDays(now, CLUB_DAYS_MAX))) return setError("Choose a finish date after today and within a year.");
     setBusy(true);
     setError(null);
     try {
-      const id = await clubs.create({ name: trimmed, bookId, startsOn: now, finishesOn, inviteCode: newInviteCode() });
+      const id = await clubs.create({
+        name: trimmed,
+        bookId,
+        // The database copies these from the upload for members; the demo keeps them as given.
+        bookTitle: upload?.title ?? null,
+        bookAuthor: upload ? upload.author || null : null,
+        startsOn: now,
+        finishesOn,
+        inviteCode: newInviteCode(),
+      });
       navigate(`/clubs/${id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "We couldn't start the club. Try again.");
@@ -165,18 +204,62 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   return (
     <form className="goal-form club-form" onSubmit={submit} noValidate>
       <Field label="Club name" value={name} maxLength={CLUB_NAME_MAX} onChange={(e) => setName(e.target.value)} autoComplete="off" />
-      <div className="field">
-        <label className="field-label" htmlFor="club-book">
-          Book
-        </label>
-        <select id="club-book" className="field-input" value={bookId} onChange={(e) => setBookId(e.target.value)}>
-          {choices.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.title} ({b.author})
-            </option>
-          ))}
-        </select>
-      </div>
+      {profile.ageRating !== "kids" && (
+        <fieldset className="segmented">
+          <legend className="field-label">Book from</legend>
+          <div>
+            <label>
+              <input type="radio" name="club-source" value="catalog" checked={source === "catalog"} onChange={() => setSource("catalog")} />
+              <span>LiteraryWorm books</span>
+            </label>
+            <label>
+              <input type="radio" name="club-source" value="uploads" checked={source === "uploads"} onChange={() => setSource("uploads")} />
+              <span>My uploads ({uploads.length})</span>
+            </label>
+          </div>
+        </fieldset>
+      )}
+      <Field
+        label={source === "uploads" ? "Find one of your uploads" : "Find a book"}
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Title or author"
+        autoComplete="off"
+      />
+      {source === "uploads" && uploads.length === 0 ? (
+        <p className="goal-hint">
+          You haven't uploaded any books yet. Add a DRM-free EPUB, such as one you bought, in{" "}
+          <Link to="/library?view=uploads">My Library → Uploads</Link>, then start the club around it.
+        </p>
+      ) : (
+        <div className="field">
+          <label className="field-label" htmlFor="club-book">
+            Book{query && ` (${choices.length} ${choices.length === 1 ? "match" : "matches"})`}
+          </label>
+          <select
+            id="club-book"
+            className="field-input"
+            value={bookId}
+            onChange={(e) => setPicked(e.target.value)}
+            disabled={choices.length === 0}
+            aria-describedby={source === "uploads" ? "club-book-hint" : undefined}
+          >
+            {choices.length === 0 && <option value="">No book matches that search</option>}
+            {choices.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.title}
+                {b.author ? ` (${b.author})` : ""}
+              </option>
+            ))}
+          </select>
+          {source === "uploads" && (
+            <small className="field-hint" id="club-book-hint">
+              Your upload stays private. The club sees its title and author, and each member reads their own copy: they upload it too and choose it on the club's page.
+            </small>
+          )}
+        </div>
+      )}
       <Field
         label="Finish by"
         type="date"

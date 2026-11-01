@@ -20,7 +20,7 @@ export const plans: Plan[] = [
       "Favourites, custom lists, smart lists that fill themselves, ratings and reading logs",
       "AI book summaries, and Ask the book and Previously… recaps on the classics",
       "Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
-      "Book clubs with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
+      "Book clubs around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, and read offline",
       "Import your reading from Goodreads or StoryGraph, and export it back in either's format",
@@ -123,6 +123,10 @@ export const planFaqs = [
   {
     q: "Are there audiobooks?",
     a: "Yes. The public-domain classics play their LibriVox recordings, read by volunteers, with a mini-player that keeps going while you browse and controls on your lock screen. Other titles can be read aloud by your device's own voice, and you can carry on listening on another device where you left off. Coming back after a break, Previously… in the player catches you up on the story so far.",
+  },
+  {
+    q: "Can my book club read a book I bought?",
+    a: "Yes, if it's a DRM-free EPUB. Upload it in My Library → Uploads, then start a club and choose My uploads under Book from; search by title or author to find it. Your file stays private: the club sees only the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion follows their place and never spoils what's ahead.",
   },
   {
     q: "Can I bring my reading history from Goodreads or StoryGraph?",

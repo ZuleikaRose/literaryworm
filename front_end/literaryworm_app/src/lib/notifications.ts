@@ -1,6 +1,6 @@
 import { getBook } from "../data/books";
-import type { AuthorNews, Progress, Reminder } from "../types";
-import { type Club, type ClubMembership, spoilerFreeUpTo, unreadUpTo } from "./clubs";
+import type { AuthorNews, Progress, Reminder, UploadedBook } from "../types";
+import { type Club, clubBook, type ClubMembership, spoilerFreeUpTo, unreadUpTo } from "./clubs";
 import type { ListeningAlert } from "./planLimits";
 import { today } from "./reading";
 import { isOut } from "./release";
@@ -34,12 +34,16 @@ export function releasedReminders(reminders: Reminder[], now = new Date()): Remi
   return reminders.filter((r) => isOut(r.releaseDate, now)).sort((a, b) => b.releaseDate.localeCompare(a.releaseDate) || a.title.localeCompare(b.title));
 }
 
-/** Clubs with unread posts the reader may see (never past their place in the book), most first. */
-export function clubNews(clubs: Club[], memberships: Record<string, ClubMembership>, progress: Record<string, Progress>): ClubNews[] {
+/**
+ * Clubs with unread posts the reader may see (never past their place in the book), most first. A
+ * club on an uploaded book goes by the reader's own copy among `uploads`; until they link one,
+ * nothing is counted.
+ */
+export function clubNews(clubs: Club[], memberships: Record<string, ClubMembership>, progress: Record<string, Progress>, uploads: UploadedBook[] = []): ClubNews[] {
   return clubs
     .flatMap((club) => {
       const membership = memberships[club.id];
-      const book = getBook(club.bookId);
+      const book = clubBook(club, uploads, getBook);
       if (!membership || membership.notify === false || !book) return [];
       const posts = unreadUpTo(membership.unread, spoilerFreeUpTo(progress[book.id], book));
       return posts > 0 ? [{ clubId: club.id, clubName: club.name, bookTitle: book.title, posts }] : [];

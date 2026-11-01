@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Book clubs on books you uploaded",
+    "body": "Start a book club around a book you uploaded, such as a DRM-free EPUB you bought: choose My uploads when you start one, and search by title or author to find it. Your file stays private. The club sees the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion, where everyone is and shared highlights follow their place in it without spoilers.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
     "kind": "update",
     "title": "New plan prices, and Standard with 3 profiles",
     "body": "Basic is now $15.00 a month ($150.00 a year), Standard $20.00 ($200.00) with up to 3 profiles, and Premium $30.00 ($300.00) with up to 12 profiles and unlimited listening. A year is still ten months' price. If you're already a member, your price stays as it is, and a Standard household that already has more than 3 profiles keeps them. Questions about plans now covers each plan's features and more about the app.",

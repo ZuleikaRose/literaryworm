@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getBook } from "../data/books";
 import { emitClubPost } from "../lib/clubEvents";
-import { type Club, type ClubMembership, type ClubPostEvent, spoilerFreeUpTo } from "../lib/clubs";
+import { type Club, clubBook, type ClubMembership, type ClubPostEvent, spoilerFreeUpTo } from "../lib/clubs";
 import * as clubsApi from "../lib/clubsApi";
 import { activeReading } from "../store/reducer";
-import { useActiveProfile, useStore } from "../store/context";
+import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { Icon } from "./Icon";
 
 /** How long an alert stays before it goes by itself. */
@@ -41,9 +41,10 @@ function ClubAlertsFor({ userId }: { userId: string }) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   // What the handler needs, current when a post arrives.
-  const latest = useRef({ progress: activeReading(state).progress, pathname, navigate });
+  const { uploads } = useProfileData();
+  const latest = useRef({ progress: activeReading(state).progress, uploads, pathname, navigate });
   useEffect(() => {
-    latest.current = { progress: activeReading(state).progress, pathname, navigate };
+    latest.current = { progress: activeReading(state).progress, uploads, pathname, navigate };
   });
 
   useEffect(() => {
@@ -65,7 +66,8 @@ function ClubAlertsFor({ userId }: { userId: string }) {
       // A club joined since the list loaded: load it again.
       if (!clubs.has(clubId)) await refresh();
       const club = clubs.get(clubId);
-      const book = club && getBook(club.bookId);
+      // A club on an uploaded book goes by this reader's own copy (no alerts until they link one).
+      const book = club && clubBook(club, latest.current.uploads, getBook);
       if (!live || !club || !book || memberships[clubId]?.notify === false) return;
       const { progress, pathname: here, navigate: go } = latest.current;
       // No spoilers: only posts about chapters this reader has reached.

@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6582, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6592, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -417,14 +417,16 @@
             ["pk", "id", "uuid"],
             ["fk", "owner_id", "uuid"],
             ["", "name", "text 1–60"],
-            ["", "volume_id", "text"],
+            ["", "volume_id", "text (catalog or upload)"],
+            ["", "book_title", "text? (upload: 1–200)"],
+            ["", "book_author", "text? (≤ 200)"],
             ["", "starts_on", "date"],
             ["", "finishes_on", "date (≤ 366 days on)"],
             ["", "invite_code", "text (10, unique)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Index: owner_id. Up to 20 an account; the owner joins by trigger. RLS: owner and members read; owner edits name, finish date, code, and deletes. Others join only through join_club(code).",
+          note: "Index: owner_id. Up to 20 an account; the owner joins by trigger. RLS: owner and members read; owner edits name, finish date, code, and deletes. Others join only through join_club(code). An uploaded book (volume_id u-…): its title and author are copied from the owner's upload by a trigger (never the file).",
         },
         {
           id: "club_invites", color: colors.reading, x: 840, y: 4250, sub: "invite by email · server only",
@@ -776,8 +778,9 @@
             ["", "last_read_at", "timestamptz"],
             ["", "notify", "boolean"],
             ["", "share_place", "boolean"],
+            ["fk", "own_copy", "text? (own upload)"],
           ],
-          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited). Members change only their own notify and share_place; mark_club_read() and club_unread() keep and count new posts; club_places() gives members the places of those who share.",
+          note: "Index: user_id. RLS: members see each other (is_club_member()); members leave, the owner removes; joining goes through join_club() (rate limited). Members change only their own notify and share_place; mark_club_read() and club_unread() keep and count new posts; club_places() gives members the places of those who share. own_copy: for a club on an uploaded book, the member's own upload of it (checked by trigger; indexed), which their place, posts' spoiler check and shared highlights follow (member_volume()).",
         },
         {
           id: "club_posts", color: colors.reading, x: 1260, y: 2400, sub: "discussion by chapter",
@@ -1039,6 +1042,7 @@
         ["playback_handoffs", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["finished_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["uploaded_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["club_members", "own_copy", "uploaded_books", "id", "N : 1 (optional)"],
         ["club_listening", "club_id", "book_clubs", "id", "1 : 1"],
         ["club_listening", "host_id", "club_members", "user_id", "N : 1 (pair)"],
         ["staff_roles", "user_id", "auth.users", "id", "N : 1"],

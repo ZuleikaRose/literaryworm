@@ -36,15 +36,17 @@ export function useNotifications() {
   const [now, setNow] = useState(() => Date.now());
 
   const latest = useRef(progress);
+  const uploadsRef = useRef(data.uploads);
   useEffect(() => {
     latest.current = progress;
+    uploadsRef.current = data.uploads;
   });
 
   const refresh = useCallback(async () => {
     if (!withClubs) return;
     try {
       const [list, memberships, soon, me] = await Promise.all([clubs.list(), clubs.memberships(), clubs.soonMeetings(), clubs.myId()]);
-      setNews(clubNews(list, memberships, latest.current));
+      setNews(clubNews(list, memberships, latest.current, uploadsRef.current));
       setMeetings(meetingAlerts(soon, (clubId) => memberships[clubId]?.notify === false, me));
     } catch (err) {
       console.error("notifications: couldn't check book clubs:", err instanceof Error ? err.message : err);

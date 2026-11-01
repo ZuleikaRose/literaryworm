@@ -25,6 +25,8 @@ type ClubRow = {
   finishes_on: string;
   invite_code: string;
   owner_id: string;
+  book_title: string | null;
+  book_author: string | null;
   club_members?: { count: number }[];
 };
 type PostRow = { id: string; user_id: string; chapter_index: number; body: string; created_at: string; author: { display_name: string } | null };
@@ -51,13 +53,16 @@ const toMeeting = (row: MeetingRow): ClubMeeting => ({
   rsvps: Object.fromEntries((row.club_meeting_rsvps ?? []).map((r) => [r.user_id, r.answer])),
 });
 
-const CLUB_COLUMNS = "id, name, volume_id, starts_on, finishes_on, invite_code, owner_id, club_members(count)";
+const CLUB_COLUMNS = "id, name, volume_id, book_title, book_author, starts_on, finishes_on, invite_code, owner_id, club_members(count)";
 const POST_COLUMNS = "id, user_id, chapter_index, body, created_at, author:profiles(display_name)";
 
-const toClub = (row: ClubRow): Club => ({
+const toClub = (row: ClubRow, myCopy: string | null = null): Club => ({
   id: row.id,
   name: row.name,
   bookId: row.volume_id,
+  bookTitle: row.book_title,
+  bookAuthor: row.book_author,
+  myCopy,
   startsOn: row.starts_on,
   finishesOn: row.finishes_on,
   inviteCode: row.invite_code,
@@ -74,25 +79,42 @@ const toPost = (row: PostRow): ClubPost => ({
   createdAt: Date.parse(row.created_at),
 });
 
-export async function listClubs(): Promise<Club[]> {
-  const { data, error } = await client().from("book_clubs").select(CLUB_COLUMNS).order("created_at");
+/** This account's own copies of uploaded club books, by club (club_members.own_copy). */
+async function myCopies(): Promise<Map<string, string | null>> {
+  const { data, error } = await client().from("club_members").select("club_id, own_copy").eq("user_id", await signedInUserId());
   if (error) throw new AccountError("We couldn't load your book clubs. Try again.");
-  return (data as unknown as ClubRow[]).map(toClub);
+  return new Map((data as { club_id: string; own_copy: string | null }[]).map((m) => [m.club_id, m.own_copy]));
+}
+
+export async function listClubs(): Promise<Club[]> {
+  const [{ data, error }, copies] = await Promise.all([client().from("book_clubs").select(CLUB_COLUMNS).order("created_at"), myCopies()]);
+  if (error) throw new AccountError("We couldn't load your book clubs. Try again.");
+  return (data as unknown as ClubRow[]).map((row) => toClub(row, copies.get(row.id) ?? null));
+}
+
+/** Links (or with null, unlinks) this account's own upload as its copy of an uploaded club book. */
+export async function linkOwnCopy(clubId: string, uploadId: string | null): Promise<void> {
+  const { error } = await client().from("club_members").update({ own_copy: uploadId }).eq("club_id", clubId).eq("user_id", await signedInUserId());
+  if (error) {
+    if (error.message.includes("own uploaded")) throw new AccountError("Choose one of your own uploaded books.");
+    throw new AccountError("We couldn't use that copy. Try again.");
+  }
 }
 
 /** A club with its members and posts, or null when it doesn't exist or the caller isn't in it. */
 export async function loadClub(id: string): Promise<ClubDetail | null> {
   const db = client();
-  const [club, members, posts, meetings] = await Promise.all([
+  const [club, members, posts, meetings, copies] = await Promise.all([
     db.from("book_clubs").select(CLUB_COLUMNS).eq("id", id).maybeSingle(),
     db.from("club_members").select("user_id, joined_at, member:profiles(display_name)").eq("club_id", id).order("joined_at"),
     db.from("club_posts").select(POST_COLUMNS).eq("club_id", id).order("created_at"),
     db.from("club_meetings").select(MEETING_COLUMNS).eq("club_id", id).gte("starts_at", new Date(Date.now() - 4 * 3_600_000).toISOString()).order("starts_at"),
+    myCopies(),
   ]);
   if (club.error || members.error || posts.error || meetings.error) throw new AccountError("We couldn't load this club. Try again.");
   if (!club.data) return null;
   return {
-    club: toClub(club.data as unknown as ClubRow),
+    club: toClub(club.data as unknown as ClubRow, copies.get(id) ?? null),
     members: (members.data as unknown as { user_id: string; member: { display_name: string } | null }[]).map((m) => ({
       userId: m.user_id,
       name: m.member?.display_name ?? "A member",

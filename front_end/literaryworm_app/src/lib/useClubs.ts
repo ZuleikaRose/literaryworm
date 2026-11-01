@@ -5,6 +5,7 @@ import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeti
 import type { Club, ClubDetail, ClubMembership, ClubPost } from "./clubs";
 import * as clubsApi from "./clubsApi";
 import { today } from "./reading";
+import { isUploadId } from "./uploads";
 
 /** The demo's own id in its sample club. */
 export const DEMO_USER = "demo-you";
@@ -113,7 +114,9 @@ export function useClubs() {
         await clubsApi.createClub({ id, ...input });
         return id;
       }
-      demo().push({ club: { ...input, id, ownerId: DEMO_USER, memberCount: 1 }, members: [{ userId: DEMO_USER, name: you }], posts: [], meetings: [] });
+      // An uploaded book's club starts with the owner's own copy linked, as the database does.
+      const myCopy = isUploadId(input.bookId) ? input.bookId : null;
+      demo().push({ club: { ...input, id, ownerId: DEMO_USER, memberCount: 1, myCopy }, members: [{ userId: DEMO_USER, name: you }], posts: [], meetings: [] });
       return id;
     },
     [remote, demo, you],
@@ -255,6 +258,16 @@ export function useClubs() {
     [remote],
   );
 
+  /** Links (or with null, unlinks) this account's own upload as its copy of an uploaded club book. */
+  const linkCopy = useCallback(
+    async (id: string, uploadId: string | null) => {
+      if (remote) return clubsApi.linkOwnCopy(id, uploadId);
+      const found = demo().find((c) => c.club.id === id);
+      if (found) found.club.myCopy = uploadId;
+    },
+    [remote, demo],
+  );
+
   const setNotify = useCallback(
     async (id: string, notify: boolean) => {
       if (remote) return clubsApi.setClubNotify(id, notify);
@@ -264,7 +277,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify }),
-    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy }),
+    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy],
   );
 }

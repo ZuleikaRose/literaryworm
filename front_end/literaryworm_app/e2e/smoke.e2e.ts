@@ -153,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("New plan prices, and Standard with 3 profiles");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Book clubs on books you uploaded");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
@@ -304,6 +304,26 @@ describe("the demo household", () => {
     await meetings.getByText("2 going, 1 maybe · Going: Jordan, you").waitFor();
     await meetings.getByRole("radio", { name: "Can't make it" }).check();
     await page.getByText("We won't send you the reminder.", { exact: false }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("finds a club's book by searching, and offers your uploads as the book", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=clubs");
+    await page.getByRole("button", { name: "Start a club" }).click();
+    // Uploads: none on the demo yet, so it says where to add one.
+    await page.getByText(/^My uploads/).click();
+    await page.getByRole("link", { name: "My Library → Uploads" }).waitFor();
+    // LiteraryWorm books, narrowed by title or author.
+    await page.getByText("LiteraryWorm books").click();
+    await page.getByLabel("Find a book").fill("pride prejudice");
+    await page.getByLabel(/^Book \(1 match\)/).waitFor();
+    await expect(page.getByLabel(/^Book/).locator("option").first().textContent()).resolves.toContain("Pride and Prejudice");
+    await page.getByLabel("Club name").fill("Austen fans");
+    await page.getByRole("button", { name: "Start club" }).click();
+    await page.waitForURL(/\/clubs\/[0-9a-f-]{36}$/);
+    await page.getByRole("link", { name: "Pride and Prejudice" }).first().waitFor();
     expect(errors()).toEqual([]);
   });
 
