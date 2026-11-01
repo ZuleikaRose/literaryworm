@@ -3,7 +3,8 @@
 # Separately, the Supabase Edge Functions type-check and pass their Deno tests (auth, the
 # database and Stripe are stubbed, so that job needs no settings either).
 # The e2e run serves the app with Vite in "e2e" mode, with no Supabase settings, so it needs no
-# secrets: it uses the demo household and the sample catalog.
+# secrets: it uses the demo household and the sample catalog. e2e/passkeys.e2e.ts starts a second copy
+# pointed at a stand-in for Supabase that the test answers itself, so it needs no settings either.
 name: CI
 
 # dev is where changes land first; scripts/promote.sh moves dev to main only when this run is green
