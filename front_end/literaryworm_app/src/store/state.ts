@@ -141,6 +141,8 @@ export function makeProfile(input: Partial<Profile> & Pick<Profile, "name" | "ag
     favoriteGenres: [],
     dailyLimitMinutes: null,
     weeklyGoalMinutes: null,
+    bedtime: null,
+    wakeTime: null,
     kidsConsent: input.ageRating === "kids",
     setAside: false,
     ...input,

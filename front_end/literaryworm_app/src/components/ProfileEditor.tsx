@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { avatarPalette } from "../lib/avatars";
+import { BEDTIME_EXTRA_MINUTES, BEDTIME_OPTIONS, DEFAULT_WAKE, timeLabel, WAKE_OPTIONS } from "../lib/bedtime";
 import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName, weeklyGoalOptions } from "../lib/profiles";
 import { AccountError } from "../lib/accountApi";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
@@ -62,6 +63,11 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   // Only Kids profiles keep a weekly goal.
   // Grown-up and teen profiles set their own goal in Goals; the editor sets a Kids profile's.
   const goal = rating === "kids" ? weeklyGoal : (profile?.weeklyGoalMinutes ?? null);
+  // Bedtime (lib/bedtime.ts): Kids profiles only; leaving Kids clears it.
+  const [bedtimeChoice, setBedtimeChoice] = useState<string | null>(profile?.bedtime ?? null);
+  const [wakeChoice, setWakeChoice] = useState<string>(profile?.wakeTime ?? DEFAULT_WAKE);
+  const bedtime = rating === "kids" ? bedtimeChoice : null;
+  const wakeTime = bedtime ? wakeChoice : null;
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   // A step that needs confirming with the account password: deleting, setting aside, bringing back.
@@ -75,7 +81,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   // Changing who can see what, or locking a profile, is the account holder's call.
   const pinChanged = pinOn ? pin.length > 0 || !profile?.hasPin : Boolean(profile?.hasPin);
   const protectedChange =
-    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null) || goal !== (profile?.weeklyGoalMinutes ?? null);
+    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null) || goal !== (profile?.weeklyGoalMinutes ?? null) ||
+    (rating === "kids" && (bedtime !== (profile?.bedtime ?? null) || wakeTime !== (profile?.wakeTime ?? null)));
   const needsPassword = protectedChange || confirm !== null;
   const needsConsent = rating === "kids" && !(profile?.ageRating === "kids" && profile.kidsConsent);
 
@@ -112,6 +119,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           favoriteGenres: genres,
           dailyLimitMinutes: limit,
           weeklyGoalMinutes: goal,
+          bedtime,
+          wakeTime,
           // undefined keeps the current PIN; null removes it.
           pin: pinOn ? (pin.length > 0 ? pin : undefined) : profile?.hasPin ? null : undefined,
         },
@@ -308,6 +317,44 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
             <p className="field-hint" id="weekly-goal-hint">
               Reading and listening over the last 7 days. {name.trim() || "They"} can see how close they are in Goals, and you can in Account → Family.
             </p>
+          </div>
+        )}
+        {rating === "kids" && (
+          <div className="field">
+            <label className="field-label" htmlFor="bedtime">
+              Bedtime
+            </label>
+            <select
+              id="bedtime"
+              className="field-input"
+              value={bedtimeChoice ?? ""}
+              aria-describedby="bedtime-hint"
+              onChange={(e) => setBedtimeChoice(e.target.value || null)}
+            >
+              <option value="">No bedtime</option>
+              {BEDTIME_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {timeLabel(t)}
+                </option>
+              ))}
+            </select>
+            <p className="field-hint" id="bedtime-hint">
+              From bedtime until morning, books and audiobooks show Time for bed, on this device's clock. The account password allows {BEDTIME_EXTRA_MINUTES} more minutes.
+            </p>
+          </div>
+        )}
+        {bedtime && (
+          <div className="field">
+            <label className="field-label" htmlFor="wake-time">
+              Reading again from
+            </label>
+            <select id="wake-time" className="field-input" value={wakeChoice} onChange={(e) => setWakeChoice(e.target.value)}>
+              {WAKE_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {timeLabel(t)}
+                </option>
+              ))}
+            </select>
           </div>
         )}
       </fieldset>

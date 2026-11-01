@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { BEDTIME_EXTRA_MINUTES, bedtimeNow, nextCheckMs } from "./bedtime";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { addReadingSeconds } from "./readingActivity";
 import { today } from "./reading";
@@ -32,7 +33,21 @@ export function useDailyLimit(counting: boolean, profileId?: string, listening =
   const limitMinutes = profile?.dailyLimitMinutes ?? null;
   const allowedSeconds = limitMinutes === null ? Infinity : (limitMinutes + used.extraMinutes) * 60;
   const remainingSeconds = Math.max(0, allowedSeconds - used.seconds);
-  const reached = remainingSeconds <= 0;
+  // Bedtime (lib/bedtime.ts): a Kids profile's clock is checked each minute while it has one.
+  const hasBedtime = profile?.ageRating === "kids" && Boolean(profile.bedtime);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!hasBedtime) return;
+    let timer = 0;
+    const tick = () => {
+      setNow(new Date());
+      timer = window.setTimeout(tick, nextCheckMs(new Date()));
+    };
+    timer = window.setTimeout(tick, nextCheckMs(new Date()));
+    return () => window.clearTimeout(timer);
+  }, [hasBedtime]);
+  const asleep = bedtimeNow(profile, now, data.timeUsed.bedtimeExtraUntil);
+  const reached = remainingSeconds <= 0 || asleep;
   const unsaved = useRef(0);
   const tracked = useRef(track);
   useEffect(() => {
@@ -75,6 +90,11 @@ export function useDailyLimit(counting: boolean, profileId?: string, listening =
     limitMinutes,
     remainingSeconds,
     reached,
-    allowMore: () => dispatch({ type: "allowExtraTime", day: today(), minutes: EXTRA_MINUTES }),
+    /** At bedtime: the wake-up time ("HH:MM"); otherwise null. */
+    bedtime: asleep ? (profile?.wakeTime ?? null) : null,
+    allowMore: () =>
+      asleep
+        ? dispatch({ type: "allowPastBedtime", until: Date.now() + BEDTIME_EXTRA_MINUTES * 60_000 })
+        : dispatch({ type: "allowExtraTime", day: today(), minutes: EXTRA_MINUTES }),
   };
 }

@@ -234,6 +234,25 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("sets a Kids profile's bedtime with the account password, and keeps it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles?manage=1");
+    await page.getByRole("button", { name: /^Mia/ }).click();
+    let dialog = page.getByRole("dialog", { name: "Edit Mia" });
+    await dialog.getByLabel("Bedtime").selectOption({ label: "7:30pm" });
+    await dialog.getByLabel("Reading again from").selectOption({ label: "6:30am" });
+    const hint = await dialog.getByText(/Demo account password:/).textContent();
+    await dialog.getByLabel("Account password").fill(hint!.replace("Demo account password:", "").trim());
+    await dialog.getByRole("button", { name: "Save changes" }).click();
+    await dialog.waitFor({ state: "detached" });
+    await page.getByRole("button", { name: /^Mia/ }).click();
+    dialog = page.getByRole("dialog", { name: "Edit Mia" });
+    await expect(dialog.getByLabel("Bedtime").inputValue()).resolves.toBe("19:30");
+    await expect(dialog.getByLabel("Reading again from").inputValue()).resolves.toBe("06:30");
+    expect(errors()).toEqual([]);
+  });
+
   it("sets a profile aside to fit a smaller plan, then brings it back", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

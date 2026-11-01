@@ -111,6 +111,7 @@ export type Action =
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
   | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean; bookId?: string; fraction?: number | null }
   | { type: "allowExtraTime"; day: string; minutes: number }
+  | { type: "allowPastBedtime"; until: number }
   /** The active profile's goal for a year; null clears it. */
   | { type: "setReadingGoal"; year: number; books: number | null }
   /** A book was finished today (counts towards the profile's goal). */
@@ -625,5 +626,8 @@ export function reducer(state: AppState, action: Action): AppState {
         const used = data.timeUsed.day === action.day ? data.timeUsed : { day: action.day, seconds: 0, extraMinutes: 0 };
         return { ...data, timeUsed: { ...used, extraMinutes: used.extraMinutes + action.minutes } };
       });
+
+    case "allowPastBedtime":
+      return withProfileData(state, (data) => ({ ...data, timeUsed: { ...data.timeUsed, bedtimeExtraUntil: action.until } }));
   }
 }

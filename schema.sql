@@ -9660,3 +9660,47 @@ grant update (moods, pace) on public.book_moods to authenticated;
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Moods and pace$lw$, $lw$Tag how a book felt on its page, under How did it feel?: up to three moods, such as funny, hopeful, dark or tense, and a pace (slow, medium or fast). Each profile keeps its own. My Library can show only the books with one mood, the Feel-good picks smart list gathers the cheerful ones, and the StoryGraph export carries your moods and pace.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Moods and pace$lw$ and c.version = $lw$2026.11$lw$);
+
+-- =============================================================================
+-- 20261101006606_kids_bedtime.sql
+-- =============================================================================
+-- Bedtime for Kids profiles: a grown-up picks a bedtime and a wake-up time in the profile editor;
+-- between them, on the device's clock, the reader and the player show Time for bed. Like the
+-- daily limit it's the account holder's call, so only the manage-profile function (set_bedtime,
+-- with the account password, service role) writes it: the browser is granted select only.
+-- Both or neither; moving a profile off Kids clears it (src/lib/bedtime.ts has the same choices).
+
+alter table public.reader_profiles
+  add column bedtime time check (bedtime in ('19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00')),
+  add column wake_time time check (wake_time in ('06:00', '06:30', '07:00', '07:30', '08:00')),
+  add constraint reader_profiles_bedtime_pair check ((bedtime is null) = (wake_time is null));
+grant select (bedtime, wake_time) on public.reader_profiles to authenticated;
+
+create or replace function private.clear_bedtime_off_kids()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.age_rating <> 'kids' then
+    new.bedtime := null;
+    new.wake_time := null;
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function private.clear_bedtime_off_kids() from public, anon, authenticated;
+
+create trigger reader_profiles_clear_bedtime
+  before insert or update of age_rating, bedtime, wake_time on public.reader_profiles
+  for each row execute function private.clear_bedtime_off_kids();
+
+-- =============================================================================
+-- 20261101006607_whats_new_bedtime.sql
+-- =============================================================================
+-- What's new: bedtime for Kids profiles (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Bedtime for Kids profiles$lw$, $lw$Grown-ups can now set a bedtime for a Kids profile in its profile editor, from 7pm to 10pm, and when reading starts again in the morning. From bedtime until then, books and audiobooks show Time for bed, on that device's clock, and the place is saved. The account password allows 15 more minutes.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Bedtime for Kids profiles$lw$ and c.version = $lw$2026.11$lw$);

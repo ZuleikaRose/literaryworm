@@ -6,6 +6,7 @@
 //   { action: "set_pin", profileId, pin | null, password }
 //   { action: "set_daily_limit", profileId, dailyLimitMinutes | null, password }
 //   { action: "set_weekly_goal", profileId, weeklyGoalMinutes | null, password }   (Kids profiles)
+//   { action: "set_bedtime", profileId, bedtime | null, wakeTime | null, password }   (Kids profiles; both or neither)
 //   { action: "set_age_rating", profileId, ageRating, noticeVersion?, password }   (noticeVersion for Kids)
 //   { action: "delete", profileId, password }
 //   { action: "unlock", profileId, password }
@@ -21,6 +22,7 @@ import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase
 import { onlyKeys, parseInt, parseText, parseUuid } from "../_shared/validate.ts";
 import { CATALOG } from "../_shared/catalog.ts";
 import { notifyAccount, requestPush } from "../_shared/pushAccount.ts";
+import { parseBedtime } from "./bedtime.ts";
 
 const METHODS = "POST";
 const DAILY_LIMITS = [30, 60, 90, 120, 180, 240];
@@ -130,6 +132,19 @@ Deno.serve(async (req) => {
         // A goal only for Kids profiles; taking one away works whatever the rating.
         let query = db.from("reader_profiles").update({ weekly_goal_minutes: minutes }).eq("id", profileId).eq("account_id", user.id);
         if (minutes !== null) query = query.eq("age_rating", "kids");
+        const { data, error } = await query.select("id");
+        if (error) dbError(error);
+        if (!data?.length) throw new HttpError("not_found", "Kids profile not found.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "set_bedtime": {
+        onlyKeys(body, ["action", "profileId", "bedtime", "wakeTime", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        const times = parseBedtime(body.bedtime, body.wakeTime);
+        await confirmPassword(user.email, password);
+        // A bedtime only for Kids profiles; taking one away works whatever the rating.
+        let query = db.from("reader_profiles").update({ bedtime: times.bedtime, wake_time: times.wakeTime }).eq("id", profileId).eq("account_id", user.id);
+        if (times.bedtime !== null) query = query.eq("age_rating", "kids");
         const { data, error } = await query.select("id");
         if (error) dbError(error);
         if (!data?.length) throw new HttpError("not_found", "Kids profile not found.");

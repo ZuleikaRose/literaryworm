@@ -7,7 +7,7 @@ import { profileRoom, profilesInUse } from "./planLimits";
 import { pinAttemptResult } from "./profiles";
 
 /** What the profile editor saves. `pin`: undefined keeps the current PIN, null removes it. */
-export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes" | "weeklyGoalMinutes"> & {
+export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes" | "weeklyGoalMinutes" | "bedtime" | "wakeTime"> & {
   pin: string | null | undefined;
 };
 
@@ -41,6 +41,8 @@ export function useProfiles() {
         kidsConsent: draft.ageRating === "kids" ? true : (existing?.kidsConsent ?? false),
         dailyLimitMinutes: draft.dailyLimitMinutes,
         weeklyGoalMinutes: draft.ageRating === "kids" ? draft.weeklyGoalMinutes : (existing?.weeklyGoalMinutes ?? null),
+        bedtime: draft.ageRating === "kids" ? draft.bedtime : null,
+        wakeTime: draft.ageRating === "kids" ? draft.wakeTime : null,
         ...(draft.pin !== undefined ? { pin: draft.pin } : {}),
       };
       if (existing) dispatch({ type: "updateProfile", id: existing.id, patch: { ...patch, failedPinAttempts: 0, lockedUntil: null } });
@@ -90,6 +92,10 @@ export function useProfiles() {
       // A grown-up sets a Kids profile's weekly goal here; other profiles set their own in Goals.
       if (draft.ageRating === "kids" && draft.weeklyGoalMinutes !== (existing?.weeklyGoalMinutes ?? null)) {
         await change({ action: "set_weekly_goal", profileId: id, weeklyGoalMinutes: draft.weeklyGoalMinutes });
+      }
+      // Bedtime, like the weekly goal, is a grown-up's setting for a Kids profile.
+      if (draft.ageRating === "kids" && (draft.bedtime !== (existing?.bedtime ?? null) || draft.wakeTime !== (existing?.wakeTime ?? null))) {
+        await change({ action: "set_bedtime", profileId: id, bedtime: draft.bedtime, wakeTime: draft.wakeTime });
       }
     } finally {
       // Show what was saved, even when a later step failed.

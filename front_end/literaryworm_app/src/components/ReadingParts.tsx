@@ -5,6 +5,7 @@ import { useUploadedBook } from "../lib/uploads";
 import { getBook } from "../data/books";
 import { mayOpen } from "../lib/bookRequests";
 import { EXTRA_MINUTES } from "../lib/useDailyLimit";
+import { BEDTIME_EXTRA_MINUTES, timeLabel } from "../lib/bedtime";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
@@ -15,7 +16,7 @@ import { Icon } from "./Icon";
 import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
 
 /** A full-screen message in place of the reader or player. */
-export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock" | "headphones"; children: ReactNode; action?: ReactNode }) {
+export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock" | "headphones" | "moon"; children: ReactNode; action?: ReactNode }) {
   useTitle(title);
   return (
     <main className="page empty-state reading-message">
@@ -167,7 +168,11 @@ export function ListeningAllowanceUsed({
   );
 }
 
-export function DailyLimitReached({ limitMinutes, onAllowMore }: { limitMinutes: number; onAllowMore: () => void }) {
+/**
+ * Today's time is used up, or (with `wake`) it's a Kids profile's bedtime (lib/bedtime.ts): the book
+ * waits, and a grown-up's password allows more (30 minutes, or 15 past bedtime).
+ */
+export function DailyLimitReached({ limitMinutes, wake = null, onAllowMore }: { limitMinutes: number | null; wake?: string | null; onAllowMore: () => void }) {
   const profile = useActiveProfile();
   const checkPassword = useCheckAccountPassword();
   const [asking, setAsking] = useState(false);
@@ -189,11 +194,13 @@ export function DailyLimitReached({ limitMinutes, onAllowMore }: { limitMinutes:
     field.current?.focus();
   };
 
-  const hours = limitMinutes >= 60 ? `${limitMinutes / 60} hour${limitMinutes === 60 ? "" : "s"}` : `${limitMinutes} minutes`;
+  const minutes = limitMinutes ?? 0;
+  const hours = minutes >= 60 ? `${minutes / 60} hour${minutes === 60 ? "" : "s"}` : `${minutes} minutes`;
+  const extra = wake ? BEDTIME_EXTRA_MINUTES : EXTRA_MINUTES;
   return (
     <ReadingMessage
-      title="That's today's reading time"
-      icon="clock"
+      title={wake ? "Time for bed" : "That's today's reading time"}
+      icon={wake ? "moon" : "clock"}
       action={
         !asking && (
           <div className="reading-message-actions">
@@ -207,10 +214,16 @@ export function DailyLimitReached({ limitMinutes, onAllowMore }: { limitMinutes:
         )
       }
     >
-      <p>
-        {profile?.name ?? "This profile"} can read and listen for {hours} a day. Your place is saved, so you can pick up here
-        tomorrow.
-      </p>
+      {wake ? (
+        <p>
+          It's {profile?.name ?? "this profile"}'s bedtime. Your place is saved, so you can pick up here from {timeLabel(wake)}. Sleep well.
+        </p>
+      ) : (
+        <p>
+          {profile?.name ?? "This profile"} can read and listen for {hours} a day. Your place is saved, so you can pick up here
+          tomorrow.
+        </p>
+      )}
       {asking && (
         <form className="grown-up-form" noValidate onSubmit={submit}>
           <AccountPasswordField
@@ -224,7 +237,7 @@ export function DailyLimitReached({ limitMinutes, onAllowMore }: { limitMinutes:
           />
           <div className="reading-message-actions">
             <button type="submit" className="primary-button" disabled={busy}>
-              {busy ? "Checking…" : `Allow ${EXTRA_MINUTES} more minutes`}
+              {busy ? "Checking…" : `Allow ${extra} more minutes`}
             </button>
             <button type="button" className="secondary-button" onClick={() => setAsking(false)}>
               Cancel

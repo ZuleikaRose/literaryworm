@@ -652,7 +652,16 @@ select pg_temp.expect_error($$insert into public.gift_codes (code, plan_id, mont
 select pg_temp.expect_error($$update public.subscriptions set gift_until = now() + interval '1 year'$$, 'giving yourself free months');
 select pg_temp.expect_error($$update public.subscriptions set switch_to_monthly = 'basic'$$, 'scheduling monthly billing from the browser');
 select pg_temp.expect_error($$update public.reader_profiles set weekly_goal_minutes = 60$$, 'setting a Kids weekly goal without the account password');
+select pg_temp.expect_error($$update public.reader_profiles set bedtime = '22:00', wake_time = '08:00'$$, 'changing a Kids bedtime without the account password');
 reset role;
+-- Bedtime: both or neither, only listed times, and cleared when a profile leaves Kids.
+select pg_temp.expect_error($$update public.reader_profiles set bedtime = '20:00' where name = 'Mia'$$, 'a bedtime without a wake-up time');
+select pg_temp.expect_error($$update public.reader_profiles set bedtime = '23:00', wake_time = '07:00' where name = 'Mia'$$, 'a bedtime off the list');
+update public.reader_profiles set bedtime = '20:00', wake_time = '07:00' where name = 'Mia';
+select pg_temp.check((select bedtime = '20:00' from public.reader_profiles where name = 'Mia'), 'a Kids profile keeps its bedtime');
+update public.reader_profiles set bedtime = '20:00', wake_time = '07:00' where name = 'Ann';
+select pg_temp.check((select bedtime is null and wake_time is null from public.reader_profiles where name = 'Ann'), 'a profile that isn''t Kids has no bedtime');
+update public.reader_profiles set bedtime = null, wake_time = null where name = 'Mia';
 reset request.jwt.claims;
 delete from public.gift_codes where stripe_checkout_session_id in ('cs_test_gift_a', 'cs_test_gift_b');
 

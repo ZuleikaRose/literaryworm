@@ -303,6 +303,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
     }
   };
 
+  if (limit.bedtime) return <DailyLimitReached limitMinutes={limit.limitMinutes} wake={limit.bedtime} onAllowMore={limit.allowMore} />;
   if (limit.reached && limit.limitMinutes !== null) {
     return <DailyLimitReached limitMinutes={limit.limitMinutes} onAllowMore={limit.allowMore} />;
   }

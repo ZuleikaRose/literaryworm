@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Bedtime for Kids profiles",
+    "body": "Grown-ups can now set a bedtime for a Kids profile in its profile editor, from 7pm to 10pm, and when reading starts again in the morning. From bedtime until then, books and audiobooks show Time for bed, on that device's clock, and the place is saved. The account password allows 15 more minutes.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Moods and pace",
     "body": "Tag how a book felt on its page, under How did it feel?: up to three moods, such as funny, hopeful, dark or tense, and a pace (slow, medium or fast). Each profile keeps its own. My Library can show only the books with one mood, the Feel-good picks smart list gathers the cheerful ones, and the StoryGraph export carries your moods and pace.",
     "major": true

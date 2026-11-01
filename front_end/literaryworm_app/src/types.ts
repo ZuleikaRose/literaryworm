@@ -168,6 +168,9 @@ export interface Profile {
   dailyLimitMinutes: number | null;
   /** Kids profiles: how long a grown-up wants them to read or listen each week, in minutes. */
   weeklyGoalMinutes: number | null;
+  /** Kids profiles: bedtime and wake-up ("HH:MM", the device's clock); both or neither (lib/bedtime.ts). */
+  bedtime: string | null;
+  wakeTime: string | null;
   kidsConsent: boolean;
   /**
    * Set aside to fit a smaller plan: keeps its shelf, history and settings, doesn't count towards
@@ -254,6 +257,8 @@ export interface TimeUsed {
   seconds: number;
   /** Extra minutes a grown-up allowed today. */
   extraMinutes: number;
+  /** Until when (ms) a grown-up allowed reading past bedtime (lib/bedtime.ts). */
+  bedtimeExtraUntil?: number;
 }
 
 /** How a profile likes the audiobook player set up. */

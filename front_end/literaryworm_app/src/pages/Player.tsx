@@ -98,6 +98,7 @@ function PlayerView({ book }: { book: Book }) {
   }
 
   if (carMode && !live.limitReached) return <CarMode book={book} controls={controls} />;
+  if (live.bedtime) return <DailyLimitReached limitMinutes={live.limitMinutes} wake={live.bedtime} onAllowMore={playback.allowMore} />;
   if (live.limitReached && live.limitMinutes !== null) {
     return <DailyLimitReached limitMinutes={live.limitMinutes} onAllowMore={playback.allowMore} />;
   }

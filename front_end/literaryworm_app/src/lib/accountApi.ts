@@ -763,13 +763,15 @@ interface ProfileRow {
   locked_until: string | null;
   daily_limit_minutes: number | null;
   weekly_goal_minutes?: number | null;
+  bedtime?: string | null;
+  wake_time?: string | null;
   favorite_genres: string[];
   kids_consent_at: string | null;
   set_aside_at?: string | null;
 }
 
 const PROFILE_COLUMNS =
-  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, favorite_genres, kids_consent_at, set_aside_at";
+  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, bedtime, wake_time, favorite_genres, kids_consent_at, set_aside_at";
 
 const toProfile = (row: ProfileRow): Profile => ({
   id: row.id,
@@ -783,6 +785,9 @@ const toProfile = (row: ProfileRow): Profile => ({
   favoriteGenres: row.favorite_genres,
   dailyLimitMinutes: row.daily_limit_minutes,
   weeklyGoalMinutes: row.age_rating === "kids" ? (row.weekly_goal_minutes ?? null) : null,
+  // Postgres sends a time as "20:30:00".
+  bedtime: row.age_rating === "kids" && row.bedtime && row.wake_time ? row.bedtime.slice(0, 5) : null,
+  wakeTime: row.age_rating === "kids" && row.bedtime && row.wake_time ? row.wake_time.slice(0, 5) : null,
   kidsConsent: Boolean(row.kids_consent_at),
   setAside: Boolean(row.set_aside_at),
 });
@@ -841,6 +846,7 @@ type ProtectedProfileChange =
   | { action: "set_pin"; profileId: string; pin: string | null }
   | { action: "set_daily_limit"; profileId: string; dailyLimitMinutes: number | null }
   | { action: "set_weekly_goal"; profileId: string; weeklyGoalMinutes: number | null }
+  | { action: "set_bedtime"; profileId: string; bedtime: string | null; wakeTime: string | null }
   | { action: "set_age_rating"; profileId: string; ageRating: AgeRating; noticeVersion?: string }
   | { action: "unlock"; profileId: string }
   | { action: "set_aside"; profileId: string }

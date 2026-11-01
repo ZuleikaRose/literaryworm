@@ -433,11 +433,12 @@ function Engine({
       notice,
       limitReached: limit.reached,
       limitMinutes: limit.limitMinutes,
+      bedtime: limit.bedtime,
       allowance: allowanceUsed,
       listeningLeft,
       saveError,
     });
-  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, sleptAt, notice, limit.reached, limit.limitMinutes, allowanceUsed, listeningLeft, saveError]);
+  }, [onSnapshot, book.id, position, total, playing, finished, sleep, sleepLeft, sleptAt, notice, limit.reached, limit.limitMinutes, limit.bedtime, allowanceUsed, listeningLeft, saveError]);
 
   // The controls, for the provider to call. Kept current with the latest render.
   const latest = useRef({ position, seek, reading, limit, allowance, finished });

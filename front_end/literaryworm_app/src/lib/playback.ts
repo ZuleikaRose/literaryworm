@@ -26,6 +26,8 @@ export interface PlaybackSnapshot {
   notice: string | null;
   limitReached: boolean;
   limitMinutes: number | null;
+  /** At a Kids profile's bedtime: when it may listen again ("HH:MM", lib/bedtime.ts). */
+  bedtime: string | null;
   /** Set when the plan's audiobook hours for the month are used up (lib/useListeningAllowance.ts). */
   allowance: AllowanceUsed | null;
   /** On plans with a listening limit: seconds of it left this month for the household, and the plan's hours. */
