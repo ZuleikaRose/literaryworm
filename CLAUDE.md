@@ -118,6 +118,9 @@ Build in phases (see `prompt.md`). At the end of each phase:
 2. Playwright screenshots at 1440px and 390px, compared against the wireframe; save keepers to `front_end/literaryworm_app/docs/screenshots/`.
 3. Chrome DevTools: no console errors; Lighthouse accessibility 100.
 4. Update `schema.sql` and re-render `drawsql.png` for any new data.
+   **Always fix and update the website's schema and the sitemap too**, with every change:
+   - The schema.org structured data (`lib/seo.ts`, `components/StructuredData.tsx`, `index.html`): keep it true to each page and to the app (prices, features, the plans' offers, book pages), with nothing an address doesn't show, and fix anything Google's Rich Results test would flag (missing required fields, wrong types). Keep `seo.test.ts` and the smoke test passing.
+   - The sitemap (`public/sitemap.xml`): run `scripts/build-sitemap.py` after any new or removed public page, catalog title or series, check it lists only public, indexable pages (never members-only routes, which `robots.txt` disallows, or one-off links like `/clips/…`), and keep `robots.txt` pointing at it.
 5. Update the docs (app README phase table, `user_stories.md` build status, `user_journey.md` build notes, root `README.md` project status).
 6. Commit only the files for that work on `dev`, apply its migrations to the Supabase dev branch first, push `dev`, and stop for the user's review. Production migrations, function deploys and `scripts/promote.sh` (which moves `main` to `dev` only when every test and dev's CI pass) follow `docs/releasing.md`, with the user's approval.
 

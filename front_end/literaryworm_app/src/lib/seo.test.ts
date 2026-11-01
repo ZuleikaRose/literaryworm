@@ -56,7 +56,7 @@ describe("page structured data", () => {
   });
 
   it("gives a book in another language its language code", () => {
-    const french = getBook("candide");
-    if (french) expect(bookData(french).inLanguage).toBe("fr");
+    expect(bookData(getBook("candide-fr")!).inLanguage).toBe("fr");
+    expect(bookData(getBook("frankenstein")!).inLanguage).toBe("en");
   });
 });

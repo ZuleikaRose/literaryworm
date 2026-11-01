@@ -18,6 +18,9 @@ Disallow: /maintenance
 Disallow: /reset-password
 Disallow: /unsubscribe
 
+# Shared audio clips: one-off links to a stretch of a LibriVox recording, not pages to index
+Disallow: /clips/
+
 # Block tracking parameters
 Disallow: /*?utm_*
 Disallow: /*?fbclid=*
