@@ -243,36 +243,35 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
       <p className="visually-hidden" role="status">
         {isbnNote ?? ""}
       </p>
-      {!(source === "uploads" && uploads.length === 0) && (
-        <div className="club-book-tools">
-          <div className="field">
-            <label className="field-label" htmlFor="club-book-sort">
-              Sort by
-            </label>
-            <select id="club-book-sort" className="field-input" value={sort} onChange={(e) => setSort(e.target.value as ClubBookSort)}>
-              {CLUB_BOOK_SORTS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label className="field-label" htmlFor="club-book-series">
-              Series
-            </label>
-            <select id="club-book-series" className="field-input" value={seriesShown} onChange={(e) => setSeries(e.target.value)}>
-              <option value="">All books</option>
-              <option value="none">Not in a series</option>
-              {seriesList.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* The same Sort by and Series for LiteraryWorm books and My uploads, shown even before the first upload. */}
+      <div className="club-book-tools">
+        <div className="field">
+          <label className="field-label" htmlFor="club-book-sort">
+            Sort by
+          </label>
+          <select id="club-book-sort" className="field-input" value={sort} onChange={(e) => setSort(e.target.value as ClubBookSort)}>
+            {CLUB_BOOK_SORTS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+        <div className="field">
+          <label className="field-label" htmlFor="club-book-series">
+            Series
+          </label>
+          <select id="club-book-series" className="field-input" value={seriesShown} onChange={(e) => setSeries(e.target.value)}>
+            <option value="">All books</option>
+            <option value="none">Not in a series</option>
+            {seriesList.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       {source === "uploads" && uploads.length === 0 ? (
         <p className="goal-hint">
           You haven't uploaded any books yet. Add a DRM-free EPUB, such as one you bought, in{" "}

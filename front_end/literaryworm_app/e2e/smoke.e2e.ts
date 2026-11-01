@@ -319,8 +319,13 @@ describe("the demo household", () => {
     await page.getByLabel("Find one of your uploads").fill("9780141439518");
     await page.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).first().waitFor();
     await page.getByLabel("Find one of your uploads").fill("");
+    // My uploads has the same Sort by as LiteraryWorm books, even before the first upload.
+    const sortOptions = () => page.locator(".club-form").getByLabel("Sort by").locator("option").allTextContents();
+    const uploadSorts = await sortOptions();
+    expect(uploadSorts).toEqual(["Title A–Z", "Title Z–A", "Author A–Z", "Author Z–A", "Numbers first (0–9)", "Series, in reading order"]);
     // LiteraryWorm books, narrowed by title or author.
     await page.getByText("LiteraryWorm books").click();
+    await expect(sortOptions()).resolves.toEqual(uploadSorts);
     await page.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel(/^Book \(1 match\)/).waitFor();
     await expect(page.getByLabel(/^Book/).locator("option").first().textContent()).resolves.toContain("Pride and Prejudice");
