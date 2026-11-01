@@ -94,7 +94,7 @@ export const planFaqs = [
   },
   {
     q: "Can I give LiteraryWorm as a gift?",
-    a: "Yes. On Gifts, buy one, three, six or twelve months of any plan, paid once. You get a code to pass on; it never expires and the person redeems it in Account or on Plans.",
+    a: "Yes. On Gifts, buy one, three, six or twelve months of any plan, paid once. Add up to 10 LiteraryWorm books to start them off, from a title or one of your lists. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library.",
   },
   {
     q: "Is LiteraryWorm safe for my kids?",

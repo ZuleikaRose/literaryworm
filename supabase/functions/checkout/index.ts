@@ -1,6 +1,6 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { type BillingInterval, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
+import { type BillingInterval, giftBooksMetadata, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice, planPrice } from "../_shared/stripeCustomers.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
@@ -103,6 +103,8 @@ Deno.serve((req) =>
           // Who to email the code to (Stripe keeps metadata values up to 500 characters).
           ...(input.recipientEmail ? { recipient_email: input.recipientEmail } : {}),
           ...(input.message ? { message: input.message } : {}),
+          // Catalog ids, joined by commas; added to the recipient's library when they redeem it.
+          ...(input.books.length ? { books: giftBooksMetadata(input.books) } : {}),
         },
         success_url: `${input.origin}/gifts?checkout=success`,
         cancel_url: `${input.origin}/gifts?checkout=cancelled`,

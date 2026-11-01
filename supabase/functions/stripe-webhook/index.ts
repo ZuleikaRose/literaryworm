@@ -65,6 +65,7 @@ Deno.serve((req) =>
           starts_on: gift.startsOn,
           recipient_email: gift.recipientEmail,
           message: gift.message,
+          books: gift.books,
         },
         { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true },
       );

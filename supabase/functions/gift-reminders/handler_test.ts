@@ -113,3 +113,15 @@ Deno.test("a gift that can't be emailed is handed back and keeps its recipient",
   assertEquals(state.unsent, ["gift-sam@example.com"]);
   assertEquals(state.cleared, []);
 });
+
+Deno.test("an emailed gift names the books it comes with, escaped in the HTML; none means no list", async () => {
+  const { state, deps } = setup([], {}, [
+    delivery("sam@example.com", { books: [{ title: "Frankenstein", author: "Mary Shelley" }, { title: "Tom & Jerry <Tales>", author: "Anon" }] }),
+    delivery("kit@example.com", { books: [] }),
+  ]);
+  await run(deps);
+  const [sam, kit] = state.sent;
+  assertStringIncludes(sam.text, "It comes with these books, waiting in your library when you redeem it:\n- Frankenstein, by Mary Shelley");
+  assertStringIncludes(sam.html, "Tom &amp; Jerry &lt;Tales&gt;");
+  assertFalse(kit.text.includes("It comes with"));
+});

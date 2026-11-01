@@ -26,7 +26,9 @@
 //                                            moves back); without a membership, Stripe starts one
 //                                            free for the months, which ends then unless a card
 //                                            is added (the member agrees to that: renewalTermsAccepted),
-//                                            and the webhook writes it. Returns { gift, subscription? }
+//                                            and the webhook writes it. Books that come with the
+//                                            gift go into the library as Want to read. Returns
+//                                            { gift: { planId, months, until, books }, subscription? }
 //   { action: "delete", password, confirm: true }
 //                                            cancels the plan, then deletes the user (and,
 //                                            by cascade, everything the account owns), then
@@ -80,6 +82,8 @@ export interface Gift {
   redeemed_at: string | null;
   /** The first day it can be redeemed ("YYYY-MM-DD"); null from the day it was bought. */
   starts_on: string | null;
+  /** LiteraryWorm books it comes with (catalog ids), added to the redeemer's library. */
+  books: string[];
 }
 
 /** Gift codes (gift_codes): found by code, and claimed by one account at a time. */
@@ -89,6 +93,8 @@ export interface Gifts {
   claim: (giftId: string, userId: string) => Promise<boolean>;
   /** Undoes a claim when Stripe couldn't apply the gift, so the code still works. */
   release: (giftId: string) => Promise<void>;
+  /** Adds the gift's books to the account's library as Want to read, leaving any already there as they are. */
+  addBooks: (userId: string, books: string[]) => Promise<void>;
 }
 
 /** Changes to the member's Stripe subscription. */
@@ -335,7 +341,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         // After everything already paid for (or already free), never before today.
         const paidUntil = live?.current_period_end ? new Date(live.current_period_end) : now;
         const until = addGiftMonths(live && paidUntil > now ? paidUntil : now, gift.months);
-        const given = { planId: gift.plan_id, months: gift.months, until: until.toISOString() };
+        const given = { planId: gift.plan_id, months: gift.months, until: until.toISOString(), books: gift.books ?? [] };
         // Only a failure before Stripe has the months gives the code back; once Stripe has them,
         // the code stays used (the webhook brings the membership into step either way).
         try {
@@ -354,6 +360,10 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         } catch (err) {
           await deps.gifts.release(gift.id);
           throw err;
+        }
+        // The books are a bonus: the gift is redeemed either way, so a failure here is only logged.
+        if (given.books.length) {
+          await deps.gifts.addBooks(user.id, given.books).catch((err) => console.error("manage-account: couldn't add a gift's books", (err as Error).message));
         }
         if (!live) {
           // The webhook writes the membership in a moment; Account waits for it.

@@ -16,8 +16,9 @@
 // step), invoice.created (staff), and charge.dispute.created, charge.refunded and
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
 
+import { CATALOG } from "../_shared/catalog.ts";
 import type { Stripe } from "../_shared/stripe.ts";
-import { GIFT_MONTHS, type GiftMonths, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
+import { GIFT_MONTHS, type GiftMonths, giftBooksFromMetadata, parseGiftBooks, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
 
 export type SubscriptionFields = ReturnType<typeof subscriptionRow>;
 
@@ -51,6 +52,19 @@ export interface NewGift {
   /** Who gift-reminders emails the code to, and the buyer's message; null when the buyer passes it on. */
   recipientEmail: string | null;
   message: string | null;
+  /** LiteraryWorm books that come with it (catalog ids), added to the redeemer's library. */
+  books: string[];
+}
+
+/** The books from a gift Checkout's metadata, checked again; dropped (and logged) if they don't pass. */
+function giftBooks(metadata: Record<string, string>, sessionId: string): string[] {
+  try {
+    return parseGiftBooks(giftBooksFromMetadata(metadata.books), (id) => id in CATALOG);
+  } catch (err) {
+    // The buyer has paid: make the code anyway, without the books.
+    console.warn(`stripe-webhook: gift checkout ${sessionId} has books that don't pass: ${(err as Error).message}`);
+    return [];
+  }
 }
 
 /** The recipient and message from a gift Checkout's metadata, checked again; dropped (and logged) if they don't pass. */
@@ -117,6 +131,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
           currency: (session.currency ?? "usd").toUpperCase(),
           startsOn,
           ...giftRecipient(session.metadata, session.id),
+          books: giftBooks(session.metadata, session.id),
         });
         return;
       }

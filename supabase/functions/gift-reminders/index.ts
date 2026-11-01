@@ -1,5 +1,6 @@
 // Deploy with JWT verification off (pg_cron sends the Vault secret, not a Supabase token).
 // Emails go through Mailgun's API (_shared/mailgun.ts). Nothing is hard-coded.
+import { CATALOG } from "../_shared/catalog.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { handle } from "./handler.ts";
@@ -14,6 +15,7 @@ interface DeliveryRow {
   recipient_email: string;
   message: string | null;
   buyer_name: string | null;
+  books: string[] | null;
 }
 
 interface ReminderRow {
@@ -53,6 +55,8 @@ Deno.serve((req) =>
         to: r.recipient_email,
         message: r.message,
         from: r.buyer_name,
+        // Titles from the catalog; an id it no longer has is left out.
+        books: (r.books ?? []).flatMap((id) => (CATALOG[id] ? [{ title: CATALOG[id].title, author: CATALOG[id].author }] : [])),
       }));
     },
     async releaseDelivery(giftId) {

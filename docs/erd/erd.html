@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6573, with the legal page rows added 29 Oct)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6576, with the legal page rows added 29 Oct)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -963,9 +963,10 @@
             ["", "recipient_email", "text", true],
             ["", "message", "text ≤ 300", true],
             ["", "delivered_at", "timestamptz", true],
+            ["", "books", "text[] ≤ 10 (catalog ids)"],
             ["", "created_at", "timestamptz"],
           ],
-          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). The buyer is emailed three days before a later start (gift-reminders, claim_gift_start_reminders(); reminded_at, server only), unless they asked us to email the code to someone: gift-reminders sends it once it can be redeemed (claim_gift_deliveries(), delivered_at) and then clears recipient_email and message. RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
+          note: "Made by stripe-webhook when a gift Checkout is paid (one per session); redeemed once through manage-account, not before starts_on (the buyer's choice, up to a year ahead). The buyer is emailed three days before a later start (gift-reminders, claim_gift_start_reminders(); reminded_at, server only), unless they asked us to email the code to someone: gift-reminders sends it once it can be redeemed (claim_gift_deliveries(), delivered_at) and then clears recipient_email and message. books: catalog titles that come with it (6574), named in that email and added to the redeemer's library by manage-account. RLS: buyers read their own codes (not the Stripe session or who redeemed). Indexes: buyer_id, redeemed_by, plan_id.",
         },
       ];
 

@@ -1088,6 +1088,53 @@
   resize: vertical;
 }
 
+/* Books that come with a gift (components/GiftBooksPicker.tsx). */
+.gift-books {
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
+  margin: 24px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.gift-books legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.gift-books-chosen,
+.gift-books-matches {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gift-books-chosen li,
+.gift-books-matches li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  min-height: 44px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.gift-books-list-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gift-books-list-row select {
+  flex: 1 1 220px;
+}
+
 /* ---------- Maintenance notices (/maintenance, developers and admins) ---------- */
 
 .maintenance-page .maintenance-form {

@@ -599,13 +599,15 @@ export interface GiftRecipient {
 }
 
 /** Starts paying for a gift on Stripe Checkout; returns the page to send the member to. */
-export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null, recipient: GiftRecipient | null = null): Promise<string> {
+export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null, recipient: GiftRecipient | null = null, books: string[] = []): Promise<string> {
   const body = {
     gift: true,
     planId,
     months,
     ...(startsOn ? { startsOn } : {}),
     ...(recipient ? { recipientEmail: recipient.email.trim(), ...(recipient.message.trim() ? { message: recipient.message.trim() } : {}) } : {}),
+    // Catalog books that come with it (lib/gifts.ts GIFT_BOOKS_MAX), added to the recipient's library.
+    ...(books.length ? { books } : {}),
   };
   const { url } = await callFunction<{ url: string }>("checkout", body, "We couldn't start the payment. Try again.");
   return url;
@@ -625,16 +627,18 @@ export interface BoughtGift {
   /** Who we'll email it to; cleared once it's sent (deliveredAt). */
   recipientEmail: string | null;
   deliveredAt: string | null;
+  /** LiteraryWorm books that come with it (catalog ids). */
+  books: string[];
 }
 
 /** The gift codes this account bought, newest first (only the buyer can read them). */
 export async function myGifts(): Promise<BoughtGift[]> {
   const { data, error } = await client()
     .from("gift_codes")
-    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at")
+    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at, books")
     .order("created_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load your gifts. Try again.");
-  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null }[]).map((g) => ({
+  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null; books: string[] | null }[]).map((g) => ({
     id: g.id,
     code: g.code,
     planId: g.plan_id,
@@ -646,6 +650,7 @@ export async function myGifts(): Promise<BoughtGift[]> {
     startsOn: g.starts_on,
     recipientEmail: g.recipient_email,
     deliveredAt: g.delivered_at,
+    books: g.books ?? [],
   }));
 }
 
@@ -656,6 +661,8 @@ export interface RedeemedGift {
   until: string;
   /** The membership's new plan fields, when the gift went on an existing membership. */
   plan: PlanFields | null;
+  /** LiteraryWorm books that came with it, now in the library as Want to read. */
+  books: string[];
 }
 
 /**
@@ -664,12 +671,12 @@ export interface RedeemedGift {
  * after), which the webhook writes a moment later (`plan` is null then).
  */
 export async function redeemGift(code: string, renewalTermsAccepted: boolean): Promise<RedeemedGift> {
-  const res = await callFunction<{ gift: { planId: PlanId; months: number; until: string }; subscription?: SubscriptionRow }>(
+  const res = await callFunction<{ gift: { planId: PlanId; months: number; until: string; books?: string[] }; subscription?: SubscriptionRow }>(
     "manage-account",
     { action: "gift", code, ...(renewalTermsAccepted ? { renewalTermsAccepted: true } : {}) },
     "We couldn't redeem that gift. Try again.",
   );
-  return { ...res.gift, plan: res.subscription ? fromSubscription(res.subscription) : null };
+  return { ...res.gift, books: res.gift.books ?? [], plan: res.subscription ? fromSubscription(res.subscription) : null };
 }
 
 /** Deletes the account and everything it owns, after the function re-checks the password. */

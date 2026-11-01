@@ -25,8 +25,9 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
     emails: [] as { to: string; subject: string; text: string }[],
     passwordChecks: 0,
     stripe: [] as string[],
-    gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null, starts_on: null } as Gift,
+    gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null, starts_on: null, books: [] } as Gift,
     redeemedBy: null as string | null,
+    addedBooks: [] as { userId: string; books: string[] }[],
   };
   const record = (call: string) => {
     state.stripe.push(call);
@@ -91,6 +92,10 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       release: () => {
         state.gift = { ...state.gift, redeemed_at: null };
         state.redeemedBy = null;
+        return Promise.resolve();
+      },
+      addBooks: (userId, books) => {
+        state.addedBooks.push({ userId, books });
         return Promise.resolve();
       },
     },
@@ -454,13 +459,31 @@ Deno.test("cancelling never sends Stripe's ids either", async () => {
 
 // --- Gifts --------------------------------------------------------------------------
 
+Deno.test("a gift's books go into the redeemer's library; if that fails, the gift still counts", async () => {
+  const { state, deps } = setup(paid());
+  state.gift = { ...state.gift, books: ["frankenstein", "dune"] };
+  const res = await call(deps, { action: "gift", code: GIFT_CODE });
+  assertEquals(res.status, 200);
+  assertEquals(res.body.gift.books, ["frankenstein", "dune"]);
+  assertEquals(state.addedBooks, [{ userId: USER.id, books: ["frankenstein", "dune"] }]);
+
+  const failing = setup(paid());
+  failing.state.gift = { ...failing.state.gift, books: ["frankenstein"] };
+  failing.deps.gifts.addBooks = () => Promise.reject(new Error("db down"));
+  const kept = await call(failing.deps, { action: "gift", code: GIFT_CODE });
+  assertEquals(kept.status, 200);
+  assertEquals(failing.state.redeemedBy, USER.id);
+});
+
 Deno.test("a gift on the same plan moves the next charge back by its months", async () => {
   const { state, deps } = setup(paid());
   const res = await call(deps, { action: "gift", code: "abcd-efgh-jklm-npqr" });
   assertEquals(res.status, 200);
   // Paid to 5 Nov; three months free after that.
   assertEquals(state.stripe, ["gift sub_1 2027-02-05"]);
-  assertEquals(res.body.gift, { planId: "standard", months: 3, until: "2027-02-05T00:00:00.000Z" });
+  assertEquals(res.body.gift, { planId: "standard", months: 3, until: "2027-02-05T00:00:00.000Z", books: [] });
+  // No books came with it, so the library isn't touched.
+  assertEquals(state.addedBooks, []);
   assertEquals(res.body.subscription.gift_until, "2027-02-05T00:00:00.000Z");
   assertEquals(res.body.subscription.stripe_subscription_id, undefined);
   assertEquals(state.redeemedBy, USER.id);

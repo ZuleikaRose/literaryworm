@@ -227,7 +227,7 @@ Deno.test("a gift is a one-off Checkout for the plan and months, whatever the bu
   const res = await call(deps, { gift: true, planId: "premium", months: 6 });
   assertEquals(res.status, 200);
   assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_gift");
-  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, startsOn: null, recipientEmail: null, message: null, origin: ORIGIN }]);
+  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, startsOn: null, recipientEmail: null, message: null, books: [], origin: ORIGIN }]);
   assertEquals(state.checkouts.length + state.planChanges.length, 0);
 });
 
@@ -271,4 +271,14 @@ Deno.test("gifts are only 1, 3, 6 or 12 months of a real plan, with no other fie
     assertEquals((await call(deps, body)).status, 400, JSON.stringify(body));
   }
   assertEquals(state.gifts.length, 0);
+});
+
+Deno.test("a gift can come with up to 10 LiteraryWorm books, catalog ids only, no repeats", async () => {
+  const { deps, state } = setup(null);
+  assertEquals((await call(deps, { gift: true, planId: "standard", months: 3, books: ["frankenstein", "dune", "frankenstein"] })).status, 200);
+  assertEquals(state.gifts[0].books, ["frankenstein", "dune"]);
+  for (const books of [["not-a-book"], "frankenstein", [1], Array.from({ length: 11 }, (_, i) => `x${i}`)]) {
+    assertEquals((await call(deps, { gift: true, planId: "standard", months: 3, books })).status, 400, JSON.stringify(books));
+  }
+  assertEquals(state.gifts.length, 1);
 });

@@ -121,6 +121,8 @@ Then shared highlights in book clubs: members share their own highlights of the 
 
 Then reading plans: "finish this book by a date", with a day's share in minutes at the reader's own pace or pages, and on track, ahead or behind.
 
+Then gifts with books: a gift membership can come with up to 10 LiteraryWorm books, chosen by title or from a list, named in the recipient's email and added to their library when they redeem it.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

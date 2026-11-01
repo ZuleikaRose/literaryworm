@@ -103,6 +103,8 @@ export type Action =
   | { type: "updateHighlight"; id: string; patch: Partial<Pick<Highlight, "color" | "note" | "reviewDue" | "reviewStep">> }
   | { type: "removeHighlight"; id: string }
   | { type: "setReadingPlans"; plans: ReadingPlan[] }
+  /** Members: the library as Supabase has it now (after a gift added books on the server). */
+  | { type: "setAccountLibrary"; library: Record<string, LibraryEntry> }
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
@@ -538,6 +540,9 @@ export function reducer(state: AppState, action: Action): AppState {
         ...reading,
         highlights: reading.highlights.map((h) => (h.id === action.id ? { ...h, ...action.patch } : h)),
       }));
+
+    case "setAccountLibrary":
+      return state.account?.userId ? { ...state, accountLibrary: action.library } : state;
 
     case "setReadingPlans":
       return withProfileData(state, (data) => ({ ...data, readingPlans: action.plans }));

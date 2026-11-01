@@ -62,3 +62,21 @@ export function giftRecipientError(raw: string): string | null {
 
 /** Whether a bought gift's start day is still to come (its code can't be redeemed yet). */
 export const giftNotStarted = (startsOn: string | null, now = new Date()) => Boolean(startsOn && startsOn > today(now));
+
+/** A gift can come with up to this many LiteraryWorm books (the checkout function's limit too). */
+export const GIFT_BOOKS_MAX = 10;
+
+/**
+ * Adds books to a gift's picks, keeping the order they were added, leaving out repeats, and
+ * stopping at GIFT_BOOKS_MAX. Returns the new list and how many didn't fit.
+ */
+export function addGiftBooks(current: string[], adding: string[]): { books: string[]; leftOut: number } {
+  const books = [...current];
+  let leftOut = 0;
+  for (const id of adding) {
+    if (books.includes(id)) continue;
+    if (books.length >= GIFT_BOOKS_MAX) leftOut++;
+    else books.push(id);
+  }
+  return { books, leftOut };
+}

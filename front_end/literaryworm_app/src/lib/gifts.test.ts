@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { giftNotStarted, giftPriceCents, giftRecipientError, giftStartBounds, giftStartError } from "./gifts";
+import { addGiftBooks, GIFT_BOOKS_MAX, giftNotStarted, giftPriceCents, giftRecipientError, giftStartBounds, giftStartError } from "./gifts";
 
 describe("what a gift costs", () => {
   const standard = { price: 14.99, yearlyPrice: 149.9 };
@@ -44,5 +44,23 @@ describe("who to email a gift to", () => {
     for (const bad of ["sam", "sam@example", "sam @example.com", "@example.com", `${"a".repeat(250)}@example.com`]) {
       expect(giftRecipientError(bad)).toBe("Enter an email address like name@example.com.");
     }
+  });
+});
+
+describe("addGiftBooks", () => {
+  it("adds in order and leaves out repeats", () => {
+    expect(addGiftBooks(["dune"], ["emma", "dune", "emma", "circe"])).toEqual({ books: ["dune", "emma", "circe"], leftOut: 0 });
+  });
+
+  it("stops at the most a gift can carry and counts what didn't fit", () => {
+    const full = Array.from({ length: GIFT_BOOKS_MAX - 1 }, (_, i) => `b${i}`);
+    expect(addGiftBooks(full, ["x", "y", "z"])).toEqual({ books: [...full, "x"], leftOut: 2 });
+  });
+
+  it("changes nothing with nothing to add, and leaves the list it was given as it was", () => {
+    const start = ["dune"];
+    expect(addGiftBooks(start, [])).toEqual({ books: ["dune"], leftOut: 0 });
+    addGiftBooks(start, ["emma"]);
+    expect(start).toEqual(["dune"]);
   });
 });

@@ -187,7 +187,7 @@ const giftPaid = (overrides: Record<string, unknown> = {}) =>
 Deno.test("a paid gift Checkout makes the gift for the buyer, and starts no membership", async () => {
   const { state, deps } = setup(giftPaid());
   assertEquals((await handle(post(), deps)).status, 200);
-  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD", startsOn: null, recipientEmail: null, message: null }]);
+  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD", startsOn: null, recipientEmail: null, message: null, books: [] }]);
   assertEquals(state.started.length, 0);
 });
 
@@ -204,6 +204,15 @@ Deno.test("a gift to email keeps its recipient and message; a bad address still 
   const bad = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "1", recipient_email: "nobody", message: "Hi" } }));
   assertEquals((await handle(post(), bad.deps)).status, 200);
   assertEquals([bad.state.gifts[0].recipientEmail, bad.state.gifts[0].message], [null, null]);
+});
+
+Deno.test("a gift keeps the books it comes with; books that don't pass are dropped, and the code is still made", async () => {
+  const good = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "1", books: "frankenstein,dune" } }));
+  assertEquals((await handle(post(), good.deps)).status, 200);
+  assertEquals(good.state.gifts[0].books, ["frankenstein", "dune"]);
+  const bad = setup(giftPaid({ metadata: { kind: "gift", plan_id: "basic", months: "1", books: "frankenstein,not-a-book" } }));
+  assertEquals((await handle(post(), bad.deps)).status, 200);
+  assertEquals(bad.state.gifts[0].books, []);
 });
 
 Deno.test("an unpaid gift makes nothing; one with bad metadata is retried, not saved", async () => {

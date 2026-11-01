@@ -114,6 +114,8 @@ export interface Delivery {
   message: string | null;
   /** The buyer's display name; null when they have none (or deleted their account). */
   from: string | null;
+  /** LiteraryWorm books that come with it, added to the library when it's redeemed. */
+  books?: { title: string; author: string }[];
 }
 
 /** ABCD-EFGH-JKLM-NPQR, as the app shows codes (formatGiftCode() in src/lib/gifts.ts). */
@@ -121,6 +123,8 @@ export const formatGiftCode = (code: string) => code.match(/.{1,4}/g)?.join("-")
 
 export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): Email {
   const { gift, message, from } = input.delivery;
+  const books = input.delivery.books ?? [];
+  const booksLead = books.length === 1 ? "It comes with a book, waiting in your library when you redeem it:" : "It comes with these books, waiting in your library when you redeem it:";
   const what = `${length(gift.months)} of ${PLAN_NAMES[gift.planId]}`;
   const subject = from ? `A LiteraryWorm gift from ${from}` : "You've been sent a LiteraryWorm gift";
   const lead = `${from ?? "Someone"} sent you ${what} on LiteraryWorm: ebooks and audiobooks, with a profile for everyone at home.`;
@@ -133,6 +137,7 @@ export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): 
     "",
     lead,
     ...(message ? ["", `${from ?? "They"} wrote:`, message] : []),
+    ...(books.length ? ["", booksLead, ...books.map((b) => `- ${b.title}, by ${b.author}`)] : []),
     "",
     `Your code: ${code}`,
     "",
@@ -170,6 +175,13 @@ export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): 
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">Hi,</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 ${quote}
+                ${
+    books.length
+      ? `<p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(booksLead)}</p><ul style="margin:0 0 16px;padding-left:20px;font-size:16px;line-height:1.55;">${books
+        .map((b) => `<li><strong>${escapeHtml(b.title)}</strong> <span style="color:#5b5750;">by ${escapeHtml(b.author)}</span></li>`)
+        .join("")}</ul>`
+      : ""
+  }
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;border-bottom:1px solid #e0d9cc;${FONT}">

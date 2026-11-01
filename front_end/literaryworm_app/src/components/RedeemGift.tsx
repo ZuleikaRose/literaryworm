@@ -1,6 +1,6 @@
 import { type FormEvent, useId, useState } from "react";
 import { planById } from "../data/plans";
-import { AccountError, loadAccount, planFields, redeemGift } from "../lib/accountApi";
+import { AccountError, loadAccount, loadLibrary, planFields, redeemGift } from "../lib/accountApi";
 import { endDate } from "../lib/billing";
 import { giftCodeError, monthsLabel } from "../lib/gifts";
 import { useStore } from "../store/context";
@@ -54,19 +54,24 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
     try {
       const gift = await redeemGift(code, !hasMembership);
       const what = `${monthsLabel(gift.months)} of ${planById.get(gift.planId)?.name ?? gift.planId}`;
+      // Books that came with it are in the library on the server now; show them here too.
+      const withBooks = gift.books.length
+        ? ` ${gift.books.length === 1 ? "A book came with it and is" : `${gift.books.length} books came with it and are`} in My Library, ready to read.`
+        : "";
+      if (gift.books.length) void loadLibrary().then((library) => dispatch({ type: "setAccountLibrary", library }), () => undefined);
       setCode("");
       setAgreed(false);
       if (gift.plan) {
         dispatch({ type: "updateAccount", patch: gift.plan });
-        setDone(`Gift redeemed: ${what}. Nothing is charged until ${endDate(gift.until)}.`);
+        setDone(`Gift redeemed: ${what}. Nothing is charged until ${endDate(gift.until)}.${withBooks}`);
         return;
       }
       setDone(`Gift redeemed: ${what}. Setting up your membership…`);
       const ready = await waitForMembership();
       setDone(
         ready
-          ? `Gift redeemed: your ${what} start today and run until ${endDate(gift.until)}.`
-          : `Gift redeemed: ${what}, until ${endDate(gift.until)}. Your membership is taking a little longer to appear: refresh the page in a minute.`,
+          ? `Gift redeemed: your ${what} start today and run until ${endDate(gift.until)}.${withBooks}`
+          : `Gift redeemed: ${what}, until ${endDate(gift.until)}. Your membership is taking a little longer to appear: refresh the page in a minute.${withBooks}`,
       );
       if (ready) onStarted?.();
     } catch (err) {

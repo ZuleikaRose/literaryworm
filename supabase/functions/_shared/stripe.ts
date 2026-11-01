@@ -99,6 +99,29 @@ export function parseGiftStart(raw: unknown, now = new Date()): string | null {
 /** Longest message a buyer can send with a gift (the database allows the same). */
 export const GIFT_MESSAGE_MAX = 300;
 
+/** A gift can come with up to this many LiteraryWorm books, added to the recipient's library when they redeem it. */
+export const GIFT_BOOKS_MAX = 10;
+
+/**
+ * The books a gift comes with: catalog ids (`isCatalog`), no repeats, up to GIFT_BOOKS_MAX; an
+ * empty list when none. Throws with a message for people. Stripe metadata keeps them joined by
+ * commas (`giftBooksMetadata()`), well under its 500 characters.
+ */
+export function parseGiftBooks(raw: unknown, isCatalog: (id: string) => boolean): string[] {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw) || raw.some((id) => typeof id !== "string")) throw new Error("Books are a list of LiteraryWorm book ids.");
+  const ids = [...new Set(raw as string[])];
+  if (ids.length > GIFT_BOOKS_MAX) throw new Error(`A gift can come with up to ${GIFT_BOOKS_MAX} books.`);
+  const unknown = ids.find((id) => !isCatalog(id));
+  if (unknown !== undefined) throw new Error("Choose books from LiteraryWorm's own titles.");
+  return ids;
+}
+
+export const giftBooksMetadata = (ids: string[]) => ids.join(",");
+
+/** The list back from Stripe metadata (empty when there's none). */
+export const giftBooksFromMetadata = (value: string | undefined): string[] => (value ? value.split(",") : []);
+
 /**
  * The address to email a gift to, as gift_codes keeps it (trimmed, lower case); null when none is
  * given (the buyer passes the code on). The same check as giftRecipientError() in the app.

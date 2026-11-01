@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, plans } from "../data/plans";
+import { getBook } from "../data/books";
+import { GiftBooksPicker } from "../components/GiftBooksPicker";
 import { AccountError, type BoughtGift, buyGift, myGifts } from "../lib/accountApi";
 import { endDate, formatMoney } from "../lib/billing";
 import {
@@ -99,6 +101,8 @@ function BuyGift() {
   const [recipient, setRecipient] = useState("");
   const [recipientError, setRecipientError] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  // LiteraryWorm books that come with the gift (components/GiftBooksPicker.tsx).
+  const [books, setBooks] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bounds = giftStartBounds();
@@ -119,7 +123,7 @@ function BuyGift() {
     setBusy(true);
     setError(null);
     try {
-      window.location.assign(await buyGift(planId, months, later ? startsOn : null, byEmail ? { email: recipient, message } : null));
+      window.location.assign(await buyGift(planId, months, later ? startsOn : null, byEmail ? { email: recipient, message } : null, books));
     } catch (err) {
       setError(err instanceof AccountError ? err.message : "We couldn't start the payment. Try again.");
       setBusy(false);
@@ -262,11 +266,13 @@ function BuyGift() {
             </div>
           )}
         </fieldset>
+        <GiftBooksPicker books={books} onChange={setBooks} />
         <div className="gift-total">
           <p>
             <strong>{formatMoney(total, "usd")}</strong> for {months === GIFT_YEAR_MONTHS ? "a year" : monthsLabel(months)} of {plan.name}, paid once.
             {months === GIFT_YEAR_MONTHS && ` That's the yearly price: ${formatMoney(yearSaving, "usd")} less than 12 months.`}
             {later && startsOn && !giftStartError(startsOn) && ` It can be redeemed from ${endDate(startsOn)}.`}
+            {books.length > 0 && ` With ${books.length === 1 ? "1 book" : `${books.length} books`} to start them off.`}
           </p>
           <p className="field-hint">
             Paid on Stripe's secure page. Your code appears below once payment goes through. All sales are final.
@@ -364,6 +370,11 @@ function YourGifts({ justPaid }: { justPaid: boolean }) {
                   bought {endDate(g.createdAt)}
                   {!g.redeemedAt && giftNotStarted(g.startsOn) && ` · starts ${endDate(g.startsOn!)}`}
                 </p>
+                {g.books.length > 0 && (
+                  <p className="gift-meta">
+                    With {g.books.map((b) => getBook(b)?.title ?? b).join(", ")}
+                  </p>
+                )}
                 {!g.redeemedAt && (g.deliveredAt || g.recipientEmail) && (
                   <p className="gift-meta">
                     {g.deliveredAt

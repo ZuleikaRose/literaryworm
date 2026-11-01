@@ -6,7 +6,7 @@
 //
 // interval is "month" unless given. Yearly costs ten times the monthly price and starts the day it's
 // bought (billingDay isn't needed); it renews on that date each year.
-//   { gift: true, planId, months: 1 | 3 | 6 | 12, startsOn?: "YYYY-MM-DD", recipientEmail?, message? }
+//   { gift: true, planId, months: 1 | 3 | 6 | 12, startsOn?: "YYYY-MM-DD", recipientEmail?, message?, books?: [catalog ids, up to 10] }
 //
 // A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, or the
 // yearly price for 12 months, nothing recurring): this returns { url }, and once Stripe confirms payment the stripe-webhook function
@@ -39,7 +39,8 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
+import { CATALOG } from "../_shared/catalog.ts";
+import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftBooks, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -78,6 +79,8 @@ export interface GiftCheckoutInput {
   /** Who to email the code to, and what the buyer wrote; null when the buyer passes it on. */
   recipientEmail: string | null;
   message: string | null;
+  /** LiteraryWorm books that come with the gift (catalog ids, up to GIFT_BOOKS_MAX). */
+  books: string[];
   origin: string;
 }
 
@@ -117,7 +120,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     }
     const body = await readJsonBody(req);
     if (body.gift !== undefined) {
-      onlyKeys(body, ["gift", "planId", "months", "startsOn", "recipientEmail", "message"]);
+      onlyKeys(body, ["gift", "planId", "months", "startsOn", "recipientEmail", "message", "books"]);
       if (body.gift !== true) throw new HttpError("bad_request", "gift is true when buying a gift.");
       if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {
         throw new HttpError("bad_request", "Pick Basic, Standard or Premium.");
@@ -129,10 +132,12 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       let startsOn: string | null;
       let recipientEmail: string | null;
       let message: string | null;
+      let books: string[];
       try {
         startsOn = parseGiftStart(body.startsOn);
         recipientEmail = parseGiftRecipient(body.recipientEmail);
         message = parseGiftMessage(body.message);
+        books = parseGiftBooks(body.books, (id) => id in CATALOG);
       } catch (err) {
         throw new HttpError("bad_request", (err as Error).message);
       }
@@ -146,6 +151,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         startsOn,
         recipientEmail,
         message,
+        books,
         origin: deps.siteOrigin(req),
       });
       return json(req, METHODS, { url });

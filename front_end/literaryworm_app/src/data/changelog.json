@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Gift a book or a list with a membership",
+    "body": "When you buy a gift membership, you can add up to 10 LiteraryWorm books to it: find a title, or add one of your lists. They're named in the email if we send it, and waiting in the recipient's library when they redeem the gift.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Reading plans: finish by a date",
     "body": "On any book's page, choose a day to finish it by. Reading plan works out about how many minutes (at your own pace) or pages a day get you there, and tells you whether you're on track, ahead or behind. Home lists your plans with the days left. Change the date or remove a plan any time.",
     "major": true
