@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Classics in French, German and Spanish",
+    "body": "Six classics to read and hear in their own language: Voltaire's Candide and Flaubert's Madame Bovary in French, Fontane's Effi Briest and Busch's Max und Moritz in German, and Pérez Galdós's Marianela and Lazarillo de Tormes in Spanish. Each has the full text and a LibriVox recording in that language. Find them with Search's language filter.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Smart lists",
     "body": "My Library has Smart lists that fill themselves: Almost there for books you're past halfway through, Waiting for you for books you started and haven't opened in a month, From authors you follow, and Loved it. They change as you read; there's nothing to keep up.",
     "major": false

@@ -6185,5 +6185,47 @@ export const CATALOG: Record<string, CatalogBook> = {
     "year": 1868,
     "synopsis": "A cheerful New York bootblack works, saves and learns his way toward a better life.",
     "publicDomain": true
+  },
+  "candide-fr": {
+    "title": "Candide ou l'optimisme",
+    "author": "Voltaire",
+    "year": 1759,
+    "synopsis": "Voltaire's Candide in the original French: taught that all is for the best, a young man is thrown out into a world of war, earthquake and disaster.",
+    "publicDomain": true
+  },
+  "madame-bovary-fr": {
+    "title": "Madame Bovary",
+    "author": "Gustave Flaubert",
+    "year": 1857,
+    "synopsis": "Flaubert's novel in the original French: Emma Bovary, married to a country doctor, looks for the life she has read about in novels.",
+    "publicDomain": true
+  },
+  "effi-briest": {
+    "title": "Effi Briest",
+    "author": "Theodor Fontane",
+    "year": 1895,
+    "synopsis": "Fontane's novel in German: married at seventeen to a much older baron, Effi is lonely in a Baltic town, and a mistake from those years comes back long after.",
+    "publicDomain": true
+  },
+  "max-und-moritz": {
+    "title": "Max und Moritz",
+    "author": "Wilhelm Busch",
+    "year": 1865,
+    "synopsis": "Wilhelm Busch's comic verse tale in German: two boys play seven pranks on their neighbours, until their luck runs out.",
+    "publicDomain": true
+  },
+  "marianela": {
+    "title": "Marianela",
+    "author": "Benito Pérez Galdós",
+    "year": 1878,
+    "synopsis": "Pérez Galdós's novel in Spanish: Nela, poor and plain, guides a blind young man through the mining country, and fears what will happen if he ever sees.",
+    "publicDomain": true
+  },
+  "lazarillo-de-tormes": {
+    "title": "Lazarillo de Tormes",
+    "author": "Anonymous",
+    "year": 1554,
+    "synopsis": "The first picaresque novel, in Spanish: Lázaro tells how he grew up serving a blind man, a priest, a squire and others, living on his wits.",
+    "publicDomain": true
   }
 };

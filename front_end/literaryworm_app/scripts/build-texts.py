@@ -924,6 +924,17 @@ BOOKS = {
     "the-singing-bone": {"ebook": 59478, "heading": None, "proportional": True},
     "king-coal": {"ebook": 7522, "heading": None, "proportional": True},
     "ragged-dick": {"ebook": 5348, "heading": rf"(?:CHAPTER|Chapter) {ROMAN}\.?(?:[ .:—-].*)?", "proportional": True},
+    # Classics in French, German and Spanish (November 2026)
+    # Chapter XXII's heading carries a footnote mark.
+    "candide-fr": {"ebook": 4650, "heading": rf"CHAPITRE {ROMAN}(?:\[\d+\])?\.?", "end": r"^\[1\] Voyez, dans les", "trim": True},
+    # Past the contents list; the part headings fall away as empty units.
+    "madame-bovary-fr": {"ebook": 14155, "start": r"^PREMIÈRE PARTIE$", "heading": rf"(?:{ROMAN}|(?:PREMIÈRE|DEUXIÈME|TROISIÈME) PARTIE)", "trim": True},
+    "effi-briest": {"ebook": 5323, "heading": r"\S+ Kapitel", "trim": True},
+    # From the preface on: the title page and the transcriber's notes come first.
+    "max-und-moritz": {"ebook": 17161, "start": r"^_VORWORT\._$", "heading": None, "trim": True},
+    "marianela": {"ebook": 17340, "heading": rf"-{ROMAN}-", "trim": True},
+    # The prologue and first tratado are one track, then the fourth and fifth, and the sixth and seventh.
+    "lazarillo-de-tormes": {"ebook": 320, "heading": r"(?:Prólogo|Tratado \S+)", "groups": [2, 1, 1, 2, 2], "trim": True},
 }
 
 # Shorter than this after a heading means a table-of-contents line, not a chapter.

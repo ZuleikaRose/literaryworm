@@ -138329,5 +138329,686 @@ export const recordings: Record<string, Recording> = {
         "seconds": 1446
       }
     ]
+  },
+  "candide-fr": {
+    "narrator": "Bernard",
+    "page": "https://librivox.org/candide-by-voltaire-2/",
+    "tracks": [
+      {
+        "title": "Chapter 01",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_01_voltaire_64kb.mp3",
+        "seconds": 382
+      },
+      {
+        "title": "Chapter 02",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_02_voltaire_64kb.mp3",
+        "seconds": 352
+      },
+      {
+        "title": "Chapter 03",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_03_voltaire_64kb.mp3",
+        "seconds": 347
+      },
+      {
+        "title": "Chapter 04",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_04_voltaire_64kb.mp3",
+        "seconds": 450
+      },
+      {
+        "title": "Chapter 05",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_05_voltaire_64kb.mp3",
+        "seconds": 398
+      },
+      {
+        "title": "Chapter 06",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_06_voltaire_64kb.mp3",
+        "seconds": 207
+      },
+      {
+        "title": "Chapter 07",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_07_voltaire_64kb.mp3",
+        "seconds": 307
+      },
+      {
+        "title": "Chapter 08",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_08_voltaire_64kb.mp3",
+        "seconds": 423
+      },
+      {
+        "title": "Chapter 09",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_09_voltaire_64kb.mp3",
+        "seconds": 234
+      },
+      {
+        "title": "Chapter 10",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_10_voltaire_64kb.mp3",
+        "seconds": 279
+      },
+      {
+        "title": "Chapter 11",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_11_voltaire_64kb.mp3",
+        "seconds": 523
+      },
+      {
+        "title": "Chapter 12",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_12_voltaire_64kb.mp3",
+        "seconds": 610
+      },
+      {
+        "title": "Chapter 13",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_13_voltaire_64kb.mp3",
+        "seconds": 347
+      },
+      {
+        "title": "Chapter 14",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_14_voltaire_64kb.mp3",
+        "seconds": 487
+      },
+      {
+        "title": "Chapter 15",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_15_voltaire_64kb.mp3",
+        "seconds": 303
+      },
+      {
+        "title": "Chapter 16",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_16_voltaire_64kb.mp3",
+        "seconds": 516
+      },
+      {
+        "title": "Chapter 17",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_17_voltaire_64kb.mp3",
+        "seconds": 493
+      },
+      {
+        "title": "Chapter 18",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_18_voltaire_64kb.mp3",
+        "seconds": 734
+      },
+      {
+        "title": "Chapter 19",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_19_voltaire_64kb.mp3",
+        "seconds": 660
+      },
+      {
+        "title": "Chapter 20",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_20_voltaire_64kb.mp3",
+        "seconds": 363
+      },
+      {
+        "title": "Chapter 21",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_21_voltaire_64kb.mp3",
+        "seconds": 291
+      },
+      {
+        "title": "Chapter 22",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_22_voltaire_64kb.mp3",
+        "seconds": 1610
+      },
+      {
+        "title": "Chapter 23",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_23_voltaire_64kb.mp3",
+        "seconds": 228
+      },
+      {
+        "title": "Chapter 24",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_24_voltaire_64kb.mp3",
+        "seconds": 605
+      },
+      {
+        "title": "Chapter 25",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_25_voltaire_64kb.mp3",
+        "seconds": 711
+      },
+      {
+        "title": "Chapter 26",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_26_voltaire_64kb.mp3",
+        "seconds": 435
+      },
+      {
+        "title": "Chapter 27",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_27_voltaire_64kb.mp3",
+        "seconds": 495
+      },
+      {
+        "title": "Chapter 28",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_28_voltaire_64kb.mp3",
+        "seconds": 352
+      },
+      {
+        "title": "Chapter 29",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_29_voltaire_64kb.mp3",
+        "seconds": 169
+      },
+      {
+        "title": "Chapter 30",
+        "url": "https://archive.org/download/candide_ou_loptimisme_b_librivox/candide_30_voltaire_64kb.mp3",
+        "seconds": 666
+      }
+    ]
+  },
+  "madame-bovary-fr": {
+    "narrator": "Nadine Eckert-Boulet",
+    "page": "https://librivox.org/madame-bovary-french-by-gustave-flaubert/",
+    "tracks": [
+      {
+        "title": "1 - 01",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_01_flaubert_64kb.mp3",
+        "seconds": 1360
+      },
+      {
+        "title": "1 - 02",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_02_flaubert_64kb.mp3",
+        "seconds": 1152
+      },
+      {
+        "title": "1 - 03",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_03_flaubert_64kb.mp3",
+        "seconds": 788
+      },
+      {
+        "title": "1 - 04",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_04_flaubert_64kb.mp3",
+        "seconds": 845
+      },
+      {
+        "title": "1 - 05",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_05_flaubert_64kb.mp3",
+        "seconds": 531
+      },
+      {
+        "title": "1 - 06",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_06_flaubert_64kb.mp3",
+        "seconds": 768
+      },
+      {
+        "title": "1 - 07",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_07_flaubert_64kb.mp3",
+        "seconds": 909
+      },
+      {
+        "title": "1 - 08",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_08_flaubert_64kb.mp3",
+        "seconds": 1493
+      },
+      {
+        "title": "1 - 09",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_09_flaubert_64kb.mp3",
+        "seconds": 1732
+      },
+      {
+        "title": "2 - 01",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_10_flaubert_64kb.mp3",
+        "seconds": 1376
+      },
+      {
+        "title": "2 - 02",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_11_flaubert_64kb.mp3",
+        "seconds": 898
+      },
+      {
+        "title": "2 - 03",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_12_flaubert_64kb.mp3",
+        "seconds": 1646
+      },
+      {
+        "title": "2 - 04",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_13_flaubert_64kb.mp3",
+        "seconds": 593
+      },
+      {
+        "title": "2 - 05",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_14_flaubert_64kb.mp3",
+        "seconds": 1284
+      },
+      {
+        "title": "2 - 06",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_15_flaubert_64kb.mp3",
+        "seconds": 1764
+      },
+      {
+        "title": "2 - 07",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_16_flaubert_64kb.mp3",
+        "seconds": 1194
+      },
+      {
+        "title": "2 - 08",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_17_flaubert_64kb.mp3",
+        "seconds": 3159
+      },
+      {
+        "title": "2 - 09",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_18_flaubert_64kb.mp3",
+        "seconds": 1435
+      },
+      {
+        "title": "2 - 10",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_19_flaubert_64kb.mp3",
+        "seconds": 1178
+      },
+      {
+        "title": "2 - 11",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_20_flaubert_64kb.mp3",
+        "seconds": 1815
+      },
+      {
+        "title": "2 - 12",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_21_flaubert_64kb.mp3",
+        "seconds": 1964
+      },
+      {
+        "title": "2 - 13",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_22_flaubert_64kb.mp3",
+        "seconds": 1412
+      },
+      {
+        "title": "2 - 14",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_23_flaubert_64kb.mp3",
+        "seconds": 1569
+      },
+      {
+        "title": "2 - 15",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_24_flaubert_64kb.mp3",
+        "seconds": 1227
+      },
+      {
+        "title": "3 - 01",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_25_flaubert_64kb.mp3",
+        "seconds": 2008
+      },
+      {
+        "title": "3 - 02",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_26_flaubert_64kb.mp3",
+        "seconds": 1273
+      },
+      {
+        "title": "3 - 03",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_27_flaubert_64kb.mp3",
+        "seconds": 311
+      },
+      {
+        "title": "3 - 04",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_28_flaubert_64kb.mp3",
+        "seconds": 388
+      },
+      {
+        "title": "3 - 05",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_29_flaubert_64kb.mp3",
+        "seconds": 2188
+      },
+      {
+        "title": "3 - 06",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_30_flaubert_64kb.mp3",
+        "seconds": 2178
+      },
+      {
+        "title": "3 - 07",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_31_flaubert_64kb.mp3",
+        "seconds": 1723
+      },
+      {
+        "title": "3 - 08",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_32_flaubert_64kb.mp3",
+        "seconds": 2271
+      },
+      {
+        "title": "3 - 09",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_33_flaubert_64kb.mp3",
+        "seconds": 1025
+      },
+      {
+        "title": "3 - 10",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_34_flaubert_64kb.mp3",
+        "seconds": 786
+      },
+      {
+        "title": "3 - 11",
+        "url": "https://archive.org/download/madame_bovary_neb_librivox/madamebovary_35_flaubert_64kb.mp3",
+        "seconds": 1247
+      }
+    ]
+  },
+  "effi-briest": {
+    "narrator": "Hans Hafen",
+    "page": "https://librivox.org/effi-briest-version-2-by-theodor-fontane/",
+    "tracks": [
+      {
+        "title": "Kapitel 01",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_01_fontane_64kb.mp3",
+        "seconds": 1381
+      },
+      {
+        "title": "Kapitel 02",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_02_fontane_64kb.mp3",
+        "seconds": 604
+      },
+      {
+        "title": "Kapitel 03",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_03_fontane_64kb.mp3",
+        "seconds": 973
+      },
+      {
+        "title": "Kapitel 04",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_04_fontane_64kb.mp3",
+        "seconds": 1907
+      },
+      {
+        "title": "Kapitel 05",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_05_fontane_64kb.mp3",
+        "seconds": 1297
+      },
+      {
+        "title": "Kapitel 06",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_06_fontane_64kb.mp3",
+        "seconds": 1579
+      },
+      {
+        "title": "Kapitel 07",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_07_fontane_64kb.mp3",
+        "seconds": 1252
+      },
+      {
+        "title": "Kapitel 08",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_08_fontane_64kb.mp3",
+        "seconds": 1090
+      },
+      {
+        "title": "Kapitel 09",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_09_fontane_64kb.mp3",
+        "seconds": 2052
+      },
+      {
+        "title": "Kapitel 10",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_10_fontane_64kb.mp3",
+        "seconds": 1803
+      },
+      {
+        "title": "Kapitel 11",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_11_fontane_64kb.mp3",
+        "seconds": 1221
+      },
+      {
+        "title": "Kapitel 12",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_12_fontane_64kb.mp3",
+        "seconds": 1258
+      },
+      {
+        "title": "Kapitel 13",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_13_fontane_64kb.mp3",
+        "seconds": 2230
+      },
+      {
+        "title": "Kapitel 14",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_14_fontane_64kb.mp3",
+        "seconds": 670
+      },
+      {
+        "title": "Kapitel 15",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_15_fontane_64kb.mp3",
+        "seconds": 1445
+      },
+      {
+        "title": "Kapitel 16",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_16_fontane_64kb.mp3",
+        "seconds": 1245
+      },
+      {
+        "title": "Kapitel 17",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_17_fontane_64kb.mp3",
+        "seconds": 1389
+      },
+      {
+        "title": "Kapitel 18",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_18_fontane_64kb.mp3",
+        "seconds": 1635
+      },
+      {
+        "title": "Kapitel 19",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_19_fontane_64kb.mp3",
+        "seconds": 1879
+      },
+      {
+        "title": "Kapitel 20",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_20_fontane_64kb.mp3",
+        "seconds": 1826
+      },
+      {
+        "title": "Kapitel 21",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_21_fontane_64kb.mp3",
+        "seconds": 1898
+      },
+      {
+        "title": "Kapitel 22",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_22_fontane_64kb.mp3",
+        "seconds": 1369
+      },
+      {
+        "title": "Kapitel 23",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_23_fontane_64kb.mp3",
+        "seconds": 1887
+      },
+      {
+        "title": "Kapitel 24",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_24_fontane_64kb.mp3",
+        "seconds": 2906
+      },
+      {
+        "title": "Kapitel 25",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_25_fontane_64kb.mp3",
+        "seconds": 818
+      },
+      {
+        "title": "Kapitel 26",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_26_fontane_64kb.mp3",
+        "seconds": 952
+      },
+      {
+        "title": "Kapitel 27",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_27_fontane_64kb.mp3",
+        "seconds": 1344
+      },
+      {
+        "title": "Kapitel 28",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_28_fontane_64kb.mp3",
+        "seconds": 844
+      },
+      {
+        "title": "Kapitel 29",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_29_fontane_64kb.mp3",
+        "seconds": 1081
+      },
+      {
+        "title": "Kapitel 30",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_30_fontane_64kb.mp3",
+        "seconds": 980
+      },
+      {
+        "title": "Kapitel 31",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_31_fontane_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "Kapitel 32",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_32_fontane_64kb.mp3",
+        "seconds": 2267
+      },
+      {
+        "title": "Kapitel 33",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_33_fontane_64kb.mp3",
+        "seconds": 688
+      },
+      {
+        "title": "Kapitel 34",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_34_fontane_64kb.mp3",
+        "seconds": 1108
+      },
+      {
+        "title": "Kapitel 35",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_35_fontane_64kb.mp3",
+        "seconds": 1398
+      },
+      {
+        "title": "Kapitel 36",
+        "url": "https://archive.org/download/effi_briest_1304_librivox/effibriest_36_fontane_64kb.mp3",
+        "seconds": 1115
+      }
+    ]
+  },
+  "max-und-moritz": {
+    "narrator": "Mikki Starzmann-Kassi",
+    "page": "https://librivox.org/max-und-moritz-by-wilhelm-busch/",
+    "tracks": [
+      {
+        "title": "Max und Moritz 01-07",
+        "url": "https://archive.org/download/max_und_moritz_librivox/max_und_moritz_01-07_busch_64kb.mp3",
+        "seconds": 1224
+      }
+    ]
+  },
+  "marianela": {
+    "narrator": "Maritza Mateo",
+    "page": "https://librivox.org/marianela-by-benito-perez-galdos/",
+    "tracks": [
+      {
+        "title": "Perdido - Cap. I",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_01_perezgaldos_64kb.mp3",
+        "seconds": 843
+      },
+      {
+        "title": "Guiado - Cap. II",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_02_perezgaldos_64kb.mp3",
+        "seconds": 1168
+      },
+      {
+        "title": "Un diálogo que servirá de exposición - Cap. III",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_03_perezgaldos_64kb.mp3",
+        "seconds": 943
+      },
+      {
+        "title": "La familia de piedra - Cap. IV",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_04_perezgaldos_64kb.mp3",
+        "seconds": 1359
+      },
+      {
+        "title": "Trabajo. Paisaje. Figura - Cap. V",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_05_perezgaldos_64kb.mp3",
+        "seconds": 973
+      },
+      {
+        "title": "Tonterías - Cap VI",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_06_perezgaldos_64kb.mp3",
+        "seconds": 854
+      },
+      {
+        "title": "Más tonterías - Cap. VII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_07_perezgaldos_64kb.mp3",
+        "seconds": 988
+      },
+      {
+        "title": "Prosiguen las tonterías - Cap. VIII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_08_perezgaldos_64kb.mp3",
+        "seconds": 1085
+      },
+      {
+        "title": "Los Golfines - Cap. IX",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_09_perezgaldos_64kb.mp3",
+        "seconds": 1483
+      },
+      {
+        "title": "Historia de dos hijos del pueblo - Cap. X",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_10_perezgaldos_64kb.mp3",
+        "seconds": 542
+      },
+      {
+        "title": "El patriarca de Aldeacorba - Cap. XI",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_11_perezgaldos_64kb.mp3",
+        "seconds": 1058
+      },
+      {
+        "title": "El doctor Celipín - Cap. XII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_12_perezgaldos_64kb.mp3",
+        "seconds": 538
+      },
+      {
+        "title": "Entre dos cestas - Cap XIII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_13_perezgaldos_64kb.mp3",
+        "seconds": 597
+      },
+      {
+        "title": "De cómo la Virgen María se apareció a la Nela - Cap. XIV",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_14_perezgaldos_64kb.mp3",
+        "seconds": 1143
+      },
+      {
+        "title": "Los tres - Cap. XV",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_15_perezgaldos_64kb.mp3",
+        "seconds": 717
+      },
+      {
+        "title": "La promesa - Cap. XVI",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_16_perezgaldos_64kb.mp3",
+        "seconds": 570
+      },
+      {
+        "title": "Fugitiva y meditabunda - Cap. XVII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_17_perezgaldos_64kb.mp3",
+        "seconds": 1096
+      },
+      {
+        "title": "La Nela se decide a partir - Cap. XVIII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_18_perezgaldos_64kb.mp3",
+        "seconds": 672
+      },
+      {
+        "title": "Domesticación - Cap. XIX",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_19_perezgaldos_64kb.mp3",
+        "seconds": 1528
+      },
+      {
+        "title": "El nuevo mundo - Cap. XX",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_20_perezgaldos_64kb.mp3",
+        "seconds": 1006
+      },
+      {
+        "title": "Los ojos matan - Cap. XXI",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_21_perezgaldos_64kb.mp3",
+        "seconds": 2075
+      },
+      {
+        "title": "Adios - Cap. XXII",
+        "url": "https://archive.org/download/marianela_2104_librivox/marianela_22_perezgaldos_64kb.mp3",
+        "seconds": 402
+      }
+    ]
+  },
+  "lazarillo-de-tormes": {
+    "narrator": "Tux",
+    "page": "https://librivox.org/lazarillo-de-tormes/",
+    "tracks": [
+      {
+        "title": "Prologo - Tratado primero: Cuenta Lazaro su vida, y cuyo hijo fue.",
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_1_anonimo_64kb.mp3",
+        "seconds": 1775
+      },
+      {
+        "title": "Tratado Segundo: Como Lazaro se asento con un clerigo, y de las cosas que con el paso.",
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_2_anonimo_64kb.mp3",
+        "seconds": 1410
+      },
+      {
+        "title": "Tratado Tercero: Como Lazaro se asento con un escudero, y de lo que le acaecio con el.",
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_3_anonimo_64kb.mp3",
+        "seconds": 2220
+      },
+      {
+        "title": "Tratados Cuarto y Quinto: Como Lazaro se asento con un fraile de la Merced, y de lo que le acaecio con el.  Como Lazaro se asento con un buldero, y de las cosas que con el paso.",
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_4_anonimo_64kb.mp3",
+        "seconds": 1148
+      },
+      {
+        "title": "Tratados Sexto y Septimo: Como Lazaro se asento con un capellan, y lo que con el paso. Como Lazaro se asento con un alguacil, y de lo que le acaecio con el.",
+        "url": "https://archive.org/download/lazarillo_0912_librivox/Lazarillo_de_Tormes_5_anonimo_64kb.mp3",
+        "seconds": 443
+      }
+    ]
   }
 };

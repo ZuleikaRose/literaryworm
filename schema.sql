@@ -8011,3 +8011,13 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Smart lists$lw$, $lw$My Library has Smart lists that fill themselves: Almost there for books you're past halfway through, Waiting for you for books you started and haven't opened in a month, From authors you follow, and Loved it. They change as you read; there's nothing to keep up.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Smart lists$lw$ and c.version = $lw$2026.11$lw$);
+
+-- =============================================================================
+-- 20261101006549_whats_new_languages.sql
+-- =============================================================================
+-- What's new: classics in french, german and spanish (src/data/changelog.json has the same).
+-- Data only; skipped if an editor added it already.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select $lw$2026-11-01$lw$::date, $lw$2026.11$lw$, $lw$feature$lw$, $lw$Classics in French, German and Spanish$lw$, $lw$Six classics to read and hear in their own language: Voltaire's Candide and Flaubert's Madame Bovary in French, Fontane's Effi Briest and Busch's Max und Moritz in German, and Pérez Galdós's Marianela and Lazarillo de Tormes in Spanish. Each has the full text and a LibriVox recording in that language. Find them with Search's language filter.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Classics in French, German and Spanish$lw$ and c.version = $lw$2026.11$lw$);

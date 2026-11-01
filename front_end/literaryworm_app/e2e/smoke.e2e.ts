@@ -49,6 +49,15 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("finds the classics in another language with Search's language filter", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/search?q=candide&lang=fr`);
+    await page.getByRole("link", { name: /Candide ou l'optimisme/ }).first().waitFor();
+    await page.goto(`${BASE_URL}/search?q=effi&lang=de`);
+    await page.getByRole("link", { name: /Effi Briest/ }).first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("searches by author, keeping the choice in the address", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/search`);
@@ -144,7 +153,7 @@ describe("a visitor", () => {
       "Fixes",
     ]);
     // The most recent change first (the top of src/data/changelog.json), even when it's minor.
-    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Smart lists");
+    await expect(page.locator(".release-entry").first().textContent()).resolves.toContain("Classics in French, German and Spanish");
     const all = await page.locator(".release-entry").count();
     await page.getByText("Major", { exact: true }).first().click();
     const majors = await page.locator(".release-entry").count();
