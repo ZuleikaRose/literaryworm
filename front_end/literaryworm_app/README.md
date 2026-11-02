@@ -235,3 +235,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Discussion questions for book clubs (`discussion` function, `chapter_discussions`, `lib/discussion.ts`, `lib/discussionApi.ts`, `DiscussionQuestions`, `data/demoDiscussion.ts`; migrations 6631–6633) |
 | — | Voice control in car mode (`VoiceControl`, `lib/voiceCommands.ts`; policies 6634, What's new 6635) |
 | — | Club polls (`club_polls`, `club_poll_votes`, `vote_club_poll()`, `close_club_poll()`, `lib/clubPolls.ts`, `lib/useClubPolls.ts`, `ClubPolls`; migrations 6637–6642) |
+| — | Stronger high contrast (`tokens.css` high-contrast rules, `lib/contrast.ts` and its test, forced-colours rules in `base.css` and `shell.css`; migrations 6643–6644) |

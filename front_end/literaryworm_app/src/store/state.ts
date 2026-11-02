@@ -1,3 +1,4 @@
+import { prefersMoreContrast } from "../lib/contrast";
 import { getBook } from "../data/books";
 import { DEMO_UPLOAD_READING, demoUploads } from "../data/demoUploads";
 import { seedLogs } from "../data/logs";
@@ -69,6 +70,9 @@ export interface Household {
 
 /** The most profiles any plan allows (Premium); the database caps it too. */
 export const MAX_PROFILES = 12;
+
+/** The accessibility settings a visit starts with: the defaults, with High contrast on when the device asks for more contrast. */
+export const startingA11y = (): A11ySettings => ({ ...defaultA11y, highContrast: prefersMoreContrast() });
 
 export const defaultA11y: A11ySettings = {
   textScale: 1,
@@ -320,7 +324,7 @@ export const initialState: AppState = {
   lastProfileId: null,
   profileData: {},
   logs: seedLogs,
-  a11y: defaultA11y,
+  a11y: startingA11y(),
   households: { [DEMO_EMAIL]: demoHousehold() },
 };
 

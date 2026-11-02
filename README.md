@@ -476,5 +476,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Discussion questions for book clubs: five to eight AI questions about a chapter the reader has reached, from the book up to that chapter only, kept for every club (the `discussion` function, `chapter_discussions`; migrations 6631–6633) | Done |
 | —    | Voice control in car mode: off until turned on, the browser's speech recognition hears Play, Pause, Back, Forward, the chapters and Exit car mode; not on Kids profiles, nothing kept; policies and Help say who hears the words (migrations 6634–6635) | Done |
 | —    | Book club polls on what to read next: the owner offers 2–5 books, members vote and see the votes, the winner starts the next club in one step; RLS and security checks (migrations 6637–6642), and the service role's grants made explicit (6636) | Done |
+| —    | Stronger high contrast: AAA text on black or white, stronger edges, on when the device asks for more contrast, Windows contrast themes supported; contrast tested from `tokens.css` (migrations 6643–6644) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

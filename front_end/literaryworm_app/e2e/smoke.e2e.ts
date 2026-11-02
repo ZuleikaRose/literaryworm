@@ -1456,6 +1456,22 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("starts with high contrast on when the device asks for more contrast, and can turn it off", async () => {
+    const { page, errors } = await newPage();
+    await page.emulateMedia({ contrast: "more" });
+    await signInDemo(page);
+    const root = () => page.evaluate(() => document.documentElement.hasAttribute("data-high-contrast"));
+    await expect(root()).resolves.toBe(true);
+    // Black, not the usual near-black.
+    await expect(page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--bg").trim())).resolves.toBe("#000000");
+    await page.getByRole("button", { name: /Accessibility/ }).click();
+    const toggle = page.getByRole("switch", { name: /High contrast/ });
+    await expect(toggle.isChecked()).resolves.toBe(true);
+    await toggle.click({ force: true });
+    await expect(root()).resolves.toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("lets club members vote on what to read next, and the owner close a poll and start a club with the winner", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

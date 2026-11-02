@@ -25,7 +25,7 @@ export const plans: Plan[] = [
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, and read offline",
       "Import your reading from Goodreads or StoryGraph, and export it back in either's format",
-      "Accessibility menu, OpenDyslexic, a reading ruler and line focus, and read-along transcripts",
+      "Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts",
       "Share a clip of any LibriVox recording as a link",
     ],
   },

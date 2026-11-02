@@ -2,7 +2,7 @@ import { useId } from "react";
 import { TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
 import { usePopover } from "../lib/usePopover";
 import { useStore } from "../store/context";
-import { defaultA11y } from "../store/state";
+import { startingA11y } from "../store/state";
 import type { A11ySettings } from "../types";
 import { Icon } from "./Icon";
 
@@ -14,7 +14,7 @@ const textSizes = [
 
 const toggles: { key: "readableFont" | "highContrast" | "underlineLinks" | "reduceMotion"; label: string; hint: string }[] = [
   { key: "readableFont", label: "Dyslexia-friendly font", hint: "Switches the interface to Lexend" },
-  { key: "highContrast", label: "High contrast", hint: "Brighter text and stronger edges" },
+  { key: "highContrast", label: "High contrast", hint: "Black or white backgrounds, bolder text and edges; on when your device asks for more contrast" },
   { key: "underlineLinks", label: "Highlight links", hint: "Underlines every link" },
   { key: "reduceMotion", label: "Stop animations", hint: "Turns off movement and the carousel" },
 ];
@@ -141,7 +141,7 @@ export function AccessibilityMenu() {
             </div>
           </fieldset>
 
-          <button type="button" className="text-button" onClick={() => set(defaultA11y)}>
+          <button type="button" className="text-button" onClick={() => set(startingA11y())}>
             Reset to defaults
           </button>
         </div>

@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-02",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Stronger high contrast",
+    "body": "High contrast in the accessibility menu now turns the app black or white, with every text colour at the WCAG AAA level, stronger edges on buttons and fields, and underlined links. It's on from the start when your device asks for more contrast, and Windows contrast themes keep every button, switch and progress bar visible.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Vote on your book club's next read",
     "body": "A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote, seeing everyone's votes and changing theirs until the poll closes. The book with the most votes wins, and Start a club with it begins a club for it in one step. New polls show in the bell.",

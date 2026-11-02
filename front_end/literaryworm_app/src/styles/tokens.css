@@ -162,19 +162,60 @@
 }
 
 :root[data-high-contrast] {
-  --muted: #d0d3d4;
-  --faint: #bfc3c5;
-  --line: #5a5f62;
-  --line-strong: #7a8084;
+  /* High contrast (the accessibility menu; on at the start when the device asks for more
+     contrast): black surfaces, white text, every text colour at least 7:1 (WCAG AAA) and edges
+     at least 3:1, checked by src/lib/contrast.test.ts. */
+  --bg: #000000;
+  --bg-deep: #000000;
+  --surface: #000000;
+  --surface-raised: #0d0d0d;
+  --surface-high: #1c1c1c;
+  --field: #000000;
+  --line: #8f9599;
+  --line-strong: #d0d4d6;
+  --ink: #ffffff;
+  --cream: #ffffff;
   --ink-soft: #ffffff;
+  --muted: #e6e8e9;
+  --faint: #d9dcdd;
+  --rust: #ff9b73;
+  --rust-bright: #ff9b73;
+  --rust-hover: #ffb595;
+  --rust-deep: #6e3620;
+  --rust-wash: #2e1810;
+  --rust-ink: #ffc6ad;
+  --on-accent: #000000;
+  --star: #ffb870;
+  --danger: #ff9d94;
+  --danger-wash: #2e1210;
+  --success: #9fe0ae;
 }
 
 :root[data-theme="light"][data-high-contrast] {
-  --muted: #2b2e31;
-  --faint: #33363a;
-  --line: #8d877c;
-  --line-strong: #5f5a52;
+  --bg: #ffffff;
+  --bg-deep: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-high: #ececec;
+  --field: #ffffff;
+  --line: #6b665e;
+  --line-strong: #2e2a25;
+  --ink: #000000;
+  --cream: #000000;
   --ink-soft: #000000;
+  --muted: #1c1e20;
+  --faint: #26292c;
+  --rust: #8a3519;
+  --rust-bright: #8a3519;
+  --rust-hover: #6f2a13;
+  --rust-deep: #f6dccf;
+  --rust-wash: #f8e6dc;
+  --rust-ink: #6f2a13;
+  --on-accent: #ffffff;
+  --star: #7a4310;
+  --danger: #8c1d12;
+  --danger-wash: #fbe3df;
+  --success: #1a5a2c;
 }
 
 :root[data-readable-font] {

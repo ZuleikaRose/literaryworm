@@ -54,7 +54,8 @@ a {
   text-decoration: none;
 }
 
-:root[data-underline-links] a:not(.primary-button, .secondary-button, .signup-button, .login-button, .book-card, .brand) {
+:root[data-underline-links] a:not(.primary-button, .secondary-button, .signup-button, .login-button, .book-card, .brand),
+:root[data-high-contrast] a:not(.primary-button, .secondary-button, .ghost-button, .signup-button, .login-button, .book-card, .brand, .bell-item, .menu-item) {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -410,4 +411,111 @@ textarea.field-input {
 .switch:checked::after {
   background: var(--on-accent);
   transform: translateX(16px);
+}
+
+/* High contrast: buttons with no fill get an edge, text buttons an underline, fields a strong
+   border, so every control can be told apart from the page (colours in tokens.css). */
+:root[data-high-contrast] .ghost-button,
+:root[data-high-contrast] .icon-button {
+  border: 1px solid var(--line-strong);
+}
+
+:root[data-high-contrast] .text-button {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:root[data-high-contrast] .field-input {
+  border-color: var(--line-strong);
+}
+
+:root[data-high-contrast] .switch {
+  box-shadow: inset 0 0 0 2px var(--line-strong);
+}
+
+/* Windows contrast themes (forced colours): the system picks every colour, and drops shadows
+   and fills, so controls keep a visible edge, chosen and pressed states keep an outline, and the
+   switches are drawn in system colours. */
+@media (forced-colors: active) {
+  .primary-button,
+  .secondary-button,
+  .ghost-button,
+  .danger-button,
+  .icon-button,
+  .car-button,
+  .bell-new {
+    border: 1px solid ButtonText;
+  }
+
+  [aria-pressed="true"],
+  [aria-current="page"],
+  [aria-selected="true"],
+  .is-on {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  :focus-visible {
+    outline: 3px solid Highlight;
+  }
+
+  .switch {
+    forced-color-adjust: none;
+    border: 2px solid ButtonText;
+    background: Canvas;
+    box-shadow: none;
+  }
+
+  .switch::after {
+    top: 1px;
+    left: 1px;
+    background: ButtonText;
+  }
+
+  .switch:checked {
+    background: Highlight;
+  }
+
+  .switch:checked::after {
+    background: HighlightText;
+  }
+
+  /* Progress bars are drawn with fills, which forced colours drop: an edge and a highlight fill. */
+  .card-progress,
+  .club-place-bar,
+  .listen-along-bar,
+  .badge-progress,
+  .goal-bar {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  .card-progress > span,
+  .club-place-bar span,
+  .listen-along-bar span,
+  .stats-bar {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+
+  .mini-progress {
+    forced-color-adjust: none;
+    background: linear-gradient(to right, Highlight var(--fill), CanvasText var(--fill));
+  }
+
+  .goal-bar::-webkit-progress-bar,
+  .badge-progress::-webkit-progress-bar {
+    background: Canvas;
+  }
+
+  .goal-bar::-webkit-progress-value,
+  .badge-progress::-webkit-progress-value {
+    background: Highlight;
+  }
+
+  .goal-bar::-moz-progress-bar,
+  .badge-progress::-moz-progress-bar {
+    background: Highlight;
+  }
 }
