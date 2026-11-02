@@ -126,8 +126,8 @@ How the app uses Auth: `signUp` sends `display_name`, `date_of_birth`, `terms_ac
 
 ```bash
 supabase link --project-ref <ref>
-supabase db push                      # applies migrations/
-supabase functions deploy books manage-profile checkout manage-account stripe-webhook release-emails club-invite author-news dictionary summaries ask characters whats-new unsubscribe --project-ref <ref>
+supabase db push --remote --yes       # applies migrations/ (CLI v3: --remote targets the linked project)
+supabase functions deploy books manage-profile checkout manage-account stripe-webhook release-emails club-invite author-news dictionary summaries ask characters whats-new unsubscribe --remote=<ref> --yes
 ```
 
 ## Tests
@@ -140,7 +140,7 @@ npx -y deno@2 test --allow-env supabase/functions/
 psql -v ON_ERROR_STOP=1 "$SCRATCH_DATABASE_URL" -f supabase/tests/security_test.sql   # ends with "ALL SECURITY CHECKS PASSED"
 ```
 
-**On a Supabase branch** (no Docker or psql needed): create a branch of the project, let it apply the migrations, apply any newer ones (`supabase db query --linked --project-ref <branch ref> -f <file>`), then run
+**On a Supabase branch** (no Docker or psql needed): create a branch of the project, let it apply the migrations, apply any newer ones (`supabase db query --remote=<ref> --yes -f <file>` in CLI v3; earlier versions used `supabase db query --linked --project-ref <branch ref> -f <file>`), then run
 
 ```bash
 supabase/tests/run-on-branch.sh <branch ref>   # ends with "ALL SECURITY CHECKS PASSED on <ref>"

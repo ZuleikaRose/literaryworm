@@ -37,7 +37,7 @@ At **/maintenance** (developers and admins; Account → Team access → *Mainten
 
 ## 5. Production database and functions
 
-Apply the same migrations to **production**, one at a time and in the same order, once a person has approved it. Deploy any changed Edge Functions (`supabase functions deploy <name>`); redeploy every function that imports a changed file in `supabase/functions/_shared`. Apply migrations before promoting code that reads new tables or columns: if the code goes first, members see errors until the migration is applied.
+Apply the same migrations to **production**, one at a time and in the same order, once a person has approved it. Deploy any changed Edge Functions (`supabase functions deploy <name> --remote=<ref> --yes` with Supabase CLI v3, which needs `--yes` for every change to a hosted project); redeploy every function that imports a changed file in `supabase/functions/_shared`. Apply migrations before promoting code that reads new tables or columns: if the code goes first, members see errors until the migration is applied.
 
 ## 6. Promote dev to main
 

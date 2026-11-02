@@ -23,7 +23,8 @@ cd "$(dirname "$0")/../.."
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
-query() { supabase db query --linked --project-ref "$1" -f "$2"; }
+# Supabase CLI v3: --remote=<ref> picks the project; changes to a hosted one need --yes.
+query() { supabase db query --remote="$1" --yes -f "$2"; }
 
 echo "1. service_role table rights"
 cat > "$WORK/grants.sql" <<'SQL'
@@ -51,7 +52,8 @@ from (
     and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
 ) f;
 SQL
-supabase db query --linked --project-ref "$PRODUCTION" --output-format json -f "$WORK/acl.sql" > "$WORK/acl.json"
+# Production is only read, so it needs no confirmation.
+supabase db query --remote="$PRODUCTION" --read-only --output-format json -f "$WORK/acl.sql" > "$WORK/acl.json"
 # Keep only the functions the branch has (a newer migration may have renamed or dropped one).
 jq -r '(if type == "array" then .[0].sql else (.rows // .result // .)[0].sql end) // empty' "$WORK/acl.json" > "$WORK/acl_all.sql"
 [ -s "$WORK/acl_all.sql" ] || { echo "Couldn't read production's function rights:"; head -c 400 "$WORK/acl.json"; exit 1; }

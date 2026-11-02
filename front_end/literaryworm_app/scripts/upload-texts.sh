@@ -33,8 +33,8 @@ for id in "$@"; do
 done
 
 # Nothing to remove the first time: a missing file isn't an error worth stopping for.
-supabase --workdir ../.. --experimental storage rm "${paths[@]}" --linked --yes > /dev/null 2>&1 || true
+supabase --workdir ../.. --experimental storage rm "${paths[@]}" --remote --yes > /dev/null 2>&1 || true
 # A day in caches: a rebuilt text keeps its name, so it shows within a day.
-supabase --workdir ../.. --experimental storage cp -r "$work/book-texts" ss:/// --linked \
+supabase --workdir ../.. --experimental storage cp -r "$work/book-texts" ss:/// --remote --yes \
   --content-type application/json --cache-control "public, max-age=86400" --jobs 4 > /dev/null
 echo "uploaded $# texts"

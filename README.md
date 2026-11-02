@@ -309,8 +309,8 @@ Project `literaryworm` (ref `ldzdmrdvmacpudsbngvd`, us-east-2). All migrations a
 
 ```bash
 supabase link --project-ref <ref>
-supabase db push
-supabase functions deploy books manage-profile checkout manage-account stripe-webhook dictionary summaries ask --project-ref <ref>
+supabase db push --remote --yes
+supabase functions deploy books manage-profile checkout manage-account stripe-webhook dictionary summaries ask --remote=<ref> --yes
 ```
 
 Then set `GOOGLE_BOOKS_API_KEY`, `ALLOWED_ORIGINS`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` as function secrets, and Mailgun's SMTP details, the email templates and the redirect URLs in Authentication (see [supabase/README.md](supabase/README.md)). `ALLOWED_ORIGINS` must include the Vercel URL as well as `http://localhost:5173`; without it the deployed site's book rows say "You seem to be offline".
