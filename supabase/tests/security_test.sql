@@ -39,7 +39,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000b', 'b@test', '{"display_name":"Ben","date_of_birth":"1985-06-30","terms_accepted":true}');
 select pg_temp.check((select count(*) from public.profiles) = 2 and (select count(*) from public.account_private) = 2, 'valid sign-ups create profiles and account_private rows');
 
--- Server-side setup: Ann has Standard (5 profiles), Ben has no plan.
+-- Server-side setup: Ann has Standard (3 profiles), Ben has no plan.
 insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at)
 values ('00000000-0000-0000-0000-00000000000a', 'standard', 5, now());
 
@@ -138,24 +138,23 @@ reset role;
 set role service_role;
 select pg_temp.check(public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Mia', 2::smallint, 60::smallint, '2026-10') is not null, 'Kids profile with consent via the server');
 select pg_temp.check((select count(*) from public.parental_consents) = 1, 'consent recorded');
-insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fourth'), ('00000000-0000-0000-0000-00000000000a', 'Fifth');
-select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Sixth', 0::smallint, null, '2026-10')$$, 'a 6th profile on Standard');
-delete from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and name in ('Fourth', 'Fifth');
+-- Standard has room for 3 profiles (migration 6585): Ann, her second and Mia fill it.
+select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Fourth', 0::smallint, null, '2026-10')$$, 'a 4th profile on Standard');
 
 -- Profiles set aside don't count towards the plan; bringing one back needs room; a smaller plan
 -- coming (a yearly membership moving to Basic at renewal) sets the newest aside, keeping the oldest.
-insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fourth'), ('00000000-0000-0000-0000-00000000000a', 'Fifth');
-update public.reader_profiles set set_aside_at = now() where account_id = '00000000-0000-0000-0000-00000000000a' and name = 'Fifth';
-insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Sixth');
-select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 5, 'a profile set aside leaves room for another');
-select pg_temp.expect_error($$update public.reader_profiles set set_aside_at = null where name = 'Fifth'$$, 'bringing a profile back with no room');
+-- Standard's room is 3 (migration 6585): Ann, Sam and Mia fill it.
+update public.reader_profiles set set_aside_at = now() where account_id = '00000000-0000-0000-0000-00000000000a' and name = 'Mia';
+insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fourth');
+select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 3, 'a profile set aside leaves room for another');
+select pg_temp.expect_error($$update public.reader_profiles set set_aside_at = null where name = 'Mia'$$, 'bringing a profile back with no room');
 update public.subscriptions set billing_interval = 'year', switch_to_monthly = 'basic' where user_id = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 1
   and (select set_aside_at is null from public.reader_profiles where name = 'Ann'), 'a move to Basic at renewal sets the newest profiles aside, never the oldest');
-select pg_temp.expect_error($$insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Seventh')$$, 'adding a profile past the plan it moves to at renewal');
+select pg_temp.expect_error($$insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fifth')$$, 'adding a profile past the plan it moves to at renewal');
 update public.subscriptions set billing_interval = 'month', switch_to_monthly = null where user_id = '00000000-0000-0000-0000-00000000000a';
-select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 5, 'room again brings profiles back');
-delete from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and name in ('Fourth', 'Fifth', 'Sixth');
+select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 3, 'room again brings profiles back');
+delete from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and name = 'Fourth';
 update public.reader_profiles set set_aside_at = null where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is not null;
 select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 3, 'back to Ann, Sam and Mia, all in use');
 
@@ -328,11 +327,22 @@ insert into public.club_meetings (club_id, starts_at, title, time_zone, created_
 select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() - interval '1 hour', 'Too late', '00000000-0000-0000-0000-00000000000a')$$, 'a meeting in the past');
 select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() + interval '400 days', 'Too far', '00000000-0000-0000-0000-00000000000a')$$, 'a meeting more than a year ahead');
 select pg_temp.expect_error($$update public.club_meetings set reminded_at = now()$$, 'marking a meeting reminded from the browser');
+-- Club polls: the owner offers 2 to 5 different books, one open poll at a time.
+insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', array['dracula', 'frankenstein', 'emma']);
+select pg_temp.check((select question = 'What should we read next?' and closed_at is null from public.club_polls), 'the owner starts a poll');
+select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', array['dune', 'emma'])$$, 'a second open poll in one club');
+select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', array['dune'])$$, 'a poll with one book');
+select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', array['dune', 'dune'])$$, 'a poll offering the same book twice');
+select pg_temp.expect_error($$update public.club_polls set winner = 'emma', closed_at = now() where club_id = '00000000-0000-0000-0000-0000000000c1'$$, 'closing a poll by changing the table');
+select public.vote_club_poll((select id from public.club_polls where club_id = '00000000-0000-0000-0000-0000000000c1' and closed_at is null), 1::smallint);
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select count(*) from public.book_clubs) + (select count(*) from public.club_posts) = 0, 'Ben cannot see a club he isn''t in');
 select pg_temp.check((select count(*) from public.club_meetings) = 0, 'Ben cannot see the meetings of a club he isn''t in');
+select pg_temp.check((select count(*) from public.club_polls) + (select count(*) from public.club_poll_votes) = 0, 'Ben cannot see the polls or votes of a club he isn''t in');
+select pg_temp.expect_error($$select public.vote_club_poll((select id from public.club_polls limit 1), 0::smallint)$$, 'voting in a club you aren''t in');
+select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', array['dune', 'emma'])$$, 'starting a poll in a club you aren''t in');
 select pg_temp.expect_error($$insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', 0, 'Hi')$$, 'posting in a club you aren''t in');
 select pg_temp.check(public.join_club('WrongCode1') is null, 'a wrong code joins nothing');
 select pg_temp.check(public.join_club('AnnClub123') = '00000000-0000-0000-0000-0000000000c1', 'the right code joins the club');
@@ -348,6 +358,38 @@ select public.answer_club_meeting((select id from public.club_meetings limit 1),
 select pg_temp.check((select count(*) from public.club_meeting_rsvps) = 1 and (select answer from public.club_meeting_rsvps) = 'no', 'answering again changes the answer');
 select pg_temp.expect_error($$select public.answer_club_meeting((select id from public.club_meetings limit 1), 'perhaps')$$, 'an answer that isn''t yes, maybe or no');
 select pg_temp.expect_error($$insert into public.club_meeting_rsvps (meeting_id, user_id, answer) select id, '00000000-0000-0000-0000-00000000000a', 'no' from public.club_meetings$$, 'answering for someone else through the table');
+-- Club polls, as a member who isn't the owner: they see the poll and votes, and vote through vote_club_poll() only.
+select pg_temp.check((select count(*) from public.club_polls) = 1 and (select count(*) from public.club_poll_votes) = 1, 'a member sees the club''s poll and its votes');
+select public.vote_club_poll((select id from public.club_polls where closed_at is null), 0::smallint);
+select public.vote_club_poll((select id from public.club_polls where closed_at is null), 1::smallint);
+select pg_temp.check((select choice from public.club_poll_votes where user_id = '00000000-0000-0000-0000-00000000000b') = 1 and (select count(*) from public.club_poll_votes) = 2, 'a member votes, and voting again changes the vote');
+select pg_temp.expect_error($$select public.vote_club_poll((select id from public.club_polls limit 1), 3::smallint)$$, 'voting for a book the poll doesn''t offer');
+select pg_temp.expect_error($$insert into public.club_poll_votes (poll_id, user_id, choice) select id, '00000000-0000-0000-0000-00000000000a', 2 from public.club_polls$$, 'voting for someone else through the table');
+select pg_temp.expect_error($$select public.close_club_poll((select id from public.club_polls limit 1))$$, 'a member who isn''t the owner closing the poll');
+select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', array['dune', 'emma'])$$, 'a member who isn''t the owner starting a poll');
+delete from public.club_polls where club_id = '00000000-0000-0000-0000-0000000000c1';
+select pg_temp.check((select count(*) from public.club_polls) = 1, 'a member who isn''t the owner cannot delete the poll');
+select public.vote_club_poll((select id from public.club_polls where closed_at is null), null);
+select pg_temp.check((select count(*) from public.club_poll_votes where user_id = '00000000-0000-0000-0000-00000000000b') = 0, 'a member takes their vote back');
+select public.vote_club_poll((select id from public.club_polls where closed_at is null), 1::smallint);
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check(public.close_club_poll((select id from public.club_polls where closed_at is null)) = 'frankenstein', 'the owner closes the poll and the most-voted book wins');
+select pg_temp.check((select winner = 'frankenstein' and closed_at is not null from public.club_polls), 'the closed poll keeps its winner');
+select pg_temp.expect_error($$select public.vote_club_poll((select id from public.club_polls limit 1), 0::smallint)$$, 'voting in a closed poll');
+select pg_temp.expect_error($$select public.close_club_poll((select id from public.club_polls limit 1))$$, 'closing a poll twice');
+insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', array['dune', 'emma']);
+select pg_temp.check(public.close_club_poll((select id from public.club_polls where closed_at is null)) = 'dune', 'with no votes, the first book offered wins');
+delete from public.club_polls where winner = 'dune';
+select pg_temp.check((select count(*) from public.club_polls) = 1, 'the owner deletes a poll');
+reset role;
+set role anon;
+select pg_temp.expect_error('select * from public.club_polls', 'anon reading club polls');
+select pg_temp.expect_error($$select public.vote_club_poll(gen_random_uuid(), 0::smallint)$$, 'anon voting');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.expect_error('select * from public.claim_club_meeting_reminders(10)', 'claiming meeting reminders from the browser');
 select pg_temp.expect_error('select public.club_meetings_secret()', 'reading the meeting reminders cron key from the browser');
 -- Club notifications (Phase 19): unread posts since joining, read marks, own settings only.

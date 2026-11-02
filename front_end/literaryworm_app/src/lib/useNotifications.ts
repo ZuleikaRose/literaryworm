@@ -7,6 +7,9 @@ import { onClubPost } from "./clubEvents";
 import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notifications";
 import { renewalReminder, yearlyOffer } from "./billing";
 import { type MeetingAlert, meetingAlerts } from "./clubCalendar";
+import { type PollAlert, pollAlerts } from "./clubPolls";
+import * as clubsApi from "./clubsApi";
+import { demoPollsFor } from "./useClubPolls";
 import { goalAlerts } from "./goals";
 import { badgeAlerts, badges } from "./achievements";
 import { today } from "./reading";
@@ -32,6 +35,8 @@ export function useNotifications() {
   const [news, setNews] = useState<ClubNews[]>([]);
   // Club meetings starting within a day (clubs with alerts on, unless the reader can't make it).
   const [meetings, setMeetings] = useState<MeetingAlert[]>([]);
+  // Open club polls this member hasn't voted in (clubs with alerts on; not ones they started).
+  const [polls, setPolls] = useState<PollAlert[]>([]);
   // The time goals and the renewal are judged at: when the bell mounts, and again when the tab comes back.
   const [now, setNow] = useState(() => Date.now());
 
@@ -48,10 +53,15 @@ export function useNotifications() {
       const [list, memberships, soon, me] = await Promise.all([clubs.list(), clubs.memberships(), clubs.soonMeetings(), clubs.myId()]);
       setNews(clubNews(list, memberships, latest.current, uploadsRef.current));
       setMeetings(meetingAlerts(soon, (clubId) => memberships[clubId]?.notify === false, me));
+      const open = remote
+        ? await clubsApi.loadOpenPolls()
+        : list.flatMap((c) => demoPollsFor(c.id).filter((p) => p.closedAt === null).map((poll) => ({ poll, clubName: c.name })));
+      const names = new Map(open.map((o) => [o.poll.clubId, o.clubName]));
+      setPolls(pollAlerts(open.map((o) => o.poll), (clubId) => memberships[clubId]?.notify === false, me, (clubId) => names.get(clubId) ?? "Your book club"));
     } catch (err) {
       console.error("notifications: couldn't check book clubs:", err instanceof Error ? err.message : err);
     }
-  }, [withClubs, clubs]);
+  }, [withClubs, clubs, remote]);
 
   useEffect(() => {
     void refresh();
@@ -80,6 +90,7 @@ export function useNotifications() {
   // Kids profiles have no clubs; a profile switched to one keeps nothing from the last.
   const shownNews = withClubs ? news : [];
   const shownMeetings = withClubs ? meetings : [];
+  const shownPolls = withClubs ? polls : [];
   // Most of the month's listening used (Basic and Standard); a grown-up's concern, so not on Kids profiles.
   const planId = state.account?.planId ?? null;
   const listening = useMemo(
@@ -113,6 +124,7 @@ export function useNotifications() {
     ...(renewal ? [renewal] : []),
     ...(offer ? [offer] : []),
     ...shownMeetings,
+    ...shownPolls,
     ...requests,
   ]);
 
@@ -127,5 +139,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, listening, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, polls: shownPolls, listening, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
 }

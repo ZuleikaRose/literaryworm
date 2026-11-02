@@ -1456,6 +1456,43 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lets club members vote on what to read next, and the owner close a poll and start a club with the winner", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    // Jordan's open poll in the demo club is in the bell until the reader votes.
+    await page.getByRole("button", { name: /^Notifications/ }).click();
+    await page.getByRole("link", { name: /Sunday Classics asks: What should we read after Pride and Prejudice\?/ }).click();
+    await page.waitForURL(/\/clubs\/demo-club/);
+    const card = page.getByRole("region", { name: "What to read next" });
+    await card.getByText("1 vote: Jordan").waitFor();
+    await card.getByRole("button", { name: "Vote for Jane Eyre" }).click();
+    await card.getByText("2 votes: Priya, You").waitFor();
+    await expect(card.getByRole("button", { name: /for Jane Eyre/ }).getAttribute("aria-pressed")).resolves.toBe("true");
+    // Only the owner closes it; the demo club is Jordan's.
+    await expect(card.getByRole("button", { name: "Close the poll" }).count()).resolves.toBe(0);
+    // In a club of the reader's own: start a poll (two books at least), vote, close it, start the next club.
+    await goInApp(page, "/library?view=clubs");
+    await page.getByRole("button", { name: /Start a club/ }).first().click();
+    await page.getByLabel("Club name").fill("Poll test");
+    await page.getByRole("button", { name: "Start club", exact: true }).click();
+    await page.waitForURL(/\/clubs\/(?!demo-club)/);
+    const mine = page.getByRole("region", { name: "What to read next" });
+    await mine.getByRole("button", { name: "Start a poll" }).click();
+    await mine.getByRole("button", { name: "Start the poll" }).click();
+    await mine.getByText("Add at least 2 books.").waitFor();
+    for (const title of ["Emma", "Persuasion"]) {
+      await mine.getByLabel("Find a book to offer").fill(title);
+      await mine.getByRole("list", { name: "Books found" }).getByRole("button", { name: `Add ${title}` }).click();
+    }
+    await mine.getByRole("button", { name: "Start the poll" }).click();
+    await mine.getByRole("button", { name: "Vote for Persuasion" }).click();
+    await mine.getByRole("button", { name: "Close the poll" }).click();
+    await mine.getByText(/Persuasion won/).waitFor();
+    await mine.getByRole("link", { name: "Start a club with it" }).click();
+    await page.waitForURL(/view=clubs&start=persuasion/);
+    expect(errors()).toEqual([]);
+  });
+
   it("shows a club's shared highlights, holding back ones past the reader's chapter", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

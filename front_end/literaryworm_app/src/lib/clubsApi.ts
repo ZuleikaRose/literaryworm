@@ -3,6 +3,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { type ClubMeeting, MEETING_ALERT_MS, type RsvpAnswer, type UpcomingMeeting } from "./clubCalendar";
 import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "./clubs";
 import type { ClubHighlight } from "./clubHighlights";
+import type { ClubPoll } from "./clubPolls";
 import type { HighlightColor } from "../types";
 import { supabase } from "./supabase";
 
@@ -407,4 +408,88 @@ export async function shareHighlight(clubId: string, highlightId: string, shareN
 export async function unshareHighlight(id: string): Promise<void> {
   const { error } = await client().from("club_highlights").delete().eq("id", id);
   if (error) throw new AccountError("We couldn't stop sharing that highlight. Try again.");
+}
+
+// Club polls (club_polls, club_poll_votes, migration 6637): members read their clubs' polls and
+// votes; the owner starts and deletes them; votes go through vote_club_poll() and closing through
+// close_club_poll().
+
+const POLL_COLUMNS = "id, club_id, created_by, question, options, created_at, closed_at, winner, votes:club_poll_votes(user_id, choice)";
+
+interface PollRow {
+  id: string;
+  club_id: string;
+  created_by: string;
+  question: string;
+  options: string[];
+  created_at: string;
+  closed_at: string | null;
+  winner: string | null;
+  votes: { user_id: string; choice: number }[] | null;
+}
+
+const toPoll = (row: PollRow): ClubPoll => ({
+  id: row.id,
+  clubId: row.club_id,
+  createdBy: row.created_by,
+  question: row.question,
+  options: row.options,
+  createdAt: Date.parse(row.created_at),
+  closedAt: row.closed_at ? Date.parse(row.closed_at) : null,
+  winner: row.winner,
+  votes: Object.fromEntries((row.votes ?? []).map((v) => [v.user_id, v.choice])),
+});
+
+/** A club's polls, newest first (members only, by RLS). */
+export async function loadClubPolls(clubId: string): Promise<ClubPoll[]> {
+  const { data, error } = await client().from("club_polls").select(POLL_COLUMNS).eq("club_id", clubId).order("created_at", { ascending: false }).limit(20);
+  if (error) throw new AccountError("We couldn't load the club's polls. Try again.");
+  return (data as unknown as PollRow[]).map(toPoll);
+}
+
+/** Open polls in every club the member is in, with their clubs' names, for the bell. */
+export async function loadOpenPolls(): Promise<{ poll: ClubPoll; clubName: string }[]> {
+  const { data, error } = await client().from("club_polls").select(`${POLL_COLUMNS}, club:book_clubs(name)`).is("closed_at", null).limit(50);
+  if (error) throw new AccountError("We couldn't check your club polls.");
+  return (data as unknown as (PollRow & { club: { name: string } | null })[]).map((row) => ({ poll: toPoll(row), clubName: row.club?.name ?? "Your book club" }));
+}
+
+/** Starts a poll in a club the member owns. */
+export async function startClubPoll(clubId: string, question: string, options: string[]): Promise<ClubPoll> {
+  const { data, error } = await client()
+    .from("club_polls")
+    .insert({ club_id: clubId, created_by: await signedInUserId(), question: question.trim(), options })
+    .select(POLL_COLUMNS)
+    .single();
+  if (error) {
+    if (error.code === "23505") throw new AccountError("This club already has an open poll. Close it first.");
+    if (error.message.includes("up to 50")) throw new AccountError("A club can have up to 50 polls. Delete an old one first.");
+    if (error.message.includes("different books")) throw new AccountError("A poll offers 2 to 5 different books.");
+    throw new AccountError("We couldn't start the poll. Try again.");
+  }
+  return toPoll(data as unknown as PollRow);
+}
+
+/** Votes for one of the poll's books (null takes the vote back); through vote_club_poll(). */
+export async function voteClubPoll(pollId: string, choice: number | null): Promise<void> {
+  const { error } = await client().rpc("vote_club_poll", { p_poll: pollId, p_choice: choice });
+  if (error) {
+    if (error.message.includes("has closed")) throw new AccountError("This poll has closed.");
+    throw new AccountError("We couldn't save your vote. Try again.");
+  }
+}
+
+/** Closes the poll (the owner only) and returns the winning book's id; through close_club_poll(). */
+export async function closeClubPoll(pollId: string): Promise<string> {
+  const { data, error } = await client().rpc("close_club_poll", { p_poll: pollId });
+  if (error) {
+    if (error.message.includes("already closed")) throw new AccountError("This poll has already closed.");
+    throw new AccountError("We couldn't close the poll. Try again.");
+  }
+  return data as string;
+}
+
+export async function deleteClubPoll(pollId: string): Promise<void> {
+  const { error } = await client().from("club_polls").delete().eq("id", pollId);
+  if (error) throw new AccountError("We couldn't delete the poll. Try again.");
 }

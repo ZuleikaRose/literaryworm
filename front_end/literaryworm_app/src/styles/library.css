@@ -2007,6 +2007,62 @@ body:has(.mini-player) .listen-along-bar {
 
 /* ---------- Shared highlights in a club ---------- */
 
+/* Club polls (components/ClubPolls.tsx), in the club page's side column. */
+.club-polls h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.club-poll-options,
+.club-poll-found,
+.club-poll-chosen {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.club-poll-options li,
+.club-poll-found li,
+.club-poll-chosen li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.club-poll-options li.is-mine {
+  border-color: var(--rust-bright);
+}
+
+.club-poll-options .goal-hint {
+  margin: 2px 0 0;
+}
+
+.club-poll-options .small-button,
+.club-poll-found .small-button,
+.club-poll-chosen .text-button {
+  flex: none;
+  min-height: 44px;
+}
+
+.club-poll-chosen {
+  padding-left: 0;
+}
+
+.club-poll-result p {
+  margin: 0 0 8px;
+}
+
+.club-poll-form {
+  display: grid;
+  gap: 10px;
+}
+
 /* Discussion questions under a club's discussion (components/DiscussionQuestions.tsx). */
 .discussion-questions {
   display: grid;

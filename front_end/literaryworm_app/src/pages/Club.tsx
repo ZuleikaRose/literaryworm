@@ -26,6 +26,7 @@ import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
 import { ClubHighlights } from "../components/ClubHighlights";
 import { ClubPlaces } from "../components/ClubPlaces";
+import { ClubPolls } from "../components/ClubPolls";
 import { DiscussionQuestions } from "../components/DiscussionQuestions";
 import { DEMO_DISCUSSION } from "../data/demoDiscussion";
 import { canDiscuss } from "../lib/discussion";
@@ -719,6 +720,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
 
         <aside className="club-side">
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
+          <ClubPolls clubId={club.id} isOwner={isOwner} me={me} members={members} ageRating={profile?.ageRating ?? "all"} />
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <ClubPlaces clubId={club.id} members={members} me={me} />
           {(!club.buddy || buddyOpen(club)) && (

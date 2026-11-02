@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6635, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6642, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -675,6 +675,30 @@
           note: "A reading plan: the day to finish a book by, and where the reader was when it started (for ahead or behind); the app works out pages and minutes a day. Up to 20 per profile, today to two years ahead (trigger). FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; index on user_id. RLS: owner only.",
         },
         {
+          id: "club_polls", color: colors.household, x: 1260, y: 8640, sub: "what to read next",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "club_id", "uuid"],
+            ["fk", "created_by", "uuid"],
+            ["", "question", "text 1–120"],
+            ["", "options", "text[] 2–5 book ids"],
+            ["", "created_at", "timestamptz"],
+            ["", "closed_at", "timestamptz", true],
+            ["", "winner", "text (book id)", true],
+          ],
+          note: "A club's poll on what to read next: the owner offers 2 to 5 distinct catalog titles (a trigger checks; one open poll a club, up to 50). FK club_id → book_clubs, created_by → profiles, on delete cascade; indexes on both. RLS: members read; the owner inserts and deletes; closed only through close_club_poll(), which sets the winner.",
+        },
+        {
+          id: "club_poll_votes", color: colors.household, x: 1260, y: 9180, sub: "one per member",
+          cols: [
+            ["pk fk", "poll_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["", "choice", "smallint 0–4"],
+            ["", "voted_at", "timestamptz"],
+          ],
+          note: "Each member's vote in a poll. FK poll_id → club_polls, user_id → profiles, on delete cascade; index on user_id. RLS: the club's members read every vote; written only through vote_club_poll(), which checks membership, an open poll and the choice.",
+        },
+        {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -1084,6 +1108,8 @@
         ["playback_handoffs", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["finished_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["uploaded_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
+        ["club_polls", "club_id", "book_clubs", "id", "N : 1"],
+        ["club_poll_votes", "poll_id", "club_polls", "id", "N : 1"],
         ["club_members", "own_copy", "uploaded_books", "id", "N : 1 (optional)"],
         ["club_listening", "club_id", "book_clubs", "id", "1 : 1"],
         ["club_listening", "host_id", "club_members", "user_id", "N : 1 (pair)"],

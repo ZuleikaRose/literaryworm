@@ -25,7 +25,7 @@ function meetingWhen(iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, listening, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, polls, listening, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
@@ -41,7 +41,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && requests.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && requests.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
   const offerPlan = offer ? planById.get(offer.planId) : undefined;
@@ -63,7 +63,7 @@ export function NotificationBell() {
           {empty ? (
             <p className="bell-empty">
               Nothing new. Books you set <strong>Remind me</strong> on show up here when they come out, and so do new books from
-              authors you follow{withClubs ? ", new posts and meetings in your book clubs" : ""} and news about your goals and streak.
+              authors you follow{withClubs ? ", new posts, meetings and polls in your book clubs" : ""} and news about your goals and streak.
             </p>
           ) : (
             <>
@@ -201,7 +201,7 @@ export function NotificationBell() {
                   </ul>
                 </>
               )}
-              {(news.length > 0 || meetings.length > 0) && (
+              {(news.length > 0 || meetings.length > 0 || polls.length > 0) && (
                 <>
                   <p className="popover-label">Book clubs</p>
                   <ul className="bell-list" role="list">
@@ -215,6 +215,20 @@ export function NotificationBell() {
                               {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
                             </strong>
                             <small>{m.title}</small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                    {polls.map(({ poll: p, clubName, at }) => (
+                      <li key={p.id}>
+                        <Link className="bell-item" to={`/clubs/${p.clubId}`} onClick={() => close(false)}>
+                          <Icon name="list" size={18} />
+                          <span>
+                            <strong>
+                              {clubName} asks: {p.question}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                            </strong>
+                            <small>Vote on what to read next</small>
                           </span>
                         </Link>
                       </li>

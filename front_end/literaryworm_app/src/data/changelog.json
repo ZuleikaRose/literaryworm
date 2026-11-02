@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-02",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Vote on your book club's next read",
+    "body": "A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote, seeing everyone's votes and changing theirs until the poll closes. The book with the most votes wins, and Start a club with it begins a club for it in one step. New polls show in the bell.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Voice control in car mode",
     "body": "In car mode, turn on Voice control and say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (“back 30 seconds”). It's off until you turn it on, listens only while car mode is open and on screen, and your browser's own speech service hears the words; LiteraryWorm keeps nothing. Not on Kids profiles.",
     "major": true

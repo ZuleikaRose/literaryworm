@@ -32,7 +32,7 @@ import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
 import { activeLibrary, activeReading } from "../store/reducer";
 import { useProfileData, useStore } from "../store/context";
-import type { Profile } from "../types";
+import type { Book, Profile } from "../types";
 import { Cover } from "./Cover";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
@@ -46,7 +46,9 @@ export function ClubsView({ profile }: { profile: Profile }) {
   const clubs = useClubs();
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
-  const [starting, setStarting] = useState(false);
+  // ?start=<catalog id> (a club poll's winner) opens the start form with that book chosen.
+  const [startWith] = useState(() => getBook(new URLSearchParams(window.location.search).get("start") ?? undefined));
+  const [starting, setStarting] = useState(Boolean(startWith));
   const [memberships, setMemberships] = useState<Record<string, ClubMembership>>({});
   const progress = activeReading(useStore().state).progress;
   const { uploads } = useProfileData();
@@ -141,7 +143,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
         <section className="goal-card" aria-labelledby="start-club-title">
           <h2 id="start-club-title">Start a club</h2>
           {starting ? (
-            <StartClubForm profile={profile} onCancel={() => setStarting(false)} />
+            <StartClubForm profile={profile} initialBook={startWith} onCancel={() => setStarting(false)} />
           ) : (
             <>
               <p className="goal-hint">Pick a book and a finish date; LiteraryWorm paces the chapters and gives you a code to share.</p>
@@ -162,7 +164,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
 
 type BookSource = "catalog" | "uploads";
 
-function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () => void }) {
+function StartClubForm({ profile, initialBook, onCancel }: { profile: Profile; initialBook?: Book; onCancel: () => void }) {
   const clubs = useClubs();
   const navigate = useNavigate();
   const { uploads } = useProfileData();
@@ -172,7 +174,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const now = today();
   const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, profile.ageRating)), [profile.ageRating]);
   const [source, setSource] = useState<BookSource>("catalog");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialBook?.title ?? "");
   const [sort, setSort] = useState<ClubBookSort>("title");
   const [series, setSeries] = useState("");
   // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, with their series.
@@ -209,7 +211,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const isbnNote = isbnNoteFor(lookup, choices.length, source);
   const sortNote = clubSortNote(sort, source);
   const [name, setName] = useState("");
-  const [picked, setPicked] = useState("");
+  const [picked, setPicked] = useState(initialBook?.id ?? "");
   const bookId = choices.some((b) => b.id === picked) ? picked : (choices[0]?.id ?? "");
   const [finishesOn, setFinishesOn] = useState(addDays(now, 28));
   const [error, setError] = useState<string | null>(null);
