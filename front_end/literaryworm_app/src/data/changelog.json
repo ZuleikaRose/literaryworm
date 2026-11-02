@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "update",
+    "title": "A clearer Cookie Policy and Privacy Policy",
+    "body": "The Cookie Policy starts with In short and a list of everything your browser keeps for LiteraryWorm, who sets it and how long it stays, and says what loads from other sites, such as Google Fonts and Stripe's checkout page. The Privacy Policy says what we don't do, how we keep your information safe, and how long we keep each kind of it.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Clearer policies and Help",
     "body": "Your Privacy Choices, the Return Policy, the Terms of Service, the End User License Agreement, the Acceptable Use Policy, the Disclaimer, Copyright/DMCA, the Accessibility Policy and the Children's Privacy Notice are easier to read, most with an In short summary at the top, and up to date with content notes, Translate, audio clips and buddy reads. Help is grouped by topic: reading and listening, your library, profiles and family, book clubs, your plan, and logging in.",
     "major": false
