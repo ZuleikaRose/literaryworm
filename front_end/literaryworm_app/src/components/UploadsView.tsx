@@ -30,7 +30,9 @@ export function UploadsView({ profile }: { profile: Profile }) {
   const [params, setParams] = useSearchParams();
   const sort = readUploadSort(params.get("sort"));
   const sortId = useId();
-  const sorted = sortUploads(uploads, sort);
+  const progress = activeReading(state).progress;
+  // "Recently changed" is when the book was last read, else when it was uploaded.
+  const sorted = sortUploads(uploads, sort, (u) => progress[u.id]?.updatedAt ?? u.createdAt);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -39,7 +41,6 @@ export function UploadsView({ profile }: { profile: Profile }) {
   const button = useRef<HTMLButtonElement>(null);
   const hintId = useId();
   const errorId = useId();
-  const progress = activeReading(state).progress;
   const remote = Boolean(state.account?.userId);
   const searchId = useId();
   const [searchBy, setSearchBy] = useState<UploadSearchBy>("title");
@@ -252,6 +253,29 @@ export function UploadsView({ profile }: { profile: Profile }) {
                     : `Shows your uploads whose ${searchBy === "author" ? "author" : "title"} has every word you type.`}
               </p>
             )}
+            {uploads.length > 1 && (
+              <div className="upload-sort library-sort">
+                <label htmlFor={sortId}>Sort by</label>
+                <select
+                  id={sortId}
+                  className="field-input"
+                  value={sort}
+                  onChange={(e) => {
+                    // From the address as it is now, so a quick second change keeps the first.
+                    const next = new URLSearchParams(window.location.search);
+                    if (e.target.value === "added") next.delete("sort");
+                    else next.set("sort", e.target.value);
+                    setParams(next, { replace: true });
+                  }}
+                >
+                  {UPLOAD_SORTS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <p className="visually-hidden" role="status">
               {keywordSearch
                 ? keywordSearch.status === "searching"
@@ -281,30 +305,6 @@ export function UploadsView({ profile }: { profile: Profile }) {
           )}
           {!keywordSearch && !byIsbn && draft && shown.length === 0 && (
             <p className="upload-search-summary">No uploads match. Check the spelling, or search by keywords.</p>
-          )}
-          {uploads.length > 1 && (
-            <div className="library-controls">
-              <div className="library-sort">
-                <label htmlFor={sortId}>Sort by</label>
-                <select
-                  id={sortId}
-                  className="field-input"
-                  value={sort}
-                  onChange={(e) => {
-                    const next = new URLSearchParams(params);
-                    if (e.target.value === "uploaded") next.delete("sort");
-                    else next.set("sort", e.target.value);
-                    setParams(next, { replace: true });
-                  }}
-                >
-                  {UPLOAD_SORTS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
           )}
           <ul className="library-list" role="list">
             {listed.map((u) => {

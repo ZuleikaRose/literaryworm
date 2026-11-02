@@ -2,7 +2,7 @@
  * A tiny EPUB for the smoke tests: a ZIP with its files stored (not compressed), which is
  * all `lib/epub.ts` needs. The CRCs are left at 0; the app's reader doesn't check them.
  */
-export function tinyEpub(title: string, author: string, chapters: { heading: string; paragraphs: string[] }[]): Buffer {
+export function tinyEpub(title: string, author: string, chapters: { heading: string; paragraphs: string[] }[], date?: string): Buffer {
   const files: [string, string][] = [
     ["mimetype", "application/epub+zip"],
     [
@@ -11,7 +11,7 @@ export function tinyEpub(title: string, author: string, chapters: { heading: str
     ],
     [
       "OEBPS/content.opf",
-      `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${title}</dc:title><dc:creator>${author}</dc:creator></metadata><manifest>${chapters
+      `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${title}</dc:title><dc:creator>${author}</dc:creator>${date ? `<dc:date>${date}</dc:date>` : ""}</metadata><manifest>${chapters
         .map((_, i) => `<item id="c${i}" href="c${i}.xhtml" media-type="application/xhtml+xml"/>`)
         .join("")}</manifest><spine>${chapters.map((_, i) => `<itemref idref="c${i}"/>`).join("")}</spine></package>`,
     ],

@@ -8,6 +8,8 @@
 export interface ParsedBook {
   title: string;
   author: string;
+  /** The year in the EPUB's publication date, when it gives one. */
+  year: number | null;
   chapters: { title: string; text: string }[];
 }
 
@@ -159,8 +161,27 @@ async function parse(file: File): Promise<ParsedBook> {
   return {
     title: (meta("title") || file.name.replace(/\.epub$/i, "")).slice(0, 200),
     author: meta("creator").slice(0, 200),
+    year: epubYear(opf),
     chapters,
   };
 }
 
 export const countWords = words;
+
+/**
+ * The year the EPUB says it was published: a dc:date marked as the publication (EPUB 2's
+ * opf:event), else the first dc:date (EPUB 3 keeps changes in dcterms:modified instead).
+ */
+export function epubYear(opf: Document): number | null {
+  const dates = [...opf.getElementsByTagName("dc:date")];
+  const event = (d: Element) => (d.getAttribute("opf:event") ?? d.getAttribute("event") ?? "").toLowerCase();
+  const chosen = dates.find((d) => /publication/.test(event(d))) ?? dates.find((d) => !/modification/.test(event(d)));
+  return yearIn(chosen?.textContent);
+}
+
+/** The four-digit year a date starts with ("2019-05-02", "2019"), within what the database keeps. */
+export function yearIn(date: string | null | undefined): number | null {
+  const match = date?.trim().match(/^(\d{4})/);
+  const year = match ? Number(match[1]) : NaN;
+  return year >= 1 && year <= 9999 ? year : null;
+}

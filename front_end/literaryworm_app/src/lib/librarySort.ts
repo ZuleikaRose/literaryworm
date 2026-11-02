@@ -16,14 +16,12 @@ export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
   { value: "published-oldest", label: "Published, oldest" },
 ];
 
-/** Uploaded books: when they were uploaded, or by title. */
-export type UploadSort = "uploaded" | "uploaded-oldest" | "title" | "title-desc";
+/** Uploaded books sort the same ten ways as the rest of My Library, plus by series ("added" when it's missing). */
+export type UploadSort = LibrarySort | "series";
 
 export const UPLOAD_SORTS: { value: UploadSort; label: string }[] = [
-  { value: "uploaded", label: "Date uploaded, newest" },
-  { value: "uploaded-oldest", label: "Date uploaded, oldest" },
-  { value: "title", label: "Title A–Z" },
-  { value: "title-desc", label: "Title Z–A" },
+  ...LIBRARY_SORTS,
+  { value: "series", label: "Series, in reading order" },
 ];
 
 /** The book list when starting a book club (LiteraryWorm titles or the profile's uploads). */
@@ -42,8 +40,12 @@ export function readLibrarySort(raw: string | null): LibrarySort {
   return LIBRARY_SORTS.some((s) => s.value === raw) ? (raw as LibrarySort) : "added";
 }
 
+/** Addresses saved before uploads had all ten sorts said "uploaded" and "uploaded-oldest". */
 export function readUploadSort(raw: string | null): UploadSort {
-  return UPLOAD_SORTS.some((s) => s.value === raw) ? (raw as UploadSort) : "uploaded";
+  if (raw === "uploaded") return "added";
+  if (raw === "uploaded-oldest") return "added-oldest";
+  if (raw === "series") return "series";
+  return readLibrarySort(raw);
 }
 
 /** What sorting needs to know about a book that the entry may not carry itself. */
@@ -129,18 +131,68 @@ export function sortLibrary(entries: LibraryEntry[], sort: LibrarySort, details:
   return keyed.map((k) => k.entry);
 }
 
-export function sortUploads<T extends { title: string; createdAt: number }>(books: T[], sort: UploadSort): T[] {
+/** What sorting uploads needs: the EPUB's details and when it was uploaded. */
+export interface SortableUpload {
+  title: string;
+  author: string;
+  createdAt: number;
+  /** The year in the EPUB's date, when it gave one (uploads from before migration 6626 don't know). */
+  publishedYear?: number | null;
+}
+
+/**
+ * Orders uploads like My Library: "added" is when it was uploaded and "changed" is `changedAt`
+ * (when it was last read, from its reading place), else when it was uploaded. Unknown published
+ * years go last either way round. *Series* groups each series its title names (A–Z, see
+ * `seriesInTitle()`) in reading order, then the books in none by title. Ties go by title, then
+ * the newest upload, so the order never jumps about.
+ */
+export function sortUploads<T extends SortableUpload>(books: T[], sort: UploadSort, changedAt: (book: T) => number = (b) => b.createdAt): T[] {
+  const title = (a: T, b: T) => collator.compare(sortTitle(a.title), sortTitle(b.title));
   return [...books].sort((a, b) => {
+    let order = 0;
     switch (sort) {
-      case "uploaded":
-        return b.createdAt - a.createdAt;
-      case "uploaded-oldest":
-        return a.createdAt - b.createdAt;
+      case "added":
+        order = b.createdAt - a.createdAt;
+        break;
+      case "added-oldest":
+        order = a.createdAt - b.createdAt;
+        break;
+      case "updated":
+        order = changedAt(b) - changedAt(a);
+        break;
       case "title":
-        return collator.compare(sortTitle(a.title), sortTitle(b.title)) || b.createdAt - a.createdAt;
+        order = title(a, b);
+        break;
       case "title-desc":
-        return collator.compare(sortTitle(b.title), sortTitle(a.title)) || b.createdAt - a.createdAt;
+        order = title(b, a);
+        break;
+      case "numbers":
+        order = Number(startsWithNumber(b.title)) - Number(startsWithNumber(a.title));
+        break;
+      case "author":
+        order = collator.compare(authorKey(a.author), authorKey(b.author));
+        break;
+      case "author-desc":
+        order = collator.compare(authorKey(b.author), authorKey(a.author));
+        break;
+      case "published":
+      case "published-oldest": {
+        const ya = a.publishedYear ?? null;
+        const yb = b.publishedYear ?? null;
+        if (ya === null || yb === null) order = ya === yb ? 0 : ya === null ? 1 : -1;
+        else order = sort === "published" ? yb - ya : ya - yb;
+        break;
+      }
+      case "series": {
+        const sa = seriesInTitle(a.title);
+        const sb = seriesInTitle(b.title);
+        if (!sa || !sb) order = sa === sb ? 0 : sa ? -1 : 1;
+        else order = collator.compare(sa.name, sb.name) || sa.order - sb.order;
+        break;
+      }
     }
+    return order || title(a, b) || b.createdAt - a.createdAt;
   });
 }
 

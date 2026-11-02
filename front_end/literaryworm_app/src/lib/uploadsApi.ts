@@ -25,6 +25,7 @@ type Row = {
   words: number;
   storage_path: string;
   created_at: string;
+  published_year: number | null;
 };
 
 const toUpload = (row: Row): UploadedBook => ({
@@ -36,13 +37,14 @@ const toUpload = (row: Row): UploadedBook => ({
   words: row.words,
   path: row.storage_path,
   createdAt: Date.parse(row.created_at),
+  publishedYear: row.published_year,
 });
 
 /** Every profile's uploads, newest first. If they can't load, the account still opens without them. */
 export async function loadUploads(): Promise<{ profileId: string; book: UploadedBook }[]> {
   const { data, error } = await client()
     .from("uploaded_books")
-    .select("id, profile_id, title, author, chapter_titles, chapter_words, words, storage_path, created_at")
+    .select("id, profile_id, title, author, chapter_titles, chapter_words, words, storage_path, created_at, published_year")
     .order("created_at", { ascending: false });
   if (error) {
     console.error("uploads: couldn't load", error.message);
@@ -74,8 +76,9 @@ export async function saveUpload(profileId: string, book: Omit<UploadedBook, "pa
       chapter_words: book.chapterWords,
       words: book.words,
       storage_path: path,
+      published_year: book.publishedYear ?? null,
     })
-    .select("id, profile_id, title, author, chapter_titles, chapter_words, words, storage_path, created_at")
+    .select("id, profile_id, title, author, chapter_titles, chapter_words, words, storage_path, created_at, published_year")
     .single();
   if (error) {
     // Don't leave a file nobody can see.

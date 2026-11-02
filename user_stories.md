@@ -419,3 +419,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Keyword searches to try | after 22 | Done | *Search by keywords* links on Discover and Search's start; Plans and home page name upload search; Cookie Policy true to the uploads cache (6624). |
 | Visit analytics | after 22 | Done | Ahrefs Web Analytics with consent, no cookies, path-only page views, off for Kids profiles and pages with codes; policies and FAQ updated (6625). |
 | Structured data on every public page | after 22 | Done | WebPage types, breadcrumbs and main entities on Home, Plans, Search, Sign up, What's new, policies, authors, narrators, readers, series (BookSeries) and book pages. |
+| Sort my uploads | after 22 | Done | Sort by under the Uploads search box: recently added, oldest added, recently changed (last read), title A–Z/Z–A, numbers first, author A–Z/Z–A, published newest/oldest (the EPUB's year, 6626) and series in reading order |

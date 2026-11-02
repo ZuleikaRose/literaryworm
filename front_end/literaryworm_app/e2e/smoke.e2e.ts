@@ -747,6 +747,57 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("sorts uploads under the search box, by published year and by series", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=uploads");
+    const words = "The crew checked the hull and the engines before the long burn towards the belt. ".repeat(8);
+    const chapters = [{ heading: "One", paragraphs: [words] }];
+    await page.locator('input[type="file"]').setInputFiles([
+      { name: "second.epub", mimeType: "application/epub+zip", buffer: tinyEpub("Calibans War (The Drift, #2)", "Ada Byron", chapters, "1990-04-01") },
+      { name: "first.epub", mimeType: "application/epub+zip", buffer: tinyEpub("Leviathan Rising (The Drift, #1)", "Zoe Adams", chapters, "2015") },
+    ]);
+    await page.getByRole("link", { name: "Leviathan Rising (The Drift, #1)", exact: true }).waitFor();
+    const sortBy = page.locator(".upload-search").getByLabel("Sort by");
+    expect(await sortBy.locator("option").allTextContents()).toEqual([
+      "Recently added",
+      "Oldest added",
+      "Recently changed",
+      "Title A–Z",
+      "Title Z–A",
+      "Numbers first (0–9)",
+      "Author A–Z",
+      "Author Z–A",
+      "Published, newest",
+      "Published, oldest",
+      "Series, in reading order",
+    ]);
+    const titles = () => page.locator(".library-row-title").allInnerTexts();
+    const settles = async (want: string[]) => {
+      for (let i = 0; i < 40; i++) {
+        if ((await titles()).join("|") === want.join("|")) return;
+        await page.waitForTimeout(50);
+      }
+      throw new Error(`Not sorted: ${(await titles()).join(", ")}`);
+    };
+    const first = "Leviathan Rising (The Drift, #1)";
+    const second = "Calibans War (The Drift, #2)";
+    await sortBy.selectOption("published");
+    await page.waitForURL(/sort=published/);
+    await settles([first, second]);
+    await sortBy.selectOption("published-oldest");
+    await settles([second, first]);
+    await sortBy.selectOption("series");
+    await page.waitForURL(/sort=series/);
+    await settles([first, second]);
+    await sortBy.selectOption("author");
+    await settles([first, second]);
+    await sortBy.selectOption("added");
+    await page.waitForURL((url) => !url.search.includes("sort="));
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("imports a Goodreads export without counting old reads towards this year", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

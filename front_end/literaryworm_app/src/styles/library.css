@@ -1790,6 +1790,18 @@ body:has(.mini-player) .listen-along-bar {
   min-height: 44px;
 }
 
+/* Sort by sits under the search box, on the right; full width on phones (.library-sort). */
+.upload-sort {
+  justify-self: end;
+  margin-top: 6px;
+}
+
+@media (max-width: 560px) {
+  .upload-sort {
+    justify-self: stretch;
+  }
+}
+
 .upload-search-summary {
   margin: 0 0 16px;
   color: var(--ink-soft);

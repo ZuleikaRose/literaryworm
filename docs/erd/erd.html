@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6625, with the legal page rows added 29 Oct; no table or column changes since 6617)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6626, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -892,6 +892,7 @@
             ["", "words", "integer"],
             ["", "storage_path", "text (unique)"],
             ["", "created_at", "timestamptz"],
+            ["", "published_year?", "smallint 1–9999"],
           ],
           note: "The text is JSON in the private user-books bucket, at <user_id>/<id>.json (Storage RLS: own folder only, 15 MB). The id is a valid volume id, so the library, progress and highlights work. FK (profile_id, user_id) → reader_profiles, on delete cascade; indexed, and user_id. Not on Kids profiles; up to 50. RLS: owner only.",
         },
@@ -918,7 +919,7 @@
           note: "Roles: admin, developer, editor, billing, customer_service, blog, sales (admins can do everything). Granted and removed only by admins through grant_staff_role() / revoke_staff_role(); the last admin stays. Granting a first role (any) starts a complimentary membership; removing the last ends it. RLS: members see their own roles; admins see the team through staff_members(). Index: granted_by.",
         },
         {
-          id: "staff_invites", color: colors.account, x: 420, y: 3330, sub: "roles waiting for sign-up",
+          id: "staff_invites", color: colors.account, x: 420, y: 3370, sub: "roles waiting for sign-up",
           cols: [
             ["pk", "email", "text (lower case)"],
             ["pk", "role", "staff_role"],

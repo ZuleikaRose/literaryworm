@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-02",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Sort your uploads eleven ways",
+    "body": "My Library → Uploads has Sort by under the search box: Recently added, Oldest added, Recently changed (the last time you read it), Title A–Z or Z–A, Numbers first, Author A–Z or Z–A, Published newest or oldest, and Series in reading order. The published year comes from the EPUB itself, so books uploaded before today sort last by it, and the series is the one a title names, such as \"(The Expanse, #1)\".",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
     "kind": "update",
     "title": "Counting visits with Ahrefs Web Analytics",
     "body": "If you allow analytics in the consent banner, Ahrefs Web Analytics counts the pages people visit, so we can see what's used. It sets no cookies, page addresses go without search words or codes, and it never runs for Kids profiles or on pages with codes in their links. The Privacy Policy, Cookie Policy, Children's Privacy Notice and Your Privacy Choices say so.",

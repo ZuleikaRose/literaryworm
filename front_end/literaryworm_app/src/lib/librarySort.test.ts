@@ -90,22 +90,59 @@ describe("helpers", () => {
     expect(readLibrarySort("nonsense")).toBe("added");
     expect(readLibrarySort("author")).toBe("author");
     expect(readLibrarySort("author-desc")).toBe("author-desc");
-    expect(readUploadSort(null)).toBe("uploaded");
+    expect(readUploadSort(null)).toBe("added");
     expect(readUploadSort("title-desc")).toBe("title-desc");
+    expect(readUploadSort("series")).toBe("series");
+    expect(readLibrarySort("series")).toBe("added");
+    // Addresses saved before uploads had every sort still work.
+    expect(readUploadSort("uploaded")).toBe("added");
+    expect(readUploadSort("uploaded-oldest")).toBe("added-oldest");
   });
 });
 
 describe("sortUploads", () => {
   const uploads = [
-    { id: "a", title: "The Zebra", createdAt: 1 },
-    { id: "b", title: "Apples", createdAt: 3 },
-    { id: "c", title: "mango", createdAt: 2 },
+    { id: "a", title: "The Zebra", author: "Ada Byron", createdAt: 1, publishedYear: 1990 },
+    { id: "b", title: "Apples", author: "Zoe Adams", createdAt: 3, publishedYear: null },
+    { id: "c", title: "mango", author: "Mary Shelley", createdAt: 2, publishedYear: 2015 },
+    { id: "d", title: "1984", author: "George Orwell", createdAt: 0 },
   ];
-  it("sorts by upload date and by title", () => {
-    expect(sortUploads(uploads, "uploaded").map((u) => u.id)).toEqual(["b", "c", "a"]);
-    expect(sortUploads(uploads, "uploaded-oldest").map((u) => u.id)).toEqual(["a", "c", "b"]);
-    expect(sortUploads(uploads, "title").map((u) => u.id)).toEqual(["b", "c", "a"]);
-    expect(sortUploads(uploads, "title-desc").map((u) => u.id)).toEqual(["a", "c", "b"]);
-    expect(uploads.map((u) => u.id)).toEqual(["a", "b", "c"]);
+  const ids = (sort: Parameters<typeof sortUploads>[1], changed?: (u: (typeof uploads)[number]) => number) =>
+    sortUploads(uploads, sort, changed).map((u) => u.id);
+
+  it("sorts by when each was uploaded, and by title", () => {
+    expect(ids("added")).toEqual(["b", "c", "a", "d"]);
+    expect(ids("added-oldest")).toEqual(["d", "a", "c", "b"]);
+    expect(ids("title")).toEqual(["d", "b", "c", "a"]);
+    expect(ids("title-desc")).toEqual(["a", "c", "b", "d"]);
+    expect(ids("numbers")).toEqual(["d", "b", "c", "a"]);
+    expect(uploads.map((u) => u.id)).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("sorts by the last time each was read, else when it was uploaded", () => {
+    const read: Record<string, number> = { a: 10, d: 5 };
+    expect(ids("updated", (u) => read[u.id] ?? u.createdAt)).toEqual(["a", "d", "b", "c"]);
+    expect(ids("updated")).toEqual(["b", "c", "a", "d"]);
+  });
+
+  it("sorts by the author's surname", () => {
+    expect(ids("author")).toEqual(["b", "a", "d", "c"]);
+    expect(ids("author-desc")).toEqual(["c", "d", "a", "b"]);
+  });
+
+  it("sorts by the year published, unknown years last either way", () => {
+    expect(ids("published")).toEqual(["c", "a", "d", "b"]);
+    expect(ids("published-oldest")).toEqual(["a", "c", "d", "b"]);
+  });
+
+  it("groups each series its title names in reading order, then the rest by title", () => {
+    const books = [
+      { id: "x", title: "Caliban's War (The Expanse, #2)", author: "", createdAt: 1 },
+      { id: "y", title: "Dune (Dune Chronicles #1)", author: "", createdAt: 2 },
+      { id: "z", title: "Leviathan Wakes (The Expanse, #1)", author: "", createdAt: 3 },
+      { id: "w", title: "Emma", author: "", createdAt: 4 },
+      { id: "v", title: "Abaddon's Gate (The Expanse, #3)", author: "", createdAt: 5 },
+    ];
+    expect(sortUploads(books, "series").map((b) => b.id)).toEqual(["y", "z", "x", "v", "w"]);
   });
 });

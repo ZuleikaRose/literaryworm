@@ -330,6 +330,8 @@ export interface UploadedBook {
   /** The text's place in the user-books bucket; null for in-memory accounts (kept in this tab). */
   path: string | null;
   createdAt: number;
+  /** The year in the EPUB's date (dc:date), for sorting by when it was published; null or missing when unknown. */
+  publishedYear?: number | null;
 }
 
 /** An author or narrator a profile follows, by the name shown on their books. */
