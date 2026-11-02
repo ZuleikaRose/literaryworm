@@ -14,14 +14,6 @@ export interface ClubBookChoice {
   keywords?: string;
 }
 
-/** How the club form's book search reads what's typed: title, author or ISBN as before, or keywords. */
-export type ClubBookSearchBy = "title-author-isbn" | "keywords";
-
-export const CLUB_BOOK_SEARCH_BY: { value: ClubBookSearchBy; label: string }[] = [
-  { value: "title-author-isbn", label: "Title, author or ISBN" },
-  { value: "keywords", label: "Keywords" },
-];
-
 /** Whether a choice has every keyword, from the start of a word, anywhere in its title, author or keyword text. */
 export function keywordMatch(choice: ClubBookChoice, q: string): boolean {
   return wordsMatch(`${choice.title} ${choice.author} ${choice.keywords ?? ""}`, q);

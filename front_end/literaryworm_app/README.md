@@ -224,4 +224,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Content notes: `lib/contentNotes.ts`, `components/ContentNotes.tsx`, the `content-notes` function; migration 6610 |
 | — | Buddy reads: `components/BuddyReadButton.tsx`, `buddyName()` in `lib/clubs.ts`; migration 6612 |
 | — | Search by keywords: `keywordText()` and `hasAllFilters()` in `lib/search.ts`, the `books` function's `keywords` mode; searching uploads, `lib/uploadSearch.ts`, `lib/useUploadSearch.ts`; migration 6621 (Help) |
-| — | Uploads by ISBN (`useIsbnLookup()`, `isbnMatches()`); club books by keywords (`keywordMatch()`, `CLUB_BOOK_SEARCH_BY` in `lib/clubBookChoices.ts`); migration 6622 (Help) |
+| — | Uploads by ISBN (`useIsbnLookup()`, `isbnMatches()`); club books by title, author, keywords or ISBN in one box (`keywordMatch()` in `lib/clubBookChoices.ts`); migrations 6622 and 6623 (Help) |

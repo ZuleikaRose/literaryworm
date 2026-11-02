@@ -464,6 +464,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Feel-good picks on Discover, moods on Search, new features on Plans and the home page; schema.sql and drawsql.png current to 6617 | Done    |
 | —    | Google Books' third-party cookies from books.google.com named in the Cookie Policy, Privacy Policy, Help, FAQ and Children's Privacy Notice (6618) | Done    |
 | —    | Search by keywords on Search and in the header; search your uploads by title, author or keywords, through their text (6621) | Done    |
-| —    | Search your uploads by ISBN; Search by Keywords when choosing a club's book (6622) | Done    |
+| —    | Search your uploads by ISBN; a club's book found by title, author, keywords or ISBN in one box (6622, 6623) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

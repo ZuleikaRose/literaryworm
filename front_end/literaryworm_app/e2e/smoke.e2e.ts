@@ -381,11 +381,11 @@ describe("the demo household", () => {
     // An ISBN is looked up on Google Books, which needs the servers this test copy doesn't use.
     await form.getByLabel("Find a book").fill("978-0-14-143951-8");
     await form.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).first().waitFor();
-    // Keywords look through descriptions too: Frankenstein's has "arctic ice", its title doesn't.
-    await form.getByLabel("Search by", { exact: true }).selectOption("keywords");
+    // The same box takes keywords, which look through descriptions too: Frankenstein's has "arctic ice", its title doesn't.
+    expect(await form.getByLabel("Find a book").getAttribute("placeholder")).toBe("Title, Author, Keywords or ISBN");
+    expect(await form.getByLabel("Search by", { exact: true }).count()).toBe(0);
     await form.getByLabel("Find a book").fill("arctic ice");
     await expect(form.getByLabel(/^Book/).locator("option").allTextContents()).resolves.toContainEqual(expect.stringContaining("Frankenstein"));
-    await form.getByLabel("Search by", { exact: true }).selectOption("title-author-isbn");
     await form.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel("Club name").fill("Austen fans");
     await page.getByRole("button", { name: "Start club" }).click();

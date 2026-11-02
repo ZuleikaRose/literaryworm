@@ -12,7 +12,6 @@ import {
   clubDate,
   type ClubMembership,
   isInviteCode,
-  matchesBook,
   newInviteCode,
   spoilerFreeUpTo,
   unreadUpTo,
@@ -21,8 +20,6 @@ import {
   arrangeChoices,
   catalogChoice,
   choiceLabel,
-  CLUB_BOOK_SEARCH_BY,
-  type ClubBookSearchBy,
   isbnMatches,
   keywordMatch,
   seriesNames,
@@ -172,8 +169,6 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, profile.ageRating)), [profile.ageRating]);
   const [source, setSource] = useState<BookSource>("catalog");
   const [query, setQuery] = useState("");
-  const [searchBy, setSearchBy] = useState<ClubBookSearchBy>("title-author-isbn");
-  const byKeywords = searchBy === "keywords";
   const [sort, setSort] = useState<ClubBookSort>("title");
   const [series, setSeries] = useState("");
   // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, with their series.
@@ -183,8 +178,8 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const seriesShown = series === "" || series === "none" || seriesList.includes(series) ? series : "";
   // An ISBN in the search box (in LiteraryWorm books or My uploads): Google Books says which book
   // it is, and the books with that title and author are shown.
-  // Keywords never look an ISBN up: they're words to find.
-  const lookup = useIsbnLookup(byKeywords ? "" : query);
+  // One box for a title, author, keywords or ISBN: an ISBN is looked up, anything else is words to find.
+  const lookup = useIsbnLookup(query);
   const isbn = lookup.isbn;
   // Narrowed by the search (or the ISBN's book) and the series, in the chosen order.
   const choices = useMemo(
@@ -194,11 +189,11 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
           ? lookup.editions
             ? isbnMatches(all, lookup.editions)
             : []
-          : all.filter((b) => (byKeywords ? keywordMatch(b, query) : matchesBook(b, query))),
+          : all.filter((b) => keywordMatch(b, query)),
         sort,
         seriesShown,
       ),
-    [all, query, isbn, lookup.editions, sort, seriesShown, byKeywords],
+    [all, query, isbn, lookup.editions, sort, seriesShown],
   );
   const isbnNote = isbnNoteFor(lookup, choices.length, source);
   const [name, setName] = useState("");
@@ -253,37 +248,13 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
           </div>
         </fieldset>
       )}
-      <div className="field">
-        <label className="field-label" htmlFor="club-book-search-by">
-          Search by
-        </label>
-        <select
-          id="club-book-search-by"
-          className="field-input"
-          value={searchBy}
-          onChange={(e) => setSearchBy(e.target.value as ClubBookSearchBy)}
-        >
-          {CLUB_BOOK_SEARCH_BY.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
       <Field
         label={source === "uploads" ? "Find one of your uploads" : "Find a book"}
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={byKeywords ? "Keywords" : "Title, Author or ISBN"}
-        hint={
-          isbnNote ??
-          (byKeywords
-            ? source === "uploads"
-              ? "Finds uploads with every word in the title, author or part names. To search inside their text, use My Library → Uploads."
-              : "Finds books with every word anywhere: the title, author, narrator, description, genres or series."
-            : undefined)
-        }
+        placeholder="Title, Author, Keywords or ISBN"
+        hint={isbnNote ?? undefined}
         autoComplete="off"
       />
       <p className="visually-hidden" role="status">

@@ -415,4 +415,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Structured data per page | after 22 | Done | WebSite and Organization everywhere; Product and FAQPage on Home and Plans; Book on each title's page. |
 | Google Books cookies disclosed | after 22 | Done | Cookie Policy entry for books.google.com; Privacy Policy, Help, FAQ, Children's Privacy Notice and the preview say so (6618). |
 | Search by keywords | after 22 | Done | Keywords on Search and the header (title, author, narrator, description, genres, series; the `books` function's `keywords` mode); My Library → Uploads searches by title, author or keywords, through the books' text on the device (6621). |
-| ISBN for uploads; keywords for club books | after 22 | Done | Uploads → Search by ISBN (Google Books, matched by title and author); a club's *Find a book* and *Find one of your uploads* have Search by Keywords (6622). |
+| ISBN for uploads; keywords for club books | after 22 | Done | Uploads → Search by ISBN (Google Books, matched by title and author); a club's *Find a book* and *Find one of your uploads* take a title, author, keywords or ISBN in one box (6622, 6623). |
