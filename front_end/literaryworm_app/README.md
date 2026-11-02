@@ -231,3 +231,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Uploads sort: `UPLOAD_SORTS` and `sortUploads()` in `lib/librarySort.ts` (eleven, with series), the year from `epubYear()` in `lib/epub.ts`; migration 6626 (`uploaded_books.published_year`, Privacy Policy, What's new) |
 | — | My Library sort by series: `SortDetails.series`, `sortSeries()` in `lib/series.ts`; migration 6627 (What's new) |
 | — | Club book sorts: `CLUB_BOOK_SORTS` = `LIBRARY_SORTS`, `sortClubBooks()`, `catalogChoice()` / `uploadChoice()` dates, `clubSortNote()`; migration 6628 (What's new) |
+| — | Car mode on touch screens: big buttons on several rows (`.car-*` grid areas in `styles/reader.css`: upright, phone on its side, tablet on its side, small phones), the same order as a computer; migrations 6629–6630 (What's new) |
