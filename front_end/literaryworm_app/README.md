@@ -233,3 +233,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Club book sorts: `CLUB_BOOK_SORTS` = `LIBRARY_SORTS`, `sortClubBooks()`, `catalogChoice()` / `uploadChoice()` dates, `clubSortNote()`; migration 6628 (What's new) |
 | — | Car mode on touch screens: big buttons on several rows (`.car-*` grid areas in `styles/reader.css`: upright, phone on its side, tablet on its side, small phones), the same order as a computer; migrations 6629–6630 (What's new) |
 | — | Discussion questions for book clubs (`discussion` function, `chapter_discussions`, `lib/discussion.ts`, `lib/discussionApi.ts`, `DiscussionQuestions`, `data/demoDiscussion.ts`; migrations 6631–6633) |
+| — | Voice control in car mode (`VoiceControl`, `lib/voiceCommands.ts`; policies 6634, What's new 6635) |

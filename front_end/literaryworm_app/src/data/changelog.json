@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-02",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Voice control in car mode",
+    "body": "In car mode, turn on Voice control and say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (“back 30 seconds”). It's off until you turn it on, listens only while car mode is open and on screen, and your browser's own speech service hears the words; LiteraryWorm keeps nothing. Not on Kids profiles.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Discussion questions for book clubs",
     "body": "On a book club's page for a public-domain classic, Discussion questions gives five to eight questions about a chapter you've reached, written by AI from the book up to the end of that chapter only, so nothing later is given away. Choose Start a post with this to begin a post with one. Every club at that chapter gets the same questions.",
     "major": true

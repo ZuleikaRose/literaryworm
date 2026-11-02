@@ -1115,6 +1115,56 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("turns on voice control in car mode after saying who hears it, and follows spoken commands", async () => {
+    const { page, errors } = await newPage(393, 852);
+    // A stand-in for the browser's speech recognition: the test says what it "heard".
+    await page.addInitScript(() => {
+      const w = window as unknown as Record<string, unknown>;
+      class FakeRecognizer {
+        onresult: ((e: unknown) => void) | null = null;
+        constructor() {
+          w.__recognizer = this;
+        }
+        start() {
+          w.__listening = true;
+        }
+        stop() {}
+        abort() {
+          w.__listening = false;
+        }
+      }
+      w.SpeechRecognition = FakeRecognizer;
+      w.webkitSpeechRecognition = FakeRecognizer;
+      w.__say = (transcript: string) =>
+        (w.__recognizer as FakeRecognizer).onresult?.({ resultIndex: 0, results: [Object.assign([{ transcript }], { isFinal: true })] });
+    });
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein?view=car");
+    await page.locator(".car-play").waitFor();
+    const say = (words: string) => page.evaluate((t) => (window as unknown as { __say: (s: string) => void }).__say(t), words);
+    const voice = page.getByRole("button", { name: "Voice control" });
+    await expect(voice.getAttribute("aria-pressed")).resolves.toBe("false");
+    // Nothing listens until the listener agrees, after being told the browser's speech service hears it.
+    await voice.click();
+    const dialog = page.getByRole("dialog", { name: "Turn on voice control?" });
+    await dialog.getByText(/Google's in Chrome and Edge, Apple's in Safari/).waitFor();
+    await expect(page.evaluate(() => (window as unknown as { __listening?: boolean }).__listening ?? false)).resolves.toBe(false);
+    await dialog.getByRole("button", { name: "Turn on", exact: true }).click();
+    await expect(voice.getAttribute("aria-pressed")).resolves.toBe("true");
+    await expect(page.evaluate(() => (window as unknown as { __listening?: boolean }).__listening)).resolves.toBe(true);
+    await say("skip forward 30 seconds");
+    await page.getByRole("status").filter({ hasText: "Heard: Forward 30 seconds." }).waitFor();
+    // Stray talk does nothing; the screen still fits a phone without scrolling.
+    await say("turn left at the lights");
+    await page.getByRole("status").filter({ hasText: "Heard: Forward 30 seconds." }).waitFor();
+    await expect(page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).resolves.toBe(true);
+    // Leaving car mode by voice stops listening.
+    await say("exit car mode");
+    await page.getByRole("link", { name: "Car mode" }).waitFor();
+    await expect(page.evaluate(() => (window as unknown as { __listening?: boolean }).__listening)).resolves.toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("lists badges, words, notes and readers in My Library", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

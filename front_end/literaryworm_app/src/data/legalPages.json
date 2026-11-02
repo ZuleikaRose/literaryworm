@@ -12,6 +12,7 @@
           "Every page works with a keyboard alone, and the player has keyboard shortcuts, listed under its controls. Buttons and links are at least 44 pixels square, focus is always visible, and dialogs keep focus inside them and return it when they close.",
           "Screen readers hear labelled controls, headings that outline each page, and announcements when something changes, such as a saved setting or a new club post. Pictures that carry meaning, like shared quote cards, have text alternatives; decorative covers are hidden from screen readers and their titles are always written nearby.",
           "In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration.",
+          "In car mode, the buttons fill a phone or tablet screen at every size and way up, and voice control (off until you turn it on, not on Kids profiles) lets you play, pause, skip and change chapter by saying so.",
           "Newer features follow the same rules. Mood and pace tags are buttons that say whether they're on, content notes and translations are announced when they arrive, a Kids profile's Time for bed screen works with a keyboard and screen reader, and a shared audio clip has a labelled Play button."
         ]
       },
@@ -66,7 +67,7 @@
         ]
       }
     ],
-    "updated": "2026-10-28"
+    "updated": "2026-11-02"
   },
   {
     "slug": "privacy",
@@ -398,7 +399,8 @@
           "So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive; we don't record or keep them, or who shared them.",
           "Things you share or add: reading logs (public, with your display name), book club posts and whether you're coming to a club's meetings (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text, title, author and the year the file says it was published, never the file itself; if you start a book club around one, the club's members see its title and author, never its text).",
           "Devices: while you're signed in, a short label for each browser you use the app in (such as \"Chrome on Windows\") so you can send a book to another device. For each device that keeps books with Read offline, the same kind of label and when it was last used, so your plan's offline devices can be counted and you can free one.",
-          "LiteraryWorm never asks for access to your local network (the other devices on your home Wi-Fi) and doesn't need it for anything, including Listen on another device and playing on a speaker or TV. If your browser asks, choose Block."
+          "LiteraryWorm never asks for access to your local network (the other devices on your home Wi-Fi) and doesn't need it for anything, including Listen on another device and playing on a speaker or TV. If your browser asks, choose Block.",
+          "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing."
         ]
       },
       {
@@ -626,6 +628,7 @@
         "heading": "AI features",
         "paragraphs": [
           "A Kids profile can read AI-written book summaries and content notes, hear a recap of earlier chapters (Previously…) and take chapter quizzes. These are written by Claude, made by Anthropic.",
+          "Kids profiles aren't offered voice control in car mode, because what's said would go to the browser's speech service (Google's or Apple's). Car mode's buttons work as usual.",
           "We send Anthropic only the book's details or its own text and which chapter it's about, never the child's name, answers, scores or anything else about them. The summaries, content notes, recaps and quizzes are kept and shared with every reader of that book, so they say nothing about who asked."
         ]
       },
@@ -674,7 +677,7 @@
         ]
       }
     ],
-    "updated": "2026-10-31"
+    "updated": "2026-11-02"
   },
   {
     "slug": "privacy-choices",
@@ -1684,7 +1687,8 @@
           "In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.",
           "On an audiobook's page, Read offline has Listen offline on a schedule: this device keeps the chapter you're on and the next 1, 3, 5 or 10 as you listen, on Wi-Fi only if you like, and can remove chapters you've finished. It counts as one of your plan's offline devices.",
           "In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.",
-          "In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch."
+          "In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch.",
+          "Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles."
         ]
       },
       {

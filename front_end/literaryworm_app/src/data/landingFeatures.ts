@@ -49,7 +49,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "headphones",
     title: "Listen anywhere",
-    body: "Keep listening while you browse, queue what's next, use car mode's big buttons on a phone or tablet, cast to a speaker, pick up on another device, or share a clip of what you just heard.",
+    body: "Keep listening while you browse, queue what's next, use car mode's big buttons or your voice on a phone or tablet, cast to a speaker, pick up on another device, or share a clip of what you just heard.",
   },
   {
     icon: "download",

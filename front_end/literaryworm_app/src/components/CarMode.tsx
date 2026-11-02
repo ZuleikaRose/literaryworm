@@ -4,7 +4,10 @@ import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { usePlayback } from "../lib/playback";
 import type { PlayerControls } from "../lib/usePlayerControls";
 import type { Book } from "../types";
+import { useActiveProfile } from "../store/context";
+import { voiceControlOffered } from "../lib/voiceCommands";
 import { Icon } from "./Icon";
+import { VoiceControl } from "./VoiceControl";
 
 /**
  * Car mode: the player at a glance, for a phone on a dashboard mount. Five big buttons (the same
@@ -16,6 +19,7 @@ export function CarMode({ book, controls }: { book: Book; controls: PlayerContro
   const { live, player, places, position, total } = controls;
   const playing = live?.playing ?? false;
   const chapter = book.chapters[places.chapterIndex];
+  const voice = voiceControlOffered(useActiveProfile()?.ageRating);
 
   // Keep the screen on while car mode is open (released when it closes or the tab hides).
   useEffect(() => {
@@ -43,8 +47,9 @@ export function CarMode({ book, controls }: { book: Book; controls: PlayerContro
   return (
     <div className="car-mode">
       <header className="car-top">
+        {voice && <VoiceControl book={book} controls={controls} />}
         <Link className="secondary-button" to={`/listen/${book.id}`} replace>
-          <Icon name="close" size={18} /> Exit car mode
+          <Icon name="close" size={18} /> Exit<span className="car-exit-more"> car mode</span>
         </Link>
       </header>
       <div className="car-now">

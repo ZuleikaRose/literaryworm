@@ -231,6 +231,12 @@ const paths = {
       <path d="m16 9.5 5 5M21 9.5l-5 5" />
     </>
   ),
+  mic: (
+    <>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+    </>
+  ),
   devices: (
     <>
       <rect x="2" y="4" width="14" height="10" rx="1.5" />

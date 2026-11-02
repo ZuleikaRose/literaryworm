@@ -6,7 +6,7 @@ LiteraryWorm's full-text and audio library is public-domain classics: texts from
 
 ## Main Features
 
-- **Reader and player**: highlights in twelve colours, notes, bookmarks, a dictionary, OpenDyslexic, a reading ruler and line focus; an audiobook player with a mini-player, sleep timer, car mode (big buttons that fill a phone or tablet screen), Cast and listening on another device.
+- **Reader and player**: highlights in twelve colours, notes, bookmarks, a dictionary, OpenDyslexic, a reading ruler and line focus; an audiobook player with a mini-player, sleep timer, car mode (big buttons that fill a phone or tablet screen, and voice control), Cast and listening on another device.
 - **Household profiles**: up to 12 profiles (by plan), each with its own library, lists, goals, streaks and stats; PIN locks, daily limits and bedtimes; Kids profiles ask a grown-up for other books.
 - **Book clubs**: spoiler-free discussion by chapter, AI discussion questions on the classics, meetings with calendar files, shared highlights, listening along and where everyone is in the book. A club can read a LiteraryWorm title or a book its owner uploaded, found by title, author, ISBN or keywords and sorted by title, author, numbers or series; uploads stay private, and each member reads their own copy.
 - **Reading tools**: Didn't finish and Read again, moods and pace (with Feel-good picks on Discover), goals with rest days, reading plans to finish by a date, word and highlight review, badges, a Year in Review, imports and exports for Goodreads and StoryGraph, offline reading and scheduled offline listening.
