@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import App from "./App";
 import { registerServiceWorker } from "./lib/offline";
 // Listens for the browser's install offer before anything renders.
@@ -31,6 +32,7 @@ createRoot(document.getElementById("root")!).render(
       <StoreProvider>
         <PlaybackProvider>
           <App />
+          <SpeedInsights />
         </PlaybackProvider>
       </StoreProvider>
     </BrowserRouter>
