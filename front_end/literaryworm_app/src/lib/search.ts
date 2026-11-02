@@ -3,15 +3,21 @@ import { type BrowseGenre, isBrowseGenre, sampleCatalogGenres } from "../data/ge
 import type { AgeRating, Book } from "../types";
 
 /**
- * Search is by title (the brief), or by author or ISBN when the reader chooses. These match the
+ * Search is by title (the brief), or by author, keywords or ISBN when the reader chooses. These match the
  * `books` Edge Function's own checks, which are the same for a title and an author's name.
  */
 export const QUERY_MAX = 100;
 const QUERY_CHARS = /^[\p{L}\p{N}\p{M} '’.,!?&()-]+$/u;
 
 export type SearchSort = "relevance" | "newest";
-/** What the words are matched against: titles (the default), authors' names, or an ISBN. */
-export type SearchBy = "title" | "author" | "isbn";
+/**
+ * What the words are matched against: titles (the default), authors' names, keywords (anywhere:
+ * title, author, narrator, description, genres, series), or an ISBN.
+ */
+export type SearchBy = "title" | "author" | "keywords" | "isbn";
+
+/** Whether a search by this has genre, language and sort (titles and keywords do; authors and ISBNs don't). */
+export const hasAllFilters = (by: SearchBy): boolean => by === "title" || by === "keywords";
 export type SearchSource = "all" | "literaryworm" | "google";
 
 /** The languages search offers (ISO 639-1, the same list as the `books` function's `lang`). */
@@ -36,8 +42,9 @@ export type SearchLength = (typeof SEARCH_LENGTHS)[number]["id"];
 export interface SearchParams {
   q: string;
   /**
-   * Title unless `by=author` or `by=isbn` is in the address. An author search has no genre,
-   * language or sort; an ISBN search has no filters at all, and `q` is the ISBN's digits.
+   * Title unless `by=author`, `by=keywords` or `by=isbn` is in the address. A keyword search has
+   * every filter a title search has; an author search has no genre, language or sort; an ISBN
+   * search has no filters at all, and `q` is the ISBN's digits.
    */
   by: SearchBy;
   genre: BrowseGenre | null;
@@ -94,9 +101,10 @@ export function queryError(q: string, by: SearchBy = "title"): string | null {
     if (!cleanIsbn(q)) return "That ISBN doesn't add up. Check each digit against the book.";
     return null;
   }
-  const what = by === "author" ? "an author's name" : "a title";
+  const what = by === "author" ? "an author's name" : by === "keywords" ? "a word or two" : "a title";
+  const shorter = by === "author" ? "name" : by === "keywords" ? "set of keywords" : "title";
   if (!q) return `Enter ${what} to search for.`;
-  if (q.length > QUERY_MAX) return `Search is limited to ${QUERY_MAX} characters. Try a shorter ${by === "author" ? "name" : "title"}.`;
+  if (q.length > QUERY_MAX) return `Search is limited to ${QUERY_MAX} characters. Try a shorter ${shorter}.`;
   if (!QUERY_CHARS.test(q)) return `Search by ${by} using letters, numbers and basic punctuation.`;
   return null;
 }
@@ -118,13 +126,13 @@ export function readSearchParams(params: URLSearchParams): SearchParams {
   const sort = params.get("sort");
   const source = params.get("source");
   const byParam = params.get("by");
-  const by: SearchBy = byParam === "author" || byParam === "isbn" ? byParam : "title";
+  const by: SearchBy = byParam === "author" || byParam === "keywords" || byParam === "isbn" ? byParam : "title";
   const q = normalizeQuery(params.get("q") ?? "");
   // An ISBN names one book (in its editions), so there's nothing to narrow, and only Google
   // Books knows ISBNs.
   if (by === "isbn") return { ...unfiltered(cleanIsbn(q) ?? q, by), source: "google" };
   // Google's author search can't narrow by genre or language, or sort by date, so neither does ours.
-  const byTitle = by === "title";
+  const byTitle = hasAllFilters(by);
   return {
     q,
     by,
@@ -167,6 +175,18 @@ export function wordsMatch(text: string, q: string): boolean {
     .every((w) => words.some((t) => t.startsWith(w)));
 }
 
+/** Everything a keyword search looks through in a catalog title. */
+export function keywordText(b: Pick<Book, "title" | "author" | "narrator" | "synopsis" | "genres" | "series" | "publisher">): string {
+  return [b.title, b.author, b.narrator ?? "", b.publisher, b.synopsis, b.genres.join(" "), b.series?.name ?? ""].join(" ");
+}
+
+/** The text a search by `by` matches a catalog title against. */
+function matchText(b: Book, by: SearchBy): string {
+  if (by === "author") return b.author;
+  if (by === "keywords") return keywordText(b);
+  return b.title;
+}
+
 /** LiteraryWorm's own titles that match, filtered and sorted like the Google results. */
 export function catalogMatches({ q, by, genre, sort, lang, length }: SearchParams, ageRating: AgeRating): Book[] {
   // The catalog doesn't keep ISBNs.
@@ -174,7 +194,7 @@ export function catalogMatches({ q, by, genre, sort, lang, length }: SearchParam
   const found = books.filter(
     (b) =>
       isAllowed(b.ageRating, ageRating) &&
-      wordsMatch(by === "author" ? b.author : b.title, q) &&
+      wordsMatch(matchText(b, by), q) &&
       (!genre || b.genres.some((g) => sampleCatalogGenres[genre].includes(g))) &&
       (!lang || languageCode(b.language) === lang) &&
       fitsLength(b.pages, length),

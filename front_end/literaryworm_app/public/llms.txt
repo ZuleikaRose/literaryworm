@@ -24,7 +24,7 @@ LiteraryWorm's full-text and audio library is public-domain classics: texts from
 ## Additional Resources
 
 - **[What's New](https://www.literaryworm.com/whats-new)**: every new feature, update and fix.
-- **[Search](https://www.literaryworm.com/search)**: find books by title, author or ISBN.
+- **[Search](https://www.literaryworm.com/search)**: find books by title, author, keywords or ISBN.
 - **[Help](https://www.literaryworm.com/legal/help)**: getting started, your account and household, book clubs and trouble logging in.
 - **[Privacy Policy](https://www.literaryworm.com/legal/privacy)** and **[Terms of Service](https://www.literaryworm.com/legal/terms)**.
 

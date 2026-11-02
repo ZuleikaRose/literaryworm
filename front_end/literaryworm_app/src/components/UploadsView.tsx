@@ -1,4 +1,4 @@
-import { type ChangeEvent, useId, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, useId, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { activeReading } from "../store/reducer";
 import { useStore } from "../store/context";
@@ -7,6 +7,8 @@ import { readUploadSort, sortUploads, UPLOAD_SORTS } from "../lib/librarySort";
 import { uploadToBook } from "../lib/uploads";
 import { useUploads } from "../lib/useUploads";
 import { batchSummary, planBatch, type Skipped, UPLOADS_AT_ONCE } from "../lib/uploadBatch";
+import { detailsMatch, hitPath, type KeywordResult, UPLOAD_SEARCH_BY, uploadQueryError, type UploadSearchBy } from "../lib/uploadSearch";
+import { useUploadSearch } from "../lib/useUploadSearch";
 import { Cover } from "./Cover";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
@@ -35,6 +37,36 @@ export function UploadsView({ profile }: { profile: Profile }) {
   const errorId = useId();
   const progress = activeReading(state).progress;
   const remote = Boolean(state.account?.userId);
+  const searchId = useId();
+  const [searchBy, setSearchBy] = useState<UploadSearchBy>("title");
+  const [draft, setDraft] = useState("");
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const keywords = useUploadSearch();
+  const searchInput = useRef<HTMLInputElement>(null);
+  // Title and author narrow the list as the reader types; keywords search the text when asked.
+  const shown = searchBy === "keywords" ? sorted : sorted.filter((u) => detailsMatch(u, draft, searchBy));
+  const keywordSearch = searchBy === "keywords" ? keywords.search : null;
+  const resultFor = new Map(keywordSearch?.found.map((f) => [f.upload.id, f.result]));
+  const listed = keywordSearch ? sorted.filter((u) => resultFor.has(u.id)) : shown;
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchBy !== "keywords") return;
+    const problem = uploadQueryError(draft);
+    setSearchError(problem);
+    if (problem) {
+      searchInput.current?.focus();
+      return;
+    }
+    void keywords.start(sorted, draft);
+  };
+
+  const clearSearch = () => {
+    setDraft("");
+    setSearchError(null);
+    keywords.clear();
+    searchInput.current?.focus();
+  };
 
   if (!canUpload) {
     return (
@@ -139,6 +171,97 @@ export function UploadsView({ profile }: { profile: Profile }) {
         </div>
       ) : (
         <>
+          <form className="upload-search" role="search" aria-label="Your uploads" onSubmit={submitSearch} noValidate>
+            <div className="upload-search-row">
+              <div className="upload-search-by">
+                <label htmlFor={`${searchId}-by`}>Search by</label>
+                <select
+                  id={`${searchId}-by`}
+                  className="field-input"
+                  value={searchBy}
+                  onChange={(e) => {
+                    setSearchBy(e.target.value as UploadSearchBy);
+                    setSearchError(null);
+                    keywords.clear();
+                  }}
+                >
+                  {UPLOAD_SEARCH_BY.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="upload-search-field">
+                <label htmlFor={searchId}>
+                  {searchBy === "keywords" ? "Keywords" : searchBy === "author" ? "Author's name" : "Title"}
+                </label>
+                <input
+                  ref={searchInput}
+                  id={searchId}
+                  className="field-input"
+                  type="search"
+                  value={draft}
+                  maxLength={200}
+                  autoComplete="off"
+                  aria-invalid={searchError ? true : undefined}
+                  aria-describedby={searchError ? `${searchId}-error` : `${searchId}-hint`}
+                  onChange={(e) => {
+                    setDraft(e.target.value);
+                    setSearchError(null);
+                  }}
+                />
+              </div>
+              {searchBy === "keywords" && (
+                <button type="submit" className="primary-button small-button" disabled={keywordSearch?.status === "searching"}>
+                  <Icon name="search" size={15} /> Search
+                </button>
+              )}
+              {(draft || keywordSearch) && (
+                <button type="button" className="ghost-button small-button" onClick={clearSearch}>
+                  Clear
+                </button>
+              )}
+            </div>
+            {searchError ? (
+              <p className="field-error" id={`${searchId}-error`}>
+                <Icon name="alert" size={15} /> {searchError}
+              </p>
+            ) : (
+              <p className="field-hint" id={`${searchId}-hint`}>
+                {searchBy === "keywords"
+                  ? "Looks for every word in your books' text, titles, authors and part names, and shows where they are. It's done on this device."
+                  : `Shows your uploads whose ${searchBy === "author" ? "author" : "title"} has every word you type.`}
+              </p>
+            )}
+            <p className="visually-hidden" role="status">
+              {keywordSearch
+                ? keywordSearch.status === "searching"
+                  ? `Searching ${keywordSearch.searched} of ${keywordSearch.total} books…`
+                  : `${keywordSearch.found.length} ${keywordSearch.found.length === 1 ? "book has" : "books have"} “${keywordSearch.q}”.`
+                : draft
+                  ? `${shown.length} of ${uploads.length} uploads shown.`
+                  : ""}
+            </p>
+          </form>
+          {keywordSearch && (
+            <p className="upload-search-summary" aria-hidden="true">
+              {keywordSearch.status === "searching"
+                ? `Searching ${keywordSearch.searched} of ${keywordSearch.total} books…`
+                : keywordSearch.found.length === 0
+                  ? `No uploads have every word of “${keywordSearch.q}”. Try fewer words.`
+                  : `${keywordSearch.found.length} ${keywordSearch.found.length === 1 ? "book has" : "books have"} “${keywordSearch.q}”.`}
+            </p>
+          )}
+          {keywordSearch && keywordSearch.failed.length > 0 && (
+            <p className="field-hint">
+              Couldn't search {keywordSearch.failed.join(", ")}: {keywordSearch.failed.length === 1 ? "its text" : "their text"} didn't
+              load. Check your connection and search again.
+            </p>
+          )}
+          {!keywordSearch && draft && shown.length === 0 && (
+            <p className="upload-search-summary">No uploads match. Check the spelling, or search by keywords.</p>
+          )}
           {uploads.length > 1 && (
             <div className="library-controls">
               <div className="library-sort">
@@ -164,9 +287,10 @@ export function UploadsView({ profile }: { profile: Profile }) {
             </div>
           )}
           <ul className="library-list" role="list">
-            {sorted.map((u) => {
+            {listed.map((u) => {
               const book = uploadToBook(u);
               const place = progress[u.id];
+              const found = resultFor.get(u.id);
               return (
                 <li key={u.id} className="library-row">
                   <span className="library-row-cover" aria-hidden="true">
@@ -185,6 +309,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
                       {place &&
                         ` · ${place.finished ? "finished" : `${Math.round(place.fraction * 100)}% read`}`}
                     </small>
+                    {found && <KeywordHits upload={u} result={found} />}
                   </div>
                   <div className="library-row-actions">
                     <Link
@@ -257,5 +382,35 @@ export function UploadsView({ profile }: { profile: Profile }) {
         </div>
       </Dialog>
     </div>
+  );
+}
+
+/** Where a keyword search found the words in one upload, each a link to that page in the reader. */
+function KeywordHits({ upload, result }: { upload: UploadedBook; result: KeywordResult }) {
+  if (result.count === 0) return <p className="upload-hits-note">Found in its title, author or part names.</p>;
+  const more = result.count - result.hits.length;
+  return (
+    <>
+      <ul className="upload-hits" role="list">
+        {result.hits.map((hit, i) => (
+          <li key={i}>
+            <Link to={hitPath(upload.id, hit)}>
+              <span className="upload-hit-where">{upload.chapterTitles[hit.chapterIndex] || `Part ${hit.chapterIndex + 1}`}</span>
+              <span className="upload-hit-text">
+                {hit.before}
+                <mark>{hit.match}</mark>
+                {hit.after}
+              </span>
+              <span className="visually-hidden">, open {upload.title} here</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {more > 0 && (
+        <p className="upload-hits-note">
+          And {more.toLocaleString()} more {more === 1 ? "place" : "places"} in this book.
+        </p>
+      )}
+    </>
   );
 }

@@ -1753,6 +1753,97 @@ body:has(.mini-player) .listen-along-bar {
   }
 }
 
+/* My Library → Uploads: search by title, author or keywords (lib/uploadSearch.ts). */
+.upload-search {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.upload-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+}
+
+.upload-search-by,
+.upload-search-field {
+  display: grid;
+  gap: 6px;
+}
+
+.upload-search-field {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.upload-search-by label,
+.upload-search-field label {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.upload-search .field-input,
+.upload-search .small-button {
+  min-height: 44px;
+}
+
+.upload-search-summary {
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+}
+
+.upload-hits {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upload-hits a {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.upload-hits a:hover,
+.upload-hits a:focus-visible {
+  border-color: var(--line-strong);
+  background: var(--surface-raised);
+}
+
+.upload-hit-where {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.upload-hit-text mark {
+  background: var(--mark-yellow);
+  color: inherit;
+}
+
+.upload-hits-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 560px) {
+  .upload-search-by {
+    width: 100%;
+  }
+}
+
 /* Rest days on the streak card: an icon beside the line. */
 .streak-rest {
   display: flex;

@@ -78,6 +78,7 @@ Deno.test("an empty filtered list is asked again with plain words, once", async 
     ["mode=search&q=dune&genre=horror&sort=newest", "intitle:dune subject:horror", "dune horror"],
     ["mode=author&name=Matt%20Haig", 'inauthor:"Matt Haig"', '"Matt Haig"'],
     ["mode=search&q=dune&lang=es", "intitle:dune", "dune"],
+    ["mode=keywords&q=time%20travel&genre=horror", "time travel subject:horror", "time travel horror"],
     ["mode=isbn&isbn=978-0-14-143951-8", "isbn:9780141439518", "9780141439518"],
   ];
   for (const [query, filtered, plain] of cases) {
@@ -355,4 +356,17 @@ Deno.test("a 404 doesn't try the other keys", async () => {
   assertEquals(res.status, 404);
   assertEquals(keys, ["main"]);
   await res.body?.cancel();
+});
+
+Deno.test("keywords search Google's plain index, with the same options as search", async () => {
+  const { calls, fetcher } = stub(200, { totalItems: 0 });
+  const res = await handle(get("mode=keywords&q=" + encodeURIComponent("  time  travel ") + "&sort=newest&lang=fr&page=1"), { fetcher, emptyRetryMs: 0 });
+  assertEquals(res.status, 200);
+  const url = calls[0].url;
+  assertEquals(url.searchParams.get("q"), "time travel");
+  assertEquals(url.searchParams.get("orderBy"), "newest");
+  assertEquals(url.searchParams.get("langRestrict"), "fr");
+  assertEquals(url.searchParams.get("startIndex"), "20");
+  const bad = await handle(get("mode=keywords&q=dune&name=x"), { fetcher });
+  assertEquals(bad.status, 400);
 });

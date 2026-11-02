@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { browseGenres } from "../data/genres";
-import { SEARCH_LANGUAGES, SEARCH_LENGTHS, type SearchParams } from "../lib/search";
+import { hasAllFilters, SEARCH_LANGUAGES, SEARCH_LENGTHS, type SearchParams } from "../lib/search";
 
 interface SearchFiltersProps {
   value: SearchParams;
@@ -42,8 +42,8 @@ function ChipGroup<T extends string | null>({
 }
 
 /**
- * Narrow a search: where results come from, a genre, language, length, and the order. A search
- * by author has only where results come from and length (Google's author search has no others).
+ * Narrow a search: where results come from, a genre, language, length, and the order (by title or
+ * keywords). A search by author has only where results come from and length (Google's author search has no others).
  */
 export function SearchFilters({ value, onChange, showSource }: SearchFiltersProps) {
   return (
@@ -60,7 +60,7 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
           onPick={(source) => onChange({ ...value, source })}
         />
       )}
-      {value.by === "title" && (
+      {hasAllFilters(value.by) && (
         <>
           <ChipGroup
             legend="Genre"
@@ -82,7 +82,7 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
         options={[{ value: null, label: "Any length" }, ...SEARCH_LENGTHS.map((l) => ({ value: l.id, label: l.label }))]}
         onPick={(length) => onChange({ ...value, length })}
       />
-      {value.by === "title" && (
+      {hasAllFilters(value.by) && (
         <ChipGroup
           legend="Sort by"
           current={value.sort}

@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Search by keywords, and search your uploads",
+    "body": "Search has a new choice, Keywords: it finds books with every word you type anywhere in the title, author, narrator, description, genres or series, with the same filters as a title search. It's in the header's search box too. In My Library → Uploads you can now search your own EPUBs by title, author or keywords; keywords look through the books' text on your device and link to each page where the words are.",
+    "major": true
+  },
+  {
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "update",

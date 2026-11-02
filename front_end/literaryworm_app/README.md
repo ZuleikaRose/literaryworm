@@ -223,3 +223,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Audio clips: `lib/clips.ts`, `components/ClipDialog.tsx`, `pages/Clip.tsx` |
 | — | Content notes: `lib/contentNotes.ts`, `components/ContentNotes.tsx`, the `content-notes` function; migration 6610 |
 | — | Buddy reads: `components/BuddyReadButton.tsx`, `buddyName()` in `lib/clubs.ts`; migration 6612 |
+| — | Search by keywords: `keywordText()` and `hasAllFilters()` in `lib/search.ts`, the `books` function's `keywords` mode; searching uploads, `lib/uploadSearch.ts`, `lib/useUploadSearch.ts`; migration 6621 (Help) |

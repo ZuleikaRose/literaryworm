@@ -414,3 +414,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Moods on Discover and Search | after 22 | Done | *Feel-good picks* on Discover; mood links on Search's start; Plans and home page name the new features. |
 | Structured data per page | after 22 | Done | WebSite and Organization everywhere; Product and FAQPage on Home and Plans; Book on each title's page. |
 | Google Books cookies disclosed | after 22 | Done | Cookie Policy entry for books.google.com; Privacy Policy, Help, FAQ, Children's Privacy Notice and the preview say so (6618). |
+| Search by keywords | after 22 | Done | Keywords on Search and the header (title, author, narrator, description, genres, series; the `books` function's `keywords` mode); My Library → Uploads searches by title, author or keywords, through the books' text on the device (6621). |

@@ -26,6 +26,7 @@ export function Brand({ to }: { to: string }) {
 const HEADER_SEARCH: Record<SearchBy, { label: string; placeholder: string }> = {
   title: { label: "Title", placeholder: "Search by title" },
   author: { label: "Author", placeholder: "Search by author" },
+  keywords: { label: "Keywords", placeholder: "Search by keywords" },
   isbn: { label: "ISBN", placeholder: "Search by ISBN" },
 };
 
@@ -36,7 +37,8 @@ function HeaderSearch() {
   const [query, setQuery] = useState("");
   const [chosen, setBy] = useState<SearchBy>("title");
   // ISBNs are looked up on Google Books only, so not for Kids profiles or without the backend (as on Search).
-  const choices: SearchBy[] = usesBackend && profile?.ageRating !== "kids" ? ["title", "author", "isbn"] : ["title", "author"];
+  const choices: SearchBy[] =
+    usesBackend && profile?.ageRating !== "kids" ? ["title", "author", "keywords", "isbn"] : ["title", "author", "keywords"];
   const by = choices.includes(chosen) ? chosen : "title";
   const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 

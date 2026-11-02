@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "@jest/globals";
 import { closeBrowser, goInApp, newPage, scrollsSideways, signInDemo } from "./browser";
 import { readFileSync } from "node:fs";
 import { BASE_URL } from "./config";
+import { tinyEpub } from "./epubFixture";
 
 /** The newest What's new entry's title (the top of src/data/changelog.json; tests run in the app folder). */
 const NEWEST_CHANGE = (JSON.parse(readFileSync("src/data/changelog.json", "utf8")) as { title: string }[])[0].title;
@@ -73,6 +74,21 @@ describe("a visitor", () => {
     await page.getByRole("link", { name: /Frankenstein/ }).first().waitFor();
     // Author searches have no genre filter.
     expect(await page.locator(".search-sidebar").getByText("Any genre").count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("searches by keywords, which look through descriptions too, keeping the filters", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/search`);
+    await page.getByRole("radio", { name: "Keywords" }).check({ force: true });
+    await page.getByRole("searchbox", { name: "Keywords" }).fill("arctic ice");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await page.waitForURL(/by=keywords/);
+    await page.getByText(/Results for the keywords “arctic ice”/).waitFor();
+    // Frankenstein's description has both words; its title has neither.
+    await page.getByRole("link", { name: /Frankenstein/ }).first().waitFor();
+    // Keyword searches have a title search's filters.
+    await page.locator(".search-sidebar").getByText("Any genre").waitFor();
     expect(errors()).toEqual([]);
   });
 
@@ -670,13 +686,45 @@ describe("the demo household", () => {
     await signInDemo(page);
     const by = page.getByLabel("Search by", { exact: true });
     // Without the backend there's no ISBN choice (Google Books only).
-    expect(await by.locator("option").allInnerTexts()).toEqual(["Title", "Author"]);
+    expect(await by.locator("option").allInnerTexts()).toEqual(["Title", "Author", "Keywords"]);
     await by.selectOption("author");
     await page.getByPlaceholder("Search by author").fill("shelley");
     await page.keyboard.press("Enter");
     await page.waitForURL(/by=author/);
     expect(page.url()).toContain("q=shelley");
     await page.getByText(/Results for books by “shelley”/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("searches uploads by title, author and keywords, linking to the page", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=uploads");
+    const filler = "The keeper climbed the lighthouse stairs every evening and lit the lamp for the boats. The keeper climbed the lighthouse stairs every evening and lit the lamp for the boats. The keeper climbed the lighthouse stairs every evening and lit the lamp for the boats. The keeper climbed the lighthouse stairs every evening and lit the lamp for the boats. The keeper climbed the lighthouse stairs every evening and lit the lamp for the boats. The keeper climbed the lighthouse stairs every evening and lit the lamp for the boats.";
+    const epub = tinyEpub("The Lighthouse Keeper", "Rowan Ellis", [
+      { heading: "Arrival", paragraphs: [filler, "A gull watched from the rocks."] },
+      { heading: "The Storm", paragraphs: [filler, "That night a storm broke over the island and the lamp failed."] },
+    ]);
+    await page.locator('input[type="file"]').setInputFiles({ name: "lighthouse.epub", mimeType: "application/epub+zip", buffer: epub });
+    await page.getByRole("link", { name: "The Lighthouse Keeper", exact: true }).waitFor();
+    const searchBy = page.locator(".upload-search").getByLabel("Search by");
+    // Author narrows the list as you type.
+    await searchBy.selectOption("author");
+    await page.getByLabel("Author's name").fill("zzz");
+    await page.getByText("No uploads match.", { exact: false }).waitFor();
+    await page.getByLabel("Author's name").fill("ellis");
+    await page.getByRole("link", { name: "The Lighthouse Keeper", exact: true }).waitFor();
+    // Keywords look through the text and say where.
+    await searchBy.selectOption("keywords");
+    await page.getByRole("searchbox", { name: "Keywords" }).fill("storm island");
+    await page.locator(".upload-search").getByRole("button", { name: "Search" }).click();
+    await page.getByText(/1 book has “storm island”/).first().waitFor();
+    const hit = page.locator(".upload-hits a").first();
+    expect(await hit.getAttribute("href")).toMatch(/\/read\/u-[0-9a-f]{32}\?chapter=1&page=0$/);
+    await page.getByRole("searchbox", { name: "Keywords" }).fill("storm zebra");
+    await page.locator(".upload-search").getByRole("button", { name: "Search" }).click();
+    await page.getByText(/No uploads have every word of “storm zebra”/).waitFor();
+    expect(await scrollsSideways(page)).toBe(false);
     expect(errors()).toEqual([]);
   });
 

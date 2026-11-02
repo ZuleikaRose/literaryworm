@@ -26,6 +26,7 @@ import {
   SEARCH_LENGTHS,
   type SearchBy,
   type SearchParams,
+  hasAllFilters,
   searchUrl,
   surpriseBook,
   unfiltered,
@@ -36,9 +37,9 @@ import { useActiveProfile } from "../store/context";
 import { MOODS } from "../lib/moods";
 
 /**
- * /search, public. Search by title (the brief), or by author or ISBN when the reader chooses
- * (`by=author`, `by=isbn`): LiteraryWorm's own titles first, then Google Books results through the
- * `books` Edge Function (its author or isbn mode), loading more as the reader scrolls. The catalog
+ * /search, public. Search by title (the brief), or by author, keywords or ISBN when the reader
+ * chooses (`by=author`, `by=keywords`, `by=isbn`): LiteraryWorm's own titles first, then Google Books
+ * results through the `books` Edge Function (its author, keywords or isbn mode), loading more as the reader scrolls. The catalog
  * keeps no ISBNs, so an ISBN search is Google Books only, and isn't offered without it. The whole search lives in
  * the URL, so it survives a refresh and works with Back.
  */
@@ -59,7 +60,7 @@ export default function Search() {
   );
 }
 
-const SEARCH_BY_LABELS: Record<SearchBy, string> = { title: "Title", author: "Author", isbn: "ISBN" };
+const SEARCH_BY_LABELS: Record<SearchBy, string> = { title: "Title", author: "Author", keywords: "Keywords", isbn: "ISBN" };
 
 function SearchHeader({ search, serverError }: { search: SearchParams; serverError: string | null }) {
   const collections = useCollections();
@@ -72,7 +73,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
   const input = useRef<HTMLInputElement>(null);
   // Only Google Books knows ISBNs, and Kids profiles search LiteraryWorm's own shelf only.
   const isbnAllowed = usesBackend && profile?.ageRating !== "kids";
-  const choices: SearchBy[] = isbnAllowed || by === "isbn" ? ["title", "author", "isbn"] : ["title", "author"];
+  const choices: SearchBy[] = isbnAllowed || by === "isbn" ? ["title", "author", "keywords", "isbn"] : ["title", "author", "keywords"];
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -89,9 +90,10 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
       return;
     }
     if (profile) collections.addRecentSearch(q);
-    // Moving to an author search drops the filters it doesn't have.
+    // Moving to an author search drops the filters it doesn't have; title and keywords share theirs.
     const source = search.by === "isbn" ? "all" : search.source;
-    navigate(searchUrl(by === search.by ? { ...search, q } : { ...unfiltered(q, by), source, length: search.length }));
+    const sameFilters = by === search.by || (hasAllFilters(by) && hasAllFilters(search.by));
+    navigate(searchUrl(sameFilters ? { ...search, q, by } : { ...unfiltered(q, by), source, length: search.length }));
   }
 
   function surprise() {
@@ -124,7 +126,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
           </div>
         </fieldset>
         <label className="field-label" htmlFor={id}>
-          {by === "author" ? "Author's name" : by === "isbn" ? "ISBN" : "Title"}
+          {by === "author" ? "Author's name" : by === "isbn" ? "ISBN" : by === "keywords" ? "Keywords" : "Title"}
         </label>
         <div className="search-form-row">
           <div className="search-input-wrap">
@@ -138,7 +140,13 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
               maxLength={QUERY_MAX + 20}
               autoComplete="off"
               placeholder={
-                by === "author" ? "For example, Ursula K. Le Guin" : by === "isbn" ? "For example, 978-0-14-143951-8" : "For example, The Hobbit"
+                by === "author"
+                  ? "For example, Ursula K. Le Guin"
+                  : by === "isbn"
+                    ? "For example, 978-0-14-143951-8"
+                    : by === "keywords"
+                      ? "For example, time travel romance"
+                      : "For example, The Hobbit"
               }
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? `${id}-error` : `${id}-hint`}
@@ -166,7 +174,9 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
               ? "Finds books by any author whose name has every word you type, such as tolkien or le guin."
               : by === "isbn"
                 ? "The 10- or 13-digit number on the back of the book or its copyright page. Searches Google Books."
-                : `Searches book titles. Choose Author to search by who wrote it${isbnAllowed ? ", or ISBN for one edition" : ""}.`}
+                : by === "keywords"
+                  ? "Finds books with every word you type anywhere: the title, author, narrator, description, genres or series."
+                  : `Searches book titles. Choose Author to search by who wrote it, Keywords to search descriptions too${isbnAllowed ? ", or ISBN for one edition" : ""}.`}
           </p>
         )}
       </form>
@@ -271,6 +281,7 @@ function Results({ search }: { search: SearchParams }) {
   const catalog = source === "google" ? [] : catalogMatches(search, ageRating);
   const byAuthor = search.by === "author";
   const byIsbn = search.by === "isbn";
+  const byKeywords = search.by === "keywords";
   // The Google Books results loaded so far, for this search only (an author search lists their authors).
   const feedKey = `${search.by}|${search.q}|${search.genre}|${search.sort}|${search.lang}|${search.length}`;
   const [loaded, setLoaded] = useState<{ key: string; items: BookSummary[] }>({ key: feedKey, items: [] });
@@ -289,7 +300,7 @@ function Results({ search }: { search: SearchParams }) {
   }
 
   const summary = [
-    byAuthor ? `books by “${search.q}”` : byIsbn ? `ISBN ${search.q}` : `“${search.q}”`,
+    byAuthor ? `books by “${search.q}”` : byIsbn ? `ISBN ${search.q}` : byKeywords ? `the keywords “${search.q}”` : `“${search.q}”`,
     search.genre && genreLabel(search.genre),
     search.lang && SEARCH_LANGUAGES.find((l) => l.code === search.lang)?.label,
     search.length && SEARCH_LENGTHS.find((l) => l.id === search.length)?.label.toLowerCase(),
@@ -387,7 +398,7 @@ function Results({ search }: { search: SearchParams }) {
                 ? { mode: "isbn", isbn: search.q }
                 : byAuthor
                   ? { mode: "author", name: search.q, loose: true, length: search.length }
-                  : { mode: "search", q: search.q, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }
+                  : { mode: "search", q: search.q, keywords: byKeywords, genre: search.genre, sort: search.sort, lang: search.lang, length: search.length }
             }
             ageRating={ageRating}
             emptyHint={

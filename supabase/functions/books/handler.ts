@@ -5,6 +5,8 @@
 //   ?mode=home&page=0                 books about "technology"
 //   ?mode=search&q=dune&page=0        title-only search
 //     &genre=sci-fi&sort=newest&lang=es optional: narrow to a genre or a language, newest first
+//   ?mode=keywords&q=time%20travel&page=0  keywords anywhere Google indexes a book (title, author,
+//     description, subjects); the same genre, sort and lang options as search
 //   ?mode=genre&genre=sci-fi&page=0   one of the six required genres
 //   ?mode=author&name=Matt%20Haig&page=0  one author's books (their page)
 //   ?mode=isbn&isbn=9780141439518&page=0  the editions with that ISBN (10 or 13 digits)
@@ -31,6 +33,7 @@ const METHODS = "GET";
 const ALLOWED_PARAMS: Record<string, string[]> = {
   home: ["mode", "page"],
   search: ["mode", "q", "page", "genre", "sort", "lang"],
+  keywords: ["mode", "q", "page", "genre", "sort", "lang"],
   genre: ["mode", "genre", "page"],
   author: ["mode", "name", "page"],
   isbn: ["mode", "isbn", "page"],
@@ -60,7 +63,7 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     const params = new URL(req.url).searchParams;
     const mode = params.get("mode") ?? "home";
     const allowed = ALLOWED_PARAMS[mode];
-    if (!allowed) throw new HttpError("bad_request", "mode must be home, search, genre, author, isbn or volume.");
+    if (!allowed) throw new HttpError("bad_request", "mode must be home, search, keywords, genre, author, isbn or volume.");
     for (const key of new Set(params.keys())) {
       if (!allowed.includes(key)) throw new HttpError("bad_request", `Unexpected parameter: ${key}.`);
       if (params.getAll(key).length > 1) throw new HttpError("bad_request", `Send ${key} once.`);
@@ -79,11 +82,12 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     let q = HOME_QUERY;
     // The same request without Google's operators, asked when the filtered one finds nothing.
     let plain = HOME_QUERY;
-    if (mode === "search") {
+    if (mode === "search" || mode === "keywords") {
       const words = parseQuery(params.get("q"));
-      q = titleQuery(words);
+      // Keywords are Google's plain search: every word, anywhere it indexes the book.
+      q = mode === "keywords" ? plainQuery(words) : titleQuery(words);
       plain = plainQuery(words);
-      // Still a title search: the genre only narrows it, through the same subject: query as genre mode.
+      // Still a title (or keyword) search: the genre only narrows it, through the same subject: query as genre mode.
       if (params.has("genre")) {
         const genre = parseGenre(params.get("genre"));
         q += ` ${GENRE_QUERIES[genre]}`;
@@ -104,8 +108,9 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
       q = GENRE_QUERIES[genre];
       plain = GENRE_WORDS[genre];
     }
-    const sort = mode === "search" ? parseSort(params.get("sort")) : "relevance";
-    const lang = mode === "search" ? parseLanguage(params.get("lang")) : null;
+    const filtered = mode === "search" || mode === "keywords";
+    const sort = filtered ? parseSort(params.get("sort")) : "relevance";
+    const lang = filtered ? parseLanguage(params.get("lang")) : null;
     let body = await ask((k) => listUrl(q, page, k, sort, lang));
     if (isEmptyList(body)) {
       if (plain !== q) {

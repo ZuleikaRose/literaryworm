@@ -1655,6 +1655,7 @@
         "heading": "Where do the books come from?",
         "paragraphs": [
           "LiteraryWorm uses the Google Books API to show book details and covers when you browse and search, so you can find almost any book, save it to your library and write about it.",
+          "Search finds books by title, or choose Author, Keywords or ISBN. Keywords looks for every word you type anywhere: the title, author, narrator, description, genres or series, so time travel romance finds books about both. Keyword searches have the same filters as a title search.",
           "Those covers, and the Google Books preview on some book pages, load from books.google.com, so Google sets its own third-party cookies on our website when they load. The Cookie Policy explains them, and blocking third-party cookies in your browser stops them without stopping LiteraryWorm.",
           "The books you can read and listen to in full are public-domain classics: texts from Project Gutenberg and recordings from LibriVox. Other LiteraryWorm titles show sample pages."
         ]
@@ -1663,7 +1664,8 @@
         "heading": "Can I read my own books?",
         "paragraphs": [
           "Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.",
-          "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service)."
+          "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
+          "To find one of your uploads, search them in My Library → Uploads by title, author or keywords. Keywords also looks through the books' text and shows where the words are, each place a link to that page. It's done on your device: the words aren't sent anywhere."
         ]
       },
       {

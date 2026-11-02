@@ -2,7 +2,7 @@ import { books, isAllowed } from "../data/books";
 import { type BrowseGenre, sampleCatalogGenres } from "../data/genres";
 import type { AgeRating, Book } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL, usesBackend } from "./backend";
-import { fitsLength, languageCode, type SearchLanguage, type SearchLength, wordsMatch } from "./search";
+import { fitsLength, keywordText, languageCode, type SearchLanguage, type SearchLength, wordsMatch } from "./search";
 
 /**
  * Book lists for Home and the landing page.
@@ -56,6 +56,8 @@ export type FeedQuery =
   | {
       mode: "search";
       q: string;
+      /** Keywords anywhere (Google's plain search, the function's `keywords` mode) rather than the title. */
+      keywords?: boolean;
       genre?: BrowseGenre | null;
       sort?: "relevance" | "newest";
       lang?: SearchLanguage | null;
@@ -89,7 +91,7 @@ export function feedKey(query: FeedQuery): string {
   if (query.mode === "isbn") return `isbn:${query.isbn}`;
   if (query.mode === "author") return `author:${query.name}|${query.loose ? "loose" : ""}|${query.length ?? ""}`;
   if (query.mode === "search") {
-    return `search:${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}|${query.lang ?? ""}|${query.length ?? ""}`;
+    return `search:${query.keywords ? "keywords:" : ""}${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}|${query.lang ?? ""}|${query.length ?? ""}`;
   }
   return "home";
 }
@@ -121,7 +123,8 @@ const FRIENDLY: Record<string, string> = {
 const pageCache = new Map<string, Promise<BookPage>>();
 
 function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
-  const params = new URLSearchParams({ mode: query.mode, page: String(page) });
+  const mode = query.mode === "search" && query.keywords ? "keywords" : query.mode;
+  const params = new URLSearchParams({ mode, page: String(page) });
   if (query.mode === "genre") params.set("genre", query.genre);
   if (query.mode === "author") params.set("name", query.name);
   if (query.mode === "isbn") params.set("isbn", query.isbn);
@@ -212,7 +215,7 @@ function localPage(query: FeedQuery, page: number, ageRating: AgeRating): BookPa
       : allowed.filter(
           (b) =>
             query.mode === "search" &&
-            b.title.toLowerCase().includes(query.q.toLowerCase()) &&
+            (query.keywords ? wordsMatch(keywordText(b), query.q) : b.title.toLowerCase().includes(query.q.toLowerCase())) &&
             (!query.lang || languageCode(b.language) === query.lang) &&
             fitsLength(b.pages, query.length ?? null),
         );

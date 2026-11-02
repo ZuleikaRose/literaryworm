@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { browseGenres, favouriteGenreId, favouriteGenreLabel, genreForCategories, inFavouriteGenre } from "../data/genres";
-import { catalogMatches, cleanIsbn, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl, unfiltered } from "./search";
+import { catalogMatches, cleanIsbn, hasAllFilters, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl, unfiltered } from "./search";
 
 describe("queries", () => {
   it("tidies spaces", () => {
@@ -143,6 +143,31 @@ describe("search by author", () => {
   it("words its errors for a name", () => {
     expect(queryError("", "author")).toBe("Enter an author's name to search for.");
     expect(queryError("a<b", "author")).toBe("Search by author using letters, numbers and basic punctuation.");
+  });
+});
+
+describe("search by keywords", () => {
+  it("keeps by=keywords in the address with every filter a title search has", () => {
+    const read = readSearchParams(new URLSearchParams("q=arctic&by=keywords&genre=fantasy&lang=es&sort=newest&length=long"));
+    expect(read).toEqual({ q: "arctic", by: "keywords", genre: "fantasy", sort: "newest", source: "all", lang: "es", length: "long" });
+    expect(searchUrl(read)).toBe("/search?q=arctic&by=keywords&genre=fantasy&sort=newest&lang=es&length=long");
+    expect(hasAllFilters("keywords")).toBe(true);
+    expect(hasAllFilters("author")).toBe(false);
+  });
+
+  it("matches words in the description, author or genres, not only the title", () => {
+    const found = (q: string, by: "title" | "keywords") => catalogMatches(unfiltered(q, by), "all").map((b) => b.id);
+    expect(found("arctic ice", "keywords")).toContain("frankenstein");
+    expect(found("arctic ice", "title")).toEqual([]);
+    expect(found("shelley creature", "keywords")).toContain("frankenstein");
+    expect(found("frankenstein", "keywords")).toContain("frankenstein");
+    // Every word must be there.
+    expect(found("arctic zzzz", "keywords")).toEqual([]);
+  });
+
+  it("words its errors for keywords", () => {
+    expect(queryError("", "keywords")).toBe("Enter a word or two to search for.");
+    expect(queryError("a<b", "keywords")).toBe("Search by keywords using letters, numbers and basic punctuation.");
   });
 });
 
