@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-02",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Sort My Library by series",
+    "body": "My Library's Sort by has Series, in reading order: each series comes together, A to Z, with its books in order, then the books in no series by title. LiteraryWorm books use their series, and other books the one their title names, such as \"(The Expanse, #1)\". Uploads sort the same way.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Sort your uploads eleven ways",
     "body": "My Library → Uploads has Sort by under the search box: Recently added, Oldest added, Recently changed (the last time you read it), Title A–Z or Z–A, Numbers first, Author A–Z or Z–A, Published newest or oldest, and Series in reading order. The published year comes from the EPUB itself, so books uploaded before today sort last by it, and the series is the one a title names, such as \"(The Expanse, #1)\".",
     "major": false

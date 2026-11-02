@@ -470,5 +470,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Supabase CLI v3 (3.0.0): scripts and docs use `--remote` and `--yes`; schema.sql and drawsql.png current to 6625; live dev and production checked with v3 (66 tables, 489 columns) | Done    |
 | —    | schema.org data on every public page: page type, breadcrumbs from Home and what it's about (`pageData()`), a BookSeries on series pages | Done    |
 | —    | Uploads sort eleven ways under their search box (recently added or changed, title, numbers, author, published year from the EPUB, series in reading order); migration 6626 (`uploaded_books.published_year`, Privacy Policy, What's new) | Done |
+| —    | My Library *Sort by* adds *Series, in reading order* (catalog series, else the series a title names); What's new in migration 6627 | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

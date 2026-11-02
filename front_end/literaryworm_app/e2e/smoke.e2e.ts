@@ -658,7 +658,7 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("sorts My library A–Z, Z–A and by published year, keeping the status filter", async () => {
+  it("sorts My library A–Z, Z–A, by published year and by series, keeping the status filter", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     await goInApp(page, "/library");
@@ -666,7 +666,7 @@ describe("the demo household", () => {
     await page.locator(".library-row-title").first().waitFor();
     const sortBy = page.getByLabel("Sort by");
     const options = await sortBy.locator("option").allInnerTexts();
-    expect(options).toEqual(expect.arrayContaining(["Recently added", "Title A–Z", "Title Z–A", "Numbers first (0–9)", "Recently changed", "Published, newest", "Author A–Z", "Author Z–A"]));
+    expect(options).toEqual(expect.arrayContaining(["Recently added", "Title A–Z", "Title Z–A", "Numbers first (0–9)", "Recently changed", "Published, newest", "Author A–Z", "Author Z–A", "Series, in reading order"]));
 
     const fold = (t: string) => t.replace(/^(the|an?)\s+/i, "").toLowerCase();
     const sorted = (list: string[]) => [...list].sort((a, b) => fold(a).localeCompare(fold(b), "en", { numeric: true }));
@@ -694,6 +694,9 @@ describe("the demo household", () => {
     await page.locator(".library-filter input:checked + span").getByText(/^Reading \(/).waitFor();
     await sortBy.selectOption("published");
     await page.waitForURL(/sort=published/);
+    expect(page.url()).toContain("status=reading");
+    await sortBy.selectOption("series");
+    await page.waitForURL(/sort=series/);
     expect(page.url()).toContain("status=reading");
     expect(errors()).toEqual([]);
   });

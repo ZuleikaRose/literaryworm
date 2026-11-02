@@ -1,7 +1,7 @@
 import type { LibraryEntry } from "../types";
 
 /** How My Library can be ordered (`?sort=` in the address; "added" when it's missing). */
-export type LibrarySort = "added" | "added-oldest" | "updated" | "title" | "title-desc" | "numbers" | "author" | "author-desc" | "published" | "published-oldest";
+export type LibrarySort = "added" | "added-oldest" | "updated" | "title" | "title-desc" | "numbers" | "author" | "author-desc" | "published" | "published-oldest" | "series";
 
 export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
   { value: "added", label: "Recently added" },
@@ -14,15 +14,13 @@ export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
   { value: "author-desc", label: "Author Z–A" },
   { value: "published", label: "Published, newest" },
   { value: "published-oldest", label: "Published, oldest" },
-];
-
-/** Uploaded books sort the same ten ways as the rest of My Library, plus by series ("added" when it's missing). */
-export type UploadSort = LibrarySort | "series";
-
-export const UPLOAD_SORTS: { value: UploadSort; label: string }[] = [
-  ...LIBRARY_SORTS,
   { value: "series", label: "Series, in reading order" },
 ];
+
+/** Uploaded books sort the same eleven ways as the rest of My Library ("added" when it's missing). */
+export type UploadSort = LibrarySort;
+
+export const UPLOAD_SORTS = LIBRARY_SORTS;
 
 /** The book list when starting a book club (LiteraryWorm titles or the profile's uploads). */
 export type ClubBookSort = "title" | "title-desc" | "author" | "author-desc" | "numbers" | "series";
@@ -44,7 +42,6 @@ export function readLibrarySort(raw: string | null): LibrarySort {
 export function readUploadSort(raw: string | null): UploadSort {
   if (raw === "uploaded") return "added";
   if (raw === "uploaded-oldest") return "added-oldest";
-  if (raw === "series") return "series";
   return readLibrarySort(raw);
 }
 
@@ -54,6 +51,8 @@ export interface SortDetails {
   author: string;
   /** The year it was published, or null when we don't know. */
   year: number | null;
+  /** Its series and place in it, when it's in one (for *Series, in reading order*). */
+  series?: SeriesPlace;
 }
 
 // Numeric collation: "2 States" comes before "10 Minutes", and case and accents don't matter.
@@ -80,6 +79,12 @@ export function publishedYear(date: string | null | undefined): number | null {
 }
 
 const byTitle = (a: SortDetails, b: SortDetails) => collator.compare(sortTitle(a.title), sortTitle(b.title));
+
+/** Each series together (A–Z) in reading order, before the books in none. */
+function bySeries(a: SeriesPlace | undefined, b: SeriesPlace | undefined): number {
+  if (!a || !b) return a === b ? 0 : a ? -1 : 1;
+  return collator.compare(a.name, b.name) || a.order - b.order;
+}
 
 /**
  * Orders library entries. Ties fall back to the title, then the newest added, so the order never
@@ -125,6 +130,9 @@ export function sortLibrary(entries: LibraryEntry[], sort: LibrarySort, details:
         else order = sort === "published" ? yb - ya : ya - yb;
         break;
       }
+      case "series":
+        order = bySeries(x.d.series, y.d.series);
+        break;
     }
     return order || byTitle(x.d, y.d) || b.addedAt - a.addedAt;
   });
@@ -184,13 +192,9 @@ export function sortUploads<T extends SortableUpload>(books: T[], sort: UploadSo
         else order = sort === "published" ? yb - ya : ya - yb;
         break;
       }
-      case "series": {
-        const sa = seriesInTitle(a.title);
-        const sb = seriesInTitle(b.title);
-        if (!sa || !sb) order = sa === sb ? 0 : sa ? -1 : 1;
-        else order = collator.compare(sa.name, sb.name) || sa.order - sb.order;
+      case "series":
+        order = bySeries(seriesInTitle(a.title), seriesInTitle(b.title));
         break;
-      }
     }
     return order || title(a, b) || b.createdAt - a.createdAt;
   });
@@ -240,13 +244,9 @@ export function sortClubBooks<T extends { id: string; title: string; author: str
       case "numbers":
         order = Number(startsWithNumber(b.title)) - Number(startsWithNumber(a.title));
         break;
-      case "series": {
-        const sa = seriesFor(a);
-        const sb = seriesFor(b);
-        if (!sa || !sb) order = sa === sb ? 0 : sa ? -1 : 1;
-        else order = collator.compare(sa.name, sb.name) || sa.order - sb.order;
+      case "series":
+        order = bySeries(seriesFor(a), seriesFor(b));
         break;
-      }
     }
     return order || title(a, b) || a.id.localeCompare(b.id);
   });

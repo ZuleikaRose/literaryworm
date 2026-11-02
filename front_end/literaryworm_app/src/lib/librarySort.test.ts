@@ -16,6 +16,16 @@ const entries = [entry("hobbit", 5, 50), entry("dune", 4), entry("1984", 3, 90),
 const ids = (sort: Parameters<typeof sortLibrary>[1]) => sortLibrary(entries, sort, (e) => books[e.bookId]).map((e) => e.bookId);
 
 describe("sortLibrary", () => {
+  it("groups each series A–Z in reading order, then the books in none by title", () => {
+    const withSeries: Record<string, SortDetails> = {
+      ...books,
+      hobbit: { ...books.hobbit, series: { name: "Middle-earth", order: 1 } },
+      dune: { ...books.dune, series: { name: "Dune", order: 1 } },
+      "20k": { ...books["20k"], series: { name: "Dune", order: 2 } },
+    };
+    expect(sortLibrary(entries, "series", (e) => withSeries[e.bookId]).map((e) => e.bookId)).toEqual(["dune", "20k", "hobbit", "2s", "1984", "apple"]);
+  });
+
   it("orders by when books were added, either way", () => {
     expect(ids("added")).toEqual(["apple", "hobbit", "dune", "1984", "20k", "2s"]);
     expect(ids("added-oldest")).toEqual(["2s", "20k", "1984", "dune", "hobbit", "apple"]);
@@ -93,7 +103,7 @@ describe("helpers", () => {
     expect(readUploadSort(null)).toBe("added");
     expect(readUploadSort("title-desc")).toBe("title-desc");
     expect(readUploadSort("series")).toBe("series");
-    expect(readLibrarySort("series")).toBe("added");
+    expect(readLibrarySort("series")).toBe("series");
     // Addresses saved before uploads had every sort still work.
     expect(readUploadSort("uploaded")).toBe("added");
     expect(readUploadSort("uploaded-oldest")).toBe("added-oldest");

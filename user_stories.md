@@ -420,3 +420,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Visit analytics | after 22 | Done | Ahrefs Web Analytics with consent, no cookies, path-only page views, off for Kids profiles and pages with codes; policies and FAQ updated (6625). |
 | Structured data on every public page | after 22 | Done | WebPage types, breadcrumbs and main entities on Home, Plans, Search, Sign up, What's new, policies, authors, narrators, readers, series (BookSeries) and book pages. |
 | Sort my uploads | after 22 | Done | Sort by under the Uploads search box: recently added, oldest added, recently changed (last read), title A–Z/Z–A, numbers first, author A–Z/Z–A, published newest/oldest (the EPUB's year, 6626) and series in reading order |
+| Sort My Library by series | after 22 | Done | *Series, in reading order* in My Library's Sort by: each series A–Z in reading order, then the rest by title |

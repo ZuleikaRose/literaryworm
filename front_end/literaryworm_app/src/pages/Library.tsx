@@ -47,6 +47,7 @@ import {
   sortLibrary,
   type SortDetails,
 } from "../lib/librarySort";
+import { sortSeries } from "../lib/series";
 import { isUploadId } from "../lib/uploads";
 import { useCollections } from "../lib/useCollections";
 import { useLibrary } from "../lib/useLibrary";
@@ -214,11 +215,10 @@ function LibraryView({ profile }: { profile: Profile }) {
     // Uploaded books have their own tab, with Read and Delete.
     .filter((e) => visibleTo(profile, e.bookId, requests) && !isUploadId(e.bookId))
     .filter((e) => !mood || Boolean(moods[e.bookId]?.moods.includes(mood)));
-  const entries = sortLibrary(
-    visible,
-    sort,
-    (e) => looked[e.bookId] ?? sortDetails(e),
-  );
+  const entries = sortLibrary(visible, sort, (e) => {
+    const d = looked[e.bookId] ?? sortDetails(e);
+    return sort === "series" ? { ...d, series: sortSeries(e.bookId, d.title) } : d;
+  });
   const counts = {
     all: entries.length,
     want_to_read: entries.filter((e) => e.status === "want_to_read").length,

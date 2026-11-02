@@ -1,6 +1,7 @@
 import { books, getBook, isAllowed } from "../data/books";
 import { SERIES } from "../data/series";
 import type { AgeRating, Book } from "../types";
+import { type SeriesPlace, seriesInTitle } from "./librarySort";
 
 /**
  * Series: the curated list in data/series.ts, plus books with `series` set in the catalog. A
@@ -58,6 +59,15 @@ export function seriesPlace(bookId: string): { series: Series; position: number;
   const series = seriesOf(bookId);
   if (!series) return null;
   return { series, position: series.ids.indexOf(bookId) + 1, total: series.ids.length };
+}
+
+/**
+ * A library book's series and number for sorting: the catalog's series, else one its title
+ * names the usual way, such as "Leviathan Wakes (The Expanse, #1)".
+ */
+export function sortSeries(bookId: string, title: string): SeriesPlace | undefined {
+  const place = seriesPlace(bookId);
+  return place ? { name: place.series.name, order: place.position } : seriesInTitle(title);
 }
 
 /** The next book in the series this profile may see, if there is one. */

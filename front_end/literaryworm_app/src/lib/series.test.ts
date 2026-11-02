@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 import { getBook } from "../data/books";
 import { SERIES } from "../data/series";
-import { allSeries, continueSeries, nextInSeries, seriesNamed, seriesOf, seriesPath, seriesPlace } from "./series";
+import { allSeries, continueSeries, nextInSeries, seriesNamed, seriesOf, seriesPath, seriesPlace, sortSeries } from "./series";
 
 describe("the series list", () => {
   it("names only books in the catalog, each in one series", () => {
@@ -26,6 +26,12 @@ describe("finding a series", () => {
   it("gives a book's place", () => {
     expect(seriesPlace("anne-of-avonlea")).toMatchObject({ position: 2, total: 6 });
     expect(seriesPlace("frankenstein")).toBeNull();
+  });
+
+  it("gives a library book's series for sorting: the catalog's, else the one its title names", () => {
+    expect(sortSeries("anne-of-avonlea", "Anne of Avonlea")).toEqual({ name: "Anne of Green Gables", order: 2 });
+    expect(sortSeries("google-id", "Leviathan Wakes (The Expanse, #1)")).toEqual({ name: "The Expanse", order: 1 });
+    expect(sortSeries("frankenstein", "Frankenstein")).toBeUndefined();
   });
 });
 
