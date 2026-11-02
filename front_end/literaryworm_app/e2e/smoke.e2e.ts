@@ -1395,7 +1395,7 @@ describe("the demo household", () => {
     // The demo club has chapter 1's questions to hand.
     await select.selectOption({ index: 0 });
     const first = section.getByRole("listitem").first();
-    await first.getByText(/rich single man/).waitFor();
+    await first.locator("p").getByText(/rich single man/).waitFor();
     await expect(section.getByRole("listitem").count()).resolves.toBeGreaterThanOrEqual(5);
     await first.getByRole("button", { name: /Start a post with this/ }).click();
     // The post box now holds the question, about chapter 1, with focus there.
