@@ -133,7 +133,7 @@ Build in phases (see `prompt.md`). At the end of each phase:
 - Never commit secrets. `.env*` files stay local; only `.env.example` (no real values) is shared. Never put a secret in a `VITE_` variable.
 - The browser must never call Google Books directly (backend phases: go through a Supabase Edge Function).
 - Don't edit, delete or rewrite anything in `prompt-records/` or the hooks in `.claude/hooks/`.
-- Every Supabase table has Row Level Security enabled, with `(select auth.uid())` policies and column-level grants. Index every foreign key, with `CREATE INDEX CONCURRENTLY` in its own one-statement migration (the MCP `apply_migration` runs in a transaction, so apply those with `execute_sql`).
+- Every Supabase table has Row Level Security enabled, with `(select auth.uid())` policies and column-level grants. The Edge Functions' `service_role` needs its own grants: migration 6636 grants it every public table, sequence and function and makes that the default, because newer branches (the dev branch) don't grant it otherwise; check a new table with `has_table_privilege('service_role', …)` on the dev branch. Index every foreign key, with `CREATE INDEX CONCURRENTLY` in its own one-statement migration (the MCP `apply_migration` runs in a transaction, so apply those with `execute_sql`).
 - Edge Functions validate every input, use the CORS allowlist in `_shared/cors.ts`, and return `{ error: { code, message } }`. Test (`deno check`, `deno test`) before deploying.
 - `DELETE` statements always have a `WHERE` clause (a hook blocks the rest).
 - Don't stage unrelated files (`.cto-toolkit/`, tool folders like `.windsurf/`, `prompt-records/` edits made by hooks) in feature commits.

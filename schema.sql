@@ -10314,3 +10314,24 @@ where slug = $lw$accessibility$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-02'::date, '2026.11', 'feature', $lw$Voice control in car mode$lw$, $lw$In car mode, turn on Voice control and say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (“back 30 seconds”). It's off until you turn it on, listens only while car mode is open and on screen, and your browser's own speech service hears the words; LiteraryWorm keeps nothing. Not on Kids profiles.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Voice control in car mode$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261102006636_service_role_grants.sql
+-- =============================================================================
+-- The Edge Functions use the service role. Production's tables have always granted it full
+-- access through Supabase's default privileges, but newer projects and branches (such as the dev
+-- branch, literaryworm-dev) no longer grant it by default, so there every function that reads or
+-- writes a table failed with "permission denied" (found 2 November 2026 testing `discussion`).
+-- This grants it explicitly, which changes nothing where it was already granted, and makes it the
+-- default for tables created from now on. Row Level Security is unaffected: the service role
+-- bypasses it as before, and browser roles keep only their own column grants.
+
+grant usage on schema public to service_role;
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
+-- Production's service role can also run every public function (the dev branch couldn't run 24).
+grant execute on all functions in schema public to service_role;
+
+alter default privileges in schema public grant select, insert, update, delete on tables to service_role;
+alter default privileges in schema public grant usage, select on sequences to service_role;
+alter default privileges in schema public grant execute on functions to service_role;
