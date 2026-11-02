@@ -1469,13 +1469,19 @@ describe("on a phone", () => {
     await goInApp(page, "/listen/frankenstein?view=car");
     await page.locator(".car-play").waitFor();
     await expect(scrollsSideways(page)).resolves.toBe(false);
-    // The same arrangement as on a wide screen: Back, Play, Forward in a row, Play in the middle.
+    // On a phone, three rows of big buttons: Back and Forward, Play across, then the chapters.
     const box = async (sel: string) => (await page.locator(sel).boundingBox())!;
-    const [back, play, forward] = [await box(".car-back"), await box(".car-play"), await box(".car-forward")];
-    expect(back.x < play.x && play.x < forward.x).toBe(true);
-    expect(Math.abs(back.y - play.y) < 2 && Math.abs(forward.y - play.y) < 2).toBe(true);
-    // A phone on its side in a dashboard mount: car mode fits without scrolling.
+    const [back, forward, play, prev, next] = await Promise.all([".car-back", ".car-forward", ".car-play", ".car-prev", ".car-next-chapter"].map(box));
+    expect(back.x < forward.x && Math.abs(back.y - forward.y) < 2).toBe(true);
+    expect(play.y > back.y + back.height - 1 && prev.y > play.y + play.height - 1).toBe(true);
+    expect(prev.x < next.x && Math.abs(prev.y - next.y) < 2).toBe(true);
+    expect(play.width > back.width * 1.5).toBe(true);
+    for (const b of [back, forward, play, prev, next]) expect(b.height).toBeGreaterThanOrEqual(96);
+    await expect(page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).resolves.toBe(true);
+    // A phone on its side in a dashboard mount: the five in one row, and it fits without scrolling.
     await page.setViewportSize({ width: 844, height: 390 });
+    const row = await Promise.all([".car-prev", ".car-back", ".car-play", ".car-forward", ".car-next-chapter"].map(box));
+    expect(row.every((b, i) => Math.abs(b.y - row[0].y) < 2 && (i === 0 || b.x > row[i - 1].x))).toBe(true);
     await expect(page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).resolves.toBe(true);
     await page.setViewportSize({ width: 390, height: 844 });
     for (const view of ["badges", "upnext", "words"]) {

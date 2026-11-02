@@ -973,7 +973,8 @@
   gap: 16px;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
   color: var(--ink);
   background: var(--bg-deep);
 }
@@ -981,6 +982,10 @@
 .car-top {
   display: flex;
   justify-content: flex-end;
+}
+
+.car-top .secondary-button {
+  min-height: 48px;
 }
 
 .car-now {
@@ -1006,27 +1011,51 @@
   font-weight: 700;
 }
 
+/* A computer: the five buttons in one row, Play in the middle. */
 .car-controls {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-  width: min(100%, 60rem);
+  grid-template-areas: "prev back play forward next";
+  gap: 12px;
+  width: min(100%, 64rem);
   margin: 0 auto;
+}
+
+.car-prev {
+  grid-area: prev;
+}
+
+.car-back {
+  grid-area: back;
+}
+
+.car-play {
+  grid-area: play;
+}
+
+.car-forward {
+  grid-area: forward;
+}
+
+.car-next-chapter {
+  grid-area: next;
 }
 
 .car-button {
   display: grid;
-  min-height: 112px;
+  min-height: 136px;
   place-items: center;
   align-content: center;
-  gap: 8px;
-  padding: 12px 4px;
+  gap: 10px;
+  padding: 12px 6px;
   border: 2px solid var(--line-strong);
-  border-radius: 20px;
+  border-radius: 24px;
   color: var(--ink);
   background: var(--surface);
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   font-weight: 700;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .car-button span {
@@ -1057,62 +1086,134 @@
   text-align: center;
 }
 
-/* Phones (and the installed app on one): the same arrangement as the wide screen, Back, Play and
-   Forward in a row with Play in the middle, and the chapter buttons under them, left and right. */
-@media (max-width: 560px) {
+/* Phones and tablets (in the browser or the installed app, online or offline), narrow windows and
+   short screens: the buttons take all the room under the title, on several rows, with bigger
+   icons and words. */
+@media (pointer: coarse), (max-width: 560px), (max-height: 600px) {
+  .car-mode {
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    gap: 12px;
+  }
+
+  .car-now h1 {
+    font-size: clamp(1.5rem, 5.5vw, 2.5rem);
+  }
+
+  .car-now .car-left {
+    margin-top: 6px;
+  }
+
   .car-controls {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    grid-template-areas:
-      "back back play play forward forward"
-      "prev prev prev next next next";
+    align-self: stretch;
+    gap: 12px;
+    width: min(100%, 52rem);
   }
 
-  .car-prev {
-    grid-area: prev;
+  .car-top .secondary-button {
+    padding-inline: 18px;
+    font-size: 1rem;
   }
 
-  .car-back {
-    grid-area: back;
+  .car-button {
+    min-height: 0;
+    font-size: clamp(1.125rem, 1rem + 1vw, 1.5rem);
   }
 
-  .car-play {
-    grid-area: play;
-    min-height: 128px;
+  .car-button svg {
+    width: clamp(44px, 10vmin, 76px);
+    height: clamp(44px, 10vmin, 76px);
   }
 
-  .car-forward {
-    grid-area: forward;
-  }
-
-  .car-next-chapter {
-    grid-area: next;
-  }
-
-  .car-controls .car-button:not(.car-play) {
-    min-height: 96px;
+  .car-play svg {
+    width: clamp(60px, 15vmin, 112px);
+    height: clamp(60px, 15vmin, 112px);
   }
 }
 
-/* A phone on its side in a dashboard mount: everything on one screen, without scrolling. */
-@media (max-height: 480px) and (orientation: landscape) {
+/* Upright (iPhone, Android phones, tablets held upright): three rows of big buttons. Back and
+   Forward, then Play across the screen, then the chapters, each on the side it has on a computer. */
+@media (orientation: portrait) and (pointer: coarse), (orientation: portrait) and (max-width: 560px) {
+  .car-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(96px, 1fr) minmax(120px, 1.3fr) minmax(96px, 1fr);
+    grid-template-areas:
+      "back forward"
+      "play play"
+      "prev next";
+  }
+}
+
+/* Small upright phones (iPhone SE, small Android phones): the same three rows, a little tighter. */
+@media (orientation: portrait) and (max-height: 720px) and (pointer: coarse), (orientation: portrait) and (max-height: 720px) and (max-width: 560px) {
+  .car-mode {
+    gap: 8px;
+  }
+
+  .car-now h1 {
+    margin-bottom: 2px;
+  }
+
+  .car-controls {
+    gap: 10px;
+  }
+
+  .car-button {
+    gap: 4px;
+    padding: 6px 4px;
+    font-size: 1.0625rem;
+  }
+
+  .car-button svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .car-play svg {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* On its side, a phone in a dashboard mount: the five in one row, as tall as the screen allows. */
+@media (orientation: landscape) and (max-height: 600px) {
   .car-mode {
     gap: 8px;
     padding-top: max(8px, env(safe-area-inset-top));
     padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 
-  .car-now h1 {
-    font-size: clamp(1.5rem, 5vw, 2.25rem);
+  .car-top .secondary-button {
+    min-height: 44px;
   }
 
-  .car-now .car-left {
-    margin-top: 4px;
+  .car-now h1 {
+    margin-bottom: 2px;
+    font-size: clamp(1.375rem, 4.5vw, 2rem);
+  }
+
+  .car-now p {
+    font-size: clamp(1rem, 2.6vw, 1.25rem);
+  }
+
+  .car-controls {
+    grid-template-rows: minmax(112px, 1fr);
+    gap: 10px;
   }
 
   .car-button {
-    min-height: 96px;
-    gap: 4px;
+    gap: 6px;
     padding: 8px 4px;
+  }
+}
+
+/* On its side, a tablet: two rows, Play down the middle between them. */
+@media (orientation: landscape) and (min-height: 601px) and (pointer: coarse) {
+  .car-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(150px, 1fr));
+    grid-template-areas:
+      "back play forward"
+      "prev play next";
   }
 }
 
