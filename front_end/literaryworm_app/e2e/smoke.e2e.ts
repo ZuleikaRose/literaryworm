@@ -466,7 +466,7 @@ describe("the demo household", () => {
     const bell = page.getByRole("button", { name: /^Notifications/ });
     await bell.click();
     const panel = page.getByRole("region", { name: "Notifications" });
-    await panel.getByText("Sunday Classics").waitFor();
+    await panel.getByText("Sunday Classics", { exact: true }).waitFor();
     await page.keyboard.press("Escape");
     await expect(panel.count()).resolves.toBe(0);
     await expect(bell.evaluate((b) => b === document.activeElement)).resolves.toBe(true);
