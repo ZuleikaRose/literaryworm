@@ -364,9 +364,11 @@ describe("the demo household", () => {
     await signInDemo(page);
     await goInApp(page, "/library?view=clubs");
     await page.getByRole("button", { name: "Start a club" }).click();
-    // Uploads: none on the demo yet, so it says where to add one.
+    // Uploads: the demo's sample uploads are offered as the book.
     await page.getByText(/^My uploads/).click();
-    await page.getByRole("link", { name: "My Library → Uploads" }).waitFor();
+    await expect(page.getByLabel(/^Book/).locator("option").allTextContents()).resolves.toEqual(
+      expect.arrayContaining([expect.stringContaining("The Tide Clock (The Lantern Coast, #1)")]),
+    );
     // Find one of your uploads takes an ISBN too (looked up on Google Books, so not in this test copy).
     await page.getByLabel("Find one of your uploads").fill("9780141439518");
     await page.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).first().waitFor();
@@ -802,16 +804,20 @@ describe("the demo household", () => {
     };
     const first = "Leviathan Rising (The Drift, #1)";
     const second = "Calibans War (The Drift, #2)";
+    // With the demo's three sample uploads (data/demoUploads.ts).
+    const tide = "The Tide Clock (The Lantern Coast, #1)";
+    const salt = "The Salt Archive (The Lantern Coast, #2)";
+    const orchard = "Notes from a Small Orchard";
     await sortBy.selectOption("published");
     await page.waitForURL(/sort=published/);
-    await settles([first, second]);
+    await settles([salt, tide, first, orchard, second]);
     await sortBy.selectOption("published-oldest");
-    await settles([second, first]);
+    await settles([second, orchard, first, tide, salt]);
     await sortBy.selectOption("series");
     await page.waitForURL(/sort=series/);
-    await settles([first, second]);
+    await settles([first, second, tide, salt, orchard]);
     await sortBy.selectOption("author");
-    await settles([first, second]);
+    await settles([first, second, orchard, salt, tide]);
     await sortBy.selectOption("added");
     await page.waitForURL((url) => !url.search.includes("sort="));
     expect(await scrollsSideways(page)).toBe(false);
@@ -1239,7 +1245,8 @@ describe("the demo household", () => {
     await status.selectOption({ label: "Didn't finish" });
     await page.getByText("Marked as didn't finish.").waitFor({ state: "attached" });
     await goInApp(page, "/library?status=did_not_finish");
-    await page.getByRole("radio", { name: /Didn't finish \(1\)/ }).waitFor({ state: "attached" });
+    // Avery's demo already has one (Moby-Dick).
+    await page.getByRole("radio", { name: /Didn't finish \(2\)/ }).waitFor({ state: "attached" });
     await goInApp(page, "/books/dune");
     await page.getByLabel("Reading status").selectOption({ label: "Finished" });
     await page.getByRole("button", { name: "Read again" }).click();

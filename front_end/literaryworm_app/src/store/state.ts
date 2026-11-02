@@ -1,4 +1,5 @@
 import { getBook } from "../data/books";
+import { DEMO_UPLOAD_READING, demoUploads } from "../data/demoUploads";
 import { seedLogs } from "../data/logs";
 import { usesBackend } from "../lib/backend";
 import { defaultPlayerSettings, defaultReaderSettings, today } from "../lib/reading";
@@ -114,9 +115,9 @@ export const emptyProfileData = (): ProfileData => ({
 export const newId = () => crypto.randomUUID();
 
 /** A library entry for a title from the LiteraryWorm catalog. */
-function catalogEntry(bookId: string, status: ReadingStatus, addedAt: number): [string, LibraryEntry] {
+function catalogEntry(bookId: string, status: ReadingStatus, addedAt: number, updatedAt?: number): [string, LibraryEntry] {
   const book = getBook(bookId)!;
-  return [bookId, { bookId, status, addedAt, title: book.title, authors: [book.author], cover: null }];
+  return [bookId, { bookId, status, addedAt, ...(updatedAt ? { updatedAt } : {}), title: book.title, authors: [book.author], cover: null }];
 }
 
 /**
@@ -204,15 +205,28 @@ export function demoHousehold(): Household {
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
   const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60, weeklyGoalMinutes: 120 });
   const now = Date.now();
+  const day = 86_400_000;
+  // Three sample EPUBs (data/demoUploads.ts): two in a series, one being read.
+  const uploads = demoUploads(now);
+  const reading = uploads.find((u) => u.id === DEMO_UPLOAD_READING)!;
   const averyData: ProfileData = {
     ...emptyProfileData(),
+    // Books to read, being read, finished and not finished, two of a series, added and changed on
+    // different days: so every My Library Sort by (series, published, recently changed) shows something.
     library: Object.fromEntries([
-      catalogEntry("babel", "want_to_read", now - 5 * 86_400_000),
-      catalogEntry("sea-of-tranquility", "want_to_read", now - 4 * 86_400_000),
-      catalogEntry("dune", "reading", now - 3 * 86_400_000),
-      catalogEntry("the-midnight-library", "reading", now - 2 * 86_400_000),
-      catalogEntry("project-hail-mary", "want_to_read", now - 86_400_000),
+      catalogEntry("the-time-machine", "finished", now - 70 * day, now - 30 * day),
+      catalogEntry("pride-and-prejudice", "finished", now - 60 * day, now - 25 * day),
+      catalogEntry("anne-of-green-gables", "finished", now - 40 * day, now - 10 * day),
+      catalogEntry("moby-dick", "did_not_finish", now - 30 * day, now - 15 * day),
+      catalogEntry("anne-of-avonlea", "want_to_read", now - 9 * day),
+      catalogEntry("babel", "want_to_read", now - 5 * day),
+      catalogEntry("sea-of-tranquility", "want_to_read", now - 4 * day),
+      catalogEntry("dune", "reading", now - 3 * day),
+      catalogEntry("the-midnight-library", "reading", now - 2 * day),
+      catalogEntry("project-hail-mary", "want_to_read", now - day),
+      [reading.id, { bookId: reading.id, status: "reading", addedAt: reading.createdAt, title: reading.title, authors: [reading.author], cover: null }],
     ]),
+    uploads,
     favorites: ["circe"],
     follows: [
       { kind: "author", name: "Matt Haig" },
@@ -230,6 +244,7 @@ export function demoHousehold(): Household {
       demoWord("ardent", "adjective: very enthusiastic or passionate", "pride-and-prejudice", today(new Date(now + 3 * 86_400_000)), 2, now - 4 * 86_400_000),
     ],
     progress: {
+      [reading.id]: { bookId: reading.id, format: "ebook", fraction: 0.4, chapterIndex: 1, updatedAt: now - 5 * 3_600_000, finished: false },
       dune: { bookId: "dune", format: "audiobook", fraction: 0.42, chapterIndex: 9, updatedAt: now - 3_600_000, finished: false },
       "the-midnight-library": {
         bookId: "the-midnight-library",

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { samplePageSentences } from "../data/sampleText";
 import { loadUploadText } from "./uploadsApi";
 import { tabTexts } from "./uploads";
+import { DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
 import { keepUploadOffline, offlineUploadText } from "./uploadCache";
 import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
@@ -306,7 +307,8 @@ const textCache = new Map<string, Promise<string[]>>();
  * loads; without a connection, the copy kept on the device.
  */
 async function uploadText(id: string, path: string | null): Promise<string[]> {
-  const kept = tabTexts.get(id);
+  // Uploaded in this tab, or one of the demo's sample uploads.
+  const kept = tabTexts.get(id) ?? DEMO_UPLOAD_TEXTS.get(id);
   if (kept) return kept;
   if (!path) throw new Error("This book was uploaded in another tab. Upload it again here.");
   try {
