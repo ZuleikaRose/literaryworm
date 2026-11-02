@@ -4,15 +4,17 @@ import { normalizeQuery, wordsMatch } from "./search";
 
 /**
  * Searching a profile's uploaded EPUBs (My Library → Uploads): by title or author, which is
- * checked as the reader types, or by keywords, which also looks through each book's text and
+ * checked as the reader types; by ISBN, which Google Books names (uploads keep no ISBNs, so its
+ * editions are matched by title and author, as when starting a club); or by keywords, which also looks through each book's text and
  * names the places they're found. Everything happens in the browser; the words aren't sent anywhere.
  */
-export type UploadSearchBy = "title" | "author" | "keywords";
+export type UploadSearchBy = "title" | "author" | "keywords" | "isbn";
 
 export const UPLOAD_SEARCH_BY: { value: UploadSearchBy; label: string }[] = [
   { value: "title", label: "Title" },
   { value: "author", label: "Author" },
   { value: "keywords", label: "Keywords" },
+  { value: "isbn", label: "ISBN" },
 ];
 
 /** Places shown for each book; the count says how many more there are. */
@@ -63,6 +65,8 @@ export function uploadDetails(u: Pick<UploadedBook, "title" | "author" | "chapte
 /** Whether an upload's title or author (or, for keywords, its details) has every word typed. */
 export function detailsMatch(u: Pick<UploadedBook, "title" | "author" | "chapterTitles">, q: string, by: UploadSearchBy): boolean {
   if (!normalizeQuery(q)) return true;
+  // An ISBN is matched through Google Books by the caller (`isbnMatches()`), never here.
+  if (by === "isbn") return true;
   const text = by === "title" ? u.title : by === "author" ? u.author : uploadDetails(u);
   return wordsMatch(text, q);
 }

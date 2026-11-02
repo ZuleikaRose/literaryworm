@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { getBook } from "../data/books";
-import { arrangeChoices, catalogChoice, type ClubBookChoice, choiceLabel, isbnMatches, seriesNames, uploadChoice } from "./clubBookChoices";
+import { arrangeChoices, catalogChoice, type ClubBookChoice, choiceLabel, isbnMatches, keywordMatch, seriesNames, uploadChoice } from "./clubBookChoices";
 import { seriesInTitle } from "./librarySort";
 
 const book = (id: string, title: string, author: string, series?: { name: string; order: number }): ClubBookChoice => ({ id, title, author, series });
@@ -77,5 +77,21 @@ describe("finding a club's book by ISBN", () => {
     // Same title, another author: not the same book.
     expect(isbnMatches(choices, [{ title: "Pride and Prejudice", authors: ["Someone Else"] }])).toEqual([]);
     expect(isbnMatches(choices, [])).toEqual([]);
+  });
+});
+
+describe("finding a club's book by keywords", () => {
+  it("looks through a catalog title's description and genres, not just its title and author", () => {
+    const frankenstein = catalogChoice(getBook("frankenstein")!);
+    expect(keywordMatch(frankenstein, "arctic ice")).toBe(true);
+    expect(keywordMatch(frankenstein, "shelley creature")).toBe(true);
+    expect(keywordMatch(frankenstein, "arctic zzzz")).toBe(false);
+  });
+
+  it("looks through an upload's part names", () => {
+    const upload = uploadChoice({ id: "u-3", title: "The Long Voyage", author: "Ada Byron", chapterTitles: ["Departure", "The Storm"] });
+    expect(keywordMatch(upload, "storm voyage")).toBe(true);
+    expect(keywordMatch(upload, "harbour")).toBe(false);
+    expect(keywordMatch(uploadChoice({ id: "u-4", title: "Untitled", author: "" }), "untitled")).toBe(true);
   });
 });

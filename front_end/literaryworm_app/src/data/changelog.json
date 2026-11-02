@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-02",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Find uploads by ISBN, and club books by keywords",
+    "body": "My Library → Uploads can now search your EPUBs by ISBN too: Google Books says which book it is, and your uploads with that title and author show. When you start a club, Search by now offers Keywords beside title, author or ISBN, for Find a book and Find one of your uploads: LiteraryWorm books are searched by description and genres too, uploads by their part names.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Search by keywords, and search your uploads",
     "body": "Search has a new choice, Keywords: it finds books with every word you type anywhere in the title, author, narrator, description, genres or series, with the same filters as a title search. It's in the header's search box too. In My Library → Uploads you can now search your own EPUBs by title, author or keywords; keywords look through the books' text on your device and link to each page where the words are.",
     "major": true

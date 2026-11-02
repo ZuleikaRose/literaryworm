@@ -128,7 +128,7 @@ export const planFaqs = [
   },
   {
     q: "Can my book club read a book I bought?",
-    a: "Yes, if it's a DRM-free EPUB. Upload it in My Library → Uploads, then start a club and choose My uploads under Book from; find it by title, author or ISBN, and sort the list by title, author, numbers or series. Your file stays private: the club sees only the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion follows their place and never spoils what's ahead.",
+    a: "Yes, if it's a DRM-free EPUB. Upload it in My Library → Uploads, then start a club and choose My uploads under Book from; find it by title, author, ISBN or keywords, and sort the list by title, author, numbers or series. Your file stays private: the club sees only the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion follows their place and never spoils what's ahead.",
   },
   {
     q: "Can I bring my reading history from Goodreads or StoryGraph?",

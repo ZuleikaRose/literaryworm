@@ -9,6 +9,10 @@ import { useUploads } from "../lib/useUploads";
 import { batchSummary, planBatch, type Skipped, UPLOADS_AT_ONCE } from "../lib/uploadBatch";
 import { detailsMatch, hitPath, type KeywordResult, UPLOAD_SEARCH_BY, uploadQueryError, type UploadSearchBy } from "../lib/uploadSearch";
 import { useUploadSearch } from "../lib/useUploadSearch";
+import { usesBackend } from "../lib/booksApi";
+import { isbnMatches, uploadChoice } from "../lib/clubBookChoices";
+import { normalizeQuery, queryError } from "../lib/search";
+import { isbnNoteFor, useIsbnLookup } from "../lib/useIsbnLookup";
 import { Cover } from "./Cover";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
@@ -43,8 +47,19 @@ export function UploadsView({ profile }: { profile: Profile }) {
   const [searchError, setSearchError] = useState<string | null>(null);
   const keywords = useUploadSearch();
   const searchInput = useRef<HTMLInputElement>(null);
-  // Title and author narrow the list as the reader types; keywords search the text when asked.
-  const shown = searchBy === "keywords" ? sorted : sorted.filter((u) => detailsMatch(u, draft, searchBy));
+  // ISBNs are looked up on Google Books, so only with LiteraryWorm's servers (as on Search).
+  const searchChoices = UPLOAD_SEARCH_BY.filter((b) => b.value !== "isbn" || usesBackend);
+  const byIsbn = searchBy === "isbn";
+  const lookup = useIsbnLookup(byIsbn ? draft : "");
+  const isbnShown = !normalizeQuery(draft)
+    ? sorted
+    : lookup.editions
+      ? sorted.filter((u) => isbnMatches([uploadChoice(u)], lookup.editions!).length > 0)
+      : [];
+  // Until it's a whole ISBN, say what's wrong with it; then what Google Books says it is.
+  const isbnNote = !byIsbn || !normalizeQuery(draft) ? null : lookup.isbn ? isbnNoteFor(lookup, isbnShown.length, "uploads") : queryError(normalizeQuery(draft), "isbn");
+  // Title, author and ISBN narrow the list as the reader types; keywords search the text when asked.
+  const shown = searchBy === "keywords" ? sorted : byIsbn ? isbnShown : sorted.filter((u) => detailsMatch(u, draft, searchBy));
   const keywordSearch = searchBy === "keywords" ? keywords.search : null;
   const resultFor = new Map(keywordSearch?.found.map((f) => [f.upload.id, f.result]));
   const listed = keywordSearch ? sorted.filter((u) => resultFor.has(u.id)) : shown;
@@ -185,7 +200,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
                     keywords.clear();
                   }}
                 >
-                  {UPLOAD_SEARCH_BY.map((b) => (
+                  {searchChoices.map((b) => (
                     <option key={b.value} value={b.value}>
                       {b.label}
                     </option>
@@ -194,7 +209,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
               </div>
               <div className="upload-search-field">
                 <label htmlFor={searchId}>
-                  {searchBy === "keywords" ? "Keywords" : searchBy === "author" ? "Author's name" : "Title"}
+                  {searchBy === "keywords" ? "Keywords" : searchBy === "author" ? "Author's name" : byIsbn ? "ISBN" : "Title"}
                 </label>
                 <input
                   ref={searchInput}
@@ -204,6 +219,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
                   value={draft}
                   maxLength={200}
                   autoComplete="off"
+                  inputMode={byIsbn ? "numeric" : undefined}
                   aria-invalid={searchError ? true : undefined}
                   aria-describedby={searchError ? `${searchId}-error` : `${searchId}-hint`}
                   onChange={(e) => {
@@ -229,9 +245,11 @@ export function UploadsView({ profile }: { profile: Profile }) {
               </p>
             ) : (
               <p className="field-hint" id={`${searchId}-hint`}>
-                {searchBy === "keywords"
-                  ? "Looks for every word in your books' text, titles, authors and part names, and shows where they are. It's done on this device."
-                  : `Shows your uploads whose ${searchBy === "author" ? "author" : "title"} has every word you type.`}
+                {byIsbn
+                  ? (isbnNote ?? "The 10- or 13-digit number from the book. Google Books says which book it is, and your uploads with that title and author show.")
+                  : searchBy === "keywords"
+                    ? "Looks for every word in your books' text, titles, authors and part names, and shows where they are. It's done on this device."
+                    : `Shows your uploads whose ${searchBy === "author" ? "author" : "title"} has every word you type.`}
               </p>
             )}
             <p className="visually-hidden" role="status">
@@ -239,7 +257,9 @@ export function UploadsView({ profile }: { profile: Profile }) {
                 ? keywordSearch.status === "searching"
                   ? `Searching ${keywordSearch.searched} of ${keywordSearch.total} books…`
                   : `${keywordSearch.found.length} ${keywordSearch.found.length === 1 ? "book has" : "books have"} “${keywordSearch.q}”.`
-                : draft
+                : byIsbn && isbnNote
+                  ? isbnNote
+                  : draft
                   ? `${shown.length} of ${uploads.length} uploads shown.`
                   : ""}
             </p>
@@ -259,7 +279,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
               load. Check your connection and search again.
             </p>
           )}
-          {!keywordSearch && draft && shown.length === 0 && (
+          {!keywordSearch && !byIsbn && draft && shown.length === 0 && (
             <p className="upload-search-summary">No uploads match. Check the spelling, or search by keywords.</p>
           )}
           {uploads.length > 1 && (

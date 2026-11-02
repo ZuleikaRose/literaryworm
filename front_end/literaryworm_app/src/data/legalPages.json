@@ -1665,7 +1665,7 @@
         "paragraphs": [
           "Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.",
           "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
-          "To find one of your uploads, search them in My Library → Uploads by title, author or keywords. Keywords also looks through the books' text and shows where the words are, each place a link to that page. It's done on your device: the words aren't sent anywhere."
+          "To find one of your uploads, search them in My Library → Uploads by title, author, keywords or ISBN. Keywords also looks through the books' text and shows where the words are, each place a link to that page, on your device. An ISBN is looked up on Google Books and matched to your uploads by title and author."
         ]
       },
       {
@@ -1708,7 +1708,8 @@
         "paragraphs": [
           "On a book club's page, Where everyone is shows the chapter each member has reached, for members who turn on Show my place to this club; it's off until you turn it on.",
           "Under a club's discussion, Shared highlights shows passages members marked in the book; ones from chapters you haven't reached stay hidden until you choose to see them. Share one of yours from the list there, with or without its note, and stop sharing it whenever you like.",
-          "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose LiteraryWorm books or My uploads under Book from, then find the book by title, author or ISBN (an ISBN is looked up on Google Books and matched by title and author). Sort the list by title, author, numbers first or series in reading order, and filter it to one series.",
+          "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose LiteraryWorm books or My uploads under Book from, then find the book by title, author or ISBN (an ISBN is looked up on Google Books and matched by title and author), or choose Keywords under Search by to look through descriptions and genres too.",
+          "Sort the list by title, author, numbers first or series in reading order, and filter it to one series.",
           "Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. An uploaded book has no recording, so there's no listening along.",
           "To read a book with one friend, choose Read with a friend on its page. A buddy read is a book club for two: send your friend its code, and you get spoiler-safe posts by chapter, meetings and shared highlights."
         ]

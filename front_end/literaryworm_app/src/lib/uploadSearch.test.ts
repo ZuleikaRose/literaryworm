@@ -11,6 +11,8 @@ describe("searching uploads by title or author", () => {
     expect(detailsMatch(upload, "byron", "author")).toBe(true);
     expect(detailsMatch(upload, "storm", "keywords")).toBe(true);
     expect(detailsMatch(upload, "", "author")).toBe(true);
+    // An ISBN is matched through Google Books by the caller, so it narrows nothing here.
+    expect(detailsMatch(upload, "9780141439518", "isbn")).toBe(true);
   });
 });
 

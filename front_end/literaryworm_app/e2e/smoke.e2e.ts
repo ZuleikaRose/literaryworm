@@ -381,6 +381,11 @@ describe("the demo household", () => {
     // An ISBN is looked up on Google Books, which needs the servers this test copy doesn't use.
     await form.getByLabel("Find a book").fill("978-0-14-143951-8");
     await form.getByText(/Finding a book by ISBN needs LiteraryWorm's servers/).first().waitFor();
+    // Keywords look through descriptions too: Frankenstein's has "arctic ice", its title doesn't.
+    await form.getByLabel("Search by", { exact: true }).selectOption("keywords");
+    await form.getByLabel("Find a book").fill("arctic ice");
+    await expect(form.getByLabel(/^Book/).locator("option").allTextContents()).resolves.toContainEqual(expect.stringContaining("Frankenstein"));
+    await form.getByLabel("Search by", { exact: true }).selectOption("title-author-isbn");
     await form.getByLabel("Find a book").fill("pride prejudice");
     await page.getByLabel("Club name").fill("Austen fans");
     await page.getByRole("button", { name: "Start club" }).click();
@@ -708,6 +713,8 @@ describe("the demo household", () => {
     await page.locator('input[type="file"]').setInputFiles({ name: "lighthouse.epub", mimeType: "application/epub+zip", buffer: epub });
     await page.getByRole("link", { name: "The Lighthouse Keeper", exact: true }).waitFor();
     const searchBy = page.locator(".upload-search").getByLabel("Search by");
+    // ISBN is offered only with LiteraryWorm's servers (Google Books), which this test copy doesn't use.
+    expect(await searchBy.locator("option").allTextContents()).toEqual(["Title", "Author", "Keywords"]);
     // Author narrows the list as you type.
     await searchBy.selectOption("author");
     await page.getByLabel("Author's name").fill("zzz");
