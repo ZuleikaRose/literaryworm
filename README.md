@@ -260,7 +260,7 @@ Your project will be assessed across these areas:
 ### How the brief's hard parts are handled
 
 - **The API key never reaches the browser.** The front end calls only the `books` Edge Function (`front_end/literaryworm_app/src/lib/booksApi.ts`). The function adds `GOOGLE_BOOKS_API_KEY` from Supabase's function secrets; the key is in no file in this repo and no `VITE_` variable. The Claude key for book summaries works the same way: only the `summaries` function holds it (`ANTHROPIC_API_KEY`).
-- **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode, title query 1–100 characters with no search operators, genre from the list, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
+- **Anonymous visitors, validated input.** `books` needs no login, so it checks every parameter (mode: home, search, keywords, genre, author, isbn or volume; a title or keywords query 1–100 characters with no search operators, genre from the list, page 0–19, volume id format), rejects unknown parameters, and rate limits each IP (60 a minute).
 - **Shaped responses and friendly failures.** Only the fields the UI shows, with https covers, plain-text descriptions and nulls for missing data. Google's 429s, errors and timeouts (8 s) become `{ error: { code, message } }`; the UI shows *We couldn't load …* with *Try again*.
 - **CORS.** An origin allowlist (`ALLOWED_ORIGINS`), `Vary: Origin`, and preflight handling.
 - **Real accounts.** Sign up, log in, log out and password reset use Supabase Auth with email and password; new addresses are confirmed by an emailed link and reset links are emailed too (Mailgun, through Auth's SMTP setting), and members can turn on two-step sign-in with an authenticator app. Sign-up sends the display name, date of birth and Terms acceptance; a database trigger checks them (18+) and creates the public `profiles` row, so logs show the display name and never the email. The browser holds only the publishable key and the member's own session.
@@ -465,5 +465,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Google Books' third-party cookies from books.google.com named in the Cookie Policy, Privacy Policy, Help, FAQ and Children's Privacy Notice (6618) | Done    |
 | —    | Search by keywords on Search and in the header; search your uploads by title, author or keywords, through their text (6621) | Done    |
 | —    | Search your uploads by ISBN; a club's book found by title, author, keywords or ISBN in one box (6622, 6623) | Done    |
+| —    | Keyword searches to try on Discover and Search; Plans and home page name upload search; Cookie Policy true to the uploads cache (6624); schema.sql and drawsql.png current to 6624 (no table or column changes since 6617; live dev and production checked: 66 tables, 489 columns) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
