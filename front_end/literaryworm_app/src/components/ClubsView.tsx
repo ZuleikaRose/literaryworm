@@ -19,6 +19,7 @@ import {
 import {
   arrangeChoices,
   catalogChoice,
+  clubSortNote,
   choiceLabel,
   isbnMatches,
   keywordMatch,
@@ -29,7 +30,7 @@ import { isbnNoteFor, useIsbnLookup } from "../lib/useIsbnLookup";
 import { CLUB_BOOK_SORTS, type ClubBookSort } from "../lib/librarySort";
 import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
-import { activeReading } from "../store/reducer";
+import { activeLibrary, activeReading } from "../store/reducer";
 import { useProfileData, useStore } from "../store/context";
 import type { Profile } from "../types";
 import { Cover } from "./Cover";
@@ -165,6 +166,9 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const clubs = useClubs();
   const navigate = useNavigate();
   const { uploads } = useProfileData();
+  const { state } = useStore();
+  const library = activeLibrary(state);
+  const progress = activeReading(state).progress;
   const now = today();
   const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, profile.ageRating)), [profile.ageRating]);
   const [source, setSource] = useState<BookSource>("catalog");
@@ -172,7 +176,14 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
   const [sort, setSort] = useState<ClubBookSort>("title");
   const [series, setSeries] = useState("");
   // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, with their series.
-  const all = useMemo(() => (source === "uploads" ? uploads.map(uploadChoice) : catalog.map(catalogChoice)), [source, uploads, catalog]);
+  // With when each was added (to the library, or uploaded), last read and published, for Sort by.
+  const all = useMemo(
+    () =>
+      source === "uploads"
+        ? uploads.map((u) => uploadChoice(u, progress[u.id]))
+        : catalog.map((b) => catalogChoice(b, { entry: library[b.id], progress: progress[b.id] })),
+    [source, uploads, catalog, library, progress],
+  );
   const seriesList = useMemo(() => seriesNames(all), [all]);
   // A series from the other source isn't offered: fall back to every book.
   const seriesShown = series === "" || series === "none" || seriesList.includes(series) ? series : "";
@@ -196,6 +207,7 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
     [all, query, isbn, lookup.editions, sort, seriesShown],
   );
   const isbnNote = isbnNoteFor(lookup, choices.length, source);
+  const sortNote = clubSortNote(sort, source);
   const [name, setName] = useState("");
   const [picked, setPicked] = useState("");
   const bookId = choices.some((b) => b.id === picked) ? picked : (choices[0]?.id ?? "");
@@ -266,13 +278,24 @@ function StartClubForm({ profile, onCancel }: { profile: Profile; onCancel: () =
           <label className="field-label" htmlFor="club-book-sort">
             Sort by
           </label>
-          <select id="club-book-sort" className="field-input" value={sort} onChange={(e) => setSort(e.target.value as ClubBookSort)}>
+          <select
+            id="club-book-sort"
+            className="field-input"
+            value={sort}
+            aria-describedby={sortNote ? "club-book-sort-note" : undefined}
+            onChange={(e) => setSort(e.target.value as ClubBookSort)}
+          >
             {CLUB_BOOK_SORTS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </select>
+          {sortNote && (
+            <p className="field-hint" id="club-book-sort-note">
+              {sortNote}
+            </p>
+          )}
         </div>
         <div className="field">
           <label className="field-label" htmlFor="club-book-series">

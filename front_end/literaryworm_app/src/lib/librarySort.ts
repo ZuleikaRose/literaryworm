@@ -22,17 +22,10 @@ export type UploadSort = LibrarySort;
 
 export const UPLOAD_SORTS = LIBRARY_SORTS;
 
-/** The book list when starting a book club (LiteraryWorm titles or the profile's uploads). */
-export type ClubBookSort = "title" | "title-desc" | "author" | "author-desc" | "numbers" | "series";
+/** The book list when starting a book club: the same eleven sorts as My Library. */
+export type ClubBookSort = LibrarySort;
 
-export const CLUB_BOOK_SORTS: { value: ClubBookSort; label: string }[] = [
-  { value: "title", label: "Title A–Z" },
-  { value: "title-desc", label: "Title Z–A" },
-  { value: "author", label: "Author A–Z" },
-  { value: "author-desc", label: "Author Z–A" },
-  { value: "numbers", label: "Numbers first (0–9)" },
-  { value: "series", label: "Series, in reading order" },
-];
+export const CLUB_BOOK_SORTS = LIBRARY_SORTS;
 
 export function readLibrarySort(raw: string | null): LibrarySort {
   return LIBRARY_SORTS.some((s) => s.value === raw) ? (raw as LibrarySort) : "added";
@@ -215,20 +208,44 @@ export function seriesInTitle(title: string): SeriesPlace | undefined {
   return match ? { name: match[1].trim(), order: Number(match[2]) } : undefined;
 }
 
+/** What sorting a club's book choices needs. */
+export interface SortableChoice {
+  id: string;
+  title: string;
+  author: string;
+  /** When it went into the profile's library, or was uploaded; missing when it isn't in the library. */
+  addedAt?: number;
+  /** When it was last read or changed; missing when it isn't in the library. */
+  changedAt?: number;
+  /** The year it was published, when known. */
+  year?: number | null;
+}
+
 /**
- * Orders the books offered when starting a club. Titles drop a leading The/A/An and compare
- * numbers as numbers; authors go by surname; *Numbers first* puts titles starting with a digit
- * first; *Series* groups each series (A–Z) in reading order, then the books in none by title.
+ * Orders the books offered when starting a club, the same eleven ways as My Library. Titles drop
+ * a leading The/A/An and compare numbers as numbers; authors go by surname; books without a date
+ * (not in the library) or a year go last either way round; *Series* groups each series (A–Z) in
+ * reading order, then the books in none. Ties go by title, then id, so the order never jumps.
  */
-export function sortClubBooks<T extends { id: string; title: string; author: string }>(
-  books: T[],
-  sort: ClubBookSort,
-  seriesFor: (book: T) => SeriesPlace | undefined,
-): T[] {
+export function sortClubBooks<T extends SortableChoice>(books: T[], sort: ClubBookSort, seriesFor: (book: T) => SeriesPlace | undefined): T[] {
   const title = (a: T, b: T) => collator.compare(sortTitle(a.title), sortTitle(b.title));
+  // Known values first, newest or oldest first as asked; unknown ones after.
+  const known = (a: number | null | undefined, b: number | null | undefined, newest: boolean) => {
+    if (a == null || b == null) return a == null && b == null ? 0 : a == null ? 1 : -1;
+    return newest ? b - a : a - b;
+  };
   return [...books].sort((a, b) => {
     let order = 0;
     switch (sort) {
+      case "added":
+        order = known(a.addedAt, b.addedAt, true);
+        break;
+      case "added-oldest":
+        order = known(a.addedAt, b.addedAt, false);
+        break;
+      case "updated":
+        order = known(a.changedAt ?? a.addedAt, b.changedAt ?? b.addedAt, true);
+        break;
       case "title":
         order = title(a, b);
         break;
@@ -243,6 +260,12 @@ export function sortClubBooks<T extends { id: string; title: string; author: str
         break;
       case "numbers":
         order = Number(startsWithNumber(b.title)) - Number(startsWithNumber(a.title));
+        break;
+      case "published":
+        order = known(a.year, b.year, true);
+        break;
+      case "published-oldest":
+        order = known(a.year, b.year, false);
         break;
       case "series":
         order = bySeries(seriesFor(a), seriesFor(b));

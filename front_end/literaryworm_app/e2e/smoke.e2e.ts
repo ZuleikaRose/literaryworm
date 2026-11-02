@@ -374,7 +374,19 @@ describe("the demo household", () => {
     // My uploads has the same Sort by as LiteraryWorm books, even before the first upload.
     const sortOptions = () => page.locator(".club-form").getByLabel("Sort by").locator("option").allTextContents();
     const uploadSorts = await sortOptions();
-    expect(uploadSorts).toEqual(["Title A–Z", "Title Z–A", "Author A–Z", "Author Z–A", "Numbers first (0–9)", "Series, in reading order"]);
+    expect(uploadSorts).toEqual([
+      "Recently added",
+      "Oldest added",
+      "Recently changed",
+      "Title A–Z",
+      "Title Z–A",
+      "Numbers first (0–9)",
+      "Author A–Z",
+      "Author Z–A",
+      "Published, newest",
+      "Published, oldest",
+      "Series, in reading order",
+    ]);
     // LiteraryWorm books, narrowed by title or author.
     await page.getByText("LiteraryWorm books").click();
     await expect(sortOptions()).resolves.toEqual(uploadSorts);
@@ -389,6 +401,11 @@ describe("the demo household", () => {
     await expect(form.getByLabel(/^Book/).locator("option").first().textContent()).resolves.toContain("Anne of Green Gables");
     await expect(form.getByLabel(/^Book/).locator("option").nth(1).textContent()).resolves.toContain("Anne of Avonlea");
     await form.getByLabel("Series", { exact: true }).selectOption("");
+    // The date sorts say what they go by: books in the library first.
+    await form.getByLabel("Sort by").selectOption("added");
+    await form.getByText("Books in your library come first, by when you added them.").waitFor();
+    await form.getByLabel("Sort by").selectOption("published");
+    await expect(form.getByText(/in your library come first/).count()).resolves.toBe(0);
     await form.getByLabel("Sort by").selectOption("title");
     // An ISBN is looked up on Google Books, which needs the servers this test copy doesn't use.
     await form.getByLabel("Find a book").fill("978-0-14-143951-8");
