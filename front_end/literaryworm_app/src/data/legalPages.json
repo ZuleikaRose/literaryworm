@@ -11,7 +11,8 @@
           "The accessibility menu at the top of every page changes text size, theme (dark or light), an easier-to-read font, high contrast, underlined links and reduced motion. Your choices last for the visit.",
           "Every page works with a keyboard alone, and the player has keyboard shortcuts, listed under its controls. Buttons and links are at least 44 pixels square, focus is always visible, and dialogs keep focus inside them and return it when they close.",
           "Screen readers hear labelled controls, headings that outline each page, and announcements when something changes, such as a saved setting or a new club post. Pictures that carry meaning, like shared quote cards, have text alternatives; decorative covers are hidden from screen readers and their titles are always written nearby.",
-          "In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration."
+          "In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration.",
+          "Newer features follow the same rules. Mood and pace tags are buttons that say whether they're on, content notes and translations are announced when they arrive, a Kids profile's Time for bed screen works with a keyboard and screen reader, and a shared audio clip has a labelled Play button."
         ]
       },
       {
@@ -32,7 +33,9 @@
         "paragraphs": [
           "The read-along transcript for some titles is sample text rather than the exact recording, and is hidden while a real recording plays.",
           "Book details and covers from Google Books, and the LibriVox recordings, come from other services; we can't always fix problems in their content.",
-          "Books you upload show their text only; images and tables in the original EPUB aren't shown."
+          "Books you upload show their text only; images and tables in the original EPUB aren't shown.",
+          "Content notes, translations and other AI-written text can be wrong; they're labelled as written by AI.",
+          "The Google Books preview is Google's own viewer, so we can't change how it works with assistive technology."
         ]
       },
       {
@@ -58,7 +61,7 @@
       {
         "heading": "Preparation of this statement",
         "paragraphs": [
-          "This statement was prepared on 28 October 2026 and is reviewed annually or when we make significant service changes.",
+          "This statement was prepared on 28 October 2026 and last updated on 1 November 2026. We review it every year, and whenever we make significant changes to the service.",
           "For questions about accessibility or this statement, email us at accessibility@literaryworm.com."
         ]
       }
@@ -590,6 +593,19 @@
         ]
       },
       {
+        "heading": "Keeping it safe",
+        "paragraphs": [
+          "A Kids profile's information is stored with access rules, so only your account can read it. Our support team can't see a profile's name, library or reading.",
+          "You can protect the account with two-step sign-in or a passkey, and lock other profiles with a PIN, which we keep only as a one-way hash."
+        ]
+      },
+      {
+        "heading": "Changes to this notice",
+        "paragraphs": [
+          "We keep the version of this notice you agreed to with each Kids profile. If we change what a Kids profile collects, we'll update this notice and say so on What's new."
+        ]
+      },
+      {
         "heading": "Questions",
         "paragraphs": [
           "If you have a question about your child's information, or think a child is using LiteraryWorm without a parent's consent, email usprivacy@literaryworm.com. We'll answer, and we'll delete information collected without consent.",
@@ -602,30 +618,61 @@
   {
     "slug": "privacy-choices",
     "title": "Your Privacy Choices",
-    "summary": "LiteraryWorm doesn't sell or share personal information for advertising and uses no non-essential cookies (see the Cookie Policy), so there's nothing to opt out of there. Global Privacy Control is honoured. Here are the choices you do have.",
+    "summary": "The choices you have about your information on LiteraryWorm. We don't sell it or share it for advertising, and you control your emails, notifications, cookies and data from Account.",
     "sections": [
+      {
+        "heading": "In short",
+        "paragraphs": [
+          "We don't sell, rent or license your personal information, and we don't share it for advertising. There's nothing to opt out of there, and Global Privacy Control is honoured.",
+          "You decide which emails and notifications you get, what your browser keeps, what other members see, and whether your data stays. You can change each of these in Account at any time."
+        ]
+      },
       {
         "heading": "Selling and sharing",
         "paragraphs": [
-          "We don't sell, rent or license your personal information, and we don't share it for cross-context behavioural advertising. If your browser sends a Global Privacy Control signal, we treat it as a request to opt out, and nothing changes because we already don't do either."
+          "We don't sell, rent or license your personal information, and we don't share it for cross-context behavioural advertising.",
+          "If your browser sends a Global Privacy Control signal, we treat it as a request to opt out. Nothing changes, because we already don't do either."
+        ]
+      },
+      {
+        "heading": "Emails",
+        "paragraphs": [
+          "In Account → Preferences, turn each kind of email on or off: books you set Remind me on coming out, new books from authors you follow, club meeting reminders and changes, a daily email of new club posts, the weekly Kids reading report, the monthly What's new, and marketing emails. Several are off until you turn them on.",
+          "Each of these emails has an unsubscribe link that works in one click. Emails about your account, such as confirming your address or resetting your password, always arrive."
+        ]
+      },
+      {
+        "heading": "Notifications on your devices",
+        "paragraphs": [
+          "Notifications on this device, in Account → Preferences, are off until you turn them on, and are set for each device. Choose which ones you get: books coming out, club meetings, new club posts up to your chapter, the evening streak nudge and answers to Kids book requests.",
+          "Logging out on a device turns them off there. Each book club also has its own alerts switch on its page."
         ]
       },
       {
         "heading": "Cookies and browser storage",
         "paragraphs": [
-          "We set no cookies of our own and no advertising or analytics cookies. The Cookie Policy lists the strictly necessary things your browser keeps, such as your sign-in session, and how to clear them."
+          "We set no advertising or analytics cookies. Our backend's host, Cloudflare, sets one cookie to keep out bots, and Google sets third-party cookies from books.google.com when Google Books covers and previews load, because we use the Google Books API.",
+          "Change your cookie choice with Consent Preferences at the bottom of every page, and block third-party cookies in your browser to stop Google's. The Cookie Policy lists everything your browser keeps and how to clear it."
         ]
       },
       {
-        "heading": "Emails and notifications",
+        "heading": "What other members see",
         "paragraphs": [
-          "Turn emails about new releases and offers on or off in Account → Preferences. Service emails, like password resets, always arrive. Book club alerts can be turned off for each club on its page, and browser notifications only appear if you allow them. Notifications about books you set Remind me on are turned on and off for each device in Account → Preferences, and logging out on a device turns them off there."
+          "Your library, progress, notes, highlights, journal, moods and saved words are private to your household. Reading logs you publish show on the book's page with your display name.",
+          "Your reader page, which gathers your public reading logs, is off until you turn it on, and turning it off removes its followers. In each book club, Show my place is off until you turn it on."
         ]
       },
       {
         "heading": "Your data",
         "paragraphs": [
-          "In Account you can download a copy of your data, correct your display name, and delete profiles or your whole account. Reading logs, club posts, highlights, saved words and uploads can each be deleted whenever you like, and your reader page can be turned off. The Privacy Policy explains what we keep and for how long."
+          "In Account you can download a copy of your data, correct your display name, and delete profiles or your whole account.",
+          "Reading logs, club posts, shared highlights, saved words, journal entries and uploads can each be deleted whenever you like. The Privacy Policy explains what we keep and for how long."
+        ]
+      },
+      {
+        "heading": "Questions",
+        "paragraphs": [
+          "Email usprivacy@literaryworm.com with any question about your privacy choices, or to make a request under the law where you live."
         ]
       }
     ],
@@ -645,6 +692,18 @@
           "You will be subject to, and will be deemed to have accepted, the changes in any revised Legal Terms by your continued use of the Services after the date such revised Legal Terms are posted.",
           "Account holders must be at least 18 years old. People under 18 may use the Services only through a profile, such as a Kids profile, that a parent or guardian adds to their own account and is responsible for.",
           "We recommend that you print a copy of these Legal Terms for your records."
+        ]
+      },
+      {
+        "heading": "In short",
+        "paragraphs": [
+          "This summary helps you find your way around these Legal Terms. It doesn't replace them.",
+          "You must be 18 or older to have an account. Kids and Teen profiles are added by the account holder, who is responsible for them.",
+          "Memberships renew monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge, and know that payments are final (section 30 and the Return Policy).",
+          "You may read and listen for yourself and your household, but not copy, share or sell the books (section 31).",
+          "You own what you write, and you give us a licence only to show it where you posted it (section 33). Upload only books you have the right to read (section 34).",
+          "Follow the Acceptable Use Policy. We may suspend or close accounts that break these Legal Terms (section 16).",
+          "AI-written content is labelled and may be wrong, and the Services are provided as they are (sections 21 and 22). Disputes go to informal negotiation first (section 19)."
         ]
       },
       {
@@ -742,7 +801,7 @@
           "11. Delete the copyright or other proprietary rights notice from any Content.",
           "12. Attempt to impersonate another user or person or use the display name of another user.",
           "13. Upload or transmit (or attempt to upload or to transmit) any material that acts as a passive or active information collection or transmission mechanism, including without limitation, clear graphics interchange formats (\"gifs\"), 1×1 pixels, web bugs, cookies, or other similar devices (sometimes referred to as \"spyware\" or \"passive collection mechanisms\" or \"pcms\").",
-          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, Ask the book, Who's who and chapter quizzes and Previously… recaps.",
+          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, content notes, Ask the book, Translate, Who's who, Previously… recaps and chapter quizzes and Previously… recaps.",
           "15. Harass, annoy, intimidate, or threaten any of our employees or agents engaged in providing any portion of the Services to you.",
           "16. Attempt to bypass any measures of the Services designed to prevent or restrict access to the Services, or any portion of the Services.",
           "17. Copy or adapt the Services' software, including but not limited to HTML, JavaScript, or other code.",
@@ -887,7 +946,7 @@
         "heading": "21. Disclaimer",
         "paragraphs": [
           "THE SERVICES ARE PROVIDED ON AN AS-IS AND AS-AVAILABLE BASIS. YOU AGREE THAT YOUR USE OF THE SERVICES WILL BE AT YOUR SOLE RISK. TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, IN CONNECTION WITH THE SERVICES AND YOUR USE THEREOF, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.",
-          "WE MAKE NO WARRANTIES OR REPRESENTATIONS ABOUT THE ACCURACY OR COMPLETENESS OF THE SERVICES' CONTENT (INCLUDING BOOK DETAILS FROM GOOGLE BOOKS AND SUMMARIES AND ANSWERS WRITTEN BY AI) OR THE CONTENT OF ANY WEBSITES OR MOBILE APPLICATIONS LINKED TO THE SERVICES AND WE WILL ASSUME NO LIABILITY OR RESPONSIBILITY FOR ANY:",
+          "WE MAKE NO WARRANTIES OR REPRESENTATIONS ABOUT THE ACCURACY OR COMPLETENESS OF THE SERVICES' CONTENT (INCLUDING BOOK DETAILS FROM GOOGLE BOOKS AND SUMMARIES, CONTENT NOTES, TRANSLATIONS AND ANSWERS WRITTEN BY AI) OR THE CONTENT OF ANY WEBSITES OR MOBILE APPLICATIONS LINKED TO THE SERVICES AND WE WILL ASSUME NO LIABILITY OR RESPONSIBILITY FOR ANY:",
           "(1) ERRORS, MISTAKES, OR INACCURACIES OF CONTENT AND MATERIALS,",
           "(2) PERSONAL INJURY OR PROPERTY DAMAGE, OF ANY NATURE WHATSOEVER, RESULTING FROM YOUR ACCESS TO AND USE OF THE SERVICES,",
           "(3) ANY UNAUTHORIZED ACCESS TO OR USE OF OUR SECURE SERVERS AND/OR ANY AND ALL PERSONAL INFORMATION STORED THEREIN,",
@@ -991,7 +1050,7 @@
         "paragraphs": [
           "Public-domain titles: the texts come from Project Gutenberg and the recordings from LibriVox, whose volunteers release their recordings into the public domain. These works are in the public domain in the United States; they may not be everywhere, so check your country's rules before using them outside LiteraryWorm.",
           "Other LiteraryWorm titles show sample pages, not the published books. Book details and covers from Google Books belong to their publishers and rights holders and are shown under Google's terms.",
-          "Summaries, Ask the book answers, Who's who and chapter quizzes are written by AI (and so are Previously… recaps) (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
+          "Summaries, content notes, Ask the book answers, translations, Who's who, Previously… recaps and chapter quizzes are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
           "The LiteraryWorm name, logo, design and software belong to LiteraryWorm. Using the service doesn't give you any rights in them beyond these Terms."
         ]
       },
@@ -1033,9 +1092,18 @@
     "updated": "2026-10-31",
     "sections": [
       {
+        "heading": "In short",
+        "paragraphs": [
+          "This License Agreement covers the LiteraryWorm app itself, in your browser or installed from it. Our Terms of Service cover your membership, and where both cover the same thing, the Terms of Service apply.",
+          "You may use the app on your own devices for yourself and your household. Don't copy, change, resell or take apart the app, or use it to break the law or anyone's rights.",
+          "We look after the app and its updates, and you can reach us at support@literaryworm.com."
+        ]
+      },
+      {
         "heading": "1. The application",
         "paragraphs": [
-          "LiteraryWorm (\"Licensed Application\") is a piece of software created to read and listen to books online. It runs in a web browser and can be installed from the browser on phones, tablets and computers (\"Devices\"). It is used to read ebooks and listen to audiobooks, review them, and share opinions with other readers. The books we offer in full are in the public domain and have no DRM.",
+          "LiteraryWorm (\"Licensed Application\") is a piece of software created to read and listen to books online. It runs in a web browser and can be installed from the browser on phones, tablets and computers (\"Devices\"). It is used to read ebooks and listen to audiobooks, keep a library and goals for each person at home, read along with book clubs, and review books and share opinions with other readers.",
+          "The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUBs they upload.",
           "The Licensed Application is not tailored to comply with industry-specific regulations (Health Insurance Portability and Accountability Act (HIPAA), Federal Information Security Management Act (FISMA), etc.), so if your interactions would be subjected to such laws, you may not use this Licensed Application. You may not use the Licensed Application in a way that would violate the Gramm-Leach-Bliley Act (GLBA).",
           "The Licensed Application isn't sold through an app store, and no app store or other third party is a party to this License Agreement. LiteraryWorm is solely responsible for the Licensed Application and its content."
         ]
@@ -1181,9 +1249,17 @@
     "updated": "2026-10-31",
     "sections": [
       {
+        "heading": "In short",
+        "paragraphs": [
+          "Use LiteraryWorm lawfully and kindly. Don't harass anyone, post anything illegal or hateful, upload books you don't have the right to read, or try to break or overload the Services.",
+          "Use the AI features as reading aids, and don't try to make them produce harmful content. Reading logs and reviews should be honest and your own.",
+          "Report anything that breaks this Policy to report@literaryworm.com. We may remove content or suspend accounts that break it."
+        ]
+      },
+      {
         "heading": "Agreement to this policy",
         "paragraphs": [
-          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are the book summaries, Ask the book, Who's who and chapter quizzes and Previously… recaps, which are written by Claude, an AI model made by Anthropic, and labelled as written by AI.",
+          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are book summaries, content notes, Ask the book, Translate, Who's who, chapter quizzes and Previously… recaps. They're written by Claude, an AI model made by Anthropic, and labelled as written by AI.",
           "Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.",
           "Please carefully review this Policy which applies to any and all:",
           "(a) uses of our Services (as defined in \"Legal Terms\");",
@@ -1258,7 +1334,7 @@
         "heading": "Artificial intelligence",
         "paragraphs": [
           "We recognize the significant impact AI can have on our users and society, and we are dedicated to ensuring that our AI Products are designed and operated in a manner that aligns with comprehensive ethical standards. We aim to use AI to enhance user experiences while upholding fairness, transparency, and accountability principles.",
-          "That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours.",
+          "That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours. Translate is given only the words you selected, and content notes only the book's details.",
           "This Policy applies to all AI-powered features, services, and systems in our Services. It governs the development, deployment, and use of AI technologies to protect users' rights and maintain transparency in all AI operations. This Policy applies to all stakeholders, including employees, third-party vendors, and partners who contribute to or interact with our AI Products.",
           "Enforcement. Any misuse of our AI Products or failure to adhere to the standards outlined in this Policy will result in appropriate actions to ensure the integrity of our platform and the protection of our users. The specific consequences for misuse of AI may vary depending on the nature and severity of the violation and the user's history with our Services.",
           "Violations may include, but are not limited to:",
@@ -1359,23 +1435,50 @@
   {
     "slug": "returns",
     "title": "Return Policy",
-    "summary": "How refunds work for LiteraryWorm memberships, and who to contact with questions.",
+    "summary": "How billing, cancelling and refunds work for LiteraryWorm memberships and gift memberships, and who to contact with questions.",
     "updated": "2026-10-30",
     "sections": [
       {
+        "heading": "In short",
+        "paragraphs": [
+          "Memberships renew monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge.",
+          "Payments, including gift memberships, are final and aren't refunded, except where the law where you live says otherwise."
+        ]
+      },
+      {
+        "heading": "How billing works",
+        "paragraphs": [
+          "Your LiteraryWorm membership is billed through Stripe, monthly or yearly, until you cancel. Manage it in Account → Plan and billing, where you can also add or change your payment method.",
+          "On monthly billing you can choose any billing day from the 1st to the 28th, and pause or cancel at any time. A yearly membership can be cancelled at any time, but not paused."
+        ]
+      },
+      {
+        "heading": "Cancelling",
+        "paragraphs": [
+          "Cancel at least 48 hours before your next billing date, and your plan stays active until the end of the period you've paid for, with no further charge.",
+          "If you cancel less than 48 hours before your billing date, that charge still goes through and isn't refunded. A monthly plan then ends at the end of the month it pays for, and a yearly plan at the end of the year it pays for.",
+          "Pausing a monthly membership stops billing until you resume. Your library, profiles and progress stay as they are."
+        ]
+      },
+      {
         "heading": "Refunds",
         "paragraphs": [
-          "This is not a demo app anymore: your LiteraryWorm account is a live account. You'll be billed monthly, or yearly if you choose, until you cancel. Add a payment method in Account → Plan and billing to continue your membership. On monthly billing you can change your billing day to any day from the 1st to the 28th, and start, pause or cancel billing at any time in Account; a yearly plan can be cancelled at any time, but not paused.",
-          "All sales are final and no refund will be issued. You can cancel at any time from Account. Cancel at least 48 hours before your next billing date and your plan stays active until the end of the period you've paid for, and you won't be charged again. If you cancel less than 48 hours before your billing date, that charge still goes through (it isn't refunded) and your plan ends at the end of the month it pays for. You can also pause your membership, which stops billing until you resume.",
-          "Gift memberships are paid once and are final too. A gift code doesn't expire, works once (from the day the gift starts, if the buyer chose a later day up to a year ahead; if the buyer asked us to email it to the person it's for, we send it once it can be redeemed, and otherwise we remind the buyer three days before a later start), and can't be exchanged for cash or refunded.",
-          "Redeeming one gives its months free on the gift's plan; when they end, the membership ends unless a card has been added, and then it renews monthly until you cancel. Books that come with a gift are added to the library as Want to read when it's redeemed; they're LiteraryWorm titles, so reading and listening to them is part of the membership, not a separate purchase.",
+          "All sales are final. No refunds are issued for memberships, renewals or time you didn't use.",
           "This doesn't affect any rights you have under the law where you live."
+        ]
+      },
+      {
+        "heading": "Gift memberships",
+        "paragraphs": [
+          "Gift memberships are paid once and are final too.",
+          "A gift code doesn't expire, works once (from the day the gift starts, if the buyer chose a later day up to a year ahead; if the buyer asked us to email it to the person it's for, we send it once it can be redeemed, and otherwise we remind the buyer three days before a later start), and can't be exchanged for cash or refunded.",
+          "Redeeming one gives its months free on the gift's plan; when they end, the membership ends unless a card has been added, and then it renews monthly until you cancel. Books that come with a gift are added to the library as Want to read when it's redeemed; they're LiteraryWorm titles, so reading and listening to them is part of the membership, not a separate purchase."
         ]
       },
       {
         "heading": "Questions",
         "paragraphs": [
-          "If you have any questions concerning our return policy, please contact us at support@literaryworm.com."
+          "If you have any questions about this Return Policy, please contact us at support@literaryworm.com."
         ]
       }
     ]
@@ -1387,6 +1490,13 @@
     "updated": "2026-10-28",
     "sections": [
       {
+        "heading": "In short",
+        "paragraphs": [
+          "The books you can read and hear in full here are in the public domain in the United States. Other titles show sample pages and details from Google Books.",
+          "If you think something on LiteraryWorm infringes your copyright, send our designated agent a notice with the details listed below, and we'll act on it promptly."
+        ]
+      },
+      {
         "heading": "Our books and their licences",
         "paragraphs": [
           "Public-domain titles use texts from Project Gutenberg and recordings from LibriVox, which LibriVox volunteers release into the public domain. These works are in the public domain in the United States, where LiteraryWorm operates. Our copies leave out Project Gutenberg's own header, footer and licence text.",
@@ -1397,7 +1507,8 @@
       {
         "heading": "What people post or upload",
         "paragraphs": [
-          "Reading logs, club posts and shared lists are written by members, who keep their rights in them. Books members upload are private to their own profile and aren't shown to anyone else (a book club started around one shows only its title and author); members must have the right to read them that way (see the Terms of Service)."
+          "Reading logs, club posts and shared lists are written by members, who keep their rights in them. Books members upload are private to their own profile and aren't shown to anyone else (a book club started around one shows only its title and author); members must have the right to read them that way (see the Terms of Service).",
+          "Audio clips members share are links to a short stretch of a public-domain LibriVox recording, played from the Internet Archive. Nothing is copied, cut or stored to make them."
         ]
       },
       {
@@ -1450,8 +1561,16 @@
       {
         "heading": "Website disclaimer",
         "paragraphs": [
-          "All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site. This includes book details and covers from Google Books, and summaries, answers and quizzes written by AI, which are labelled as such.",
+          "All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site. This includes book details and covers from Google Books, and everything written by AI, which is labelled as such (see below).",
           "UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE. YOUR USE OF THE SITE AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE IS SOLELY AT YOUR OWN RISK."
+        ]
+      },
+      {
+        "heading": "AI-written content disclaimer",
+        "paragraphs": [
+          "Book summaries, content notes, Ask the book answers, translations, Who's who, Previously… recaps and chapter quizzes are written by AI (Claude, made by Anthropic) and labelled as written by AI.",
+          "They can be wrong, leave things out, or miss what matters to you. Use them as a reading aid, not as a source of fact.",
+          "Content notes in particular are a guide, not a guarantee. If a topic matters to you or a child at home, check the book itself before choosing it."
         ]
       },
       {
@@ -1475,7 +1594,7 @@
   {
     "slug": "help",
     "title": "Help",
-    "summary": "Answers to common questions about reading, listening, your library and your account, and how to report a problem.",
+    "summary": "Answers to common questions about where the books come from, reading and listening, your library, your household, book clubs, your plan and logging in, and how to report a problem.",
     "sections": [
       {
         "heading": "Where do the books come from?",
@@ -1496,42 +1615,59 @@
         "heading": "Reading and listening",
         "paragraphs": [
           "Open a book from its page with Read or Listen. Your place is shared between the two and across your devices. The mini-player keeps a book playing while you browse, and its controls also work from your lock screen and headphones.",
-          "To read or listen without a connection, choose Read offline on a public-domain book's page. Each book's page has My journal for private, dated notes only you see; they're exported with your highlights from My Library → Notes. Words you keep from the dictionary come back for review in My words, after 1, 3, 7, 14, 30 and 60 days while you know them. Your reading streak has two rest days a month, used automatically when you miss a day."
-        ]
-      },
-      {
-        "heading": "Your account and household",
-        "paragraphs": [
-          "Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time.",
-          "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use.",
-          "A Kids profile can ask for a book that isn't on its shelf; a grown-up says yes or no in Account → Family with the account password, and a yes opens that one book for that profile.",
-          "A grown-up can give a Kids profile a bedtime in its profile editor, with the account password: from 7pm to 10pm, and when reading starts again in the morning. Between them, on that device's clock, books and audiobooks show Time for bed and the place is saved; the password allows 15 more minutes.",
-          "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one.",
-          "To hear when a book you set Remind me on comes out, turn on Notifications on this device in Account → Preferences. Once it's on, choose there which notifications you get: books you're waiting for, club meetings, new club posts up to your chapter, an evening streak nudge, and answers to Kids book requests. On iPhone and iPad, add LiteraryWorm to your Home Screen first (Share, then Add to Home Screen) and turn them on in the app.",
-          "Grown-up and teen profiles can put a book on the family shelf from its page; it shows on Home for everyone at home, and Kids profiles see only the books their rating already allows.",
-          "On a book club's page, Where everyone is shows the chapter each member has reached, for members who turn on Show my place to this club; it's off until you turn it on.",
-          "Under a club's discussion, Shared highlights shows passages members marked in the book; ones from chapters you haven't reached stay hidden until you choose to see them. Share one of yours from the list there, with or without its note, and stop sharing it whenever you like.",
-          "My Library → Smart lists fill themselves: Almost there (past halfway), Waiting for you (started, not opened for 30 days), From authors you follow and Loved it.",
-          "A book's page shows Your time with this book once you've read or listened to it: time spent, the days, your pace through it and your biggest days.",
-          "In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.",
-          "My Library → Notes has Review for highlights: each comes back the day after you make it, then after 1, 3, 7, 14, 30 and 60 days while it still matters, up to 10 a day, and Home says when some are due.",
-          "On a book's page, Reading plan lets you pick a day to finish by: it works out about how many minutes (at your own pace) or pages a day get you there, and says whether you're on track, ahead or behind; Home lists your plans.",
-          "When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it.",
-          "To take your library elsewhere, choose Export for Goodreads or Export for StoryGraph in My Library: you get a CSV of your books, shelves, star ratings (Love it 5, Like it 4, Not for me 2) and dates, made on your device, to import there.",
+          "To read or listen without a connection, choose Read offline on a public-domain book's page. Each book's page has My journal for private, dated notes only you see; they're exported with your highlights from My Library → Notes. Words you keep from the dictionary come back for review in My words, after 1, 3, 7, 14, 30 and 60 days while you know them. Your reading streak has two rest days a month, used automatically when you miss a day.",
           "In the reader, Display has OpenDyslexic among the fonts, and Reading guide: a reading ruler on one line, or line focus, which dims everything but three lines. It follows your pointer or a tap; J and K move it down or up a line.",
-          "On an audiobook's page, Read offline has Listen offline on a schedule: this device keeps the chapter you're on and the next 1, 3, 5 or 10 as you listen, on Wi-Fi only if you like, and can remove chapters you've finished. It counts as one of your plan's offline devices."
+          "In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.",
+          "On an audiobook's page, Read offline has Listen offline on a schedule: this device keeps the chapter you're on and the next 1, 3, 5 or 10 as you listen, on Wi-Fi only if you like, and can remove chapters you've finished. It counts as one of your plan's offline devices.",
+          "In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.",
+          "In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch."
         ]
       },
       {
-        "heading": "Your library, moods and more",
+        "heading": "Your library and reading tools",
         "paragraphs": [
           "A book's status can be Want to read, Reading, Finished or Didn't finish, for a book you put down; Didn't finish has its own tab in My Library, and recommendations stop suggesting books like it.",
           "To read a finished book again, choose Read again on its page. It goes back to Reading from the start, and finishing it again counts as another read, so the page says Your 2nd read or Read twice. Exports for Goodreads and StoryGraph carry the read count and dates.",
           "Under How did it feel? on a book's page, tag up to three moods, such as funny, hopeful, dark or tense, and a pace. My Library can show the books with one mood, Search lists the moods you've used, and Feel-good picks, a smart list and a row on Discover, gathers the cheerful ones.",
-          "Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you.",
-          "In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.",
-          "In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch.",
+          "My Library → Smart lists fill themselves: Almost there (past halfway), Waiting for you (started, not opened for 30 days), From authors you follow and Loved it.",
+          "A book's page shows Your time with this book once you've read or listened to it: time spent, the days, your pace through it and your biggest days.",
+          "On a book's page, Reading plan lets you pick a day to finish by: it works out about how many minutes (at your own pace) or pages a day get you there, and says whether you're on track, ahead or behind; Home lists your plans.",
+          "My Library → Notes has Review for highlights: each comes back the day after you make it, then after 1, 3, 7, 14, 30 and 60 days while it still matters, up to 10 a day, and Home says when some are due.",
+          "To take your library elsewhere, choose Export for Goodreads or Export for StoryGraph in My Library: you get a CSV of your books, shelves, star ratings (Love it 5, Like it 4, Not for me 2) and dates, made on your device, to import there."
+        ]
+      },
+      {
+        "heading": "Profiles, Kids and family",
+        "paragraphs": [
+          "Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time.",
+          "A Kids profile can ask for a book that isn't on its shelf; a grown-up says yes or no in Account → Family with the account password, and a yes opens that one book for that profile.",
+          "A grown-up can give a Kids profile a bedtime in its profile editor, with the account password: from 7pm to 10pm, and when reading starts again in the morning. Between them, on that device's clock, books and audiobooks show Time for bed and the place is saved; the password allows 15 more minutes.",
+          "Grown-up and teen profiles can put a book on the family shelf from its page; it shows on Home for everyone at home, and Kids profiles see only the books their rating already allows.",
+          "Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you."
+        ]
+      },
+      {
+        "heading": "Book clubs and buddy reads",
+        "paragraphs": [
+          "On a book club's page, Where everyone is shows the chapter each member has reached, for members who turn on Show my place to this club; it's off until you turn it on.",
+          "Under a club's discussion, Shared highlights shows passages members marked in the book; ones from chapters you haven't reached stay hidden until you choose to see them. Share one of yours from the list there, with or without its note, and stop sharing it whenever you like.",
+          "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose LiteraryWorm books or My uploads under Book from, then find the book by title, author or ISBN (an ISBN is looked up on Google Books and matched by title and author). Sort the list by title, author, numbers first or series in reading order, and filter it to one series.",
+          "Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. An uploaded book has no recording, so there's no listening along.",
           "To read a book with one friend, choose Read with a friend on its page. A buddy read is a book club for two: send your friend its code, and you get spoiler-safe posts by chapter, meetings and shared highlights."
+        ]
+      },
+      {
+        "heading": "Your plan, notifications and gifts",
+        "paragraphs": [
+          "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one.",
+          "To hear when a book you set Remind me on comes out, turn on Notifications on this device in Account → Preferences. Once it's on, choose there which notifications you get: books you're waiting for, club meetings, new club posts up to your chapter, an evening streak nudge, and answers to Kids book requests. On iPhone and iPad, add LiteraryWorm to your Home Screen first (Share, then Add to Home Screen) and turn them on in the app.",
+          "When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it."
+        ]
+      },
+      {
+        "heading": "Logging in and keeping your account safe",
+        "paragraphs": [
+          "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."
         ]
       },
       {
@@ -1542,16 +1678,10 @@
         ]
       },
       {
-        "heading": "Book clubs on your own books",
-        "paragraphs": [
-          "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose LiteraryWorm books or My uploads under Book from, then find the book by title, author or ISBN (an ISBN is looked up on Google Books and matched by title and author). Sort the list by title, author, numbers first or series in reading order, and filter it to one series.",
-          "Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. An uploaded book has no recording, so there's no listening along."
-        ]
-      },
-      {
         "heading": "Report a problem",
         "paragraphs": [
-          "Tell us what you were doing, the page you were on, and your device and browser, by email to support@literaryworm.com."
+          "Tell us what you were doing, the page you were on, and your device and browser, by email to support@literaryworm.com.",
+          "For accessibility problems, email accessibility@literaryworm.com. To report a post, an upload or a copyright problem, email report@literaryworm.com. For privacy questions, email usprivacy@literaryworm.com."
         ]
       }
     ],
