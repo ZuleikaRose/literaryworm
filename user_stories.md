@@ -413,3 +413,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Buddy reads | after 22 | Done | A club for two from a book's page; a third reader can't join. |
 | Moods on Discover and Search | after 22 | Done | *Feel-good picks* on Discover; mood links on Search's start; Plans and home page name the new features. |
 | Structured data per page | after 22 | Done | WebSite and Organization everywhere; Product and FAQPage on Home and Plans; Book on each title's page. |
+| Google Books cookies disclosed | after 22 | Done | Cookie Policy entry for books.google.com; Privacy Policy, Help, FAQ, Children's Privacy Notice and the preview say so (6618). |

@@ -112,7 +112,7 @@ export const planFaqs = [
   },
   {
     q: "Where do the books come from?",
-    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox.\n\nTo read a book you own, upload it (up to 20 EPUBs at a time, each up to 50 MB): for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads.\n\nIt opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
+    a: "LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox.\n\nThose covers, and the Google Books preview on some book pages, load from books.google.com, so Google sets its own third-party cookies on our website when they do. Blocking third-party cookies in your browser stops them, and LiteraryWorm keeps working.\n\nTo read a book you own, upload it (up to 20 EPUBs at a time, each up to 50 MB): for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads.\n\nIt opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed.",
   },
   {
     q: "What happens when the month's listening runs out?",
@@ -157,6 +157,10 @@ export const planFaqs = [
   {
     q: "Can I pick up where I left off on another device?",
     a: "Yes. Your place, bookmarks, highlights and notes follow you to every device you log in on, and an open book offers to jump to a place saved elsewhere. In the player, Listen on another device moves an audiobook to your phone, tablet or computer at the same spot.",
+  },
+  {
+    q: "Does LiteraryWorm use cookies?",
+    a: "Only essential ones. Our backend's host, Cloudflare, sets one to keep out bots, and your browser keeps your sign-in and the app's files for offline use.\n\nBecause we use the Google Books API, covers of books from Google Books and the Google Books preview load from books.google.com, and Google sets its own third-party cookies there. They're Google's, under Google's Privacy Policy; we don't receive them. Block third-party cookies in your browser to stop them: LiteraryWorm keeps working.\n\nThere's no advertising or analytics, and the Cookie Policy lists everything.",
   },
   {
     q: "Does LiteraryWorm need access to my local network?",

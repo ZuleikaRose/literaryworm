@@ -4,7 +4,7 @@ import { Icon } from "./Icon";
 
 /**
  * Google Books' embedded viewer for titles Google lets other sites show. It loads from
- * google.com only when the reader asks for it (Google may set its own cookies then), so it's
+ * books.google.com only when the reader asks for it (Google sets its own third-party cookies then), so it's
  * marked essential: the consent banner would otherwise hold back something the reader chose.
  */
 export function GooglePreview({ id, title, kind }: { id: string; title: string; kind: "full" | "partial" }) {
@@ -45,7 +45,7 @@ export function GooglePreview({ id, title, kind }: { id: string; title: string; 
             {kind === "full"
               ? "Google Books shows every page of this edition. It opens in Google's viewer here on the page."
               : "Google Books shows some pages of this edition. They open in Google's viewer here on the page."}{" "}
-            Google may set its own cookies when it loads.
+            It loads from books.google.com, and Google sets its own third-party cookies when it does.
           </p>
           <button
             ref={openRef}

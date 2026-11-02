@@ -172,7 +172,7 @@
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
           "Termly provides our cookie consent banner and our privacy request forms. Your browser loads the banner from Termly on each visit, so Termly receives those requests, including your IP address, and your consent choice is kept in your browser. Termly handles this under its own privacy policy (https://termly.io/our-privacy-policy/). It never handles payment details: Stripe does.",
           "Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who and writes chapter quizzes and Previously… recaps (see section 6).",
-          "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser.",
+          "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. Book covers and the Google Books preview load from books.google.com directly in your browser, and Google sets third-party cookies there (see the Cookie Policy). LibriVox recordings stream from the Internet Archive, and fonts load from Google Fonts, directly from your browser.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself.",
           "Lists you share can be read by anyone with the link. Staff with the right access can see account details to run the service and help you.",
           "Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address.",
@@ -183,10 +183,11 @@
       {
         "heading": "5. Do we use cookies and other tracking technologies?",
         "paragraphs": [
-          "In Short: We use only essential cookies and similar technologies, described in our Cookie Policy.",
+          "In Short: We use only essential cookies and similar technologies, described in our Cookie Policy. Because we use the Google Books API, Google sets third-party cookies from books.google.com when book covers and previews load.",
           "When you first visit, a banner from Termly asks for your cookie choice, and you can change it at any time with Consent Preferences at the bottom of every page. Because we use only essential cookies, declining changes nothing about how the Services work.",
           "The technologies we use help us maintain the security of our Services and your account, keep you signed in, and let the app work offline.",
           "We don't permit third parties or service providers to use online tracking technologies on our Services for analytics or advertising, and we don't use Google Analytics or any other analytics or advertising service.",
+          "Google Books covers and the Google Books preview load from books.google.com, and Google sets its own third-party cookies there, under Google's Privacy Policy. We don't receive them. To stop them, block third-party cookies in your browser; LiteraryWorm keeps working.",
           "Specific information about the technologies we use and how you can refuse certain cookies is set out in our Cookie Policy."
         ]
       },
@@ -424,7 +425,7 @@
       {
         "heading": "Why do we use cookies?",
         "paragraphs": [
-          "Some cookies are required for technical reasons in order for our Website to operate, and we refer to these as \"essential\" or \"strictly necessary\" cookies. LiteraryWorm uses only essential cookies and similar technologies. We don't use cookies to track or target your interests, and we don't let third parties serve cookies through our Website for advertising or analytics. This is described in more detail below."
+          "Some cookies are required for technical reasons in order for our Website to operate, and we refer to these as \"essential\" or \"strictly necessary\" cookies. LiteraryWorm uses only essential cookies and similar technologies, including the third-party cookies Google sets from books.google.com when Google Books covers and previews load, because we use the Google Books API. We don't use cookies to track or target your interests, and we don't let third parties serve cookies through our Website for advertising or analytics. This is described in more detail below."
         ]
       },
       {
@@ -441,7 +442,10 @@
         "paragraphs": [
           "These cookies are strictly necessary to provide you with services available through our Website and to use some of its features, such as access to secure areas.",
           "__cf_bm. Purpose: Cloudflare places the cookie on end-user devices that access customer sites protected by Bot Management or Bot Fight Mode. Provider: .supabase.co (our backend, Supabase, which is protected by Cloudflare). Service: Cloudflare (see Cloudflare's privacy policy). Type: server cookie. Expires in: 30 minutes.",
-          "Some book covers from Google Books, the Google Books preview on some book pages (only when you open it), and the audiobook recordings streamed from the Internet Archive, load from those services. When your browser fetches them, those services may set or read their own cookies under their own policies. Blocking third-party cookies in your browser doesn't stop LiteraryWorm working."
+          "Google Books cookies. Purpose: LiteraryWorm uses the Google Books API to find books and show their details. So the covers of books from Google Books, and the Google Books preview on some book pages (only when you open it), load in your browser from books.google.com, and Google sets and reads its own third-party cookies there.",
+          "Provider: books.google.com (Google). Service: Google Books (see Google's Privacy Policy at policies.google.com/privacy). Type: third-party cookies, set by Google, not by LiteraryWorm; we can't read them.",
+          "We mark Google Books covers and the preview as essential, so they show even if you decline other cookies in Consent Preferences. To stop Google's cookies, block third-party cookies in your browser's settings: LiteraryWorm keeps working, and covers still show. Kids profiles show only LiteraryWorm's own titles, so they don't load Google Books.",
+          "The audiobook recordings streamed from the Internet Archive load from that service too, and it may set or read its own cookies under its own policy."
         ]
       },
       {
@@ -486,7 +490,7 @@
       {
         "heading": "Do you serve targeted advertising?",
         "paragraphs": [
-          "No. We don't serve advertising on our Website, and we don't allow third parties to place cookies or web beacons on your computer or mobile device through our Website to serve or measure advertising."
+          "No. We don't serve advertising on our Website, and we don't allow third parties to place cookies or web beacons on your computer or mobile device through our Website to serve or measure advertising. Google's cookies from books.google.com are set under Google's own policies; we don't use them, and we don't receive them."
         ]
       },
       {
@@ -542,7 +546,8 @@
         "paragraphs": [
           "We don't ask a child for their email address, full name, home address, school, phone number, photo, voice, location or any other way to contact them.",
           "A Kids profile can't write anything that other members see, so it can't share personal details with them.",
-          "There's no advertising on LiteraryWorm, and we don't use analytics or advertising trackers."
+          "There's no advertising on LiteraryWorm, and we don't use analytics or advertising trackers.",
+          "Kids profiles show only LiteraryWorm's own titles, so Google Books covers and previews, and the third-party cookies Google sets from books.google.com with them, don't load there."
         ]
       },
       {
@@ -1476,6 +1481,7 @@
         "heading": "Where do the books come from?",
         "paragraphs": [
           "LiteraryWorm uses the Google Books API to show book details and covers when you browse and search, so you can find almost any book, save it to your library and write about it.",
+          "Those covers, and the Google Books preview on some book pages, load from books.google.com, so Google sets its own third-party cookies on our website when they load. The Cookie Policy explains them, and blocking third-party cookies in your browser stops them without stopping LiteraryWorm.",
           "The books you can read and listen to in full are public-domain classics: texts from Project Gutenberg and recordings from LibriVox. Other LiteraryWorm titles show sample pages."
         ]
       },

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-01",
     "version": "2026.11",
     "kind": "update",
+    "title": "Google Books cookies, said plainly",
+    "body": "Because LiteraryWorm uses the Google Books API, covers of books from Google Books, and the Google Books preview on some book pages, load from books.google.com, and Google sets its own third-party cookies on our website when they do. The Cookie Policy, Privacy Policy, Help, the FAQ and the Children's Privacy Notice now say so, and how to block them; Kids profiles don't load Google Books.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-01",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Feel-good picks on Discover, and moods on Search",
     "body": "Discover now has a Feel-good picks row of the books you tagged funny, hopeful, lighthearted, relaxing or inspiring, to read again. Search lists the moods you've used, each opening those books in My Library, and reminds you that Translate works in any classic.",
     "major": false
