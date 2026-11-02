@@ -4,14 +4,14 @@ Contact: hello [at] literaryworm.com
 Location: Global
 
 /* SITE */
-Last update: November 1, 2026
+Last update: November 2, 2026
 Language: English
 Doctype: HTML5
 IDE: Visual Studio Code
 
 /* THANKS */
 Books: Project Gutenberg (texts) and LibriVox volunteers (recordings) for the public-domain classics; audio clips stream from the Internet Archive
-Book search: Google Books API
+Book search: Google Books API (by title, author, keywords or ISBN)
 Fonts: Literata, Manrope, DM Sans, Lexend (Google Fonts) and OpenDyslexic (SIL Open Font License)
 
 /* TECHNOLOGY */
