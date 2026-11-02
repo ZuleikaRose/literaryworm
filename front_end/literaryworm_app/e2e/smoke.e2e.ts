@@ -1241,17 +1241,17 @@ describe("the demo household", () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     await goInApp(page, "/books/dune");
-    const status = page.getByLabel("Reading status", { exact: true });
+    const status = page.locator(".detail-actions").getByLabel("Reading status");
     await status.selectOption({ label: "Didn't finish" });
     await page.getByText("Marked as didn't finish.").waitFor({ state: "attached" });
     await goInApp(page, "/library?status=did_not_finish");
     // Avery's demo already has one (Moby-Dick).
     await page.getByRole("radio", { name: /Didn't finish \(2\)/ }).waitFor({ state: "attached" });
     await goInApp(page, "/books/dune");
-    await page.getByLabel("Reading status", { exact: true }).selectOption({ label: "Finished" });
+    await page.locator(".detail-actions").getByLabel("Reading status").selectOption({ label: "Finished" });
     await page.getByRole("button", { name: "Read again" }).click();
     await page.getByText("Your 2nd read").waitFor();
-    await expect(page.getByLabel("Reading status", { exact: true }).inputValue()).resolves.toBe("reading");
+    await expect(page.locator(".detail-actions").getByLabel("Reading status").inputValue()).resolves.toBe("reading");
     expect(errors()).toEqual([]);
   });
 
