@@ -871,6 +871,22 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("loads analytics after Termly, sending nothing on its own, and pauses it for a Kids profile", async () => {
+    const { page, errors } = await newPage();
+    const html = await (await fetch(`${BASE_URL}/`)).text();
+    expect(html.indexOf("app.termly.io")).toBeGreaterThan(-1);
+    expect(html.indexOf("app.termly.io")).toBeLessThan(html.indexOf("analytics.ahrefs.com"));
+    expect(html).toContain("data-no-pageview-auto");
+    expect(html).toContain('data-categories="analytics"');
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /Mia/ }).first().click();
+    await page.waitForURL(/\/browse/);
+    const keys = await page.$$eval('script[src^="https://analytics.ahrefs.com/"]', (tags) => tags.map((t) => t.getAttribute("data-key")));
+    expect(keys.every((k) => k === null)).toBe(true);
+    expect(errors()).toEqual([]);
+  });
+
   it("lets a Kids profile ask for a book, and a grown-up say yes in Family", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

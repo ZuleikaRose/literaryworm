@@ -89,7 +89,7 @@
           "Do we collect any information from third parties? Only from Stripe, which tells us whether your payments succeed and how your membership stands. We don't buy information about you or get it from social networks or data brokers.",
           "How do we process your information? We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We may also process your information for other purposes with your consent. We process your information only when we have a valid legal reason to do so. See section 2.",
           "In what situations and with which parties do we share personal information? Only with the service providers that help us run LiteraryWorm, and in the specific situations described in section 4. We don't sell your personal information or share it for advertising.",
-          "What don't we do? We don't sell your information or share it for advertising, we don't show ads, we don't use analytics trackers, and we don't use your reading, notes, uploads or posts to train AI models.",
+          "What don't we do? We don't sell your information or share it for advertising, we don't show ads, and we don't use your reading, notes, uploads or posts to train AI models. Our only analytics is Ahrefs Web Analytics: it sets no cookies, runs only if you allow analytics, and never runs for Kids profiles.",
           "How do we keep your information safe? Connections use HTTPS, our database lets each account read only its own data, passwords and PINs are kept only as one-way hashes, and you can add two-step sign-in or passkeys.",
           "However, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure, so we cannot promise or guarantee that hackers, cybercriminals, or other unauthorized third parties will not be able to defeat our security and improperly collect, access, steal, or modify your information. See section 9.",
           "What are your rights? Depending on where you are located geographically, the applicable privacy law may mean you have certain rights regarding your personal information. See section 11.",
@@ -176,6 +176,9 @@
           "You choose in Account → Preferences which kinds your devices get; besides release days they can be a club meeting in the next day (the club's and meeting's names), new posts in your clubs (the club's name, how many, the chapter and who wrote them; never what they said), an evening reading-streak nudge (a profile's name and run of days; for this we keep each device's time zone) and a grown-up's answer to a Kids book request (the profile's name and the book).",
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
           "Termly provides our cookie consent banner and our privacy request forms. Your browser loads the banner from Termly on each visit, so Termly receives those requests, including your IP address, and your consent choice is kept in your browser. Termly handles this under its own privacy policy (https://termly.io/our-privacy-policy/). It never handles payment details: Stripe does.",
+          "Ahrefs Web Analytics counts visits so we can see which pages people use. If you allow analytics in the consent banner, your browser sends Ahrefs (analytics.ahrefs.com) the pages you visit, their titles, the site you came from, your screen size and language, and links you follow to other sites. Ahrefs also receives your IP address and browser details with each request.",
+          "We send page addresses without anything after ? or #, though a form you send, such as a search, can include it. Ahrefs sets no cookies and keeps nothing in your browser. It's off while a Kids profile is in use and on pages whose links carry codes, such as password resets, invitations and unsubscribe links.",
+          "Ahrefs handles this under its own privacy policy (https://ahrefs.com/legal/privacy-policy). To stop it, choose Consent Preferences at the bottom of any page and decline analytics.",
           "Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who and writes chapter quizzes and Previously… recaps (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. Book covers and the Google Books preview load from books.google.com directly in your browser, and Google sets third-party cookies there (see the Cookie Policy).",
           "LibriVox recordings stream from the Internet Archive directly from your browser. The app's fonts load from Google Fonts the same way, so Google receives your IP address with those requests.",
@@ -192,7 +195,7 @@
           "In Short: We use only essential cookies and similar technologies, described in our Cookie Policy. Because we use the Google Books API, Google sets third-party cookies from books.google.com when book covers and previews load.",
           "When you first visit, a banner from Termly asks for your cookie choice, and you can change it at any time with Consent Preferences at the bottom of every page. Because we use only essential cookies, declining changes nothing about how the Services work.",
           "The technologies we use help us maintain the security of our Services and your account, keep you signed in, and let the app work offline.",
-          "We don't permit third parties or service providers to use online tracking technologies on our Services for analytics or advertising, and we don't use Google Analytics or any other analytics or advertising service.",
+          "We don't permit third parties or service providers to use online tracking technologies on our Services for advertising, and we don't use Google Analytics. With your consent, we count visits with Ahrefs Web Analytics, which sets no cookies and never runs for Kids profiles (see section 4).",
           "Google Books covers and the Google Books preview load from books.google.com, and Google sets its own third-party cookies there, under Google's Privacy Policy. We don't receive them. To stop them, block third-party cookies in your browser; LiteraryWorm keeps working.",
           "Specific information about the technologies we use and how you can refuse certain cookies is set out in our Cookie Policy."
         ]
@@ -429,6 +432,7 @@
         "heading": "In short",
         "paragraphs": [
           "We use no advertising or analytics cookies, and we don't track you across other websites.",
+          "If you allow analytics in the consent banner, Ahrefs Web Analytics counts the pages you visit without setting cookies. It never runs for Kids profiles.",
           "Two kinds of cookie are set when you use LiteraryWorm, both by other companies: Cloudflare's bot check on our backend, and Google's cookies from books.google.com when Google Books covers and previews load.",
           "Your browser also keeps your sign-in, which device it is, your cookie choice, the app's own files and any books you save for offline. The list below says what each one is and how long it stays."
         ]
@@ -513,7 +517,8 @@
           "Google Fonts (fonts.googleapis.com and fonts.gstatic.com) serves the app's typefaces. Google Books (books.google.com) serves covers and the preview, and sets the cookies described above.",
           "The Internet Archive (archive.org) streams LibriVox recordings and audio clips. Termly (app.termly.io) serves the consent banner.",
           "When you pay, you go to Stripe's own checkout page, where Stripe sets its own cookies under its privacy policy. We never see your card details.",
-          "OpenDyslexic, the reading font, is part of the app itself, so choosing it sends nothing to anyone."
+          "OpenDyslexic, the reading font, is part of the app itself, so choosing it sends nothing to anyone.",
+          "Ahrefs (analytics.ahrefs.com) serves our visit counter, which loads only if you allow analytics. It sets no cookies and keeps nothing in your browser, and it's off for Kids profiles and on pages whose links carry codes. The Privacy Policy, section 4, says what it receives."
         ]
       },
       {
@@ -604,7 +609,7 @@
         "paragraphs": [
           "We don't ask a child for their email address, full name, home address, school, phone number, photo, voice, location or any other way to contact them.",
           "A Kids profile can't write anything that other members see, so it can't share personal details with them.",
-          "There's no advertising on LiteraryWorm, and we don't use analytics or advertising trackers.",
+          "There's no advertising on LiteraryWorm and no advertising trackers. Our visit counter, Ahrefs Web Analytics, is switched off while a Kids profile is in use, so nothing a child does there is sent to it.",
           "Kids profiles show only LiteraryWorm's own titles, so Google Books covers and previews, and the third-party cookies Google sets from books.google.com with them, don't load there."
         ]
       },
@@ -707,6 +712,7 @@
         "heading": "Cookies and browser storage",
         "paragraphs": [
           "We set no advertising or analytics cookies. Our backend's host, Cloudflare, sets one cookie to keep out bots, and Google sets third-party cookies from books.google.com when Google Books covers and previews load, because we use the Google Books API.",
+          "Analytics: if you allow it in the consent banner, Ahrefs Web Analytics counts the pages you visit, without cookies. To turn it off, choose Consent Preferences at the bottom of any page and decline analytics. It never runs for Kids profiles.",
           "Change your cookie choice with Consent Preferences at the bottom of every page, and block third-party cookies in your browser to stop Google's. The Cookie Policy lists everything your browser keeps and how to clear it."
         ]
       },

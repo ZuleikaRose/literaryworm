@@ -5,6 +5,7 @@ import { ClubAlerts } from "./components/ClubAlerts";
 import { ListenAlong } from "./components/ListenAlong";
 import { ScheduledDownloads } from "./components/ScheduledDownloads";
 import { MediaSession } from "./components/MediaSession";
+import { Analytics } from "./components/Analytics";
 import Account from "./pages/Account";
 import Gifts from "./pages/Gifts";
 import BookDetail from "./pages/BookDetail";
@@ -46,6 +47,7 @@ export default function App() {
   return (
     <>
       <AppEffects />
+      <Analytics />
       <MediaSession />
       <ScheduledDownloads />
       <ClubAlerts />

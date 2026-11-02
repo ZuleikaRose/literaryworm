@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-02",
     "version": "2026.11",
     "kind": "update",
+    "title": "Counting visits with Ahrefs Web Analytics",
+    "body": "If you allow analytics in the consent banner, Ahrefs Web Analytics counts the pages people visit, so we can see what's used. It sets no cookies, page addresses go without search words or codes, and it never runs for Kids profiles or on pages with codes in their links. The Privacy Policy, Cookie Policy, Children's Privacy Notice and Your Privacy Choices say so.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Keyword searches to try on Discover and Search",
     "body": "Discover and Search's start suggest a few keyword searches, such as Detective, Ghost and Friendship. Each looks through descriptions, genres and series as well as titles and authors. The Plans cards and the home page now say you can search your uploads by title, author, keywords or ISBN, even inside their text.",
     "major": false

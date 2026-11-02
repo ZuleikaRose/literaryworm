@@ -160,7 +160,7 @@ export const planFaqs = [
   },
   {
     q: "Does LiteraryWorm use cookies?",
-    a: "Only essential ones. Our backend's host, Cloudflare, sets one to keep out bots, and your browser keeps your sign-in and the app's files for offline use.\n\nBecause we use the Google Books API, covers of books from Google Books and the Google Books preview load from books.google.com, and Google sets its own third-party cookies there. They're Google's, under Google's Privacy Policy; we don't receive them. Block third-party cookies in your browser to stop them: LiteraryWorm keeps working.\n\nThere's no advertising or analytics, and the Cookie Policy lists everything.",
+    a: "Only essential ones. Our backend's host, Cloudflare, sets one to keep out bots, and your browser keeps your sign-in and the app's files for offline use.\n\nBecause we use the Google Books API, covers of books from Google Books and the Google Books preview load from books.google.com, and Google sets its own third-party cookies there. They're Google's, under Google's Privacy Policy; we don't receive them. Block third-party cookies in your browser to stop them: LiteraryWorm keeps working.\n\nThere's no advertising. If you allow analytics, Ahrefs Web Analytics counts page visits without cookies, and never for Kids profiles. The Cookie Policy lists everything.",
   },
   {
     q: "Does LiteraryWorm need access to my local network?",

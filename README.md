@@ -466,5 +466,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Search by keywords on Search and in the header; search your uploads by title, author or keywords, through their text (6621) | Done    |
 | —    | Search your uploads by ISBN; a club's book found by title, author, keywords or ISBN in one box (6622, 6623) | Done    |
 | —    | Keyword searches to try on Discover and Search; Plans and home page name upload search; Cookie Policy true to the uploads cache (6624); schema.sql and drawsql.png current to 6624 (no table or column changes since 6617; live dev and production checked: 66 tables, 489 columns) | Done    |
+| —    | Ahrefs Web Analytics (no cookies, with consent; path-only page views; off for Kids profiles and pages with codes); Privacy Policy, Cookie Policy, Children's Privacy Notice, Your Privacy Choices and the cookies FAQ updated (6625) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

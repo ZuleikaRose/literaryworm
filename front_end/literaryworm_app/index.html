@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <!-- Termly's consent banner and resource blocker: it must stay the first script on the page. -->
     <script src="https://app.termly.io/resource-blocker/4e27b37a-9ee5-49bd-8bfa-4f11f17546fa?autoBlock=on"></script>
+    <!-- Ahrefs Web Analytics (no cookies): Termly holds it back until analytics is allowed. It sends no page views
+         on its own (data-no-pageview-auto); components/Analytics.tsx sends each one as the path only, and pauses it
+         for Kids profiles and pages with codes in their links (lib/analytics.ts). -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="1Vx+cjIdVgteSlA/dtRTcA" data-no-pageview-auto data-categories="analytics" async></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="author" href="/humans.txt" />

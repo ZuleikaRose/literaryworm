@@ -17,6 +17,7 @@ Fonts: Literata, Manrope, DM Sans, Lexend (Google Fonts) and OpenDyslexic (SIL O
 /* TECHNOLOGY */
 Framework: React with TypeScript, built with Vite
 Hosting: Vercel
+Analytics: Ahrefs Web Analytics (no cookies, with consent, never for Kids profiles)
 Database and sign-in: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
 Payments: Stripe
 Email: Mailgun

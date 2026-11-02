@@ -149,6 +149,7 @@ Then, on 2 November 2026, search grew:
 - Search by keywords on Search and in the header: every word anywhere in a book's title, author, narrator, description, genres or series, with a title search's filters, and a few keyword searches to try on Discover and Search.
 - Search your uploads in My Library → Uploads by title, author, keywords or ISBN; keywords look through the books' text on the device and link to each page.
 - Starting a club, Find a book and Find one of your uploads take a title, author, keywords or ISBN in one box.
+- Ahrefs Web Analytics to count visits: no cookies, only with consent, never for Kids profiles, with every policy saying so.
 
 ## Code
 
