@@ -1469,6 +1469,15 @@ describe("on a phone", () => {
     await goInApp(page, "/listen/frankenstein?view=car");
     await page.locator(".car-play").waitFor();
     await expect(scrollsSideways(page)).resolves.toBe(false);
+    // The same arrangement as on a wide screen: Back, Play, Forward in a row, Play in the middle.
+    const box = async (sel: string) => (await page.locator(sel).boundingBox())!;
+    const [back, play, forward] = [await box(".car-back"), await box(".car-play"), await box(".car-forward")];
+    expect(back.x < play.x && play.x < forward.x).toBe(true);
+    expect(Math.abs(back.y - play.y) < 2 && Math.abs(forward.y - play.y) < 2).toBe(true);
+    // A phone on its side in a dashboard mount: car mode fits without scrolling.
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expect(page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).resolves.toBe(true);
+    await page.setViewportSize({ width: 390, height: 844 });
     for (const view of ["badges", "upnext", "words"]) {
       await goInApp(page, `/library?view=${view}`);
       await page.locator(".library-tabs").waitFor();

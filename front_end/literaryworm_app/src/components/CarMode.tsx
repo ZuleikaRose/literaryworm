@@ -56,23 +56,23 @@ export function CarMode({ book, controls }: { book: Book; controls: PlayerContro
         </p>
       </div>
       <div className="car-controls">
-        <button type="button" className="car-button" disabled={!controls.previousChapter} onClick={controls.previousChapter ?? undefined}>
+        <button type="button" className="car-button car-prev" disabled={!controls.previousChapter} onClick={controls.previousChapter ?? undefined}>
           <Icon name="previousChapter" size={34} />
           <span>Previous chapter</span>
         </button>
-        <button type="button" className="car-button" onClick={controls.skipBack}>
+        <button type="button" className="car-button car-back" onClick={controls.skipBack}>
           <Icon name="skipBack" size={38} />
-          <span>Back {player.skipBack} s</span>
+          <span>Back {player.skipBack}{"\u00a0"}s</span>
         </button>
         <button type="button" className="car-button car-play" onClick={playback.toggle}>
           <Icon name={playing ? "pause" : "play"} size={56} filled />
           <span>{playing ? "Pause" : "Play"}</span>
         </button>
-        <button type="button" className="car-button" onClick={controls.skipForward}>
+        <button type="button" className="car-button car-forward" onClick={controls.skipForward}>
           <Icon name="skipForward" size={38} />
-          <span>Forward {player.skipForward} s</span>
+          <span>Forward {player.skipForward}{"\u00a0"}s</span>
         </button>
-        <button type="button" className="car-button" disabled={!controls.nextChapter} onClick={controls.nextChapter ?? undefined}>
+        <button type="button" className="car-button car-next-chapter" disabled={!controls.nextChapter} onClick={controls.nextChapter ?? undefined}>
           <Icon name="nextChapter" size={34} />
           <span>Next chapter</span>
         </button>

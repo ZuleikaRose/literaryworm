@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-02",
     "version": "2026.11",
+    "kind": "fix",
+    "title": "Car mode looks the same on phones and in the app",
+    "body": "On a phone, and in the installed app, car mode now has the same buttons in the same order as on a bigger screen: Back, Play and Forward side by side with Play in the middle, and Previous and Next chapter under them. With the phone on its side in a dashboard mount, everything fits on one screen.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
     "kind": "update",
     "title": "More ways to sort when starting a club",
     "body": "When you start a club, Sort by has the same eleven choices as My Library for LiteraryWorm books and your uploads: recently added, oldest added, recently changed, title, numbers first, author, published year and series in reading order. For LiteraryWorm books, the date sorts put the books in your library first.",
