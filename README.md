@@ -473,5 +473,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | My Library *Sort by* adds *Series, in reading order* (catalog series, else the series a title names); What's new in migration 6627 | Done |
 | —    | Starting a club: *Sort by* has My Library's eleven sorts for LiteraryWorm books and uploads (library dates first, published year, series); What's new in migration 6628 | Done |
 | —    | Car mode on phones and tablets (browser and installed app, online or offline): the same buttons in the same order as on a computer, bigger and on several rows, fitting upright, on its side and on tablets; What's new in migrations 6629–6630; live on www.literaryworm.com (main = dev = 7060815) | Done |
+| —    | Discussion questions for book clubs: five to eight AI questions about a chapter the reader has reached, from the book up to that chapter only, kept for every club (the `discussion` function, `chapter_discussions`; migrations 6631–6633) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

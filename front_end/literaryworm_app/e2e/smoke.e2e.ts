@@ -1380,6 +1380,32 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("offers a club AI discussion questions for chapters the reader has reached, and starts a post with one", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const section = page.getByRole("region", { name: "Discussion questions" });
+    await section.getByText(/Written by AI/).waitFor();
+    // Only chapters up to the reader's: never one past it.
+    const select = section.getByLabel("Chapter");
+    const offered = await select.locator("option").count();
+    const total = await page.getByLabel("About", { exact: true }).locator("option").count();
+    expect(offered).toBeGreaterThanOrEqual(1);
+    expect(offered).toBeLessThanOrEqual(total);
+    // The demo club has chapter 1's questions to hand.
+    await select.selectOption({ index: 0 });
+    const first = section.getByRole("listitem").first();
+    await first.getByText(/rich single man/).waitFor();
+    await expect(section.getByRole("listitem").count()).resolves.toBeGreaterThanOrEqual(5);
+    await first.getByRole("button", { name: /Start a post with this/ }).click();
+    // The post box now holds the question, about chapter 1, with focus there.
+    const box = page.getByLabel("Your post");
+    await expect(box.inputValue()).resolves.toMatch(/rich single man/);
+    await expect(box.evaluate((el) => el === document.activeElement)).resolves.toBe(true);
+    await expect(page.getByLabel("About", { exact: true }).inputValue()).resolves.toBe("0");
+    expect(errors()).toEqual([]);
+  });
+
   it("shows a club's shared highlights, holding back ones past the reader's chapter", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

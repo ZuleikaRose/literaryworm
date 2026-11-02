@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useId, useState } from "react";
+import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
 import { Dialog } from "../components/Dialog";
@@ -26,6 +26,9 @@ import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
 import { ClubHighlights } from "../components/ClubHighlights";
 import { ClubPlaces } from "../components/ClubPlaces";
+import { DiscussionQuestions } from "../components/DiscussionQuestions";
+import { DEMO_DISCUSSION } from "../data/demoDiscussion";
+import { canDiscuss } from "../lib/discussion";
 import { ClubCopyPicker } from "../components/ClubCopyPicker";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
@@ -571,6 +574,8 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState("");
+  // A discussion question chosen to start a post: the form starts again with it (a new key).
+  const [seed, setSeed] = useState({ n: 0, chapter: -1, text: "" });
   const isOwner = club.ownerId === me;
   const now = today();
   const target = clubChapterToday(club, book, now);
@@ -658,8 +663,11 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         <section className="club-discussion" aria-labelledby="discussion-title">
           <h2 id="discussion-title">Discussion</h2>
           <PostForm
+            key={seed.n}
             book={book}
-            initialChapter={Math.max(0, mine)}
+            initialChapter={seed.n ? seed.chapter : Math.max(0, mine)}
+            initialBody={seed.text}
+            focus={seed.n > 0}
             onPost={async (chapter, body) => {
               const post = await clubs.addPost(club.id, chapter, body);
               setPosts((list) => [...list, post]);
@@ -697,6 +705,14 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
                 );
               })}
             </ol>
+          )}
+          {canDiscuss(book) && (
+            <DiscussionQuestions
+              book={book}
+              upTo={mine}
+              sample={club.id === "demo-club" ? DEMO_DISCUSSION : undefined}
+              onUse={(chapter, text) => setSeed((s) => ({ n: s.n + 1, chapter, text }))}
+            />
           )}
           <ClubHighlights clubId={club.id} book={book} me={me} myName={profile?.name ?? "You"} upTo={Math.max(0, mine)} />
         </section>
@@ -767,9 +783,26 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
   );
 }
 
-function PostForm({ book, initialChapter, onPost }: { book: Book; initialChapter: number; onPost: (chapter: number, body: string) => Promise<void> }) {
+function PostForm({
+  book,
+  initialChapter,
+  initialBody = "",
+  focus = false,
+  onPost,
+}: {
+  book: Book;
+  initialChapter: number;
+  initialBody?: string;
+  /** Moves focus to the post box (after a discussion question starts the post). */
+  focus?: boolean;
+  onPost: (chapter: number, body: string) => Promise<void>;
+}) {
   const [chapter, setChapter] = useState(initialChapter);
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(initialBody);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (focus) bodyRef.current?.focus();
+  }, [focus]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const bodyId = useId();
@@ -815,6 +848,7 @@ function PostForm({ book, initialChapter, onPost }: { book: Book; initialChapter
           className="field-input log-textarea"
           rows={3}
           maxLength={CLUB_POST_MAX}
+          ref={bodyRef}
           value={body}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}

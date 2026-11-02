@@ -21,7 +21,7 @@ export const plans: Plan[] = [
       "Didn't finish for books you put down, and Read again to count every reread",
       "AI book summaries and content notes, and Ask the book, Translate and Previously… recaps on the classics",
       "Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story",
-      "Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, shared highlights, listening along and where everyone is in the book",
+      "Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, shared highlights, listening along and where everyone is in the book",
       "Notifications on your devices for new releases, club meetings and posts, and your streak",
       "Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, and read offline",
       "Import your reading from Goodreads or StoryGraph, and export it back in either's format",
@@ -148,7 +148,7 @@ export const planFaqs = [
   },
   {
     q: "Are the book summaries written by AI?",
-    a: "Yes. Summaries, content notes, Ask the book, Translate and Previously… recaps are written by Claude, an AI model made by Anthropic, and are labelled as AI-written. Ask the book only reads up to your place in the book, and a Previously… recap only the chapters before yours, so neither spoils what comes next.",
+    a: "Yes. Summaries, content notes, Ask the book, Translate, Previously… recaps and book clubs' discussion questions are written by Claude, an AI model made by Anthropic, and are labelled as AI-written. Ask the book only reads up to your place in the book, a Previously… recap only the chapters before yours, and discussion questions only the book up to their chapter, so none of them spoils what comes next.",
   },
   {
     q: "Which devices work?",

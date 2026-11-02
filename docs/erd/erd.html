@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6630, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6633, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -673,6 +673,17 @@
             ["", "created_at", "timestamptz"],
           ],
           note: "A reading plan: the day to finish a book by, and where the reader was when it started (for ahead or behind); the app works out pages and minutes a day. Up to 20 per profile, today to two years ahead (trigger). FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; index on user_id. RLS: owner only.",
+        },
+        {
+          id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
+          cols: [
+            ["pk", "volume_id", "text (book id)"],
+            ["pk", "chapter_index", "smallint 0–999"],
+            ["", "questions", "text[] 5–8"],
+            ["", "model", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "A book club's discussion questions about one chapter of a public-domain title, from the text up to the end of that chapter only, written by Claude the first time any club asks and kept, so every club there gets the same ones. RLS on, no browser access; the discussion function reads and writes it.",
         },
         {
           id: "chapter_recaps", color: colors.server, x: 0, y: 8320, sub: "previously… · function only",

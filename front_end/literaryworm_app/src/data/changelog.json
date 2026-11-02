@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-02",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Discussion questions for book clubs",
+    "body": "On a book club's page for a public-domain classic, Discussion questions gives five to eight questions about a chapter you've reached, written by AI from the book up to the end of that chapter only, so nothing later is given away. Choose Start a post with this to begin a post with one. Every club at that chapter gets the same questions.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
     "kind": "update",
     "title": "Bigger car mode buttons on phones and tablets",
     "body": "On phones and tablets, in the browser or the installed app, online or offline, car mode now fills the screen with bigger buttons, icons and words. Held upright, Back and Forward are on the first row, Play goes across the middle, and Previous and Next chapter are below. A tablet on its side has two rows with Play down the middle, and a phone on its side has all five in one tall row.",

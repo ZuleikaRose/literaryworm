@@ -39,7 +39,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "users",
     title: "Book clubs and buddy reads",
-    body: "Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden. Read a LiteraryWorm title or a book you uploaded (find it by title, author, keywords or ISBN), see where everyone is, plan meetings and add them to your calendar.",
+    body: "Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden, and on the classics AI discussion questions for each chapter you've reached get the conversation going. Read a LiteraryWorm title or a book you uploaded (find it by title, author, keywords or ISBN), see where everyone is, plan meetings and add them to your calendar.",
   },
   {
     icon: "bookOpen",

@@ -55,6 +55,13 @@ verify_jwt = false
 # listener), and limits new recaps (Claude calls) per IP and per day.
 verify_jwt = false
 
+[functions.discussion]
+# Public like recaps: the demo household's club asks for discussion questions without a session.
+# The function validates every field, works only for public-domain catalog titles, keeps each
+# chapter's questions, sends Claude only the book's text up to that chapter (nothing about the
+# reader or the club), and limits new questions (Claude calls) per IP and per day.
+verify_jwt = false
+
 [functions.translate]
 # Public like ask: the demo household translates without a session. The function validates
 # every field, works only for public-domain catalog titles and only for words in that chapter,
