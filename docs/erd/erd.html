@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6628, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6630, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -120,14 +120,17 @@
             ["", "club_meeting_emails", "boolean (on)"],
             ["", "club_post_emails", "boolean (off)"],
             ["", "club_posts_emailed_through", "timestamptz", true],
+            ["", "push_kinds", "text[] (all five)"],
+            ["", "club_posts_pushed_through", "timestamptz"],
+            ["", "streak_pushed_on", "date", true],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails and club_post_emails only (column grants); club_posts_emailed_through is the service role's (the daily club-digest email).",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails, club_post_emails and push_kinds only (column grants); the *_through and streak_pushed_on columns are the service role's (club digest, device notifications).",
         },
         {
-          id: "plans", color: colors.billing, x: 0, y: 880, sub: "catalog",
+          id: "plans", color: colors.billing, x: 0, y: 1040, sub: "catalog",
           cols: [
             ["pk", "id", "text"],
             ["", "name", "text"],
@@ -229,7 +232,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade. Index: (user_id, volume_id). RLS: owner only; added and removed, never edited.",
         },
         {
-          id: "favorites", color: colors.household, x: 0, y: 1420, sub: "per profile",
+          id: "favorites", color: colors.household, x: 0, y: 1580, sub: "per profile",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -265,7 +268,7 @@
           note: "FK as favorites; the key is its index. Only for books not out yet, up to 100 a profile (trigger). RLS: owner only; set and removed. emailed_at and pushed_at: set by the release-emails function only (claim_release_emails, claim_release_pushes, hourly via pg_cron).",
         },
         {
-          id: "book_ratings", color: colors.household, x: 0, y: 1680, sub: "per profile",
+          id: "book_ratings", color: colors.household, x: 0, y: 1840, sub: "per profile",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -391,7 +394,7 @@
           note: "AI-written summaries, kept so each book is written once. Same ids as library_items.volume_id, no foreign key (any book). RLS on; no browser access: read through the function.",
         },
         {
-          id: "reading_goals", color: colors.household, x: 0, y: 2160, sub: "per profile · goals",
+          id: "reading_goals", color: colors.household, x: 0, y: 2320, sub: "per profile · goals",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -443,7 +446,7 @@
           note: "A one-way fingerprint of each invited address, never the address. Written by the club-invite function through record_club_invite() (member of the club, not full, 10 a day, same address once a week). RLS on, no browser access. Removed after 30 days by pg_cron. Indexes: (club_id, email_hash, created_at), (invited_by, created_at).",
         },
         {
-          id: "author_news", color: colors.household, x: 0, y: 4360, sub: "per profile · followed authors",
+          id: "author_news", color: colors.household, x: 0, y: 4520, sub: "per profile · followed authors",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -490,7 +493,7 @@
           note: "FK (challenge_id, user_id) → household_challenges and (profile_id, user_id) → reader_profiles, so both belong to the same account; on delete cascade. Kids profiles can join. RLS: owner only; joined and left. Index: (profile_id, user_id).",
         },
         {
-          id: "saved_words", color: colors.household, x: 0, y: 6720, sub: "per profile · My words",
+          id: "saved_words", color: colors.household, x: 0, y: 6880, sub: "per profile · My words",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -542,7 +545,7 @@
           note: "A chapter's quiz for a public-domain title, written by Claude from that chapter only the first time anyone asks, and kept. RLS on, no browser access; the quiz function reads and writes it.",
         },
         {
-          id: "maintenance_notices", color: colors.server, x: 0, y: 7200, sub: "site banner",
+          id: "maintenance_notices", color: colors.server, x: 0, y: 7360, sub: "site banner",
           cols: [
             ["pk", "id", "uuid"],
             ["", "title", "text 1–80"],
@@ -593,7 +596,7 @@
           note: "Passkeys added from a session that gave the two-step code (trust_passkey()). second_step_done() accepts a passkey log-in only when every passkey on the account is here. FK user_id → auth.users, on delete cascade; index on user_id. No browser access.",
         },
         {
-          id: "push_subscriptions", color: colors.auth, x: 0, y: 7680, sub: "per device · notifications",
+          id: "push_subscriptions", color: colors.auth, x: 0, y: 7840, sub: "per device · notifications",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -672,7 +675,7 @@
           note: "A reading plan: the day to finish a book by, and where the reader was when it started (for ahead or behind); the app works out pages and minutes a day. Up to 20 per profile, today to two years ahead (trigger). FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; index on user_id. RLS: owner only.",
         },
         {
-          id: "chapter_recaps", color: colors.server, x: 0, y: 8160, sub: "previously… · function only",
+          id: "chapter_recaps", color: colors.server, x: 0, y: 8320, sub: "previously… · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
             ["pk", "chapter_index", "smallint 1–999"],
@@ -684,7 +687,7 @@
           note: "The Previously… recap of a public-domain title before a chapter, from the chapters before it only, written by Claude the first time anyone asks and kept, so later listeners get the same one. RLS on, no browser access; the recaps function reads and writes it.",
         },
         {
-          id: "book_moods", color: colors.household, x: 0, y: 8640, sub: "per profile",
+          id: "book_moods", color: colors.household, x: 0, y: 8800, sub: "per profile",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -718,7 +721,7 @@
           note: "The characters met in a public-domain title up to a chapter, written by Claude the first time anyone asks and kept, so later readers get the same list. RLS on, no browser access; the characters function reads and writes it.",
         },
         {
-          id: "changelog_entries", color: colors.server, x: 0, y: 4870, sub: "what's new · public",
+          id: "changelog_entries", color: colors.server, x: 0, y: 5030, sub: "what's new · public",
           cols: [
             ["pk", "id", "uuid"],
             ["", "released_on", "date"],
@@ -822,7 +825,7 @@
           note: "FK (club_id, user_id) → club_members, on delete cascade: leaving deletes your posts. Indexes: (club_id, user_id), user_id, (club_id, created_at). Up to 60 an hour. Sent by Realtime. RLS: members read; authors edit; authors or the owner delete.",
         },
         {
-          id: "listening_devices", color: colors.account, x: 0, y: 2530, sub: "one per browser",
+          id: "listening_devices", color: colors.account, x: 0, y: 2690, sub: "one per browser",
           cols: [
             ["pk", "id", "uuid (kept by the browser)"],
             ["fk", "user_id", "uuid"],
@@ -869,7 +872,7 @@
           note: "FK (to_device_id, user_id) → listening_devices and (profile_id, user_id) → reader_profiles, on delete cascade; both indexed. Sent by Realtime. RLS: owner only; browser sets claimed_at only after sending.",
         },
         {
-          id: "finished_books", color: colors.household, x: 0, y: 2960, sub: "per profile · year in review",
+          id: "finished_books", color: colors.household, x: 0, y: 3120, sub: "per profile · year in review",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -909,7 +912,7 @@
           note: "FK club_id → book_clubs and (club_id, host_id) → club_members, on delete cascade; indexed. Sent by Realtime. RLS: members read; the host moves it; any member takes over one left for two minutes; the host or owner ends it.",
         },
         {
-          id: "staff_roles", color: colors.account, x: 0, y: 3440, sub: "access beyond membership",
+          id: "staff_roles", color: colors.account, x: 0, y: 3600, sub: "access beyond membership",
           cols: [
             ["pk fk", "user_id", "uuid"],
             ["pk", "role", "staff_role"],
@@ -955,7 +958,7 @@
           note: "Written by the edit trigger. RLS: editors and admins read. Indexes: (slug, replaced_at), replaced_by.",
         },
         {
-          id: "stripe_customers", color: colors.billing, x: 0, y: 3900, sub: "server only",
+          id: "stripe_customers", color: colors.billing, x: 0, y: 4060, sub: "server only",
           cols: [
             ["pk fk", "user_id", "uuid"],
             ["", "customer_id", "text (cus_…, unique)"],
