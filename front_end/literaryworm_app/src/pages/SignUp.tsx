@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
+import { HOME_CRUMB, pageData } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCard } from "../components/AuthCard";
 import { Field } from "../components/Field";
@@ -150,114 +152,120 @@ export default function SignUp() {
   }
 
   return (
-    <AuthCard
-      eyebrow="Join LiteraryWorm"
-      title="Create your account"
-      intro={
-        <p>
-          Account holders must be 18 or older. You'll add profiles for everyone else at home next.
-          {plan && (
-            <>
-              {" "}
-              You picked <strong>{plan.name}</strong>; you'll confirm it before paying anything.
-            </>
-          )}
-        </p>
-      }
-      footer={
-        <>
-          <span>Already have an account?</span>
-          <Link to="/signin">Log in</Link>
-        </>
-      }
-    >
-      {formError && (
-        <div className="form-alert" role="alert">
-          <Icon name="alert" size={17} />
-          <p>{formError}</p>
-        </div>
-      )}
-      <form ref={formRef} className="auth-form" noValidate onSubmit={submit}>
-        <Field
-          label="Your name"
-          autoComplete="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          error={liveErrors.name}
-        />
-        <Field
-          label="Email address"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={liveErrors.email}
-        />
-        <PasswordField
-          label="Password"
-          autoComplete="new-password"
-          maxLength={PASSWORD_MAX}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={liveErrors.password}
-          hint={
-            <>
-              {PASSWORD_MIN} to {PASSWORD_MAX} characters. No need for symbols or numbers; a short phrase is strong.{" "}
-              <span className={length >= PASSWORD_MIN ? "hint-ok" : undefined} aria-live="polite">
-                {length >= PASSWORD_MIN ? (
-                  <>
-                    <Icon name="check" size={13} /> Long enough
-                  </>
-                ) : (
-                  `${length}/${PASSWORD_MIN}`
-                )}
+    <>
+      <StructuredData
+        id="page"
+        data={pageData({ path: "/signup", name: "Create your account", crumbs: [HOME_CRUMB, { name: "Create your account", path: "/signup" }] })}
+      />
+      <AuthCard
+        eyebrow="Join LiteraryWorm"
+        title="Create your account"
+        intro={
+          <p>
+            Account holders must be 18 or older. You'll add profiles for everyone else at home next.
+            {plan && (
+              <>
+                {" "}
+                You picked <strong>{plan.name}</strong>; you'll confirm it before paying anything.
+              </>
+            )}
+          </p>
+        }
+        footer={
+          <>
+            <span>Already have an account?</span>
+            <Link to="/signin">Log in</Link>
+          </>
+        }
+      >
+        {formError && (
+          <div className="form-alert" role="alert">
+            <Icon name="alert" size={17} />
+            <p>{formError}</p>
+          </div>
+        )}
+        <form ref={formRef} className="auth-form" noValidate onSubmit={submit}>
+          <Field
+            label="Your name"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            error={liveErrors.name}
+          />
+          <Field
+            label="Email address"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={liveErrors.email}
+          />
+          <PasswordField
+            label="Password"
+            autoComplete="new-password"
+            maxLength={PASSWORD_MAX}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={liveErrors.password}
+            hint={
+              <>
+                {PASSWORD_MIN} to {PASSWORD_MAX} characters. No need for symbols or numbers; a short phrase is strong.{" "}
+                <span className={length >= PASSWORD_MIN ? "hint-ok" : undefined} aria-live="polite">
+                  {length >= PASSWORD_MIN ? (
+                    <>
+                      <Icon name="check" size={13} /> Long enough
+                    </>
+                  ) : (
+                    `${length}/${PASSWORD_MIN}`
+                  )}
+                </span>
+              </>
+            }
+          />
+          <Field
+            label="Date of birth"
+            type="date"
+            autoComplete="bday"
+            max={today}
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+            error={liveErrors.dob}
+            hint="We use this only to confirm you're 18 or older."
+          />
+
+          <div className="auth-checks">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={terms}
+                onChange={(e) => setTerms(e.target.checked)}
+                aria-invalid={liveErrors.terms ? true : undefined}
+                aria-describedby={liveErrors.terms ? "terms-error" : undefined}
+              />
+              <span>
+                I accept the <Link to="/legal/terms">Terms of Service</Link> and have read the{" "}
+                <Link to="/legal/privacy">Privacy Policy</Link>.
               </span>
-            </>
-          }
-        />
-        <Field
-          label="Date of birth"
-          type="date"
-          autoComplete="bday"
-          max={today}
-          value={dob}
-          onChange={(e) => setDob(e.target.value)}
-          error={liveErrors.dob}
-          hint="We use this only to confirm you're 18 or older."
-        />
+            </label>
+            {liveErrors.terms && (
+              <p className="field-error" id="terms-error">
+                <Icon name="alert" size={15} />
+                {liveErrors.terms}
+              </p>
+            )}
+            <label className="check-row">
+              <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
+              <span>Email me about new releases and offers. You can change this any time.</span>
+            </label>
+          </div>
 
-        <div className="auth-checks">
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={terms}
-              onChange={(e) => setTerms(e.target.checked)}
-              aria-invalid={liveErrors.terms ? true : undefined}
-              aria-describedby={liveErrors.terms ? "terms-error" : undefined}
-            />
-            <span>
-              I accept the <Link to="/legal/terms">Terms of Service</Link> and have read the{" "}
-              <Link to="/legal/privacy">Privacy Policy</Link>.
-            </span>
-          </label>
-          {liveErrors.terms && (
-            <p className="field-error" id="terms-error">
-              <Icon name="alert" size={15} />
-              {liveErrors.terms}
-            </p>
-          )}
-          <label className="check-row">
-            <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
-            <span>Email me about new releases and offers. You can change this any time.</span>
-          </label>
-        </div>
-
-        <button type="submit" className="primary-button auth-submit" disabled={busy}>
-          {busy ? "Creating your account…" : "Create account"}
-        </button>
-      </form>
-    </AuthCard>
+          <button type="submit" className="primary-button auth-submit" disabled={busy}>
+            {busy ? "Creating your account…" : "Create account"}
+          </button>
+        </form>
+      </AuthCard>
+    </>
   );
 }

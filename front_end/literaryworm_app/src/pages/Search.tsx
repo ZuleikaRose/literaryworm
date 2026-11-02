@@ -1,4 +1,6 @@
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { HOME_CRUMB, pageData } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookCard } from "../components/BookCard";
 import { BookFeed } from "../components/BookFeed";
@@ -55,6 +57,15 @@ export default function Search() {
     <div className="search-page page-content">
       {/* Keyed so the box shows the query from the URL after Back, a recent search or Did you mean. */}
       <SearchHeader key={`${search.by}|${search.q}`} search={search} serverError={invalid} />
+      <StructuredData
+        id="page"
+        data={pageData({
+          type: searching ? "SearchResultsPage" : "WebPage",
+          path: searching ? searchUrl(search) : "/search",
+          name: searching ? `Search results for “${search.q}”` : "Search",
+          crumbs: [HOME_CRUMB, { name: "Search", path: "/search" }],
+        })}
+      />
       {searching ? <Results search={search} /> : <StartHere />}
       <WhatsNewLink />
     </div>

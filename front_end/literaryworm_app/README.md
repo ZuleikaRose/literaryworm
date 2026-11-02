@@ -227,3 +227,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Uploads by ISBN (`useIsbnLookup()`, `isbnMatches()`); club books by title, author, keywords or ISBN in one box (`keywordMatch()` in `lib/clubBookChoices.ts`); migrations 6622 and 6623 (Help) |
 | — | Keyword searches to try on Discover and Search: `components/KeywordIdeas.tsx`, `KEYWORD_IDEAS`; migration 6624 (Cookie Policy, What's new) |
 | — | Ahrefs Web Analytics: the tag in `index.html`, `components/Analytics.tsx`, `lib/analytics.ts`; migration 6625 (policies, What's new) |
+| — | Structured data on every public page: `pageData()`, `breadcrumbData()`, `seriesData()`, `personNode()`, `bookRef()` in `lib/seo.ts` |

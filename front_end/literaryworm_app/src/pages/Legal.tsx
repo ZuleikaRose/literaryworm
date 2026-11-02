@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { HOME_CRUMB, pageData } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { LegalEditor } from "../components/LegalEditor";
@@ -26,6 +28,16 @@ export default function Legal() {
 
   return (
     <article className="page legal-page">
+      <StructuredData
+        id="page"
+        data={pageData({
+          path: `/legal/${page.slug}`,
+          name: page.title,
+          description: page.summary || undefined,
+          dateModified: page.updated,
+          crumbs: [HOME_CRUMB, { name: page.title, path: `/legal/${page.slug}` }],
+        })}
+      />
       <h1 ref={heading} tabIndex={-1}>
         {page.title}
       </h1>

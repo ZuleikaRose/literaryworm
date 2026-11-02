@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { HOME_CRUMB, pageData, personNode } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { Link, useParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink";
 import { ReaderFollowButton } from "../components/ReaderFollowButton";
@@ -47,6 +49,18 @@ function ReaderPage({ id }: { id: string }) {
 
   return (
     <div className="page-content person-page">
+      {load.status === "done" && (
+        <StructuredData
+          id="page"
+          data={pageData({
+            type: "ProfilePage",
+            path: `/readers/${encodeURIComponent(id)}`,
+            name: `${load.name} (reader)`,
+            crumbs: [HOME_CRUMB, { name: load.name, path: `/readers/${encodeURIComponent(id)}` }],
+            mainEntity: personNode(load.name, `/readers/${encodeURIComponent(id)}`),
+          })}
+        />
+      )}
       <BackLink />
       {load.status === "loading" && <p role="status">Loading this reader…</p>}
       {load.status === "error" && (

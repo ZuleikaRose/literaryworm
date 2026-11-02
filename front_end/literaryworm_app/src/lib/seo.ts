@@ -86,10 +86,13 @@ const offer = (name: string, price: number, duration: "P1M" | "P1Y") => ({
   },
 });
 
+export const MEMBERSHIP_ID = `${SITE_URL}/plans#membership`;
+
 /** The membership and each plan's monthly and yearly price: on the home page and Plans. */
 export const membershipData = () => ({
   "@context": "https://schema.org",
   "@type": "Product",
+  "@id": MEMBERSHIP_ID,
   name: "LiteraryWorm membership",
   description: MEMBERSHIP_DESCRIPTION,
   image: LOGO_URL,
@@ -136,3 +139,87 @@ export function bookData(book: Pick<Book, "id" | "title" | "author" | "year" | "
     ...(editions.length ? { workExample: editions } : {}),
   };
 }
+
+/** An address on the site, absolute. */
+export const absoluteUrl = (path: string) => (path === "/" ? `${SITE_URL}/` : `${SITE_URL}${path}`);
+
+/** One step of a page's breadcrumb trail: its name and path. */
+export interface Crumb {
+  name: string;
+  path: string;
+}
+
+/** The trail from Home to a page, as a BreadcrumbList. */
+export const breadcrumbData = (crumbs: Crumb[]) => ({
+  "@type": "BreadcrumbList",
+  itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: absoluteUrl(c.path) })),
+});
+
+/** The kinds of page the site has, from schema.org's WebPage types. */
+export type PageType = "WebPage" | "CollectionPage" | "ProfilePage" | "SearchResultsPage" | "ItemPage";
+
+export interface PageInfo {
+  type?: PageType;
+  /** The page's address: its path, with any query it shows (such as a search's words). */
+  path: string;
+  name: string;
+  description?: string;
+  /** From Home to this page; Home alone gets no trail. */
+  crumbs?: Crumb[];
+  /** When the page's content last changed (ISO date or timestamp). */
+  dateModified?: string;
+  /** What the page is about: a reference ({ "@id": … }) or a small node. */
+  mainEntity?: Record<string, unknown>;
+}
+
+/**
+ * Every public page's own node: what kind of page it is, its name and address, that it's part of
+ * the site (WebSite in index.html), its breadcrumb trail and what it's about. Only what the page shows.
+ */
+export function pageData({ type = "WebPage", path, name, description, crumbs, dateModified, mainEntity }: PageInfo) {
+  const url = absoluteUrl(path);
+  return {
+    "@context": "https://schema.org",
+    "@type": type,
+    "@id": `${url}#webpage`,
+    url,
+    name,
+    inLanguage: "en",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    ...(description ? { description } : {}),
+    ...(dateModified ? { dateModified } : {}),
+    ...(crumbs && crumbs.length > 1 ? { breadcrumb: breadcrumbData(crumbs) } : {}),
+    ...(mainEntity ? { mainEntity } : {}),
+  };
+}
+
+/** The trail's first step. */
+export const HOME_CRUMB: Crumb = { name: "Home", path: "/" };
+
+/** A catalog book's node, by reference (bookData() gives it in full on the book's page). */
+export const bookRef = (id: string) => ({ "@id": `${absoluteUrl(`/books/${encodeURIComponent(id)}`)}#book` });
+
+/** A series page: the series and its books in reading order. */
+export function seriesData(name: string, path: string, books: Pick<Book, "id" | "title" | "author">[]) {
+  const url = absoluteUrl(path);
+  const authors = [...new Set(books.map((b) => b.author))];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BookSeries",
+    "@id": `${url}#series`,
+    name,
+    url,
+    ...(authors.length === 1 ? { author: { "@type": "Person", name: authors[0] } } : {}),
+    hasPart: books.map((b, i) => ({
+      "@type": "Book",
+      "@id": bookRef(b.id)["@id"],
+      name: b.title,
+      url: absoluteUrl(`/books/${encodeURIComponent(b.id)}`),
+      author: { "@type": "Person", name: b.author },
+      position: i + 1,
+    })),
+  };
+}
+
+/** A person a page is about: an author, a narrator or a reader who made their page public. */
+export const personNode = (name: string, path: string) => ({ "@type": "Person", name, url: absoluteUrl(path) });

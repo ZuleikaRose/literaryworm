@@ -1,4 +1,6 @@
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { HOME_CRUMB, pageData } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { AccountError } from "../lib/accountApi";
@@ -78,6 +80,21 @@ export default function WhatsNew() {
 
   return (
     <article className="page whats-new">
+      <StructuredData
+        id="page"
+        data={pageData({
+          type: "CollectionPage",
+          path: "/whats-new",
+          name: "What's new",
+          description: "Every new feature, fix and update on LiteraryWorm, newest first.",
+          crumbs: [HOME_CRUMB, { name: "What's new", path: "/whats-new" }],
+          dateModified: entries[0]?.releasedOn,
+          mainEntity: {
+            "@type": "ItemList",
+            itemListElement: entries.slice(0, 10).map((e, i) => ({ "@type": "ListItem", position: i + 1, name: e.title })),
+          },
+        })}
+      />
       <h1 ref={headingRef} tabIndex={-1}>
         What's new
       </h1>

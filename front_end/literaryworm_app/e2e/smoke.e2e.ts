@@ -1234,7 +1234,42 @@ describe("the demo household", () => {
     await expect(types()).resolves.toEqual(expect.arrayContaining(["WebSite", "Organization", "Product", "FAQPage"]));
     await goInApp(page, "/books/frankenstein");
     await page.getByRole("heading", { level: 1, name: /Frankenstein/ }).waitFor();
-    await expect(types()).resolves.toEqual(["WebSite", "Organization", "Book"]);
+    await expect(types().then((t) => [...t].sort())).resolves.toEqual(["Book", "ItemPage", "Organization", "WebSite"]);
+    expect(errors()).toEqual([]);
+  });
+
+  it("gives every public page its own node with a trail from Home", async () => {
+    const { page, errors } = await newPage();
+    const nodes = () =>
+      page.locator('script[type="application/ld+json"][data-structured]').evaluateAll((els) => els.map((el) => JSON.parse(el.textContent ?? "null")));
+    const visit = async (path: string, type: string, trail: string[]) => {
+      await goInApp(page, path);
+      // Wait for this page's own node (its @id is its address), not the last page's.
+      const id = `https://www.literaryworm.com${path}#webpage`;
+      await page.waitForFunction(
+        ([want, kind]) =>
+          [...document.querySelectorAll('script[data-structured="page"]')].some((el) => {
+            const d = JSON.parse(el.textContent ?? "null");
+            return d?.["@id"] === want && d?.["@type"] === kind;
+          }),
+        [id, type],
+      );
+      const node = (await nodes()).find((d) => d["@id"] === id);
+      const crumbs = node?.breadcrumb?.itemListElement?.map((c: { name: string }) => c.name) ?? [];
+      expect(crumbs).toEqual(trail);
+    };
+    await page.goto(`${BASE_URL}/`);
+    await visit("/", "WebPage", []);
+    await visit("/plans", "WebPage", ["Home", "Plans and pricing"]);
+    await visit("/search?q=arctic&by=keywords", "SearchResultsPage", ["Home", "Search"]);
+    await visit("/whats-new", "CollectionPage", ["Home", "What's new"]);
+    await visit("/legal/privacy", "WebPage", ["Home", "Privacy Policy"]);
+    await visit("/authors/Mary%20Shelley", "ProfilePage", ["Home", "Mary Shelley"]);
+    await visit("/series/Anne%20of%20Green%20Gables", "CollectionPage", ["Home", "Anne of Green Gables"]);
+    expect((await nodes()).some((d) => d["@type"] === "BookSeries" && d.hasPart.length > 1)).toBe(true);
+    await visit("/books/anne-of-avonlea", "ItemPage", ["Home", "Anne of Green Gables", "Anne of Avonlea"]);
+    // Only the page shown: the series' nodes went with its page.
+    expect((await nodes()).some((d) => d["@type"] === "BookSeries")).toBe(false);
     expect(errors()).toEqual([]);
   });
 

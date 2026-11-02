@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { HOME_CRUMB, pageData, personNode } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { Link, useParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink";
 import { BookFeed } from "../components/BookFeed";
@@ -7,7 +9,7 @@ import { Shelf } from "../components/Shelf";
 import { usesBackend } from "../lib/backend";
 import { fromLocal } from "../lib/booksApi";
 import { fetchFollowerCount } from "../lib/followersApi";
-import { catalogBy, followerCountNow, followerLabel, type PersonKind, personInitials, personName } from "../lib/people";
+import { catalogBy, followerCountNow, followerLabel, type PersonKind, personInitials, personName, personPath } from "../lib/people";
 import { useFollows } from "../lib/useFollows";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile, useStore } from "../store/context";
@@ -51,6 +53,16 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
 
   return (
     <div className="page-content person-page">
+      <StructuredData
+        id="page"
+        data={pageData({
+          type: "ProfilePage",
+          path: personPath(kind, name),
+          name: `${name} (${role.toLowerCase()})`,
+          crumbs: [HOME_CRUMB, { name, path: personPath(kind, name) }],
+          mainEntity: personNode(name, personPath(kind, name)),
+        })}
+      />
       <BackLink />
       <header className="person-hero">
         <span className="person-mark" aria-hidden="true">

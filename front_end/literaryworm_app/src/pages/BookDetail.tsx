@@ -9,7 +9,7 @@ import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
 import { MoodPicker } from "../components/MoodPicker";
 import { StructuredData } from "../components/StructuredData";
-import { bookData } from "../lib/seo";
+import { bookData, bookRef, type Crumb, HOME_CRUMB, pageData } from "../lib/seo";
 import { BuddyReadButton } from "../components/BuddyReadButton";
 import { ContentNotes } from "../components/ContentNotes";
 import { Dialog } from "../components/Dialog";
@@ -153,6 +153,20 @@ function DetailCover({ view }: { view: DetailView }) {
   const author = view.authors.join(", ") || "Unknown author";
   const book = view.local ?? { cover: fallbackCover(view.id), genres: view.categories.slice(0, 1), title: view.title, author };
   return <Cover book={book} size="xl" />;
+}
+
+/** A book page's own node: an ItemPage about the book, with the trail through its series if it has one. */
+function bookPageData(view: DetailView) {
+  const path = `/books/${encodeURIComponent(view.id)}`;
+  const crumbs: Crumb[] = [HOME_CRUMB];
+  const place = view.local?.source === "literaryworm" ? seriesPlace(view.id) : null;
+  if (place) crumbs.push({ name: place.series.name, path: seriesPath(place.series.name) });
+  crumbs.push({ name: view.title, path });
+  const mainEntity =
+    view.local?.source === "literaryworm"
+      ? bookRef(view.id)
+      : { "@type": "Book", name: view.title, ...(view.authors.length ? { author: view.authors.map((name) => ({ "@type": "Person", name })) } : {}) };
+  return pageData({ type: "ItemPage", path, name: view.title, crumbs, mainEntity });
 }
 
 type Pending = { kind: "remove" } | { kind: "deleteLog"; log: ReadingLog } | null;
@@ -307,6 +321,8 @@ function DetailPage({ view }: { view: DetailView }) {
       </p>
       {/* A LiteraryWorm title's own schema.org data (lib/seo.ts); Google Books titles and uploads have none. */}
       {view.local?.source === "literaryworm" && <StructuredData id="book" data={bookData(view.local)} />}
+      {/* Every book page but an upload's (private) says what it is and where it sits. */}
+      {!view.local?.upload && <StructuredData id="page" data={bookPageData(view)} />}
 
       <section className="book-hero" aria-labelledby="book-title">
         <div className="detail-cover">

@@ -468,5 +468,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Keyword searches to try on Discover and Search; Plans and home page name upload search; Cookie Policy true to the uploads cache (6624); schema.sql and drawsql.png current to 6624 (no table or column changes since 6617; live dev and production checked: 66 tables, 489 columns) | Done    |
 | —    | Ahrefs Web Analytics (no cookies, with consent; path-only page views; off for Kids profiles and pages with codes); Privacy Policy, Cookie Policy, Children's Privacy Notice, Your Privacy Choices and the cookies FAQ updated (6625) | Done    |
 | —    | Supabase CLI v3 (3.0.0): scripts and docs use `--remote` and `--yes`; schema.sql and drawsql.png current to 6625; live dev and production checked with v3 (66 tables, 489 columns) | Done    |
+| —    | schema.org data on every public page: page type, breadcrumbs from Home and what it's about (`pageData()`), a BookSeries on series pages | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

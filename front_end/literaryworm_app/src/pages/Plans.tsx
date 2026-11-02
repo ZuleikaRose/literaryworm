@@ -8,7 +8,7 @@ import { StructuredData } from "../components/StructuredData";
 import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
 import { profilesInUse, tooBigFor } from "../lib/planLimits";
-import { faqData, membershipData, plansDescription } from "../lib/seo";
+import { faqData, membershipData, plansDescription, HOME_CRUMB, MEMBERSHIP_ID, pageData } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { BillingInterval, Plan, PlanId } from "../types";
@@ -499,6 +499,16 @@ export default function Plans() {
         </section>
       )}
 
+      <StructuredData
+        id="page"
+        data={pageData({
+          path: "/plans",
+          name: "Plans and pricing",
+          description: plansDescription(),
+          crumbs: [HOME_CRUMB, { name: "Plans and pricing", path: "/plans" }],
+          mainEntity: { "@id": MEMBERSHIP_ID },
+        })}
+      />
       <StructuredData id="membership" data={membershipData()} />
       <StructuredData id="faq" data={faqData(planFaqs)} />
       <section className="faq" aria-labelledby="faq-title">

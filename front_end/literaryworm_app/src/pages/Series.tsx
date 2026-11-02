@@ -1,8 +1,10 @@
 import { Link, useParams } from "react-router-dom";
+import { absoluteUrl, HOME_CRUMB, pageData, seriesData } from "../lib/seo";
+import { StructuredData } from "../components/StructuredData";
 import { BackLink } from "../components/BackLink";
 import { Cover } from "../components/Cover";
 import { personPath } from "../lib/people";
-import { seriesBooks, seriesNamed } from "../lib/series";
+import { seriesBooks, seriesNamed, seriesPath } from "../lib/series";
 import { useTitle } from "../lib/useTitle";
 import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useStore } from "../store/context";
@@ -40,6 +42,17 @@ function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
 
   return (
     <div className="page-content series-page">
+      <StructuredData
+        id="page"
+        data={pageData({
+          type: "CollectionPage",
+          path: seriesPath(name),
+          name: `${name} (series)`,
+          crumbs: [HOME_CRUMB, { name, path: seriesPath(name) }],
+          mainEntity: { "@id": `${absoluteUrl(seriesPath(name))}#series` },
+        })}
+      />
+      <StructuredData id="series" data={seriesData(name, seriesPath(name), titles)} />
       <BackLink />
       <header className="series-hero">
         <p className="eyebrow">Series</p>

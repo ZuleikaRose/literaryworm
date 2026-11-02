@@ -13,7 +13,7 @@ import { landingFeatures } from "../data/landingFeatures";
 import { formatPrice, planFaqs, plans } from "../data/plans";
 import { StructuredData } from "../components/StructuredData";
 import { useBookFeed } from "../lib/useBookFeed";
-import { faqData, membershipData, siteDescription } from "../lib/seo";
+import { faqData, membershipData, siteDescription, pageData } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 import type { AgeRating } from "../types";
@@ -240,6 +240,7 @@ export default function Landing() {
           </ul>
         </section>
 
+        <StructuredData id="page" data={pageData({ path: "/", name: "LiteraryWorm: read and listen in one place", description: siteDescription() })} />
         <StructuredData id="membership" data={membershipData()} />
         <StructuredData id="faq" data={faqData(planFaqs)} />
         <section className="faq" aria-labelledby="landing-faq-title">
