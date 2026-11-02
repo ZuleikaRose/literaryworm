@@ -175,6 +175,9 @@ export function wordsMatch(text: string, q: string): boolean {
     .every((w) => words.some((t) => t.startsWith(w)));
 }
 
+/** Keyword searches suggested on Discover and Search's start: each finds catalog titles by their descriptions. */
+export const KEYWORD_IDEAS = ["island", "detective", "ghost", "magic", "friendship", "war"] as const;
+
 /** Everything a keyword search looks through in a catalog title. */
 export function keywordText(b: Pick<Book, "title" | "author" | "narrator" | "synopsis" | "genres" | "series" | "publisher">): string {
   return [b.title, b.author, b.narrator ?? "", b.publisher, b.synopsis, b.genres.join(" "), b.series?.name ?? ""].join(" ");

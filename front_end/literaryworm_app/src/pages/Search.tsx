@@ -35,6 +35,7 @@ import { useCollections } from "../lib/useCollections";
 import { useTitle } from "../lib/useTitle";
 import { useActiveProfile } from "../store/context";
 import { MOODS } from "../lib/moods";
+import { KeywordIdeas } from "../components/KeywordIdeas";
 
 /**
  * /search, public. Search by title (the brief), or by author, keywords or ISBN when the reader
@@ -250,6 +251,7 @@ function StartHere() {
           )}
         </section>
       )}
+      <KeywordIdeas />
       {tagged.length > 0 && (
         <section aria-labelledby="moods-title">
           <h2 id="moods-title">Or find a book by how it felt</h2>

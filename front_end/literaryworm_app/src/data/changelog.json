@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-02",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Keyword searches to try on Discover and Search",
+    "body": "Discover and Search's start suggest a few keyword searches, such as Detective, Ghost and Friendship. Each looks through descriptions, genres and series as well as titles and authors. The Plans cards and the home page now say you can search your uploads by title, author, keywords or ISBN, even inside their text.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-02",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Find uploads by ISBN, and club books by keywords",
     "body": "My Library → Uploads can now search your EPUBs by ISBN too: Google Books says which book it is, and your uploads with that title and author show. When you start a club, Find a book and Find one of your uploads take a title, author, keywords or ISBN in one box: keywords also look through LiteraryWorm books' descriptions and genres, and your uploads' part names.",

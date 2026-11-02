@@ -7,6 +7,7 @@ import { OutNow } from "../components/RemindersView";
 import { ReadingPlansCard } from "../components/ReadingPlansCard";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
+import { KeywordIdeas } from "../components/KeywordIdeas";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
@@ -229,6 +230,8 @@ export default function Browse() {
             </Link>
           )}
         </section>
+
+        <KeywordIdeas />
 
         <WhatsNewLink />
 

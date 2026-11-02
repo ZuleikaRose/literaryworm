@@ -92,6 +92,18 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("suggests keyword searches on Search's start and on Discover", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/search`);
+    await page.getByRole("navigation", { name: "Keyword searches" }).getByRole("link", { name: "Detective" }).click();
+    await page.waitForURL(/q=detective&by=keywords/);
+    await page.getByText(/Results for the keywords “detective”/).waitFor();
+    await signInDemo(page);
+    await goInApp(page, "/browse");
+    await page.getByRole("heading", { name: "Search by keywords" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("checks an ISBN search, which needs Google Books", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/search?q=978-0-14-143951-8&by=isbn`);

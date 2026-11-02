@@ -457,3 +457,15 @@
 #discover {
   scroll-margin-top: calc(var(--header-h) + 16px);
 }
+
+/* Search by keywords suggestions (components/KeywordIdeas.tsx), on Discover and Search's start. */
+.keyword-ideas h2,
+.keyword-ideas h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+}
+
+.keyword-ideas .field-hint {
+  margin: 0 0 14px;
+}

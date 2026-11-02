@@ -225,3 +225,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Buddy reads: `components/BuddyReadButton.tsx`, `buddyName()` in `lib/clubs.ts`; migration 6612 |
 | — | Search by keywords: `keywordText()` and `hasAllFilters()` in `lib/search.ts`, the `books` function's `keywords` mode; searching uploads, `lib/uploadSearch.ts`, `lib/useUploadSearch.ts`; migration 6621 (Help) |
 | — | Uploads by ISBN (`useIsbnLookup()`, `isbnMatches()`); club books by title, author, keywords or ISBN in one box (`keywordMatch()` in `lib/clubBookChoices.ts`); migrations 6622 and 6623 (Help) |
+| — | Keyword searches to try on Discover and Search: `components/KeywordIdeas.tsx`, `KEYWORD_IDEAS`; migration 6624 (Cookie Policy, What's new) |

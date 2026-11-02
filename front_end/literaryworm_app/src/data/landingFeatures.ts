@@ -39,12 +39,12 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "users",
     title: "Book clubs and buddy reads",
-    body: "Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden. Read a LiteraryWorm title or a book you uploaded (find it by title, author or ISBN), see where everyone is, plan meetings and add them to your calendar.",
+    body: "Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden. Read a LiteraryWorm title or a book you uploaded (find it by title, author, keywords or ISBN), see where everyone is, plan meetings and add them to your calendar.",
   },
   {
     icon: "bookOpen",
     title: "Bring your own books",
-    body: "Upload up to 20 DRM-free EPUBs at a time, each up to 50 MB, such as books you bought. They stay private to your profile and open in the reader with your place, highlights and notes.",
+    body: "Upload up to 20 DRM-free EPUBs at a time, each up to 50 MB, such as books you bought. They stay private to your profile and open in the reader with your place, highlights and notes. Search them by title, author, keywords or ISBN, even inside their text.",
   },
   {
     icon: "headphones",

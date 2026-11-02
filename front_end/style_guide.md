@@ -374,6 +374,12 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 
 **Buddy reads.** *Read with a friend* is a secondary button with the people icon among a book's actions. A buddy read's page has the eyebrow *Buddy read · 2 readers*, and its invite card says *Invite your reading buddy* until the second reader joins.
 
+**Search by.** On Search, *Search by* is a segmented radio group (Title, Author, Keywords, ISBN); in the header and in My Library → Uploads it's a compact select beside the box. The label above the box follows the choice (*Keywords*, *Author's name*, *ISBN*), and a field hint says what it looks through. A club's *Find a book* is one box with no *Search by*: its placeholder names everything it takes (*Title, Author, Keywords or ISBN*).
+
+**Keyword ideas.** *Search by keywords* on Discover and Search's start: a display-font heading, one hint line, then 44px pill links (the genre chips), each opening a keyword search.
+
+**Places found in an upload.** Under each matching upload, up to three bordered rows: the part name in small muted bold, then the passage with the words in a `--mark-yellow` mark, the whole row a link to that page. *And 12 more places in this book.* follows in muted text.
+
 **Policies in short paragraphs.** Policy and Help paragraphs stay under about 400 characters; a long list is a lead-in line ending in a colon, then one paragraph per item. FAQ answers break into paragraphs the same way.
 
 **Header on narrow phones.** The logo is the book mark plus the wordmark "Literary**Worm**" ("Worm" in rust). Up to 480px the wordmark is set at 1rem so the header still fits, and at 400px and under *Log in* and *Sign up* have 8px side padding; if a wider fallback font is showing (while DM Sans loads, or when it's blocked), the wordmark ends in an ellipsis rather than push *Sign up* off the screen; below 390px it is hidden visually (not with `display: none`), so the logo link is still announced as "LiteraryWorm, home".
