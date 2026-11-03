@@ -236,3 +236,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Voice control in car mode (`VoiceControl`, `lib/voiceCommands.ts`; policies 6634, What's new 6635) |
 | — | Club polls (`club_polls`, `club_poll_votes`, `vote_club_poll()`, `close_club_poll()`, `lib/clubPolls.ts`, `lib/useClubPolls.ts`, `ClubPolls`; migrations 6637–6642) |
 | — | Stronger high contrast (`tokens.css` high-contrast rules, `lib/contrast.ts` and its test, forced-colours rules in `base.css` and `shell.css`; migrations 6643–6644) |
+| — | The app in seven languages (`lib/i18n.ts`, `lib/useT.ts`, `src/data/i18n/*.json` and the completeness test in `i18n.test.ts`; policies' note 6645, What's new 6646) |
