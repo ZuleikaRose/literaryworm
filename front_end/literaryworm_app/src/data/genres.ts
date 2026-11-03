@@ -1,28 +1,29 @@
+import { tk } from "../lib/i18n";
 /**
  * The genres to browse and search by, in the order the UI lists them: the six the assessment
  * brief requires first (`shelf`: each has its own row on Home), then the rest. The `books`
  * Edge Function's GENRES list must match.
  */
 export const browseGenres = [
-  { id: "technology", label: "Technology", shelf: true },
-  { id: "adventure", label: "Adventure", shelf: true },
-  { id: "sci-fi", label: "Sci-Fi", shelf: true },
-  { id: "fiction", label: "Fiction", shelf: true },
-  { id: "non-fiction", label: "Non-Fiction", shelf: true },
-  { id: "horror", label: "Horror", shelf: true },
-  { id: "fantasy", label: "Fantasy", shelf: false },
-  { id: "mystery", label: "Mystery", shelf: false },
-  { id: "thriller", label: "Thriller", shelf: false },
-  { id: "romance", label: "Romance", shelf: false },
-  { id: "classics", label: "Classics", shelf: false },
-  { id: "historical-fiction", label: "Historical Fiction", shelf: false },
-  { id: "young-adult", label: "Young Adult", shelf: false },
-  { id: "children", label: "Children's", shelf: false },
-  { id: "biography", label: "Biography & Memoir", shelf: false },
-  { id: "history", label: "History", shelf: false },
-  { id: "science", label: "Science", shelf: false },
-  { id: "self-help", label: "Self-Help", shelf: false },
-  { id: "poetry", label: "Poetry", shelf: false },
+  { id: "technology", label: tk("Technology"), shelf: true },
+  { id: "adventure", label: tk("Adventure"), shelf: true },
+  { id: "sci-fi", label: tk("Sci-Fi"), shelf: true },
+  { id: "fiction", label: tk("Fiction"), shelf: true },
+  { id: "non-fiction", label: tk("Non-Fiction"), shelf: true },
+  { id: "horror", label: tk("Horror"), shelf: true },
+  { id: "fantasy", label: tk("Fantasy"), shelf: false },
+  { id: "mystery", label: tk("Mystery"), shelf: false },
+  { id: "thriller", label: tk("Thriller"), shelf: false },
+  { id: "romance", label: tk("Romance"), shelf: false },
+  { id: "classics", label: tk("Classics"), shelf: false },
+  { id: "historical-fiction", label: tk("Historical Fiction"), shelf: false },
+  { id: "young-adult", label: tk("Young Adult"), shelf: false },
+  { id: "children", label: tk("Children's"), shelf: false },
+  { id: "biography", label: tk("Biography & Memoir"), shelf: false },
+  { id: "history", label: tk("History"), shelf: false },
+  { id: "science", label: tk("Science"), shelf: false },
+  { id: "self-help", label: tk("Self-Help"), shelf: false },
+  { id: "poetry", label: tk("Poetry"), shelf: false },
 ] as const;
 
 export type BrowseGenre = (typeof browseGenres)[number]["id"];

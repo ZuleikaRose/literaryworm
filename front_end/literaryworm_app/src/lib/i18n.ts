@@ -72,7 +72,16 @@ export function setActiveLanguage(lang: UiLanguage, messages: Messages | undefin
 }
 
 /** t() for code outside React: in the language chosen when it runs (an error made now reads in it). */
-export const tr = (key: string, vars?: Vars) => translate(active.messages, key, vars);
+export const tr = ((key: string, vars?: Vars) => translate(active.messages, key, vars)) as ((key: string, vars?: Vars) => string) & {
+  plural: (count: number, forms: PluralForms, vars?: Vars) => string;
+};
+tr.plural = (count, forms, vars) => pluralize(active.messages, active.lang, count, forms, vars);
+
+/** The language chosen now, for code outside React. */
+export const activeLanguage = (): UiLanguage => active.lang;
+
+/** The locale dates and numbers are written in: US English, or the language chosen. */
+export const dateLocale = (lang: UiLanguage = active.lang) => (lang === "en" ? "en-US" : lang);
 
 /**
  * A translated sentence with parts that are elements (bold, a link): rich(t("Log in with {email}."),

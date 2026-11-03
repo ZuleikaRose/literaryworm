@@ -1,5 +1,7 @@
 import { useId } from "react";
+import { tk } from "../lib/i18n";
 import { browseGenres } from "../data/genres";
+import { useT } from "../lib/useT";
 import { hasAllFilters, SEARCH_LANGUAGES, SEARCH_LENGTHS, type SearchParams } from "../lib/search";
 
 interface SearchFiltersProps {
@@ -26,14 +28,15 @@ function ChipGroup<T extends string | null>({
   onPick: (value: T) => void;
 }) {
   const name = useId();
+  const t = useT();
   return (
     <fieldset className="filter-group">
-      <legend>{legend}</legend>
+      <legend>{t(legend)}</legend>
       <div className="chip-group">
         {options.map((o) => (
           <label key={o.value ?? "any"} className="chip">
             <input type="radio" name={name} checked={current === o.value} onChange={() => onPick(o.value)} />
-            <span>{o.label}</span>
+            <span>{t(o.label)}</span>
           </label>
         ))}
       </div>
@@ -50,12 +53,12 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
     <div className="search-filters">
       {showSource && (
         <ChipGroup
-          legend="Show"
+          legend={tk("Show")}
           current={value.source}
           options={[
-            { value: "all", label: "All results" },
-            { value: "literaryworm", label: "LiteraryWorm titles" },
-            { value: "google", label: "Google Books" },
+            { value: "all", label: tk("All results") },
+            { value: "literaryworm", label: tk("LiteraryWorm titles") },
+            { value: "google", label: tk("Google Books") },
           ]}
           onPick={(source) => onChange({ ...value, source })}
         />
@@ -63,32 +66,32 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
       {hasAllFilters(value.by) && (
         <>
           <ChipGroup
-            legend="Genre"
+            legend={tk("Genre")}
             current={value.genre}
-            options={[{ value: null, label: "Any genre" }, ...browseGenres.map((g) => ({ value: g.id, label: g.label }))]}
+            options={[{ value: null, label: tk("Any genre") }, ...browseGenres.map((g) => ({ value: g.id, label: g.label }))]}
             onPick={(genre) => onChange({ ...value, genre })}
           />
           <ChipGroup
-            legend="Language"
+            legend={tk("Language")}
             current={value.lang}
-            options={[{ value: null, label: "Any language" }, ...SEARCH_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))]}
+            options={[{ value: null, label: tk("Any language") }, ...SEARCH_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))]}
             onPick={(lang) => onChange({ ...value, lang })}
           />
         </>
       )}
       <ChipGroup
-        legend="Length"
+        legend={tk("Length")}
         current={value.length}
-        options={[{ value: null, label: "Any length" }, ...SEARCH_LENGTHS.map((l) => ({ value: l.id, label: l.label }))]}
+        options={[{ value: null, label: tk("Any length") }, ...SEARCH_LENGTHS.map((l) => ({ value: l.id, label: l.label }))]}
         onPick={(length) => onChange({ ...value, length })}
       />
       {hasAllFilters(value.by) && (
         <ChipGroup
-          legend="Sort by"
+          legend={tk("Sort by")}
           current={value.sort}
           options={[
-            { value: "relevance", label: "Best match" },
-            { value: "newest", label: "Newest" },
+            { value: "relevance", label: tk("Best match") },
+            { value: "newest", label: tk("Newest") },
           ]}
           onPick={(sort) => onChange({ ...value, sort })}
         />

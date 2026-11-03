@@ -15,19 +15,21 @@ import { StructuredData } from "../components/StructuredData";
 import { useBookFeed } from "../lib/useBookFeed";
 import { faqData, membershipData, siteDescription, pageData } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
+import { rich, tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import type { AgeRating } from "../types";
 
 const household: { name: string; avatar: number; rating: AgeRating; note: string }[] = [
-  { name: "Avery", avatar: 0, rating: "all", note: "Everything in the catalog, plus the Account settings." },
-  { name: "Sam", avatar: 2, rating: "teen", note: "Teen and Kids titles. Reviews show a display name only." },
-  { name: "Mia", avatar: 4, rating: "kids", note: "Kids titles, big covers, no chat or payments. A daily limit and a bedtime if you set them." },
+  { name: "Avery", avatar: 0, rating: "all", note: tk("Everything in the catalog, plus the Account settings.") },
+  { name: "Sam", avatar: 2, rating: "teen", note: tk("Teen and Kids titles. Reviews show a display name only.") },
+  { name: "Mia", avatar: 4, rating: "kids", note: tk("Kids titles, big covers, no chat or payments. A daily limit and a bedtime if you set them.") },
 ];
 
-const hours = (minutes: number) => `${Math.round(minutes / 60)} hours`;
 
 export default function Landing() {
-  useTitle("Read and listen in one place", siteDescription());
+  const t = useT();
+  useTitle(t("Read and listen in one place"), siteDescription());
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const freeTitles = books.filter((b) => b.publicDomain && b.featured).concat(books.filter((b) => b.publicDomain && !b.featured)).slice(0, 6);
@@ -47,11 +49,11 @@ export default function Landing() {
 
   const primaryCta = state.account ? (
     <Link className="primary-button" to="/profiles">
-      Go to your profiles <Icon name="chevronRight" size={18} />
+      {t("Go to your profiles")} <Icon name="chevronRight" size={18} />
     </Link>
   ) : (
     <Link className="primary-button" to="/plans">
-      See plans and join <Icon name="chevronRight" size={18} />
+      {t("See plans and join")} <Icon name="chevronRight" size={18} />
     </Link>
   );
 
@@ -60,31 +62,30 @@ export default function Landing() {
       {params.get("deleted") === "1" && !state.account && (
         <div className="form-success landing-notice" role="status">
           <Icon name="check" size={17} />
-          <p>Your account has been deleted, and your plan won't charge you again. Thanks for reading with us.</p>
+          <p>{t("Your account has been deleted, and your plan won't charge you again. Thanks for reading with us.")}</p>
         </div>
       )}
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-glow" aria-hidden="true" />
         <div className="hero-copy">
-          <p className="eyebrow">Ebooks and audiobooks</p>
+          <p className="eyebrow">{t("Ebooks and audiobooks")}</p>
           <h1 id="hero-title">
-            Stories worth
+            {t("Stories worth")}
             <br />
-            staying up for.
+            {t("staying up for.")}
           </h1>
           <p>
-            Read or listen to thousands of books in one place, keep your spot across every device, and give everyone at home
-            a shelf of their own.
+            {t("Read or listen to thousands of books in one place, keep your spot across every device, and give everyone at home a shelf of their own.")}
           </p>
           <div className="hero-actions">
             {primaryCta}
             {!state.account && (
               <button type="button" className="secondary-button" onClick={tryDemo}>
-                Try the demo
+                {t("Try the demo")}
               </button>
             )}
           </div>
-          <p className="hero-fine">Plans from {formatPrice(plans[0].price)} a month. Cancel online any time.</p>
+          <p className="hero-fine">{t("Plans from {price} a month. Cancel online any time.", { price: formatPrice(plans[0].price) })}</p>
         </div>
         <div className="hero-books" aria-hidden="true">
           <div className="hero-book back">
@@ -102,8 +103,8 @@ export default function Landing() {
       <div className="page-content">
         <Shelf
           id="technology"
-          eyebrow="Browse without an account"
-          title="Popular in technology"
+          eyebrow={t("Browse without an account")}
+          title={t("Popular in technology")}
           items={technology.items}
           status={technology.status}
           error={technology.error}
@@ -111,7 +112,7 @@ export default function Landing() {
           onRetry={technology.retry}
           action={
             <a className="view-all" href="#discover">
-              Browse by genre <Icon name="chevronRight" size={16} />
+              {t("Browse by genre")} <Icon name="chevronRight" size={16} />
             </a>
           }
         />
@@ -119,10 +120,10 @@ export default function Landing() {
         <section aria-labelledby="free-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">No account needed</p>
-              <h2 id="free-title">Free to read today</h2>
+              <p className="eyebrow">{t("No account needed")}</p>
+              <h2 id="free-title">{t("Free to read today")}</h2>
             </div>
-            <p className="section-aside">{classics.toLocaleString("en")} public-domain classics, in full, to read and hear.</p>
+            <p className="section-aside">{t("{n} public-domain classics, in full, to read and hear.", { n: classics.toLocaleString(t.lang) })}</p>
           </div>
           <ul className="book-row" role="list">
             {freeTitles.map((b) => (
@@ -138,24 +139,23 @@ export default function Landing() {
             <Cover book={dune} size="xl" />
           </div>
           <div className="format-copy">
-            <p className="eyebrow">One place, both formats</p>
-            <h2 id="format-title">Read on the train, listen on the walk home</h2>
+            <p className="eyebrow">{t("One place, both formats")}</p>
+            <h2 id="format-title">{t("Read on the train, listen on the walk home")}</h2>
             <p>
-              Most titles come as an ebook and an audiobook. Switch between them whenever you like and LiteraryWorm keeps your
-              place, on your phone, tablet or laptop.
+              {t("Most titles come as an ebook and an audiobook. Switch between them whenever you like and LiteraryWorm keeps your place, on your phone, tablet or laptop.")}
             </p>
             <dl className="format-facts">
               <div>
                 <dt>
-                  <Icon name="bookOpen" size={18} /> Ebook
+                  <Icon name="bookOpen" size={18} /> {t("Ebook")}
                 </dt>
-                <dd>{dune.pages} pages, with adjustable text and sepia or dark themes</dd>
+                <dd>{t("{n} pages, with adjustable text and sepia or dark themes", { n: dune.pages })}</dd>
               </div>
               <div>
                 <dt>
-                  <Icon name="headphones" size={18} /> Audiobook
+                  <Icon name="headphones" size={18} /> {t("Audiobook")}
                 </dt>
-                <dd>{hours(listenMinutes(dune))}, from 0.5× to 3× speed, with a sleep timer</dd>
+                <dd>{t("{n} hours, from 0.5× to 3× speed, with a sleep timer", { n: Math.round(listenMinutes(dune) / 60) })}</dd>
               </div>
             </dl>
           </div>
@@ -164,10 +164,10 @@ export default function Landing() {
         <section className="feature-grid" aria-labelledby="features-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">More than a reader</p>
-              <h2 id="features-title">Everything that happens around a good book</h2>
+              <p className="eyebrow">{t("More than a reader")}</p>
+              <h2 id="features-title">{t("Everything that happens around a good book")}</h2>
             </div>
-            <p className="section-aside">Try most of it in the demo household, no account needed.</p>
+            <p className="section-aside">{t("Try most of it in the demo household, no account needed.")}</p>
           </div>
           <ul className="feature-list" role="list">
             {landingFeatures.map((f) => (
@@ -175,8 +175,8 @@ export default function Landing() {
                 <span className="feature-icon" aria-hidden="true">
                   <Icon name={f.icon} size={22} />
                 </span>
-                <h3>{f.title}</h3>
-                <p>{f.body}</p>
+                <h3>{t(f.title)}</h3>
+                <p>{t(f.body)}</p>
               </li>
             ))}
           </ul>
@@ -185,12 +185,10 @@ export default function Landing() {
 
         <section className="household" aria-labelledby="household-title">
           <div className="household-copy">
-            <p className="eyebrow">Family profiles</p>
-            <h2 id="household-title">A shelf for everyone at home</h2>
+            <p className="eyebrow">{t("Family profiles")}</p>
+            <h2 id="household-title">{t("A shelf for everyone at home")}</h2>
             <p>
-              Up to 12 profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, set a
-              daily limit, a weekly goal and a bedtime for younger readers, and get their week by email. Kids can ask you for a
-              book above their shelf, and you check its content notes and say yes or no.
+              {t("Up to 12 profiles, each with its own lists, history and recommendations. Lock a profile with a PIN, set a daily limit, a weekly goal and a bedtime for younger readers, and get their week by email. Kids can ask you for a book above their shelf, and you check its content notes and say yes or no.")}
             </p>
           </div>
           <ul className="household-list">
@@ -201,12 +199,12 @@ export default function Landing() {
                   <Avatar name={h.name} avatar={h.avatar} size={52} />
                   <div>
                     <p className="household-name">
-                      {h.name} <span className="rating-chip">{ageRatingLabel[h.rating]}</span>
+                      {h.name} <span className="rating-chip">{t(ageRatingLabel[h.rating])}</span>
                     </p>
-                    <p className="household-note">{h.note}</p>
+                    <p className="household-note">{t(h.note)}</p>
                   </div>
                   <p className="household-count">
-                    <strong>{count}</strong> titles
+                    {rich(t.plural(count, { one: "{n} title", other: "{n} titles" }), { n: <strong>{count}</strong> })}
                   </p>
                 </li>
               );
@@ -217,11 +215,11 @@ export default function Landing() {
         <section className="plan-strip" aria-labelledby="plan-strip-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Membership</p>
-              <h2 id="plan-strip-title">Three plans, no surprises</h2>
+              <p className="eyebrow">{t("Membership")}</p>
+              <h2 id="plan-strip-title">{t("Three plans, no surprises")}</h2>
             </div>
             <Link className="text-button" to="/plans">
-              Compare plans <Icon name="chevronRight" size={16} />
+              {t("Compare plans")} <Icon name="chevronRight" size={16} />
             </Link>
           </div>
           <ul className="plan-strip-list">
@@ -230,10 +228,10 @@ export default function Landing() {
                 <h3>{p.name}</h3>
                 <p className="plan-strip-price">
                   {formatPrice(p.price)}
-                  <span>/month</span>
+                  <span>{t("/month")}</span>
                 </p>
                 <p>
-                  {p.profiles === 1 ? "1 profile" : `Up to ${p.profiles} profiles`}. {p.audioHours}.
+                  {p.profiles === 1 ? t("1 profile") : t("Up to {n} profiles", { n: p.profiles })}. {t(p.audioHours)}.
                 </p>
               </li>
             ))}
@@ -244,15 +242,15 @@ export default function Landing() {
         <StructuredData id="membership" data={membershipData()} />
         <StructuredData id="faq" data={faqData(planFaqs)} />
         <section className="faq" aria-labelledby="landing-faq-title">
-          <h2 id="landing-faq-title">Common questions</h2>
+          <h2 id="landing-faq-title">{t("Common questions")}</h2>
           <div className="faq-list">
             {planFaqs.map((f) => (
               <details key={f.q}>
                 <summary>
-                  {f.q}
+                  {t(f.q)}
                   <Icon name="chevronDown" size={18} />
                 </summary>
-                {f.a.split("\n\n").map((para, i) => (
+                {t(f.a).split("\n\n").map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
               </details>
@@ -265,16 +263,16 @@ export default function Landing() {
             <Icon name="bookOpen" size={27} />
           </span>
           <div>
-            <h2 id="cta-title">Your next book is a few clicks away</h2>
-            <p>Join in a couple of minutes, or look around the demo household first.</p>
+            <h2 id="cta-title">{t("Your next book is a few clicks away")}</h2>
+            <p>{t("Join in a couple of minutes, or look around the demo household first.")}</p>
           </div>
           {state.account ? (
             <Link className="secondary-button" to="/profiles">
-              Go to your profiles
+              {t("Go to your profiles")}
             </Link>
           ) : (
             <Link className="primary-button" to="/signup">
-              Create your account
+              {t("Create your account")}
             </Link>
           )}
         </section>
@@ -282,8 +280,8 @@ export default function Landing() {
         <div id="discover">
           <BookFeed
             id="discover"
-            eyebrow="Keep discovering"
-            title={`${genreLabel(genre)} books`}
+            eyebrow={t("Keep discovering")}
+            title={t("{genre} books", { genre: t(genreLabel(genre)) })}
             query={genre === "technology" ? { mode: "home" } : { mode: "genre", genre }}
             controls={<GenreNav current={genre} basePath="/" />}
           />

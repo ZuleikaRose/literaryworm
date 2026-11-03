@@ -1,3 +1,4 @@
+import { tk } from "./i18n";
 import type { BookMood, Mood, Pace } from "../types";
 
 /**
@@ -6,26 +7,26 @@ import type { BookMood, Mood, Pace } from "../types";
  * book. My Library filters by mood (?mood=), and the *Feel-good picks* smart list uses them.
  */
 export const MOODS: { value: Mood; label: string }[] = [
-  { value: "adventurous", label: "Adventurous" },
-  { value: "challenging", label: "Challenging" },
-  { value: "dark", label: "Dark" },
-  { value: "emotional", label: "Emotional" },
-  { value: "funny", label: "Funny" },
-  { value: "hopeful", label: "Hopeful" },
-  { value: "informative", label: "Informative" },
-  { value: "inspiring", label: "Inspiring" },
-  { value: "lighthearted", label: "Lighthearted" },
-  { value: "mysterious", label: "Mysterious" },
-  { value: "reflective", label: "Reflective" },
-  { value: "relaxing", label: "Relaxing" },
-  { value: "sad", label: "Sad" },
-  { value: "tense", label: "Tense" },
+  { value: "adventurous", label: tk("Adventurous") },
+  { value: "challenging", label: tk("Challenging") },
+  { value: "dark", label: tk("Dark") },
+  { value: "emotional", label: tk("Emotional") },
+  { value: "funny", label: tk("Funny") },
+  { value: "hopeful", label: tk("Hopeful") },
+  { value: "informative", label: tk("Informative") },
+  { value: "inspiring", label: tk("Inspiring") },
+  { value: "lighthearted", label: tk("Lighthearted") },
+  { value: "mysterious", label: tk("Mysterious") },
+  { value: "reflective", label: tk("Reflective") },
+  { value: "relaxing", label: tk("Relaxing") },
+  { value: "sad", label: tk("Sad") },
+  { value: "tense", label: tk("Tense") },
 ];
 
 export const PACES: { value: Pace; label: string }[] = [
-  { value: "slow", label: "Slow" },
-  { value: "medium", label: "Medium" },
-  { value: "fast", label: "Fast" },
+  { value: "slow", label: tk("Slow") },
+  { value: "medium", label: tk("Medium") },
+  { value: "fast", label: tk("Fast") },
 ];
 
 /** At most this many moods a book (the database checks it too). */

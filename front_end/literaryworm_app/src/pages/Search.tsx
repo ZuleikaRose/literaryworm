@@ -38,6 +38,8 @@ import { useTitle } from "../lib/useTitle";
 import { useActiveProfile } from "../store/context";
 import { MOODS } from "../lib/moods";
 import { KeywordIdeas } from "../components/KeywordIdeas";
+import { rich, tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /**
  * /search, public. Search by title (the brief), or by author, keywords or ISBN when the reader
@@ -51,7 +53,8 @@ export default function Search() {
   const search = readSearchParams(urlParams);
   const invalid = search.q ? queryError(search.q, search.by) : null;
   const searching = Boolean(search.q) && !invalid;
-  useTitle(searching ? `“${search.q}”` : "Search");
+  const t = useT();
+  useTitle(searching ? `“${search.q}”` : t("Search"));
 
   return (
     <div className="search-page page-content">
@@ -72,7 +75,7 @@ export default function Search() {
   );
 }
 
-const SEARCH_BY_LABELS: Record<SearchBy, string> = { title: "Title", author: "Author", keywords: "Keywords", isbn: "ISBN" };
+const SEARCH_BY_LABELS: Record<SearchBy, string> = { title: tk("Title"), author: tk("Author"), keywords: tk("Keywords"), isbn: tk("ISBN") };
 
 function SearchHeader({ search, serverError }: { search: SearchParams; serverError: string | null }) {
   const collections = useCollections();
@@ -83,6 +86,7 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
   const [error, setError] = useState<string | null>(serverError);
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
+  const t = useT();
   // Only Google Books knows ISBNs, and Kids profiles search LiteraryWorm's own shelf only.
   const isbnAllowed = usesBackend && profile?.ageRating !== "kids";
   const choices: SearchBy[] = isbnAllowed || by === "isbn" ? ["title", "author", "keywords", "isbn"] : ["title", "author", "keywords"];
@@ -114,10 +118,10 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
 
   return (
     <header className="search-header">
-      <h1>{search.q && !serverError ? "Search results" : "Search"}</h1>
+      <h1>{search.q && !serverError ? t("Search results") : t("Search")}</h1>
       <form className="search-form" role="search" onSubmit={submit} noValidate>
         <fieldset className="segmented search-by">
-          <legend>Search by</legend>
+          <legend>{t("Search by")}</legend>
           <div>
             {choices.map((value) => (
               <label key={value}>
@@ -132,13 +136,13 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
                     input.current?.focus();
                   }}
                 />
-                <span>{SEARCH_BY_LABELS[value]}</span>
+                <span>{t(SEARCH_BY_LABELS[value])}</span>
               </label>
             ))}
           </div>
         </fieldset>
         <label className="field-label" htmlFor={id}>
-          {by === "author" ? "Author's name" : by === "isbn" ? "ISBN" : by === "keywords" ? "Keywords" : "Title"}
+          {by === "author" ? t("Author's name") : by === "isbn" ? t("ISBN") : by === "keywords" ? t("Keywords") : t("Title")}
         </label>
         <div className="search-form-row">
           <div className="search-input-wrap">
@@ -153,12 +157,12 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
               autoComplete="off"
               placeholder={
                 by === "author"
-                  ? "For example, Ursula K. Le Guin"
+                  ? t("For example, {example}", { example: "Ursula K. Le Guin" })
                   : by === "isbn"
-                    ? "For example, 978-0-14-143951-8"
+                    ? t("For example, {example}", { example: "978-0-14-143951-8" })
                     : by === "keywords"
-                      ? "For example, time travel romance"
-                      : "For example, The Hobbit"
+                      ? t("For example, {example}", { example: "time travel romance" })
+                      : t("For example, {example}", { example: "The Hobbit" })
               }
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? `${id}-error` : `${id}-hint`}
@@ -169,10 +173,10 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
             />
           </div>
           <button type="submit" className="primary-button">
-            Search
+            {t("Search")}
           </button>
           <button type="button" className="secondary-button" onClick={surprise}>
-            <Icon name="shuffle" size={17} /> Surprise me
+            <Icon name="shuffle" size={17} /> {t("Surprise me")}
           </button>
         </div>
         {error ? (
@@ -183,12 +187,14 @@ function SearchHeader({ search, serverError }: { search: SearchParams; serverErr
         ) : (
           <p className="field-hint" id={`${id}-hint`}>
             {by === "author"
-              ? "Finds books by any author whose name has every word you type, such as tolkien or le guin."
+              ? t("Finds books by any author whose name has every word you type, such as tolkien or le guin.")
               : by === "isbn"
-                ? "The 10- or 13-digit number on the back of the book or its copyright page. Searches Google Books."
+                ? t("The 10- or 13-digit number on the back of the book or its copyright page. Searches Google Books.")
                 : by === "keywords"
-                  ? "Finds books with every word you type anywhere: the title, author, narrator, description, genres or series."
-                  : `Searches book titles. Choose Author to search by who wrote it, Keywords to search descriptions too${isbnAllowed ? ", or ISBN for one edition" : ""}.`}
+                  ? t("Finds books with every word you type anywhere: the title, author, narrator, description, genres or series.")
+                  : isbnAllowed
+                    ? t("Searches book titles. Choose Author to search by who wrote it, Keywords to search descriptions too, or ISBN for one edition.")
+                    : t("Searches book titles. Choose Author to search by who wrote it, Keywords to search descriptions too.")}
           </p>
         )}
       </form>
@@ -204,6 +210,7 @@ function StartHere() {
   const genreBase = profile ? "/browse" : "/";
   const otherLanguages = otherLanguageBooks(profile?.ageRating ?? "all");
   // The moods this profile has tagged books with (lib/moods.ts), each a link to those books in My Library.
+  const t = useT();
   const tagged = profile ? MOODS.filter((m) => Object.values(collections.moods).some((x) => x.moods.includes(m.value))) : [];
 
   return (
@@ -211,9 +218,9 @@ function StartHere() {
       {recent.length > 0 && (
         <section aria-labelledby="recent-title">
           <div className="section-heading">
-            <h2 id="recent-title">Recent searches</h2>
+            <h2 id="recent-title">{t("Recent searches")}</h2>
             <button type="button" className="text-button" onClick={collections.clearRecentSearches}>
-              Clear all<span className="visually-hidden"> recent searches</span>
+              {t("Clear all")}<span className="visually-hidden">{t(" recent searches")}</span>
             </button>
           </div>
           <ul className="recent-list" role="list">
@@ -224,7 +231,7 @@ function StartHere() {
                 </Link>
                 <button type="button" className="icon-button" onClick={() => collections.removeRecentSearch(q)}>
                   <Icon name="close" size={15} />
-                  <span className="visually-hidden">Remove “{q}” from recent searches</span>
+                  <span className="visually-hidden">{t("Remove “{q}” from recent searches", { q })}</span>
                 </button>
               </li>
             ))}
@@ -232,12 +239,12 @@ function StartHere() {
         </section>
       )}
       <section aria-labelledby="browse-genres-title">
-        <h2 id="browse-genres-title">Or browse a genre</h2>
-        <nav className="genre-nav" aria-label="Genres">
+        <h2 id="browse-genres-title">{t("Or browse a genre")}</h2>
+        <nav className="genre-nav" aria-label={t("Genres")}>
           <ul role="list">
             {browseGenres.map((g) => (
               <li key={g.id}>
-                <Link to={genreHref(genreBase, g.id)}>{g.label}</Link>
+                <Link to={genreHref(genreBase, g.id)}>{t(g.label)}</Link>
               </li>
             ))}
           </ul>
@@ -245,32 +252,32 @@ function StartHere() {
       </section>
       {otherLanguages.length > 0 && (
         <section aria-labelledby="languages-title">
-          <h2 id="languages-title">Or read a classic in its own language</h2>
-          <nav className="genre-nav" aria-label="Classics in other languages">
+          <h2 id="languages-title">{t("Or read a classic in its own language")}</h2>
+          <nav className="genre-nav" aria-label={t("Classics in other languages")}>
             <ul role="list">
               {otherLanguages.map((b) => (
                 <li key={b.id}>
                   <Link to={`/books/${b.id}`}>
-                    <span lang={languageCode(b.language)}>{b.title}</span> ({b.language})
+                    <span lang={languageCode(b.language)}>{b.title}</span> ({t(b.language)})
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
           {profile?.ageRating !== "kids" && (
-            <p className="field-hint">In any classic, select a passage and choose Translate to read it in English or another language.</p>
+            <p className="field-hint">{t("In any classic, select a passage and choose Translate to read it in English or another language.")}</p>
           )}
         </section>
       )}
       <KeywordIdeas />
       {tagged.length > 0 && (
         <section aria-labelledby="moods-title">
-          <h2 id="moods-title">Or find a book by how it felt</h2>
-          <nav className="genre-nav" aria-label="Your moods">
+          <h2 id="moods-title">{t("Or find a book by how it felt")}</h2>
+          <nav className="genre-nav" aria-label={t("Your moods")}>
             <ul role="list">
               {tagged.map((m) => (
                 <li key={m.value}>
-                  <Link to={`/library?mood=${m.value}`}>{m.label}</Link>
+                  <Link to={`/library?mood=${m.value}`}>{t(m.label)}</Link>
                 </li>
               ))}
             </ul>
@@ -286,6 +293,7 @@ function Results({ search }: { search: SearchParams }) {
   const profile = useActiveProfile();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const t = useT();
   const ageRating = profile?.ageRating ?? "all";
   // Kids profiles search LiteraryWorm's own age-rated shelf only.
   const googleAllowed = usesBackend && ageRating !== "kids";
@@ -313,11 +321,17 @@ function Results({ search }: { search: SearchParams }) {
   }
 
   const summary = [
-    byAuthor ? `books by “${search.q}”` : byIsbn ? `ISBN ${search.q}` : byKeywords ? `the keywords “${search.q}”` : `“${search.q}”`,
-    search.genre && genreLabel(search.genre),
-    search.lang && SEARCH_LANGUAGES.find((l) => l.code === search.lang)?.label,
-    search.length && SEARCH_LENGTHS.find((l) => l.id === search.length)?.label.toLowerCase(),
-    search.sort === "newest" && "newest first",
+    byAuthor
+      ? t("books by “{q}”", { q: search.q })
+      : byIsbn
+        ? t("ISBN {q}", { q: search.q })
+        : byKeywords
+          ? t("the keywords “{q}”", { q: search.q })
+          : `“${search.q}”`,
+    search.genre && t(genreLabel(search.genre)),
+    search.lang && t(SEARCH_LANGUAGES.find((l) => l.code === search.lang)?.label ?? ""),
+    search.length && t(SEARCH_LENGTHS.find((l) => l.id === search.length)?.label ?? "").toLowerCase(),
+    search.sort === "newest" && t("newest first"),
   ]
     .filter(Boolean)
     .join(" · ");
@@ -327,7 +341,7 @@ function Results({ search }: { search: SearchParams }) {
       {/* An ISBN search has nothing to filter. */}
       {!byIsbn && (
         <aside className="search-sidebar" aria-labelledby="filters-title">
-          <h2 id="filters-title">Filters</h2>
+          <h2 id="filters-title">{t("Filters")}</h2>
           <SearchFilters value={search} onChange={update} showSource={googleAllowed} />
         </aside>
       )}
@@ -335,7 +349,7 @@ function Results({ search }: { search: SearchParams }) {
       <div className="search-results">
         <div className="results-bar">
           <p className="results-summary" aria-live="polite">
-            Results for {summary}
+            {t("Results for {summary}", { summary })}
           </p>
           {!byIsbn && (
             <button
@@ -344,7 +358,7 @@ function Results({ search }: { search: SearchParams }) {
               aria-haspopup="dialog"
               onClick={() => setFiltersOpen(true)}
             >
-              <Icon name="settings" size={17} /> Filters{filterCount > 0 && ` (${filterCount})`}
+              <Icon name="settings" size={17} /> {t("Filters")}{filterCount > 0 && ` (${filterCount})`}
             </button>
           )}
         </div>
@@ -352,21 +366,20 @@ function Results({ search }: { search: SearchParams }) {
         {byIsbn && !googleAllowed && (
           <p className="search-empty">
             {ageRating === "kids"
-              ? `${profile?.name}'s profile searches LiteraryWorm's own shelf, which can't be searched by ISBN. Search by title instead.`
-              : "Searching by ISBN needs Google Books, which this copy of the app doesn't use. Search by title instead."}
+              ? t("{name}'s profile searches LiteraryWorm's own shelf, which can't be searched by ISBN. Search by title instead.", { name: profile?.name ?? "" })
+              : t("Searching by ISBN needs Google Books, which this copy of the app doesn't use. Search by title instead.")}
           </p>
         )}
 
         {suggestion && (
           <p className="did-you-mean">
-            Did you mean{" "}
-            <Link
-              to={searchUrl({ ...search, q: suggestion })}
-              onClick={() => profile && collections.addRecentSearch(suggestion)}
-            >
-              {suggestion}
-            </Link>
-            ?
+            {rich(t("Did you mean {suggestion}?"), {
+              suggestion: (
+                <Link to={searchUrl({ ...search, q: suggestion })} onClick={() => profile && collections.addRecentSearch(suggestion)}>
+                  {suggestion}
+                </Link>
+              ),
+            })}
           </p>
         )}
 
@@ -376,11 +389,11 @@ function Results({ search }: { search: SearchParams }) {
           <section className="catalog-results" aria-labelledby="catalog-results-title">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Read and listen here</p>
-                <h2 id="catalog-results-title">From LiteraryWorm</h2>
+                <p className="eyebrow">{t("Read and listen here")}</p>
+                <h2 id="catalog-results-title">{t("From LiteraryWorm")}</h2>
               </div>
               <p className="results-count">
-                {catalog.length} {catalog.length === 1 ? "title" : "titles"}
+                {t.plural(catalog.length, { one: "{count} title", other: "{count} titles" })}
               </p>
             </div>
             {catalog.length > 0 ? (
@@ -393,7 +406,7 @@ function Results({ search }: { search: SearchParams }) {
               </ul>
             ) : (
               <p className="search-empty">
-                No LiteraryWorm titles match. Check the spelling, try fewer words or change the filters.
+                {t("No LiteraryWorm titles match. Check the spelling, try fewer words or change the filters.")}
               </p>
             )}
           </section>
@@ -404,8 +417,8 @@ function Results({ search }: { search: SearchParams }) {
             key={feedKey}
             id="google-results"
             onItems={(items) => setLoaded({ key: feedKey, items })}
-            eyebrow="Save, rate and write logs"
-            title="From Google Books"
+            eyebrow={t("Save, rate and write logs")}
+            title={t("From Google Books")}
             query={
               byIsbn
                 ? { mode: "isbn", isbn: search.q }
@@ -416,29 +429,29 @@ function Results({ search }: { search: SearchParams }) {
             ageRating={ageRating}
             emptyHint={
               byIsbn
-                ? "Google Books has no edition with that ISBN. Check it against the book, or search by title."
+                ? t("Google Books has no edition with that ISBN. Check it against the book, or search by title.")
                 : search.length
-                  ? "No Google Books titles match. Google doesn't list the length of every edition, so the length filter leaves those out: try any length."
+                  ? t("No Google Books titles match. Google doesn't list the length of every edition, so the length filter leaves those out: try any length.")
                   : byAuthor
-                    ? "No Google Books titles by that author. Check the spelling, or try just their surname."
-                    : "No Google Books titles match. Check the spelling, try fewer words or another genre."
+                    ? t("No Google Books titles by that author. Check the spelling, or try just their surname.")
+                    : t("No Google Books titles match. Check the spelling, try fewer words or another genre.")
             }
-            endText="That's every Google Books match for this search."
+            endText={t("That's every Google Books match for this search.")}
           />
         )}
 
         {ageRating === "kids" && (
           <p className="search-note">
-            <Icon name="lock" size={15} /> {profile?.name}'s profile searches books picked for younger readers.
+            <Icon name="lock" size={15} /> {t("{name}'s profile searches books picked for younger readers.", { name: profile?.name ?? "" })}
           </p>
         )}
       </div>
 
-      <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters" size="sm">
+      <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} title={t("Filters")} size="sm">
         <SearchFilters value={search} onChange={update} showSource={googleAllowed} />
         <div className="modal-actions">
           <button type="button" className="primary-button" onClick={() => setFiltersOpen(false)}>
-            Show results
+            {t("Show results")}
           </button>
           {filterCount > 0 && (
             <button
@@ -446,7 +459,7 @@ function Results({ search }: { search: SearchParams }) {
               className="secondary-button"
               onClick={() => update(unfiltered(search.q, search.by))}
             >
-              Clear filters
+              {t("Clear filters")}
             </button>
           )}
         </div>
@@ -458,6 +471,7 @@ function Results({ search }: { search: SearchParams }) {
 /** An author search's authors: each one's page, how many of the results are theirs, and Follow. */
 function AuthorResults({ authors, canFollow }: { authors: AuthorMatch[]; canFollow: boolean }) {
   const follows = useFollows();
+  const t = useT();
   // Follower counts for the listed authors, in one call. Whether the profile followed each is taken
   // when the counts arrive, so Follow and Unfollow move the number without asking again.
   const key = authors.map((a) => a.name).join("\n");
@@ -486,8 +500,8 @@ function AuthorResults({ authors, canFollow }: { authors: AuthorMatch[]; canFoll
     <section className="author-results" aria-labelledby="author-results-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Follow to see their new books first</p>
-          <h2 id="author-results-title">Authors</h2>
+          <p className="eyebrow">{t("Follow to see their new books first")}</p>
+          <h2 id="author-results-title">{t("Authors")}</h2>
         </div>
       </div>
       <ul className="author-list" role="list">
@@ -499,7 +513,7 @@ function AuthorResults({ authors, canFollow }: { authors: AuthorMatch[]; canFoll
             <div className="author-text">
               <Link to={personPath("author", a.name)}>{a.name}</Link>
               <span>
-                {a.books} {a.books === 1 ? "book" : "books"} below
+                {t.plural(a.books, { one: "{count} book below", other: "{count} books below" })}
                 {followersOf(a.name) && ` · ${followersOf(a.name)}`}
               </span>
             </div>

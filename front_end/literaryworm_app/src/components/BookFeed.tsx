@@ -4,6 +4,7 @@ import { useBookFeed } from "../lib/useBookFeed";
 import type { AgeRating } from "../types";
 import { BookTile, BookTileSkeleton } from "./BookTile";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 interface BookFeedProps {
   id: string;
@@ -26,7 +27,8 @@ interface BookFeedProps {
  * discovering"). A Load more button does the same for keyboard users and browsers without
  * IntersectionObserver.
  */
-export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint = "Try another genre.", endText, onItems }: BookFeedProps) {
+export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint, endText, onItems }: BookFeedProps) {
+  const t = useT();
   const { items, status, error, loadMore, retry } = useBookFeed(query, ageRating);
   const report = useRef(onItems);
   useEffect(() => {
@@ -58,7 +60,7 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
           <h2 id={headingId}>{title}</h2>
         </div>
         <p className="results-count" aria-live="polite">
-          {items.length > 0 && `${items.length} ${items.length === 1 ? "book" : "books"} loaded`}
+          {items.length > 0 && t.plural(items.length, { one: "{count} book loaded", other: "{count} books loaded" })}
         </p>
       </div>
       {controls}
@@ -85,11 +87,11 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
         <div className={items.length ? "feed-error inline" : "feed-error"} role="alert">
           <Icon name="alert" size={24} />
           <div>
-            <h3>{items.length ? "We couldn't load more books" : "We couldn't load these books"}</h3>
+            <h3>{items.length ? t("We couldn't load more books") : t("We couldn't load these books")}</h3>
             <p>{error}</p>
           </div>
           <button type="button" className="secondary-button" onClick={retry}>
-            Try again
+            {t("Try again")}
           </button>
         </div>
       )}
@@ -97,17 +99,17 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
       {status === "end" && items.length === 0 && (
         <div className="empty-results">
           <Icon name="search" size={28} />
-          <h3>No books here yet</h3>
-          <p>{emptyHint}</p>
+          <h3>{t("No books here yet")}</h3>
+          <p>{emptyHint ?? t("Try another genre.")}</p>
         </div>
       )}
 
-      {status === "end" && items.length > 0 && <p className="feed-end">{endText ?? `That's everything in ${title}.`}</p>}
+      {status === "end" && items.length > 0 && <p className="feed-end">{endText ?? t("That's everything in {title}.", { title })}</p>}
 
       {status === "idle" && (
         <div className="feed-more" ref={sentinel}>
           <button type="button" className="secondary-button" onClick={loadMore}>
-            Load more books
+            {t("Load more books")}
           </button>
         </div>
       )}
@@ -117,7 +119,7 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
           <span aria-hidden="true" />
           <span aria-hidden="true" />
           <span aria-hidden="true" />
-          <small>Loading more books</small>
+          <small>{t("Loading more books")}</small>
         </div>
       )}
     </section>

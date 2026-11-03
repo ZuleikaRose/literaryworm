@@ -19,7 +19,7 @@ function sourceKeys(): Set<string> {
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/^\s*\/\/.*$/gm, "");
         for (const m of src.matchAll(new RegExp(String.raw`(?<![\w.$])t[kr]?\(\s*${STRING}`, "g"))) keys.add(unquote(m[1]));
-        for (const m of src.matchAll(new RegExp(String.raw`\bt\.plural\([^;]*?\{\s*one:\s*${STRING},\s*other:\s*${STRING}`, "g"))) {
+        for (const m of src.matchAll(new RegExp(String.raw`\btr?\.plural\([^;]*?\{\s*one:\s*${STRING},\s*other:\s*${STRING}`, "g"))) {
           keys.add(unquote(m[1]));
           keys.add(unquote(m[2]));
         }

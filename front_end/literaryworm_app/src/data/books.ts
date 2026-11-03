@@ -1,3 +1,4 @@
+import { tk } from "../lib/i18n";
 import type { AgeRating, Book, Chapter, CoverStyle, Format } from "../types";
 import { recordings } from "./librivox";
 
@@ -15626,7 +15627,7 @@ export function listenMinutes(b: Book): number {
 export const allGenres = Array.from(new Set(books.flatMap((b) => b.genres))).sort();
 
 export const ageRatingLabel: Record<AgeRating, string> = {
-  kids: "Kids",
-  teen: "Teen",
-  all: "All",
+  kids: tk("Kids"),
+  teen: tk("Teen"),
+  all: tk("All"),
 };

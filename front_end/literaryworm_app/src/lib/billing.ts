@@ -3,9 +3,15 @@
 import type { Account, BillingInterval, PlanId } from "../types";
 import type { MembershipDiscount } from "./accountApi";
 import { planById } from "../data/plans";
+import { activeLanguage, dateLocale } from "./i18n";
 
-/** 1 → "1st", 22 → "22nd". */
+/** 1 → "1st", 22 → "22nd" (in English; "1er" in French, "1." in German, "1e" in Dutch, else the number). */
 export const ordinal = (n: number) => {
+  const lang = activeLanguage();
+  if (lang === "fr") return n === 1 ? "1er" : String(n);
+  if (lang === "de") return `${n}.`;
+  if (lang === "nl") return `${n}e`;
+  if (lang !== "en") return String(n);
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -126,11 +132,11 @@ export function renewalReminder(
   return now >= at && now < renews ? { renewsAt: account.renewsAt, at, switchToMonthly: account.switchToMonthly ?? null } : null;
 }
 
-export const longDate = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+export const longDate = (d: Date) => d.toLocaleDateString(dateLocale(), { month: "long", day: "numeric", year: "numeric" });
 
 /** A plan's end date. The server stores it as midnight UTC on the billing day, so read the day in UTC. */
 export const endDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  new Date(iso).toLocaleDateString(dateLocale(), { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 /** Cents as money: 1039, "usd" → "$10.39". */
 export const formatMoney = (cents: number, currency: string) =>

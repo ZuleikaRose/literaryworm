@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 interface BookCardProps {
   book: Book;
@@ -12,6 +13,7 @@ interface BookCardProps {
 }
 
 export function BookCard({ book, progress, to }: BookCardProps) {
+  const t = useT();
   return (
     <Link className="book-card" to={to ?? `/books/${book.id}`}>
       <span className="book-card-cover">
@@ -27,8 +29,8 @@ export function BookCard({ book, progress, to }: BookCardProps) {
         <small>{book.author}</small>
         <span className="rating">
           <Icon name="star" size={13} filled /> {book.rating.toFixed(1)}
-          <span className="visually-hidden"> out of 5</span>
-          {progress !== undefined && <span className="card-progress-label">{Math.round(progress * 100)}% {to?.startsWith("/listen") ? "listened" : "read"}</span>}
+          <span className="visually-hidden">{t(" out of 5")}</span>
+          {progress !== undefined && <span className="card-progress-label">{to?.startsWith("/listen") ? t("{n}% listened", { n: Math.round(progress * 100) }) : t("{n}% read", { n: Math.round(progress * 100) })}</span>}
         </span>
       </span>
     </Link>

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useT } from "../lib/useT";
 import { KEYWORD_IDEAS, searchUrl, unfiltered } from "../lib/search";
 
 /**
@@ -7,11 +8,12 @@ import { KEYWORD_IDEAS, searchUrl, unfiltered } from "../lib/search";
  */
 export function KeywordIdeas({ headingLevel = 2 }: { headingLevel?: 2 | 3 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
+  const t = useT();
   return (
     <section className="keyword-ideas" aria-labelledby="keyword-ideas-title">
-      <Heading id="keyword-ideas-title">Search by keywords</Heading>
-      <p className="field-hint">Keywords look through descriptions, genres and series as well as titles and authors.</p>
-      <nav className="genre-nav" aria-label="Keyword searches">
+      <Heading id="keyword-ideas-title">{t("Search by keywords")}</Heading>
+      <p className="field-hint">{t("Keywords look through descriptions, genres and series as well as titles and authors.")}</p>
+      <nav className="genre-nav" aria-label={t("Keyword searches")}>
         <ul role="list">
           {KEYWORD_IDEAS.map((word) => (
             <li key={word}>

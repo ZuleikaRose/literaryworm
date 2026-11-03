@@ -1,5 +1,6 @@
 import { planById, plans } from "../data/plans";
 import type { Plan, PlanId, ReadingDay } from "../types";
+import { tr } from "./i18n";
 
 /**
  * The plan limits shown on the plan cards: hours of listening a month for the whole account,
@@ -125,7 +126,6 @@ export interface HouseholdSize {
   offlineDevices: number;
 }
 
-const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /**
  * What a household has to remove before it fits `plan` (moving down a plan, or starting one after a
@@ -136,12 +136,26 @@ export function tooBigFor(plan: Plan, size: HouseholdSize): string[] {
   const problems: string[] = [];
   if (size.profiles > plan.profiles) {
     problems.push(
-      `${plan.name} has room for ${count(plan.profiles, "profile", "profiles")} and your household uses ${size.profiles}. Set aside or remove ${size.profiles - plan.profiles} in Who's reading? first.`,
+      tr.plural(
+        plan.profiles,
+        {
+          one: "{plan} has room for {count} profile and your household uses {used}. Set aside or remove {extra} in Who's reading? first.",
+          other: "{plan} has room for {count} profiles and your household uses {used}. Set aside or remove {extra} in Who's reading? first.",
+        },
+        { plan: plan.name, used: size.profiles, extra: size.profiles - plan.profiles },
+      ),
     );
   }
   if (size.offlineDevices > plan.offlineDevices) {
     problems.push(
-      `${plan.name} keeps books offline on ${count(plan.offlineDevices, "device", "devices")} and ${size.offlineDevices} are saving books now. Free ${size.offlineDevices - plan.offlineDevices} in Account first.`,
+      tr.plural(
+        plan.offlineDevices,
+        {
+          one: "{plan} keeps books offline on {count} device and {used} are saving books now. Free {extra} in Account first.",
+          other: "{plan} keeps books offline on {count} devices and {used} are saving books now. Free {extra} in Account first.",
+        },
+        { plan: plan.name, used: size.offlineDevices, extra: size.offlineDevices - plan.offlineDevices },
+      ),
     );
   }
   return problems;

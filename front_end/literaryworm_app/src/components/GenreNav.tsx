@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useT } from "../lib/useT";
 import { type BrowseGenre, browseGenres, genreHref } from "../data/genres";
 
 interface GenreNavProps {
@@ -12,8 +13,9 @@ interface GenreNavProps {
  * works with Back). Technology is the default and has no parameter.
  */
 export function GenreNav({ current, basePath }: GenreNavProps) {
+  const t = useT();
   return (
-    <nav className="genre-nav" aria-label="Genres">
+    <nav className="genre-nav" aria-label={t("Genres")}>
       <ul role="list">
         {browseGenres.map((g) => (
           <li key={g.id}>
@@ -21,7 +23,7 @@ export function GenreNav({ current, basePath }: GenreNavProps) {
               to={genreHref(basePath, g.id)}
               aria-current={g.id === current ? "page" : undefined}
             >
-              {g.label}
+              {t(g.label)}
             </Link>
           </li>
         ))}

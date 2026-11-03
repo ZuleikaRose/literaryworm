@@ -1,3 +1,4 @@
+import { dateLocale, tr } from "./i18n";
 import { books, isAllowed } from "../data/books";
 import type { AgeRating, Book, Follow } from "../types";
 import { normalizeQuery, queryError, wordsMatch } from "./search";
@@ -93,7 +94,9 @@ export function followerCountNow(loaded: number, followedAtLoad: boolean, follow
 }
 
 /** "1 follower", "1,204 followers", for a search's author list; nothing until someone follows. */
-export const followersShort = (count: number) => (count <= 0 ? null : count === 1 ? "1 follower" : `${count.toLocaleString()} followers`);
+export const followersShort = (count: number) =>
+  count <= 0 ? null : tr.plural(count, { one: "{n} follower", other: "{n} followers" }, { n: count.toLocaleString(dateLocale()) });
 
 /** "1 reader follows them", "12 readers follow them"; nothing until someone does. */
-export const followerLabel = (count: number) => (count <= 0 ? null : count === 1 ? "1 reader follows them" : `${count.toLocaleString()} readers follow them`);
+export const followerLabel = (count: number) =>
+  count <= 0 ? null : tr.plural(count, { one: "{n} reader follows them", other: "{n} readers follow them" }, { n: count.toLocaleString(dateLocale()) });

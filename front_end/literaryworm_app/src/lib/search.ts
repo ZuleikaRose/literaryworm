@@ -1,3 +1,4 @@
+import { tk, tr } from "./i18n";
 import { books, isAllowed } from "../data/books";
 import { type BrowseGenre, isBrowseGenre, sampleCatalogGenres } from "../data/genres";
 import type { AgeRating, Book } from "../types";
@@ -22,20 +23,20 @@ export type SearchSource = "all" | "literaryworm" | "google";
 
 /** The languages search offers (ISO 639-1, the same list as the `books` function's `lang`). */
 export const SEARCH_LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "es", label: "Spanish" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
-  { code: "it", label: "Italian" },
-  { code: "pt", label: "Portuguese" },
+  { code: "en", label: tk("English") },
+  { code: "es", label: tk("Spanish") },
+  { code: "fr", label: tk("French") },
+  { code: "de", label: tk("German") },
+  { code: "it", label: tk("Italian") },
+  { code: "pt", label: tk("Portuguese") },
 ] as const;
 export type SearchLanguage = (typeof SEARCH_LANGUAGES)[number]["code"];
 
 /** Length by page count. Google Books has no such filter, so results are checked here. */
 export const SEARCH_LENGTHS = [
-  { id: "short", label: "Under 200 pages", min: 1, max: 199 },
-  { id: "medium", label: "200 to 400 pages", min: 200, max: 400 },
-  { id: "long", label: "Over 400 pages", min: 401, max: Infinity },
+  { id: "short", label: tk("Under 200 pages"), min: 1, max: 199 },
+  { id: "medium", label: tk("200 to 400 pages"), min: 200, max: 400 },
+  { id: "long", label: tk("Over 400 pages"), min: 401, max: Infinity },
 ] as const;
 export type SearchLength = (typeof SEARCH_LENGTHS)[number]["id"];
 
@@ -94,18 +95,27 @@ export function cleanIsbn(raw: string): string | null {
 /** A plain-words problem with the query, or null when it can be searched. */
 export function queryError(q: string, by: SearchBy = "title"): string | null {
   if (by === "isbn") {
-    if (!q) return "Enter an ISBN to search for.";
+    if (!q) return tr("Enter an ISBN to search for.");
     const digits = q.replace(/[\s-]/g, "");
-    if (!/^[\dXx]+$/.test(digits)) return "An ISBN is made of digits (the last can be X). Spaces and hyphens are fine.";
-    if (digits.length !== 10 && digits.length !== 13) return `An ISBN has 10 or 13 digits. This one has ${digits.length}.`;
-    if (!cleanIsbn(q)) return "That ISBN doesn't add up. Check each digit against the book.";
+    if (!/^[\dXx]+$/.test(digits)) return tr("An ISBN is made of digits (the last can be X). Spaces and hyphens are fine.");
+    if (digits.length !== 10 && digits.length !== 13) return tr("An ISBN has 10 or 13 digits. This one has {n}.", { n: digits.length });
+    if (!cleanIsbn(q)) return tr("That ISBN doesn't add up. Check each digit against the book.");
     return null;
   }
-  const what = by === "author" ? "an author's name" : by === "keywords" ? "a word or two" : "a title";
-  const shorter = by === "author" ? "name" : by === "keywords" ? "set of keywords" : "title";
-  if (!q) return `Enter ${what} to search for.`;
-  if (q.length > QUERY_MAX) return `Search is limited to ${QUERY_MAX} characters. Try a shorter ${shorter}.`;
-  if (!QUERY_CHARS.test(q)) return `Search by ${by} using letters, numbers and basic punctuation.`;
+  if (!q)
+    return by === "author" ? tr("Enter an author's name to search for.") : by === "keywords" ? tr("Enter a word or two to search for.") : tr("Enter a title to search for.");
+  if (q.length > QUERY_MAX)
+    return by === "author"
+      ? tr("Search is limited to {max} characters. Try a shorter name.", { max: QUERY_MAX })
+      : by === "keywords"
+        ? tr("Search is limited to {max} characters. Try a shorter set of keywords.", { max: QUERY_MAX })
+        : tr("Search is limited to {max} characters. Try a shorter title.", { max: QUERY_MAX });
+  if (!QUERY_CHARS.test(q))
+    return by === "author"
+      ? tr("Search by author using letters, numbers and basic punctuation.")
+      : by === "keywords"
+        ? tr("Search by keywords using letters, numbers and basic punctuation.")
+        : tr("Search by title using letters, numbers and basic punctuation.");
   return null;
 }
 
