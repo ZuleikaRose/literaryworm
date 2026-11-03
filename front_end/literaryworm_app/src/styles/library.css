@@ -2272,6 +2272,7 @@ body:has(.mini-player) .listen-along-bar {
 
 .sprint-results {
   width: 100%;
+  margin-top: 8px;
 }
 
 .sprint-results h3 {
