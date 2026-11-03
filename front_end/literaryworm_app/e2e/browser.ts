@@ -1,4 +1,4 @@
-import { type Browser, chromium, type Page } from "playwright-core";
+import { type Browser, type BrowserContext, chromium, type Page } from "playwright-core";
 import { BASE_URL } from "./config";
 
 /**
@@ -13,19 +13,31 @@ export interface TestPage {
 }
 
 let browser: Browser | null = null;
+/** Every context a test opened; closed after each test so pages (and their timers) don't pile up. */
+const contexts: BrowserContext[] = [];
 
 export async function openBrowser(): Promise<Browser> {
   browser ??= await chromium.launch();
   return browser;
 }
 
+/**
+ * Closes the pages the test opened. Run after each test (afterEach): left open, a hundred demo
+ * pages kept running in one browser and ran the CI runner out of memory.
+ */
+export async function closePages(): Promise<void> {
+  await Promise.all(contexts.splice(0).map((c) => c.close().catch(() => undefined)));
+}
+
 export async function closeBrowser(): Promise<void> {
+  await closePages();
   await browser?.close();
   browser = null;
 }
 
 export async function newPage(width = 1440, height = 900): Promise<TestPage> {
   const context = await (await openBrowser()).newContext({ viewport: { width, height } });
+  contexts.push(context);
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("console", (m) => {

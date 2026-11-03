@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6668, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6670, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -796,25 +796,24 @@
           note: "AI content notes for a catalog title (violence, death, frightening, language, sexual content, substance use, discrimination, self-harm: none to strong), written from the book's details the first time anyone asks and kept. RLS on, no browser access; the content-notes function reads and writes it.",
         },
         {
-          id: "google_books_volumes", color: colors.server, x: 0, y: 9760, sub: "books function · cache",
+          id: "google_books_volumes", color: colors.server, x: 0, y: 9760, sub: "books function · short cache",
           cols: [
             ["pk", "id", "text (volume id)"],
             ["", "detail", "jsonb (book details, cover link)"],
-            ["", "work_key", "text (title | surname)"],
-            ["", "stale", "boolean"],
             ["", "fetched_at", "timestamptz"],
+            ["", "expires_at", "timestamptz (≤ 7 days)"],
           ],
-          note: "Google Books' answer for one edition, kept so it's asked for once. Marked stale when another edition of the same work_key turns up in a refreshed list; the next request downloads it again. RLS on, no browser access; the books function reads and writes it.",
+          note: "Google Books' answer for one edition, kept only as long as Google's cache headers allow and at most 7 days (none kept when they allow none); never served once expired, deleted hourly by pg_cron. RLS on, no browser access; the books function reads and writes it.",
         },
         {
-          id: "google_books_lists", color: colors.server, x: 420, y: 9760, sub: "books function · cache",
+          id: "google_books_lists", color: colors.server, x: 420, y: 9760, sub: "books function · short cache",
           cols: [
             ["pk", "key", "text (query, page, sort, lang)"],
             ["", "page", "jsonb (one page of books)"],
-            ["", "volume_ids", "text[] (≤ 40)"],
             ["", "fetched_at", "timestamptz"],
+            ["", "expires_at", "timestamptz (≤ 7 days)"],
           ],
-          note: "One list page from Google Books, served for a week, then asked again (how new editions are found); last week's copy is served if Google fails. pg_cron removes pages older than 30 days. RLS on, no browser access.",
+          note: "One list page from Google Books, kept on the same terms as volumes: Google's cache headers, at most 7 days, deleted hourly once expired. RLS on, no browser access.",
         },
         {
           id: "book_characters", color: colors.server, x: 840, y: 4840, sub: "who's who · function only",

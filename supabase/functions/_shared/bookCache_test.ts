@@ -1,44 +1,42 @@
 // deno test supabase/functions/_shared/bookCache_test.ts
-import { assert, assertEquals, assertFalse } from "jsr:@std/assert@1.0.13";
-import { isFresh, LIST_FRESH_MS, listCacheKey, newEditionKeys, workKey } from "./bookCache.ts";
-import type { BookPage, BookSummary } from "./googleBooks.ts";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
+import { CACHE_MAX_SECONDS, keepFor, listCacheKey, secondsLeft } from "./bookCache.ts";
+import { cacheSeconds } from "./googleBooks.ts";
 
-const book = (id: string, title: string, authors: string[]): BookSummary => ({
-  id,
-  title,
-  authors,
-  cover: null,
-  publishedYear: null,
-  categories: [],
-  pageCount: null,
+const h = (init: Record<string, string>) => new Headers(init);
+
+Deno.test("Google's cache headers decide how long an answer may be kept", () => {
+  assertEquals(cacheSeconds(h({ "Cache-Control": "public, max-age=3600" })), 3600);
+  assertEquals(cacheSeconds(h({ "Cache-Control": "public, max-age=3600, s-maxage=600" })), 600);
+  assertEquals(cacheSeconds(h({ "Cache-Control": "max-age=3600", Age: "100" })), 3500);
+  assertEquals(cacheSeconds(h({ Expires: "Tue, 03 Nov 2026 20:00:00 GMT", Date: "Tue, 03 Nov 2026 19:00:00 GMT" })), 3600);
 });
-const page = (items: BookSummary[]): BookPage => ({ items, page: 0, pageSize: 20, hasMore: false, totalItems: items.length });
 
-Deno.test("every edition of a book has the same work key", () => {
-  const key = workKey(book("a", "Dune", ["Frank Herbert"]));
-  assertEquals(key, "dune|herbert");
-  assertEquals(workKey(book("b", "DUNE: Deluxe Edition", ["Herbert, Frank"])), key);
-  assertEquals(workKey(book("c", "Dune (Penguin Classics)", ["Frank Herbert", "Brian Herbert"])), key);
-  assert(workKey(book("d", "Dune Messiah", ["Frank Herbert"])) !== key);
-  assertEquals(workKey(book("e", "Les Misérables", ["Victor Hugo"])), "les miserables|hugo");
+Deno.test("nothing may be kept when Google says so, or says nothing", () => {
+  assertEquals(cacheSeconds(h({})), 0);
+  assertEquals(cacheSeconds(h({ "Cache-Control": "private, max-age=600" })), 0);
+  assertEquals(cacheSeconds(h({ "Cache-Control": "no-cache" })), 0);
+  assertEquals(cacheSeconds(h({ "Cache-Control": "public, no-store" })), 0);
+  assertEquals(cacheSeconds(h({ "Cache-Control": "max-age=0, must-revalidate" })), 0);
+  assertEquals(cacheSeconds(h({ Expires: "0" })), 0);
+});
+
+Deno.test("an answer is kept at most 7 days, and not at all without permission", () => {
+  assertEquals(keepFor(600), 600);
+  assertEquals(keepFor(10 * CACHE_MAX_SECONDS), CACHE_MAX_SECONDS);
+  assertEquals(keepFor(0), 0);
+  assertEquals(keepFor(undefined), 0);
+  assertEquals(keepFor(-5), 0);
+});
+
+Deno.test("seconds left counts down to zero at expiry", () => {
+  const now = Date.parse("2026-11-03T12:00:00Z");
+  assertEquals(secondsLeft("2026-11-03T12:01:00Z", now), 60);
+  assertEquals(secondsLeft("2026-11-03T11:00:00Z", now), 0);
+  assertEquals(secondsLeft("not a date", now), 0);
 });
 
 Deno.test("a list's key is the query as Google gets it", () => {
   assertEquals(listCacheKey("subject:horror", 2, "relevance", null), '["subject:horror",2,"relevance",""]');
   assert(listCacheKey("dune", 0, "newest", "es") !== listCacheKey("dune", 0, "relevance", "es"));
-});
-
-Deno.test("a list page is fresh for a week", () => {
-  const now = Date.parse("2026-11-10T12:00:00Z");
-  assert(isFresh(new Date(now - LIST_FRESH_MS + 1000), now));
-  assertFalse(isFresh(new Date(now - LIST_FRESH_MS - 1000), now));
-  assertFalse(isFresh("not a date", now));
-});
-
-Deno.test("only volume ids a refreshed page didn't have before count as possible new editions", () => {
-  const before = { page: page([]), volumeIds: ["a", "b"], fresh: false };
-  const after = page([book("a", "Dune", ["Frank Herbert"]), book("z", "Dune: 60th Anniversary", ["Frank Herbert"])]);
-  assertEquals(newEditionKeys(before, after), { keys: ["dune|herbert"], ids: ["z"] });
-  // A page seen for the first time says nothing about new editions.
-  assertEquals(newEditionKeys(null, after), { keys: [], ids: [] });
 });

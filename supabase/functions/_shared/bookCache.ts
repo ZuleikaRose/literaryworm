@@ -1,24 +1,37 @@
 // The books function's cache of Google Books answers (google_books_volumes, google_books_lists;
-// migration 6666). A book's details are downloaded once and kept until another edition of it
-// turns up; a list page is kept a week, and refreshing it is how new editions are noticed.
-// A cache that fails never fails a request: the function just asks Google as before.
+// migration 6666). Every kept answer expires: no later than Google's own cache headers allow
+// (the Google APIs Terms of Service, 5(e): no copy kept longer than the cache header permits, and
+// no permanent copies), and never more than CACHE_MAX_SECONDS. Nothing is served after it expires,
+// and pg_cron deletes expired rows hourly. A cache that fails never fails a request: the function
+// just asks Google as before.
 
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
-import type { BookDetail, BookPage, BookSummary } from "./googleBooks.ts";
+import type { BookDetail, BookPage } from "./googleBooks.ts";
 import type { Language, Sort } from "./validate.ts";
 
-/** How long a list page is served before Google is asked again (to spot new editions). */
-export const LIST_FRESH_MS = 7 * 24 * 60 * 60 * 1000;
-
-export type CachedList = { page: BookPage; volumeIds: string[]; fresh: boolean };
+/** Our own ceiling on keeping any answer, even when Google's headers would allow longer: 7 days. */
+export const CACHE_MAX_SECONDS = 7 * 24 * 60 * 60;
 
 export interface BookCache {
-  /** A volume's details, or null when it isn't kept or another edition has appeared since. */
+  /** A volume's details while they may still be kept, or null (not kept, or expired). */
   getVolume(id: string): Promise<BookDetail | null>;
-  putVolume(detail: BookDetail): Promise<void>;
-  getList(key: string): Promise<CachedList | null>;
-  /** Keeps a page; `before` is the copy it replaces, so new editions in it can be noticed. */
-  putList(key: string, page: BookPage, before: CachedList | null): Promise<void>;
+  /** Keeps a volume for `seconds` (already capped by keepFor()). */
+  putVolume(detail: BookDetail, seconds: number): Promise<void>;
+  /** A list page while it may still be kept, or null. */
+  getList(key: string): Promise<BookPage | null>;
+  putList(key: string, page: BookPage, seconds: number): Promise<void>;
+}
+
+/** How long to keep an answer: what Google's headers allow, at most CACHE_MAX_SECONDS; 0 keeps nothing. */
+export function keepFor(googleSeconds: number | undefined): number {
+  if (!googleSeconds || !Number.isFinite(googleSeconds) || googleSeconds <= 0) return 0;
+  return Math.min(Math.floor(googleSeconds), CACHE_MAX_SECONDS);
+}
+
+/** Seconds left before a kept answer expires (0 once it has). */
+export function secondsLeft(expiresAt: string | Date, now = Date.now()): number {
+  const at = new Date(expiresAt).getTime();
+  return Number.isFinite(at) ? Math.max(Math.floor((at - now) / 1000), 0) : 0;
 }
 
 /** The cache key for one list page: the query exactly as Google gets it. */
@@ -26,84 +39,54 @@ export function listCacheKey(q: string, page: number, sort: Sort, lang: Language
   return JSON.stringify([q, page, sort, lang ?? ""]).slice(0, 600);
 }
 
-/** A list page is fresh for a week from when it was downloaded. */
-export function isFresh(fetchedAt: string | Date, now = Date.now()): boolean {
-  const at = new Date(fetchedAt).getTime();
-  return Number.isFinite(at) && now - at < LIST_FRESH_MS;
-}
-
-/**
- * What every edition of a book shares: its title without a subtitle, lower case with only
- * letters and digits, and the first author's surname. "Dune: Deluxe Edition" by Frank Herbert
- * and "DUNE" by Herbert, Frank are the same work.
- */
-export function workKey(book: Pick<BookSummary, "title" | "authors">): string {
-  const clean = (s: string) =>
-    s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  const title = clean(book.title.split(/[:(]/)[0] || book.title);
-  const author = book.authors[0] ?? "";
-  // "Herbert, Frank" or "Frank Herbert": the surname either way.
-  const surname = author.includes(",") ? author.split(",")[0] : author.trim().split(/\s+/).pop() ?? "";
-  return `${title}|${clean(surname)}`.slice(0, 400);
-}
-
-/**
- * The work keys of books that came back with a volume id the cached page didn't have: each is
- * a possible new edition of a book whose details are kept.
- */
-export function newEditionKeys(before: CachedList | null, page: BookPage): { keys: string[]; ids: string[] } {
-  if (!before) return { keys: [], ids: [] };
-  const known = new Set(before.volumeIds);
-  const fresh = page.items.filter((b) => !known.has(b.id));
-  return { keys: [...new Set(fresh.map(workKey))], ids: fresh.map((b) => b.id) };
-}
-
 /** The cache kept in Postgres, through the service-role client. */
-export function supabaseBookCache(client: SupabaseClient): BookCache {
+export function supabaseBookCache(client: SupabaseClient, now: () => number = Date.now): BookCache {
   const warn = (what: string, error: { message: string } | null) => {
     if (error) console.warn("book cache:", what, "failed:", error.message);
   };
+  // One clock reading per save, so expires_at - fetched_at is exactly the allowed time (the table checks ≤ 7 days).
+  const stamps = (seconds: number) => {
+    const at = now();
+    return { fetched_at: new Date(at).toISOString(), expires_at: new Date(at + seconds * 1000).toISOString() };
+  };
   return {
     async getVolume(id) {
-      const { data, error } = await client.from("google_books_volumes").select("detail, stale").eq("id", id).maybeSingle();
+      const { data, error } = await client
+        .from("google_books_volumes")
+        .select("detail")
+        .eq("id", id)
+        .gt("expires_at", new Date(now()).toISOString())
+        .maybeSingle();
       warn("read volume", error);
-      return data && !data.stale ? (data.detail as BookDetail) : null;
+      return data ? (data.detail as BookDetail) : null;
     },
-    async putVolume(detail) {
+    async putVolume(detail, seconds) {
+      if (seconds <= 0) return;
       const { error } = await client.from("google_books_volumes").upsert({
         id: detail.id,
         detail,
-        work_key: workKey(detail),
-        stale: false,
-        fetched_at: new Date().toISOString(),
+        ...stamps(seconds),
       });
       warn("save volume", error);
     },
     async getList(key) {
-      const { data, error } = await client.from("google_books_lists").select("page, volume_ids, fetched_at").eq("key", key).maybeSingle();
+      const { data, error } = await client
+        .from("google_books_lists")
+        .select("page")
+        .eq("key", key)
+        .gt("expires_at", new Date(now()).toISOString())
+        .maybeSingle();
       warn("read list", error);
-      if (!data) return null;
-      return { page: data.page as BookPage, volumeIds: data.volume_ids ?? [], fresh: isFresh(data.fetched_at) };
+      return data ? (data.page as BookPage) : null;
     },
-    async putList(key, page, before) {
-      const volumeIds = page.items.map((b) => b.id).slice(0, 40);
+    async putList(key, page, seconds) {
+      if (seconds <= 0) return;
       const { error } = await client.from("google_books_lists").upsert({
         key,
         page,
-        volume_ids: volumeIds,
-        fetched_at: new Date().toISOString(),
+        ...stamps(seconds),
       });
       warn("save list", error);
-      // Another edition of a book we keep: download that book's details again next time.
-      const { keys, ids } = newEditionKeys(before, page);
-      if (keys.length) {
-        const { error: staleError } = await client
-          .from("google_books_volumes")
-          .update({ stale: true })
-          .in("work_key", keys)
-          .not("id", "in", `(${ids.join(",")})`);
-        warn("mark editions", staleError);
-      }
     },
   };
 }

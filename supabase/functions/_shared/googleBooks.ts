@@ -189,12 +189,13 @@ export async function callGoogleWithKeys(
   build: (key: string | undefined) => URL,
   keys: (string | undefined)[] = [undefined],
   fetcher: Fetcher = fetch,
+  meta?: GoogleMeta,
 ): Promise<unknown> {
   const list = keys.length ? keys : [undefined];
   const started = Date.now();
   for (let i = 0; ; i++) {
     try {
-      return await callGoogle(build(list[i]), fetcher, i === 0 ? TIMEOUT_MS : FALLBACK_TIMEOUT_MS);
+      return await callGoogle(build(list[i]), fetcher, i === 0 ? TIMEOUT_MS : FALLBACK_TIMEOUT_MS, meta);
     } catch (err) {
       const outOfTime = Date.now() - started > ALL_KEYS_BUDGET_MS;
       if (i === list.length - 1 || outOfTime || !(err instanceof HttpError) || err.code === "not_found") throw err;
@@ -212,7 +213,7 @@ const RETRY_DELAY_MS = 500;
  * "backendFailed" for a few seconds, so a 5xx is retried (waiting a little
  * longer each time, up to 6 attempts) while at least 1.5 seconds of the budget remain.
  */
-export async function callGoogle(url: URL, fetcher: Fetcher = fetch, budgetMs = TIMEOUT_MS): Promise<unknown> {
+export async function callGoogle(url: URL, fetcher: Fetcher = fetch, budgetMs = TIMEOUT_MS, meta?: GoogleMeta): Promise<unknown> {
   const deadline = Date.now() + budgetMs;
   let res: Response;
   for (let attempt = 1; ; attempt++) {
@@ -253,11 +254,40 @@ export async function callGoogle(url: URL, fetcher: Fetcher = fetch, budgetMs = 
     if (res.status === 400) throw new HttpError("not_found", "We couldn't find that book.");
     throw new HttpError("upstream_error", "The book service had a problem. Try again.");
   }
+  if (meta) meta.cacheSeconds = cacheSeconds(res.headers);
   try {
     return await res.json();
   } catch {
     throw new HttpError("upstream_error", "The book service sent something we couldn't read.");
   }
+}
+
+/** What a call learned besides the body: how long Google's cache headers let us keep the answer. */
+export type GoogleMeta = { cacheSeconds?: number };
+
+/**
+ * How long Google's response may be kept, in seconds, from its cache headers (the Google APIs Terms
+ * of Service, 5(e): never longer than the cache header permits, and no permanent copies). Zero when
+ * it says no-store, no-cache or private (our cache serves everyone, so it's a shared cache), or gives
+ * no lifetime at all. s-maxage wins over max-age, then Expires against Date.
+ */
+export function cacheSeconds(headers: Headers): number {
+  const cc = (headers.get("Cache-Control") ?? "").toLowerCase();
+  if (/(^|[,\s])(no-store|no-cache|private)([,=\s]|$)/.test(cc)) return 0;
+  const directive = (name: string) => {
+    const m = cc.match(new RegExp(`(?:^|[,\\s])${name}\\s*=\\s*"?(\\d+)`));
+    return m ? Number(m[1]) : null;
+  };
+  const age = Number(headers.get("Age")) || 0;
+  const lifetime = directive("s-maxage") ?? directive("max-age");
+  if (lifetime !== null) return Math.max(lifetime - age, 0);
+  const expires = Date.parse(headers.get("Expires") ?? "");
+  if (Number.isFinite(expires)) {
+    const date = Date.parse(headers.get("Date") ?? "");
+    const from = Number.isFinite(date) ? date : Date.now();
+    return Math.max(Math.floor((expires - from) / 1000) - age, 0);
+  }
+  return 0;
 }
 
 // --- Shaping -----------------------------------------------------------------

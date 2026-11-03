@@ -485,6 +485,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Home shows a running household sprint; the home page, Plans and FAQs describe the new features; ERD, schema, sitemap and public files refreshed (migration 6663) | Done |
 | —    | LGBTQIA+ added as a genre to browse, search and filter by, from Google Books (migration 6664) | Done |
 | —    | The demo shows the newest features: a sample invite link, last night's reading sprints, and Jordan's wishlist opening Gifts; two classics tagged LGBTQIA+ (migration 6665) | Done |
-| —    | Members' Home keeps scrolling through every genre and visitors see a sample; an OpenDyslexic switch in the accessibility menu, which now scrolls inside the window; Google Books answers kept in Supabase (a book until a new edition appears, a list for a week; migrations 6666–6668) | Done |
+| —    | Members' Home keeps scrolling through every genre and visitors see a sample; an OpenDyslexic switch in the accessibility menu, which now scrolls inside the window; Google Books answers kept briefly in Supabase, only as long as Google's cache headers allow and at most 7 days (migrations 6666–6670) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

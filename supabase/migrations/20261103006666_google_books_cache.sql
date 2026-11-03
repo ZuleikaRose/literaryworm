@@ -1,38 +1,40 @@
--- A cache of what Google Books has told the `books` Edge Function, so the same answer is never
--- asked for twice and the Google Books API quota goes much further.
+-- A short-lived cache of what Google Books has told the `books` Edge Function, so the same answer
+-- isn't asked for again while it may still be kept, and the Google Books API quota goes further.
 --
---   google_books_volumes: one book's details (an edition, by its volume id), with its cover link,
---     kept until another edition of the same book turns up; then it's marked stale and the next
---     request for it downloads it again.
---   google_books_lists: one page of a list (Home, a genre, a search, an author, an ISBN), kept a
---     week (LIST_FRESH in _shared/bookCache.ts). Refreshing a page is how new editions are found:
---     a volume id the page didn't have before, with the same title and author as a cached volume,
---     marks that volume stale.
+--   google_books_volumes: one book's details (an edition, by its volume id), cover link included.
+--   google_books_lists:   one page of a list (Home, a genre, a search, an author, an ISBN).
+--
+-- Every row expires (expires_at): no later than Google's own cache headers allow on the answer
+-- (the Google APIs Terms of Service, 5(e): no copy kept longer than the cache header permits, and
+-- no permanent copies), and never more than 7 days (CACHE_MAX_SECONDS in _shared/bookCache.ts).
+-- When Google's headers allow no caching (no-store, no-cache, private, or no lifetime), nothing is
+-- kept. The function never serves an expired row, and pg_cron deletes them every hour.
 --
 -- Only the function (service_role) reads and writes these rows; browser roles have no access and
--- go through the function. Nothing here is about a person: the requests' IPs and users aren't kept.
+-- go through the function. Nothing here is about a person: requests' IPs and users aren't kept.
 
 create table public.google_books_volumes (
   id         text        primary key check (id ~ '^[A-Za-z0-9_-]{1,40}$'),
   -- The shaped BookDetail the function returns (_shared/googleBooks.ts), cover link included.
   detail     jsonb       not null check (jsonb_typeof(detail) = 'object' and octet_length(detail::text) <= 32768),
-  -- Normalised title and first author's surname (workKey()), shared by every edition of a book.
-  work_key   text        not null check (char_length(work_key) between 1 and 400),
-  -- Another edition has appeared since this was downloaded: the next request downloads it again.
-  stale      boolean     not null default false,
-  fetched_at timestamptz not null default now()
+  fetched_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  constraint google_books_volumes_kept_at_most_7_days
+    check (expires_at > fetched_at and expires_at <= fetched_at + interval '7 days')
 );
-
-create index google_books_volumes_work_key on public.google_books_volumes (work_key);
 
 create table public.google_books_lists (
   -- The query as sent to Google (q, page, sort, language): listCacheKey().
   key        text        primary key check (char_length(key) between 1 and 600),
   -- The shaped BookPage the function returns.
   page       jsonb       not null check (jsonb_typeof(page) = 'object' and octet_length(page::text) <= 65536),
-  volume_ids text[]      not null default '{}' check (cardinality(volume_ids) <= 40),
-  fetched_at timestamptz not null default now()
+  fetched_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  constraint google_books_lists_kept_at_most_7_days
+    check (expires_at > fetched_at and expires_at <= fetched_at + interval '7 days')
 );
+
+-- The hourly cleanup finds expired rows by expires_at: its indexes are 6669 and 6670 (CONCURRENTLY, one each).
 
 alter table public.google_books_volumes enable row level security;
 alter table public.google_books_lists enable row level security;
@@ -54,10 +56,10 @@ create policy "No browser access to cached lists"
   using (false)
   with check (false);
 
--- Lists nobody has asked for in a month go (each search is a row); volumes stay, since a book's
--- details only change with a new edition.
+-- Expired answers are deleted every hour, so nothing stays past what Google allowed.
 select cron.schedule(
-  'google-books-lists-cleanup',
-  '40 3 * * *',
-  $$delete from public.google_books_lists where fetched_at < now() - interval '30 days'$$
+  'google-books-cache-cleanup',
+  '17 * * * *',
+  $$delete from public.google_books_volumes where expires_at <= now();
+    delete from public.google_books_lists where expires_at <= now()$$
 );

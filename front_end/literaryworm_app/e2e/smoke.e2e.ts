@@ -1,5 +1,5 @@
-import { afterAll, describe, expect, it } from "@jest/globals";
-import { closeBrowser, goInApp, newPage, scrollsSideways, signInDemo } from "./browser";
+import { afterAll, afterEach, describe, expect, it } from "@jest/globals";
+import { closeBrowser, closePages, goInApp, newPage, scrollsSideways, signInDemo } from "./browser";
 import { readFileSync } from "node:fs";
 import { BASE_URL } from "./config";
 import { tinyEpub } from "./epubFixture";
@@ -7,6 +7,8 @@ import { tinyEpub } from "./epubFixture";
 /** The newest What's new entry's title (the top of src/data/changelog.json; tests run in the app folder). */
 const NEWEST_CHANGE = (JSON.parse(readFileSync("src/data/changelog.json", "utf8")) as { title: string }[])[0].title;
 
+// Each test opens its own pages; close them when it ends, so a hundred don't run at once.
+afterEach(closePages);
 afterAll(closeBrowser);
 
 describe("a visitor", () => {

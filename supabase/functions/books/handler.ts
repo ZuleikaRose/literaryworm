@@ -12,11 +12,11 @@
 //   ?mode=isbn&isbn=9780141439518&page=0  the editions with that ISBN (10 or 13 digits)
 //   ?mode=volume&id=zyTCAlFPjgYC      one book's details
 //
-// Answers are kept in Supabase (_shared/bookCache.ts, migration 6666): a book's details until
-// another edition of it appears, a list page for a week. Google is asked only for what isn't
-// kept, and a kept copy is served if Google fails. The X-Book-Cache header says which it was.
+// Answers are kept in Supabase (_shared/bookCache.ts, migration 6666), each only as long as
+// Google's cache headers allow and at most 7 days, then asked for again; nothing is served past
+// that. Our own Cache-Control to the browser is capped the same way. X-Book-Cache says hit or miss.
 
-import { type BookCache, listCacheKey } from "../_shared/bookCache.ts";
+import { type BookCache, keepFor, listCacheKey } from "../_shared/bookCache.ts";
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, requireMethod } from "../_shared/http.ts";
 import {
@@ -24,6 +24,7 @@ import {
   callGoogleWithKeys,
   GENRE_QUERIES,
   GENRE_WORDS,
+  type GoogleMeta,
   HOME_QUERY,
   listUrl,
   plainQuery,
@@ -87,15 +88,23 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     }
 
     await deps.rateLimit?.(req);
-    const ask = (build: (key: string | undefined) => URL) => callGoogleWithKeys(build, deps.apiKeys, deps.fetcher);
+    // What Google's cache headers allow for the last answer (the Google APIs Terms, 5(e)).
+    const meta: GoogleMeta = {};
+    const ask = (build: (key: string | undefined) => URL) => callGoogleWithKeys(build, deps.apiKeys, deps.fetcher, meta);
+    /** Our Cache-Control: never longer than Google allows, nor than `ours`. */
+    const browserCache = (ours: number) => {
+      const seconds = Math.min(ours, keepFor(meta.cacheSeconds));
+      return seconds > 0 ? `public, max-age=${seconds}` : "no-store";
+    };
 
     if (mode === "volume") {
       const id = parseVolumeId(params.get("id"));
       const kept = await safely("read volume", () => deps.cache?.getVolume(id));
-      if (kept) return json(req, METHODS, kept, 200, { "Cache-Control": "public, max-age=3600", "X-Book-Cache": "hit" });
+      // A kept copy is already within what Google allowed; the browser keeps it no more than a minute.
+      if (kept) return json(req, METHODS, kept, 200, { "Cache-Control": "public, max-age=60", "X-Book-Cache": "hit" });
       const detail = shapeDetail(await ask((k) => volumeUrl(id, k)));
-      await safely("save volume", () => deps.cache?.putVolume(detail));
-      return json(req, METHODS, detail, 200, { "Cache-Control": "public, max-age=3600", "X-Book-Cache": "miss" });
+      await safely("save volume", () => deps.cache?.putVolume(detail, keepFor(meta.cacheSeconds)));
+      return json(req, METHODS, detail, 200, { "Cache-Control": browserCache(3600), "X-Book-Cache": "miss" });
     }
 
     const page = parsePage(params.get("page"));
@@ -133,19 +142,8 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     const lang = filtered ? parseLanguage(params.get("lang")) : null;
     const cacheKey = listCacheKey(q, page, sort, lang);
     const kept = await safely("read list", () => deps.cache?.getList(cacheKey));
-    if (kept?.fresh) {
-      return json(req, METHODS, kept.page, 200, { "Cache-Control": "public, max-age=300", "X-Book-Cache": "hit" });
-    }
-    let body: unknown;
-    try {
-      body = await ask((k) => listUrl(q, page, k, sort, lang));
-    } catch (err) {
-      // Google is failing: last week's copy is better than an error.
-      if (kept && err instanceof HttpError && err.code !== "not_found") {
-        return json(req, METHODS, kept.page, 200, { "Cache-Control": "public, max-age=60", "X-Book-Cache": "stale" });
-      }
-      throw err;
-    }
+    if (kept) return json(req, METHODS, kept, 200, { "Cache-Control": "public, max-age=60", "X-Book-Cache": "hit" });
+    let body = await ask((k) => listUrl(q, page, k, sort, lang));
     if (isEmptyList(body)) {
       if (plain !== q) {
         // Google sometimes answers every `subject:` and `intitle:` query with nothing while
@@ -161,8 +159,8 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     }
     const shaped = shapePage(body, page);
     // An empty page is often Google struggling, not the truth: don't keep it.
-    if (shaped.items.length) await safely("save list", () => deps.cache?.putList(cacheKey, shaped, kept ?? null));
-    return json(req, METHODS, shaped, 200, { "Cache-Control": "public, max-age=300", "X-Book-Cache": "miss" });
+    if (shaped.items.length) await safely("save list", () => deps.cache?.putList(cacheKey, shaped, keepFor(meta.cacheSeconds)));
+    return json(req, METHODS, shaped, 200, { "Cache-Control": browserCache(300), "X-Book-Cache": "miss" });
   } catch (err) {
     return errorResponse(req, METHODS, err);
   }
