@@ -7,6 +7,7 @@ import { DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
 import { keepUploadOffline, offlineUploadText } from "./uploadCache";
 import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
+import { tr } from "./i18n";
 
 /**
  * Who reads an audiobook aloud. The playback engine (components/PlaybackProvider.tsx) keeps the
@@ -81,8 +82,8 @@ export function recordingNarrator(tracks: RecordingTrack[], starts: number[], ev
       if (err instanceof DOMException && err.name === "AbortError") return; // a pause or a new track interrupted it
       events.onError(
         err instanceof DOMException && err.name === "NotAllowedError"
-          ? "Press play to start the narration."
-          : "We couldn't play the narration. Check your connection, then press play to try again.",
+          ? tr("Press play to start the narration.")
+          : tr("We couldn't play the narration. Check your connection, then press play to try again."),
       );
     });
   };
@@ -104,7 +105,7 @@ export function recordingNarrator(tracks: RecordingTrack[], starts: number[], ev
       start();
       return;
     }
-    events.onError("We couldn't load the narration. Check your connection, then press play to try again.");
+    events.onError(tr("We couldn't load the narration. Check your connection, then press play to try again."));
   };
   audio.addEventListener("ended", onEnded);
   audio.addEventListener("waiting", onWaiting);
@@ -235,7 +236,7 @@ export function speechNarrator(
       if (mine !== generation || e.error === "interrupted" || e.error === "canceled") return;
       speaking = false;
       events.onError(
-        e.error === "not-allowed" ? "Press play to start the narration." : "This voice stopped working. Try another voice from the list.",
+        e.error === "not-allowed" ? tr("Press play to start the narration.") : tr("This voice stopped working. Try another voice from the list."),
       );
     };
     spokenFrom = performance.now();
@@ -310,7 +311,7 @@ async function uploadText(id: string, path: string | null): Promise<string[]> {
   // Uploaded in this tab, or one of the demo's sample uploads.
   const kept = tabTexts.get(id) ?? DEMO_UPLOAD_TEXTS.get(id);
   if (kept) return kept;
-  if (!path) throw new Error("This book was uploaded in another tab. Upload it again here.");
+  if (!path) throw new Error(tr("This book was uploaded in another tab. Upload it again here."));
   try {
     const chapters = await loadUploadText(path);
     keepUploadOffline(id, chapters).catch((err: unknown) => console.error("uploads: couldn't keep a copy for offline:", err));
@@ -337,7 +338,7 @@ export function bookText(book: Book): Promise<string[]> {
           })
           // Offline, a failed download or a damaged file all read the same to the reader.
           .catch(() => {
-            throw new Error("We couldn't load this book's text. Check your connection and try again.");
+            throw new Error(tr("We couldn't load this book's text. Check your connection and try again."));
           })
       : Promise.resolve(
           book.chapters.map((_, chapterIndex) =>
@@ -379,7 +380,7 @@ export function voiceLabel(voice: SpeechSynthesisVoice): string {
     .replace(/\s*\((Natural|Enhanced|Premium)\)/i, "")
     .replace(/\s+Online$/i, "")
     .trim();
-  return voice.localService ? name : `${name} (online)`;
+  return voice.localService ? name : tr("{name} (online)", { name });
 }
 
 /** The device's English voices (American, British, Australian), sorted by accent then name; [] where speech isn't supported. */

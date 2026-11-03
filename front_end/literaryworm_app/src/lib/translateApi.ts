@@ -1,4 +1,5 @@
 import { PUBLISHABLE_KEY, SUPABASE_URL, usesBackend } from "./backend";
+import { tk, tr } from "./i18n";
 import type { TranslateLanguage } from "./translate";
 
 export { codeOf, defaultTarget, passageFor, TRANSLATE_LANGUAGES, TRANSLATE_MAX, type TranslateLanguage } from "./translate";
@@ -12,15 +13,18 @@ export { codeOf, defaultTarget, passageFor, TRANSLATE_LANGUAGES, TRANSLATE_MAX, 
 export class TranslateError extends Error {}
 
 const FRIENDLY: Record<string, string> = {
-  network: "We couldn't reach LiteraryWorm. Check your connection and try again.",
-  rate_limited: "That's a lot of translations in a short time. Wait a little, then try again.",
-  upstream_error: "We couldn't translate that just now. Try again later.",
-  upstream_timeout: "Translating took too long. Try again.",
-  unavailable: "Translate needs the LiteraryWorm backend, which isn't set up in this copy of the app.",
+  network: tk("We couldn't reach LiteraryWorm. Check your connection and try again."),
+  rate_limited: tk("That's a lot of translations in a short time. Wait a little, then try again."),
+  upstream_error: tk("We couldn't translate that just now. Try again later."),
+  upstream_timeout: tk("Translating took too long. Try again."),
+  unavailable: tk("Translate needs the LiteraryWorm backend, which isn't set up in this copy of the app."),
 };
 
+/** Our words for an error code, in the reader's language (undefined for a code we have none for). */
+const friendly = (code: string) => (Object.hasOwn(FRIENDLY, code) ? tr(FRIENDLY[code]) : undefined);
+
 export async function translatePassage(bookId: string, chapter: number, text: string, to: TranslateLanguage): Promise<string> {
-  if (!usesBackend) throw new TranslateError(FRIENDLY.unavailable);
+  if (!usesBackend) throw new TranslateError(friendly("unavailable"));
   let res: Response;
   try {
     res = await fetch(`${SUPABASE_URL}/functions/v1/translate`, {
@@ -29,16 +33,16 @@ export async function translatePassage(bookId: string, chapter: number, text: st
       body: JSON.stringify({ id: bookId, chapter, text, to }),
     });
   } catch {
-    throw new TranslateError(FRIENDLY.network);
+    throw new TranslateError(friendly("network"));
   }
   const body: unknown = await res.json().catch(() => null);
   if (!res.ok) {
     const error = (body as { error?: { code?: string; message?: string } } | null)?.error;
     const code = error?.code ?? "upstream_error";
-    const message = code === "bad_request" || code === "not_found" ? error?.message : FRIENDLY[code];
-    throw new TranslateError(message ?? FRIENDLY.upstream_error);
+    const message = code === "bad_request" || code === "not_found" ? error?.message : friendly(code);
+    throw new TranslateError(message ?? friendly("upstream_error"));
   }
   const translation = (body as { translation?: unknown } | null)?.translation;
-  if (typeof translation !== "string") throw new TranslateError(FRIENDLY.upstream_error);
+  if (typeof translation !== "string") throw new TranslateError(friendly("upstream_error"));
   return translation;
 }

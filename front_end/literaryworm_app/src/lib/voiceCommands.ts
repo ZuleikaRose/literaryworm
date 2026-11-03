@@ -1,3 +1,5 @@
+import { tr } from "./i18n";
+
 /**
  * Voice control in car mode: what a spoken phrase asks for. The browser's own speech recognition
  * hears it (components/VoiceControl.tsx); this only reads the words. In English, and forgiving:
@@ -54,19 +56,19 @@ export function parseVoiceCommand(transcript: string): VoiceCommand | null {
 export function voiceCommandLabel(command: VoiceCommand, skip: { back: number; forward: number }): string {
   switch (command.kind) {
     case "play":
-      return "Playing";
+      return tr("Playing");
     case "pause":
-      return "Paused";
+      return tr("Paused");
     case "back":
-      return `Back ${command.seconds ?? skip.back} seconds`;
+      return tr("Back {n} seconds", { n: command.seconds ?? skip.back });
     case "forward":
-      return `Forward ${command.seconds ?? skip.forward} seconds`;
+      return tr("Forward {n} seconds", { n: command.seconds ?? skip.forward });
     case "nextChapter":
-      return "Next chapter";
+      return tr("Next chapter");
     case "previousChapter":
-      return "Previous chapter";
+      return tr("Previous chapter");
     case "exit":
-      return "Leaving car mode";
+      return tr("Leaving car mode");
   }
 }
 

@@ -5,20 +5,24 @@ import { useQuizResults } from "../lib/useQuizResults";
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /**
  * Chapter quiz in the reader: a few questions about the chapter open now, one at a time, with
  * the answer explained after each. Written by AI from that chapter only, and labelled so.
  */
 export function QuizDialog({ open, book, chapterIndex, onClose }: { open: boolean; book: Book; chapterIndex: number; onClose: () => void }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onClose} title={`Chapter ${chapterIndex + 1} quiz`} eyebrow={book.title} size="sm">
+    <Dialog open={open} onClose={onClose} title={t("Chapter {n} quiz", { n: chapterIndex + 1 })} eyebrow={book.title} size="sm">
       {open && <Quiz key={chapterIndex} book={book} chapterIndex={chapterIndex} onClose={onClose} />}
     </Dialog>
   );
 }
 
 function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: number; onClose: () => void }) {
+  const t = useT();
   const [questions, setQuestions] = useState<QuizQuestion[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tries, setTries] = useState(0);
@@ -40,7 +44,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
         setError(null);
       },
       (err) => {
-        if (live) setError(err instanceof QuizError ? err.message : "Something went wrong. Try again.");
+        if (live) setError(err instanceof QuizError ? err.message : tr("Something went wrong. Try again."));
       },
     );
     return () => {
@@ -54,7 +58,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
 
   const note = (
     <p className="goal-hint">
-      <Icon name="ask" size={15} /> Questions written by AI from chapter {chapterIndex + 1} only. Nothing about you is sent.
+      <Icon name="ask" size={15} /> {t("Questions written by AI from chapter {n} only. Nothing about you is sent.", { n: chapterIndex + 1 })}
     </p>
   );
 
@@ -66,8 +70,8 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
           <Icon name="alert" size={17} />
           <div>
             <p>{error}</p>
-            <button type="button" className="secondary-button small-button" onClick={() => setTries((t) => t + 1)}>
-              Try again
+            <button type="button" className="secondary-button small-button" onClick={() => setTries((n) => n + 1)}>
+              {t("Try again")}
             </button>
           </div>
         </div>
@@ -78,7 +82,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
     return (
       <div className="quiz">
         {note}
-        <p role="status">Getting the questions ready…</p>
+        <p role="status">{t("Getting the questions ready…")}</p>
       </div>
     );
   }
@@ -92,7 +96,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
         </p>
         {before && (
           <p className="muted">
-            Last time: {before.score} of {before.outOf}.
+            {t("Last time: {score} of {outOf}.", { score: before.score, outOf: before.outOf })}
           </p>
         )}
         {saveError && (
@@ -110,10 +114,10 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
               setPicked(null);
             }}
           >
-            Try again
+            {t("Try again")}
           </button>
           <button type="button" className="primary-button" onClick={onClose}>
-            Back to the book
+            {t("Back to the book")}
           </button>
         </div>
       </div>
@@ -133,7 +137,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
       try {
         await results.record({ bookId: book.id, chapterIndex, score: total, outOf: questions!.length, takenAt: Date.now() });
       } catch (err) {
-        setSaveError(err instanceof Error ? err.message : "We couldn't save the score.");
+        setSaveError(err instanceof Error ? err.message : t("We couldn't save the score."));
       }
     }
   }
@@ -142,7 +146,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
     <div className="quiz">
       {at === 0 && note}
       <p className="muted" tabIndex={-1} ref={headingRef}>
-        Question {at + 1} of {questions.length}
+        {t("Question {n} of {total}", { n: at + 1, total: questions.length })}
       </p>
       <fieldset className="quiz-question">
         <legend>{q.question}</legend>
@@ -162,7 +166,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
                 }}
               >
                 {choice}
-                {answered && i === q.answer && <span className="visually-hidden"> (the right answer)</span>}
+                {answered && i === q.answer && <span className="visually-hidden"> {t("(the right answer)")}</span>}
               </button>
             );
           })}
@@ -171,7 +175,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
       <div aria-live="polite">
         {answered && (
           <p className={`quiz-feedback${picked === q.answer ? " is-right" : ""}`}>
-            <Icon name={picked === q.answer ? "check" : "close"} size={16} /> {picked === q.answer ? "That's right!" : `Not quite: it's “${q.choices[q.answer]}”.`}{" "}
+            <Icon name={picked === q.answer ? "check" : "close"} size={16} /> {picked === q.answer ? t("That's right!") : t("Not quite: it's “{answer}”.", { answer: q.choices[q.answer] })}{" "}
             {q.explanation}
           </p>
         )}
@@ -179,7 +183,7 @@ function Quiz({ book, chapterIndex, onClose }: { book: Book; chapterIndex: numbe
       {answered && (
         <div className="modal-actions">
           <button type="button" className="primary-button" onClick={next}>
-            {at === questions.length - 1 ? "See my score" : "Next question"}
+            {at === questions.length - 1 ? t("See my score") : t("Next question")}
           </button>
         </div>
       )}

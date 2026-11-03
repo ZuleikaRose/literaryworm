@@ -16,6 +16,8 @@ import { usePlayerControls } from "../lib/usePlayerControls";
 import { canRecap } from "../lib/recap";
 import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
+import { rich } from "../lib/i18n";
 import { useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
@@ -27,7 +29,8 @@ export default function Player() {
 }
 
 function PlayerView({ book }: { book: Book }) {
-  useTitle(`Listening to ${book.title}`);
+  const t = useT();
+  useTitle(t("Listening to {title}", { title: book.title }));
   const { state, dispatch } = useStore();
   const { narrationVoice } = useProfileData();
   const voices = useVoices();
@@ -112,35 +115,35 @@ function PlayerView({ book }: { book: Book }) {
       <header className="player-bar">
         <Link className="icon-button" to={`/books/${book.id}`}>
           <Icon name="arrowLeft" size={20} />
-          <span className="visually-hidden">Close the player</span>
+          <span className="visually-hidden">{t("Close the player")}</span>
         </Link>
-        <p className="player-eyebrow">Now listening</p>
+        <p className="player-eyebrow">{t("Now listening")}</p>
         <div className="reader-tools">
           <button type="button" className="icon-button" onClick={() => jump("contents")}>
             <Icon name="list" size={20} />
-            <span className="visually-hidden">Table of contents</span>
+            <span className="visually-hidden">{t("Table of contents")}</span>
           </button>
           <button type="button" className="icon-button" onClick={() => jump("index")}>
             <Icon name="search" size={20} />
-            <span className="visually-hidden">Go to: index, references or a time</span>
+            <span className="visually-hidden">{t("Go to: index, references or a time")}</span>
           </button>
           <button type="button" className="icon-button" onClick={() => setPanel("bookmarks")}>
             <Icon name="bookmark" size={20} filled={isHereMarked} />
-            <span className="visually-hidden">Bookmarks</span>
+            <span className="visually-hidden">{t("Bookmarks")}</span>
           </button>
           {canRecap(book, chapterIndex) && (
             <button type="button" className="icon-button" onClick={() => setPanel("recap")}>
               <Icon name="bookOpen" size={20} />
-              <span className="visually-hidden">Previously…: catch up on the story so far</span>
+              <span className="visually-hidden">{t("Previously…: catch up on the story so far")}</span>
             </button>
           )}
           <button type="button" className="icon-button" onClick={() => setPanel("devices")}>
             <Icon name="devices" size={20} />
-            <span className="visually-hidden">Listen on another device</span>
+            <span className="visually-hidden">{t("Listen on another device")}</span>
           </button>
           <button type="button" className="icon-button" onClick={() => setPanel("settings")}>
             <Icon name="settings" size={20} />
-            <span className="visually-hidden">Skip lengths, intros and outros</span>
+            <span className="visually-hidden">{t("Skip lengths, intros and outros")}</span>
           </button>
           {!book.recording && (
             <button
@@ -150,7 +153,7 @@ function PlayerView({ book }: { book: Book }) {
               onClick={() => dispatch({ type: "updateA11y", patch: { transcript: !state.a11y.transcript } })}
             >
               <Icon name="subtitles" size={20} />
-              <span className="visually-hidden">Read-along transcript</span>
+              <span className="visually-hidden">{t("Read-along transcript")}</span>
             </button>
           )}
         </div>
@@ -166,7 +169,7 @@ function PlayerView({ book }: { book: Book }) {
             <h1>{book.title}</h1>
             <p>
               {book.author}
-              {book.narrator && <> · Narrated by {book.narrator}</>}
+              {book.narrator && <> · {t("Narrated by {name}", { name: book.narrator })}</>}
             </p>
             <p className="player-chapter">{chapterLabel(book, chapterIndex)}</p>
           </div>
@@ -207,8 +210,8 @@ function PlayerView({ book }: { book: Book }) {
                   max={Math.round(total)}
                   step={1}
                   value={Math.round(position)}
-                  aria-label="Position in the book"
-                  aria-valuetext={`${spokenTime(position)} of ${spokenTime(total)}, ${chapter.title}`}
+                  aria-label={t("Position in the book")}
+                  aria-valuetext={t("{position} of {total}, {chapter}", { position: spokenTime(position), total: spokenTime(total), chapter: chapter.title })}
                   style={{ "--fill": `${(position / total) * 100}%` } as CSSProperties}
                   onChange={(e) => {
                     const value = Number(e.target.value);
@@ -225,62 +228,67 @@ function PlayerView({ book }: { book: Book }) {
                 <span>{formatTime(position)}</span>
                 <span>
                   <span aria-hidden="true">−</span>
-                  <span className="visually-hidden">Time left: </span>
+                  <span className="visually-hidden">{t("Time left:")} </span>
                   {formatTime(total - position)}
                 </span>
               </p>
 
               {!live.finished && (
                 <p className="player-pace">
-                  {player.speed === 1 ? "" : `At ${player.speed}×: `}
-                  {formatTimeLeft(listeningSecondsLeft(places.chapterEnd - position, player.speed))} left in this chapter ·{" "}
-                  {formatTimeLeft(listeningSecondsLeft(total - position, player.speed))} in the book
+                  {player.speed === 1 ? "" : `${t("At {speed}×:", { speed: player.speed })} `}
+                  {t("{chapter} left in this chapter · {book} in the book", {
+                    chapter: formatTimeLeft(listeningSecondsLeft(places.chapterEnd - position, player.speed)),
+                    book: formatTimeLeft(listeningSecondsLeft(total - position, player.speed)),
+                  })}
                 </p>
               )}
               {live.listeningLeft && (
                 <p className={`player-allowance${live.listeningLeft.seconds <= live.listeningLeft.hours * 3600 * 0.2 ? " player-allowance-low" : ""}`}>
-                  <Icon name="headphones" size={14} /> {hoursAndMinutes(live.listeningLeft.seconds)} of this month's {live.listeningLeft.hours} hours left for the
-                  household
+                  <Icon name="headphones" size={14} />{" "}
+                  {t("{left} of this month's {hours} hours left for the household", {
+                    left: hoursAndMinutes(live.listeningLeft.seconds),
+                    hours: live.listeningLeft.hours,
+                  })}
                 </p>
               )}
 
               <div className="player-controls">
                 <button type="button" className="icon-button" disabled={!controls.previousChapter} onClick={controls.previousChapter ?? undefined}>
                   <Icon name="previousChapter" size={20} />
-                  <span className="visually-hidden">Previous chapter</span>
+                  <span className="visually-hidden">{t("Previous chapter")}</span>
                 </button>
                 <button type="button" className="skip-button" onClick={controls.skipBack}>
                   <Icon name="chevronLeft" size={18} />
                   <span aria-hidden="true">{player.skipBack}</span>
-                  <span className="visually-hidden">Back {player.skipBack} seconds</span>
+                  <span className="visually-hidden">{t("Back {n} seconds", { n: player.skipBack })}</span>
                 </button>
                 <button type="button" className="play-button" onClick={playback.toggle}>
                   <Icon name={playing ? "pause" : "play"} size={30} filled />
-                  <span className="visually-hidden">{playing ? "Pause" : "Play"}</span>
+                  <span className="visually-hidden">{playing ? t("Pause") : t("Play")}</span>
                 </button>
                 <button type="button" className="skip-button" onClick={controls.skipForward}>
                   <span aria-hidden="true">{player.skipForward}</span>
                   <Icon name="chevronRight" size={18} />
-                  <span className="visually-hidden">Forward {player.skipForward} seconds</span>
+                  <span className="visually-hidden">{t("Forward {n} seconds", { n: player.skipForward })}</span>
                 </button>
                 <button type="button" className="icon-button" disabled={!controls.nextChapter} onClick={controls.nextChapter ?? undefined}>
                   <Icon name="nextChapter" size={20} />
-                  <span className="visually-hidden">Next chapter</span>
+                  <span className="visually-hidden">{t("Next chapter")}</span>
                 </button>
               </div>
 
               <div className="player-jumps">
                 <button type="button" className="text-button" disabled={!controls.beginning} onClick={controls.beginning ?? undefined}>
-                  <Icon name="startOfBook" size={16} /> Beginning
+                  <Icon name="startOfBook" size={16} /> {t("Beginning")}
                 </button>
                 <button type="button" className="text-button" disabled={!controls.skipIntro} onClick={controls.skipIntro ?? undefined}>
-                  Skip intro
+                  {t("Skip intro")}
                 </button>
                 <button type="button" className="text-button" disabled={!controls.skipOutro} onClick={controls.skipOutro ?? undefined}>
-                  Skip outro
+                  {t("Skip outro")}
                 </button>
                 <button type="button" className="text-button" disabled={!controls.end} onClick={controls.end ?? undefined}>
-                  End <Icon name="endOfBook" size={16} />
+                  {t("End")} <Icon name="endOfBook" size={16} />
                 </button>
               </div>
 
@@ -288,19 +296,19 @@ function PlayerView({ book }: { book: Book }) {
 
               <div className="player-extras">
                 <Link className="text-button" to={`/listen/${book.id}?view=car`}>
-                  <Icon name="headphones" size={16} /> Car mode
+                  <Icon name="headphones" size={16} /> {t("Car mode")}
                 </Link>
                 <CastButton recording={narration.kind === "recording"} />
                 {book.recording && (
                   <button type="button" className="text-button" onClick={() => setPanel("clip")}>
-                    <Icon name="share" size={16} /> Share a clip
+                    <Icon name="share" size={16} /> {t("Share a clip")}
                   </button>
                 )}
               </div>
 
               <div className="player-settings">
                 <label className="player-select">
-                  <span>Speed</span>
+                  <span>{t("Speed")}</span>
                   <select value={player.speed} onChange={(e) => settings.update({ speed: Number(e.target.value) })}>
                     {PLAYBACK_SPEEDS.map((s) => (
                       <option key={s} value={s}>
@@ -310,23 +318,23 @@ function PlayerView({ book }: { book: Book }) {
                   </select>
                 </label>
                 <label className="player-select">
-                  <span>Sleep timer</span>
+                  <span>{t("Sleep timer")}</span>
                   <select value={sleepValue} onChange={(e) => playback.setSleep(e.target.value)}>
-                    <option value="off">Off</option>
+                    <option value="off">{t("Off")}</option>
                     {SLEEP_MINUTES.map((m) => (
                       <option key={m} value={m}>
-                        {m} minutes
+                        {t("{m} minutes", { m })}
                       </option>
                     ))}
-                    <option value="chapter">End of chapter</option>
+                    <option value="chapter">{t("End of chapter")}</option>
                   </select>
                 </label>
                 <label className="player-select player-voice">
-                  <span>Voice</span>
+                  <span>{t("Voice")}</span>
                   <select value={voiceValue} onChange={(e) => dispatch({ type: "setNarrationVoice", voice: e.target.value })}>
-                    {book.recording && <option value={LIBRIVOX_VOICE}>Original narrator: {book.recording.narrator}</option>}
+                    {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
                     {accents.map(([accent, list]) => (
-                      <optgroup key={accent} label={`${accent} English`}>
+                      <optgroup key={accent} label={accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English")}>
                         {list.map((v) => (
                           <option key={v.voiceURI} value={v.voiceURI}>
                             {voiceLabel(v)}
@@ -334,7 +342,7 @@ function PlayerView({ book }: { book: Book }) {
                         ))}
                       </optgroup>
                     ))}
-                    {!book.recording && <option value={SILENT_VOICE}>No voice (silent sample)</option>}
+                    {!book.recording && <option value={SILENT_VOICE}>{t("No voice (silent sample)")}</option>}
                   </select>
                 </label>
               </div>
@@ -342,9 +350,9 @@ function PlayerView({ book }: { book: Book }) {
               <p className="player-status" role="status">
                 {live.notice ??
                   (sleep?.kind === "minutes"
-                    ? `Sleep timer: pauses after ${formatTime(live.sleepLeft)} more of playing`
+                    ? t("Sleep timer: pauses after {time} more of playing", { time: formatTime(live.sleepLeft) })
                     : sleep?.kind === "chapter"
-                      ? "Sleep timer: pauses at the end of this chapter"
+                      ? t("Sleep timer: pauses at the end of this chapter")
                       : "")}
               </p>
               <SleepMore />
@@ -354,27 +362,34 @@ function PlayerView({ book }: { book: Book }) {
           <p className="reader-sample-note">
             {narration.kind === "recording" && book.recording ? (
               <>
-                Narrated by {book.recording.narrator} for{" "}
-                <a href={book.recording.page} target="_blank" rel="noreferrer">
-                  LibriVox<span className="visually-hidden"> (opens in a new tab)</span>
-                </a>
-                : a public-domain recording, streamed from the Internet Archive.
+                {rich(t("Narrated by {narrator} for {link}: a public-domain recording, streamed from the Internet Archive.", { narrator: book.recording.narrator }), {
+                  link: (
+                    <a href={book.recording.page} target="_blank" rel="noreferrer">
+                      LibriVox<span className="visually-hidden"> {t("(opens in a new tab)")}</span>
+                    </a>
+                  ),
+                })}
               </>
             ) : narration.kind === "speech" ? (
               book.recording ? (
-                <>Read aloud by your device's {voiceLabel(narration.voice)} voice from the full public-domain text (Project Gutenberg).</>
+                <>{t("Read aloud by your device's {voice} voice from the full public-domain text (Project Gutenberg).", { voice: voiceLabel(narration.voice) })}</>
               ) : (
-                <>Read aloud by your device's {voiceLabel(narration.voice)} voice from sample text: this title's narration isn't licensed yet.</>
+                <>{t("Read aloud by your device's {voice} voice from sample text: this title's narration isn't licensed yet.", { voice: voiceLabel(narration.voice) })}</>
               )
             ) : (
-              <>Sample player: this title's narration isn't licensed yet, so the clock runs silently.</>
+              <>{t("Sample player: this title's narration isn't licensed yet, so the clock runs silently.")}</>
             )}{" "}
             {voices.length < 10 &&
               (voices.length === 0
-                ? "This browser has no English voices to read aloud with."
-                : `This device has ${voices.length} English ${voices.length === 1 ? "voice" : "voices"}; Edge, Safari and phones usually offer more.`)}{" "}
-            Space plays and pauses; the left and right arrows skip back {player.skipBack} and forward {player.skipForward} seconds; M
-            mutes. Leave the player and the book keeps playing in the mini-player, which has the same controls.
+                ? t("This browser has no English voices to read aloud with.")
+                : t.plural(voices.length, {
+                    one: "This device has {count} English voice; Edge, Safari and phones usually offer more.",
+                    other: "This device has {count} English voices; Edge, Safari and phones usually offer more.",
+                  }))}{" "}
+            {t("Space plays and pauses; the left and right arrows skip back {back} and forward {forward} seconds; M mutes. Leave the player and the book keeps playing in the mini-player, which has the same controls.", {
+              back: player.skipBack,
+              forward: player.skipForward,
+            })}
           </p>
         </div>
 

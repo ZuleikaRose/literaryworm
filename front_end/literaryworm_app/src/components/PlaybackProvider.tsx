@@ -7,6 +7,7 @@ import { chapterAt, chapterTimes, resumeAfterSleep, SLEEP_FADE_SECONDS, SLEEP_RE
 import { useDeviceLink } from "../lib/useDeviceLink";
 import { useDailyLimit } from "../lib/useDailyLimit";
 import { useListeningAllowance } from "../lib/useListeningAllowance";
+import { tr } from "../lib/i18n";
 import { bookText, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
@@ -82,11 +83,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const restart = useCallback(() => engine.current?.restart(), []);
   const allowMore = useCallback(() => engine.current?.allowMore(), []);
   const addBookmark = useCallback<Playback["addBookmark"]>(
-    (place) => engine.current?.addBookmark(place) ?? Promise.reject(new Error("Open the book first.")),
+    (place) => engine.current?.addBookmark(place) ?? Promise.reject(new Error(tr("Open the book first."))),
     [],
   );
   const removeBookmark = useCallback<Playback["removeBookmark"]>(
-    (id) => engine.current?.removeBookmark(id) ?? Promise.reject(new Error("Open the book first.")),
+    (id) => engine.current?.removeBookmark(id) ?? Promise.reject(new Error(tr("Open the book first."))),
     [],
   );
 
@@ -102,7 +103,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       sendTo: async (target) => {
         const playing = sessionRef.current;
         const place = snapshotRef.current;
-        if (!playing || !place) throw new Error("Open a book first.");
+        if (!playing || !place) throw new Error(tr("Open a book first."));
         await sendHandoff({
           toDeviceId: target.id,
           profileId: playing.profileId,
@@ -260,7 +261,7 @@ function Engine({
       setSleep(null);
       setPlaying(false);
       slept(next);
-      setNotice(`Sleep timer: paused at the end of the chapter. Play goes back ${SLEEP_REWIND_SECONDS} seconds.`);
+      setNotice(tr("Sleep timer: paused at the end of the chapter. Play goes back {n} seconds.", { n: SLEEP_REWIND_SECONDS }));
       c.save(next);
       return;
     }
@@ -295,7 +296,7 @@ function Engine({
   }, [narration.kind, book]);
 
   useEffect(() => {
-    const loading = "Loading the narration…";
+    const loading = tr("Loading the narration…");
     const events: NarratorEvents = {
       onChapterEnd: (index) => clock.current.endChapter(index),
       onWaiting: () => setNotice((n) => n ?? loading),
@@ -387,7 +388,7 @@ function Engine({
           setSleep(null);
           setPlaying(false);
           slept(next);
-          setNotice(`Sleep timer: paused. Play goes back ${SLEEP_REWIND_SECONDS} seconds.`);
+          setNotice(tr("Sleep timer: paused. Play goes back {n} seconds.", { n: SLEEP_REWIND_SECONDS }));
           return;
         }
         // The last seconds fade out rather than stopping mid-sentence.

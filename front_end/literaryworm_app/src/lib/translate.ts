@@ -1,3 +1,5 @@
+import { tk } from "./i18n";
+
 /**
  * Translate a passage: the languages and the pure rules (no backend import, so Jest can load it).
  * The calls are in lib/translateApi.ts.
@@ -5,13 +7,13 @@
 
 /** The languages a passage can be translated into (the function's LANGUAGES has the same). */
 export const TRANSLATE_LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
-  { code: "es", label: "Spanish" },
-  { code: "it", label: "Italian" },
-  { code: "pt", label: "Portuguese" },
-  { code: "nl", label: "Dutch" },
+  { code: "en", label: tk("English") },
+  { code: "fr", label: tk("French") },
+  { code: "de", label: tk("German") },
+  { code: "es", label: tk("Spanish") },
+  { code: "it", label: tk("Italian") },
+  { code: "pt", label: tk("Portuguese") },
+  { code: "nl", label: tk("Dutch") },
 ] as const;
 export type TranslateLanguage = (typeof TRANSLATE_LANGUAGES)[number]["code"];
 

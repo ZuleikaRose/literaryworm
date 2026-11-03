@@ -27,6 +27,7 @@ import { useDailyLimit } from "../lib/useDailyLimit";
 import { useHighlights } from "../lib/useHighlights";
 import { useReading } from "../lib/useReading";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
 import { sentenceAround, type WordSource } from "../lib/words";
 import { countWords, formatTimeLeft, readingSecondsLeft } from "../lib/pace";
 import { useReadingPace } from "../lib/useReadingPace";
@@ -47,15 +48,16 @@ export default function Reader() {
 
 /** Loads the book's pages (real text for public-domain titles), then opens the reader. */
 function ReaderPages({ book }: { book: Book }) {
+  const t = useT();
   const { pages, error, retry } = useBookPages(book);
   if (error) {
     return (
       <ReadingMessage
-        title={`We couldn't open ${book.title}`}
+        title={t("We couldn't open {title}", { title: book.title })}
         icon="bookOpen"
         action={
           <button type="button" className="primary-button" onClick={retry}>
-            Try again
+            {t("Try again")}
           </button>
         }
       >
@@ -65,8 +67,8 @@ function ReaderPages({ book }: { book: Book }) {
   }
   if (!pages) {
     return (
-      <ReadingMessage title={`Opening ${book.title}`} icon="bookOpen">
-        <p role="status">Loading the book's text…</p>
+      <ReadingMessage title={t("Opening {title}", { title: book.title })} icon="bookOpen">
+        <p role="status">{t("Loading the book's text…")}</p>
       </ReadingMessage>
     );
   }
@@ -77,7 +79,8 @@ const LINE_HEIGHTS = { compact: 1.45, normal: 1.65, relaxed: 1.9 };
 const MEASURES = { narrow: "44rem", normal: "38rem", wide: "32rem" };
 
 function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
-  useTitle(`Reading ${book.title}`);
+  const t = useT();
+  useTitle(t("Reading {title}", { title: book.title }));
   const settings = useProfileData().readerSettings;
   const profile = useActiveProfile();
   // Translate: public-domain titles (full text on the server), not Kids profiles, with the backend.
@@ -129,7 +132,9 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
   const page = pages[index];
   const chapter = book.chapters[page.chapterIndex];
   const pagesInChapter = pages.filter((p) => p.chapterIndex === page.chapterIndex).length;
-  const hereLabel = `Chapter ${page.chapterIndex + 1}, page ${page.page + 1}`;
+  const hereLabel = t("Chapter {chapter}, page {page}", { chapter: page.chapterIndex + 1, page: page.page + 1 });
+  // Saved with the bookmark, so kept in English like the player's (every device shows the same label).
+  const bookmarkLabel = `Chapter ${page.chapterIndex + 1}, page ${page.page + 1}`;
   const paragraphs = page.paragraphs ?? samplePage(book.id, page.chapterIndex, page.page);
   const offsets = paragraphOffsets(paragraphs);
   // Words on every page, for time left (sample pages are made up of the same placeholder prose).
@@ -208,7 +213,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       clearSelection();
       if (withNote) setEditing({ id: saved.id, focusNote: true });
     } catch (err) {
-      setSelectionError(err instanceof Error ? err.message : "We couldn't save the highlight. Try again.");
+      setSelectionError(err instanceof Error ? err.message : t("We couldn't save the highlight. Try again."));
     } finally {
       setSelectionBusy(false);
     }
@@ -241,7 +246,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
     if (here) void reading.removeBookmark(here.id).catch(() => undefined);
     else
       void reading
-        .addBookmark({ format: "ebook", fraction: pageFraction(index, total), chapterIndex: page.chapterIndex, label: hereLabel })
+        .addBookmark({ format: "ebook", fraction: pageFraction(index, total), chapterIndex: page.chapterIndex, label: bookmarkLabel })
         .catch(() => undefined);
   };
   const latest = useRef({ next, previous, toggleBookmark, finished });
@@ -334,7 +339,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       <header className="reader-bar reader-top">
         <Link className="icon-button" to={`/books/${book.id}`}>
           <Icon name="arrowLeft" size={20} />
-          <span className="visually-hidden">Close the reader</span>
+          <span className="visually-hidden">{t("Close the reader")}</span>
         </Link>
         <div className="reader-heading">
           <h1>{book.title}</h1>
@@ -343,15 +348,15 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         <div className="reader-tools">
           <button type="button" className="icon-button" onClick={() => setPanel("chapters")}>
             <Icon name="list" size={20} />
-            <span className="visually-hidden">Chapters</span>
+            <span className="visually-hidden">{t("Chapters")}</span>
           </button>
           <button type="button" className="icon-button" onClick={() => setPanel("highlights")}>
             <Icon name="highlighter" size={20} />
-            <span className="visually-hidden">Notes and highlights ({study.highlights.length})</span>
+            <span className="visually-hidden">{t("Notes and highlights ({n})", { n: study.highlights.length })}</span>
           </button>
           <button type="button" className="icon-button" onClick={() => setPanel("bookmarks")}>
             <Icon name="bookmark" size={20} filled={isHereMarked} />
-            <span className="visually-hidden">Bookmarks{isHereMarked ? " (this page is bookmarked)" : ""}</span>
+            <span className="visually-hidden">{isHereMarked ? t("Bookmarks (this page is bookmarked)") : t("Bookmarks")}</span>
           </button>
           <button
             type="button"
@@ -363,36 +368,36 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             }}
           >
             <Icon name="dictionary" size={20} />
-            <span className="visually-hidden">Dictionary</span>
+            <span className="visually-hidden">{t("Dictionary")}</span>
           </button>
           {/* Not on Kids profiles: a child's question would go to an AI service. */}
           {book.recording && profile?.ageRating !== "kids" && (
             <button type="button" className="icon-button" onClick={() => setPanel("ask")}>
               <Icon name="ask" size={20} />
-              <span className="visually-hidden">Ask the book</span>
+              <span className="visually-hidden">{t("Ask the book")}</span>
             </button>
           )}
           {/* Not on Kids profiles either: it's written by an AI service from the book. */}
           {book.recording && profile?.ageRating !== "kids" && (
             <button type="button" className="icon-button" onClick={() => setPanel("characters")}>
               <Icon name="users" size={20} />
-              <span className="visually-hidden">Who's who</span>
+              <span className="visually-hidden">{t("Who's who")}</span>
             </button>
           )}
           {/* Every profile, Kids too: only the book and chapter go to the AI service. */}
           {book.recording && (
             <button type="button" className="icon-button" onClick={() => setPanel("quiz")}>
               <Icon name="star" size={20} />
-              <span className="visually-hidden">Chapter quiz</span>
+              <span className="visually-hidden">{t("Chapter quiz")}</span>
             </button>
           )}
           <button type="button" className="icon-button" onClick={() => setPanel("display")}>
             <Icon name="type" size={20} />
-            <span className="visually-hidden">Display settings</span>
+            <span className="visually-hidden">{t("Display settings")}</span>
           </button>
           <button type="button" className="icon-button reader-shortcuts-button" onClick={() => setPanel("shortcuts")}>
             <Icon name="keyboard" size={20} />
-            <span className="visually-hidden">Keyboard shortcuts</span>
+            <span className="visually-hidden">{t("Keyboard shortcuts")}</span>
           </button>
         </div>
       </header>
@@ -406,8 +411,19 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       {elsewhere && (
         <div className="reader-elsewhere" role="status">
           <p>
-            On another device you {elsewhere.format === "ebook" ? "read" : "listened"} to{" "}
-            {elsewhere.finished ? "the end" : `${book.chapters[elsewhere.chapterIndex]?.title ?? "later on"} (${Math.round(elsewhere.fraction * 100)}%)`}.
+            {elsewhere.finished
+              ? elsewhere.format === "ebook"
+                ? t("On another device you read to the end.")
+                : t("On another device you listened to the end.")
+              : elsewhere.format === "ebook"
+                ? t("On another device you read to {place} ({percent}%).", {
+                    place: book.chapters[elsewhere.chapterIndex]?.title ?? t("later on"),
+                    percent: Math.round(elsewhere.fraction * 100),
+                  })
+                : t("On another device you listened to {place} ({percent}%).", {
+                    place: book.chapters[elsewhere.chapterIndex]?.title ?? t("later on"),
+                    percent: Math.round(elsewhere.fraction * 100),
+                  })}
           </p>
           <button
             type="button"
@@ -416,10 +432,10 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               goTo(elsewhere.format === "ebook" || elsewhere.finished ? pageForFraction(elsewhere.fraction, total) : (starts[elsewhere.chapterIndex] ?? 0))
             }
           >
-            Go there
+            {t("Go there")}
           </button>
           <button type="button" className="ghost-button small-button" onClick={() => setOwnFraction(elsewhere.fraction)}>
-            Stay here
+            {t("Stay here")}
           </button>
         </div>
       )}
@@ -444,11 +460,11 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               ref={articleRef}
               className="reader-text"
               lang="en"
-              aria-label={`${chapter.title}, page ${page.page + 1} of ${pagesInChapter}`}
+              aria-label={t("{chapter}, page {page} of {pages}", { chapter: chapter.title, page: page.page + 1, pages: pagesInChapter })}
             >
               {page.page === 0 && (
                 <h2 className="reader-chapter-title">
-                  <span>Chapter {page.chapterIndex + 1}</span>
+                  <span>{t("Chapter {n}", { n: page.chapterIndex + 1 })}</span>
                   {chapter.title !== `Chapter ${page.chapterIndex + 1}` && chapter.title}
                 </h2>
               )}
@@ -483,7 +499,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         <div className="reader-progress-row">
           <button type="button" className="icon-button page-turn" onClick={previous} disabled={index === 0 || finished}>
             <Icon name="chevronLeft" size={22} />
-            <span className="visually-hidden">Previous page</span>
+            <span className="visually-hidden">{t("Previous page")}</span>
           </button>
           <div className="progress-track">
             <span className="chapter-marks" aria-hidden="true">
@@ -497,8 +513,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               min={1}
               max={total}
               value={index + 1}
-              aria-label="Page"
-              aria-valuetext={`Page ${index + 1} of ${total}, ${chapter.title}`}
+              aria-label={t("Page")}
+              aria-valuetext={t("Page {page} of {total}, {chapter}", { page: index + 1, total, chapter: chapter.title })}
               style={{ "--fill": `${(index / (total - 1)) * 100}%` } as CSSProperties}
               onChange={(e) => {
                 const value = Number(e.target.value) - 1;
@@ -510,30 +526,31 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
           </div>
           <button type="button" className="icon-button page-turn" onClick={next} disabled={finished}>
             <Icon name="chevronRight" size={22} />
-            <span className="visually-hidden">{index === total - 1 ? "Finish the book" : "Next page"}</span>
+            <span className="visually-hidden">{index === total - 1 ? t("Finish the book") : t("Next page")}</span>
           </button>
         </div>
         <p className="reader-position">
           <span>{chapter.title}</span>
-          <span>
-            Page {index + 1} of {total} · {percent}%
-          </span>
+          <span>{t("Page {page} of {total} · {percent}%", { page: index + 1, total, percent })}</span>
         </p>
         {!finished && (
           <p className="reader-pace">
-            {formatTimeLeft(readingSecondsLeft(wordsLeftInChapter, wpm))} left in this chapter · {formatTimeLeft(readingSecondsLeft(wordsLeftInBook, wpm))} in the book
-            {wpm === null && <span className="visually-hidden"> (at a usual reading pace until LiteraryWorm learns yours)</span>}
+            {t("{chapter} left in this chapter · {book} in the book", {
+              chapter: formatTimeLeft(readingSecondsLeft(wordsLeftInChapter, wpm)),
+              book: formatTimeLeft(readingSecondsLeft(wordsLeftInBook, wpm)),
+            })}
+            {wpm === null && <span className="visually-hidden"> {t("(at a usual reading pace until LiteraryWorm learns yours)")}</span>}
           </p>
         )}
         <p className="reader-sample-note">
           {book.recording
-            ? "Public-domain text from Project Gutenberg."
-            : "Sample pages: LiteraryWorm doesn't hold this book's text yet, so the reader shows placeholder prose."}
+            ? t("Public-domain text from Project Gutenberg.")
+            : t("Sample pages: LiteraryWorm doesn't hold this book's text yet, so the reader shows placeholder prose.")}
         </p>
       </footer>
 
       <p className="visually-hidden" role="status">
-        Page {index + 1} of {total}, {chapter.title}
+        {t("Page {page} of {total}, {chapter}", { page: index + 1, total, chapter: chapter.title })}
       </p>
 
       <ChaptersDialog
@@ -541,7 +558,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         onClose={() => setPanel(null)}
         book={book}
         current={page.chapterIndex}
-        detail={(i) => `Page ${starts[i] + 1}`}
+        detail={(i) => t("Page {n}", { n: starts[i] + 1 })}
         onPick={(i) => {
           setPanel(null);
           goTo(starts[i]);
@@ -554,7 +571,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         hereLabel={hereLabel}
         isHereMarked={isHereMarked}
         onAdd={() =>
-          reading.addBookmark({ format: "ebook", fraction: pageFraction(index, total), chapterIndex: page.chapterIndex, label: hereLabel })
+          reading.addBookmark({ format: "ebook", fraction: pageFraction(index, total), chapterIndex: page.chapterIndex, label: bookmarkLabel })
         }
         onGo={(b) => {
           setPanel(null);

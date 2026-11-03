@@ -7,9 +7,12 @@ import type { Book, Highlight, HighlightColor } from "../types";
 import { Dialog } from "./Dialog";
 import { ExportButtons } from "./NotesView";
 import { Icon } from "./Icon";
+import { rich, tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /** Runs a save and keeps its error for the control that started it. */
 function useAttempt() {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function attempt(work: () => Promise<void>): Promise<boolean> {
@@ -19,7 +22,7 @@ function useAttempt() {
       await work();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof Error ? err.message : t("Something went wrong. Try again."));
       return false;
     } finally {
       setBusy(false);
@@ -58,6 +61,7 @@ export function SelectionToolbar({
   onTranslate?: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
@@ -85,7 +89,7 @@ export function SelectionToolbar({
       ref={ref}
       className="selection-toolbar"
       role="toolbar"
-      aria-label="Selected text"
+      aria-label={t("Selected text")}
       style={position ? { top: position.top, left: position.left } : { visibility: "hidden" }}
       // Keep the selection: pressing a button mustn't move focus off the words first.
       onPointerDown={(e) => e.preventDefault()}
@@ -93,22 +97,22 @@ export function SelectionToolbar({
       <div className="selection-swatches">
         {HIGHLIGHT_COLORS.map((c) => (
           <button key={c.value} type="button" className={`swatch swatch-${c.value}`} disabled={busy} onClick={() => onHighlight(c.value)}>
-            <span className="visually-hidden">Highlight in {c.label.toLowerCase()}</span>
+            <span className="visually-hidden">{t("Highlight in {colour}", { colour: t(c.label).toLowerCase() })}</span>
           </button>
         ))}
       </div>
       <div className="selection-row selection-actions">
         <button type="button" className="selection-action" disabled={busy} onClick={onNote}>
-          <Icon name="edit" size={17} /> Add note
+          <Icon name="edit" size={17} /> {t("Add note")}
         </button>
         {canDefine && (
           <button type="button" className="selection-action" onClick={onDefine}>
-            <Icon name="bookOpen" size={17} /> Define
+            <Icon name="bookOpen" size={17} /> {t("Define")}
           </button>
         )}
         {canTranslate && onTranslate && (
           <button type="button" className="selection-action" onClick={onTranslate}>
-            <Icon name="globe" size={17} /> Translate
+            <Icon name="globe" size={17} /> {t("Translate")}
           </button>
         )}
       </div>
@@ -137,8 +141,9 @@ export function HighlightDialog({
   onRemove: (id: string) => Promise<void>;
   onShare: (h: Highlight) => void;
 }) {
+  const t = useT();
   return (
-    <Dialog open={highlight !== null} onClose={onClose} eyebrow={highlight ? highlightPlace(highlight) : undefined} title="Highlight">
+    <Dialog open={highlight !== null} onClose={onClose} eyebrow={highlight ? highlightPlace(highlight) : undefined} title={t("Highlight")}>
       {highlight && (
         <HighlightEditor
           key={highlight.id}
@@ -169,6 +174,7 @@ function HighlightEditor({
   onRemove: (id: string) => Promise<void>;
   onShare: (h: Highlight) => void;
 }) {
+  const t = useT();
   const [note, setNote] = useState(highlight.note ?? "");
   const [saved, setSaved] = useState<string | null>(null);
   const colour = useAttempt();
@@ -189,7 +195,7 @@ function HighlightEditor({
     if (tooLong) return;
     setSaved(null);
     const ok = await save.attempt(() => onUpdate(highlight.id, { note }));
-    if (ok) setSaved(note.trim() ? "Note saved." : "Note removed.");
+    if (ok) setSaved(note.trim() ? t("Note saved.") : t("Note removed."));
   };
 
   return (
@@ -197,7 +203,7 @@ function HighlightEditor({
       <blockquote className={`highlight-quote quote-${highlight.color}`}>{highlight.quote}</blockquote>
 
       <fieldset className="form-group">
-        <legend className="field-label">Colour</legend>
+        <legend className="field-label">{t("Colour")}</legend>
         <div className="swatch-row">
           {HIGHLIGHT_COLORS.map((c) => (
             <label key={c.value} className={`swatch-option swatch-${c.value}`}>
@@ -208,7 +214,7 @@ function HighlightEditor({
                 disabled={colour.busy}
                 onChange={() => colour.attempt(() => onUpdate(highlight.id, { color: c.value }))}
               />
-              <span>{c.label}</span>
+              <span>{t(c.label)}</span>
             </label>
           ))}
         </div>
@@ -221,7 +227,7 @@ function HighlightEditor({
 
       <form noValidate onSubmit={submit} className="note-form">
         <label className="field-label" htmlFor={noteId}>
-          Note
+          {t("Note")}
         </label>
         <textarea
           ref={noteRef}
@@ -229,7 +235,7 @@ function HighlightEditor({
           className="field-input note-input"
           rows={4}
           value={note}
-          placeholder="What does this passage make you think of?"
+          placeholder={t("What does this passage make you think of?")}
           aria-invalid={tooLong || Boolean(save.error) || undefined}
           aria-describedby={[countId, save.error || tooLong ? errorId : null].filter(Boolean).join(" ")}
           onChange={(e) => {
@@ -238,11 +244,11 @@ function HighlightEditor({
           }}
         />
         <p className={`field-hint note-count${tooLong ? " over" : ""}`} id={countId}>
-          {note.length} / {NOTE_MAX} characters. Private to your account.
+          {t("{length} / {max} characters. Private to your account.", { length: note.length, max: NOTE_MAX })}
         </p>
         {(save.error || tooLong) && (
           <p className="field-error" id={errorId} role="alert">
-            <Icon name="alert" size={15} /> {tooLong ? `Keep the note to ${NOTE_MAX} characters.` : save.error}
+            <Icon name="alert" size={15} /> {tooLong ? t("Keep the note to {max} characters.", { max: NOTE_MAX }) : save.error}
           </p>
         )}
         {saved && (
@@ -252,7 +258,7 @@ function HighlightEditor({
         )}
         <div className="modal-actions">
           <button type="submit" className="primary-button" disabled={save.busy || !changed || tooLong}>
-            {save.busy ? "Saving…" : highlight.note && !note.trim() ? "Remove note" : "Save note"}
+            {save.busy ? t("Saving…") : highlight.note && !note.trim() ? t("Remove note") : t("Save note")}
           </button>
           <button
             type="button"
@@ -262,10 +268,10 @@ function HighlightEditor({
               if (await save.attempt(() => onRemove(highlight.id))) onClose();
             }}
           >
-            <Icon name="trash" size={16} /> Remove highlight
+            <Icon name="trash" size={16} /> {t("Remove highlight")}
           </button>
           <button type="button" className="ghost-button" onClick={() => onShare(highlight)}>
-            <Icon name="share" size={16} /> Share as a picture
+            <Icon name="share" size={16} /> {t("Share as a picture")}
           </button>
         </div>
       </form>
@@ -293,6 +299,7 @@ export function HighlightsDialog({
   onRemove: (id: string) => Promise<void>;
   onShare: (h: Highlight) => void;
 }) {
+  const t = useT();
   const { busy, error, attempt } = useAttempt();
   const chapters = [...new Set(highlights.map((h) => h.chapterIndex))];
   const notes = highlights.filter((h) => h.note).length;
@@ -301,12 +308,16 @@ export function HighlightsDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Notes and highlights"
+      title={t("Notes and highlights")}
       description={
         <p>
           {highlights.length === 0
-            ? "Select words on a page to highlight them or add a note."
-            : `${highlights.length} highlight${highlights.length === 1 ? "" : "s"}, ${notes} with a note. Private to your account.`}
+            ? t("Select words on a page to highlight them or add a note.")
+            : t.plural(
+                highlights.length,
+                { one: "{count} highlight, {notes} with a note. Private to your account.", other: "{count} highlights, {notes} with a note. Private to your account." },
+                { notes },
+              )}
         </p>
       }
     >
@@ -314,7 +325,7 @@ export function HighlightsDialog({
         <ExportButtons
           books={[{ title: book.title, author: book.author, chapterTitles: book.chapters.map((c) => c.title), highlights }]}
           name={book.title}
-          label="Export these notes and highlights"
+          label={t("Export these notes and highlights")}
         />
       )}
       {error && (
@@ -324,7 +335,7 @@ export function HighlightsDialog({
       )}
       {chapters.map((chapterIndex) => (
         <section key={chapterIndex} className="highlight-group" aria-labelledby={`hl-chapter-${chapterIndex}`}>
-          <h3 id={`hl-chapter-${chapterIndex}`}>{book.chapters[chapterIndex]?.title ?? `Chapter ${chapterIndex + 1}`}</h3>
+          <h3 id={`hl-chapter-${chapterIndex}`}>{book.chapters[chapterIndex]?.title ?? t("Chapter {n}", { n: chapterIndex + 1 })}</h3>
           <ul className="highlight-list">
             {highlights
               .filter((h) => h.chapterIndex === chapterIndex)
@@ -334,23 +345,25 @@ export function HighlightsDialog({
                   {h.note && (
                     <p className="highlight-item-note">
                       <Icon name="edit" size={14} />
-                      <span className="visually-hidden">Note: </span>
+                      <span className="visually-hidden">{t("Note:")} </span>
                       {h.note}
                     </p>
                   )}
                   <div className="highlight-item-actions">
                     <button type="button" className="text-button" onClick={() => onGo(h)}>
-                      Go to page {h.page + 1}
+                      {t("Go to page {n}", { n: h.page + 1 })}
                     </button>
                     <button type="button" className="text-button" onClick={() => onEdit(h)}>
-                      {h.note ? "Edit" : "Add note"}
-                      <span className="visually-hidden"> for the highlight on {highlightPlace(h).toLowerCase()}</span>
+                      {h.note ? t("Edit") : t("Add note")}
+                      <span className="visually-hidden"> {t("for the highlight on chapter {chapter}, page {page}", { chapter: h.chapterIndex + 1, page: h.page + 1 })}</span>
                     </button>
                     <button type="button" className="text-button" onClick={() => onShare(h)}>
-                      Share<span className="visually-hidden"> the highlight on {highlightPlace(h).toLowerCase()} as a picture</span>
+                      {t("Share")}
+                      <span className="visually-hidden"> {t("the highlight on chapter {chapter}, page {page} as a picture", { chapter: h.chapterIndex + 1, page: h.page + 1 })}</span>
                     </button>
                     <button type="button" className="text-button danger-text" disabled={busy} onClick={() => attempt(() => onRemove(h.id))}>
-                      Remove<span className="visually-hidden"> the highlight on {highlightPlace(h).toLowerCase()}</span>
+                      {t("Remove")}
+                      <span className="visually-hidden"> {t("the highlight on chapter {chapter}, page {page}", { chapter: h.chapterIndex + 1, page: h.page + 1 })}</span>
                     </button>
                   </div>
                 </li>
@@ -375,8 +388,9 @@ export function DictionaryDialog({
   source?: WordSource | null;
   onClose: () => void;
 }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onClose} title="Dictionary" size="sm">
+    <Dialog open={open} onClose={onClose} title={t("Dictionary")} size="sm">
       {open && <DictionaryLookup key={word} initialWord={word} source={source} />}
     </Dialog>
   );
@@ -385,6 +399,7 @@ export function DictionaryDialog({
 type Lookup = { status: "idle" } | { status: "loading"; word: string } | { status: "done"; entry: DictionaryEntry } | { status: "error"; message: string };
 
 function DictionaryLookup({ initialWord, source }: { initialWord: string; source: WordSource | null }) {
+  const t = useT();
   const [query, setQuery] = useState(initialWord);
   const [result, setResult] = useState<Lookup>({ status: "idle" });
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -395,7 +410,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
   const run = (input: string) => {
     const word = cleanWord(input);
     if (!word) {
-      setFieldError("Look up one English word, using letters only.");
+      setFieldError(tr("Look up one English word, using letters only."));
       return;
     }
     setFieldError(null);
@@ -405,7 +420,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
       (entry) => ticket === latest.current && setResult({ status: "done", entry }),
       (err) =>
         ticket === latest.current &&
-        setResult({ status: "error", message: err instanceof DictionaryError ? err.message : "The dictionary isn't answering right now. Try again." }),
+        setResult({ status: "error", message: err instanceof DictionaryError ? err.message : tr("The dictionary isn't answering right now. Try again.") }),
     );
   };
 
@@ -427,14 +442,14 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
         }}
       >
         <label className="visually-hidden" htmlFor={inputId}>
-          Word to look up
+          {t("Word to look up")}
         </label>
         <input
           id={inputId}
           className="field-input"
           type="search"
           value={query}
-          placeholder="Look up a word"
+          placeholder={t("Look up a word")}
           autoComplete="off"
           spellCheck
           aria-invalid={fieldError ? true : undefined}
@@ -442,7 +457,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
           onChange={(e) => setQuery(e.target.value)}
         />
         <button type="submit" className="secondary-button">
-          Look up
+          {t("Look up")}
         </button>
       </form>
       {fieldError && (
@@ -452,7 +467,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
       )}
 
       <div className="dictionary-result" aria-live="polite" aria-busy={result.status === "loading"}>
-        {result.status === "loading" && <p className="muted">Looking up “{result.word}”…</p>}
+        {result.status === "loading" && <p className="muted">{t("Looking up “{word}”…", { word: result.word })}</p>}
         {result.status === "error" && (
           <p className="form-alert" role="alert">
             <Icon name="alert" size={17} />
@@ -473,6 +488,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
 
 /** Keep in My words: the word, its first sense and the sentence it came from. */
 function KeepWord({ entry, source }: { entry: DictionaryEntry; source: WordSource | null }) {
+  const t = useT();
   const words = useWords();
   const { busy, error, attempt } = useAttempt();
   const kept = words.has(entry.word);
@@ -480,11 +496,11 @@ function KeepWord({ entry, source }: { entry: DictionaryEntry; source: WordSourc
     <div className="keep-word">
       {kept ? (
         <p className="keep-word-done" role="status">
-          <Icon name="check" size={16} /> In My words. Find it in My Library → Words.
+          <Icon name="check" size={16} /> {t("In My words. Find it in My Library → Words.")}
         </p>
       ) : (
         <button type="button" className="secondary-button" disabled={busy} onClick={() => attempt(() => words.save(entry.word, firstDefinition(entry), source))}>
-          <Icon name="plus" size={16} /> Keep in My words
+          <Icon name="plus" size={16} /> {t("Keep in My words")}
         </button>
       )}
       {error && (
@@ -497,6 +513,7 @@ function KeepWord({ entry, source }: { entry: DictionaryEntry; source: WordSourc
 }
 
 function DictionaryEntryView({ entry }: { entry: DictionaryEntry }) {
+  const t = useT();
   return (
     <article className="dictionary-entry" lang="en">
       <h3>
@@ -517,15 +534,15 @@ function DictionaryEntryView({ entry }: { entry: DictionaryEntry }) {
         </section>
       ))}
       <p className="dictionary-credit">
-        Definitions from{" "}
-        {entry.sourceUrl ? (
-          <a href={entry.sourceUrl} target="_blank" rel="noreferrer">
-            Wiktionary<span className="visually-hidden"> (opens in a new tab)</span>
-          </a>
-        ) : (
-          "Wiktionary"
-        )}
-        , CC BY-SA.
+        {rich(t("Definitions from {source}, CC BY-SA."), {
+          source: entry.sourceUrl ? (
+            <a href={entry.sourceUrl} target="_blank" rel="noreferrer">
+              Wiktionary<span className="visually-hidden"> {t("(opens in a new tab)")}</span>
+            </a>
+          ) : (
+            "Wiktionary"
+          ),
+        })}
       </p>
     </article>
   );

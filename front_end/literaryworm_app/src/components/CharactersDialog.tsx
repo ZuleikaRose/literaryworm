@@ -3,6 +3,8 @@ import { type BookCharacter, CharactersError, fetchCharacters } from "../lib/cha
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /** Above this many, a box to find someone by name. */
 const FILTER_FROM = 8;
@@ -12,14 +14,16 @@ const FILTER_FROM = 8;
  * chapter open now, labelled as written by AI. Nobody first met later is listed.
  */
 export function CharactersDialog({ open, book, chapterIndex, onClose }: { open: boolean; book: Book; chapterIndex: number; onClose: () => void }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onClose} title="Who's who" eyebrow={book.title}>
+    <Dialog open={open} onClose={onClose} title={t("Who's who")} eyebrow={book.title}>
       {open && <Characters key={chapterIndex} book={book} chapterIndex={chapterIndex} />}
     </Dialog>
   );
 }
 
 function Characters({ book, chapterIndex }: { book: Book; chapterIndex: number }) {
+  const t = useT();
   const [list, setList] = useState<BookCharacter[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tries, setTries] = useState(0);
@@ -35,7 +39,7 @@ function Characters({ book, chapterIndex }: { book: Book; chapterIndex: number }
         setError(null);
       },
       (err) => {
-        if (live) setError(err instanceof CharactersError ? err.message : "Something went wrong. Try again.");
+        if (live) setError(err instanceof CharactersError ? err.message : tr("Something went wrong. Try again."));
       },
     );
     return () => {
@@ -49,8 +53,8 @@ function Characters({ book, chapterIndex }: { book: Book; chapterIndex: number }
   return (
     <div className="characters">
       <p className="goal-hint">
-        <Icon name="ask" size={15} /> Written by AI from the book up to chapter {chapterIndex + 1}. Nobody you haven't met yet is listed, and
-        nothing later is given away.
+        <Icon name="ask" size={15} />{" "}
+        {t("Written by AI from the book up to chapter {chapter}. Nobody you haven't met yet is listed, and nothing later is given away.", { chapter: chapterIndex + 1 })}
       </p>
 
       {error ? (
@@ -66,36 +70,38 @@ function Characters({ book, chapterIndex }: { book: Book; chapterIndex: number }
                 setTries((n) => n + 1);
               }}
             >
-              Try again
+              {t("Try again")}
             </button>
           </div>
         </div>
       ) : list === null ? (
         <p role="status" aria-busy="true">
-          Gathering who's who up to chapter {chapterIndex + 1}… The first time for a chapter can take a few seconds.
+          {t("Gathering who's who up to chapter {chapter}… The first time for a chapter can take a few seconds.", { chapter: chapterIndex + 1 })}
         </p>
       ) : (
         <>
           {list.length >= FILTER_FROM && (
             <div className="field">
               <label className="field-label" htmlFor={`${id}-find`}>
-                Find someone
+                {t("Find someone")}
               </label>
               <input id={`${id}-find`} className="field-input" type="search" value={filter} onChange={(e) => setFilter(e.target.value)} autoComplete="off" />
             </div>
           )}
           <p className="visually-hidden" role="status">
-            {wanted ? `${shown.length} of ${list.length} characters` : `${list.length} characters so far`}
+            {wanted
+              ? t.plural(list.length, { one: "{shown} of {count} character", other: "{shown} of {count} characters" }, { shown: shown.length })
+              : t.plural(list.length, { one: "{count} character so far", other: "{count} characters so far" })}
           </p>
           {shown.length === 0 ? (
-            <p className="goal-hint">Nobody by that name so far.</p>
+            <p className="goal-hint">{t("Nobody by that name so far.")}</p>
           ) : (
             <ul className="character-list" role="list">
               {shown.map((c) => (
                 <li key={c.name}>
                   <strong>{c.name}</strong>
                   <p>{c.description}</p>
-                  <small>First met in chapter {c.firstChapter}</small>
+                  <small>{t("First met in chapter {chapter}", { chapter: c.firstChapter })}</small>
                 </li>
               ))}
             </ul>

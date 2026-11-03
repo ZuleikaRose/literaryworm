@@ -1,6 +1,7 @@
 import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { bookText } from "../lib/narration";
 import { chapterTranscript, lineAt, textTranscript, TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
+import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import type { A11ySettings, Book } from "../types";
 
@@ -47,6 +48,7 @@ export function Transcript({
   onSeek: (seconds: number) => void;
   realText?: boolean;
 }) {
+  const t = useT();
   const { state, dispatch } = useStore();
   const { transcriptSize: size, transcriptLanguage: language } = state.a11y;
   const set = (patch: Partial<A11ySettings>) => dispatch({ type: "updateA11y", patch });
@@ -99,14 +101,14 @@ export function Transcript({
   return (
     <section className={`transcript transcript-${size}`} aria-labelledby={headingId}>
       <div className="transcript-head">
-        <h2 id={headingId}>Read-along</h2>
+        <h2 id={headingId}>{t("Read-along")}</h2>
         <label className="transcript-follow">
           <input type="checkbox" role="switch" className="switch" checked={follow} onChange={(e) => setFollow(e.target.checked)} />
-          <span>Follow the narration</span>
+          <span>{t("Follow the narration")}</span>
         </label>
         {!realText && (
           <label className="player-select transcript-select">
-            <span>Language</span>
+            <span>{t("Language")}</span>
             <select value={language} onChange={(e) => set({ transcriptLanguage: e.target.value as A11ySettings["transcriptLanguage"] })}>
               {TRANSCRIPT_LANGUAGES.map((l) => (
                 <option key={l.value} value={l.value} lang={l.value}>
@@ -117,11 +119,11 @@ export function Transcript({
           </label>
         )}
         <label className="player-select transcript-select">
-          <span>Size</span>
+          <span>{t("Size")}</span>
           <select value={size} onChange={(e) => set({ transcriptSize: e.target.value as A11ySettings["transcriptSize"] })}>
             {TRANSCRIPT_SIZES.map((s) => (
               <option key={s.value} value={s.value}>
-                {s.label}
+                {t(s.label)}
               </option>
             ))}
           </select>
@@ -130,7 +132,7 @@ export function Transcript({
       <div ref={scroller} className="transcript-box" lang={realText ? "en" : language}>
         {realText && lines.length === 0 && (
           <p className="transcript-note" role={failed ? "alert" : "status"}>
-            {failed ? "We couldn't load this book's text. Leave the player and come back to try again." : "Loading the text…"}
+            {failed ? t("We couldn't load this book's text. Leave the player and come back to try again.") : t("Loading the text…")}
           </p>
         )}
         {paragraphs.map((indexes) => (
@@ -154,8 +156,8 @@ export function Transcript({
       </div>
       <p className="transcript-note">
         {realText
-          ? "The book's public-domain text, marked as your device's voice reads it. Choose a sentence to jump there."
-          : "Sample transcript: placeholder text timed to the sample clock. Choose a sentence to jump there."}
+          ? t("The book's public-domain text, marked as your device's voice reads it. Choose a sentence to jump there.")
+          : t("Sample transcript: placeholder text timed to the sample clock. Choose a sentence to jump there.")}
       </p>
     </section>
   );

@@ -6,6 +6,7 @@ import { parseVoiceCommand, type Recognizer, recognizerClass, VOICE_HINTS, voice
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 // Asked once per visit: after the first yes, the button turns voice control on straight away.
 let agreedThisVisit = false;
@@ -21,6 +22,7 @@ let agreedThisVisit = false;
 export function VoiceControl({ book, controls }: { book: Book; controls: PlayerControls }) {
   const playback = usePlayback();
   const navigate = useNavigate();
+  const t = useT();
   const [on, setOn] = useState(false);
   const [asking, setAsking] = useState(false);
   const [status, setStatus] = useState("");
@@ -68,9 +70,9 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
           navigate(`/listen/${book.id}`, { replace: true });
           return;
       }
-      setStatus(`Heard: ${voiceCommandLabel(command, { back: c.player.skipBack, forward: c.player.skipForward })}.`);
+      setStatus(t("Heard: {command}.", { command: voiceCommandLabel(command, { back: c.player.skipBack, forward: c.player.skipForward }) }));
     },
-    [book.id, navigate, stop],
+    [book.id, navigate, stop, t],
   );
 
   const start = useCallback(() => {
@@ -90,10 +92,10 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
     };
     r.onerror = (event) => {
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        setStatus("Allow the microphone in your browser's settings.");
+        setStatus(t("Allow the microphone in your browser's settings."));
         stop();
       } else if (event.error === "network") {
-        setStatus("Voice control needs a connection.");
+        setStatus(t("Voice control needs a connection."));
       }
     };
     // Browsers stop listening after a while: start again while it's still wanted and showing.
@@ -111,14 +113,14 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
     recognizer.current = r;
     wanted.current = true;
     setOn(true);
-    setStatus("Listening for commands.");
+    setStatus(t("Listening for commands."));
     try {
       r.start();
     } catch {
-      setStatus("Voice control couldn't start. Try again.");
+      setStatus(t("Voice control couldn't start. Try again."));
       stop();
     }
-  }, [run, stop]);
+  }, [run, stop, t]);
 
   // Hidden tab: stop listening. Back again: listen again if it was on. Leaving car mode stops it.
   useEffect(() => {
@@ -146,7 +148,7 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
   const toggle = () => {
     if (on) {
       stop();
-      setStatus("Voice control is off.");
+      setStatus(t("Voice control is off."));
     } else if (agreedThisVisit) start();
     else setAsking(true);
   };
@@ -154,16 +156,22 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
   return (
     <>
       <button type="button" className={`secondary-button car-voice-button${on ? " is-on" : ""}`} aria-pressed={on} onClick={toggle}>
-        <Icon name="mic" size={18} /> Voice control
+        <Icon name="mic" size={18} /> {t("Voice control")}
       </button>
       <p className="car-voice-status" role="status">
         {status}
       </p>
-      <Dialog open={asking} onClose={() => setAsking(false)} title="Turn on voice control?" eyebrow="Car mode">
-        <p>Say {VOICE_HINTS.join(", ").replace(/, ([^,]*)$/, " or $1")}, and car mode does it. You can add a length, such as “back 30 seconds”.</p>
+      <Dialog open={asking} onClose={() => setAsking(false)} title={t("Turn on voice control?")} eyebrow={t("Car mode")}>
+        {/* The commands are said in English (lib/voiceCommands.ts listens for English words), so they stay English here. */}
         <p>
-          Your browser listens through the microphone and its own speech service turns what you say into words: Google&apos;s in Chrome and Edge, Apple&apos;s in
-          Safari. LiteraryWorm only reads the words for a command and keeps nothing. It listens only while car mode is open and on screen.
+          {t("Say {commands} or {last}, and car mode does it. You can add a length, such as {example}.", {
+            commands: VOICE_HINTS.slice(0, -1).join(", "),
+            last: VOICE_HINTS[VOICE_HINTS.length - 1],
+            example: "“back 30 seconds”",
+          })}
+        </p>
+        <p>
+          {t("Your browser listens through the microphone and its own speech service turns what you say into words: Google's in Chrome and Edge, Apple's in Safari. LiteraryWorm only reads the words for a command and keeps nothing. It listens only while car mode is open and on screen.")}
         </p>
         <div className="goal-actions">
           <button
@@ -175,10 +183,10 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
               start();
             }}
           >
-            <Icon name="mic" size={18} /> Turn on
+            <Icon name="mic" size={18} /> {t("Turn on")}
           </button>
           <button type="button" className="ghost-button" onClick={() => setAsking(false)}>
-            Not now
+            {t("Not now")}
           </button>
         </div>
       </Dialog>

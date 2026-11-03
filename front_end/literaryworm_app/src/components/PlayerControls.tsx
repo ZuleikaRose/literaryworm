@@ -15,6 +15,8 @@ import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
+import { rich, tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /**
  * Controls the player page and the mini-player share: volume, Go to (contents, index,
@@ -28,6 +30,7 @@ import { Icon } from "./Icon";
  */
 export function SleepMore({ className }: { className?: string }) {
   const playback = usePlayback();
+  const t = useT();
   const live = playback.snapshot;
   if (!live || live.playing || live.sleptAt === null) return null;
   return (
@@ -39,7 +42,7 @@ export function SleepMore({ className }: { className?: string }) {
         playback.play();
       }}
     >
-      <Icon name="play" size={16} /> {SLEEP_MORE_MINUTES} more minutes
+      <Icon name="play" size={16} /> {t("{n} more minutes", { n: SLEEP_MORE_MINUTES })}
     </button>
   );
 }
@@ -47,12 +50,13 @@ export function SleepMore({ className }: { className?: string }) {
 /** Mute and a volume slider. */
 export function VolumeControl({ className }: { className?: string }) {
   const { player, update, toggleMute } = usePlayerSettings();
+  const t = useT();
   const level = player.muted ? 0 : player.volume;
   return (
     <div className={`volume-control${className ? ` ${className}` : ""}`}>
       <button type="button" className="icon-button" aria-pressed={player.muted} onClick={toggleMute}>
         <Icon name={level === 0 ? "volumeMuted" : "volume"} size={20} />
-        <span className="visually-hidden">Mute</span>
+        <span className="visually-hidden">{t("Mute")}</span>
       </button>
       <input
         type="range"
@@ -61,8 +65,8 @@ export function VolumeControl({ className }: { className?: string }) {
         max={100}
         step={5}
         value={level}
-        aria-label="Volume"
-        aria-valuetext={player.muted ? "Muted" : `${player.volume}%`}
+        aria-label={t("Volume")}
+        aria-valuetext={player.muted ? t("Muted") : `${player.volume}%`}
         style={{ "--fill": `${level}%` } as CSSProperties}
         onChange={(e) => update({ volume: Number(e.target.value), muted: false })}
       />
@@ -73,10 +77,10 @@ export function VolumeControl({ className }: { className?: string }) {
 export type JumpSection = "contents" | "index" | "references" | "time";
 
 const SECTIONS: { value: JumpSection; label: string }[] = [
-  { value: "contents", label: "Contents" },
-  { value: "index", label: "Index" },
-  { value: "references", label: "References" },
-  { value: "time", label: "Time" },
+  { value: "contents", label: tk("Contents") },
+  { value: "index", label: tk("Index") },
+  { value: "references", label: tk("References") },
+  { value: "time", label: tk("Time") },
 ];
 
 /** Go to a chapter (table of contents), to where words are read (index), a marked place (references) or a time. */
@@ -101,16 +105,17 @@ export function JumpDialog({
     seek(seconds);
   };
   const name = useId();
+  const t = useT();
 
   return (
-    <Dialog open={open} onClose={onClose} title="Go to" eyebrow={book.title}>
+    <Dialog open={open} onClose={onClose} title={t("Go to")} eyebrow={book.title}>
       <fieldset className="segmented jump-sections">
-        <legend className="visually-hidden">Go to</legend>
+        <legend className="visually-hidden">{t("Go to")}</legend>
         <div>
           {SECTIONS.map((s) => (
             <label key={s.value}>
               <input type="radio" name={name} value={s.value} checked={section === s.value} onChange={() => onSection(s.value)} />
-              <span>{s.label}</span>
+              <span>{t(s.label)}</span>
             </label>
           ))}
         </div>
@@ -125,8 +130,9 @@ export function JumpDialog({
 
 function Contents({ book, controls, onGo }: { book: Book; controls: PlayerControls; onGo: (seconds: number) => void }) {
   const { starts, places, player } = controls;
+  const t = useT();
   return (
-    <ol className="chapter-list" aria-label="Table of contents">
+    <ol className="chapter-list" aria-label={t("Table of contents")}>
       {book.chapters.map((chapter, i) => (
         <li key={i}>
           <button
@@ -139,7 +145,7 @@ function Contents({ book, controls, onGo }: { book: Book; controls: PlayerContro
             </span>
             <span className="chapter-name">{chapter.title}</span>
             <span className="chapter-detail">{formatTime(starts[i])}</span>
-            {i === places.chapterIndex && <span className="visually-hidden"> (current chapter)</span>}
+            {i === places.chapterIndex && <span className="visually-hidden"> {t("(current chapter)")}</span>}
           </button>
         </li>
       ))}
@@ -153,6 +159,7 @@ type TextState = { status: "loading" } | { status: "ready"; chapters: string[] }
 function BookIndex({ book, controls, onGo }: { book: Book; controls: PlayerControls; onGo: (seconds: number) => void }) {
   const [text, setText] = useState<TextState>({ status: "loading" });
   const [query, setQuery] = useState("");
+  const t = useT();
   const lengths = useMemo(() => book.chapters.map((c) => c.minutes * 60), [book]);
 
   useEffect(() => {
@@ -172,34 +179,34 @@ function BookIndex({ book, controls, onGo }: { book: Book; controls: PlayerContr
   return (
     <div className="jump-index">
       <Field
-        label="Find words in the book"
+        label={t("Find words in the book")}
         type="search"
         value={query}
         autoComplete="off"
         onChange={(e) => setQuery(e.target.value)}
         hint={
           book.recording
-            ? "Searches the full text. Times are close to where the words are read."
-            : "This title has sample text only, so the index covers the sample. Times are approximate."
+            ? t("Searches the full text. Times are close to where the words are read.")
+            : t("This title has sample text only, so the index covers the sample. Times are approximate.")
         }
       />
-      {text.status === "loading" && <p className="muted">Loading the book's text…</p>}
+      {text.status === "loading" && <p className="muted">{t("Loading the book's text…")}</p>}
       {text.status === "error" && (
         <p className="field-error" role="alert">
           <Icon name="alert" size={15} /> {text.message}
         </p>
       )}
       <p className="visually-hidden" role="status">
-        {searched && text.status === "ready" ? `${results.length === 50 ? "50 or more" : results.length} places found` : ""}
+        {searched && text.status === "ready" ? (results.length === 50 ? t("50 or more places found") : t.plural(results.length, { one: "{count} places found", other: "{count} places found" })) : ""}
       </p>
-      {searched && text.status === "ready" && results.length === 0 && <p className="muted">Nothing found for “{query.trim()}”.</p>}
+      {searched && text.status === "ready" && results.length === 0 && <p className="muted">{t("Nothing found for “{query}”.", { query: query.trim() })}</p>}
       {results.length > 0 && (
         <ul className="index-list">
           {results.map((r, i) => (
             <li key={i}>
               <button type="button" onClick={() => onGo(r.at)}>
                 <span className="index-place">
-                  Chapter {r.chapterIndex + 1} · {formatTime(r.at)}
+                  {t("Chapter {n}", { n: r.chapterIndex + 1 })} · {formatTime(r.at)}
                 </span>
                 <span className="index-snippet">
                   {r.before}
@@ -222,14 +229,15 @@ function References({ book, controls, onGo }: { book: Book; controls: PlayerCont
   const { starts, total, position, places } = controls;
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const t = useT();
   const bookmarks = activeReading(state).bookmarks.filter((b) => b.bookId === book.id);
   const last = book.chapters.length - 1;
   const opening = chapterIntro(book, 0);
   const closing = chapterOutro(book, last);
   const items = [
-    ...(opening > 0 ? [{ key: "opening", label: "Opening credits", at: 0 }] : []),
+    ...(opening > 0 ? [{ key: "opening", label: t("Opening credits"), at: 0 }] : []),
     ...bookmarks.map((b) => ({ key: b.id, label: b.label, at: b.fraction * total })),
-    ...(closing > 0 ? [{ key: "closing", label: "Closing credits", at: total - closing }] : []),
+    ...(closing > 0 ? [{ key: "closing", label: t("Closing credits"), at: total - closing }] : []),
   ].sort((a, b) => a.at - b.at);
   const hereLabel = `Chapter ${places.chapterIndex + 1}, ${formatTime(position - starts[places.chapterIndex])}`;
   const marked = bookmarks.some((b) => Math.abs(b.fraction * total - position) < 5);
@@ -240,7 +248,7 @@ function References({ book, controls, onGo }: { book: Book; controls: PlayerCont
     try {
       await addBookmark({ format: "audiobook", fraction: position / total, chapterIndex: places.chapterIndex, label: hereLabel });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't add the bookmark. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't add the bookmark. Try again."));
     } finally {
       setSaving(false);
     }
@@ -250,7 +258,7 @@ function References({ book, controls, onGo }: { book: Book; controls: PlayerCont
     <div className="jump-references">
       <button type="button" className="secondary-button" disabled={marked || saving} onClick={mark}>
         <Icon name="bookmark" size={16} filled={marked} />
-        {marked ? "This place is bookmarked" : `Bookmark ${hereLabel}`}
+        {marked ? t("This place is bookmarked") : t("Bookmark {place}", { place: hereLabel })}
       </button>
       {error && (
         <p className="field-error" role="alert">
@@ -267,7 +275,7 @@ function References({ book, controls, onGo }: { book: Book; controls: PlayerCont
           </li>
         ))}
       </ul>
-      {bookmarks.length === 0 && <p className="muted">Bookmarks you add show here too.</p>}
+      {bookmarks.length === 0 && <p className="muted">{t("Bookmarks you add show here too.")}</p>}
     </div>
   );
 }
@@ -275,30 +283,31 @@ function References({ book, controls, onGo }: { book: Book; controls: PlayerCont
 function GoToTime({ total, onGo }: { total: number; onGo: (seconds: number) => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const seconds = parseTime(value);
-    if (seconds === null) return setError("Enter a time like 1:05:30 or 12:40.");
-    if (seconds >= total) return setError(`The book is ${formatTime(total)} long. Enter an earlier time.`);
+    if (seconds === null) return setError(t("Enter a time like 1:05:30 or 12:40."));
+    if (seconds >= total) return setError(t("The book is {length} long. Enter an earlier time.", { length: formatTime(total) }));
     onGo(seconds);
   };
   return (
     <form className="jump-time" onSubmit={submit} noValidate>
       <Field
-        label="Time from the start"
+        label={t("Time from the start")}
         inputMode="numeric"
         autoComplete="off"
         placeholder="1:05:30"
         value={value}
         error={error}
-        hint={`Hours, minutes and seconds. The book is ${spokenTime(total)} long.`}
+        hint={t("Hours, minutes and seconds. The book is {length} long.", { length: spokenTime(total) })}
         onChange={(e) => {
           setValue(e.target.value);
           setError(null);
         }}
       />
       <button type="submit" className="primary-button">
-        Go
+        {t("Go")}
       </button>
     </form>
   );
@@ -313,14 +322,15 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
   const playback = usePlayback();
   const sleep = playback.snapshot?.sleep ?? null;
   const sleepValue = sleep === null ? "off" : sleep.kind === "chapter" ? "chapter" : String(sleep.minutes);
+  const t = useT();
 
   return (
-    <Dialog open={open} onClose={onClose} title="Player settings" size="sm">
+    <Dialog open={open} onClose={onClose} title={t("Player settings")} size="sm">
       <div className="player-settings-form">
         {withPlayback && (
           <>
             <label className="player-select">
-              <span>Speed</span>
+              <span>{t("Speed")}</span>
               <select value={player.speed} onChange={(e) => update({ speed: Number(e.target.value) })}>
                 {PLAYBACK_SPEEDS.map((s) => (
                   <option key={s} value={s}>
@@ -330,21 +340,21 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
               </select>
             </label>
             <label className="player-select">
-              <span>Sleep timer</span>
+              <span>{t("Sleep timer")}</span>
               <select value={sleepValue} onChange={(e) => playback.setSleep(e.target.value)}>
-                <option value="off">Off</option>
+                <option value="off">{t("Off")}</option>
                 {SLEEP_MINUTES.map((m) => (
                   <option key={m} value={m}>
-                    {m} minutes
+                    {t("{m} minutes", { m })}
                   </option>
                 ))}
-                <option value="chapter">End of chapter</option>
+                <option value="chapter">{t("End of chapter")}</option>
               </select>
             </label>
           </>
         )}
         <label className="player-select">
-          <span>Skip back</span>
+          <span>{t("Skip back")}</span>
           <select value={player.skipBack} onChange={(e) => update({ skipBack: Number(e.target.value) })}>
             {SKIP_CHOICES.map((s) => (
               <option key={s} value={s}>
@@ -354,7 +364,7 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
           </select>
         </label>
         <label className="player-select">
-          <span>Skip forward</span>
+          <span>{t("Skip forward")}</span>
           <select value={player.skipForward} onChange={(e) => update({ skipForward: Number(e.target.value) })}>
             {SKIP_CHOICES.map((s) => (
               <option key={s} value={s}>
@@ -368,8 +378,8 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
         <li>
           <label className="switch-row">
             <span>
-              <strong>Skip intros</strong>
-              <small>Start each chapter after its spoken introduction.</small>
+              <strong>{t("Skip intros")}</strong>
+              <small>{t("Start each chapter after its spoken introduction.")}</small>
             </span>
             <input
               type="checkbox"
@@ -383,8 +393,8 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
         <li>
           <label className="switch-row">
             <span>
-              <strong>Skip outros</strong>
-              <small>Move on before each chapter's closing announcement.</small>
+              <strong>{t("Skip outros")}</strong>
+              <small>{t("Move on before each chapter's closing announcement.")}</small>
             </span>
             <input
               type="checkbox"
@@ -404,8 +414,9 @@ type DeviceList = { status: "loading" } | { status: "ready"; devices: ListeningD
 
 /** Send the open book, at its place, to another of the account's open devices. */
 export function DevicesDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onClose} title="Listen on another device" size="sm">
+    <Dialog open={open} onClose={onClose} title={t("Listen on another device")} size="sm">
       {open && <DevicesBody onClose={onClose} />}
     </Dialog>
   );
@@ -418,6 +429,7 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
   const [sending, setSending] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
 
   // The list is read when the dialog opens and when Refresh is pressed.
   const listDevices = useRef(link.listDevices);
@@ -439,8 +451,7 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
   if (!link.available) {
     return (
       <p className="modal-description">
-        Sign in with your member account on both devices, then send what you're listening to from one to the other. The demo
-        household lives on this device only.
+        {t("Sign in with your member account on both devices, then send what you're listening to from one to the other. The demo household lives on this device only.")}
       </p>
     );
   }
@@ -452,7 +463,7 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
       await link.sendTo(device);
       setSent(device.label);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't send the book. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't send the book. Try again."));
     } finally {
       setSending(null);
     }
@@ -462,11 +473,16 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
     return (
       <>
         <p className="modal-description" role="status">
-          Sent {book ? `${book.title} ` : ""}to {sent}, and paused here. Choose <strong>Listen here</strong> on {sent} to carry on.
+          {rich(
+            book
+              ? t("Sent {title} to {device}, and paused here. Choose {listen} on {device} to carry on.", { title: book.title, device: sent })
+              : t("Sent to {device}, and paused here. Choose {listen} on {device} to carry on.", { device: sent }),
+            { listen: <strong>{t("Listen here")}</strong> },
+          )}
         </p>
         <div className="modal-actions">
           <button type="button" className="primary-button" onClick={onClose}>
-            Done
+            {t("Done")}
           </button>
         </div>
       </>
@@ -476,16 +492,16 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
   return (
     <div className="devices">
       <p className="modal-description">
-        Pick up where you are on another device signed in to this account. This is {link.thisDevice}.
+        {t("Pick up where you are on another device signed in to this account. This is {device}.", { device: link.thisDevice })}
       </p>
-      {list.status === "loading" && <p className="muted">Looking for your devices…</p>}
+      {list.status === "loading" && <p className="muted">{t("Looking for your devices…")}</p>}
       {list.status === "error" && (
         <p className="field-error" role="alert">
           <Icon name="alert" size={15} /> {list.message}
         </p>
       )}
       {list.status === "ready" && list.devices.length === 0 && (
-        <p className="muted">No other devices are open. Open LiteraryWorm on another device, sign in, then refresh.</p>
+        <p className="muted">{t("No other devices are open. Open LiteraryWorm on another device, sign in, then refresh.")}</p>
       )}
       {list.status === "ready" && list.devices.length > 0 && (
         <ul className="device-list">
@@ -494,7 +510,7 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
               <Icon name="devices" size={20} />
               <span className="device-name">{d.label}</span>
               <button type="button" className="secondary-button" disabled={sending !== null} onClick={() => send(d)}>
-                {sending === d.id ? "Sending…" : "Send here"}
+                {sending === d.id ? t("Sending…") : t("Send here")}
                 <span className="visually-hidden"> ({d.label})</span>
               </button>
             </li>
@@ -515,7 +531,7 @@ function DevicesBody({ onClose }: { onClose: () => void }) {
             setAttempt((a) => a + 1);
           }}
         >
-          Refresh
+          {t("Refresh")}
         </button>
       </div>
     </div>
@@ -527,6 +543,7 @@ export function HandoffPrompt() {
   const { link } = usePlayback();
   const { state } = useStore();
   const navigate = useNavigate();
+  const t = useT();
   const { incoming } = link;
   if (!incoming) return null;
   const book = getBook(incoming.bookId);
@@ -535,10 +552,12 @@ export function HandoffPrompt() {
   const otherProfile = profile.id !== state.activeProfileId;
 
   return (
-    <section className="handoff" aria-label="Sent from another device">
+    <section className="handoff" aria-label={t("Sent from another device")}>
       <p>
-        <strong>{book.title}</strong> was sent here from {incoming.fromLabel}, at {formatTime(incoming.position)}.
-        {otherProfile && <> It's for {profile.name}: switch to {profile.name}'s profile to listen.</>}
+        {rich(t("{title} was sent here from {device}, at {time}.", { device: incoming.fromLabel, time: formatTime(incoming.position) }), {
+          title: <strong>{book.title}</strong>,
+        })}
+        {otherProfile && <> {t("It's for {name}: switch to {name}'s profile to listen.", { name: profile.name })}</>}
       </p>
       <div className="handoff-actions">
         {!otherProfile && (
@@ -551,11 +570,11 @@ export function HandoffPrompt() {
             }}
           >
             <Icon name="headphones" size={16} />
-            Listen here
+            {t("Listen here")}
           </button>
         )}
         <button type="button" className="secondary-button" onClick={link.dismiss}>
-          Not now
+          {t("Not now")}
         </button>
       </div>
     </section>
@@ -569,6 +588,7 @@ export function HandoffPrompt() {
  */
 export function CastButton({ className = "text-button", recording }: { className?: string; recording: boolean }) {
   const cast = useCast();
+  const t = useT();
   const [error, setError] = useState<string | null>(null);
   if (!recording || !cast.available) return null;
   return (
@@ -581,11 +601,11 @@ export function CastButton({ className = "text-button", recording }: { className
           setError(null);
           startCast().catch((err: Error) => {
             // Closing the picker without choosing isn't an error.
-            if (err.name !== "NotAllowedError" && err.name !== "AbortError") setError("We couldn't reach that device. Try again.");
+            if (err.name !== "NotAllowedError" && err.name !== "AbortError") setError(t("We couldn't reach that device. Try again."));
           });
         }}
       >
-        <Icon name="devices" size={16} /> {cast.connected ? "Casting" : cast.connecting ? "Connecting…" : "Cast to a speaker or TV"}
+        <Icon name="devices" size={16} /> {cast.connected ? t("Casting") : cast.connecting ? t("Connecting…") : t("Cast to a speaker or TV")}
       </button>
       {error && (
         <p className="field-error" role="alert">

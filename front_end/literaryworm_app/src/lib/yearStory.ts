@@ -1,5 +1,6 @@
 import type { Book } from "../types";
 import { drawCover, wrapLines } from "./coverArt";
+import { dateLocale, tk, tr } from "./i18n";
 import type { YearStats } from "./stats";
 import { cardTime, loadFonts, palette, type YearCardTheme } from "./yearCard";
 
@@ -22,55 +23,63 @@ export interface StorySlide {
   covers: Book[];
 }
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const WEEKDAYS = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
-const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+/** The month's name in the reader's language ("January" in English). */
+const monthName = (month: number) => new Date(2000, month, 1).toLocaleDateString(dateLocale(), { month: "long" });
+const MOST_ON = [
+  tk("Most of all on Sundays."),
+  tk("Most of all on Mondays."),
+  tk("Most of all on Tuesdays."),
+  tk("Most of all on Wednesdays."),
+  tk("Most of all on Thursdays."),
+  tk("Most of all on Fridays."),
+  tk("Most of all on Saturdays."),
+];
 
 export function storySlides(name: string, s: YearStats, goal: number | null): StorySlide[] {
   const slides: StorySlide[] = [
-    { id: "intro", eyebrow: "Year in review", big: String(s.year), line: `${name}'s year in books`, detail: "Tap through to see it.", covers: [] },
+    { id: "intro", eyebrow: tr("Year in review"), big: String(s.year), line: tr("{name}'s year in books", { name }), detail: tr("Tap through to see it."), covers: [] },
   ];
   if (s.seconds > 0) {
     // The split only says something when there was both.
-    const split = s.read > 0 && s.listened > 0 ? `${cardTime(s.read)} reading · ${cardTime(s.listened)} listening` : null;
-    slides.push({ id: "time", eyebrow: "Time with books", big: cardTime(s.seconds), line: "of reading and listening", detail: split, covers: [] });
+    const split = s.read > 0 && s.listened > 0 ? tr("{read} reading · {listened} listening", { read: cardTime(s.read), listened: cardTime(s.listened) }) : null;
+    slides.push({ id: "time", eyebrow: tr("Time with books"), big: cardTime(s.seconds), line: tr("of reading and listening"), detail: split, covers: [] });
   }
   if (s.finished > 0) {
     const covers = s.books.flatMap((b) => (b.book ? [b.book] : [])).filter((b, i, all) => all.findIndex((x) => x.id === b.id) === i).slice(0, 3);
-    const ofGoal = goal !== null ? (s.finished >= goal ? `Goal of ${goal} reached.` : `${goal - s.finished} to go for a goal of ${goal}.`) : null;
-    slides.push({ id: "books", eyebrow: "Books finished", big: String(s.finished), line: `${plural(s.finished, "book", "books")} finished`, detail: ofGoal, covers });
+    const ofGoal = goal !== null ? (s.finished >= goal ? tr("Goal of {goal} reached.", { goal }) : tr("{left} to go for a goal of {goal}.", { left: goal - s.finished, goal })) : null;
+    slides.push({ id: "books", eyebrow: tr("Books finished"), big: String(s.finished), line: tr.plural(s.finished, { one: "book finished", other: "books finished" }), detail: ofGoal, covers });
   }
   if (s.daysRead > 0) {
     slides.push({
       id: "streak",
-      eyebrow: "Keeping it up",
+      eyebrow: tr("Keeping it up"),
       big: String(s.longestStreak),
-      line: `${plural(s.longestStreak, "day", "days")} in a row, at best`,
-      detail: `${s.daysRead} ${plural(s.daysRead, "day", "days")} with reading this year.`,
+      line: tr.plural(s.longestStreak, { one: "day in a row, at best", other: "days in a row, at best" }),
+      detail: tr.plural(s.daysRead, { one: "{count} day with reading this year.", other: "{count} days with reading this year." }),
       covers: [],
     });
   }
   if (s.genres[0] || s.authors[0]) {
     slides.push({
       id: "favourites",
-      eyebrow: "Favourites",
+      eyebrow: tr("Favourites"),
       big: s.genres[0]?.name ?? s.authors[0]!.name,
-      line: s.genres[0] ? "your top genre" : "your top author",
-      detail: s.genres[0] && s.authors[0] ? `Top author: ${s.authors[0].name}` : null,
+      line: s.genres[0] ? tr("your top genre") : tr("your top author"),
+      detail: s.genres[0] && s.authors[0] ? tr("Top author: {name}", { name: s.authors[0].name }) : null,
       covers: [],
     });
   }
   if (s.busiestMonth !== null) {
     slides.push({
       id: "when",
-      eyebrow: "When you read",
-      big: MONTHS[s.busiestMonth],
-      line: "your busiest month",
-      detail: s.favouriteWeekday !== null ? `Most of all on ${WEEKDAYS[s.favouriteWeekday]}.` : null,
+      eyebrow: tr("When you read"),
+      big: monthName(s.busiestMonth),
+      line: tr("your busiest month"),
+      detail: s.favouriteWeekday !== null ? tr(MOST_ON[s.favouriteWeekday]) : null,
       covers: [],
     });
   }
-  slides.push({ id: "outro", eyebrow: "Year in review", big: `On to ${s.year + 1}`, line: "Stories worth staying up for.", detail: "literaryworm.com", covers: [] });
+  slides.push({ id: "outro", eyebrow: tr("Year in review"), big: tr("On to {year}", { year: s.year + 1 }), line: tr("Stories worth staying up for."), detail: "literaryworm.com", covers: [] });
   return slides;
 }
 
@@ -91,7 +100,7 @@ export async function drawSlide(slide: StorySlide, theme: YearCardTheme, index: 
   canvas.width = STORY_WIDTH;
   canvas.height = STORY_HEIGHT;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("This browser can't draw the story.");
+  if (!ctx) throw new Error(tr("This browser can't draw the story."));
   const { bg, ink, muted, accent, panel } = palette(theme);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, STORY_WIDTH, STORY_HEIGHT);
@@ -176,7 +185,7 @@ export async function drawSlide(slide: StorySlide, theme: YearCardTheme, index: 
 
 export async function slideBlob(slide: StorySlide, theme: YearCardTheme, index: number, count: number): Promise<Blob> {
   const canvas = await drawSlide(slide, theme, index, count);
-  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("This browser can't make the picture."))), "image/png"));
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(tr("This browser can't make the picture.")))), "image/png"));
 }
 
 export const slideFileName = (year: number, slide: StorySlide) => `literaryworm-${year}-story-${slide.id}.png`;

@@ -1,4 +1,5 @@
 import type { Book } from "../types";
+import { tk, tr } from "./i18n";
 import { drawCover, wrapLines } from "./coverArt";
 import type { YearStats } from "./stats";
 
@@ -11,8 +12,8 @@ import type { YearStats } from "./stats";
 export type YearCardTheme = "light" | "dark";
 
 export const YEAR_CARD_THEMES: { value: YearCardTheme; label: string }[] = [
-  { value: "dark", label: "Dark" },
-  { value: "light", label: "Light" },
+  { value: "dark", label: tk("Dark") },
+  { value: "light", label: tk("Light") },
 ];
 
 const WIDTH = 1080;
@@ -34,20 +35,25 @@ export interface YearCardFacts {
 /** Whole hours once there are any ("42 h"), else minutes ("35 min"). */
 export function cardTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
-  return minutes >= 60 ? `${Math.floor(minutes / 60)} h` : `${minutes} min`;
+  return minutes >= 60 ? tr("{h} h", { h: Math.floor(minutes / 60) }) : tr("{minutes} min", { minutes });
 }
 
 /** What the card says for a profile's year (the same numbers as My Library → Stats). */
 export function yearCardFacts(name: string, s: YearStats, goal: number | null): YearCardFacts {
-  const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
-  const favourites = [s.genres[0] && `Top genre: ${s.genres[0].name}`, s.authors[0] && `Top author: ${s.authors[0].name}`].filter(Boolean).join(" · ");
+  const favourites = [s.genres[0] && tr("Top genre: {name}", { name: s.genres[0].name }), s.authors[0] && tr("Top author: {name}", { name: s.authors[0].name })].filter(Boolean).join(" · ");
   return {
-    title: `${name}'s ${s.year} in books`,
+    title: tr("{name}'s {year} in books", { name, year: s.year }),
     numbers: [
-      { value: String(s.finished), label: `${plural(s.finished, "book", "books")} finished${goal !== null ? ` of ${goal}` : ""}` },
-      { value: cardTime(s.seconds), label: "reading and listening" },
-      { value: String(s.daysRead), label: `${plural(s.daysRead, "day", "days")} with reading` },
-      { value: String(s.longestStreak), label: `${plural(s.longestStreak, "day", "days")} in a row, at best` },
+      {
+        value: String(s.finished),
+        label:
+          goal !== null
+            ? tr.plural(s.finished, { one: "book finished of {goal}", other: "books finished of {goal}" }, { goal })
+            : tr.plural(s.finished, { one: "book finished", other: "books finished" }),
+      },
+      { value: cardTime(s.seconds), label: tr("reading and listening") },
+      { value: String(s.daysRead), label: tr.plural(s.daysRead, { one: "day with reading", other: "days with reading" }) },
+      { value: String(s.longestStreak), label: tr.plural(s.longestStreak, { one: "day in a row, at best", other: "days in a row, at best" }) },
     ],
     covers: s.books.flatMap((b) => (b.book ? [b.book] : [])).filter((b, i, all) => all.findIndex((x) => x.id === b.id) === i).slice(0, YEAR_CARD_COVERS),
     favourites: favourites || null,
@@ -76,7 +82,7 @@ export async function drawYearCard(facts: YearCardFacts, theme: YearCardTheme): 
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("This browser can't draw the card.");
+  if (!ctx) throw new Error(tr("This browser can't draw the card."));
   const { bg, ink, muted, accent, panel } = palette(theme);
 
   ctx.fillStyle = bg;
@@ -92,7 +98,7 @@ export async function drawYearCard(facts: YearCardFacts, theme: YearCardTheme): 
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = accent;
   ctx.font = '700 28px "Manrope", system-ui, sans-serif';
-  ctx.fillText("YEAR IN REVIEW", PAD, PAD + 20);
+  ctx.fillText(tr("Year in review").toUpperCase(), PAD, PAD + 20);
   ctx.fillStyle = ink;
   ctx.font = '800 64px "Manrope", system-ui, sans-serif';
   const titleLines = wrapLines(ctx, facts.title, WIDTH - PAD * 2, 2);
@@ -150,7 +156,7 @@ export async function drawYearCard(facts: YearCardFacts, theme: YearCardTheme): 
 export async function yearCardBlob(facts: YearCardFacts, theme: YearCardTheme): Promise<Blob> {
   const canvas = await drawYearCard(facts, theme);
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("This browser can't make the picture."))), "image/png"),
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(tr("This browser can't make the picture.")))), "image/png"),
   );
 }
 

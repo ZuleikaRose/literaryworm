@@ -2,19 +2,21 @@
  * The reader's keyboard shortcuts. They work whenever focus isn't in a field or a dialog, and
  * never with Ctrl, Alt or Cmd held, so the browser's own shortcuts still work.
  */
+import { tk } from "./i18n";
+
 export type ReaderAction = "next" | "previous" | "chapters" | "highlights" | "bookmark" | "dictionary" | "display" | "help" | "guideDown" | "guideUp";
 
 export const READER_SHORTCUTS: { keys: string[]; label: string; action: ReaderAction }[] = [
-  { keys: ["→", "Page Down"], label: "Next page", action: "next" },
-  { keys: ["←", "Page Up"], label: "Previous page", action: "previous" },
-  { keys: ["C"], label: "Chapters", action: "chapters" },
-  { keys: ["N"], label: "Notes and highlights", action: "highlights" },
-  { keys: ["B"], label: "Bookmark this page, or remove its bookmark", action: "bookmark" },
-  { keys: ["D"], label: "Dictionary", action: "dictionary" },
-  { keys: ["T"], label: "Display settings", action: "display" },
-  { keys: ["J"], label: "Move the reading guide down a line (when it's on)", action: "guideDown" },
-  { keys: ["K"], label: "Move the reading guide up a line (when it's on)", action: "guideUp" },
-  { keys: ["?"], label: "These shortcuts", action: "help" },
+  { keys: ["→", "Page Down"], label: tk("Next page"), action: "next" },
+  { keys: ["←", "Page Up"], label: tk("Previous page"), action: "previous" },
+  { keys: ["C"], label: tk("Chapters"), action: "chapters" },
+  { keys: ["N"], label: tk("Notes and highlights"), action: "highlights" },
+  { keys: ["B"], label: tk("Bookmark this page, or remove its bookmark"), action: "bookmark" },
+  { keys: ["D"], label: tk("Dictionary"), action: "dictionary" },
+  { keys: ["T"], label: tk("Display settings"), action: "display" },
+  { keys: ["J"], label: tk("Move the reading guide down a line (when it's on)"), action: "guideDown" },
+  { keys: ["K"], label: tk("Move the reading guide up a line (when it's on)"), action: "guideUp" },
+  { keys: ["?"], label: tk("These shortcuts"), action: "help" },
 ];
 
 /** The action for a key press, or null. */

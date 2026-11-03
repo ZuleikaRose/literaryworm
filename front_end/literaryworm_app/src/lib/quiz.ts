@@ -1,3 +1,5 @@
+import { tr } from "./i18n";
+
 /** Chapter quizzes: what a question looks like and how a score reads (lib/quizApi.ts fetches them). */
 export interface QuizQuestion {
   question: string;
@@ -25,6 +27,7 @@ export function isQuestion(q: unknown): q is QuizQuestion {
 
 /** "3 of 4 right: well done!" */
 export function scoreLine(score: number, outOf: number): string {
-  const cheer = score === outOf ? "Brilliant, every one!" : score >= outOf / 2 ? "Well done!" : "Good try. Reading the chapter again might help.";
-  return `${score} of ${outOf} right. ${cheer}`;
+  const vars = { score, outOf };
+  if (score === outOf) return tr("{score} of {outOf} right. Brilliant, every one!", vars);
+  return score >= outOf / 2 ? tr("{score} of {outOf} right. Well done!", vars) : tr("{score} of {outOf} right. Good try. Reading the chapter again might help.", vars);
 }

@@ -10,6 +10,7 @@ import { usePopover } from "../lib/usePopover";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "./PlayerControls";
 
 type Panel = "jump" | "settings" | "devices" | "recap" | "clip" | null;
@@ -34,22 +35,23 @@ function MiniPlayerView({ book }: { book: Book }) {
   const menuId = useId();
   const [panel, setPanel] = useState<Panel>(null);
   const [section, setSection] = useState<JumpSection>("contents");
+  const t = useT();
   if (!live) return null;
 
   const chapter = book.chapters[places.chapterIndex];
   const chapterName = chapter.title === `Chapter ${places.chapterIndex + 1}` ? chapter.title : `${places.chapterIndex + 1}. ${chapter.title}`;
   const locked = live.limitReached || live.allowance !== null;
   const status = live.allowance ? (
-    "This month's listening is used up"
+    t("This month's listening is used up")
   ) : locked ? (
-    "Today's listening time is used up"
+    t("Today's listening time is used up")
   ) : live.finished ? (
-    "Finished"
+    t("Finished")
   ) : (
     <>
       {chapterName} · <span aria-hidden="true">−</span>
       {formatTime(places.chapterEnd - position)}
-      <span className="visually-hidden"> left in the chapter</span>
+      <span className="visually-hidden"> {t("left in the chapter")}</span>
     </>
   );
 
@@ -65,7 +67,7 @@ function MiniPlayerView({ book }: { book: Book }) {
     });
 
   return (
-    <section className="mini-player" aria-label="Now playing">
+    <section className="mini-player" aria-label={t("Now playing")}>
       <span className="mini-progress" aria-hidden="true" style={{ "--fill": `${(position / total) * 100}%` } as CSSProperties} />
       <Link className="mini-info" to={`/listen/${book.id}`}>
         <Cover book={book} size="sm" className="mini-cover" />
@@ -73,33 +75,33 @@ function MiniPlayerView({ book }: { book: Book }) {
           <strong>{book.title}</strong>
           <small>{status}</small>
         </span>
-        <span className="visually-hidden">. Open the player</span>
+        <span className="visually-hidden">. {t("Open the player")}</span>
       </Link>
       {live.finished && controls.upNext && (
         <button type="button" className="secondary-button small-button mini-next" onClick={controls.upNext.play}>
-          <Icon name="play" size={14} filled /> Play next<span className="mini-next-title">: {controls.upNext.book.title}</span>
+          <Icon name="play" size={14} filled /> {t("Play next")}<span className="mini-next-title">: {controls.upNext.book.title}</span>
         </button>
       )}
       <div className="mini-controls">
         <button type="button" className="icon-button mini-wide" disabled={locked || !controls.previousChapter} onClick={controls.previousChapter ?? undefined}>
           <Icon name="previousChapter" size={18} />
-          <span className="visually-hidden">Previous chapter</span>
+          <span className="visually-hidden">{t("Previous chapter")}</span>
         </button>
         <button type="button" className="icon-button" disabled={locked} onClick={controls.skipBack}>
           <Icon name="skipBack" size={20} />
-          <span className="visually-hidden">Back {player.skipBack} seconds</span>
+          <span className="visually-hidden">{t("Back {n} seconds", { n: player.skipBack })}</span>
         </button>
         <button type="button" className="mini-play" disabled={locked} onClick={playback.toggle}>
           <Icon name={live.playing ? "pause" : "play"} size={20} filled />
-          <span className="visually-hidden">{live.playing ? "Pause" : "Play"}</span>
+          <span className="visually-hidden">{live.playing ? t("Pause") : t("Play")}</span>
         </button>
         <button type="button" className="icon-button" disabled={locked} onClick={controls.skipForward}>
           <Icon name="skipForward" size={20} />
-          <span className="visually-hidden">Forward {player.skipForward} seconds</span>
+          <span className="visually-hidden">{t("Forward {n} seconds", { n: player.skipForward })}</span>
         </button>
         <button type="button" className="icon-button mini-wide" disabled={locked || !controls.nextChapter} onClick={controls.nextChapter ?? undefined}>
           <Icon name="nextChapter" size={18} />
-          <span className="visually-hidden">Next chapter</span>
+          <span className="visually-hidden">{t("Next chapter")}</span>
         </button>
         <VolumeControl className="mini-volume" />
         <div className="popover-wrap" ref={wrapRef}>
@@ -112,28 +114,28 @@ function MiniPlayerView({ book }: { book: Book }) {
             onClick={toggleMenu}
           >
             <Icon name="more" size={20} />
-            <span className="visually-hidden">More controls</span>
+            <span className="visually-hidden">{t("More controls")}</span>
           </button>
           {menuOpen && (
             <div id={menuId} className="popover mini-menu">
               <p className="popover-label">
-                Chapter {places.chapterIndex + 1} of {book.chapters.length}
+                {t("Chapter {n} of {total}", { n: places.chapterIndex + 1, total: book.chapters.length })}
                 {chapter.title !== `Chapter ${places.chapterIndex + 1}` && <>: {chapter.title}</>}
               </p>
               <ul className="menu-list">
                 <li className="mini-narrow">
                   <button type="button" className="menu-item" disabled={locked || !controls.previousChapter} onClick={choose(controls.previousChapter)}>
-                    <Icon name="previousChapter" size={16} /> Previous chapter
+                    <Icon name="previousChapter" size={16} /> {t("Previous chapter")}
                   </button>
                 </li>
                 <li className="mini-narrow">
                   <button type="button" className="menu-item" disabled={locked || !controls.nextChapter} onClick={choose(controls.nextChapter)}>
-                    <Icon name="nextChapter" size={16} /> Next chapter
+                    <Icon name="nextChapter" size={16} /> {t("Next chapter")}
                   </button>
                 </li>
                 <li>
                   <Link className="menu-item" to={`/listen/${book.id}?view=car`} onClick={() => closeMenu()}>
-                    <Icon name="headphones" size={16} /> Car mode
+                    <Icon name="headphones" size={16} /> {t("Car mode")}
                   </Link>
                 </li>
                 <li>
@@ -142,35 +144,35 @@ function MiniPlayerView({ book }: { book: Book }) {
                 {book.recording && (
                   <li>
                     <button type="button" className="menu-item" onClick={choose(() => setPanel("clip"))}>
-                      <Icon name="share" size={16} /> Share a clip
+                      <Icon name="share" size={16} /> {t("Share a clip")}
                     </button>
                   </li>
                 )}
                 {controls.upNext && (
                   <li>
                     <button type="button" className="menu-item" onClick={choose(controls.upNext.play)}>
-                      <Icon name="list" size={16} /> Play next in Up next: {controls.upNext.book.title}
+                      <Icon name="list" size={16} /> {t("Play next in Up next: {title}", { title: controls.upNext.book.title })}
                     </button>
                   </li>
                 )}
                 <li>
                   <button type="button" className="menu-item" disabled={locked || !controls.beginning} onClick={choose(controls.beginning)}>
-                    <Icon name="startOfBook" size={16} /> Beginning of the book
+                    <Icon name="startOfBook" size={16} /> {t("Beginning of the book")}
                   </button>
                 </li>
                 <li>
                   <button type="button" className="menu-item" disabled={locked || !controls.end} onClick={choose(controls.end)}>
-                    <Icon name="endOfBook" size={16} /> End of the book
+                    <Icon name="endOfBook" size={16} /> {t("End of the book")}
                   </button>
                 </li>
                 <li>
                   <button type="button" className="menu-item" disabled={locked || !controls.skipIntro} onClick={choose(controls.skipIntro)}>
-                    <Icon name="chevronRight" size={16} /> Skip intro
+                    <Icon name="chevronRight" size={16} /> {t("Skip intro")}
                   </button>
                 </li>
                 <li>
                   <button type="button" className="menu-item" disabled={locked || !controls.skipOutro} onClick={choose(controls.skipOutro)}>
-                    <Icon name="chevronRight" size={16} /> Skip outro
+                    <Icon name="chevronRight" size={16} /> {t("Skip outro")}
                   </button>
                 </li>
               </ul>
@@ -178,22 +180,22 @@ function MiniPlayerView({ book }: { book: Book }) {
               <ul className="menu-list">
                 <li>
                   <button type="button" className="menu-item" disabled={locked} onClick={jump("contents")}>
-                    <Icon name="list" size={16} /> Table of contents
+                    <Icon name="list" size={16} /> {t("Table of contents")}
                   </button>
                 </li>
                 <li>
                   <button type="button" className="menu-item" disabled={locked} onClick={jump("index")}>
-                    <Icon name="search" size={16} /> Index
+                    <Icon name="search" size={16} /> {t("Index")}
                   </button>
                 </li>
                 <li>
                   <button type="button" className="menu-item" disabled={locked} onClick={jump("references")}>
-                    <Icon name="bookmark" size={16} /> References and bookmarks
+                    <Icon name="bookmark" size={16} /> {t("References and bookmarks")}
                   </button>
                 </li>
                 <li>
                   <button type="button" className="menu-item" disabled={locked} onClick={jump("time")}>
-                    <Icon name="clock" size={16} /> Go to a time
+                    <Icon name="clock" size={16} /> {t("Go to a time")}
                   </button>
                 </li>
               </ul>
@@ -204,24 +206,24 @@ function MiniPlayerView({ book }: { book: Book }) {
               <ul className="menu-list">
                 <li>
                   <button type="button" className="menu-item" onClick={choose(() => setPanel("settings"))}>
-                    <Icon name="settings" size={16} /> Speed, sleep timer and skipping
+                    <Icon name="settings" size={16} /> {t("Speed, sleep timer and skipping")}
                   </button>
                 </li>
                 {canRecap(book, places.chapterIndex) && (
                   <li>
                     <button type="button" className="menu-item" onClick={choose(() => setPanel("recap"))}>
-                      <Icon name="bookOpen" size={16} /> Previously…
+                      <Icon name="bookOpen" size={16} /> {t("Previously…")}
                     </button>
                   </li>
                 )}
                 <li>
                   <button type="button" className="menu-item" onClick={choose(() => setPanel("devices"))}>
-                    <Icon name="devices" size={16} /> Listen on another device
+                    <Icon name="devices" size={16} /> {t("Listen on another device")}
                   </button>
                 </li>
                 <li>
                   <Link className="menu-item" to={`/listen/${book.id}`} onClick={() => closeMenu(false)}>
-                    <Icon name="headphones" size={16} /> Open the full player
+                    <Icon name="headphones" size={16} /> {t("Open the full player")}
                   </Link>
                 </li>
               </ul>
@@ -230,7 +232,7 @@ function MiniPlayerView({ book }: { book: Book }) {
         </div>
         <button type="button" className="icon-button" onClick={playback.close}>
           <Icon name="close" size={18} />
-          <span className="visually-hidden">Close the mini-player</span>
+          <span className="visually-hidden">{t("Close the mini-player")}</span>
         </button>
       </div>
       <SleepMore className="mini-sleep-more" />

@@ -1,4 +1,5 @@
 import type { Highlight, HighlightColor } from "../types";
+import { tk, tr } from "./i18n";
 
 /**
  * Where highlights sit on a reader page. A page's text is its paragraphs joined by a line
@@ -7,18 +8,18 @@ import type { Highlight, HighlightColor } from "../types";
  */
 
 export const HIGHLIGHT_COLORS: { value: HighlightColor; label: string }[] = [
-  { value: "yellow", label: "Yellow" },
-  { value: "green", label: "Green" },
-  { value: "blue", label: "Blue" },
-  { value: "pink", label: "Pink" },
-  { value: "orange", label: "Orange" },
-  { value: "purple", label: "Purple" },
-  { value: "teal", label: "Teal" },
-  { value: "red", label: "Red" },
-  { value: "lime", label: "Lime" },
-  { value: "indigo", label: "Indigo" },
-  { value: "brown", label: "Brown" },
-  { value: "gray", label: "Grey" },
+  { value: "yellow", label: tk("Yellow") },
+  { value: "green", label: tk("Green") },
+  { value: "blue", label: tk("Blue") },
+  { value: "pink", label: tk("Pink") },
+  { value: "orange", label: tk("Orange") },
+  { value: "purple", label: tk("Purple") },
+  { value: "teal", label: tk("Teal") },
+  { value: "red", label: tk("Red") },
+  { value: "lime", label: tk("Lime") },
+  { value: "indigo", label: tk("Indigo") },
+  { value: "brown", label: tk("Brown") },
+  { value: "gray", label: tk("Grey") },
 ];
 
 export const NOTE_MAX = 2000;
@@ -118,4 +119,4 @@ export function singleWord(quote: string): string | null {
 }
 
 /** "Chapter 3, page 2", for lists. */
-export const highlightPlace = (h: Pick<Highlight, "chapterIndex" | "page">) => `Chapter ${h.chapterIndex + 1}, page ${h.page + 1}`;
+export const highlightPlace = (h: Pick<Highlight, "chapterIndex" | "page">) => tr("Chapter {chapter}, page {page}", { chapter: h.chapterIndex + 1, page: h.page + 1 });

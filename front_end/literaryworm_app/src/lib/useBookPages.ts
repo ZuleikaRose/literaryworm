@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Book } from "../types";
+import { tr } from "./i18n";
 import { bookText } from "./narration";
 import { type ReaderPage, readerPages, textPages } from "./reading";
 
@@ -21,10 +22,10 @@ export function useBookPages(book: Book): { pages: ReaderPage[] | null; error: s
       (chapters) => {
         if (!live) return;
         // The text is built to match the recording's chapters; anything else is a stale file.
-        if (chapters.length !== book.chapters.length) setLoaded({ bookId: book.id, error: "This book's text doesn't match its chapters. Try again later." });
+        if (chapters.length !== book.chapters.length) setLoaded({ bookId: book.id, error: tr("This book's text doesn't match its chapters. Try again later.") });
         else setLoaded({ bookId: book.id, pages: textPages(chapters) });
       },
-      (err: unknown) => live && setLoaded({ bookId: book.id, error: err instanceof Error ? err.message : "We couldn't load this book's text. Try again." }),
+      (err: unknown) => live && setLoaded({ bookId: book.id, error: err instanceof Error ? err.message : tr("We couldn't load this book's text. Try again.") }),
     );
     return () => {
       live = false;

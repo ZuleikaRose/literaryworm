@@ -14,6 +14,8 @@ import { AccountPasswordField } from "./AccountPasswordField";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
+import { dateLocale, rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /** A full-screen message in place of the reader or player. */
 export function ReadingMessage({ title, icon, children, action }: { title: string; icon: "lock" | "bookOpen" | "clock" | "headphones" | "moon"; children: ReactNode; action?: ReactNode }) {
@@ -43,36 +45,36 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
   const requests = useProfileData().bookRequests;
   // When the page opened; enough to tell whether a cancelled plan's end date has passed.
   const [openedAt] = useState(() => Date.now());
-  const verb = format === "ebook" ? "read" : "listen to";
+  const t = useT();
 
   // A paused membership, or one whose cancellation date has passed, doesn't open books.
   if (account?.status === "paused") {
     return (
       <ReadingMessage
-        title="Your membership is paused"
+        title={t("Your membership is paused")}
         icon="clock"
         action={
           <Link className="primary-button" to="/account#plan">
-            Resume in Account
+            {t("Resume in Account")}
           </Link>
         }
       >
-        <p>Reading and listening start again as soon as the membership is resumed. Your place in every book is saved.</p>
+        <p>{t("Reading and listening start again as soon as the membership is resumed. Your place in every book is saved.")}</p>
       </ReadingMessage>
     );
   }
   if (account?.status === "cancelled" || (account?.endsAt && Date.parse(account.endsAt) <= openedAt)) {
     return (
       <ReadingMessage
-        title="Your membership has ended"
+        title={t("Your membership has ended")}
         icon="lock"
         action={
           <Link className="primary-button" to="/plans">
-            Choose a plan
+            {t("Choose a plan")}
           </Link>
         }
       >
-        <p>Choose a plan to keep reading. Your library and your place in every book are still here.</p>
+        <p>{t("Choose a plan to keep reading. Your library and your place in every book are still here.")}</p>
       </ReadingMessage>
     );
   }
@@ -80,42 +82,41 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
   if (!book) {
     return (
       <ReadingMessage
-        title={`You can't ${verb} this book here`}
+        title={format === "ebook" ? t("You can't read this book here") : t("You can't listen to this book here")}
         icon="bookOpen"
         action={
           <Link className="primary-button" to={id ? `/books/${id}` : "/browse"}>
-            {id ? "Back to the book" : "Go to home"}
+            {id ? t("Back to the book") : t("Go to home")}
           </Link>
         }
       >
-        <p>LiteraryWorm can open only its own titles. Books from Google Books can be saved to your library and logged, but not read or played here.</p>
+        <p>{t("LiteraryWorm can open only its own titles. Books from Google Books can be saved to your library and logged, but not read or played here.")}</p>
       </ReadingMessage>
     );
   }
   if (profile && !mayOpen(book, profile, requests)) {
     return (
-      <ReadingMessage title={`This book isn't on ${profile.name}'s shelf`} icon="lock" action={<Link className="primary-button" to="/browse">Go to home</Link>}>
+      <ReadingMessage title={t("This book isn't on {name}'s shelf", { name: profile.name })} icon="lock" action={<Link className="primary-button" to="/browse">{t("Go to home")}</Link>}>
         <p>
           {profile.ageRating === "kids"
-            ? "Kids profiles show books picked for younger readers. Ask a grown-up if you'd like this one."
-            : "This title is rated for adults. A grown-up can open it from their own profile."}
+            ? t("Kids profiles show books picked for younger readers. Ask a grown-up if you'd like this one.")
+            : t("This title is rated for adults. A grown-up can open it from their own profile.")}
         </p>
       </ReadingMessage>
     );
   }
   if (!book.formats.includes(format)) {
-    const other = format === "ebook" ? "audiobook" : "ebook";
     return (
       <ReadingMessage
-        title={`${book.title} has no ${format}`}
+        title={format === "ebook" ? t("{title} has no ebook", { title: book.title }) : t("{title} has no audiobook", { title: book.title })}
         icon="bookOpen"
         action={
           <Link className="primary-button" to={`/${format === "ebook" ? "listen" : "read"}/${book.id}`}>
-            {format === "ebook" ? "Listen instead" : "Read instead"}
+            {format === "ebook" ? t("Listen instead") : t("Read instead")}
           </Link>
         }
       >
-        <p>It's available as an {other} only.</p>
+        <p>{format === "ebook" ? t("It's available as an audiobook only.") : t("It's available as an ebook only.")}</p>
       </ReadingMessage>
     );
   }
@@ -139,30 +140,35 @@ export function ListeningAllowanceUsed({
 }) {
   // One tap to the next plan's checkout (Plans opens it from ?plan=).
   const next = nextPlanUp(planId);
+  const t = useT();
   return (
     <ReadingMessage
-      title="That's this month's listening"
+      title={t("That's this month's listening")}
       icon="headphones"
       action={
         <div className="reading-message-actions">
           {next ? (
             <Link className="primary-button" to={planCheckoutPath(next)}>
-              Move to {next.name}: {next.audioHoursPerMonth === null ? "unlimited listening" : `${next.audioHoursPerMonth} hours`}
+              {next.audioHoursPerMonth === null
+                ? t("Move to {plan}: unlimited listening", { plan: next.name })
+                : t("Move to {plan}: {hours} hours", { plan: next.name, hours: next.audioHoursPerMonth })}
             </Link>
           ) : (
             <Link className="primary-button" to="/plans">
-              See plans
+              {t("See plans")}
             </Link>
           )}
           <Link className="secondary-button" to={`/read/${bookId}`}>
-            Read it instead
+            {t("Read it instead")}
           </Link>
         </div>
       }
     >
       <p>
-        Your {planName} plan includes {hours} hours of audiobooks a month for the whole household, and they're used up. Listening starts
-        again on {resumesOn}, and your place is saved. Reading has no limit, and a bigger plan has more hours.
+        {t(
+          "Your {plan} plan includes {hours} hours of audiobooks a month for the whole household, and they're used up. Listening starts again on {date}, and your place is saved. Reading has no limit, and a bigger plan has more hours.",
+          { plan: planName, hours, date: resumesOn },
+        )}
       </p>
     </ReadingMessage>
   );
@@ -180,6 +186,7 @@ export function DailyLimitReached({ limitMinutes, wake = null, onAllowMore }: { 
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const field = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -190,25 +197,25 @@ export function DailyLimitReached({ limitMinutes, wake = null, onAllowMore }: { 
       onAllowMore();
       return;
     }
-    setError(result.problem ?? "That's not the account password. Try again.");
+    setError(result.problem ?? t("That's not the account password. Try again."));
     field.current?.focus();
   };
 
   const minutes = limitMinutes ?? 0;
-  const hours = minutes >= 60 ? `${minutes / 60} hour${minutes === 60 ? "" : "s"}` : `${minutes} minutes`;
+  const hours = minutes >= 60 ? t.plural(minutes / 60, { one: "{count} hour", other: "{count} hours" }) : t("{minutes} minutes", { minutes });
   const extra = wake ? BEDTIME_EXTRA_MINUTES : EXTRA_MINUTES;
   return (
     <ReadingMessage
-      title={wake ? "Time for bed" : "That's today's reading time"}
+      title={wake ? t("Time for bed") : t("That's today's reading time")}
       icon={wake ? "moon" : "clock"}
       action={
         !asking && (
           <div className="reading-message-actions">
             <Link className="primary-button" to="/browse">
-              Go to home
+              {t("Go to home")}
             </Link>
             <button type="button" className="secondary-button" onClick={() => setAsking(true)}>
-              Ask a grown-up for more time
+              {t("Ask a grown-up for more time")}
             </button>
           </div>
         )
@@ -216,12 +223,15 @@ export function DailyLimitReached({ limitMinutes, wake = null, onAllowMore }: { 
     >
       {wake ? (
         <p>
-          It's {profile?.name ?? "this profile"}'s bedtime. Your place is saved, so you can pick up here from {timeLabel(wake)}. Sleep well.
+          {profile
+            ? t("It's {name}'s bedtime. Your place is saved, so you can pick up here from {time}. Sleep well.", { name: profile.name, time: timeLabel(wake) })
+            : t("It's this profile's bedtime. Your place is saved, so you can pick up here from {time}. Sleep well.", { time: timeLabel(wake) })}
         </p>
       ) : (
         <p>
-          {profile?.name ?? "This profile"} can read and listen for {hours} a day. Your place is saved, so you can pick up here
-          tomorrow.
+          {profile
+            ? t("{name} can read and listen for {hours} a day. Your place is saved, so you can pick up here tomorrow.", { name: profile.name, hours })
+            : t("This profile can read and listen for {hours} a day. Your place is saved, so you can pick up here tomorrow.", { hours })}
         </p>
       )}
       {asking && (
@@ -237,10 +247,10 @@ export function DailyLimitReached({ limitMinutes, wake = null, onAllowMore }: { 
           />
           <div className="reading-message-actions">
             <button type="submit" className="primary-button" disabled={busy}>
-              {busy ? "Checking…" : `Allow ${extra} more minutes`}
+              {busy ? t("Checking…") : t("Allow {n} more minutes", { n: extra })}
             </button>
             <button type="button" className="secondary-button" onClick={() => setAsking(false)}>
-              Cancel
+              {t("Cancel")}
             </button>
           </div>
         </form>
@@ -251,14 +261,15 @@ export function DailyLimitReached({ limitMinutes, wake = null, onAllowMore }: { 
 
 /** Asked when the progress bar reaches the end, so a stray drag doesn't finish the book. */
 export function MarkFinishedDialog({ open, title, onFinish, onCancel }: { open: boolean; title: string; onFinish: () => void; onCancel: () => void }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onCancel} title="Mark as finished?" size="sm" description={<p>{title} will move to Finished in your library and leave Continue reading.</p>}>
+    <Dialog open={open} onClose={onCancel} title={t("Mark as finished?")} size="sm" description={<p>{t("{title} will move to Finished in your library and leave Continue reading.", { title })}</p>}>
       <div className="modal-actions">
         <button type="button" className="secondary-button" onClick={onCancel}>
-          Not yet
+          {t("Not yet")}
         </button>
         <button type="button" className="primary-button" onClick={onFinish}>
-          <Icon name="check" size={18} /> Mark as finished
+          <Icon name="check" size={18} /> {t("Mark as finished")}
         </button>
       </div>
     </Dialog>
@@ -282,8 +293,9 @@ export function ChaptersDialog({
   detail: (index: number) => string;
   onPick: (index: number) => void;
 }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onClose} title="Chapters" eyebrow={book.title}>
+    <Dialog open={open} onClose={onClose} title={t("Chapters")} eyebrow={book.title}>
       <ol className="chapter-list">
         {book.chapters.map((chapter, i) => (
           <li key={i}>
@@ -293,7 +305,7 @@ export function ChaptersDialog({
               </span>
               <span className="chapter-name">{chapter.title}</span>
               <span className="chapter-detail">{detail(i)}</span>
-              {i === current && <span className="visually-hidden"> (current chapter)</span>}
+              {i === current && <span className="visually-hidden"> {t("(current chapter)")}</span>}
             </button>
           </li>
         ))}
@@ -326,6 +338,7 @@ export function BookmarksDialog({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const errorId = "bookmark-error";
+  const t = useT();
 
   const attempt = async (work: () => Promise<void>) => {
     setBusy(true);
@@ -333,14 +346,14 @@ export function BookmarksDialog({
     try {
       await work();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof Error ? err.message : t("Something went wrong. Try again."));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Bookmarks" description={<p>Private to your account.</p>}>
+    <Dialog open={open} onClose={onClose} title={t("Bookmarks")} description={<p>{t("Private to your account.")}</p>}>
       <button
         type="button"
         className="primary-button bookmark-add"
@@ -349,7 +362,7 @@ export function BookmarksDialog({
         onClick={() => attempt(onAdd)}
       >
         <Icon name="bookmark" size={18} filled={isHereMarked} />
-        {isHereMarked ? `${hereLabel} is bookmarked` : `Bookmark ${hereLabel}`}
+        {isHereMarked ? t("{place} is bookmarked", { place: hereLabel }) : t("Bookmark {place}", { place: hereLabel })}
       </button>
       {error && (
         <p className="field-error" id={errorId} role="alert">
@@ -357,7 +370,7 @@ export function BookmarksDialog({
         </p>
       )}
       {bookmarks.length === 0 ? (
-        <p className="muted bookmark-empty">No bookmarks in this book yet.</p>
+        <p className="muted bookmark-empty">{t("No bookmarks in this book yet.")}</p>
       ) : (
         <ul className="bookmark-list">
           {bookmarks.map((b) => (
@@ -365,11 +378,11 @@ export function BookmarksDialog({
               <button type="button" className="bookmark-go" onClick={() => onGo(b)}>
                 <Icon name="bookmark" size={16} filled />
                 <span>{b.label}</span>
-                <small>{new Date(b.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</small>
+                <small>{new Date(b.createdAt).toLocaleDateString(dateLocale(t.lang), { day: "numeric", month: "short" })}</small>
               </button>
               <button type="button" className="icon-button" disabled={busy} onClick={() => attempt(() => onRemove(b))}>
                 <Icon name="trash" size={17} />
-                <span className="visually-hidden">Remove bookmark {b.label}</span>
+                <span className="visually-hidden">{t("Remove bookmark {label}", { label: b.label })}</span>
               </button>
             </li>
           ))}
@@ -392,34 +405,35 @@ export function FinishedPanel({
 }) {
   const profile = useActiveProfile();
   const next = nextInSeries(book.id, profile?.ageRating ?? "all");
+  const t = useT();
   return (
     <div className="finished-panel" role="status">
       <span className="empty-icon">
         <Icon name="check" size={28} />
       </span>
-      <h2>You finished {book.title}</h2>
-      <p>It's in Finished in your library. Tell other readers what you thought.</p>
+      <h2>{t("You finished {title}", { title: book.title })}</h2>
+      <p>{t("It's in Finished in your library. Tell other readers what you thought.")}</p>
       {upNext && (
         <p className="finished-next">
           <button type="button" className="primary-button" onClick={upNext.play}>
-            <Icon name="play" size={16} filled /> Play next: {upNext.book.title}
+            <Icon name="play" size={16} filled /> {t("Play next: {title}", { title: upNext.book.title })}
           </button>
         </p>
       )}
       {next && (
         <p className="finished-next">
-          Next in the series: <Link to={`/books/${next.id}`}>{next.title}</Link>
+          {rich(t("Next in the series: {link}"), { link: <Link to={`/books/${next.id}`}>{next.title}</Link> })}
         </p>
       )}
       <div className="reading-message-actions">
         <Link className="primary-button" to={`/books/${book.id}#logs`}>
-          Write a log
+          {t("Write a log")}
         </Link>
         <Link className="secondary-button" to="/browse">
-          Go to home
+          {t("Go to home")}
         </Link>
         <button type="button" className="text-button" onClick={onRestart}>
-          Start again
+          {t("Start again")}
         </button>
       </div>
     </div>

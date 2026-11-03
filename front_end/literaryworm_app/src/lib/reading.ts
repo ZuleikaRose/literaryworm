@@ -101,9 +101,9 @@ export function chapterAt(starts: number[], seconds: number): number {
 
 /** "Chapter 3 of 12: The Hall", or just "Chapter 3 of 12" when the chapter has no name of its own. */
 export function chapterLabel(book: Book, index: number): string {
-  const base = `Chapter ${index + 1} of ${book.chapters.length}`;
+  const base = tr("Chapter {n} of {total}", { n: index + 1, total: book.chapters.length });
   const title = book.chapters[index].title;
-  return title === `Chapter ${index + 1}` ? base : `${base}: ${title}`;
+  return title === `Chapter ${index + 1}` ? base : tr("{chapter}: {title}", { chapter: base, title });
 }
 
 /** 3725 → "1:02:05"; 65 → "1:05". */
@@ -121,8 +121,8 @@ export function spokenTime(totalSeconds: number): string {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const parts = [];
-  if (h) parts.push(`${h} hour${h === 1 ? "" : "s"}`);
-  if (m || !h) parts.push(`${m} minute${m === 1 ? "" : "s"}`);
+  if (h) parts.push(tr.plural(h, { one: "{count} hour", other: "{count} hours" }));
+  if (m || !h) parts.push(tr.plural(m, { one: "{count} minute", other: "{count} minutes" }));
   return parts.join(" ");
 }
 

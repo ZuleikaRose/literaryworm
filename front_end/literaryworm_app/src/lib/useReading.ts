@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "../store/context";
 import { activeLibrary, activeReading } from "../store/reducer";
@@ -99,7 +100,7 @@ export function useReading(book: Book, profileId?: string) {
     } catch (err) {
       // Keep it for the next try unless a newer place has arrived meanwhile.
       pending.current ??= place;
-      setSaveError(err instanceof AccountError ? err.message : "We couldn't save your place. We'll try again as you read.");
+      setSaveError(err instanceof AccountError ? err.message : tr("We couldn't save your place. We'll try again as you read."));
     }
   }, [ensureInLibrary]);
 
@@ -108,8 +109,8 @@ export function useReading(book: Book, profileId?: string) {
     ensureInLibrary(false).catch((err) =>
       setSaveError(
         err instanceof AccountError
-          ? `${err.message} Your place won't be saved until it's in your library.`
-          : "We couldn't add this book to your library, so your place isn't saved yet.",
+          ? tr("{message} Your place won't be saved until it's in your library.", { message: err.message })
+          : tr("We couldn't add this book to your library, so your place isn't saved yet."),
       ),
     );
   }, [ensureInLibrary]);

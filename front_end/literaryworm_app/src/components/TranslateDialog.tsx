@@ -3,6 +3,8 @@ import { defaultTarget, passageFor, TRANSLATE_LANGUAGES, type TranslateLanguage,
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 // The last language chosen, while the app is open (in memory, like the reader's other choices).
 let lastTarget: TranslateLanguage | null = null;
@@ -12,6 +14,7 @@ let lastTarget: TranslateLanguage | null = null;
  * Claude. Choose the language; only the passage is sent.
  */
 export function TranslateDialog({ book, chapterIndex, text, onClose }: { book: Book; chapterIndex: number; text: string | null; onClose: () => void }) {
+  const t = useT();
   const [to, setTo] = useState<TranslateLanguage>(() => defaultTarget(book.language, lastTarget));
   const [result, setResult] = useState<{ key: string; translation: string | null; error: string | null } | null>(null);
   const selectId = useId();
@@ -23,7 +26,7 @@ export function TranslateDialog({ book, chapterIndex, text, onClose }: { book: B
     let live = true;
     translatePassage(book.id, chapterIndex, passage, to).then(
       (translation) => live && setResult({ key, translation, error: null }),
-      (err: unknown) => live && setResult({ key, translation: null, error: err instanceof Error ? err.message : "We couldn't translate that just now. Try again later." }),
+      (err: unknown) => live && setResult({ key, translation: null, error: err instanceof Error ? err.message : tr("We couldn't translate that just now. Try again later.") }),
     );
     return () => {
       live = false;
@@ -32,10 +35,10 @@ export function TranslateDialog({ book, chapterIndex, text, onClose }: { book: B
 
   const current = result?.key === key ? result : null;
   return (
-    <Dialog open={text !== null} onClose={onClose} eyebrow="Written by AI" title="Translate" description={<p>Only the words you selected are sent to be translated.</p>}>
+    <Dialog open={text !== null} onClose={onClose} eyebrow={t("Written by AI")} title={t("Translate")} description={<p>{t("Only the words you selected are sent to be translated.")}</p>}>
       <div className="field">
         <label className="field-label" htmlFor={selectId}>
-          Translate into
+          {t("Translate into")}
         </label>
         <select
           id={selectId}
@@ -49,7 +52,7 @@ export function TranslateDialog({ book, chapterIndex, text, onClose }: { book: B
         >
           {TRANSLATE_LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>
-              {l.label}
+              {t(l.label)}
             </option>
           ))}
         </select>
@@ -59,7 +62,7 @@ export function TranslateDialog({ book, chapterIndex, text, onClose }: { book: B
       </blockquote>
       <div className="translate-result" aria-live="polite" aria-busy={!current}>
         {!current ? (
-          <p className="goal-hint">Translating…</p>
+          <p className="goal-hint">{t("Translating…")}</p>
         ) : current.error ? (
           <p className="form-alert" role="alert">
             <Icon name="alert" size={17} /> {current.error}

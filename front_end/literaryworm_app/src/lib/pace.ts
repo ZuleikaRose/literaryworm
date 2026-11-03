@@ -3,6 +3,8 @@
  * profile's own pace in words a minute, learnt from how long it stays on each page (a page
  * glanced at or left open is ignored); listening uses the recording's time at the player's speed.
  */
+import { tr } from "./i18n";
+
 export const DEFAULT_WPM = 230;
 export const MIN_WPM = 60;
 export const MAX_WPM = 1000;
@@ -28,12 +30,12 @@ export function blendPace(current: number | null, sample: number): number {
 
 /** "under a minute", "about 12 min", "about 3 h 5 min". */
 export function formatTimeLeft(seconds: number): string {
-  if (seconds < 60) return "under a minute";
+  if (seconds < 60) return tr("under a minute");
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `about ${minutes} min`;
+  if (minutes < 60) return tr("about {minutes} min", { minutes });
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return `about ${h} h${m ? ` ${m} min` : ""}`;
+  return m ? tr("about {h} h {m} min", { h, m }) : tr("about {h} h", { h });
 }
 
 export function readingSecondsLeft(words: number, wpm: number | null): number {

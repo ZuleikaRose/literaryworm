@@ -1,4 +1,5 @@
 import type { Book, Highlight } from "../types";
+import { tk, tr } from "./i18n";
 import { drawCover, wrapLines } from "./coverArt";
 
 /**
@@ -10,9 +11,9 @@ import { drawCover, wrapLines } from "./coverArt";
 export type QuoteCardTheme = "cover" | "light" | "dark";
 
 export const QUOTE_CARD_THEMES: { value: QuoteCardTheme; label: string }[] = [
-  { value: "cover", label: "Book colours" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+  { value: "cover", label: tk("Book colours") },
+  { value: "light", label: tk("Light") },
+  { value: "dark", label: tk("Dark") },
 ];
 
 const WIDTH = 1080;
@@ -49,7 +50,7 @@ export async function drawQuoteCard(book: CardBook, highlight: Pick<Highlight, "
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("This browser can't draw the card.");
+  if (!ctx) throw new Error(tr("This browser can't draw the card."));
   const { bg, ink, muted } = palette(book, theme);
 
   ctx.fillStyle = bg;
@@ -113,7 +114,7 @@ export async function drawQuoteCard(book: CardBook, highlight: Pick<Highlight, "
   ctx.globalAlpha = theme === "cover" ? 0.85 : 1;
   ctx.font = '500 30px "DM Sans", system-ui, sans-serif';
   ctx.fillText(wrapLines(ctx, book.author, textW, 1)[0] ?? "", textX, y + 4);
-  ctx.fillText(`Chapter ${highlight.chapterIndex + 1}`, textX, y + 46);
+  ctx.fillText(tr("Chapter {n}", { n: highlight.chapterIndex + 1 }), textX, y + 46);
   ctx.font = '700 26px "Manrope", system-ui, sans-serif';
   ctx.fillText("literaryworm.com", textX, footY + coverH);
   ctx.globalAlpha = 1;
@@ -124,7 +125,7 @@ export async function drawQuoteCard(book: CardBook, highlight: Pick<Highlight, "
 export async function quoteCardBlob(book: CardBook, highlight: Pick<Highlight, "quote" | "chapterIndex">, theme: QuoteCardTheme): Promise<Blob> {
   const canvas = await drawQuoteCard(book, highlight, theme);
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("This browser can't make the picture."))), "image/png"),
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(tr("This browser can't make the picture.")))), "image/png"),
   );
 }
 

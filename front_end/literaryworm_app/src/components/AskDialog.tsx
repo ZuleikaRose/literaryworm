@@ -4,6 +4,7 @@ import { chapterLabel } from "../lib/reading";
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 type Exchange = { question: string; answer: string | null; error: string | null };
 
@@ -12,6 +13,7 @@ type Exchange = { question: string; answer: string | null; error: string | null 
  * Claude from the text up to the reader's chapter. Kept while the reader is open.
  */
 export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean; book: Book; chapterIndex: number; onClose: () => void }) {
+  const t = useT();
   const [question, setQuestion] = useState("");
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [busy, setBusy] = useState(false);
@@ -23,8 +25,8 @@ export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     const asked = question.trim();
-    if (asked.length < 3) return setFieldError("Ask a question of at least a few words.");
-    if (asked.length > QUESTION_MAX) return setFieldError(`Questions are up to ${QUESTION_MAX} characters.`);
+    if (asked.length < 3) return setFieldError(t("Ask a question of at least a few words."));
+    if (asked.length > QUESTION_MAX) return setFieldError(t("Questions are up to {max} characters.", { max: QUESTION_MAX }));
     setFieldError(null);
     setBusy(true);
     const ticket = ++latest.current;
@@ -35,7 +37,7 @@ export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean
     try {
       settle({ answer: await askBook(book.id, chapterIndex, asked) });
     } catch (err) {
-      settle({ error: err instanceof Error ? err.message : "We couldn't answer that just now. Try again later." });
+      settle({ error: err instanceof Error ? err.message : t("We couldn't answer that just now. Try again later.") });
     } finally {
       setBusy(false);
     }
@@ -45,21 +47,21 @@ export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean
     <Dialog
       open={open}
       onClose={onClose}
-      eyebrow="Written by AI"
-      title="Ask the book"
-      description={<p>Answers come from the text up to {chapterLabel(book, chapterIndex)}, so they won't spoil what's ahead.</p>}
+      eyebrow={t("Written by AI")}
+      title={t("Ask the book")}
+      description={<p>{t("Answers come from the text up to {chapter}, so they won't spoil what's ahead.", { chapter: chapterLabel(book, chapterIndex) })}</p>}
     >
       <form className="ask-form" onSubmit={submit} noValidate>
         <div className="field">
           <label className="field-label" htmlFor={inputId}>
-            Your question
+            {t("Your question")}
           </label>
           <textarea
             id={inputId}
             className="field-input"
             rows={2}
             maxLength={QUESTION_MAX}
-            placeholder="Who is Mr Collins? Why is Elizabeth angry?"
+            placeholder={t("Who is Mr Collins? Why is Elizabeth angry?")}
             value={question}
             aria-invalid={fieldError ? true : undefined}
             aria-describedby={fieldError ? errorId : undefined}
@@ -72,7 +74,7 @@ export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean
           )}
         </div>
         <button type="submit" className="primary-button small-button" disabled={busy}>
-          {busy ? "Thinking…" : "Ask"}
+          {busy ? t("Thinking…") : t("Ask")}
         </button>
       </form>
       <ol className="ask-answers" aria-live="polite">
@@ -82,7 +84,7 @@ export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean
             {x.answer !== null && x.answer.split(/\n\s*\n/).map((p, j) => <p key={j}>{p}</p>)}
             {x.answer === null && !x.error && (
               <p className="summary-hint" role="status">
-                Reading the book for an answer…
+                {t("Reading the book for an answer…")}
               </p>
             )}
             {x.error && (
@@ -93,7 +95,7 @@ export function AskDialog({ open, book, chapterIndex, onClose }: { open: boolean
           </li>
         ))}
       </ol>
-      <p className="source-credit">Answered by Claude, an AI, from the public-domain text. It can make mistakes.</p>
+      <p className="source-credit">{t("Answered by Claude, an AI, from the public-domain text. It can make mistakes.")}</p>
     </Dialog>
   );
 }

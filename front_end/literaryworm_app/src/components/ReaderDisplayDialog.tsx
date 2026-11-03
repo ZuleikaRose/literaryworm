@@ -1,5 +1,7 @@
 import { useId } from "react";
+import { tk } from "../lib/i18n";
 import { READER_SIZES } from "../lib/reading";
+import { useT } from "../lib/useT";
 import { useProfileData, useStore } from "../store/context";
 import type { ReaderSettings } from "../types";
 import { Dialog } from "./Dialog";
@@ -11,12 +13,13 @@ interface Choice<K extends keyof ReaderSettings> {
 }
 
 function Choices<K extends keyof ReaderSettings>({ legend, setting, options }: { legend: string; setting: K; options: Choice<K>[] }) {
+  const t = useT();
   const { dispatch } = useStore();
   const current = useProfileData().readerSettings[setting];
   const name = useId();
   return (
     <fieldset className="filter-group">
-      <legend>{legend}</legend>
+      <legend>{t(legend)}</legend>
       <div className="chip-group">
         {options.map((o) => (
           <label key={String(o.value)} className={`chip reader-choice-${setting}-${String(o.value)}`}>
@@ -26,7 +29,7 @@ function Choices<K extends keyof ReaderSettings>({ legend, setting, options }: {
               checked={current === o.value}
               onChange={() => dispatch({ type: "updateReaderSettings", patch: { [setting]: o.value } })}
             />
-            <span>{o.label}</span>
+            <span>{t(o.label)}</span>
           </label>
         ))}
       </div>
@@ -36,76 +39,77 @@ function Choices<K extends keyof ReaderSettings>({ legend, setting, options }: {
 
 /** Font, size, reading guide, line spacing, margins and theme. Kept for the profile until the page is refreshed. */
 export function ReaderDisplayDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
   const { dispatch } = useStore();
   const { size } = useProfileData().readerSettings;
   const setSize = (next: number) => dispatch({ type: "updateReaderSettings", patch: { size: next } });
 
   return (
-    <Dialog open={open} onClose={onClose} title="Display" description={<p>Changes show on the page straight away.</p>}>
+    <Dialog open={open} onClose={onClose} title={t("Display")} description={<p>{t("Changes show on the page straight away.")}</p>}>
       <div className="reader-display">
         <Choices
-          legend="Theme"
+          legend={tk("Theme")}
           setting="theme"
           options={[
-            { value: "light", label: "Light" },
-            { value: "sepia", label: "Sepia" },
-            { value: "dark", label: "Dark" },
+            { value: "light", label: tk("Light") },
+            { value: "sepia", label: tk("Sepia") },
+            { value: "dark", label: tk("Dark") },
           ]}
         />
         <Choices
-          legend="Font"
+          legend={tk("Font")}
           setting="font"
           options={[
-            { value: "serif", label: "Literata (serif)" },
+            { value: "serif", label: tk("Literata (serif)") },
             { value: "sans", label: "DM Sans" },
-            { value: "readable", label: "Lexend (easier reading)" },
+            { value: "readable", label: tk("Lexend (easier reading)") },
             { value: "dyslexic", label: "OpenDyslexic" },
           ]}
         />
         <fieldset className="filter-group">
-          <legend>Text size</legend>
+          <legend>{t("Text size")}</legend>
           <div className="size-stepper">
             <button type="button" className="icon-button" disabled={size === 0} onClick={() => setSize(size - 1)}>
               <span aria-hidden="true">A−</span>
-              <span className="visually-hidden">Smaller text</span>
+              <span className="visually-hidden">{t("Smaller text")}</span>
             </button>
             <output aria-live="polite">{READER_SIZES[size]} px</output>
             <button type="button" className="icon-button" disabled={size === READER_SIZES.length - 1} onClick={() => setSize(size + 1)}>
               <span aria-hidden="true">A+</span>
-              <span className="visually-hidden">Larger text</span>
+              <span className="visually-hidden">{t("Larger text")}</span>
             </button>
           </div>
         </fieldset>
         <Choices
-          legend="Reading guide"
+          legend={tk("Reading guide")}
           setting="guide"
           options={[
-            { value: "off", label: "Off" },
-            { value: "ruler", label: "Reading ruler" },
-            { value: "focus", label: "Line focus" },
+            { value: "off", label: tk("Off") },
+            { value: "ruler", label: tk("Reading ruler") },
+            { value: "focus", label: tk("Line focus") },
           ]}
         />
-        <p className="field-hint reader-guide-hint">The guide follows your pointer or a tap; J and K move it a line down or up.</p>
+        <p className="field-hint reader-guide-hint">{t("The guide follows your pointer or a tap; J and K move it a line down or up.")}</p>
         <Choices
-          legend="Line spacing"
+          legend={tk("Line spacing")}
           setting="spacing"
           options={[
-            { value: "compact", label: "Compact" },
-            { value: "normal", label: "Normal" },
-            { value: "relaxed", label: "Relaxed" },
+            { value: "compact", label: tk("Compact") },
+            { value: "normal", label: tk("Normal") },
+            { value: "relaxed", label: tk("Relaxed") },
           ]}
         />
         <Choices
-          legend="Margins"
+          legend={tk("Margins")}
           setting="margins"
           options={[
-            { value: "narrow", label: "Narrow" },
-            { value: "normal", label: "Normal" },
-            { value: "wide", label: "Wide" },
+            { value: "narrow", label: tk("Narrow") },
+            { value: "normal", label: tk("Normal") },
+            { value: "wide", label: tk("Wide") },
           ]}
         />
         <button type="button" className="primary-button" onClick={onClose}>
-          <Icon name="check" size={18} /> Done
+          <Icon name="check" size={18} /> {t("Done")}
         </button>
       </div>
     </Dialog>
