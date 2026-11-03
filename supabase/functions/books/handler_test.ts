@@ -406,7 +406,8 @@ Deno.test("a book's details are kept only as long as Google's cache header allow
 });
 
 Deno.test("nothing is kept when Google's headers don't allow it, and the browser isn't told to keep it either", async () => {
-  for (const headers of [{}, { "Cache-Control": "private, max-age=600" }, { "Cache-Control": "no-store" }, { "Cache-Control": "max-age=0" }]) {
+  const cases: Record<string, string>[] = [{}, { "Cache-Control": "private, max-age=600" }, { "Cache-Control": "no-store" }, { "Cache-Control": "max-age=0" }];
+  for (const headers of cases) {
     const { cache, volumes, lists } = memoryCache();
     const res = await handle(get("mode=volume&id=abc123"), { fetcher: stub(200, volume("abc123"), headers).fetcher, cache });
     assertEquals(res.headers.get("Cache-Control"), "no-store");
