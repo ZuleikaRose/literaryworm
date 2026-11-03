@@ -11,6 +11,32 @@ import * as sprintsApi from "./sprintsApi";
  */
 const demoSprints = new Map<string, { sprint: Sprint; readers: SprintReader[] }>();
 
+/**
+ * The demo's last sprint, so its results show before anyone starts one: yesterday evening's 20
+ * minutes at home (Avery and Sam), and the demo club's with Jordan and Priya. Kept until refresh.
+ */
+function seedDemoSprint(key: string, profiles: { id: string; name: string }[], me: { id: string; name: string } | undefined) {
+  const startsAt = new Date(Date.now() - 86_400_000).setHours(20, 0, 0, 0);
+  const sprint = (id: string, clubId: string | null): Sprint => ({ id, clubId, minutes: 20, startsAt, endsAt: startsAt + 20 * 60_000 });
+  let seeded: { sprint: Sprint; readers: SprintReader[] } | null = null;
+  if (key === "household") {
+    const pages: Record<string, number> = { Avery: 14, Sam: 9 };
+    const readers = profiles.filter((p) => p.name in pages).map((p) => ({ profileId: p.id, name: p.name, pages: pages[p.name], finished: true, mine: true }));
+    if (readers.length) seeded = { sprint: sprint("demo-sprint-home", null), readers };
+  } else if (key === "club:demo-club" && me) {
+    seeded = {
+      sprint: sprint("demo-sprint-club", "demo-club"),
+      readers: [
+        { profileId: "demo-jordan", name: "Jordan", pages: 18, finished: true, mine: false },
+        { profileId: me.id, name: me.name, pages: 12, finished: true, mine: true },
+        { profileId: "demo-priya", name: "Priya", pages: 11, finished: true, mine: false },
+      ],
+    };
+  }
+  if (seeded) demoSprints.set(key, seeded);
+  return seeded;
+}
+
 /** The demo's pages for a sprint, saved in memory when it ends. */
 export function saveDemoPages(sprintId: string, profileId: string, pages: number) {
   for (const demo of demoSprints.values()) {
@@ -39,7 +65,7 @@ export function useReadingSprint(scope: SprintScope) {
   const reload = useCallback(async () => {
     try {
       if (!remote || !accountId) {
-        const demo = demoSprints.get(key);
+        const demo = demoSprints.get(key) ?? seedDemoSprint(key, state.profiles, profile ?? undefined);
         setSprint(demo?.sprint ?? null);
         setReaders(demo ? [...demo.readers] : []);
       } else {
@@ -53,7 +79,7 @@ export function useReadingSprint(scope: SprintScope) {
     } finally {
       setLoaded(true);
     }
-  }, [remote, accountId, key]);
+  }, [remote, accountId, key, state.profiles, profile]);
 
   useEffect(() => {
     void reload();

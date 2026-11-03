@@ -1,3 +1,4 @@
+import { DEMO_WISHLIST_SLUG } from "../lib/sharedListApi";
 import { readWishlistParams } from "../lib/wishlist";
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -71,7 +72,10 @@ export default function Gifts() {
         <div className="form-alert">
           <Icon name="alert" size={17} />
           <p>
-            {rich(t("The demo account can't make payments. {link} to give a gift."), { link: <Link to="/signup">{t("Create an account")}</Link> })}
+            {rich(t("The demo account can't make payments. {link} to give a gift."), { link: <Link to="/signup">{t("Create an account")}</Link> })}{" "}
+            {rich(t("You can still try the form, or see how a shared list becomes a wishlist: {link}."), {
+              link: <Link to={`/lists/${DEMO_WISHLIST_SLUG}`}>{t("Jordan's wishlist")}</Link>,
+            })}
           </p>
         </div>
       ) : account.complimentary ? (
@@ -79,6 +83,7 @@ export default function Gifts() {
       ) : (
         <BuyGift />
       )}
+      {!live && account.isDemo && <BuyGift demo />}
 
       {live && <YourGifts justPaid={result === "success"} />}
 
@@ -91,7 +96,7 @@ export default function Gifts() {
   );
 }
 
-function BuyGift() {
+function BuyGift({ demo = false }: { demo?: boolean }) {
   const t = useT();
   const id = useId();
   const [planId, setPlanId] = useState<PlanId>("standard");
@@ -125,6 +130,10 @@ function BuyGift() {
     setRecipientError(toProblem);
     if (problem || toProblem) {
       document.getElementById(problem ? `${id}-starts` : `${id}-to`)?.focus();
+      return;
+    }
+    if (demo) {
+      setError(t("The demo account can't make payments. Create an account to give a gift."));
       return;
     }
     setBusy(true);

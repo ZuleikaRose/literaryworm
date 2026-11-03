@@ -705,6 +705,25 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("gives the demo its invite link, a past sprint and a sample wishlist that opens Gifts", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account");
+    await page.getByRole("heading", { name: "Invite a friend" }).waitFor();
+    await expect(page.getByLabel("Your link").inputValue()).resolves.toMatch(/\/signup\?ref=AVERY234$/);
+    await goInApp(page, "/library?view=goals");
+    const sprint = page.locator(".sprint-card");
+    await sprint.getByText("Last sprint: 20 minutes").waitFor();
+    await sprint.getByText("23 pages between you.").waitFor();
+    await goInApp(page, "/lists/demo-jordans-wishlist0");
+    await page.getByRole("heading", { name: "Give this list as a gift" }).waitFor();
+    await page.getByRole("link", { name: "Choose a gift" }).click();
+    await page.getByText("From Jordan's wishlist: 5 books are picked. Change them below if you like.").waitFor();
+    await page.getByRole("button", { name: "Continue to payment" }).click();
+    await page.getByRole("alert").filter({ hasText: "The demo account can't make payments. Create an account to give a gift." }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("starts a household reading sprint and counts the pages turned in the reader", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

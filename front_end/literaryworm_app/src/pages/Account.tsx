@@ -274,7 +274,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
           {t("Choose a plan")}
         </Link>
         {billed && <RedeemGift account={account} />}
-        {billed && <ReferAFriend />}
+        {(billed || account.isDemo) && <ReferAFriend demo={!billed} />}
       </Section>
     );
   }
@@ -474,7 +474,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
       <Feedback error={error} done={done} />
 
       {billed && <RedeemGift account={account} />}
-      {billed && <ReferAFriend />}
+      {(billed || account.isDemo) && <ReferAFriend demo={!billed} />}
 
       <PlanUsage planId={plan.id} />
       {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={price} interval={account.billingInterval} />}

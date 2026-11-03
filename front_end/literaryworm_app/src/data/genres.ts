@@ -70,7 +70,7 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
   science: ["Science"],
   "self-help": ["Self-development"],
   poetry: ["Poetry"],
-  // No catalog title is tagged LGBTQIA+ yet: the genre comes from Google Books.
+  // Carmilla and The Picture of Dorian Gray; Google Books adds many more.
   lgbtqia: ["LGBTQIA+"],
 };
 

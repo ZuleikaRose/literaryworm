@@ -9,7 +9,10 @@ import { Icon } from "./Icon";
  * friend who joins with it gets a month of their plan free after their first payment, and so does
  * the member, up to 2 months in all (lib/referrals.ts). Members only; staff are never billed.
  */
-export function ReferAFriend() {
+/** The demo household's sample: its own link, two friends signed up, one of them paid. */
+const DEMO_STATUS: ReferralStatus = { code: "AVERY234", signedUp: 2, joined: 1, monthsEarned: 1, invited: null };
+
+export function ReferAFriend({ demo = false }: { demo?: boolean }) {
   const t = useT();
   const id = useId();
   const [status, setStatus] = useState<ReferralStatus | null>(null);
@@ -17,6 +20,10 @@ export function ReferAFriend() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (demo) {
+      setStatus(DEMO_STATUS);
+      return;
+    }
     let live = true;
     loadReferrals().then(
       (s) => live && setStatus(s),
@@ -25,7 +32,7 @@ export function ReferAFriend() {
     return () => {
       live = false;
     };
-  }, []);
+  }, [demo]);
 
   const link = status ? referralLink(status.code) : "";
   const share = async () => {
@@ -65,6 +72,7 @@ export function ReferAFriend() {
             : t("You joined with a friend's invitation: your free month is added after your first payment.")}
         </p>
       )}
+      {demo && <p className="goal-hint">{t("In the demo the link and counts are a sample: members get their own link here.")}</p>}
       {status && (
         <>
           <div className="refer-link">

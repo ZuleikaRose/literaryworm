@@ -19,7 +19,18 @@ export interface SharedList {
 export class SharedListError extends Error {}
 
 /** The shared list, or null when the link is wrong or sharing has stopped. */
+/** The demo's sample shared list (a wishlist: see lib/wishlist.ts), served without the backend. */
+export const DEMO_WISHLIST_SLUG = "demo-jordans-wishlist0";
+const DEMO_WISHLIST: SharedList = {
+  name: "Jordan's wishlist",
+  description: "Classics I'd love to read next, for birthdays and holidays.",
+  owner: "Jordan",
+  updatedAt: "2026-11-01T18:00:00Z",
+  items: ["persuasion", "jane-eyre", "middlemarch", "carmilla", "emma"],
+};
+
 export async function fetchSharedList(slug: string): Promise<SharedList | null> {
+  if (slug === DEMO_WISHLIST_SLUG) return structuredClone(DEMO_WISHLIST);
   if (!isShareSlug(slug)) return null;
   if (!usesBackend) throw new SharedListError("Shared lists need the LiteraryWorm backend, which isn't set up in this copy of the app.");
   let res: Response;
