@@ -27,6 +27,7 @@ export const plans: Plan[] = [
       tk("Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, and read offline"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
+      tk("Keep discovering on Home that runs on through every genre for as long as you scroll"),
       tk("Share a clip of any LibriVox recording as a link"),
     ],
   },
@@ -90,6 +91,10 @@ export const planFaqs = [
   {
     q: tk("Can I try it before I pay?"),
     a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs, challenges and a reading sprint, with an invite link and a wishlist to try. Nothing you do there is saved, and it can't take payments."),
+  },
+  {
+    q: tk("Can I look at books without an account?"),
+    a: tk("Yes. The home page shows a sample of books in any genre, Search finds almost any book, and the free classics open in full. Log in, or try the demo, and Keep discovering on Home runs on from one genre into the next for as long as you scroll."),
   },
   {
     q: tk("How does billing work?"),

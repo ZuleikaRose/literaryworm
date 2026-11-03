@@ -164,6 +164,12 @@ Then, on 2 and 3 November 2026, eight more features, in this order:
 - LGBTQIA+ as a twentieth genre to browse, search and filter by, from Google Books.
 - The demo keeps up with these: a sample invite link, last night's reading sprints, and a sample wishlist that opens Gifts.
 
+Then, on 3 November 2026:
+
+- Members' Home keeps scrolling: Keep discovering runs on from one genre into the next; visitors to the public home page see a sample of 20 books, then an invitation to log in, join or try the demo.
+- The accessibility menu scrolls inside the window (it was cut off on a computer screen) and has an OpenDyslexic switch for the whole app.
+- Google Books answers cached in Supabase only as long as Google's cache headers allow, at most 7 days, to follow the Google APIs Terms; nothing kept when Google allows none.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

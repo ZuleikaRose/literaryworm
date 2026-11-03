@@ -11,7 +11,7 @@ IDE: Visual Studio Code
 
 /* THANKS */
 Books: Project Gutenberg (texts) and LibriVox volunteers (recordings) for the public-domain classics; audio clips stream from the Internet Archive
-Book search: Google Books API (by title, author, keywords or ISBN)
+Book search: Google Books API (by title, author, keywords or ISBN; answers cached in Supabase only as long as Google's cache headers allow, at most 7 days)
 Fonts: Literata, Manrope, DM Sans, Lexend (Google Fonts) and OpenDyslexic (SIL Open Font License)
 
 /* TECHNOLOGY */

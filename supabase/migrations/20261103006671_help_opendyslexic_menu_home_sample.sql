@@ -1,0 +1,9 @@
+-- Help says the accessibility menu can set the whole app in OpenDyslexic and scrolls on a small screen, and how
+-- the home page's sample and members' endless Keep discovering work. src/data/legalPages.json has the same.
+-- Added once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$In the reader, Display has OpenDyslexic among the fonts, and Reading guide: a reading ruler on one line, or line focus, which dims everything but three lines. It follows your pointer or a tap; J and K move it down or up a line."$lw$, $lw$In the reader, Display has OpenDyslexic among the fonts, and Reading guide: a reading ruler on one line, or line focus, which dims everything but three lines. It follows your pointer or a tap; J and K move it down or up a line.", "The accessibility menu, the figure button at the top of every page, can set the whole app in OpenDyslexic (or Lexend, one at a time). On a small screen the menu scrolls, so Reset to defaults is always at its end.", "On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$In the reader, Display has OpenDyslexic among the fonts, and Reading guide: a reading ruler on one line, or line focus, which dims everything but three lines. It follows your pointer or a tap; J and K move it down or up a line."$lw$) > 0
+  and strpos(sections::text, $lw$The accessibility menu, the figure button at the top of every page, can set the whole app in OpenDyslexic (or Lexend, one at a time). On a small screen the menu scrolls, so Reset to defaults is always at its end.$lw$) = 0;
