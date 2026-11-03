@@ -18,6 +18,9 @@ Disallow: /maintenance
 Disallow: /reset-password
 Disallow: /unsubscribe
 
+# Shared lists and wishlists: private links a member sends, not pages to index
+Disallow: /lists/
+
 # Shared audio clips: one-off links to a stretch of a LibriVox recording, not pages to index
 Disallow: /clips/
 
