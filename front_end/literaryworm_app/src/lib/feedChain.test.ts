@@ -1,3 +1,4 @@
+import { describe, expect, it } from "@jest/globals";
 import { genreQuery, genresAfter, nextFeedStep, sampleOf, VISITOR_SAMPLE } from "./feedChain";
 
 describe("genreQuery", () => {
