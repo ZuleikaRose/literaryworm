@@ -1,3 +1,4 @@
+import { ReadingSprint } from "./ReadingSprint";
 import { type FormEvent, useState } from "react";
 import { weeklyGoal } from "../lib/kidsReport";
 import { weeklyGoalOptions } from "../lib/profiles";
@@ -89,6 +90,8 @@ export function GoalsView({ profile }: { profile: Profile }) {
       </section>
 
       <ChallengesView profile={profile} />
+
+      <ReadingSprint scope={{ kind: "household" }} readPath="/library?status=reading" />
 
       <section className="goal-months" aria-labelledby="months-title">
         <h2 id="months-title">{t("Month by month")}</h2>

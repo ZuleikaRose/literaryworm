@@ -478,5 +478,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Book club polls on what to read next: the owner offers 2–5 books, members vote and see the votes, the winner starts the next club in one step; RLS and security checks (migrations 6637–6642), and the service role's grants made explicit (6636) | Done |
 | —    | Stronger high contrast: AAA text on black or white, stronger edges, on when the device asks for more contrast, Windows contrast themes supported; contrast tested from `tokens.css` (migrations 6643–6644) | Done |
 | —    | The app in English, Spanish, French, German, Portuguese, Italian and Dutch, chosen in the accessibility menu and starting in the browser's language; every screen, message and date follows it, books stay as written, policies stay in English with a note, and a test fails if any text is missing from a language (migrations 6645–6646) | Done |
+| —    | Each profile's language is saved and follows it to every device (migrations 6647–6648) | Done |
+| —    | Reading sprints: a 15–30 minute session a household or a book club joins, with a shared timer, a timer in the reader and everyone's pages when it ends; Realtime for members, the demo in memory; RLS and security checks (migrations 6649–6656) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

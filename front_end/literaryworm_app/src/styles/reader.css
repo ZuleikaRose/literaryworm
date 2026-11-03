@@ -1261,3 +1261,36 @@
 .sleep-more {
   margin-top: 12px;
 }
+
+/* A reading sprint's time left and pages, under the book's title in the reader (components/SprintChip.tsx). */
+.reader-heading .sprint-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 0 0;
+  padding: 1px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--rust-wash);
+  color: var(--rust-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* On narrow screens the title gives way to the tools, so the sprint's chip floats just under the bar. */
+@media (max-width: 760px) {
+  .reader-top {
+    position: relative;
+  }
+
+  .reader-heading .sprint-chip {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    z-index: 5;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+}

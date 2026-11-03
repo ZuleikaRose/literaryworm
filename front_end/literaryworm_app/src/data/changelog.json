@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Reading sprints",
+    "body": "Start a 15 to 30 minute reading sprint from Goals for everyone at home, or from a book club's page for its members. Everyone sees the same timer, the reader shows the time left and your pages as you go, and when it ends you see how many pages each of you turned. Kids profiles can join sprints at home.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-02",
     "version": "2026.11",
     "kind": "feature",

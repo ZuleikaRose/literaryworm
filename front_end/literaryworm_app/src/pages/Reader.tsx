@@ -38,6 +38,8 @@ import { ReadingGuide } from "../components/ReadingGuide";
 import "@fontsource/opendyslexic/400.css";
 import "@fontsource/opendyslexic/700.css";
 import { useActiveProfile, useProfileData } from "../store/context";
+import { countPage } from "../lib/sprintCounter";
+import { SprintChip } from "../components/SprintChip";
 import type { Book, Highlight, HighlightColor } from "../types";
 
 type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | "shortcuts" | "quiz" | null;
@@ -221,6 +223,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
 
   const goTo = (next: number) => {
     const clamped = Math.min(total - 1, Math.max(0, next));
+    // A page read forward counts towards a reading sprint this profile is in.
+    if (clamped === index + 1) countPage(profile?.id);
     setIndex(clamped);
     clearSelection();
     pageRef.current?.scrollTo({ top: 0 });
@@ -344,6 +348,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         <div className="reader-heading">
           <h1>{book.title}</h1>
           <p>{chapter.title}</p>
+          <SprintChip />
         </div>
         <div className="reader-tools">
           <button type="button" className="icon-button" onClick={() => setPanel("chapters")}>

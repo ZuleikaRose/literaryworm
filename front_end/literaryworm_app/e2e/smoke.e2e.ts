@@ -694,6 +694,26 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("starts a household reading sprint and counts the pages turned in the reader", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=goals");
+    const card = page.locator(".sprint-card");
+    await card.getByLabel("Length").selectOption("15");
+    await card.getByRole("button", { name: "Start a sprint" }).click();
+    await card.getByRole("timer", { name: "Time left in the sprint" }).waitFor();
+    await card.getByText(/^1(4:5\d|5:00)$/).waitFor();
+    await card.getByText("You've read 0 pages so far on this device.").waitFor();
+    await goInApp(page, "/read/frankenstein");
+    await page.locator(".sprint-chip").waitFor();
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.getByRole("button", { name: "Next page" }).click();
+    await page.getByRole("timer", { name: /^Reading sprint: 1\d:\d\d left, pages read: 1$/ }).waitFor();
+    await goInApp(page, "/library?view=goals");
+    await card.getByText("You've read 1 page so far on this device.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("sorts My library A–Z, Z–A, by published year and by series, keeping the status filter", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

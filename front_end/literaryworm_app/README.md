@@ -237,3 +237,5 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Club polls (`club_polls`, `club_poll_votes`, `vote_club_poll()`, `close_club_poll()`, `lib/clubPolls.ts`, `lib/useClubPolls.ts`, `ClubPolls`; migrations 6637–6642) |
 | — | Stronger high contrast (`tokens.css` high-contrast rules, `lib/contrast.ts` and its test, forced-colours rules in `base.css` and `shell.css`; migrations 6643–6644) |
 | — | The app in seven languages (`lib/i18n.ts`, `lib/useT.ts`, `src/data/i18n/*.json` and the completeness test in `i18n.test.ts`; policies' note 6645, What's new 6646) |
+| — | The language follows the profile (`reader_profiles.ui_language`, `lib/languageSync.ts`, `useLanguageSync()`; migrations 6647–6648) |
+| — | Reading sprints (`reading_sprints`, `reading_sprint_readers`, `start_reading_sprint()`, `join_reading_sprint()`, `finish_reading_sprint()`, `reading_sprint_names()`; `lib/sprints.ts`, `lib/sprintCounter.ts`, `lib/sprintsApi.ts`, `lib/useReadingSprint.ts`, `lib/useSprintSaver.ts`, `ReadingSprint`, `SprintChip`; migrations 6649–6656) |

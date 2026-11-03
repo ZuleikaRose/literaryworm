@@ -12,7 +12,7 @@ LiteraryWorm's full-text and audio library is public-domain classics: texts from
 - **Reading tools**: Didn't finish and Read again, moods and pace (with Feel-good picks on Discover), goals with rest days, reading plans to finish by a date, word and highlight review, badges, a Year in Review, imports and exports for Goodreads and StoryGraph, offline reading and scheduled offline listening.
 - **AI help, labelled as AI**: book summaries, content notes, Ask the book, Translate, Who's who, Previously… recaps and book clubs' discussion questions written by Claude (Anthropic), never past the reader's place.
 - **Search**: by title, author, keywords (descriptions, genres and series too) or ISBN, with keyword searches to try on Discover and Search. Members' own DRM-free EPUB uploads can be searched by title, author, keywords or ISBN, even inside their text, on their device.
-- **Sharing**: buddy reads (a club for two) and links to short clips of public-domain LibriVox recordings.
+- **Sharing**: reading sprints (a timed 15–30 minute session for a household or a book club, with everyone's pages at the end), buddy reads (a club for two) and links to short clips of public-domain LibriVox recordings.
 - **Languages and access**: the app in English, Spanish, French, German, Portuguese, Italian and Dutch (chosen in the accessibility menu, starting in the browser's language; the policies stay in English), with high contrast, larger text, a dyslexia-friendly font and reduced motion.
 
 ## Pricing Information

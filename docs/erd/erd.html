@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6648, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6656, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -700,6 +700,31 @@
           note: "Each member's vote in a poll. FK poll_id → club_polls, user_id → profiles, on delete cascade; index on user_id. RLS: the club's members read every vote; written only through vote_club_poll(), which checks membership, an open poll and the choice.",
         },
         {
+          id: "reading_sprints", color: colors.household, x: 0, y: 9260, sub: "a household's or a club's",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "club_id", "uuid", true],
+            ["fk", "account_id", "uuid", true],
+            ["fk", "started_by", "uuid"],
+            ["", "minutes", "smallint 15/20/25/30"],
+            ["", "starts_at", "timestamptz"],
+            ["", "ends_at", "timestamptz"],
+          ],
+          note: "A timed reading session for a household (account_id) or a club (club_id), exactly one. One running at a time for each, up to 20 a day; started only through start_reading_sprint(), which joins the starter. FKs on delete cascade, each indexed. RLS: the household or the club's members read; kept 90 days (pg_cron).",
+        },
+        {
+          id: "reading_sprint_readers", color: colors.household, x: 420, y: 9260, sub: "who joined · pages read",
+          cols: [
+            ["pk fk", "sprint_id", "uuid"],
+            ["pk fk", "profile_id", "uuid"],
+            ["fk", "account_id", "uuid"],
+            ["", "joined_at", "timestamptz"],
+            ["", "pages_read", "smallint 0–2000", true],
+            ["", "finished_at", "timestamptz", true],
+          ],
+          note: "Each profile in a sprint and the pages it turned in the reader, saved when it ends. Written only through join_reading_sprint() and finish_reading_sprint(); readable by whoever can see the sprint (for Realtime). Names come from reading_sprint_names(): a club sees display names, never which profile.",
+        },
+        {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -1111,6 +1136,10 @@
         ["uploaded_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["club_polls", "club_id", "book_clubs", "id", "N : 1"],
         ["club_poll_votes", "poll_id", "club_polls", "id", "N : 1"],
+        ["reading_sprints", "club_id", "book_clubs", "id", "N : 1 (optional)"],
+        ["reading_sprints", "started_by", "reader_profiles", "id", "N : 1"],
+        ["reading_sprint_readers", "sprint_id", "reading_sprints", "id", "N : 1"],
+        ["reading_sprint_readers", "profile_id", "reader_profiles", "id", "N : 1"],
         ["club_members", "own_copy", "uploaded_books", "id", "N : 1 (optional)"],
         ["club_listening", "club_id", "book_clubs", "id", "1 : 1"],
         ["club_listening", "host_id", "club_members", "user_id", "N : 1 (pair)"],

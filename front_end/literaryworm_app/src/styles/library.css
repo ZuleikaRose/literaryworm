@@ -2224,3 +2224,75 @@ body:has(.mini-player) .listen-along-bar {
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: 0 16px;
 }
+
+/* Reading sprints (components/ReadingSprint.tsx) */
+.sprint-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sprint-live,
+.sprint-start {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.sprint-clock {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: calc(2.6rem * var(--text-scale));
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--rust-ink);
+}
+
+.sprint-mine {
+  margin: 0;
+  font-weight: 600;
+}
+
+.sprint-readers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sprint-readers li {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  font-size: 0.9rem;
+}
+
+.sprint-results {
+  width: 100%;
+}
+
+.sprint-results h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.sprint-results ol {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.sprint-results li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  overflow-wrap: anywhere;
+}
