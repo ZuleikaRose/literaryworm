@@ -4,16 +4,19 @@ import { catalogBy, type PersonKind, personInitials, personPath } from "../lib/p
 import { useFollows } from "../lib/useFollows";
 import type { Follow, Profile } from "../types";
 import { FollowButton } from "./FollowButton";
+import { tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 const GROUPS: { kind: PersonKind; title: string }[] = [
-  { kind: "author", title: "Authors" },
-  { kind: "narrator", title: "Narrators" },
+  { kind: "author", title: tk("Authors") },
+  { kind: "narrator", title: tk("Narrators") },
 ];
 
 const sameFollow = (a: Follow, b: Follow) => a.kind === b.kind && a.name === b.name;
 
 /** My Library → Following: the authors and narrators the profile follows, with their pages and Unfollow. */
 export function FollowingView({ profile }: { profile: Profile }) {
+  const t = useT();
   const { follows } = useFollows();
   // Someone unfollowed here stays in the list (with Follow) until the page is left, so a slip is easy to undo.
   const [seen, setSeen] = useState<Follow[]>(follows);
@@ -24,13 +27,14 @@ export function FollowingView({ profile }: { profile: Profile }) {
   if (shown.length === 0) {
     return (
       <div className="library-empty">
-        <h2>You don't follow anyone yet</h2>
+        <h2>{t("You don't follow anyone yet")}</h2>
         <p>
-          Follow an author or narrator from their page, or from an author search, to see their new books first on Home
-          {profile.ageRating === "kids" ? "" : " and in a weekly email"}.
+          {profile.ageRating === "kids"
+            ? t("Follow an author or narrator from their page, or from an author search, to see their new books first on Home.")
+            : t("Follow an author or narrator from their page, or from an author search, to see their new books first on Home and in a weekly email.")}
         </p>
         <Link className="primary-button" to="/search?by=author">
-          Search by author
+          {t("Search by author")}
         </Link>
       </div>
     );
@@ -43,7 +47,7 @@ export function FollowingView({ profile }: { profile: Profile }) {
         if (people.length === 0) return null;
         return (
           <section key={kind} className="author-results" aria-labelledby={`following-${kind}`}>
-            <h2 id={`following-${kind}`}>{title}</h2>
+            <h2 id={`following-${kind}`}>{t(title)}</h2>
             <ul className="author-list" role="list">
               {people.map((p) => {
                 const titles = catalogBy(kind, p.name, profile.ageRating).length;
@@ -54,7 +58,7 @@ export function FollowingView({ profile }: { profile: Profile }) {
                     </span>
                     <div className="author-text">
                       <Link to={personPath(kind, p.name)}>{p.name}</Link>
-                      <span>{titles === 0 ? "No titles on LiteraryWorm yet" : `${titles} ${titles === 1 ? "title" : "titles"} on LiteraryWorm`}</span>
+                      <span>{titles === 0 ? t("No titles on LiteraryWorm yet") : t.plural(titles, { one: "{count} title on LiteraryWorm", other: "{count} titles on LiteraryWorm" })}</span>
                     </div>
                     <FollowButton kind={kind} name={p.name} small />
                   </li>

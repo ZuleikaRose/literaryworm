@@ -4,6 +4,8 @@ import { getBook } from "../data/books";
 import { emitClubPost } from "../lib/clubEvents";
 import { type Club, clubBook, type ClubMembership, type ClubPostEvent, spoilerFreeUpTo } from "../lib/clubs";
 import * as clubsApi from "../lib/clubsApi";
+import { rich, tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { activeReading } from "../store/reducer";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { Icon } from "./Icon";
@@ -35,6 +37,7 @@ export function ClubAlerts() {
 }
 
 function ClubAlertsFor({ userId }: { userId: string }) {
+  const t = useT();
   const { state } = useStore();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -78,7 +81,7 @@ function ClubAlertsFor({ userId }: { userId: string }) {
       if (document.visibilityState === "hidden" && "Notification" in window && Notification.permission === "granted") {
         // The author and chapter only: the post itself stays inside the app.
         try {
-          const note = new Notification(`New post in ${club.name}`, { body: `${post.author} wrote about chapter ${chapter}.`, icon: "/icons/icon-192.png", tag: post.id });
+          const note = new Notification(tr("New post in {club}", { club: club.name }), { body: tr("{author} wrote about chapter {n}.", { author: post.author, n: chapter }), icon: "/icons/icon-192.png", tag: post.id });
           note.onclick = () => {
             window.focus();
             go(`/clubs/${clubId}`);
@@ -120,14 +123,14 @@ function ClubAlertsFor({ userId }: { userId: string }) {
           <div key={a.id} className="club-alert">
             <Icon name="users" size={18} />
             <p>
-              <strong>{a.author}</strong> posted in {a.clubName} about chapter {a.chapter}.{" "}
+              {rich(t("{author} posted in {club} about chapter {n}."), { author: <strong>{a.author}</strong>, club: a.clubName, n: a.chapter })}{" "}
               <Link to={`/clubs/${a.clubId}`} onClick={() => setAlerts((list) => list.filter((x) => x.id !== a.id))}>
-                Open the club
+                {t("Open the club")}
               </Link>
             </p>
             <button type="button" className="icon-button" onClick={() => setAlerts((list) => list.filter((x) => x.id !== a.id))}>
               <Icon name="close" size={16} />
-              <span className="visually-hidden">Dismiss</span>
+              <span className="visually-hidden">{t("Dismiss")}</span>
             </button>
           </div>
         ))}

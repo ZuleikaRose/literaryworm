@@ -1,5 +1,6 @@
 import type { QuizResult, ReadingDay } from "../types";
 import { STREAK_SECONDS } from "./goals";
+import { tk } from "./i18n";
 
 /** A Kids profile's week, for the grown-ups (Account → Family, and the weekly email). */
 export interface KidWeek {
@@ -62,10 +63,10 @@ export function weeklyGoal(days: Record<string, ReadingDay>, goalMinutes: number
 export type KidGroup = "toGo" | "notYet" | "reading" | "reached";
 
 export const KID_GROUPS: { id: KidGroup; heading: string }[] = [
-  { id: "toGo", heading: "Still working on their goal" },
-  { id: "notYet", heading: "No reading yet" },
-  { id: "reading", heading: "Reading, no goal set" },
-  { id: "reached", heading: "Goal reached" },
+  { id: "toGo", heading: tk("Still working on their goal") },
+  { id: "notYet", heading: tk("No reading yet") },
+  { id: "reading", heading: tk("Reading, no goal set") },
+  { id: "reached", heading: tk("Goal reached") },
 ];
 
 /** Which group a week falls in: `seconds` read or listened, and the weekly goal if one is set. */

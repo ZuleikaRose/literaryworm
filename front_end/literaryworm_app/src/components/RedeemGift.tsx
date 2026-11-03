@@ -5,9 +5,11 @@ import { endDate } from "../lib/billing";
 import { giftCodeError, monthsLabel } from "../lib/gifts";
 import { useStore } from "../store/context";
 import type { Account } from "../types";
+import { tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
-const message = (err: unknown) => (err instanceof AccountError ? err.message : "We couldn't redeem that gift. Try again.");
+const message = (err: unknown) => (err instanceof AccountError ? err.message : tr("We couldn't redeem that gift. Try again."));
 
 /**
  * Redeem a gift code (Account, Plans and Gifts). On a membership on the gift's plan, the next
@@ -16,6 +18,7 @@ const message = (err: unknown) => (err instanceof AccountError ? err.message : "
  * it, so this waits for it before saying it's ready.
  */
 export function RedeemGift({ account, onStarted, initialCode = "" }: { account: Account; onStarted?: () => void; initialCode?: string }) {
+  const t = useT();
   const id = useId();
   const { dispatch } = useStore();
   // Filled in from a gift email's link (/gifts?code=…).
@@ -48,30 +51,36 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
     setDone(null);
     const problem = giftCodeError(code);
     if (problem) return setError({ field: "code", text: problem });
-    if (!hasMembership && !agreed) return setError({ field: "agree", text: "Tick the box to agree to what happens when the gift ends." });
+    if (!hasMembership && !agreed) return setError({ field: "agree", text: t("Tick the box to agree to what happens when the gift ends.") });
     setBusy(true);
     setError(null);
     try {
       const gift = await redeemGift(code, !hasMembership);
-      const what = `${monthsLabel(gift.months)} of ${planById.get(gift.planId)?.name ?? gift.planId}`;
+      const what = t("{months} of {plan}", { months: monthsLabel(gift.months), plan: planById.get(gift.planId)?.name ?? gift.planId });
       // Books that came with it are in the library on the server now; show them here too.
       const withBooks = gift.books.length
-        ? ` ${gift.books.length === 1 ? "A book came with it and is" : `${gift.books.length} books came with it and are`} in My Library, ready to read.`
+        ? ` ${t.plural(gift.books.length, {
+            one: "A book came with it and is in My Library, ready to read.",
+            other: "{count} books came with it and are in My Library, ready to read.",
+          })}`
         : "";
       if (gift.books.length) void loadLibrary().then((library) => dispatch({ type: "setAccountLibrary", library }), () => undefined);
       setCode("");
       setAgreed(false);
       if (gift.plan) {
         dispatch({ type: "updateAccount", patch: gift.plan });
-        setDone(`Gift redeemed: ${what}. Nothing is charged until ${endDate(gift.until)}.${withBooks}`);
+        setDone(t("Gift redeemed: {what}. Nothing is charged until {date}.", { what, date: endDate(gift.until) }) + withBooks);
         return;
       }
-      setDone(`Gift redeemed: ${what}. Setting up your membership…`);
+      setDone(t("Gift redeemed: {what}. Setting up your membership…", { what }));
       const ready = await waitForMembership();
       setDone(
         ready
-          ? `Gift redeemed: your ${what} start today and run until ${endDate(gift.until)}.${withBooks}`
-          : `Gift redeemed: ${what}, until ${endDate(gift.until)}. Your membership is taking a little longer to appear: refresh the page in a minute.${withBooks}`,
+          ? t("Gift redeemed: your {what} start today and run until {date}.", { what, date: endDate(gift.until) }) + withBooks
+          : t("Gift redeemed: {what}, until {date}. Your membership is taking a little longer to appear: refresh the page in a minute.", {
+              what,
+              date: endDate(gift.until),
+            }) + withBooks,
       );
       if (ready) onStarted?.();
     } catch (err) {
@@ -84,12 +93,12 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
   const describedBy = error?.field === "code" ? `${id}-error` : `${id}-hint`;
   return (
     <section className="redeem-gift" id="redeem" aria-labelledby={`${id}-title`}>
-      <h3 id={`${id}-title`}>Redeem a gift</h3>
+      <h3 id={`${id}-title`}>{t("Redeem a gift")}</h3>
       <form className="redeem-form" onSubmit={submit} noValidate>
         <div className="promo-form">
           <div className="field">
             <label className="field-label" htmlFor={id}>
-              Gift code
+              {t("Gift code")}
             </label>
             <input
               id={id}
@@ -115,13 +124,13 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
             ) : (
               <p className="field-hint" id={`${id}-hint`}>
                 {hasMembership
-                  ? "The gift must be for your plan. Its months are added before your next charge."
-                  : "Your membership starts today, free for the gift's months. No card needed."}
+                  ? t("The gift must be for your plan. Its months are added before your next charge.")
+                  : t("Your membership starts today, free for the gift's months. No card needed.")}
               </p>
             )}
           </div>
           <button type="submit" className="secondary-button" disabled={busy}>
-            Redeem gift
+            {t("Redeem gift")}
           </button>
         </div>
         {!hasMembership && (
@@ -138,8 +147,9 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
                 aria-describedby={error?.field === "agree" ? `${id}-agree-error` : undefined}
               />
               <span>
-                I understand that when the gift ends, my membership ends too, unless I add a card in Account. With a card, it renews
-                automatically each month at the plan's price until I cancel.
+                {t(
+                  "I understand that when the gift ends, my membership ends too, unless I add a card in Account. With a card, it renews automatically each month at the plan's price until I cancel.",
+                )}
               </span>
             </label>
             {error?.field === "agree" && (

@@ -4,6 +4,7 @@ import { type Club, clubBook, type ClubMembership, spoilerFreeUpTo, unreadUpTo }
 import type { ListeningAlert } from "./planLimits";
 import { today } from "./reading";
 import { isOut } from "./release";
+import { tr } from "./i18n";
 
 /**
  * What the notification bell shows for a profile: books from its reminders that are out (new
@@ -83,4 +84,4 @@ export function bellCount(
 export const badgeText = (count: number) => (count > 99 ? "99+" : String(count));
 
 /** The bell button's name for screen readers. */
-export const bellLabel = (count: number) => (count > 0 ? `Notifications, ${count} new` : "Notifications");
+export const bellLabel = (count: number) => (count > 0 ? tr("Notifications, {count} new", { count }) : tr("Notifications"));

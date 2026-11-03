@@ -57,6 +57,8 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeLibrary, activeReading } from "../store/reducer";
 import { smartLists } from "../lib/smartLists";
 import { isMood, moodLabel, MOODS } from "../lib/moods";
+import { dateLocale, tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import type {
   BookRequest,
   CustomList,
@@ -84,24 +86,22 @@ type View =
 type StatusFilter = ReadingStatus | "all";
 
 const VIEWS: { id: View; label: string }[] = [
-  { id: "library", label: "My library" },
-  { id: "favorites", label: "Favorites" },
-  { id: "lists", label: "Lists" },
-  { id: "smart", label: "Smart lists" },
-  { id: "following", label: "Following" },
-  { id: "readers", label: "Readers" },
-  { id: "reminders", label: "Reminders" },
-  { id: "uploads", label: "Uploads" },
-  { id: "upnext", label: "Up next" },
-  { id: "notes", label: "Notes" },
-  { id: "words", label: "Words" },
-  { id: "goals", label: "Goals" },
-  { id: "badges", label: "Badges" },
-  { id: "stats", label: "Stats" },
-  { id: "clubs", label: "Clubs" },
+  { id: "library", label: tk("My library") },
+  { id: "favorites", label: tk("Favorites") },
+  { id: "lists", label: tk("Lists") },
+  { id: "smart", label: tk("Smart lists") },
+  { id: "following", label: tk("Following") },
+  { id: "readers", label: tk("Readers") },
+  { id: "reminders", label: tk("Reminders") },
+  { id: "uploads", label: tk("Uploads") },
+  { id: "upnext", label: tk("Up next") },
+  { id: "notes", label: tk("Notes") },
+  { id: "words", label: tk("Words") },
+  { id: "goals", label: tk("Goals") },
+  { id: "badges", label: tk("Badges") },
+  { id: "stats", label: tk("Stats") },
+  { id: "clubs", label: tk("Clubs") },
 ];
-
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
 /** Kids profiles see only catalog titles rated for them; everyone else sees the whole library. */
 function visibleTo(profile: Profile, bookId: string, requests: BookRequest[]): boolean {
@@ -117,7 +117,8 @@ function visibleTo(profile: Profile, bookId: string, requests: BookRequest[]): b
  * plus the blueprint's Favorites and custom lists.
  */
 export default function Library() {
-  useTitle("My Library");
+  const t = useT();
+  useTitle(t("My Library"));
   const profile = useActiveProfile()!;
   const [params, setParams] = useSearchParams();
   const view: View = VIEWS.some((v) => v.id === params.get("view"))
@@ -127,16 +128,14 @@ export default function Library() {
   return (
     <div className="library-page page-content">
       <header className="library-header">
-        <h1>My Library</h1>
+        <h1>{t("My Library")}</h1>
         <p>
-          Private to you
           {profile.ageRating === "kids"
-            ? `, showing ${profile.name}'s books`
-            : ""}
-          . Logs you publish are public.
+            ? t("Private to you, showing {name}'s books. Logs you publish are public.", { name: profile.name })
+            : t("Private to you. Logs you publish are public.")}
         </p>
       </header>
-      <nav className="library-tabs" aria-label="Library sections">
+      <nav className="library-tabs" aria-label={t("Library sections")}>
         <ul role="list">
           {VIEWS.map((v) => (
             <li key={v.id}>
@@ -149,7 +148,7 @@ export default function Library() {
                   })
                 }
               >
-                {v.label}
+                {t(v.label)}
               </Link>
             </li>
           ))}
@@ -177,6 +176,7 @@ export default function Library() {
 // --- My library ---------------------------------------------------------------
 
 function LibraryView({ profile }: { profile: Profile }) {
+  const t = useT();
   const requests = useProfileData().bookRequests;
   const library = useLibrary();
   const [params, setParams] = useSearchParams();
@@ -254,7 +254,7 @@ function LibraryView({ profile }: { profile: Profile }) {
       setError(
         err instanceof AccountError
           ? err.message
-          : "Something went wrong. Try again.",
+          : t("Something went wrong. Try again."),
       );
       return false;
     }
@@ -267,7 +267,7 @@ function LibraryView({ profile }: { profile: Profile }) {
     if (
       await run(
         () => library.remove(entry.bookId),
-        "Removed from your library.",
+        t("Removed from your library."),
       )
     )
       headingRef.current?.focus();
@@ -281,7 +281,7 @@ function LibraryView({ profile }: { profile: Profile }) {
         tabIndex={-1}
         ref={headingRef}
       >
-        My library
+        {t("My library")}
       </h2>
       <p className="visually-hidden" role="status">
         {announcement}
@@ -293,8 +293,7 @@ function LibraryView({ profile }: { profile: Profile }) {
             className="secondary-button small-button"
             onClick={() => setImporting(true)}
           >
-            <Icon name="download" size={16} /> Import from Goodreads or
-            StoryGraph
+            <Icon name="download" size={16} /> {t("Import from Goodreads or StoryGraph")}
           </button>
           <ExportLibraryButtons />
         </div>
@@ -306,7 +305,7 @@ function LibraryView({ profile }: { profile: Profile }) {
       />
       <div className="library-controls">
         <fieldset className="filter-group library-filter">
-          <legend>Show</legend>
+          <legend>{t("Show")}</legend>
           <div className="chip-group">
             {(["all", "want_to_read", "reading", "finished", "did_not_finish"] as const).map(
               (s) => (
@@ -318,7 +317,7 @@ function LibraryView({ profile }: { profile: Profile }) {
                     onChange={() => setParam("status", s === "all" ? null : s)}
                   />
                   <span>
-                    {s === "all" ? "All" : readingStatusLabel[s]} ({counts[s]})
+                    {s === "all" ? t("All") : t(readingStatusLabel[s])} ({counts[s]})
                   </span>
                 </label>
               ),
@@ -326,18 +325,18 @@ function LibraryView({ profile }: { profile: Profile }) {
           </div>
         </fieldset>
         <div className="library-sort">
-          <label htmlFor={moodId}>Mood</label>
+          <label htmlFor={moodId}>{t("Mood")}</label>
           <select id={moodId} className="field-input" value={mood ?? ""} onChange={(e) => setParam("mood", e.target.value || null)}>
-            <option value="">Any mood</option>
+            <option value="">{t("Any mood")}</option>
             {MOODS.map((m) => (
               <option key={m.value} value={m.value}>
-                {m.label}
+                {t(m.label)}
               </option>
             ))}
           </select>
         </div>
         <div className="library-sort">
-          <label htmlFor={sortId}>Sort by</label>
+          <label htmlFor={sortId}>{t("Sort by")}</label>
           <select
             id={sortId}
             className="field-input"
@@ -351,7 +350,7 @@ function LibraryView({ profile }: { profile: Profile }) {
           >
             {LIBRARY_SORTS.map((s) => (
               <option key={s.value} value={s.value}>
-                {s.label}
+                {t(s.label)}
               </option>
             ))}
           </select>
@@ -371,20 +370,20 @@ function LibraryView({ profile }: { profile: Profile }) {
           <h3>
             {entries.length === 0
               ? mood
-                ? `Nothing tagged ${moodLabel(mood).toLowerCase()}`
-                : "Your library is empty"
-              : `Nothing marked ${readingStatusLabel[filter as ReadingStatus].toLowerCase()}`}
+                ? t("Nothing tagged {mood}", { mood: t(moodLabel(mood)).toLowerCase() })
+                : t("Your library is empty")
+              : t("Nothing marked {status}", { status: t(readingStatusLabel[filter as ReadingStatus]).toLowerCase() })}
           </h3>
           <p>
             {entries.length === 0 && mood
-              ? "Tag a book's moods on its page under How did it feel?, or choose Any mood."
+              ? t("Tag a book's moods on its page under How did it feel?, or choose Any mood.")
               : entries.length === 0
-                ? "Open any book and choose Add to my library. Your library is private; only you see it."
-                : "Change a book's status here or on its page."}
+                ? t("Open any book and choose Add to my library. Your library is private; only you see it.")
+                : t("Change a book's status here or on its page.")}
           </p>
           {entries.length === 0 && !mood && (
             <Link className="primary-button" to="/browse">
-              Find a book
+              {t("Find a book")}
             </Link>
           )}
         </div>
@@ -398,7 +397,7 @@ function LibraryView({ profile }: { profile: Profile }) {
               onStatus={(status) =>
                 run(
                   () => library.setStatus(entry.bookId, status),
-                  `Marked as ${readingStatusLabel[status].toLowerCase()}.`,
+                  t("Marked as {status}.", { status: t(readingStatusLabel[status]).toLowerCase() }),
                 )
               }
               onRemove={() => setRemoving(entry)}
@@ -411,12 +410,9 @@ function LibraryView({ profile }: { profile: Profile }) {
         open={removing !== null}
         onClose={() => setRemoving(null)}
         size="sm"
-        title="Remove this book?"
+        title={t("Remove this book?")}
         description={
-          <p>
-            Any logs you wrote about it, your place in it and its bookmarks are
-            deleted too. This can't be undone.
-          </p>
+          <p>{t("Any logs you wrote about it, your place in it and its bookmarks are deleted too. This can't be undone.")}</p>
         }
       >
         <div className="modal-actions">
@@ -425,14 +421,14 @@ function LibraryView({ profile }: { profile: Profile }) {
             className="danger-button"
             onClick={confirmRemove}
           >
-            Remove book
+            {t("Remove book")}
           </button>
           <button
             type="button"
             className="secondary-button"
             onClick={() => setRemoving(null)}
           >
-            Keep it
+            {t("Keep it")}
           </button>
         </div>
       </Dialog>
@@ -458,6 +454,7 @@ function useEntryDetails(
     "bookId" | "title" | "authors" | "cover" | "published"
   >,
 ) {
+  const t = useT();
   const book = getBook(entry.bookId);
   const needsLookup = !book && !entry.title;
   const { state } = useVolume(needsLookup ? entry.bookId : null);
@@ -475,9 +472,9 @@ function useEntryDetails(
     title:
       entry.title ??
       volume?.title ??
-      (state?.status === "error" ? "Book details unavailable" : "Loading…"),
+      (state?.status === "error" ? t("Book details unavailable") : t("Loading…")),
     author:
-      (entry.authors ?? volume?.authors ?? []).join(", ") || "Unknown author",
+      (entry.authors ?? volume?.authors ?? []).join(", ") || t("Unknown author"),
     cover: entry.cover ?? volume?.cover ?? null,
     local: undefined,
     loading: needsLookup && state?.status === "loading",
@@ -533,6 +530,9 @@ function LibraryRow({
   onStatus: (status: ReadingStatus) => Promise<boolean>;
   onRemove: () => void;
 }) {
+  const t = useT();
+  // English keeps the device's own date style; other languages write dates their way.
+  const dateFormat = new Intl.DateTimeFormat(t.lang === "en" ? undefined : dateLocale(t.lang), { dateStyle: "medium" });
   const details = useEntryDetails(entry);
   const looked = "looked" in details && details.looked;
   // A Google Books title looked up here tells the list, so it sorts by its real title and year.
@@ -569,11 +569,11 @@ function LibraryRow({
           {details.title}
         </Link>
         <span>{details.author}</span>
-        <small>Added {dateFormat.format(entry.addedAt)}</small>
+        <small>{t("Added {date}", { date: dateFormat.format(entry.addedAt) })}</small>
       </div>
       <div className="library-row-actions">
         <label className="visually-hidden" htmlFor={selectId}>
-          Reading status for {details.title}
+          {t("Reading status for {title}", { title: details.title })}
         </label>
         <select
           id={selectId}
@@ -588,7 +588,7 @@ function LibraryRow({
         >
           {Object.entries(readingStatusLabel).map(([value, label]) => (
             <option key={value} value={value}>
-              {label}
+              {t(label)}
             </option>
           ))}
         </select>
@@ -598,8 +598,8 @@ function LibraryRow({
             className="ghost-button small-button"
             onClick={() => setSummaryOpen(true)}
           >
-            <Icon name="bookOpen" size={15} /> Summary
-            <span className="visually-hidden"> of {details.title}</span>
+            <Icon name="bookOpen" size={15} /> {t("Summary")}
+            <span className="visually-hidden">{t(" of {title}", { title: details.title })}</span>
           </button>
         )}
         <button
@@ -607,7 +607,7 @@ function LibraryRow({
           className="ghost-button small-button"
           onClick={onRemove}
         >
-          <Icon name="trash" size={15} /> Remove
+          <Icon name="trash" size={15} /> {t("Remove")}
           <span className="visually-hidden"> {details.title}</span>
         </button>
       </div>
@@ -615,8 +615,8 @@ function LibraryRow({
         <Dialog
           open={summaryOpen}
           onClose={() => setSummaryOpen(false)}
-          eyebrow="Written by AI"
-          title={`${details.title}: summary`}
+          eyebrow={t("Written by AI")}
+          title={t("{title}: summary", { title: details.title })}
         >
           {/* Mounted only while open, so a summary is asked for only when someone wants it. */}
           {summaryOpen && (
@@ -631,6 +631,7 @@ function LibraryRow({
 // --- Favorites ----------------------------------------------------------------
 
 function FavoritesView({ profile }: { profile: Profile }) {
+  const t = useT();
   const { favorites } = useCollections();
   const requests = useProfileData().bookRequests;
   // Newest first; Kids profiles see only catalog titles rated for them.
@@ -639,11 +640,8 @@ function FavoritesView({ profile }: { profile: Profile }) {
     return (
       <div className="library-empty">
         <Icon name="star" size={28} />
-        <h3>No favorites yet</h3>
-        <p>
-          Choose Favorite on any book's page, from LiteraryWorm or Google Books,
-          to keep it here.
-        </p>
+        <h3>{t("No favorites yet")}</h3>
+        <p>{t("Choose Favorite on any book's page, from LiteraryWorm or Google Books, to keep it here.")}</p>
       </div>
     );
   }
@@ -659,6 +657,7 @@ function FavoritesView({ profile }: { profile: Profile }) {
 // --- Smart lists (lib/smartLists.ts) -------------------------------------------------
 
 function SmartListsView({ profile }: { profile: Profile }) {
+  const t = useT();
   const { state } = useStore();
   const data = useProfileData();
   const library = activeLibrary(state);
@@ -674,10 +673,11 @@ function SmartListsView({ profile }: { profile: Profile }) {
       return book ? [book.author] : (e.authors ?? []);
     },
     now: Date.now(),
+    t,
   });
   return (
     <div className="smart-lists">
-      <p className="goal-hint">These lists fill themselves from your library, your place in each book, your ratings, moods and who you follow.</p>
+      <p className="goal-hint">{t("These lists fill themselves from your library, your place in each book, your ratings, moods and who you follow.")}</p>
       {lists.map((list) => (
         <section key={list.id} className="smart-list" aria-labelledby={`smart-${list.id}`}>
           <h2 id={`smart-${list.id}`}>
@@ -702,6 +702,7 @@ function SmartListsView({ profile }: { profile: Profile }) {
 // --- Custom lists -------------------------------------------------------------
 
 function ListsView({ profile }: { profile: Profile }) {
+  const t = useT();
   const collections = useCollections();
   const requests = useProfileData().bookRequests;
   const library = useLibrary();
@@ -732,7 +733,7 @@ function ListsView({ profile }: { profile: Profile }) {
       setError(
         err instanceof AccountError
           ? err.message
-          : "Something went wrong. Try again.",
+          : t("Something went wrong. Try again."),
       );
       return false;
     } finally {
@@ -746,7 +747,7 @@ function ListsView({ profile }: { profile: Profile }) {
     if (
       !(await run(
         () => collections.moveList(list.id, by),
-        `${list.name} moved to position ${to + 1} of ${lists.length}.`,
+        t("{name} moved to position {n} of {total}.", { name: list.name, n: to + 1, total: lists.length }),
       ))
     )
       return;
@@ -767,7 +768,7 @@ function ListsView({ profile }: { profile: Profile }) {
     <section aria-labelledby="lists-title">
       <div className="lists-heading">
         <h2 id="lists-title" tabIndex={-1}>
-          Your lists
+          {t("Your lists")}
         </h2>
         <button
           type="button"
@@ -775,7 +776,7 @@ function ListsView({ profile }: { profile: Profile }) {
           disabled={lists.length >= LISTS_MAX}
           onClick={() => setEditing("new")}
         >
-          <Icon name="plus" size={17} /> New list
+          <Icon name="plus" size={17} /> {t("New list")}
         </button>
       </div>
       <p className="visually-hidden" role="status">
@@ -791,11 +792,8 @@ function ListsView({ profile }: { profile: Profile }) {
       {lists.length === 0 ? (
         <div className="library-empty">
           <Icon name="list" size={28} />
-          <h3>No lists yet</h3>
-          <p>
-            Make a list for a book club, a holiday stack or anything else, then
-            add books from your library.
-          </p>
+          <h3>{t("No lists yet")}</h3>
+          <p>{t("Make a list for a book club, a holiday stack or anything else, then add books from your library.")}</p>
         </div>
       ) : (
         <ol className="custom-lists" role="list">
@@ -807,15 +805,12 @@ function ListsView({ profile }: { profile: Profile }) {
                     {list.name}
                     {list.shareSlug && (
                       <span className="shared-tag">
-                        <Icon name="share" size={13} /> Shared
+                        <Icon name="share" size={13} /> {t("Shared")}
                       </span>
                     )}
                   </h3>
                   {list.description && <p>{list.description}</p>}
-                  <small>
-                    {list.bookIds.length}{" "}
-                    {list.bookIds.length === 1 ? "book" : "books"}
-                  </small>
+                  <small>{t.plural(list.bookIds.length, { one: "{count} book", other: "{count} books" })}</small>
                 </div>
                 <div className="custom-list-actions">
                   <button
@@ -826,7 +821,7 @@ function ListsView({ profile }: { profile: Profile }) {
                     onClick={() => move(list, i, -1)}
                   >
                     <Icon name="chevronDown" size={18} className="flip" />
-                    <span className="visually-hidden">Move {list.name} up</span>
+                    <span className="visually-hidden">{t("Move {name} up", { name: list.name })}</span>
                   </button>
                   <button
                     type="button"
@@ -836,9 +831,7 @@ function ListsView({ profile }: { profile: Profile }) {
                     onClick={() => move(list, i, 1)}
                   >
                     <Icon name="chevronDown" size={18} />
-                    <span className="visually-hidden">
-                      Move {list.name} down
-                    </span>
+                    <span className="visually-hidden">{t("Move {name} down", { name: list.name })}</span>
                   </button>
                   {collections.canShare && (
                     <button
@@ -846,7 +839,7 @@ function ListsView({ profile }: { profile: Profile }) {
                       className="ghost-button small-button"
                       onClick={() => setSharingId(list.id)}
                     >
-                      <Icon name="share" size={15} /> Share
+                      <Icon name="share" size={15} /> {t("Share")}
                       <span className="visually-hidden"> {list.name}</span>
                     </button>
                   )}
@@ -855,7 +848,7 @@ function ListsView({ profile }: { profile: Profile }) {
                     className="ghost-button small-button"
                     onClick={() => setEditing(list)}
                   >
-                    <Icon name="edit" size={15} /> Rename
+                    <Icon name="edit" size={15} /> {t("Rename")}
                     <span className="visually-hidden"> {list.name}</span>
                   </button>
                   <button
@@ -863,7 +856,7 @@ function ListsView({ profile }: { profile: Profile }) {
                     className="ghost-button small-button danger-text"
                     onClick={() => setDeleting(list)}
                   >
-                    <Icon name="trash" size={15} /> Delete
+                    <Icon name="trash" size={15} /> {t("Delete")}
                     <span className="visually-hidden"> {list.name}</span>
                   </button>
                 </div>
@@ -881,15 +874,15 @@ function ListsView({ profile }: { profile: Profile }) {
       {lists.length > 0 && !collections.canShare && (
         <p className="list-hint">
           {collections.remote
-            ? "Kids profiles can't share lists."
-            : "Sharing a list by link needs a LiteraryWorm account; the demo can't publish links."}
+            ? t("Kids profiles can't share lists.")
+            : t("Sharing a list by link needs a LiteraryWorm account; the demo can't publish links.")}
         </p>
       )}
 
       <Dialog
         open={editing !== null}
         onClose={() => setEditing(null)}
-        title={editing === "new" ? "New list" : "Rename list"}
+        title={editing === "new" ? t("New list") : t("Rename list")}
         size="sm"
       >
         {editing !== null && (
@@ -903,7 +896,7 @@ function ListsView({ profile }: { profile: Profile }) {
                 await collections.createList(name, description);
               else await collections.updateList(editing.id, name, description);
               setAnnouncement(
-                editing === "new" ? `Created ${name}.` : `Saved ${name}.`,
+                editing === "new" ? t("Created {name}.", { name }) : t("Saved {name}.", { name }),
               );
               setEditing(null);
             }}
@@ -915,12 +908,12 @@ function ListsView({ profile }: { profile: Profile }) {
         open={deleting !== null}
         onClose={() => setDeleting(null)}
         size="sm"
-        title={`Delete ${deleting?.name ?? "this list"}?`}
+        title={deleting ? t("Delete {name}?", { name: deleting.name }) : t("Delete this list?")}
         description={
           <p>
-            The books stay in your library.
-            {deleting?.shareSlug ? " Its shared link stops working." : ""} This
-            can't be undone.
+            {deleting?.shareSlug
+              ? t("The books stay in your library. Its shared link stops working. This can't be undone.")
+              : t("The books stay in your library. This can't be undone.")}
           </p>
         }
       >
@@ -936,7 +929,7 @@ function ListsView({ profile }: { profile: Profile }) {
               if (
                 await run(
                   () => collections.deleteList(list.id),
-                  `Deleted ${list.name}.`,
+                  t("Deleted {name}.", { name: list.name }),
                 )
               ) {
                 requestAnimationFrame(() =>
@@ -945,14 +938,14 @@ function ListsView({ profile }: { profile: Profile }) {
               }
             }}
           >
-            Delete list
+            {t("Delete list")}
           </button>
           <button
             type="button"
             className="secondary-button"
             onClick={() => setDeleting(null)}
           >
-            Keep it
+            {t("Keep it")}
           </button>
         </div>
       </Dialog>
@@ -976,6 +969,7 @@ function ListForm({
   taken: string[];
   onSave: (name: string, description: string) => Promise<void>;
 }) {
+  const t = useT();
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -985,11 +979,11 @@ function ListForm({
   async function submit(e: FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed) return setError("Give the list a name.");
+    if (!trimmed) return setError(t("Give the list a name."));
     if (trimmed.length > LIST_NAME_MAX)
-      return setError(`Names can be up to ${LIST_NAME_MAX} characters.`);
+      return setError(t("Names can be up to {max} characters.", { max: LIST_NAME_MAX }));
     if (taken.includes(trimmed.toLowerCase()))
-      return setError("You already have a list with this name.");
+      return setError(t("You already have a list with this name."));
     setSaving(true);
     try {
       await onSave(trimmed, description);
@@ -997,7 +991,7 @@ function ListForm({
       setError(
         err instanceof AccountError
           ? err.message
-          : "Something went wrong. Try again.",
+          : t("Something went wrong. Try again."),
       );
     } finally {
       setSaving(false);
@@ -1007,7 +1001,7 @@ function ListForm({
   return (
     <form onSubmit={submit} noValidate>
       <Field
-        label="Name"
+        label={t("Name")}
         value={name}
         maxLength={LIST_NAME_MAX + 10}
         onChange={(e) => {
@@ -1019,7 +1013,7 @@ function ListForm({
       />
       <div className="field">
         <label className="field-label" htmlFor={descId}>
-          Description (optional)
+          {t("Description (optional)")}
         </label>
         <textarea
           id={descId}
@@ -1035,7 +1029,7 @@ function ListForm({
         className="primary-button modal-submit"
         disabled={saving}
       >
-        {saving ? "Saving…" : initial ? "Save list" : "Create list"}
+        {saving ? t("Saving…") : initial ? t("Save list") : t("Create list")}
       </button>
     </form>
   );
@@ -1053,6 +1047,7 @@ function ShareDialog({
   onShare: (id: string) => Promise<void>;
   onStop: (id: string) => Promise<void>;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -1069,7 +1064,7 @@ function ShareDialog({
       setError(
         err instanceof AccountError
           ? err.message
-          : "Something went wrong. Try again.",
+          : t("Something went wrong. Try again."),
       );
     } finally {
       setBusy(false);
@@ -1084,7 +1079,7 @@ function ShareDialog({
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       setError(
-        "Your browser didn't allow copying. Select the link and copy it yourself.",
+        t("Your browser didn't allow copying. Select the link and copy it yourself."),
       );
     }
   }
@@ -1098,13 +1093,11 @@ function ShareDialog({
         onClose();
       }}
       size="sm"
-      eyebrow="Share by link"
-      title={list?.name ?? "Share list"}
+      eyebrow={t("Share by link")}
+      title={list?.name ?? t("Share list")}
       description={
         <p>
-          Anyone with the link can see this list's name, description, your
-          profile's name and its books. They never see your account, library or
-          reading history.
+          {t("Anyone with the link can see this list's name, description, your profile's name and its books. They never see your account, library or reading history.")}
         </p>
       }
     >
@@ -1113,7 +1106,7 @@ function ShareDialog({
           {link ? (
             <>
               <label className="field-label" htmlFor={linkId}>
-                Link to this list
+                {t("Link to this list")}
               </label>
               <div className="share-link-row">
                 <input
@@ -1129,11 +1122,11 @@ function ShareDialog({
                   onClick={copy}
                 >
                   <Icon name={copied ? "check" : "share"} size={16} />{" "}
-                  {copied ? "Copied" : "Copy link"}
+                  {copied ? t("Copied") : t("Copy link")}
                 </button>
               </div>
               <p className="visually-hidden" role="status">
-                {copied ? "Link copied." : ""}
+                {copied ? t("Link copied.") : ""}
               </p>
               <button
                 type="button"
@@ -1141,7 +1134,7 @@ function ShareDialog({
                 disabled={busy}
                 onClick={() => attempt(() => onStop(list.id))}
               >
-                {busy ? "Stopping…" : "Stop sharing"}
+                {busy ? t("Stopping…") : t("Stop sharing")}
               </button>
             </>
           ) : (
@@ -1152,7 +1145,7 @@ function ShareDialog({
               onClick={() => attempt(() => onShare(list.id))}
             >
               <Icon name="share" size={16} />{" "}
-              {busy ? "Making a link…" : "Share by link"}
+              {busy ? t("Making a link…") : t("Share by link")}
             </button>
           )}
           {error && (
@@ -1177,6 +1170,7 @@ function ListBooks({
   busy: boolean;
   run: (work: () => Promise<void>, done: string) => Promise<boolean>;
 }) {
+  const t = useT();
   const { addToList, removeFromList } = useCollections();
   const [picked, setChoice] = useState("");
   const selectId = useId();
@@ -1202,7 +1196,7 @@ function ListBooks({
               onRemove={(title) =>
                 run(
                   () => removeFromList(list.id, bookId),
-                  `Removed ${title} from ${list.name}.`,
+                  t("Removed {title} from {name}.", { title, name: list.name }),
                 )
               }
             />
@@ -1218,14 +1212,14 @@ function ListBooks({
             if (
               await run(
                 () => addToList(list.id, choice),
-                `Added to ${list.name}.`,
+                t("Added to {name}.", { name: list.name }),
               )
             )
               setChoice("");
           }}
         >
           <label className="field-label" htmlFor={selectId}>
-            Add a book from your library
+            {t("Add a book from your library")}
           </label>
           <div className="list-add-row">
             <select
@@ -1234,7 +1228,7 @@ function ListBooks({
               value={choice}
               onChange={(e) => setChoice(e.target.value)}
             >
-              <option value="">Choose a book</option>
+              <option value="">{t("Choose a book")}</option>
               {addable.map((e) => (
                 <BookOption key={e.bookId} entry={e} />
               ))}
@@ -1244,18 +1238,18 @@ function ListBooks({
               className="secondary-button"
               disabled={!choice || busy}
             >
-              Add
+              {t("Add")}
             </button>
           </div>
         </form>
       ) : full ? (
         <p className="list-hint">
-          This list is full: a list can hold up to {LIST_BOOKS_MAX} books.
+          {t("This list is full: a list can hold up to {max} books.", { max: LIST_BOOKS_MAX })}
         </p>
       ) : (
         list.bookIds.length === 0 && (
           <p className="list-hint">
-            Add books to your library first, then put them in this list.
+            {t("Add books to your library first, then put them in this list.")}
           </p>
         )
       )}
@@ -1279,6 +1273,7 @@ function ListBookItem({
   busy: boolean;
   onRemove: (title: string) => void;
 }) {
+  const t = useT();
   const details = useEntryDetails(entry ?? { bookId });
   return (
     <li>
@@ -1291,9 +1286,7 @@ function ListBookItem({
         onClick={() => onRemove(details.title)}
       >
         <Icon name="close" size={15} />
-        <span className="visually-hidden">
-          Remove {details.title} from this list
-        </span>
+        <span className="visually-hidden">{t("Remove {title} from this list", { title: details.title })}</span>
       </button>
     </li>
   );

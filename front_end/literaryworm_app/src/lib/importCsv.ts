@@ -1,5 +1,6 @@
 import { books, isAllowed } from "../data/books";
 import type { AgeRating, Book, RatingValue, ReadingStatus } from "../types";
+import { tk, tr } from "./i18n";
 import { normalizeQuery, QUERY_MAX, queryError } from "./search";
 
 /**
@@ -100,7 +101,7 @@ export function ratingFromStars(stars: number): RatingValue | null {
 export function readImport(text: string): ImportFile {
   const [header, ...lines] = parseCsv(text);
   const source = header ? detectSource(header.map((h) => h.trim())) : null;
-  if (!source) throw new Error("This doesn't look like a Goodreads or StoryGraph export. Choose the CSV file the site gave you.");
+  if (!source) throw new Error(tr("This doesn't look like a Goodreads or StoryGraph export. Choose the CSV file the site gave you."));
   if (lines.length > IMPORT_MAX_ROWS) throw new Error(`The file has ${lines.length} books. Import up to ${IMPORT_MAX_ROWS} at a time.`);
   const col = (name: string) => header.findIndex((h) => h.trim() === name);
   const title = col("Title");
@@ -174,4 +175,4 @@ export function pickMatch<T extends { title: string; authors: string[] }>(row: P
 }
 
 /** "Read" → what LiteraryWorm calls it. */
-export const STATUS_LABEL: Record<ReadingStatus, string> = { want_to_read: "Want to read", reading: "Reading", finished: "Finished", did_not_finish: "Didn't finish" };
+export const STATUS_LABEL: Record<ReadingStatus, string> = { want_to_read: tk("Want to read"), reading: tk("Reading"), finished: tk("Finished"), did_not_finish: tk("Didn't finish") };

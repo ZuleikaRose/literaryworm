@@ -1,5 +1,6 @@
 import type { Book, UploadedBook } from "../types";
 import type { ClubMeeting } from "./clubCalendar";
+import { activeLanguage, dateLocale } from "./i18n";
 import { chapterAt, chapterTimes } from "./reading";
 import { isUploadId, uploadToBook } from "./uploadBook";
 
@@ -35,6 +36,7 @@ export const BUDDY_DAYS = 30;
 
 /** "Buddy read: Dracula", within a club name's 60 characters. */
 export function buddyName(title: string): string {
+  // Saved as the club's name, which both readers see: kept in English like other saved text.
   const name = `Buddy read: ${title.trim()}`;
   return name.length <= 60 ? name : `${name.slice(0, 59).trimEnd()}…`;
 }
@@ -110,10 +112,9 @@ export function clubChapterToday(club: Pick<Club, "startsOn" | "finishesOn">, bo
   return fraction >= 1 ? book.chapters.length - 1 : chapterAt(starts, fraction * total);
 }
 
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeZone: "UTC" });
-
-/** "2026-11-25" → "Nov 25, 2026" (in the reader's own style). */
-export const clubDate = (day: string) => dateFormat.format(new Date(`${day}T00:00:00Z`));
+/** "2026-11-25" → "Nov 25, 2026" (in the reader's own style, or the language chosen). */
+export const clubDate = (day: string) =>
+  new Intl.DateTimeFormat(activeLanguage() === "en" ? undefined : dateLocale(), { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${day}T00:00:00Z`));
 
 /** Days from `today` to the finish date (negative once it's past). */
 export const daysLeft = (club: Pick<Club, "finishesOn">, today: string) => Math.round((toTime(club.finishesOn) - toTime(today)) / DAY_MS);

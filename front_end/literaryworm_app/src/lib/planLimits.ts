@@ -1,6 +1,6 @@
 import { planById, plans } from "../data/plans";
 import type { Plan, PlanId, ReadingDay } from "../types";
-import { tr } from "./i18n";
+import { activeLanguage, dateLocale, tr } from "./i18n";
 
 /**
  * The plan limits shown on the plan cards: hours of listening a month for the whole account,
@@ -28,7 +28,7 @@ export function monthRange(day: string): { from: string; to: string } {
 /** The first day of the month after `day`'s, for "Listening starts again on 1 December". */
 export function nextMonthLabel(day: string): string {
   const [y, m] = day.split("-").map(Number);
-  return new Date(y, m, 1).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+  return new Date(y, m, 1).toLocaleDateString(activeLanguage() === "en" ? "en-GB" : dateLocale(), { day: "numeric", month: "long" });
 }
 
 /** Seconds every profile listened in the month `day` is in. */
@@ -104,7 +104,7 @@ export function hoursAndMinutes(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m} min`;
+  return h === 0 ? tr("{m} min", { m }) : m === 0 ? tr("{h} h", { h }) : tr("{h} h {m} min", { h, m });
 }
 
 /**

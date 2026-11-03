@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { discussableChapters } from "../lib/discussion";
 import { fetchDiscussion } from "../lib/discussionApi";
 import { chapterLabel } from "../lib/reading";
+import { useT } from "../lib/useT";
 import type { Book } from "../types";
 import { Icon } from "./Icon";
 
@@ -22,6 +23,7 @@ export function DiscussionQuestions({
   sample?: Record<number, string[]>;
   onUse: (chapter: number, question: string) => void;
 }) {
+  const t = useT();
   const chapters = discussableChapters(upTo, book.chapters.length);
   const [chapter, setChapter] = useState(chapters[chapters.length - 1]);
   const [kept, setKept] = useState<Record<number, string[]>>(sample ?? {});
@@ -40,7 +42,7 @@ export function DiscussionQuestions({
       setError(
         err instanceof Error
           ? err.message
-          : "We couldn't write questions just now. Try again later.",
+          : t("We couldn't write questions just now. Try again later."),
       );
     } finally {
       setBusy(false);
@@ -52,16 +54,15 @@ export function DiscussionQuestions({
       className="discussion-questions"
       aria-labelledby={`${selectId}-title`}
     >
-      <h3 id={`${selectId}-title`}>Discussion questions</h3>
+      <h3 id={`${selectId}-title`}>{t("Discussion questions")}</h3>
       <p className="goal-hint">
-        <Icon name="ask" size={15} /> Written by AI from the book up to the end
-        of the chapter you choose, so nothing later is given away. Only chapters
-        you&apos;ve reached are offered.
+        <Icon name="ask" size={15} />{" "}
+        {t("Written by AI from the book up to the end of the chapter you choose, so nothing later is given away. Only chapters you've reached are offered.")}
       </p>
       <div className="discussion-pick">
         <div className="field">
           <label className="field-label" htmlFor={selectId}>
-            Chapter
+            {t("Chapter")}
           </label>
           <select
             id={selectId}
@@ -85,7 +86,7 @@ export function DiscussionQuestions({
             aria-describedby={error ? `${selectId}-error` : undefined}
           >
             <Icon name="ask" size={15} />{" "}
-            {busy ? "Writing questions…" : "Get questions"}
+            {busy ? t("Writing questions…") : t("Get questions")}
           </button>
         )}
       </div>
@@ -105,7 +106,7 @@ export function DiscussionQuestions({
                   className="text-button"
                   onClick={() => onUse(chapter, q)}
                 >
-                  Start a post with this
+                  {t("Start a post with this")}
                   <span className="visually-hidden">: {q}</span>
                 </button>
               </li>

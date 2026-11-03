@@ -1,5 +1,7 @@
 /** Which notification state a device is in, and the key conversion: no browser or Supabase here, so tests can load it. */
 
+import { tk } from "./i18n";
+
 export type PushState =
   /** The browser can't (or this copy of the app has no service worker or backend). */
   | "unsupported"
@@ -43,11 +45,11 @@ export function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
 
 /** The kinds of notification an account chooses from (account_private.push_kinds, all on to begin with). */
 export const PUSH_KINDS = [
-  { id: "release", label: "A book I'm waiting for comes out" },
-  { id: "meeting", label: "A book club meeting is coming up" },
-  { id: "club_posts", label: "New posts in my book clubs (only up to my chapter)" },
-  { id: "streak", label: "An evening nudge to keep a reading streak" },
-  { id: "request", label: "A grown-up answers a Kids profile's book request" },
+  { id: "release", label: tk("A book I'm waiting for comes out") },
+  { id: "meeting", label: tk("A book club meeting is coming up") },
+  { id: "club_posts", label: tk("New posts in my book clubs (only up to my chapter)") },
+  { id: "streak", label: tk("An evening nudge to keep a reading streak") },
+  { id: "request", label: tk("A grown-up answers a Kids profile's book request") },
 ] as const;
 export type PushKind = (typeof PUSH_KINDS)[number]["id"];
 

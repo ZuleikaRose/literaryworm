@@ -9,14 +9,16 @@ import { useNotifications } from "../lib/useNotifications";
 import { usePopover } from "../lib/usePopover";
 import { useStore } from "../store/context";
 import { Icon } from "./Icon";
+import { rich, type T } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
-const clock = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
-
-/** "today at 7:00 PM" or "tomorrow at 7:00 PM" (meetings in the bell are less than a day away). */
-function meetingWhen(iso: string): string {
+/** "Book club meets today at 7:00 PM" or "… tomorrow at 7:00 PM" (meetings in the bell are less than a day away). */
+function meetingText(t: T, club: string, iso: string): string {
   const start = new Date(iso);
   const sameDay = start.toDateString() === new Date().toDateString();
-  return `${sameDay ? "today" : "tomorrow"} at ${clock.format(start)}`;
+  // The browser's own clock style in English; the chosen language's otherwise.
+  const time = new Intl.DateTimeFormat(t.lang === "en" ? undefined : t.lang, { hour: "numeric", minute: "2-digit" }).format(start);
+  return sameDay ? t("{club} meets today at {time}", { club, time }) : t("{club} meets tomorrow at {time}", { club, time });
 }
 
 /**
@@ -27,6 +29,7 @@ function meetingWhen(iso: string): string {
 export function NotificationBell() {
   const { released, authorNews, news, meetings, polls, listening, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
+  const t = useT();
   const planId = useStore().state.account?.planId ?? null;
   const panelId = useId();
   // What was seen before this opening, so the panel can still mark what's new while it's open.
@@ -58,18 +61,24 @@ export function NotificationBell() {
         <span className="visually-hidden">{bellLabel(count)}</span>
       </button>
       {open && (
-        <div id={panelId} className="popover bell-panel" role="region" aria-label="Notifications">
-          <h2 className="popover-title">Notifications</h2>
+        <div id={panelId} className="popover bell-panel" role="region" aria-label={t("Notifications")}>
+          <h2 className="popover-title">{t("Notifications")}</h2>
           {empty ? (
             <p className="bell-empty">
-              Nothing new. Books you set <strong>Remind me</strong> on show up here when they come out, and so do new books from
-              authors you follow{withClubs ? ", new posts, meetings and polls in your book clubs" : ""} and news about your goals and streak.
+              {rich(
+                withClubs
+                  ? t(
+                      "Nothing new. Books you set {remind} on show up here when they come out, and so do new books from authors you follow, new posts, meetings and polls in your book clubs and news about your goals and streak.",
+                    )
+                  : t("Nothing new. Books you set {remind} on show up here when they come out, and so do new books from authors you follow and news about your goals and streak."),
+                { remind: <strong>{t("Remind me")}</strong> },
+              )}
             </p>
           ) : (
             <>
               {requests.length > 0 && (
                 <>
-                  <p className="popover-label">Book requests</p>
+                  <p className="popover-label">{t("Book requests")}</p>
                   <ul className="bell-list" role="list">
                     {requests.map(({ key, at, waiting }) => (
                       <li key={key}>
@@ -77,10 +86,10 @@ export function NotificationBell() {
                           <Icon name="bookOpen" size={18} />
                           <span>
                             <strong>
-                              {waiting.profile.name} asked for {waiting.book.title}
-                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                              {t("{name} asked for {title}", { name: waiting.profile.name, title: waiting.book.title })}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
-                            <small>Say yes or no in Account → Family.</small>
+                            <small>{t("Say yes or no in Account → Family.")}</small>
                           </span>
                         </Link>
                       </li>
@@ -90,7 +99,7 @@ export function NotificationBell() {
               )}
               {goals.length > 0 && (
                 <>
-                  <p className="popover-label">Your reading</p>
+                  <p className="popover-label">{t("Your reading")}</p>
                   <ul className="bell-list" role="list">
                     {goals.map((g) => (
                       <li key={g.kind}>
@@ -99,18 +108,21 @@ export function NotificationBell() {
                           <span>
                             <strong>
                               {g.kind === "streak"
-                                ? `Your ${g.days}-day streak ends tonight`
+                                ? t("Your {days}-day streak ends tonight", { days: g.days })
                                 : g.kind === "close"
-                                  ? `${g.left === 1 ? "1 book" : `${g.left} books`} from your ${g.year} goal`
-                                  : `You reached your ${g.year} goal`}
-                              {isNewAlert(g.at, seenBefore) && <span className="bell-new">New</span>}
+                                  ? t.plural(g.left, { one: "{count} book from your {year} goal", other: "{count} books from your {year} goal" }, { year: g.year })
+                                  : t("You reached your {year} goal", { year: g.year })}
+                              {isNewAlert(g.at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>
                               {g.kind === "streak"
-                                ? "Read or listen for a minute today to keep it going."
+                                ? t("Read or listen for a minute today to keep it going.")
                                 : g.kind === "close"
-                                  ? `${g.goal - g.left} of ${g.goal} books finished this year.`
-                                  : `${g.goal} ${g.goal === 1 ? "book" : "books"} finished. Well done! Set a bigger goal in Goals if you like.`}
+                                  ? t("{done} of {goal} books finished this year.", { done: g.goal - g.left, goal: g.goal })
+                                  : t.plural(g.goal, {
+                                      one: "{count} book finished. Well done! Set a bigger goal in Goals if you like.",
+                                      other: "{count} books finished. Well done! Set a bigger goal in Goals if you like.",
+                                    })}
                             </small>
                           </span>
                         </Link>
@@ -121,7 +133,7 @@ export function NotificationBell() {
               )}
               {badges.length > 0 && (
                 <>
-                  <p className="popover-label">Badges</p>
+                  <p className="popover-label">{t("Badges")}</p>
                   <ul className="bell-list" role="list">
                     {badges.map(({ badge, at }) => (
                       <li key={badge.id}>
@@ -129,10 +141,10 @@ export function NotificationBell() {
                           <Icon name={badge.icon} size={18} />
                           <span>
                             <strong>
-                              You earned {badge.title}
-                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                              {t("You earned {badge}", { badge: t(badge.title) })}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
-                            <small>{badge.description}. See all your badges in My Library.</small>
+                            <small>{t("{description}. See all your badges in My Library.", { description: t(badge.description) })}</small>
                           </span>
                         </Link>
                       </li>
@@ -142,7 +154,7 @@ export function NotificationBell() {
               )}
               {(listening || renewal || offerPlan) && (
                 <>
-                  <p className="popover-label">Your plan</p>
+                  <p className="popover-label">{t("Your plan")}</p>
                   <ul className="bell-list" role="list">
                     {renewal && plan && (
                       <li>
@@ -151,14 +163,14 @@ export function NotificationBell() {
                           <span>
                             <strong>
                               {switchPlan
-                                ? `Monthly billing starts on ${endDate(renewal.renewsAt)}`
-                                : `Your yearly membership renews on ${endDate(renewal.renewsAt)}`}
-                              {isNewAlert(renewal.at, seenBefore) && <span className="bell-new">New</span>}
+                                ? t("Monthly billing starts on {date}", { date: endDate(renewal.renewsAt) })
+                                : t("Your yearly membership renews on {date}", { date: endDate(renewal.renewsAt) })}
+                              {isNewAlert(renewal.at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>
                               {switchPlan
-                                ? `${switchPlan.name} · ${formatPrice(switchPlan.price)} a month from then, instead of renewing the year.`
-                                : `${plan.name} · ${formatPrice(plan.yearlyPrice)}. To stop it, cancel in Account at least 48 hours before.`}
+                                ? t("{plan} · {price} a month from then, instead of renewing the year.", { plan: switchPlan.name, price: formatPrice(switchPlan.price) })
+                                : t("{plan} · {price}. To stop it, cancel in Account at least 48 hours before.", { plan: plan.name, price: formatPrice(plan.yearlyPrice) })}
                             </small>
                           </span>
                         </Link>
@@ -170,11 +182,15 @@ export function NotificationBell() {
                           <Icon name="star" size={18} />
                           <span>
                             <strong>
-                              Switch to yearly and save {formatPrice(offer.saving)}
-                              {isNewAlert(offer.at, seenBefore) && <span className="bell-new">New</span>}
+                              {t("Switch to yearly and save {amount}", { amount: formatPrice(offer.saving) })}
+                              {isNewAlert(offer.at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>
-                              {offerPlan.name} · {formatPrice(offerPlan.yearlyPrice)} a year instead of {formatPrice(offerPlan.price)} a month: two months free.
+                              {t("{plan} · {yearly} a year instead of {monthly} a month: two months free.", {
+                                plan: offerPlan.name,
+                                yearly: formatPrice(offerPlan.yearlyPrice),
+                                monthly: formatPrice(offerPlan.price),
+                              })}
                             </small>
                           </span>
                         </Link>
@@ -186,13 +202,18 @@ export function NotificationBell() {
                         <Icon name="headphones" size={18} />
                         <span>
                           <strong>
-                            {listening.used >= listening.limit ? "This month's listening is used up" : "Most of this month's listening is used"}
-                            {isNewListeningAlert(listening, seenBefore) && <span className="bell-new">New</span>}
+                            {listening.used >= listening.limit ? t("This month's listening is used up") : t("Most of this month's listening is used")}
+                            {isNewListeningAlert(listening, seenBefore) && <span className="bell-new">{t("New")}</span>}
                           </strong>
                           <small>
-                            {hoursAndMinutes(Math.min(listening.used, listening.limit))} of {listening.limit / 3600} hours, for the whole household
+                            {t("{used} of {hours} hours, for the whole household", {
+                              used: hoursAndMinutes(Math.min(listening.used, listening.limit)),
+                              hours: listening.limit / 3600,
+                            })}
                             {listeningNext &&
-                              ` · ${listeningNext.audioHoursPerMonth === null ? "unlimited" : `${listeningNext.audioHoursPerMonth} hours`} on ${listeningNext.name}`}
+                              (listeningNext.audioHoursPerMonth === null
+                                ? t(" · unlimited on {plan}", { plan: listeningNext.name })
+                                : t(" · {hours} hours on {plan}", { hours: listeningNext.audioHoursPerMonth, plan: listeningNext.name }))}
                           </small>
                         </span>
                       </Link>
@@ -203,7 +224,7 @@ export function NotificationBell() {
               )}
               {(news.length > 0 || meetings.length > 0 || polls.length > 0) && (
                 <>
-                  <p className="popover-label">Book clubs</p>
+                  <p className="popover-label">{t("Book clubs")}</p>
                   <ul className="bell-list" role="list">
                     {meetings.map(({ meeting: m, at }) => (
                       <li key={m.id}>
@@ -211,8 +232,8 @@ export function NotificationBell() {
                           <Icon name="calendar" size={18} />
                           <span>
                             <strong>
-                              {m.clubName} meets {meetingWhen(m.startsAt)}
-                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                              {meetingText(t, m.clubName, m.startsAt)}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>{m.title}</small>
                           </span>
@@ -225,10 +246,10 @@ export function NotificationBell() {
                           <Icon name="list" size={18} />
                           <span>
                             <strong>
-                              {clubName} asks: {p.question}
-                              {isNewAlert(at, seenBefore) && <span className="bell-new">New</span>}
+                              {t("{club} asks: {question}", { club: clubName, question: p.question })}
+                              {isNewAlert(at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
-                            <small>Vote on what to read next</small>
+                            <small>{t("Vote on what to read next")}</small>
                           </span>
                         </Link>
                       </li>
@@ -240,7 +261,7 @@ export function NotificationBell() {
                           <span>
                             <strong>{n.clubName}</strong>
                             <small>
-                              {n.posts} new {n.posts === 1 ? "post" : "posts"} · {n.bookTitle}
+                              {t.plural(n.posts, { one: "{count} new post · {book}", other: "{count} new posts · {book}" }, { book: n.bookTitle })}
                             </small>
                           </span>
                         </Link>
@@ -251,7 +272,7 @@ export function NotificationBell() {
               )}
               {authorNews.length > 0 && (
                 <>
-                  <p className="popover-label">New from authors you follow</p>
+                  <p className="popover-label">{t("New from authors you follow")}</p>
                   <ul className="bell-list" role="list">
                     {authorNews.map((n) => (
                       <li key={n.bookId}>
@@ -260,10 +281,10 @@ export function NotificationBell() {
                           <span>
                             <strong>
                               {n.title}
-                              {isNewAuthorBook(n, seenBefore) && <span className="bell-new">New</span>}
+                              {isNewAuthorBook(n, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>
-                              {n.author} · out {releaseLabel(n.published)}
+                              {t("{author} · out {date}", { author: n.author, date: releaseLabel(n.published) })}
                             </small>
                           </span>
                         </Link>
@@ -274,7 +295,7 @@ export function NotificationBell() {
               )}
               {released.length > 0 && (
                 <>
-                  <p className="popover-label">Out now</p>
+                  <p className="popover-label">{t("Out now")}</p>
                   <ul className="bell-list" role="list">
                     {released.map((r) => (
                       <li key={r.bookId}>
@@ -283,10 +304,10 @@ export function NotificationBell() {
                           <span>
                             <strong>
                               {r.title}
-                              {isNewRelease(r, seenBefore) && <span className="bell-new">New</span>}
+                              {isNewRelease(r, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>
-                              {r.author ? `${r.author} · ` : ""}out {releaseLabel(r.releaseDate)}
+                              {r.author ? t("{author} · out {date}", { author: r.author, date: releaseLabel(r.releaseDate) }) : t("out {date}", { date: releaseLabel(r.releaseDate) })}
                             </small>
                           </span>
                         </Link>
@@ -299,7 +320,7 @@ export function NotificationBell() {
           )}
           <hr className="menu-sep" />
           <Link className="menu-item" to="/library?view=reminders" onClick={() => close(false)}>
-            <Icon name="bell" size={17} /> All reminders
+            <Icon name="bell" size={17} /> {t("All reminders")}
           </Link>
         </div>
       )}

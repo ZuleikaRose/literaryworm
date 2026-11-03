@@ -5,6 +5,7 @@ import type { Club, ClubDetail, ClubMembership, ClubPost, ClubPostEvent } from "
 import type { ClubHighlight } from "./clubHighlights";
 import type { ClubPoll } from "./clubPolls";
 import type { HighlightColor } from "../types";
+import { tr } from "./i18n";
 import { supabase } from "./supabase";
 
 /**
@@ -14,7 +15,7 @@ import { supabase } from "./supabase";
  */
 
 function client() {
-  if (!supabase) throw new AccountError("Book clubs need the LiteraryWorm backend, which isn't set up in this copy of the app.");
+  if (!supabase) throw new AccountError(tr("Book clubs need the LiteraryWorm backend, which isn't set up in this copy of the app."));
   return supabase;
 }
 
@@ -85,13 +86,13 @@ const toPost = (row: PostRow): ClubPost => ({
 /** This account's own copies of uploaded club books, by club (club_members.own_copy). */
 async function myCopies(): Promise<Map<string, string | null>> {
   const { data, error } = await client().from("club_members").select("club_id, own_copy").eq("user_id", await signedInUserId());
-  if (error) throw new AccountError("We couldn't load your book clubs. Try again.");
+  if (error) throw new AccountError(tr("We couldn't load your book clubs. Try again."));
   return new Map((data as { club_id: string; own_copy: string | null }[]).map((m) => [m.club_id, m.own_copy]));
 }
 
 export async function listClubs(): Promise<Club[]> {
   const [{ data, error }, copies] = await Promise.all([client().from("book_clubs").select(CLUB_COLUMNS).order("created_at"), myCopies()]);
-  if (error) throw new AccountError("We couldn't load your book clubs. Try again.");
+  if (error) throw new AccountError(tr("We couldn't load your book clubs. Try again."));
   return (data as unknown as ClubRow[]).map((row) => toClub(row, copies.get(row.id) ?? null));
 }
 
@@ -99,8 +100,8 @@ export async function listClubs(): Promise<Club[]> {
 export async function linkOwnCopy(clubId: string, uploadId: string | null): Promise<void> {
   const { error } = await client().from("club_members").update({ own_copy: uploadId }).eq("club_id", clubId).eq("user_id", await signedInUserId());
   if (error) {
-    if (error.message.includes("own uploaded")) throw new AccountError("Choose one of your own uploaded books.");
-    throw new AccountError("We couldn't use that copy. Try again.");
+    if (error.message.includes("own uploaded")) throw new AccountError(tr("Choose one of your own uploaded books."));
+    throw new AccountError(tr("We couldn't use that copy. Try again."));
   }
 }
 
@@ -114,7 +115,7 @@ export async function loadClub(id: string): Promise<ClubDetail | null> {
     db.from("club_meetings").select(MEETING_COLUMNS).eq("club_id", id).gte("starts_at", new Date(Date.now() - 4 * 3_600_000).toISOString()).order("starts_at"),
     myCopies(),
   ]);
-  if (club.error || members.error || posts.error || meetings.error) throw new AccountError("We couldn't load this club. Try again.");
+  if (club.error || members.error || posts.error || meetings.error) throw new AccountError(tr("We couldn't load this club. Try again."));
   if (!club.data) return null;
   return {
     club: toClub(club.data as unknown as ClubRow, copies.get(id) ?? null),
@@ -144,9 +145,9 @@ export async function addMeeting(meeting: Omit<ClubMeeting, "id"> & { id: string
     .select(MEETING_COLUMNS)
     .single();
   if (error) {
-    if (error.message.includes("20 upcoming")) throw new AccountError("A club can have up to 20 upcoming meetings. Cancel one to add another.");
+    if (error.message.includes("20 upcoming")) throw new AccountError(tr("A club can have up to 20 upcoming meetings. Cancel one to add another."));
     if (error.message.includes("still to come") || error.message.includes("year ahead")) throw new AccountError(`${error.message}.`);
-    throw new AccountError("We couldn't schedule the meeting. Only the person who started the club can. Try again.");
+    throw new AccountError(tr("We couldn't schedule the meeting. Only the person who started the club can. Try again."));
   }
   return toMeeting(data as MeetingRow);
 }
@@ -161,22 +162,22 @@ export async function updateMeeting(meeting: ClubMeeting): Promise<ClubMeeting> 
     .single();
   if (error) {
     if (error.message.includes("still to come") || error.message.includes("year ahead")) throw new AccountError(`${error.message}.`);
-    throw new AccountError("We couldn't change the meeting. Only the person who started the club can. Try again.");
+    throw new AccountError(tr("We couldn't change the meeting. Only the person who started the club can. Try again."));
   }
   return toMeeting(data as MeetingRow);
 }
 
 export async function deleteMeeting(id: string): Promise<void> {
   const { error } = await client().from("club_meetings").delete().eq("id", id);
-  if (error) throw new AccountError("We couldn't cancel the meeting. Try again.");
+  if (error) throw new AccountError(tr("We couldn't cancel the meeting. Try again."));
 }
 
 /** Answers a meeting for the signed-in member (null takes the answer back); through answer_club_meeting(). */
 export async function answerMeeting(id: string, answer: RsvpAnswer | null): Promise<void> {
   const { error } = await client().rpc("answer_club_meeting", { p_meeting: id, p_answer: answer });
   if (error) {
-    if (error.message.includes("already started")) throw new AccountError("This meeting has already started.");
-    throw new AccountError("We couldn't save your answer. Try again.");
+    if (error.message.includes("already started")) throw new AccountError(tr("This meeting has already started."));
+    throw new AccountError(tr("We couldn't save your answer. Try again."));
   }
 }
 
@@ -190,8 +191,8 @@ export async function loadSoonMeetings(): Promise<UpcomingMeeting[]> {
     .lte("starts_at", new Date(now + MEETING_ALERT_MS).toISOString())
     .order("starts_at")
     .limit(20);
-  if (error) throw new AccountError("We couldn't check your club meetings.");
-  return (data as unknown as (MeetingRow & { club: { name: string } | null })[]).map((row) => ({ ...toMeeting(row), clubName: row.club?.name ?? "Your book club" }));
+  if (error) throw new AccountError(tr("We couldn't check your club meetings."));
+  return (data as unknown as (MeetingRow & { club: { name: string } | null })[]).map((row) => ({ ...toMeeting(row), clubName: row.club?.name ?? tr("Your book club") }));
 }
 
 export async function createClub(input: { id: string; name: string; bookId: string; startsOn: string; finishesOn: string; inviteCode: string; buddy?: boolean }): Promise<void> {
@@ -206,8 +207,8 @@ export async function createClub(input: { id: string; name: string; bookId: stri
     buddy: Boolean(input.buddy),
   });
   if (error) {
-    if (error.message.includes("20 clubs")) throw new AccountError("An account can run up to 20 clubs. Delete one to start another.");
-    throw new AccountError("We couldn't start the club. Try again.");
+    if (error.message.includes("20 clubs")) throw new AccountError(tr("An account can run up to 20 clubs. Delete one to start another."));
+    throw new AccountError(tr("We couldn't start the club. Try again."));
   }
 }
 
@@ -216,7 +217,7 @@ export async function createClub(input: { id: string; name: string; bookId: stri
  * caller is in the club and keeps only a fingerprint of the address.
  */
 export async function inviteByEmail(clubId: string, email: string): Promise<void> {
-  await callFunction<{ sent: true }>("club-invite", { clubId, email: email.trim() }, "We couldn't send the invitation. Try again.");
+  await callFunction<{ sent: true }>("club-invite", { clubId, email: email.trim() }, tr("We couldn't send the invitation. Try again."));
 }
 
 /**
@@ -224,7 +225,7 @@ export async function inviteByEmail(clubId: string, email: string): Promise<void
  * apps read it on their own; it stops working if the member leaves the club.
  */
 export async function calendarFeedUrl(clubId: string): Promise<string> {
-  const { url } = await callFunction<{ url: string }>("club-calendar", { clubId }, "We couldn't make the calendar link. Try again.");
+  const { url } = await callFunction<{ url: string }>("club-calendar", { clubId }, tr("We couldn't make the calendar link. Try again."));
   return url;
 }
 
@@ -232,22 +233,22 @@ export async function calendarFeedUrl(clubId: string): Promise<string> {
 export async function joinClub(code: string): Promise<string | null> {
   const { data, error } = await client().rpc("join_club", { p_code: code });
   if (error) {
-    if (error.message.includes("two readers")) throw new AccountError("This buddy read already has two readers.");
-    if (error.message.includes("full")) throw new AccountError("This club is full (50 members).");
-    if (error.message.includes("Too many")) throw new AccountError("Too many tries. Wait an hour and try again.");
-    throw new AccountError("We couldn't join the club. Try again.");
+    if (error.message.includes("two readers")) throw new AccountError(tr("This buddy read already has two readers."));
+    if (error.message.includes("full")) throw new AccountError(tr("This club is full (50 members)."));
+    if (error.message.includes("Too many")) throw new AccountError(tr("Too many tries. Wait an hour and try again."));
+    throw new AccountError(tr("We couldn't join the club. Try again."));
   }
   return (data as string | null) ?? null;
 }
 
 export async function leaveClub(id: string): Promise<void> {
   const { error } = await client().from("club_members").delete().eq("club_id", id).eq("user_id", await signedInUserId());
-  if (error) throw new AccountError("We couldn't take you out of the club. Try again.");
+  if (error) throw new AccountError(tr("We couldn't take you out of the club. Try again."));
 }
 
 export async function deleteClub(id: string): Promise<void> {
   const { error } = await client().from("book_clubs").delete().eq("id", id);
-  if (error) throw new AccountError("We couldn't delete the club. Try again.");
+  if (error) throw new AccountError(tr("We couldn't delete the club. Try again."));
 }
 
 export async function addPost(clubId: string, chapterIndex: number, body: string): Promise<ClubPost> {
@@ -257,15 +258,15 @@ export async function addPost(clubId: string, chapterIndex: number, body: string
     .select(POST_COLUMNS)
     .single();
   if (error) {
-    if (error.message.includes("Too many posts")) throw new AccountError("That's a lot of posts in an hour. Wait a little and try again.");
-    throw new AccountError("We couldn't post that. Try again.");
+    if (error.message.includes("Too many posts")) throw new AccountError(tr("That's a lot of posts in an hour. Wait a little and try again."));
+    throw new AccountError(tr("We couldn't post that. Try again."));
   }
   return toPost(data as unknown as PostRow);
 }
 
 export async function deletePost(id: string): Promise<void> {
   const { error } = await client().from("club_posts").delete().eq("id", id);
-  if (error) throw new AccountError("We couldn't delete the post. Try again.");
+  if (error) throw new AccountError(tr("We couldn't delete the post. Try again."));
 }
 
 export const myUserId = signedInUserId;
@@ -278,7 +279,7 @@ export async function loadMemberships(): Promise<Record<string, ClubMembership>>
     db.from("club_members").select("club_id, notify").eq("user_id", me),
     db.rpc("club_unread"),
   ]);
-  if (members.error || unread.error) throw new AccountError("We couldn't check your clubs for new posts.");
+  if (members.error || unread.error) throw new AccountError(tr("We couldn't check your clubs for new posts."));
   const out: Record<string, ClubMembership> = {};
   for (const m of members.data as { club_id: string; notify: boolean }[]) out[m.club_id] = { notify: m.notify, unread: {} };
   for (const u of unread.data as { club_id: string; chapter_index: number; posts: number }[]) {
@@ -291,13 +292,13 @@ export async function loadMemberships(): Promise<Record<string, ClubMembership>>
 /** Marks a club read now (its posts so far stop counting as new). */
 export async function markClubRead(id: string): Promise<void> {
   const { error } = await client().rpc("mark_club_read", { p_club_id: id });
-  if (error) throw new AccountError("We couldn't mark the club read.");
+  if (error) throw new AccountError(tr("We couldn't mark the club read."));
 }
 
 /** Turns alerts about a club's new posts on or off for this account. */
 export async function setClubNotify(id: string, notify: boolean): Promise<void> {
   const { error } = await client().from("club_members").update({ notify }).eq("club_id", id).eq("user_id", await signedInUserId());
-  if (error) throw new AccountError("We couldn't change that setting. Try again.");
+  if (error) throw new AccountError(tr("We couldn't change that setting. Try again."));
 }
 
 /**
@@ -331,7 +332,7 @@ export function watchClubPosts(onPost: (event: ClubPostEvent) => void): () => vo
 /** Places of the members who show theirs. Members only (club_places()). */
 export async function fetchClubPlaces(clubId: string): Promise<import("./clubPlaces").ClubPlace[]> {
   const { data, error } = await client().rpc("club_places", { p_club: clubId });
-  if (error) throw new Error("We couldn't load where everyone is. Try again in a moment.");
+  if (error) throw new Error(tr("We couldn't load where everyone is. Try again in a moment."));
   return (data as { user_id: string; display_name: string | null; chapter_index: number; fraction: number; finished: boolean; updated_at: string }[]).map((r) => ({
     userId: r.user_id,
     name: r.display_name ?? "A member",
@@ -345,13 +346,13 @@ export async function fetchClubPlaces(clubId: string): Promise<import("./clubPla
 /** Whether this account shows its place in the club. */
 export async function loadSharePlace(clubId: string): Promise<boolean> {
   const { data, error } = await client().from("club_members").select("share_place").eq("club_id", clubId).eq("user_id", await signedInUserId()).maybeSingle();
-  if (error) throw new Error("We couldn't load your club settings.");
+  if (error) throw new Error(tr("We couldn't load your club settings."));
   return Boolean(data?.share_place);
 }
 
 export async function setSharePlace(clubId: string, on: boolean): Promise<void> {
   const { error } = await client().from("club_members").update({ share_place: on }).eq("club_id", clubId).eq("user_id", await signedInUserId());
-  if (error) throw new Error("We couldn't change that. Try again.");
+  if (error) throw new Error(tr("We couldn't change that. Try again."));
 }
 
 // ---------- Shared highlights (club_highlights, migration 6565) ----------
@@ -386,7 +387,7 @@ const toShared = (row: SharedRow): ClubHighlight => ({
 /** The highlights members have shared with a club (members only, by RLS). */
 export async function loadClubHighlights(clubId: string): Promise<ClubHighlight[]> {
   const { data, error } = await client().from("club_highlights").select(SHARED_COLUMNS).eq("club_id", clubId).order("created_at");
-  if (error) throw new AccountError("We couldn't load the shared highlights. Try again.");
+  if (error) throw new AccountError(tr("We couldn't load the shared highlights. Try again."));
   return (data as unknown as SharedRow[]).map(toShared);
 }
 
@@ -398,16 +399,16 @@ export async function shareHighlight(clubId: string, highlightId: string, shareN
     .select(SHARED_COLUMNS)
     .single();
   if (error) {
-    if (error.message.includes("up to 300")) throw new AccountError("You can share up to 300 highlights in a club.");
-    if (error.code === "23505") throw new AccountError("You've already shared that highlight here.");
-    throw new AccountError("We couldn't share that highlight. Try again.");
+    if (error.message.includes("up to 300")) throw new AccountError(tr("You can share up to 300 highlights in a club."));
+    if (error.code === "23505") throw new AccountError(tr("You've already shared that highlight here."));
+    throw new AccountError(tr("We couldn't share that highlight. Try again."));
   }
   return toShared(data as unknown as SharedRow);
 }
 
 export async function unshareHighlight(id: string): Promise<void> {
   const { error } = await client().from("club_highlights").delete().eq("id", id);
-  if (error) throw new AccountError("We couldn't stop sharing that highlight. Try again.");
+  if (error) throw new AccountError(tr("We couldn't stop sharing that highlight. Try again."));
 }
 
 // Club polls (club_polls, club_poll_votes, migration 6637): members read their clubs' polls and
@@ -443,15 +444,15 @@ const toPoll = (row: PollRow): ClubPoll => ({
 /** A club's polls, newest first (members only, by RLS). */
 export async function loadClubPolls(clubId: string): Promise<ClubPoll[]> {
   const { data, error } = await client().from("club_polls").select(POLL_COLUMNS).eq("club_id", clubId).order("created_at", { ascending: false }).limit(20);
-  if (error) throw new AccountError("We couldn't load the club's polls. Try again.");
+  if (error) throw new AccountError(tr("We couldn't load the club's polls. Try again."));
   return (data as unknown as PollRow[]).map(toPoll);
 }
 
 /** Open polls in every club the member is in, with their clubs' names, for the bell. */
 export async function loadOpenPolls(): Promise<{ poll: ClubPoll; clubName: string }[]> {
   const { data, error } = await client().from("club_polls").select(`${POLL_COLUMNS}, club:book_clubs(name)`).is("closed_at", null).limit(50);
-  if (error) throw new AccountError("We couldn't check your club polls.");
-  return (data as unknown as (PollRow & { club: { name: string } | null })[]).map((row) => ({ poll: toPoll(row), clubName: row.club?.name ?? "Your book club" }));
+  if (error) throw new AccountError(tr("We couldn't check your club polls."));
+  return (data as unknown as (PollRow & { club: { name: string } | null })[]).map((row) => ({ poll: toPoll(row), clubName: row.club?.name ?? tr("Your book club") }));
 }
 
 /** Starts a poll in a club the member owns. */
@@ -462,10 +463,10 @@ export async function startClubPoll(clubId: string, question: string, options: s
     .select(POLL_COLUMNS)
     .single();
   if (error) {
-    if (error.code === "23505") throw new AccountError("This club already has an open poll. Close it first.");
-    if (error.message.includes("up to 50")) throw new AccountError("A club can have up to 50 polls. Delete an old one first.");
-    if (error.message.includes("different books")) throw new AccountError("A poll offers 2 to 5 different books.");
-    throw new AccountError("We couldn't start the poll. Try again.");
+    if (error.code === "23505") throw new AccountError(tr("This club already has an open poll. Close it first."));
+    if (error.message.includes("up to 50")) throw new AccountError(tr("A club can have up to 50 polls. Delete an old one first."));
+    if (error.message.includes("different books")) throw new AccountError(tr("A poll offers 2 to 5 different books."));
+    throw new AccountError(tr("We couldn't start the poll. Try again."));
   }
   return toPoll(data as unknown as PollRow);
 }
@@ -474,8 +475,8 @@ export async function startClubPoll(clubId: string, question: string, options: s
 export async function voteClubPoll(pollId: string, choice: number | null): Promise<void> {
   const { error } = await client().rpc("vote_club_poll", { p_poll: pollId, p_choice: choice });
   if (error) {
-    if (error.message.includes("has closed")) throw new AccountError("This poll has closed.");
-    throw new AccountError("We couldn't save your vote. Try again.");
+    if (error.message.includes("has closed")) throw new AccountError(tr("This poll has closed."));
+    throw new AccountError(tr("We couldn't save your vote. Try again."));
   }
 }
 
@@ -483,13 +484,13 @@ export async function voteClubPoll(pollId: string, choice: number | null): Promi
 export async function closeClubPoll(pollId: string): Promise<string> {
   const { data, error } = await client().rpc("close_club_poll", { p_poll: pollId });
   if (error) {
-    if (error.message.includes("already closed")) throw new AccountError("This poll has already closed.");
-    throw new AccountError("We couldn't close the poll. Try again.");
+    if (error.message.includes("already closed")) throw new AccountError(tr("This poll has already closed."));
+    throw new AccountError(tr("We couldn't close the poll. Try again."));
   }
   return data as string;
 }
 
 export async function deleteClubPoll(pollId: string): Promise<void> {
   const { error } = await client().from("club_polls").delete().eq("id", pollId);
-  if (error) throw new AccountError("We couldn't delete the poll. Try again.");
+  if (error) throw new AccountError(tr("We couldn't delete the poll. Try again."));
 }

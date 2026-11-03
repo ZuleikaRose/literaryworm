@@ -53,8 +53,8 @@ export function sortPasskeys(list: Passkey[]): Passkey[] {
 /** Checks a new name the same way Supabase does (1 to 120 characters once trimmed). */
 export function passkeyNameError(name: string): string | null {
   const v = name.trim();
-  if (!v) return "Enter a name, such as the device it's on.";
-  if (v.length > PASSKEY_NAME_MAX) return `Use ${PASSKEY_NAME_MAX} characters or fewer.`;
+  if (!v) return tr("Enter a name, such as the device it's on.");
+  if (v.length > PASSKEY_NAME_MAX) return tr("Use {max} characters or fewer.", { max: PASSKEY_NAME_MAX });
   return null;
 }
 

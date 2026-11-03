@@ -3,7 +3,7 @@
 import type { Account, BillingInterval, PlanId } from "../types";
 import type { MembershipDiscount } from "./accountApi";
 import { planById } from "../data/plans";
-import { activeLanguage, dateLocale } from "./i18n";
+import { activeLanguage, dateLocale, tr } from "./i18n";
 
 /** 1 → "1st", 22 → "22nd" (in English; "1er" in French, "1." in German, "1e" in Dutch, else the number). */
 export const ordinal = (n: number) => {
@@ -144,10 +144,16 @@ export const formatMoney = (cents: number, currency: string) =>
 
 /** "20% off until January 5, 2027", "$2.00 off your next charge", "10% off for as long as you're a member". */
 export function discountLabel(d: MembershipDiscount): string {
-  const off = d.percentOff !== null ? `${d.percentOff}% off` : `${formatMoney(d.amountOff ?? 0, d.currency ?? "usd")} off`;
-  if (d.duration === "once") return `${off} your next charge`;
-  if (d.duration === "repeating" && d.ends) return `${off} until ${endDate(d.ends)}`;
-  return `${off} for as long as you're a member`;
+  if (d.percentOff !== null) {
+    const percent = d.percentOff;
+    if (d.duration === "once") return tr("{percent}% off your next charge", { percent });
+    if (d.duration === "repeating" && d.ends) return tr("{percent}% off until {date}", { percent, date: endDate(d.ends) });
+    return tr("{percent}% off for as long as you're a member", { percent });
+  }
+  const amount = formatMoney(d.amountOff ?? 0, d.currency ?? "usd");
+  if (d.duration === "once") return tr("{amount} off your next charge", { amount });
+  if (d.duration === "repeating" && d.ends) return tr("{amount} off until {date}", { amount, date: endDate(d.ends) });
+  return tr("{amount} off for as long as you're a member", { amount });
 }
 
 /**
@@ -155,16 +161,19 @@ export function discountLabel(d: MembershipDiscount): string {
  * 2027." Null for a code that lasts as long as the membership.
  */
 export function afterDiscountLabel(d: MembershipDiscount, price: string, interval: BillingInterval = "month"): string | null {
-  const per = interval === "year" ? "a year" : "a month";
+  const yearly = interval === "year";
   if (d.duration === "forever") return null;
-  if (d.duration === "repeating" && d.ends) return `Then ${price} ${per} from ${endDate(d.ends)}.`;
-  return `Then ${price} ${per} after that.`;
+  if (d.duration === "repeating" && d.ends) {
+    const date = endDate(d.ends);
+    return yearly ? tr("Then {price} a year from {date}.", { price, date }) : tr("Then {price} a month from {date}.", { price, date });
+  }
+  return yearly ? tr("Then {price} a year after that.", { price }) : tr("Then {price} a month after that.", { price });
 }
 
 export const PROMO_CODE_PATTERN = /^[A-Za-z0-9_-]{3,40}$/;
 
 /** The same check as the manage-account function. */
 export function promoCodeError(code: string): string | null {
-  if (!code.trim()) return "Enter a promo code.";
-  return PROMO_CODE_PATTERN.test(code.trim()) ? null : "Enter the code as it was given: 3 to 40 letters, numbers, - or _.";
+  if (!code.trim()) return tr("Enter a promo code.");
+  return PROMO_CODE_PATTERN.test(code.trim()) ? null : tr("Enter the code as it was given: 3 to 40 letters, numbers, - or _.");
 }

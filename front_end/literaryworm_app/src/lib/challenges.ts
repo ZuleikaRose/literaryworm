@@ -1,5 +1,6 @@
 import type { ReadingDay } from "../types";
 import { STREAK_SECONDS } from "./goals";
+import { activeLanguage, dateLocale, tk, tr } from "./i18n";
 
 /**
  * Household reading challenges: a target for a stretch of days that the account's profiles
@@ -24,9 +25,9 @@ export interface Challenge {
 }
 
 export const CHALLENGE_KINDS: { value: ChallengeKind; label: string }[] = [
-  { value: "books", label: "Books finished" },
-  { value: "hours", label: "Hours reading and listening" },
-  { value: "days", label: "Days with reading" },
+  { value: "books", label: tk("Books finished") },
+  { value: "hours", label: tk("Hours reading and listening") },
+  { value: "days", label: tk("Days with reading") },
 ];
 
 export const CHALLENGES_MAX = 20;
@@ -42,8 +43,16 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** "book" / "books", "hour" / "hours", "day" / "days". */
 export function unit(kind: ChallengeKind, n: number): string {
-  const word = { books: "book", hours: "hour", days: "day" }[kind];
-  return n === 1 ? word : `${word}s`;
+  if (kind === "books") return tr.plural(n, { one: "book", other: "books" });
+  if (kind === "hours") return tr.plural(n, { one: "hour", other: "hours" });
+  return tr.plural(n, { one: "day", other: "days" });
+}
+
+/** "5 books", "1 hour": a target with its unit. */
+function amount(kind: ChallengeKind, n: number): string {
+  if (kind === "books") return tr.plural(n, { one: "{count} book", other: "{count} books" });
+  if (kind === "hours") return tr.plural(n, { one: "{count} hour", other: "{count} hours" });
+  return tr.plural(n, { one: "{count} day", other: "{count} days" });
 }
 
 /** Days from start to end, both included. */
@@ -92,9 +101,9 @@ export function standings(c: Challenge, daysByProfile: Record<string, Record<str
 export type RangePreset = "this-month" | "next-month" | "next-30";
 
 export const RANGE_PRESETS: { value: RangePreset; label: string }[] = [
-  { value: "this-month", label: "This month" },
-  { value: "next-month", label: "Next month" },
-  { value: "next-30", label: "The next 30 days" },
+  { value: "this-month", label: tk("This month") },
+  { value: "next-month", label: tk("Next month") },
+  { value: "next-30", label: tk("The next 30 days") },
 ];
 
 /** The dates a preset covers, from `today` (YYYY-MM-DD). */
@@ -106,14 +115,16 @@ export function presetRange(preset: RangePreset, today: string): { startsOn: str
   return { startsOn: today, endsOn: toDay(toTime(today) + 29 * DAY_MS) };
 }
 
-const monthName = (day: string) => new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(toTime(day));
-const dayAndMonth = (day: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", timeZone: "UTC" }).format(toTime(day));
+// British day-month order in English ("30 November"); the reader's own in other languages.
+const locale = () => (activeLanguage() === "en" ? "en-GB" : dateLocale());
+const monthName = (day: string) => new Intl.DateTimeFormat(locale(), { month: "long", timeZone: "UTC" }).format(toTime(day));
+const dayAndMonth = (day: string) => new Intl.DateTimeFormat(locale(), { day: "numeric", month: "long", timeZone: "UTC" }).format(toTime(day));
 
 /** "5 books in November" for a whole month, else "20 hours by 30 November". */
 export function defaultTitle(kind: ChallengeKind, target: number, startsOn: string, endsOn: string): string {
-  const what = `${target} ${unit(kind, target)}`;
+  const what = amount(kind, target);
   const wholeMonth = startsOn.slice(8) === "01" && startsOn.slice(0, 7) === endsOn.slice(0, 7) && toDay(toTime(endsOn) + DAY_MS).slice(8) === "01";
-  return wholeMonth ? `${what} in ${monthName(startsOn)}` : `${what} by ${dayAndMonth(endsOn)}`;
+  return wholeMonth ? tr("{what} in {month}", { what, month: monthName(startsOn) }) : tr("{what} by {day}", { what, day: dayAndMonth(endsOn) });
 }
 
 /** "1 December". */
@@ -135,16 +146,16 @@ export interface ChallengeInput {
 /** A plain-words problem with a new challenge, or null when the database will take it. */
 export function challengeError(input: ChallengeInput, today: string): string | null {
   const title = input.title.trim();
-  if (!title) return "Give the challenge a name.";
-  if (title.length > CHALLENGE_TITLE_MAX) return `Keep the name to ${CHALLENGE_TITLE_MAX} characters.`;
+  if (!title) return tr("Give the challenge a name.");
+  if (title.length > CHALLENGE_TITLE_MAX) return tr("Keep the name to {max} characters.", { max: CHALLENGE_TITLE_MAX });
   if (!Number.isInteger(input.target) || input.target < 1 || input.target > CHALLENGE_TARGET_MAX) {
-    return `Enter a whole number from 1 to ${CHALLENGE_TARGET_MAX}.`;
+    return tr("Enter a whole number from 1 to {max}.", { max: CHALLENGE_TARGET_MAX });
   }
-  if (!DATE.test(input.startsOn) || !DATE.test(input.endsOn)) return "Choose when it starts and ends.";
-  if (input.endsOn < input.startsOn) return "The end date can't be before the start.";
-  if (input.endsOn < today) return "Choose dates that haven't passed yet.";
+  if (!DATE.test(input.startsOn) || !DATE.test(input.endsOn)) return tr("Choose when it starts and ends.");
+  if (input.endsOn < input.startsOn) return tr("The end date can't be before the start.");
+  if (input.endsOn < today) return tr("Choose dates that haven't passed yet.");
   const length = challengeLength(input.startsOn, input.endsOn);
-  if (length > CHALLENGE_DAYS_MAX) return "A challenge can run for a year at most.";
-  if (input.kind === "days" && input.target > length) return `There are only ${length} days in that range.`;
+  if (length > CHALLENGE_DAYS_MAX) return tr("A challenge can run for a year at most.");
+  if (input.kind === "days" && input.target > length) return tr("There are only {n} days in that range.", { n: length });
   return null;
 }

@@ -1,4 +1,5 @@
 import type { Highlight, HighlightColor } from "../types";
+import { tr } from "./i18n";
 
 /**
  * Shared highlights in a book club: a member's own highlight of the club's book, shared with the
@@ -36,5 +37,5 @@ export function shareable(mine: Highlight[], shared: ClubHighlight[], bookId: st
 export function shareLabel(h: Pick<Highlight, "chapterIndex" | "quote">, chapterTitle: string | undefined, max = 60): string {
   const quote = h.quote.replace(/\s+/g, " ").trim();
   const short = quote.length > max ? `${quote.slice(0, max - 1).trimEnd()}…` : quote;
-  return `${chapterTitle ?? `Chapter ${h.chapterIndex + 1}`}: “${short}”`;
+  return `${chapterTitle ?? tr("Chapter {n}", { n: h.chapterIndex + 1 })}: “${short}”`;
 }

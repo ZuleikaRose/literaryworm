@@ -2,12 +2,15 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { avatarPalette } from "../lib/avatars";
+import { durationLabel } from "../lib/goals";
 import { BEDTIME_EXTRA_MINUTES, BEDTIME_OPTIONS, DEFAULT_WAKE, timeLabel, WAKE_OPTIONS } from "../lib/bedtime";
 import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName, weeklyGoalOptions } from "../lib/profiles";
 import { AccountError } from "../lib/accountApi";
 import { useCheckAccountPassword } from "../lib/useCheckAccountPassword";
 import { useProfiles } from "../lib/useProfiles";
 import { useStore } from "../store/context";
+import { rich, type T } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import type { AgeRating, Profile } from "../types";
 import { AccountPasswordField } from "./AccountPasswordField";
 import { Avatar } from "./Avatar";
@@ -22,15 +25,25 @@ interface ProfileEditorProps {
   onClose: () => void;
 }
 
+/** An age rating's name and what it means (lib/profiles.ts's ageRatingDetails), translated. */
+function ratingText(t: T, rating: AgeRating): { label: string; description: string } {
+  return rating === "kids"
+    ? { label: t("Kids"), description: t("Under 13. Kids titles only, a simpler layout, and no chat, public reviews, sharing or payments.") }
+    : rating === "teen"
+      ? { label: t("Teen"), description: t("13 to 17. Teen and Kids titles. Reviews show a display name only.") }
+      : { label: t("All"), description: t("Every title in the catalog.") };
+}
+
 export function ProfileEditor({ open, profile, onClose }: ProfileEditorProps) {
   const isNew = !profile;
+  const t = useT();
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      eyebrow={isNew ? "New profile" : "Edit profile"}
-      title={isNew ? "Add a profile" : `Edit ${profile.name}`}
-      description={isNew ? <p>Each profile gets its own lists, history and recommendations.</p> : undefined}
+      eyebrow={isNew ? t("New profile") : t("Edit profile")}
+      title={isNew ? t("Add a profile") : t("Edit {name}", { name: profile.name })}
+      description={isNew ? <p>{t("Each profile gets its own lists, history and recommendations.")}</p> : undefined}
     >
       {/* Keyed so the form starts fresh each time it opens. */}
       {open && <ProfileForm key={profile?.id ?? "new"} profile={profile} onDone={onClose} />}
@@ -42,6 +55,7 @@ type Errors = Partial<Record<"name" | "consent" | "pin" | "password" | "form", s
 
 function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () => void }) {
   const { state } = useStore();
+  const t = useT();
   const household = useProfiles();
   const checkPassword = useCheckAccountPassword();
   const [busy, setBusy] = useState(false);
@@ -96,12 +110,12 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     const next: Errors = {};
     const nameError = validateProfileName(name, others);
     if (nameError) next.name = nameError;
-    if (needsConsent && !consent) next.consent = "Give consent as the parent or guardian to create a Kids profile.";
-    if (pinOn && (pin.length > 0 || !profile?.hasPin) && !isValidPin(pin)) next.pin = `Enter ${PIN_LENGTH} digits.`;
+    if (needsConsent && !consent) next.consent = t("Give consent as the parent or guardian to create a Kids profile.");
+    if (pinOn && (pin.length > 0 || !profile?.hasPin) && !isValidPin(pin)) next.pin = t("Enter {n} digits.", { n: PIN_LENGTH });
     setBusy(true);
     if (needsPassword && !next.name && !next.consent && !next.pin) {
       const result = await checkPassword(password);
-      if (!result.ok) next.password = result.problem ?? "Enter the account password to save these changes.";
+      if (!result.ok) next.password = result.problem ?? t("Enter the account password to save these changes.");
     }
     setErrors(next);
     if (Object.keys(next).length) {
@@ -128,7 +142,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       );
       onDone();
     } catch (err) {
-      setErrors({ form: err instanceof AccountError ? err.message : "We couldn't save the profile. Try again." });
+      setErrors({ form: err instanceof AccountError ? err.message : t("We couldn't save the profile. Try again.") });
       setBusy(false);
     }
   };
@@ -139,7 +153,11 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     const result = await checkPassword(password);
     if (!result.ok) {
       setBusy(false);
-      setErrors({ password: result.problem ?? `Enter the account password to ${aside ? "set this profile aside" : "bring this profile back"}.` });
+      setErrors({
+        password:
+          result.problem ??
+          (aside ? t("Enter the account password to set this profile aside.") : t("Enter the account password to bring this profile back.")),
+      });
       focusFirstError();
       return;
     }
@@ -147,7 +165,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       await household.setAside(profile, aside, password);
       onDone();
     } catch (err) {
-      setErrors({ form: err instanceof AccountError ? err.message : "We couldn't change the profile. Try again." });
+      setErrors({ form: err instanceof AccountError ? err.message : t("We couldn't change the profile. Try again.") });
       setBusy(false);
     }
   };
@@ -158,7 +176,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     const result = await checkPassword(password);
     if (!result.ok) {
       setBusy(false);
-      setErrors({ password: result.problem ?? "Enter the account password to delete this profile." });
+      setErrors({ password: result.problem ?? t("Enter the account password to delete this profile.") });
       focusFirstError();
       return;
     }
@@ -166,7 +184,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       await household.remove(profile, password);
       onDone();
     } catch (err) {
-      setErrors({ form: err instanceof AccountError ? err.message : "We couldn't delete the profile. Try again." });
+      setErrors({ form: err instanceof AccountError ? err.message : t("We couldn't delete the profile. Try again.") });
       setBusy(false);
     }
   };
@@ -174,7 +192,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   return (
     <form ref={formRef} className="profile-form" noValidate onSubmit={save}>
       <Field
-        label="Name"
+        label={t("Name")}
         maxLength={PROFILE_NAME_MAX}
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -183,27 +201,27 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       />
 
       <fieldset className="form-group">
-        <legend className="field-label">Avatar</legend>
+        <legend className="field-label">{t("Avatar")}</legend>
         <div className="avatar-picker">
           {avatarPalette.map((_, i) => (
             <label key={i} className="avatar-option">
               <input type="radio" name="avatar" checked={avatar === i} onChange={() => setAvatar(i)} />
               <Avatar name={name || "?"} avatar={i} size={44} />
-              <span className="visually-hidden">Color {i + 1}</span>
+              <span className="visually-hidden">{t("Color {n}", { n: i + 1 })}</span>
             </label>
           ))}
         </div>
       </fieldset>
 
       <fieldset className="form-group">
-        <legend className="field-label">Age rating</legend>
+        <legend className="field-label">{t("Age rating")}</legend>
         <div className="rating-options">
           {(Object.keys(ageRatingDetails) as AgeRating[]).map((r) => (
             <label key={r} className="rating-option">
               <input type="radio" name="age-rating" checked={rating === r} onChange={() => setRating(r)} />
               <span>
-                <strong>{ageRatingDetails[r].label}</strong>
-                <small>{ageRatingDetails[r].description}</small>
+                <strong>{ratingText(t, r).label}</strong>
+                <small>{ratingText(t, r).description}</small>
               </span>
             </label>
           ))}
@@ -221,12 +239,18 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
               aria-describedby={errors.consent ? "consent-error" : undefined}
             />
             <span>
-              I'm this child's parent or guardian, and I agree that LiteraryWorm may collect their reading progress, lists,
-              ratings and screen time as described in the{" "}
-              <Link to="/legal/childrens-privacy" target="_blank">
-                Children's Privacy Notice
-              </Link>
-              . I can review, delete or stop this at any time.
+              {rich(
+                t(
+                  "I'm this child's parent or guardian, and I agree that LiteraryWorm may collect their reading progress, lists, ratings and screen time as described in the {link}. I can review, delete or stop this at any time.",
+                ),
+                {
+                  link: (
+                    <Link to="/legal/childrens-privacy" target="_blank">
+                      {t("Children's Privacy Notice")}
+                    </Link>
+                  ),
+                },
+              )}
             </span>
           </label>
           {errors.consent && (
@@ -239,15 +263,15 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       )}
 
       <fieldset className="form-group">
-        <legend className="field-label">Favorite genres</legend>
-        <p className="field-hint genre-hint">Used to start this profile's recommendations, and up to two of them get their own row on Home.</p>
+        <legend className="field-label">{t("Favorite genres")}</legend>
+        <p className="field-hint genre-hint">{t("Used to start this profile's recommendations, and up to two of them get their own row on Home.")}</p>
         <div className="chip-group">
           {browseGenres.map(({ label: g }) => (
             <label key={g} className="chip">
               <input type="checkbox" checked={genres.includes(g)} onChange={() => toggleGenre(g)} />
               <span>
                 {genres.includes(g) && <Icon name="check" size={14} />}
-                {g}
+                {t(g)}
               </span>
             </label>
           ))}
@@ -256,18 +280,18 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
 
       <fieldset className="form-group protected-group">
         <legend className="field-label">
-          <Icon name="lock" size={15} /> Locks and limits
+          <Icon name="lock" size={15} /> {t("Locks and limits")}
         </legend>
         <label className="switch-row">
           <span>
-            <strong>Lock with a PIN</strong>
-            <small>Asks for a {PIN_LENGTH}-digit PIN before this profile opens.</small>
+            <strong>{t("Lock with a PIN")}</strong>
+            <small>{t("Asks for a {n}-digit PIN before this profile opens.", { n: PIN_LENGTH })}</small>
           </span>
           <input type="checkbox" role="switch" className="switch" checked={pinOn} onChange={(e) => setPinOn(e.target.checked)} />
         </label>
         {pinOn && (
           <Field
-            label={profile?.hasPin ? "New PIN (leave blank to keep the current one)" : "PIN"}
+            label={profile?.hasPin ? t("New PIN (leave blank to keep the current one)") : t("PIN")}
             type="password"
             inputMode="numeric"
             autoComplete="off"
@@ -280,7 +304,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
         )}
         <div className="field">
           <label className="field-label" htmlFor="daily-limit">
-            Daily reading and listening limit
+            {t("Daily reading and listening limit")}
           </label>
           <select
             id="daily-limit"
@@ -290,16 +314,16 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           >
             {dailyLimitOptions.map((o) => (
               <option key={o.label} value={o.value ?? ""}>
-                {o.label}
+                {o.value === null ? t("No limit") : durationLabel(o.value)}
               </option>
             ))}
           </select>
-          <p className="field-hint">Reading and listening stop when the time is used up. The account password allows 30 more minutes.</p>
+          <p className="field-hint">{t("Reading and listening stop when the time is used up. The account password allows 30 more minutes.")}</p>
         </div>
         {rating === "kids" && (
           <div className="field">
             <label className="field-label" htmlFor="weekly-goal">
-              Weekly reading goal
+              {t("Weekly reading goal")}
             </label>
             <select
               id="weekly-goal"
@@ -310,19 +334,21 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
             >
               {weeklyGoalOptions.map((o) => (
                 <option key={o.label} value={o.value ?? ""}>
-                  {o.label}
+                  {o.value === null ? t("No weekly goal") : t("{duration} a week", { duration: durationLabel(o.value) })}
                 </option>
               ))}
             </select>
             <p className="field-hint" id="weekly-goal-hint">
-              Reading and listening over the last 7 days. {name.trim() || "They"} can see how close they are in Goals, and you can in Account → Family.
+              {name.trim()
+                ? t("Reading and listening over the last 7 days. {name} can see how close they are in Goals, and you can in Account → Family.", { name: name.trim() })
+                : t("Reading and listening over the last 7 days. They can see how close they are in Goals, and you can in Account → Family.")}
             </p>
           </div>
         )}
         {rating === "kids" && (
           <div className="field">
             <label className="field-label" htmlFor="bedtime">
-              Bedtime
+              {t("Bedtime")}
             </label>
             <select
               id="bedtime"
@@ -331,27 +357,27 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
               aria-describedby="bedtime-hint"
               onChange={(e) => setBedtimeChoice(e.target.value || null)}
             >
-              <option value="">No bedtime</option>
-              {BEDTIME_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {timeLabel(t)}
+              <option value="">{t("No bedtime")}</option>
+              {BEDTIME_OPTIONS.map((time) => (
+                <option key={time} value={time}>
+                  {timeLabel(time)}
                 </option>
               ))}
             </select>
             <p className="field-hint" id="bedtime-hint">
-              From bedtime until morning, books and audiobooks show Time for bed, on this device's clock. The account password allows {BEDTIME_EXTRA_MINUTES} more minutes.
+              {t("From bedtime until morning, books and audiobooks show Time for bed, on this device's clock. The account password allows {n} more minutes.", { n: BEDTIME_EXTRA_MINUTES })}
             </p>
           </div>
         )}
         {bedtime && (
           <div className="field">
             <label className="field-label" htmlFor="wake-time">
-              Reading again from
+              {t("Reading again from")}
             </label>
             <select id="wake-time" className="field-input" value={wakeChoice} onChange={(e) => setWakeChoice(e.target.value)}>
-              {WAKE_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {timeLabel(t)}
+              {WAKE_OPTIONS.map((time) => (
+                <option key={time} value={time}>
+                  {timeLabel(time)}
                 </option>
               ))}
             </select>
@@ -373,61 +399,62 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
       )}
 
       {confirmDelete ? (
-        <div className="delete-confirm" role="group" aria-label="Delete profile">
+        <div className="delete-confirm" role="group" aria-label={t("Delete profile")}>
           <p>
-            Delete <strong>{profile?.name}</strong>? Their lists, history and settings will be removed. The account and other
-            profiles aren't affected.
+            {rich(t("Delete {name}? Their lists, history and settings will be removed. The account and other profiles aren't affected."), {
+              name: <strong>{profile?.name}</strong>,
+            })}
           </p>
           <div className="modal-actions">
             <button type="button" className="danger-button" onClick={remove} disabled={busy}>
-              <Icon name="trash" size={16} /> {busy ? "Deleting…" : "Delete profile"}
+              <Icon name="trash" size={16} /> {busy ? t("Deleting…") : t("Delete profile")}
             </button>
             <button type="button" className="ghost-button" onClick={() => setConfirm(null)}>
-              Keep profile
+              {t("Keep profile")}
             </button>
           </div>
         </div>
       ) : confirm === "aside" || confirm === "back" ? (
-        <div className="delete-confirm" role="group" aria-label={confirm === "aside" ? "Set profile aside" : "Bring profile back"}>
+        <div className="delete-confirm" role="group" aria-label={confirm === "aside" ? t("Set profile aside") : t("Bring profile back")}>
           <p>
             {confirm === "aside" ? (
-              <>
-                Set <strong>{profile?.name}</strong> aside? Their shelf, history and settings stay, but nobody can choose the profile
-                and it doesn't count towards your plan until you bring it back.
-              </>
+              rich(
+                t(
+                  "Set {name} aside? Their shelf, history and settings stay, but nobody can choose the profile and it doesn't count towards your plan until you bring it back.",
+                ),
+                { name: <strong>{profile?.name}</strong> },
+              )
             ) : (
-              <>
-                Bring <strong>{profile?.name}</strong> back? It counts towards your plan again.
-              </>
+              rich(t("Bring {name} back? It counts towards your plan again."), { name: <strong>{profile?.name}</strong> })
             )}
           </p>
           <div className="modal-actions">
             <button type="button" className="primary-button" onClick={() => void moveAside(confirm === "aside")} disabled={busy}>
-              {busy ? "Saving…" : confirm === "aside" ? "Set aside" : "Bring back"}
+              {busy ? t("Saving…") : confirm === "aside" ? t("Set aside") : t("Bring back")}
             </button>
             <button type="button" className="ghost-button" onClick={() => setConfirm(null)}>
-              Cancel
+              {t("Cancel")}
             </button>
           </div>
         </div>
       ) : (
         <div className="modal-actions">
           <button type="submit" className="primary-button" disabled={busy}>
-            {busy ? "Saving…" : isNew ? "Add profile" : "Save changes"}
+            {busy ? t("Saving…") : isNew ? t("Add profile") : t("Save changes")}
           </button>
           {profile?.setAside && (
             <button type="button" className="secondary-button" onClick={() => setConfirm("back")}>
-              Bring back
+              {t("Bring back")}
             </button>
           )}
           {canSetAside && (
             <button type="button" className="ghost-button" onClick={() => setConfirm("aside")}>
-              Set aside
+              {t("Set aside")}
             </button>
           )}
           {!isNew && inUseOthers.length > 0 && (
             <button type="button" className="ghost-button danger-text" onClick={() => setConfirm("delete")}>
-              Delete profile
+              {t("Delete profile")}
             </button>
           )}
         </div>

@@ -6,6 +6,8 @@ import { getBook } from "../data/books";
 import { clipTime, readClip } from "../lib/clips";
 import { ESSENTIAL } from "../lib/consent";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
+import { rich } from "../lib/i18n";
 
 /**
  * A shared audio clip (lib/clips.ts), public: a short stretch of a LibriVox recording, streamed
@@ -16,8 +18,9 @@ export default function ClipPage() {
   const [params] = useSearchParams();
   const book = getBook(bookId);
   const tracks = book?.recording?.tracks ?? [];
-  const clip = book ? readClip(params, tracks.map((t) => t.seconds)) : null;
-  useTitle(book && clip ? `A clip from ${book.title}` : "Clip not found");
+  const clip = book ? readClip(params, tracks.map((tr) => tr.seconds)) : null;
+  const t = useT();
+  useTitle(book && clip ? t("A clip from {title}", { title: book.title }) : t("Clip not found"));
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [at, setAt] = useState(0);
@@ -50,10 +53,10 @@ export default function ClipPage() {
   if (!book || !clip || !book.recording) {
     return (
       <section className="clip-page">
-        <h1>Clip not found</h1>
-        <p>This clip's link is incomplete or no longer works.</p>
+        <h1>{t("Clip not found")}</h1>
+        <p>{t("This clip's link is incomplete or no longer works.")}</p>
         <Link className="primary-button" to="/">
-          Go to LiteraryWorm
+          {t("Go to LiteraryWorm")}
         </Link>
       </section>
     );
@@ -71,7 +74,7 @@ export default function ClipPage() {
     setError(null);
     el.play().catch((err: unknown) => {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setError("We couldn't play the clip. Check your connection and try again.");
+      setError(t("We couldn't play the clip. Check your connection and try again."));
     });
   }
 
@@ -79,16 +82,16 @@ export default function ClipPage() {
     <section className="clip-page" aria-labelledby="clip-title">
       <Cover book={book} size="md" />
       <div className="clip-info">
-        <p className="eyebrow">A clip from the audiobook</p>
+        <p className="eyebrow">{t("A clip from the audiobook")}</p>
         <h1 id="clip-title">{book.title}</h1>
-        <p className="byline">by {book.author}</p>
+        <p className="byline">{t("by {author}", { author: book.author })}</p>
         <p>
-          {chapter}, {clipTime(clip.start)} to {clipTime(clip.end)}
+          {t("{chapter}, {start} to {end}", { chapter, start: clipTime(clip.start), end: clipTime(clip.end) })}
         </p>
         <audio ref={audio} {...ESSENTIAL} src={`${track.url}#t=${clip.start},${clip.end}`} preload="none" />
         <div className="clip-controls">
           <button type="button" className="primary-button" onClick={toggle} aria-pressed={playing}>
-            <Icon name={playing ? "pause" : "play"} size={18} filled /> {playing ? "Pause" : "Play clip"}
+            <Icon name={playing ? "pause" : "play"} size={18} filled /> {playing ? t("Pause") : t("Play clip")}
           </button>
           <span aria-live="off">
             {clipTime(at)} / {clipTime(length)}
@@ -100,14 +103,16 @@ export default function ClipPage() {
           </p>
         )}
         <p className="privacy-note">
-          Read by {book.recording.narrator} for{" "}
-          <a href={book.recording.page} target="_blank" rel="noreferrer">
-            LibriVox
-          </a>
-          . This recording is in the public domain.
+          {rich(t("Read by {narrator} for {link}. This recording is in the public domain.", { narrator: book.recording.narrator }), {
+            link: (
+              <a href={book.recording.page} target="_blank" rel="noreferrer">
+                LibriVox
+              </a>
+            ),
+          })}
         </p>
         <Link className="secondary-button" to={`/books/${book.id}`}>
-          See the book
+          {t("See the book")}
         </Link>
       </div>
     </section>

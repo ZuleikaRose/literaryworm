@@ -1,5 +1,6 @@
 import type { SavedWord } from "../types";
 import type { DictionaryEntry } from "./dictionaryApi";
+import { tr } from "./i18n";
 
 /**
  * My words: words a profile looked up in the dictionary and kept, with the sentence they came
@@ -55,9 +56,11 @@ export function practiceDeck(words: SavedWord[]): SavedWord[] {
 }
 
 /** "12 words, 4 known". */
-export function wordsSummary(words: SavedWord[]): string {
+/** `t` is the screen's translator (useT()), so the summary follows a language change at once; tr() elsewhere. */
+export function wordsSummary(words: SavedWord[], t: typeof tr = tr): string {
   const known = words.filter((w) => w.learned).length;
-  return `${words.length} word${words.length === 1 ? "" : "s"}${known ? `, ${known} known` : ""}`;
+  const count = t.plural(words.length, { one: "{count} word", other: "{count} words" });
+  return known ? t("{words}, {known} known", { words: count, known }) : count;
 }
 
 /**
@@ -92,9 +95,9 @@ export function nextReview(word: Pick<SavedWord, "reviewStep">, knew: boolean, t
 }
 
 /** "Due today", "Due tomorrow", "Due in 6 days" for a word's next review. */
-export function dueLabel(word: SavedWord, today: string): string | null {
+export function dueLabel(word: SavedWord, today: string, t: typeof tr = tr): string | null {
   if (word.learned) return null;
-  if (isDue(word, today)) return "Due today";
+  if (isDue(word, today)) return t("Due today");
   const days = Math.round((Date.parse(`${word.reviewDue}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
-  return days === 1 ? "Due tomorrow" : `Due in ${days} days`;
+  return days === 1 ? t("Due tomorrow") : t("Due in {days} days", { days });
 }

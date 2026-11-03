@@ -1,11 +1,12 @@
 /** Gift memberships: what can be bought, and how codes are typed and shown. */
 
+import { tr } from "./i18n";
 import { today } from "./reading";
 
 /** How many months a gift can be bought for (the same as the checkout function's). */
 export const GIFT_MONTHS = [1, 3, 6, 12] as const;
 
-export const monthsLabel = (n: number) => `${n} ${n === 1 ? "month" : "months"}`;
+export const monthsLabel = (n: number) => tr.plural(n, { one: "{count} month", other: "{count} months" });
 
 /** A whole year is sold at the yearly price (two months free); shorter gifts at the monthly price. */
 export const GIFT_YEAR_MONTHS = 12;
@@ -24,8 +25,8 @@ export const normalizeGiftCode = (raw: string) => raw.replace(/[\s-]/g, "").toUp
 /** The same check as the manage-account function. */
 export function giftCodeError(raw: string): string | null {
   const code = normalizeGiftCode(raw);
-  if (!code) return "Enter the gift code.";
-  return CODE.test(code) ? null : "Enter the 16 letters and numbers of the gift code, like ABCD-EFGH-JKLM-NPQR.";
+  if (!code) return tr("Enter the gift code.");
+  return CODE.test(code) ? null : tr("Enter the 16 letters and numbers of the gift code, like ABCD-EFGH-JKLM-NPQR.");
 }
 
 /** ABCD-EFGH-JKLM-NPQR: easier to read out and copy by hand. */
@@ -42,10 +43,10 @@ export function giftStartBounds(now = new Date()): { min: string; max: string } 
 
 /** The same rule as the checkout function, for the date picker. */
 export function giftStartError(value: string, now = new Date()): string | null {
-  if (!value) return "Pick the day the gift starts.";
+  if (!value) return tr("Pick the day the gift starts.");
   const { min, max } = giftStartBounds(now);
-  if (value < min) return "Pick a day after today, or choose Straight away.";
-  if (value > max) return "A gift can start on a day up to a year ahead.";
+  if (value < min) return tr("Pick a day after today, or choose Straight away.");
+  if (value > max) return tr("A gift can start on a day up to a year ahead.");
   return null;
 }
 
@@ -55,8 +56,8 @@ export const GIFT_MESSAGE_MAX = 300;
 /** The same address check as the checkout function's (parseGiftRecipient()). */
 export function giftRecipientError(raw: string): string | null {
   const email = raw.trim();
-  if (!email) return "Enter their email address.";
-  if (email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return "Enter an email address like name@example.com.";
+  if (!email) return tr("Enter their email address.");
+  if (email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return tr("Enter an email address like name@example.com.");
   return null;
 }
 

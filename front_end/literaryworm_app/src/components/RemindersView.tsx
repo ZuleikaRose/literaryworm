@@ -5,9 +5,12 @@ import { isOut, releaseLabel } from "../lib/release";
 import { useReminders } from "../lib/useReminders";
 import type { Reminder } from "../types";
 import { Icon } from "./Icon";
+import { rich, tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /** One reminder: the book, when it's due (or that it's out), and Remove or Dismiss. */
 function ReminderRow({ reminder, onRemove, busy }: { reminder: Reminder; onRemove: () => void; busy: boolean }) {
+  const t = useT();
   const out = isOut(reminder.releaseDate);
   return (
     <li className="reminder-row">
@@ -16,11 +19,11 @@ function ReminderRow({ reminder, onRemove, busy }: { reminder: Reminder; onRemov
         {reminder.author && <small>{reminder.author}</small>}
       </span>
       <span className={out ? "reminder-when is-out" : "reminder-when"}>
-        {out ? "Out now" : `Due ${releaseLabel(reminder.releaseDate)}`}
+        {out ? t("Out now") : t("Due {date}", { date: releaseLabel(reminder.releaseDate) })}
       </span>
       <button type="button" className="ghost-button" disabled={busy} onClick={onRemove}>
-        {out ? "Dismiss" : "Remove"}
-        <span className="visually-hidden"> the reminder for {reminder.title}</span>
+        {out ? t("Dismiss") : t("Remove")}
+        <span className="visually-hidden">{t(" the reminder for {title}", { title: reminder.title })}</span>
       </button>
     </li>
   );
@@ -36,10 +39,10 @@ function useReminderRemoval() {
     setError(null);
     try {
       await reminders.remove(r.bookId);
-      setAnnouncement(`Removed the reminder for ${r.title}.`);
+      setAnnouncement(tr("Removed the reminder for {title}.", { title: r.title }));
       after?.();
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof AccountError ? err.message : tr("Something went wrong. Try again."));
     } finally {
       setBusy(false);
     }
@@ -65,6 +68,7 @@ function ReminderFeedback({ error, announcement }: { error: string | null; annou
 
 /** My Library → Reminders: every reminder, out first, then soonest. */
 export function RemindersView() {
+  const t = useT();
   const { reminders, busy, error, announcement, remove } = useReminderRemoval();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const all = [...reminders.released, ...reminders.upcoming];
@@ -72,15 +76,16 @@ export function RemindersView() {
   return (
     <section className="reminders-view" aria-labelledby="reminders-title">
       <h2 id="reminders-title" tabIndex={-1} ref={headingRef}>
-        Reminders
+        {t("Reminders")}
       </h2>
       <p className="reminders-intro">
-        Books that aren't out yet. On the day, they're shown on Home. Set one with <strong>Remind me</strong> on a book's
-        page.
+        {rich(t("Books that aren't out yet. On the day, they're shown on Home. Set one with {remind} on a book's page."), {
+          remind: <strong>{t("Remind me")}</strong>,
+        })}
       </p>
       <ReminderFeedback error={error} announcement={announcement} />
       {all.length === 0 ? (
-        <p className="reminders-empty">No reminders yet.</p>
+        <p className="reminders-empty">{t("No reminders yet.")}</p>
       ) : (
         <ul className="reminder-list" role="list">
           {all.map((r) => (
@@ -94,6 +99,7 @@ export function RemindersView() {
 
 /** Home: books the profile asked to hear about that are out now. */
 export function OutNow() {
+  const t = useT();
   const { reminders, busy, error, announcement, remove } = useReminderRemoval();
   const headingRef = useRef<HTMLHeadingElement>(null);
   if (reminders.released.length === 0 && !announcement && !error) return null;
@@ -105,13 +111,13 @@ export function OutNow() {
           <Icon name="bell" size={20} />
         </span>
         <div>
-          <p className="eyebrow">Your reminders</p>
+          <p className="eyebrow">{t("Your reminders")}</p>
           <h2 id="out-now-title" tabIndex={-1} ref={headingRef}>
-            Out now
+            {t("Out now")}
           </h2>
         </div>
         <Link className="text-button" to="/library?view=reminders">
-          All reminders
+          {t("All reminders")}
         </Link>
       </div>
       <ReminderFeedback error={error} announcement={announcement} />

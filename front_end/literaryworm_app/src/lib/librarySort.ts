@@ -1,20 +1,21 @@
 import type { LibraryEntry } from "../types";
+import { tk } from "./i18n";
 
 /** How My Library can be ordered (`?sort=` in the address; "added" when it's missing). */
 export type LibrarySort = "added" | "added-oldest" | "updated" | "title" | "title-desc" | "numbers" | "author" | "author-desc" | "published" | "published-oldest" | "series";
 
 export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
-  { value: "added", label: "Recently added" },
-  { value: "added-oldest", label: "Oldest added" },
-  { value: "updated", label: "Recently changed" },
-  { value: "title", label: "Title A–Z" },
-  { value: "title-desc", label: "Title Z–A" },
-  { value: "numbers", label: "Numbers first (0–9)" },
-  { value: "author", label: "Author A–Z" },
-  { value: "author-desc", label: "Author Z–A" },
-  { value: "published", label: "Published, newest" },
-  { value: "published-oldest", label: "Published, oldest" },
-  { value: "series", label: "Series, in reading order" },
+  { value: "added", label: tk("Recently added") },
+  { value: "added-oldest", label: tk("Oldest added") },
+  { value: "updated", label: tk("Recently changed") },
+  { value: "title", label: tk("Title A–Z") },
+  { value: "title-desc", label: tk("Title Z–A") },
+  { value: "numbers", label: tk("Numbers first (0–9)") },
+  { value: "author", label: tk("Author A–Z") },
+  { value: "author-desc", label: tk("Author Z–A") },
+  { value: "published", label: tk("Published, newest") },
+  { value: "published-oldest", label: tk("Published, oldest") },
+  { value: "series", label: tk("Series, in reading order") },
 ];
 
 /** Uploaded books sort the same eleven ways as the rest of My Library ("added" when it's missing). */

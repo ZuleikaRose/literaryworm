@@ -1,5 +1,7 @@
 /** Book club meetings: the checks the database makes, and the calendar file for Add to calendar. */
 
+import { tk, tr } from "./i18n";
+
 export interface ClubMeeting {
   id: string;
   clubId: string;
@@ -18,7 +20,7 @@ export interface ClubMeeting {
 /** Going, Maybe or Can't make it. */
 export type RsvpAnswer = "yes" | "maybe" | "no";
 export const RSVP_ANSWERS: readonly RsvpAnswer[] = ["yes", "maybe", "no"];
-export const RSVP_LABELS: Record<RsvpAnswer, string> = { yes: "Going", maybe: "Maybe", no: "Can't make it" };
+export const RSVP_LABELS: Record<RsvpAnswer, string> = { yes: tk("Going"), maybe: tk("Maybe"), no: tk("Can't make it") };
 
 /** How many current members gave each answer (answers from people who left don't count). */
 export function rsvpCounts(meeting: ClubMeeting, memberIds: string[]): Record<RsvpAnswer, number> {
@@ -33,11 +35,11 @@ export function rsvpCounts(meeting: ClubMeeting, memberIds: string[]): Record<Rs
 /** "2 going, 1 maybe", or "No answers yet". */
 export function rsvpSummary(counts: Record<RsvpAnswer, number>): string {
   const parts = [
-    counts.yes > 0 && `${counts.yes} going`,
-    counts.maybe > 0 && `${counts.maybe} maybe`,
-    counts.no > 0 && `${counts.no} can't make it`,
+    counts.yes > 0 && tr("{n} going", { n: counts.yes }),
+    counts.maybe > 0 && tr("{n} maybe", { n: counts.maybe }),
+    counts.no > 0 && tr("{n} can't make it", { n: counts.no }),
   ].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "No answers yet";
+  return parts.length > 0 ? parts.join(", ") : tr("No answers yet");
 }
 
 /** A meeting in one of the reader's clubs, with the club's name (for the bell). */
@@ -114,14 +116,14 @@ export function meetingInput(meeting: Pick<ClubMeeting, "title" | "startsAt" | "
 /** A plain-words problem with a new meeting, or null when it can be saved. */
 export function meetingError(input: MeetingInput, now = new Date()): string | null {
   const title = input.title.trim();
-  if (!title) return "Give the meeting a name, such as Chapters 1 to 10.";
-  if (title.length > MEETING_TITLE_MAX) return `Keep the name to ${MEETING_TITLE_MAX} characters.`;
+  if (!title) return tr("Give the meeting a name, such as Chapters 1 to 10.");
+  if (title.length > MEETING_TITLE_MAX) return tr("Keep the name to {max} characters.", { max: MEETING_TITLE_MAX });
   const start = meetingStart(input.date, input.time);
-  if (!start) return "Choose a date and a time.";
-  if (start.getTime() <= now.getTime()) return "Choose a time that's still to come.";
-  if (start.getTime() > now.getTime() + MEETING_DAYS_AHEAD * 86_400_000) return "Meetings can be set up to a year ahead.";
-  if (!(MEETING_LENGTHS as readonly number[]).includes(input.minutes)) return "Choose how long it runs.";
-  if (input.note.trim().length > MEETING_NOTE_MAX) return `Keep the note to ${MEETING_NOTE_MAX} characters.`;
+  if (!start) return tr("Choose a date and a time.");
+  if (start.getTime() <= now.getTime()) return tr("Choose a time that's still to come.");
+  if (start.getTime() > now.getTime() + MEETING_DAYS_AHEAD * 86_400_000) return tr("Meetings can be set up to a year ahead.");
+  if (!(MEETING_LENGTHS as readonly number[]).includes(input.minutes)) return tr("Choose how long it runs.");
+  if (input.note.trim().length > MEETING_NOTE_MAX) return tr("Keep the note to {max} characters.", { max: MEETING_NOTE_MAX });
   return null;
 }
 

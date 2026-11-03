@@ -9,6 +9,7 @@ import { TabBar } from "../components/TabBar";
 import { usePlayback } from "../lib/playback";
 import { useAuthSync } from "../lib/useAuthSync";
 import { useReadingSync } from "../lib/useReadingSync";
+import { useT } from "../lib/useT";
 import { useActiveProfile, useStore } from "../store/context";
 
 /** Applies accessibility settings to <html>, resets scroll on navigation (or goes to #section) and follows Supabase Auth. */
@@ -49,10 +50,11 @@ export function SiteLayout() {
   const profile = useActiveProfile();
   const playback = usePlayback();
   const listening = Boolean(playback.book && playback.snapshot);
+  const t = useT();
   return (
     <div className={`app${state.account && profile ? " has-tab-bar" : ""}${listening ? " has-mini-player" : ""}`}>
       <a className="skip-link" href="#main">
-        Skip to content
+        {t("Skip to content")}
       </a>
       <MaintenanceBanner />
       <Header />
@@ -79,9 +81,10 @@ export function ImmersiveLayout() {
 
 /** Shown for a moment while a signed-in member's session is restored after a refresh. */
 function Restoring() {
+  const t = useT();
   return (
     <p className="page restoring" role="status">
-      Signing you back in…
+      {t("Signing you back in…")}
     </p>
   );
 }

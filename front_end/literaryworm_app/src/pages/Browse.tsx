@@ -22,11 +22,13 @@ import { approvedBooks } from "../lib/bookRequests";
 import { shelfFor } from "../lib/familyShelf";
 import { useFamilyShelf } from "../lib/useFamilyShelf";
 import { continueSeries } from "../lib/series";
-import { moreLike, recommend, tasteSeeds } from "../lib/recommend";
+import { moreLike, recommend, type Seed, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
+import { rich, type T } from "../lib/i18n";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { AgeRating, Book } from "../types";
@@ -38,11 +40,12 @@ import type { AgeRating, Book } from "../types";
 function GenreShelf({ genre, ageRating, favourite = false }: { genre: BrowseGenre; ageRating: AgeRating; favourite?: boolean }) {
   // Technology uses the same "technology" list as the public home page.
   const feed = useBookFeed(genre === "technology" ? { mode: "home" } : { mode: "genre", genre }, ageRating);
+  const t = useT();
   return (
     <Shelf
       id={`genre-${genre}`}
-      eyebrow={favourite ? "One of your favourite genres" : undefined}
-      title={genreLabel(genre)}
+      eyebrow={favourite ? t("One of your favourite genres") : undefined}
+      title={t(genreLabel(genre))}
       items={feed.items}
       status={feed.status}
       error={feed.error}
@@ -54,15 +57,27 @@ function GenreShelf({ genre, ageRating, favourite = false }: { genre: BrowseGenr
           to={genreHref("/browse", genre)}
           onClick={() => document.getElementById("discover")?.scrollIntoView({ block: "start" })}
         >
-          See all<span className="visually-hidden"> {genreLabel(genre)}</span> <Icon name="chevronRight" size={16} />
+          {t("See all")}<span className="visually-hidden"> {t(genreLabel(genre))}</span> <Icon name="chevronRight" size={16} />
         </Link>
       }
     />
   );
 }
 
+/** A "Because you…" row's title, by why the book counts. */
+function becauseTitle(t: T, reason: Seed["reason"], title: string) {
+  return reason === "finished"
+    ? t("Because you finished {title}", { title })
+    : reason === "loved"
+      ? t("Because you loved {title}", { title })
+      : reason === "liked"
+        ? t("Because you liked {title}", { title })
+        : t("Because you favourited {title}", { title });
+}
+
 export default function Browse() {
-  useTitle("Home");
+  const t = useT();
+  useTitle(t("Home"));
   const profile = useActiveProfile()!;
   const reading = activeReading(useStore().state);
   const [params] = useSearchParams();
@@ -148,7 +163,7 @@ export default function Browse() {
 
   return (
     <div className="home">
-      <h1 className="visually-hidden">Home for {profile.name}</h1>
+      <h1 className="visually-hidden">{t("Home for {name}", { name: profile.name })}</h1>
       <FeaturedCarousel books={featured} />
 
       <div className="page-content home-rows">
@@ -156,7 +171,9 @@ export default function Browse() {
           <Link className="home-nudge" to="/library?view=words">
             <Icon name="clock" size={18} />
             <span>
-              <strong>{wordsDue === 1 ? "1 word" : `${wordsDue} words`} to review today</strong> from My words. A minute's practice keeps them.
+              {rich(t("{words} from My words. A minute's practice keeps them."), {
+                words: <strong>{t.plural(wordsDue, { one: "{count} word to review today", other: "{count} words to review today" })}</strong>,
+              })}
             </span>
           </Link>
         )}
@@ -164,8 +181,9 @@ export default function Browse() {
           <Link className="home-nudge" to="/library?view=notes">
             <Icon name="highlighter" size={18} />
             <span>
-              <strong>{highlightsDue === 1 ? "1 highlight" : `${highlightsDue} highlights`} to review today</strong> in Notes. Passages you
-              marked, back just before they fade.
+              {rich(t("{highlights} in Notes. Passages you marked, back just before they fade."), {
+                highlights: <strong>{t.plural(highlightsDue, { one: "{count} highlight to review today", other: "{count} highlights to review today" })}</strong>,
+              })}
             </span>
           </Link>
         )}
@@ -173,8 +191,8 @@ export default function Browse() {
         {continueReading.length > 0 && (
           <Shelf
             id="continue"
-            eyebrow="Pick up where you stopped"
-            title="Continue reading"
+            eyebrow={t("Pick up where you stopped")}
+            title={t("Continue reading")}
             items={continueReading.map(fromLocal)}
             progress={progress}
             links={resumeLinks}
@@ -182,27 +200,27 @@ export default function Browse() {
         )}
         <OutNow />
         {seriesNext.length > 0 && (
-          <Shelf id="series-next" eyebrow="What comes next" title="Continue the series" items={seriesNext.map(fromLocal)} />
+          <Shelf id="series-next" eyebrow={t("What comes next")} title={t("Continue the series")} items={seriesNext.map(fromLocal)} />
         )}
         {familyBooks.length > 0 && (
-          <Shelf id="family-shelf" eyebrow="Put out by your household" title="The family shelf" items={familyBooks.map(fromLocal)} />
+          <Shelf id="family-shelf" eyebrow={t("Put out by your household")} title={t("The family shelf")} items={familyBooks.map(fromLocal)} />
         )}
         {saidYes.length > 0 && (
-          <Shelf id="said-yes" eyebrow="You asked, a grown-up said yes" title="Books you asked for" items={saidYes.map(fromLocal)} />
+          <Shelf id="said-yes" eyebrow={t("You asked, a grown-up said yes")} title={t("Books you asked for")} items={saidYes.map(fromLocal)} />
         )}
         {followed.length > 0 && (
           <Shelf
             id="following"
-            eyebrow="Authors and narrators you follow"
-            title="New from people you follow"
+            eyebrow={t("Authors and narrators you follow")}
+            title={t("New from people you follow")}
             items={followed.map(fromLocal)}
           />
         )}
         {profile.ageRating !== "kids" && <MostFollowed />}
         <Shelf
           id="trending"
-          eyebrow="Curated for you"
-          title="Trending this week"
+          eyebrow={t("Curated for you")}
+          title={t("Trending this week")}
           items={trending.map(fromLocal)}
           action={
             <button
@@ -210,7 +228,7 @@ export default function Browse() {
               className="secondary-button surprise-button"
               onClick={() => navigate(`/books/${surpriseBook(profile.ageRating).id}`)}
             >
-              <Icon name="shuffle" size={16} /> Surprise me
+              <Icon name="shuffle" size={16} /> {t("Surprise me")}
             </button>
           }
         />
@@ -220,13 +238,13 @@ export default function Browse() {
             <Icon name="bookOpen" size={27} />
           </span>
           <div>
-            <p className="eyebrow">The reading room</p>
-            <h2 id="reading-room-title">What readers are talking about</h2>
-            <p>Every book page shows the logs readers have written about it, with their display name and date.</p>
+            <p className="eyebrow">{t("The reading room")}</p>
+            <h2 id="reading-room-title">{t("What readers are talking about")}</h2>
+            <p>{t("Every book page shows the logs readers have written about it, with their display name and date.")}</p>
           </div>
           {trending[0] && (
             <Link className="secondary-button" to={`/books/${trending[0].id}`}>
-              Read the logs on {trending[0].title}
+              {t("Read the logs on {title}", { title: trending[0].title })}
             </Link>
           )}
         </section>
@@ -235,16 +253,16 @@ export default function Browse() {
 
         <WhatsNewLink />
 
-        <Shelf id="top-ten" eyebrow="Highest rated" title="Top 10 on LiteraryWorm" items={topTen.map(fromLocal)} ranked />
+        <Shelf id="top-ten" eyebrow={t("Highest rated")} title={t("Top 10 on LiteraryWorm")} items={topTen.map(fromLocal)} ranked />
         {newReleases.length > 0 && (
-          <Shelf id="new" eyebrow="Just added" title="New releases" items={newReleases.map(fromLocal)} />
+          <Shelf id="new" eyebrow={t("Just added")} title={t("New releases")} items={newReleases.map(fromLocal)} />
         )}
-        {feelGood.length > 0 && <Shelf id="feel-good" eyebrow="Books you tagged funny, hopeful and more" title="Feel-good picks" items={feelGood.map(fromLocal)} />}
+        {feelGood.length > 0 && <Shelf id="feel-good" eyebrow={t("Books you tagged funny, hopeful and more")} title={t("Feel-good picks")} items={feelGood.map(fromLocal)} />}
         {otherLanguages.length > 0 && (
           <Shelf
             id="languages"
-            eyebrow="Classics in French, German and Spanish"
-            title="In their own language"
+            eyebrow={t("Classics in French, German and Spanish")}
+            title={t("In their own language")}
             items={otherLanguages.map(fromLocal)}
           />
         )}
@@ -252,8 +270,8 @@ export default function Browse() {
         {picked.length >= 3 && (taste.length > 0 || becauseSaved.length === 0) && (
           <Shelf
             id="picked"
-            eyebrow={`Based on what ${profile.name} reads`}
-            title="Picked for you"
+            eyebrow={t("Based on what {name} reads", { name: profile.name })}
+            title={t("Picked for you")}
             items={picked.map((r) => fromLocal(r.book))}
           />
         )}
@@ -261,16 +279,16 @@ export default function Browse() {
           <Shelf
             key={seed.book.id}
             id={`because-${seed.book.id}`}
-            eyebrow="Find something new"
-            title={`Because you ${seed.reason} ${seed.book.title}`}
+            eyebrow={t("Find something new")}
+            title={becauseTitle(t, seed.reason, seed.book.title)}
             items={items.map(fromLocal)}
           />
         ))}
         {lastSaved && becauseSaved.length > 0 && (
           <Shelf
             id="because-saved"
-            eyebrow="Find something new"
-            title={`Because you saved ${lastSaved.title}`}
+            eyebrow={t("Find something new")}
+            title={t("Because you saved {title}", { title: lastSaved.title })}
             items={becauseSaved.map(fromLocal)}
           />
         )}
@@ -286,8 +304,8 @@ export default function Browse() {
         <div id="discover">
           <BookFeed
             id="discover"
-            eyebrow="Keep discovering"
-            title={`${genreLabel(genre)} books`}
+            eyebrow={t("Keep discovering")}
+            title={t("{genre} books", { genre: t(genreLabel(genre)) })}
             query={genre === "technology" ? { mode: "home" } : { mode: "genre", genre }}
             ageRating={profile.ageRating}
             controls={<GenreNav current={genre} basePath="/browse" />}

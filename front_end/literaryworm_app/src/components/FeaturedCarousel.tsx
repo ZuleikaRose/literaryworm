@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listenMinutes } from "../data/books";
+import { tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
@@ -18,7 +20,8 @@ function prefersReducedMotion(): boolean {
  * the pointer or keyboard focus is inside it, and starts paused when motion is reduced.
  * Announces the new slide only when the reader changed it.
  */
-export function FeaturedCarousel({ books, label = "Featured titles" }: { books: Book[]; label?: string }) {
+export function FeaturedCarousel({ books, label = tk("Featured titles") }: { books: Book[]; label?: string }) {
+  const t = useT();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(prefersReducedMotion);
   const [hold, setHold] = useState(false);
@@ -40,7 +43,7 @@ export function FeaturedCarousel({ books, label = "Featured titles" }: { books: 
     <section
       className="hero featured"
       aria-roledescription="carousel"
-      aria-label={label}
+      aria-label={t(label)}
       onMouseEnter={() => setHold(true)}
       onMouseLeave={() => setHold(false)}
       onFocus={() => setHold(true)}
@@ -54,19 +57,19 @@ export function FeaturedCarousel({ books, label = "Featured titles" }: { books: 
             className="featured-slide"
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} of ${count}`}
+            aria-label={t("{n} of {count}", { n: i + 1, count })}
             hidden={i !== index % count}
           >
             <div className="hero-copy">
-              <p className="eyebrow">Editors' pick · {book.genres[0]}</p>
+              <p className="eyebrow">{t("Editors' pick · {genre}", { genre: book.genres[0] })}</p>
               <h2 className="featured-title">{book.title}</h2>
               <p className="featured-byline">
                 {book.author} · {book.year}
-                {book.formats.includes("audiobook") && ` · ${Math.round(listenMinutes(book) / 60)} hr listen`}
+                {book.formats.includes("audiobook") && ` · ${t("{n} hr listen", { n: Math.round(listenMinutes(book) / 60) })}`}
               </p>
               <p className="featured-synopsis">{book.synopsis}</p>
               <Link className="primary-button" to={`/books/${book.id}`}>
-                See {book.title} <Icon name="chevronRight" size={18} />
+                {t("See {title}", { title: book.title })} <Icon name="chevronRight" size={18} />
               </Link>
             </div>
             <div className="featured-cover" aria-hidden="true">
@@ -80,18 +83,18 @@ export function FeaturedCarousel({ books, label = "Featured titles" }: { books: 
         <div className="featured-controls">
           <button type="button" className="icon-button" onClick={() => setPaused((p) => !p)}>
             <Icon name={paused ? "play" : "pause"} size={16} />
-            <span className="visually-hidden">{paused ? "Play featured titles" : "Pause featured titles"}</span>
+            <span className="visually-hidden">{paused ? t("Play featured titles") : t("Pause featured titles")}</span>
           </button>
           <button type="button" className="icon-button" onClick={() => go(index - 1)}>
             <Icon name="chevronLeft" size={18} />
-            <span className="visually-hidden">Previous featured title</span>
+            <span className="visually-hidden">{t("Previous featured title")}</span>
           </button>
           <ol className="featured-dots" role="list">
             {books.map((book, i) => (
               <li key={book.id}>
                 <button type="button" aria-current={i === index % count ? "true" : undefined} onClick={() => go(i)}>
                   <span className="visually-hidden">
-                    Show {book.title} ({i + 1} of {count})
+                    {t("Show {title} ({n} of {count})", { title: book.title, n: i + 1, count })}
                   </span>
                 </button>
               </li>
@@ -99,7 +102,7 @@ export function FeaturedCarousel({ books, label = "Featured titles" }: { books: 
           </ol>
           <button type="button" className="icon-button" onClick={() => go(index + 1)}>
             <Icon name="chevronRight" size={18} />
-            <span className="visually-hidden">Next featured title</span>
+            <span className="visually-hidden">{t("Next featured title")}</span>
           </button>
         </div>
       )}

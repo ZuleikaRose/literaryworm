@@ -6,6 +6,8 @@ import { Cover } from "../components/Cover";
 import { personPath } from "../lib/people";
 import { seriesBooks, seriesNamed, seriesPath } from "../lib/series";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
+import { rich } from "../lib/i18n";
 import { useLibrary } from "../lib/useLibrary";
 import { useActiveProfile, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
@@ -20,7 +22,8 @@ export default function Series() {
 }
 
 function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
-  useTitle(`${name} (series)`);
+  const t = useT();
+  useTitle(t("{name} (series)", { name }));
   const profile = useActiveProfile();
   const ageRating = profile?.ageRating ?? "all";
   const titles = seriesBooks({ name, ids }, ageRating);
@@ -33,10 +36,16 @@ function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
     if (!profile) return null;
     const p = progress[b.id];
     if (p?.finished || library.entries[b.id]?.status === "finished") return "Finished";
-    if (p) return `${Math.round(p.fraction * 100)}% through`;
+    if (p) return "through";
     if (library.entries[b.id]?.status === "want_to_read") return "On your reading list";
     return null;
   };
+  const statusLabel = (b: Book, s: string) =>
+    s === "Finished"
+      ? t("Finished")
+      : s === "through"
+        ? t("{percent}% through", { percent: Math.round(progress[b.id]!.fraction * 100) })
+        : t("On your reading list");
   const nextUp = profile ? titles.find((b) => status(b) !== "Finished") : undefined;
   const anyFinished = profile ? titles.some((b) => status(b) === "Finished") : false;
 
@@ -55,30 +64,28 @@ function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
       <StructuredData id="series" data={seriesData(name, seriesPath(name), titles)} />
       <BackLink />
       <header className="series-hero">
-        <p className="eyebrow">Series</p>
+        <p className="eyebrow">{t("Series")}</p>
         <h1>{name}</h1>
         <p className="person-count">
-          {titles.length} {titles.length === 1 ? "book" : "books"} on LiteraryWorm, in reading order
-          {authors.length > 0 && (
-            <>
-              {" · by "}
-              {authors.map((a, i) => (
+          {t.plural(titles.length, { one: "{count} book on LiteraryWorm, in reading order", other: "{count} books on LiteraryWorm, in reading order" })}
+          {authors.length > 0 &&
+            rich(t(" · by {authors}"), {
+              authors: authors.map((a, i) => (
                 <span key={a}>
                   {i > 0 && ", "}
                   <Link to={personPath("author", a)}>{a}</Link>
                 </span>
-              ))}
-            </>
-          )}
+              )),
+            })}
         </p>
         {nextUp && anyFinished && (
           <p className="series-next">
-            Next for you: <Link to={`/books/${nextUp.id}`}>{nextUp.title}</Link>
+            {rich(t("Next for you: {book}"), { book: <Link to={`/books/${nextUp.id}`}>{nextUp.title}</Link> })}
           </p>
         )}
       </header>
       {titles.length === 0 ? (
-        <p className="person-empty">None of this series is on LiteraryWorm for this profile yet.</p>
+        <p className="person-empty">{t("None of this series is on LiteraryWorm for this profile yet.")}</p>
       ) : (
         <ol className="series-list">
           {titles.map((b, i) => {
@@ -97,7 +104,7 @@ function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
                   </h2>
                   <p className="muted">
                     {b.author} · {b.year}
-                    {s ? ` · ${s}` : ""}
+                    {s ? ` · ${statusLabel(b, s)}` : ""}
                   </p>
                   <p className="series-synopsis">{b.synopsis}</p>
                 </div>

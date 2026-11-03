@@ -6,6 +6,8 @@ import { hoursAndMinutes, LISTENING_ALERT_SHARE, listenedThisMonth, monthRange, 
 import { today } from "../lib/reading";
 import { useStore } from "../store/context";
 import type { PlanId } from "../types";
+import { dateLocale } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /**
  * Account → Plan: how much of the plan's limits is used. This month's listening for the whole
@@ -14,6 +16,7 @@ import type { PlanId } from "../types";
  */
 export function PlanUsage({ planId }: { planId: PlanId }) {
   const { state } = useStore();
+  const t = useT();
   const member = Boolean(state.account?.userId);
   const { audioSeconds, offlineDevices } = planLimits(planId);
   const day = today();
@@ -56,7 +59,7 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
     try {
       await freeOfflineDevice(device.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't free that device. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't free that device. Try again."));
     } finally {
       setFreeing(null);
       setVersion((n) => n + 1);
@@ -68,23 +71,30 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
   const nearlyOut = (audioSeconds !== null && listened >= audioSeconds * LISTENING_ALERT_SHARE) || (devices !== null && devices.length >= offlineDevices);
   return (
     <div className="plan-usage">
-      <h3>This month</h3>
+      <h3>{t("This month")}</h3>
       <dl className="account-facts">
         <div>
-          <dt>Audiobooks</dt>
+          <dt>{t("Audiobooks")}</dt>
           <dd>
             {audioSeconds === null
-              ? `${hoursAndMinutes(listened)} listened. Unlimited on this plan.`
-              : `${hoursAndMinutes(Math.min(listened, audioSeconds))} of ${audioSeconds / 3600} hours listened, for the whole household. ${
-                  listened >= audioSeconds ? `Listening starts again on ${nextMonthLabel(day)}.` : `Resets on ${nextMonthLabel(day)}.`
+              ? t("{time} listened. Unlimited on this plan.", { time: hoursAndMinutes(listened) })
+              : `${t("{time} of {hours} hours listened, for the whole household.", {
+                  time: hoursAndMinutes(Math.min(listened, audioSeconds)),
+                  hours: audioSeconds / 3600,
+                })} ${
+                  listened >= audioSeconds
+                    ? t("Listening starts again on {date}.", { date: nextMonthLabel(day) })
+                    : t("Resets on {date}.", { date: nextMonthLabel(day) })
                 }`}
           </dd>
         </div>
         {member && (
           <div>
-            <dt>Offline devices</dt>
+            <dt>{t("Offline devices")}</dt>
             <dd>
-              {devices === null ? "Checking…" : `${devices.length} of ${offlineDevices} in use. A device takes a place when it first saves a book with Read offline.`}
+              {devices === null
+                ? t("Checking…")
+                : t("{used} of {total} in use. A device takes a place when it first saves a book with Read offline.", { used: devices.length, total: offlineDevices })}
             </dd>
           </div>
         )}
@@ -97,23 +107,33 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
       {next && nearlyOut && (
         <p className="plan-move-up">
           <Link className="secondary-button" to={planCheckoutPath(next)}>
-            Move to {next.name}: {next.audioHoursPerMonth === null ? "unlimited listening" : `${next.audioHoursPerMonth} hours`} and {next.offlineDevices} offline
-            devices
+            {next.audioHoursPerMonth === null
+              ? t("Move to {plan}: unlimited listening and {devices} offline devices", { plan: next.name, devices: next.offlineDevices })
+              : t("Move to {plan}: {hours} hours and {devices} offline devices", {
+                  plan: next.name,
+                  hours: next.audioHoursPerMonth,
+                  devices: next.offlineDevices,
+                })}
           </Link>
         </p>
       )}
       {devices !== null && devices.length > 0 && (
-        <ul className="plan-devices" role="list" aria-label="Offline devices">
+        <ul className="plan-devices" role="list" aria-label={t("Offline devices")}>
           {devices.map((d) => (
             <li key={d.id}>
               <span>
                 {d.label}
-                {d.id === thisDevice && " (this device)"}
-                <span className="muted"> · last used {new Date(d.lastSeenAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</span>
+                {d.id === thisDevice && ` ${t("(this device)")}`}
+                <span className="muted">
+                  {" · "}
+                  {t("last used {date}", {
+                    date: new Date(d.lastSeenAt).toLocaleDateString(t.lang === "en" ? "en-GB" : dateLocale(t.lang), { day: "numeric", month: "long" }),
+                  })}
+                </span>
               </span>
               <button type="button" className="ghost-button small-button" disabled={freeing !== null} onClick={() => free(d)}>
-                {freeing === d.id ? "Freeing…" : "Free"}
-                <span className="visually-hidden"> {d.label}: its offline books are removed</span>
+                {freeing === d.id ? t("Freeing…") : t("Free")}
+                <span className="visually-hidden"> {t("{device}: its offline books are removed", { device: d.label })}</span>
               </button>
             </li>
           ))}

@@ -2,6 +2,8 @@ import type { Ref } from "react";
 import { useStore } from "../store/context";
 import { DEMO_ACCOUNT_PASSWORD } from "../store/state";
 import { PasswordField } from "./PasswordField";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 interface AccountPasswordFieldProps {
   value: string;
@@ -12,12 +14,13 @@ interface AccountPasswordFieldProps {
 }
 
 /** The account holder's password, asked for before protected changes. Shows the demo password in the demo. */
-export function AccountPasswordField({ value, onChange, error, label = "Account password", ref }: AccountPasswordFieldProps) {
+export function AccountPasswordField({ value, onChange, error, label, ref }: AccountPasswordFieldProps) {
   const { state } = useStore();
+  const t = useT();
   return (
     <PasswordField
       ref={ref}
-      label={label}
+      label={label ?? t("Account password")}
       autoComplete="current-password"
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -25,10 +28,10 @@ export function AccountPasswordField({ value, onChange, error, label = "Account 
       hint={
         state.account?.isDemo ? (
           <>
-            Demo account password: <strong>{DEMO_ACCOUNT_PASSWORD}</strong>
+            {rich(t("Demo account password: {password}"), { password: <strong>{DEMO_ACCOUNT_PASSWORD}</strong> })}
           </>
         ) : (
-          "The password for the whole account, not a profile PIN."
+          t("The password for the whole account, not a profile PIN.")
         )
       }
     />

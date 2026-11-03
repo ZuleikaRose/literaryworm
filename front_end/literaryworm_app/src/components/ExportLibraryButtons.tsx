@@ -6,6 +6,7 @@ import { finishDays } from "../lib/rereads";
 import { useProfileData, useStore } from "../store/context";
 import { activeLibrary } from "../store/reducer";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 /**
  * *Export for Goodreads* and *Export for StoryGraph* in My Library (lib/exportLibraryCsv.ts):
@@ -13,6 +14,7 @@ import { Icon } from "./Icon";
  * finished. Made on this device and downloaded, never uploaded.
  */
 export function ExportLibraryButtons() {
+  const t = useT();
   const { state } = useStore();
   const library = activeLibrary(state);
   const data = useProfileData();
@@ -44,16 +46,18 @@ export function ExportLibraryButtons() {
         };
       });
     downloadCsv(toCsv(books, format), exportCsvName(format, today()));
-    setStatus(`Saved ${books.length} ${books.length === 1 ? "book" : "books"} as a ${format === "goodreads" ? "Goodreads" : "StoryGraph"} file.`);
+    setStatus(
+      t.plural(books.length, { one: "Saved {count} book as a {site} file.", other: "Saved {count} books as a {site} file." }, { site: format === "goodreads" ? "Goodreads" : "StoryGraph" }),
+    );
   }
 
   return (
     <>
       <button type="button" className="secondary-button small-button" onClick={() => save("goodreads")}>
-        <Icon name="share" size={16} /> Export for Goodreads
+        <Icon name="share" size={16} /> {t("Export for Goodreads")}
       </button>
       <button type="button" className="secondary-button small-button" onClick={() => save("storygraph")}>
-        <Icon name="share" size={16} /> Export for StoryGraph
+        <Icon name="share" size={16} /> {t("Export for StoryGraph")}
       </button>
       <p className="visually-hidden" role="status">
         {status}

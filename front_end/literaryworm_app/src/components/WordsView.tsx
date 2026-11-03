@@ -9,9 +9,12 @@ import { useStore } from "../store/context";
 import type { SavedWord } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /** My Library → Words: the words this profile kept from the dictionary, and Practise. */
 export function WordsView() {
+  const t = useT();
   const words = useWords();
   const { state } = useStore();
   const library = activeLibrary(state);
@@ -29,7 +32,7 @@ export function WordsView() {
       await work();
       setAnnouncement(done);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof Error ? err.message : t("Something went wrong. Try again."));
     }
   }
 
@@ -37,30 +40,31 @@ export function WordsView() {
     <section className="words-view" aria-labelledby="words-title">
       <div className="section-head">
         <div>
-          <h2 id="words-title">My words</h2>
+          <h2 id="words-title">{t("My words")}</h2>
           <p className="muted">
             {words.words.length === 0
-              ? "Look a word up in the reader's dictionary, then choose Keep in My words."
-              : `${wordsSummary(words.words)}. ${due.length ? `${due.length} to review today. ` : "Nothing to review today. "}Private to this profile.`}
+              ? t("Look a word up in the reader's dictionary, then choose Keep in My words.")
+              : due.length
+                ? t("{summary}. {n} to review today. Private to this profile.", { summary: wordsSummary(words.words, t), n: due.length })
+                : t("{summary}. Nothing to review today. Private to this profile.", { summary: wordsSummary(words.words, t) })}
           </p>
         </div>
         {words.words.length > 0 && (
           <div className="words-actions">
             {due.length > 0 && (
               <button type="button" className="primary-button" onClick={() => setPractising("review")}>
-                <Icon name="clock" size={17} /> Review {due.length} {due.length === 1 ? "word" : "words"}
+                <Icon name="clock" size={17} /> {t.plural(due.length, { one: "Review {count} word", other: "Review {count} words" })}
               </button>
             )}
             <button type="button" className={due.length > 0 ? "secondary-button" : "primary-button"} onClick={() => setPractising("all")}>
-              <Icon name="star" size={17} /> Practise all
+              <Icon name="star" size={17} /> {t("Practise all")}
             </button>
           </div>
         )}
       </div>
       {words.words.length > 0 && (
         <p className="field-hint">
-          Review asks each word again after 1, 3, 7, 14, 30 and 60 days while you know it, and tomorrow when you don't. Known after
-          the last one, it's marked as known.
+          {t("Review asks each word again after 1, 3, 7, 14, 30 and 60 days while you know it, and tomorrow when you don't. Known after the last one, it's marked as known.")}
         </p>
       )}
       {error && (
@@ -78,33 +82,35 @@ export function WordsView() {
             <li key={w.word} className="word-item">
               <div className="word-head">
                 <h3 lang="en">{w.word}</h3>
-                {w.learned ? <span className="word-known">Known</span> : <span className="word-due">{dueLabel(w, day)}</span>}
+                {w.learned ? <span className="word-known">{t("Known")}</span> : <span className="word-due">{dueLabel(w, day, t)}</span>}
               </div>
               {w.definition && <p className="word-definition">{w.definition}</p>}
               {w.context && <q className="word-context">{w.context}</q>}
               {title && w.bookId && (
                 <p className="word-source">
-                  From{" "}
-                  <Link to={`/read/${w.bookId}`}>
-                    {title}
-                    {w.chapterIndex !== null ? `, chapter ${w.chapterIndex + 1}` : ""}
-                  </Link>
+                  {rich(t("From {place}"), {
+                    place: (
+                      <Link to={`/read/${w.bookId}`}>
+                        {w.chapterIndex !== null ? t("{title}, chapter {n}", { title, n: w.chapterIndex + 1 }) : title}
+                      </Link>
+                    ),
+                  })}
                 </p>
               )}
               <div className="highlight-item-actions">
-                <button type="button" className="text-button" onClick={() => run(() => words.setLearned(w.word, !w.learned), w.learned ? "Marked as still learning." : "Marked as known.")}>
-                  {w.learned ? "Still learning" : "I know this"}
+                <button type="button" className="text-button" onClick={() => run(() => words.setLearned(w.word, !w.learned), w.learned ? t("Marked as still learning.") : t("Marked as known."))}>
+                  {w.learned ? t("Still learning") : t("I know this")}
                   <span className="visually-hidden">: {w.word}</span>
                 </button>
-                <button type="button" className="text-button danger-text" onClick={() => run(() => words.remove(w.word), `Removed ${w.word}.`)}>
-                  Remove<span className="visually-hidden"> {w.word}</span>
+                <button type="button" className="text-button danger-text" onClick={() => run(() => words.remove(w.word), t("Removed {word}.", { word: w.word }))}>
+                  {t("Remove")}<span className="visually-hidden"> {w.word}</span>
                 </button>
               </div>
             </li>
           );
         })}
       </ul>
-      <Dialog open={practising !== null} onClose={() => setPractising(null)} title={practising === "review" ? "Review" : "Practise"} size="sm">
+      <Dialog open={practising !== null} onClose={() => setPractising(null)} title={practising === "review" ? t("Review") : t("Practise")} size="sm">
         {practising === "review" && <Cards deck={due} onClose={() => setPractising(null)} onAnswer={(w, knew) => words.review(w.word, knew)} />}
         {practising === "all" && (
           <Cards
@@ -123,6 +129,7 @@ export function WordsView() {
 /** Flashcards: the word first, then its meaning on request; I knew it or Not yet. */
 function Cards({ deck: initial, onClose, onAnswer }: { deck: SavedWord[]; onClose: () => void; onAnswer: (word: SavedWord, knew: boolean) => Promise<void> }) {
   // The deck as it was when the dialog opened, so answers don't reshuffle it.
+  const t = useT();
   const [deck] = useState(initial);
   const [at, setAt] = useState(0);
   const [shown, setShown] = useState(false);
@@ -133,12 +140,10 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: SavedWord[]; onClos
   if (!card) {
     return (
       <div className="practise-done" role="status">
-        <p>
-          That's all {deck.length} word{deck.length === 1 ? "" : "s"}: you knew {known}.
-        </p>
+        <p>{t.plural(deck.length, { one: "That's all {count} word: you knew {known}.", other: "That's all {count} words: you knew {known}." }, { known })}</p>
         <div className="modal-actions">
           <button type="button" className="primary-button" onClick={onClose}>
-            Done
+            {t("Done")}
           </button>
         </div>
       </div>
@@ -153,20 +158,20 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: SavedWord[]; onClos
       setShown(false);
       setAt((i) => i + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't save that. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't save that. Try again."));
     }
   }
 
   return (
     <div className="practise-card">
       <p className="muted">
-        Word {at + 1} of {deck.length}
+        {t("Word {n} of {total}", { n: at + 1, total: deck.length })}
       </p>
       <p className="practise-word" lang="en">
         {card.word}
       </p>
       {card.context && <q className="word-context">{card.context}</q>}
-      <div aria-live="polite">{shown && <p className="word-definition">{card.definition ?? "No meaning was kept for this word."}</p>}</div>
+      <div aria-live="polite">{shown && <p className="word-definition">{card.definition ?? t("No meaning was kept for this word.")}</p>}</div>
       {error && (
         <p className="field-error" role="alert">
           <Icon name="alert" size={15} /> {error}
@@ -176,15 +181,15 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: SavedWord[]; onClos
         {shown ? (
           <>
             <button type="button" className="secondary-button" onClick={() => answer(false)}>
-              Not yet
+              {t("Not yet")}
             </button>
             <button type="button" className="primary-button" onClick={() => answer(true)}>
-              I knew it
+              {t("I knew it")}
             </button>
           </>
         ) : (
           <button type="button" className="primary-button" onClick={() => setShown(true)}>
-            Show the meaning
+            {t("Show the meaning")}
           </button>
         )}
       </div>

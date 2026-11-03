@@ -9,6 +9,7 @@ import { AccountPasswordField } from "./AccountPasswordField";
 import { Avatar } from "./Avatar";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 interface PinDialogProps {
   profile: Profile | null;
@@ -18,8 +19,9 @@ interface PinDialogProps {
 
 /** Asks for a locked profile's PIN. The account password is the fallback, including during a lockout. */
 export function PinDialog({ profile, onClose, onUnlocked }: PinDialogProps) {
+  const t = useT();
   return (
-    <Dialog open={Boolean(profile)} onClose={onClose} title={profile ? `Enter ${profile.name}'s PIN` : ""} size="sm">
+    <Dialog open={Boolean(profile)} onClose={onClose} title={profile ? t("Enter {name}'s PIN", { name: profile.name }) : ""} size="sm">
       {/* Keyed so each opening starts with empty fields. */}
       {profile && <PinForm key={profile.id} profile={profile} onUnlocked={onUnlocked} />}
     </Dialog>
@@ -28,6 +30,7 @@ export function PinDialog({ profile, onClose, onUnlocked }: PinDialogProps) {
 
 function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profile: Profile) => void }) {
   const { state } = useStore();
+  const t = useT();
   const household = useProfiles();
   const checkPassword = useCheckAccountPassword();
   const [busy, setBusy] = useState(false);
@@ -44,7 +47,7 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
   const submitPin = async (e: FormEvent) => {
     e.preventDefault();
     if (pin.length !== PIN_LENGTH) {
-      setError(`Enter all ${PIN_LENGTH} digits.`);
+      setError(t("Enter all {n} digits.", { n: PIN_LENGTH }));
       return;
     }
     setBusy(true);
@@ -53,7 +56,7 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
       result = await household.checkPin(live, pin);
     } catch (err) {
       setBusy(false);
-      setError(err instanceof AccountError ? err.message : "We couldn't check the PIN. Try again.");
+      setError(err instanceof AccountError ? err.message : t("We couldn't check the PIN. Try again."));
       return;
     }
     setBusy(false);
@@ -65,7 +68,14 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
     setError(
       result.locked
         ? null
-        : `That PIN isn't right. ${result.attemptsLeft} ${result.attemptsLeft === 1 ? "try" : "tries"} left before this profile locks for ${PIN_LOCK_MINUTES} minutes.`,
+        : t.plural(
+            result.attemptsLeft,
+            {
+              one: "That PIN isn't right. {count} try left before this profile locks for {minutes} minutes.",
+              other: "That PIN isn't right. {count} tries left before this profile locks for {minutes} minutes.",
+            },
+            { minutes: PIN_LOCK_MINUTES },
+          ),
     );
     pinRef.current?.focus();
   };
@@ -74,13 +84,13 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
     e.preventDefault();
     const result = await checkPassword(password);
     if (!result.ok) {
-      setPasswordError(result.problem ?? "That isn't the account password.");
+      setPasswordError(result.problem ?? t("That isn't the account password."));
       return;
     }
     try {
       await household.unlock(live, password);
     } catch (err) {
-      setPasswordError(err instanceof AccountError ? err.message : "We couldn't unlock the profile. Try again.");
+      setPasswordError(err instanceof AccountError ? err.message : t("We couldn't unlock the profile. Try again."));
       return;
     }
     onUnlocked(live);
@@ -97,15 +107,21 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
         <div className="form-alert" role="alert">
           <Icon name="clock" size={17} />
           <p>
-            Too many wrong PINs. {live.name} is locked for {minutesLeft} more {minutesLeft === 1 ? "minute" : "minutes"}. The
-            account holder can unlock it now with the account password.
+            {t.plural(
+              minutesLeft,
+              {
+                one: "Too many wrong PINs. {name} is locked for {count} more minute. The account holder can unlock it now with the account password.",
+                other: "Too many wrong PINs. {name} is locked for {count} more minutes. The account holder can unlock it now with the account password.",
+              },
+              { name: live.name },
+            )}
           </p>
         </div>
       ) : (
         !usePassword && (
           <form noValidate onSubmit={submitPin}>
             <label className="field-label" htmlFor="pin-input">
-              {PIN_LENGTH}-digit PIN
+              {t("{n}-digit PIN", { n: PIN_LENGTH })}
             </label>
             <input
               ref={pinRef}
@@ -131,11 +147,11 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
               </p>
             ) : (
               <p className="field-hint" id="pin-hint">
-                After {MAX_PIN_ATTEMPTS} wrong tries the profile locks for {PIN_LOCK_MINUTES} minutes.
+                {t("After {attempts} wrong tries the profile locks for {minutes} minutes.", { attempts: MAX_PIN_ATTEMPTS, minutes: PIN_LOCK_MINUTES })}
               </p>
             )}
             <button type="submit" className="primary-button modal-submit" disabled={busy}>
-              {busy ? "Checking…" : `Open ${live.name}`}
+              {busy ? t("Checking…") : t("Open {name}", { name: live.name })}
             </button>
           </form>
         )
@@ -145,12 +161,12 @@ function PinForm({ profile, onUnlocked }: { profile: Profile; onUnlocked: (profi
         <form noValidate onSubmit={submitPassword}>
           <AccountPasswordField value={password} onChange={setPassword} error={passwordError} />
           <button type="submit" className="primary-button modal-submit">
-            Unlock {live.name}
+            {t("Unlock {name}", { name: live.name })}
           </button>
         </form>
       ) : (
         <button type="button" className="text-button pin-forgot" onClick={() => setUsePassword(true)}>
-          Forgot the PIN? Use the account password
+          {t("Forgot the PIN? Use the account password")}
         </button>
       )}
     </div>

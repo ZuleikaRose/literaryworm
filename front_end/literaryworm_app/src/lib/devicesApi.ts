@@ -1,5 +1,6 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { AccountError, signedInUserId } from "./accountApi";
+import { tr } from "./i18n";
 import { supabase } from "./supabase";
 
 /**
@@ -10,7 +11,7 @@ import { supabase } from "./supabase";
  */
 
 function client() {
-  if (!supabase) throw new AccountError("Listening on another device needs the LiteraryWorm backend, which isn't set up in this copy of the app.");
+  if (!supabase) throw new AccountError(tr("Listening on another device needs the LiteraryWorm backend, which isn't set up in this copy of the app."));
   return supabase;
 }
 
@@ -89,7 +90,7 @@ export async function registerDevice(id: string, label: string): Promise<void> {
   const userId = await signedInUserId();
   const { error } = await db.from("listening_devices").insert({ id, user_id: userId, label });
   // Already there (signed in again in the same visit): checking in is enough.
-  if (error && error.code !== "23505") throw new AccountError("We couldn't add this device to your account.");
+  if (error && error.code !== "23505") throw new AccountError(tr("We couldn't add this device to your account."));
   if (error) await touchDevice(id);
   const stale = await db
     .from("listening_devices")
@@ -103,7 +104,7 @@ export async function registerDevice(id: string, label: string): Promise<void> {
 /** Says this device is still open (the database stamps the time). */
 export async function touchDevice(id: string): Promise<void> {
   const { error } = await client().rpc("touch_listening_device", { p_id: id });
-  if (error) throw new AccountError("We couldn't reach LiteraryWorm.");
+  if (error) throw new AccountError(tr("We couldn't reach LiteraryWorm."));
 }
 
 /** The account's other open devices, most recently seen first. */
@@ -114,7 +115,7 @@ export async function loadDevices(exceptId: string): Promise<ListeningDevice[]> 
     .neq("id", exceptId)
     .gt("last_seen_at", new Date(Date.now() - DEVICE_FRESH_MS).toISOString())
     .order("last_seen_at", { ascending: false });
-  if (error) throw new AccountError("We couldn't load your devices. Try again.");
+  if (error) throw new AccountError(tr("We couldn't load your devices. Try again."));
   return (data as DeviceRow[]).map((d) => ({ id: d.id, label: d.label, lastSeenAt: Date.parse(d.last_seen_at) }));
 }
 
@@ -138,8 +139,8 @@ export async function sendHandoff(input: {
     });
   if (error) {
     // The device closed (and was cleared) between listing and sending.
-    if (error.code === "23503") throw new AccountError("That device isn't open any more. Choose another.");
-    throw new AccountError("We couldn't send the book. Try again.");
+    if (error.code === "23503") throw new AccountError(tr("That device isn't open any more. Choose another."));
+    throw new AccountError(tr("We couldn't send the book. Try again."));
   }
 }
 
@@ -153,7 +154,7 @@ export async function latestHandoff(deviceId: string): Promise<Handoff | null> {
     .gt("created_at", new Date(Date.now() - HANDOFF_FRESH_MS).toISOString())
     .order("created_at", { ascending: false })
     .limit(1);
-  if (error) throw new AccountError("We couldn't check for books sent here.");
+  if (error) throw new AccountError(tr("We couldn't check for books sent here."));
   const row = (data as HandoffRow[])[0];
   return row ? toHandoff(row) : null;
 }
@@ -161,7 +162,7 @@ export async function latestHandoff(deviceId: string): Promise<Handoff | null> {
 /** Marks a handoff picked up or turned down, so it isn't offered again. */
 export async function claimHandoff(id: string): Promise<void> {
   const { error } = await client().from("playback_handoffs").update({ claimed_at: new Date().toISOString() }).eq("id", id);
-  if (error) throw new AccountError("We couldn't reach LiteraryWorm.");
+  if (error) throw new AccountError(tr("We couldn't reach LiteraryWorm."));
 }
 
 /** Calls `onHandoff` as books are sent to this device. Returns a function that stops listening. */

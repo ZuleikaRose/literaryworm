@@ -5,10 +5,13 @@
  * the book offered first.
  */
 
+import { tk, tr } from "./i18n";
+
 export const POLL_OPTIONS_MIN = 2;
 export const POLL_OPTIONS_MAX = 5;
 export const POLL_QUESTION_MAX = 120;
-export const POLL_DEFAULT_QUESTION = "What should we read next?";
+/** The question a new poll starts with (shown translated in the form: t(POLL_DEFAULT_QUESTION)). */
+export const POLL_DEFAULT_QUESTION = tk("What should we read next?");
 
 export interface ClubPoll {
   id: string;
@@ -45,11 +48,11 @@ export function leader(poll: Pick<ClubPoll, "options" | "votes" | "winner">): st
 /** What's wrong with a new poll, or null: the same checks as the database. */
 export function pollError(question: string, options: string[]): string | null {
   const q = question.trim();
-  if (!q) return "Write a question, or keep the one offered.";
-  if (q.length > POLL_QUESTION_MAX) return `Questions are up to ${POLL_QUESTION_MAX} characters.`;
-  if (options.length < POLL_OPTIONS_MIN) return `Add at least ${POLL_OPTIONS_MIN} books.`;
-  if (options.length > POLL_OPTIONS_MAX) return `A poll offers up to ${POLL_OPTIONS_MAX} books.`;
-  if (new Set(options).size !== options.length) return "Each book can be offered once.";
+  if (!q) return tr("Write a question, or keep the one offered.");
+  if (q.length > POLL_QUESTION_MAX) return tr("Questions are up to {max} characters.", { max: POLL_QUESTION_MAX });
+  if (options.length < POLL_OPTIONS_MIN) return tr("Add at least {min} books.", { min: POLL_OPTIONS_MIN });
+  if (options.length > POLL_OPTIONS_MAX) return tr("A poll offers up to {max} books.", { max: POLL_OPTIONS_MAX });
+  if (new Set(options).size !== options.length) return tr("Each book can be offered once.");
   return null;
 }
 

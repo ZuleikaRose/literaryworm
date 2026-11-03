@@ -8,9 +8,11 @@ import { ProfileEditor } from "../components/ProfileEditor";
 import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { planById } from "../data/plans";
 import { profileRoom, profilesInUse } from "../lib/planLimits";
-import { ageRatingDetails, lockMinutesLeft } from "../lib/profiles";
+import { lockMinutesLeft } from "../lib/profiles";
 import { useProfiles } from "../lib/useProfiles";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
+import { rich } from "../lib/i18n";
 import { useStore } from "../store/context";
 import { MAX_PROFILES } from "../store/state";
 import type { Profile } from "../types";
@@ -18,7 +20,8 @@ import type { Profile } from "../types";
 type Pending = { kind: "manage" } | { kind: "add" } | { kind: "edit"; profile: Profile };
 
 export default function Profiles() {
-  useTitle("Who's reading?");
+  const t = useT();
+  useTitle(t("Who's reading?"));
   const { state, dispatch } = useStore();
   const household = useProfiles();
   const navigate = useNavigate();
@@ -89,9 +92,9 @@ export default function Profiles() {
 
   return (
     <section className="profiles-page" aria-labelledby="profiles-title">
-      <h1 id="profiles-title">{managing ? "Manage profiles" : "Who's reading?"}</h1>
+      <h1 id="profiles-title">{managing ? t("Manage profiles") : t("Who's reading?")}</h1>
       <p className="profiles-sub">
-        {managing ? "Choose a profile to edit it." : "Each profile has its own shelf, history and recommendations."}
+        {managing ? t("Choose a profile to edit it.") : t("Each profile has its own shelf, history and recommendations.")}
       </p>
 
       <ul className="profile-grid">
@@ -99,7 +102,7 @@ export default function Profiles() {
           const locked = lockMinutesLeft(p) > 0;
           // The accessible name comes from the visible text plus this hidden state, so it always
           // contains what sighted users see (WCAG 2.5.3 Label in Name).
-          const status = managing ? "edit" : p.hasPin ? (locked ? "locked" : "PIN required") : null;
+          const status = managing ? t("edit") : p.hasPin ? (locked ? t("locked") : t("PIN required")) : null;
           return (
             <li key={p.id}>
               <button
@@ -124,14 +127,14 @@ export default function Profiles() {
                 <span className="profile-tile-meta">
                   {p.ageRating !== "all" && (
                     <span className="rating-chip">
-                      {ageRatingDetails[p.ageRating].label}
-                      <span className="visually-hidden"> profile</span>
+                      {p.ageRating === "kids" ? t("Kids") : t("Teen")}
+                      <span className="visually-hidden">{t(" profile")}</span>
                     </span>
                   )}
                   {p.dailyLimitMinutes && (
                     <span className="rating-chip">
-                      <Icon name="clock" size={12} /> {p.dailyLimitMinutes} min
-                      <span className="visually-hidden"> daily limit</span>
+                      <Icon name="clock" size={12} /> {t("{n} min", { n: p.dailyLimitMinutes })}
+                      <span className="visually-hidden">{t(" daily limit")}</span>
                     </span>
                   )}
                 </span>
@@ -150,9 +153,9 @@ export default function Profiles() {
               <span className="profile-tile-avatar add-avatar">
                 <Icon name="plus" size={36} />
               </span>
-              <span className="profile-tile-name">Add profile</span>
+              <span className="profile-tile-name">{t("Add profile")}</span>
               <span className="profile-tile-meta">
-                {inUse.length} of {profileLimit} used
+                {t("{n} of {max} used", { n: inUse.length, max: profileLimit })}
               </span>
             </button>
           </li>
@@ -161,19 +164,33 @@ export default function Profiles() {
 
       {!canAdd && profiles.length < MAX_PROFILES && plan && (
         <p className="profiles-note">
-          {limitedByNext && nextPlan
-            ? `Your membership moves to ${nextPlan.name} at renewal, which includes ${profileLimit === 1 ? "1 profile" : `${profileLimit} profiles`}. `
-            : `Your ${plan.name} plan includes ${profileLimit === 1 ? "1 profile" : `${profileLimit} profiles`}. `}
-          <Link to="/plans">Change plan</Link> to add more.
+          {rich(
+            limitedByNext && nextPlan
+              ? t.plural(
+                  profileLimit,
+                  {
+                    one: "Your membership moves to {plan} at renewal, which includes {count} profile. {link} to add more.",
+                    other: "Your membership moves to {plan} at renewal, which includes {count} profiles. {link} to add more.",
+                  },
+                  { plan: nextPlan.name },
+                )
+              : t.plural(
+                  profileLimit,
+                  { one: "Your {plan} plan includes {count} profile. {link} to add more.", other: "Your {plan} plan includes {count} profiles. {link} to add more." },
+                  { plan: plan.name },
+                ),
+            { link: <Link to="/plans">{t("Change plan")}</Link> },
+          )}
         </p>
       )}
 
       {setAside.length > 0 && (
         <section className="profiles-aside" aria-labelledby="profiles-aside-title">
-          <h2 id="profiles-aside-title">Set aside</h2>
+          <h2 id="profiles-aside-title">{t("Set aside")}</h2>
           <p className="profiles-note">
-            These keep their shelf, history and settings, and don't count towards your plan. Choose one to bring it back
-            {inUse.length >= profileLimit ? " once there's room" : ""}.
+            {inUse.length >= profileLimit
+              ? t("These keep their shelf, history and settings, and don't count towards your plan. Choose one to bring it back once there's room.")
+              : t("These keep their shelf, history and settings, and don't count towards your plan. Choose one to bring it back.")}
           </p>
           <ul className="profile-grid is-aside">
             {setAside.map((p) => (
@@ -184,7 +201,7 @@ export default function Profiles() {
                   </span>
                   <span className="profile-tile-name">{p.name}</span>
                   <span className="profile-tile-meta">
-                    <span className="rating-chip">Set aside</span>
+                    <span className="rating-chip">{t("Set aside")}</span>
                   </span>
                 </button>
               </li>
@@ -196,11 +213,11 @@ export default function Profiles() {
       <div className="profiles-actions">
         {managing ? (
           <button type="button" className="primary-button" onClick={() => setManaging(false)}>
-            Done
+            {t("Done")}
           </button>
         ) : (
           <button type="button" className="secondary-button" onClick={() => guarded({ kind: "manage" })}>
-            <Icon name="settings" size={17} /> Manage profiles
+            <Icon name="settings" size={17} /> {t("Manage profiles")}
           </button>
         )}
       </div>
@@ -234,26 +251,27 @@ function GenreSetup({ profile, onDone }: { profile: Profile; onDone: (genres: st
     ...new Set(profile.favoriteGenres.map(favouriteGenreLabel).filter((g): g is string => g !== null)),
   ]);
   const toggle = (g: string) => setGenres((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
+  const t = useT();
   return (
     <section className="profiles-page setup" aria-labelledby="setup-title">
-      <p className="eyebrow">Step 3 of 3</p>
-      <h1 id="setup-title">What do you like to read, {profile.name}?</h1>
-      <p className="profiles-sub">Pick a few genres to start your recommendations. You can change them later.</p>
+      <p className="eyebrow">{t("Step 3 of 3")}</p>
+      <h1 id="setup-title">{t("What do you like to read, {name}?", { name: profile.name })}</h1>
+      <p className="profiles-sub">{t("Pick a few genres to start your recommendations. You can change them later.")}</p>
       <fieldset className="chip-group chip-group-lg">
-        <legend className="visually-hidden">Favorite genres</legend>
+        <legend className="visually-hidden">{t("Favorite genres")}</legend>
         {browseGenres.map(({ label: g }) => (
           <label key={g} className="chip">
             <input type="checkbox" checked={genres.includes(g)} onChange={() => toggle(g)} />
             <span>
               {genres.includes(g) && <Icon name="check" size={14} />}
-              {g}
+              {t(g)}
             </span>
           </label>
         ))}
       </fieldset>
       <div className="profiles-actions">
         <button type="button" className="primary-button" onClick={() => onDone(genres)}>
-          {genres.length ? `Continue with ${genres.length} ${genres.length === 1 ? "genre" : "genres"}` : "Skip for now"}
+          {genres.length ? t.plural(genres.length, { one: "Continue with {count} genre", other: "Continue with {count} genres" }) : t("Skip for now")}
         </button>
       </div>
     </section>

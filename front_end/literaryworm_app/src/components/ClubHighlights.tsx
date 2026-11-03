@@ -2,6 +2,8 @@ import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { shareable, shareLabel, splitShared } from "../lib/clubHighlights";
 import { useClubHighlights } from "../lib/useClubHighlights";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import type { Book } from "../types";
 import { Icon } from "./Icon";
 
@@ -12,6 +14,7 @@ import { Icon } from "./Icon";
  * the book from the list here, and can stop sharing it.
  */
 export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: string; book: Book; me: string; myName: string; upTo: number }) {
+  const t = useT();
   const club = useClubHighlights(clubId);
   const [showHidden, setShowHidden] = useState(false);
   const [picked, setPicked] = useState("");
@@ -21,7 +24,7 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
   const [status, setStatus] = useState("");
   const id = useId();
 
-  const chapterTitle = (i: number) => book.chapters[i]?.title ?? `Chapter ${i + 1}`;
+  const chapterTitle = (i: number) => book.chapters[i]?.title ?? t("Chapter {n}", { n: i + 1 });
   const shared = club.shared ?? [];
   // Your own shares are never hidden from you.
   const { visible, hidden } = splitShared(
@@ -39,7 +42,7 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
       await work();
       setStatus(done);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof Error ? err.message : t("Something went wrong. Try again."));
     } finally {
       setBusy(false);
     }
@@ -48,13 +51,13 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
   const item = (h: (typeof shared)[number], mineToo: boolean) => (
     <li key={h.id} className="club-highlight">
       <p className="club-post-meta">
-        <strong>{mineToo ? "You" : h.author}</strong> on {chapterTitle(h.chapterIndex)}
+        {rich(t("{name} on {chapter}"), { name: <strong>{mineToo ? t("You") : h.author}</strong>, chapter: chapterTitle(h.chapterIndex) })}
       </p>
       <blockquote className={`highlight-quote quote-${h.color}`}>{h.quote}</blockquote>
       {h.note && <p className="club-highlight-note">{h.note}</p>}
       {mineToo && (
-        <button type="button" className="text-button" disabled={busy} onClick={() => run(() => club.unshare(h.id), "Stopped sharing that highlight.")}>
-          Stop sharing<span className="visually-hidden"> this highlight</span>
+        <button type="button" className="text-button" disabled={busy} onClick={() => run(() => club.unshare(h.id), t("Stopped sharing that highlight."))}>
+          {t("Stop sharing")}<span className="visually-hidden"> {t("this highlight")}</span>
         </button>
       )}
     </li>
@@ -62,15 +65,15 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
 
   return (
     <section className="club-highlights" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`}>Shared highlights</h2>
-      <p className="goal-hint">Passages members marked in the book. Ones from chapters you haven't reached stay hidden.</p>
+      <h2 id={`${id}-title`}>{t("Shared highlights")}</h2>
+      <p className="goal-hint">{t("Passages members marked in the book. Ones from chapters you haven't reached stay hidden.")}</p>
       {club.error && (
         <p className="form-alert" role="alert">
           <Icon name="alert" size={17} /> <span>{club.error}</span>
         </p>
       )}
-      {club.shared === null && !club.error && <p className="muted">Loading…</p>}
-      {club.shared !== null && visible.length + hidden.length + yours.length === 0 && <p className="muted">No one has shared a highlight yet.</p>}
+      {club.shared === null && !club.error && <p className="muted">{t("Loading…")}</p>}
+      {club.shared !== null && visible.length + hidden.length + yours.length === 0 && <p className="muted">{t("No one has shared a highlight yet.")}</p>}
 
       {(visible.length > 0 || yours.length > 0) && (
         <ul className="club-highlight-list" role="list">
@@ -80,9 +83,9 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
       )}
       {hidden.length > 0 && !showHidden && (
         <p className="club-spoiler">
-          {hidden.length === 1 ? "1 more is" : `${hidden.length} more are`} from chapters you haven't reached.{" "}
+          {t.plural(hidden.length, { one: "{count} more is from chapters you haven't reached.", other: "{count} more are from chapters you haven't reached." })}{" "}
           <button type="button" className="text-button" onClick={() => setShowHidden(true)}>
-            Show {hidden.length === 1 ? "it" : "them"} anyway
+            {hidden.length === 1 ? t("Show it anyway") : t("Show them anyway")}
           </button>
         </p>
       )}
@@ -93,24 +96,21 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
       )}
 
       <div className="club-highlight-share">
-        <h3>Share one of yours</h3>
+        <h3>{t("Share one of yours")}</h3>
         {options.length === 0 ? (
           <p className="muted">
-            {club.mine.some((h) => h.bookId === book.id) ? "You've shared all your highlights of this book." : "Highlight a passage in "}
-            {!club.mine.some((h) => h.bookId === book.id) && (
-              <>
-                <Link to={`/read/${book.id}`}>{book.title}</Link> and it can be shared here.
-              </>
-            )}
+            {club.mine.some((h) => h.bookId === book.id)
+              ? t("You've shared all your highlights of this book.")
+              : rich(t("Highlight a passage in {title} and it can be shared here."), { title: <Link to={`/read/${book.id}`}>{book.title}</Link> })}
           </p>
         ) : (
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (chosen) run(() => club.share(chosen, withNote && !!chosen.note, myName), "Shared with the club.").then(() => setPicked(""));
+              if (chosen) run(() => club.share(chosen, withNote && !!chosen.note, myName), t("Shared with the club.")).then(() => setPicked(""));
             }}
           >
-            <label htmlFor={`${id}-pick`}>Highlight</label>
+            <label htmlFor={`${id}-pick`}>{t("Highlight")}</label>
             <select id={`${id}-pick`} value={chosen?.id ?? ""} onChange={(e) => setPicked(e.target.value)}>
               {options.map((h) => (
                 <option key={h.id} value={h.id}>
@@ -120,11 +120,11 @@ export function ClubHighlights({ clubId, book, me, myName, upTo }: { clubId: str
             </select>
             {chosen?.note && (
               <label className="checkbox-row">
-                <input type="checkbox" checked={withNote} onChange={(e) => setWithNote(e.target.checked)} /> Include my note
+                <input type="checkbox" checked={withNote} onChange={(e) => setWithNote(e.target.checked)} /> {t("Include my note")}
               </label>
             )}
             <button type="submit" className="secondary-button" disabled={busy}>
-              <Icon name="highlighter" size={16} /> Share with the club
+              <Icon name="highlighter" size={16} /> {t("Share with the club")}
             </button>
           </form>
         )}

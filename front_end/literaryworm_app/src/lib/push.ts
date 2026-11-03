@@ -1,4 +1,5 @@
 import { deviceLabel } from "./devicesApi";
+import { tr } from "./i18n";
 import { base64UrlToBytes, isPushKind, PUSH_KINDS, type PushKind, type PushState, pushState } from "./pushState";
 import { supabase } from "./supabase";
 
@@ -48,22 +49,22 @@ export class PushError extends Error {}
 
 /** Asks the browser, subscribes, and saves this device for the account. */
 export async function turnOnPush(): Promise<void> {
-  if (!supabase) throw new PushError("Notifications need the LiteraryWorm backend.");
+  if (!supabase) throw new PushError(tr("Notifications need the LiteraryWorm backend."));
   const permission = await Notification.requestPermission();
   if (permission !== "granted")
-    throw new PushError(permission === "denied" ? "Your browser is blocking notifications from LiteraryWorm. Allow them in its site settings, then try again." : "Notifications weren't turned on.");
+    throw new PushError(permission === "denied" ? tr("Your browser is blocking notifications from LiteraryWorm. Allow them in its site settings, then try again.") : tr("Notifications weren't turned on."));
   const reg = (await registration()) ?? (await navigator.serviceWorker.ready);
   const sub =
     (await reg.pushManager.getSubscription()) ??
     (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(VAPID_PUBLIC_KEY) }));
   const keys = sub.toJSON().keys ?? {};
-  if (!keys.p256dh || !keys.auth) throw new PushError("This browser didn't give the keys notifications need. Try another browser.");
+  if (!keys.p256dh || !keys.auth) throw new PushError(tr("This browser didn't give the keys notifications need. Try another browser."));
   // The time zone sets "evening" for the streak nudge.
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   const { error } = await supabase.rpc("save_push_subscription", { p_endpoint: sub.endpoint, p_p256dh: keys.p256dh, p_auth: keys.auth, p_label: deviceLabel(), p_time_zone: zone });
   if (error) {
     await sub.unsubscribe().catch(() => undefined);
-    throw new PushError(error.message.includes("20 devices") ? error.message : "We couldn't turn on notifications. Try again.");
+    throw new PushError(error.message.includes("20 devices") ? error.message : tr("We couldn't turn on notifications. Try again."));
   }
 }
 
@@ -73,7 +74,7 @@ export async function turnOffPush(): Promise<void> {
   if (!sub) return;
   if (supabase) {
     const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
-    if (error) throw new PushError("We couldn't turn off notifications. Try again.");
+    if (error) throw new PushError(tr("We couldn't turn off notifications. Try again."));
   }
   await sub.unsubscribe().catch(() => undefined);
 }
@@ -88,7 +89,7 @@ export async function loadPushKinds(): Promise<PushKind[]> {
   if (!supabase) return [...PUSH_KINDS.map((k) => k.id)];
   const { data: auth } = await supabase.auth.getUser();
   const { data, error } = await supabase.from("account_private").select("push_kinds").eq("user_id", auth.user?.id ?? "").maybeSingle();
-  if (error || !data) throw new PushError("We couldn't load which notifications you get.");
+  if (error || !data) throw new PushError(tr("We couldn't load which notifications you get."));
   return (data.push_kinds as string[]).filter(isPushKind);
 }
 
@@ -96,5 +97,5 @@ export async function savePushKinds(kinds: PushKind[]): Promise<void> {
   if (!supabase) return;
   const { data: auth } = await supabase.auth.getUser();
   const { error } = await supabase.from("account_private").update({ push_kinds: kinds }).eq("user_id", auth.user?.id ?? "");
-  if (error) throw new PushError("We couldn't save that. Try again.");
+  if (error) throw new PushError(tr("We couldn't save that. Try again."));
 }

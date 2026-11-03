@@ -5,6 +5,7 @@ import { ESSENTIAL } from "../lib/consent";
 import { fallbackCover } from "../lib/coverFallback";
 import { BookCard } from "./BookCard";
 import { Cover } from "./Cover";
+import { useT } from "../lib/useT";
 
 interface BookTileProps {
   book: BookSummary;
@@ -18,10 +19,11 @@ interface BookTileProps {
 
 /** A book from a list: the drawn LiteraryWorm card for catalog titles, the Google cover otherwise. */
 export function BookTile({ book, priority = false, progress, to }: BookTileProps) {
+  const t = useT();
   const [broken, setBroken] = useState(false);
   if (book.local) return <BookCard book={book.local} progress={progress} to={to} />;
 
-  const author = book.authors.length ? book.authors.join(", ") : "Unknown author";
+  const author = book.authors.length ? book.authors.join(", ") : t("Unknown author");
   const drawn = { cover: fallbackCover(book.id), genres: book.categories.slice(0, 1), title: book.title, author };
 
   return (

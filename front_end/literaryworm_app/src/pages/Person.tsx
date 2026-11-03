@@ -12,6 +12,7 @@ import { fetchFollowerCount } from "../lib/followersApi";
 import { catalogBy, followerCountNow, followerLabel, type PersonKind, personInitials, personName, personPath } from "../lib/people";
 import { useFollows } from "../lib/useFollows";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
 import { useActiveProfile, useStore } from "../store/context";
 import NotFound from "./NotFound";
 
@@ -26,8 +27,9 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
   const profile = useActiveProfile();
   const signedIn = Boolean(useStore().state.account);
   const ageRating = profile?.ageRating ?? "all";
+  const t = useT();
   const role = kind === "author" ? "Author" : "Narrator";
-  useTitle(`${name} (${role.toLowerCase()})`);
+  useTitle(kind === "author" ? t("{name} (author)", { name }) : t("{name} (narrator)", { name }));
   const catalog = catalogBy(kind, name, ageRating);
   // Google Books lists authors, not narrators; Kids profiles see only the catalog.
   const showGoogle = kind === "author" && usesBackend && ageRating !== "kids";
@@ -69,13 +71,13 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
           {initials}
         </span>
         <div className="person-heading">
-          <p className="eyebrow">{role}</p>
+          <p className="eyebrow">{kind === "author" ? t("Author") : t("Narrator")}</p>
           <h1>{name}</h1>
           <p className="person-count">
             {catalog.length === 0
-              ? "No titles on LiteraryWorm yet"
-              : `${catalog.length} ${catalog.length === 1 ? "title" : "titles"} on LiteraryWorm`}
-            {kind === "narrator" && catalog.length > 0 && ", read by them"}
+              ? t("No titles on LiteraryWorm yet")
+              : t.plural(catalog.length, { one: "{count} title on LiteraryWorm", other: "{count} titles on LiteraryWorm" })}
+            {kind === "narrator" && catalog.length > 0 && t(", read by them")}
           </p>
           {followersText && <p className="person-count">{followersText}</p>}
         </div>
@@ -84,7 +86,7 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
         ) : (
           // Following belongs to a profile: signed in, they choose one first.
           <Link className="secondary-button" to={signedIn ? "/profiles" : "/signin"}>
-            {signedIn ? "Choose a profile to follow" : "Log in to follow"}
+            {signedIn ? t("Choose a profile to follow") : t("Log in to follow")}
           </Link>
         )}
       </header>
@@ -92,28 +94,28 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
       {catalog.length > 0 && (
         <Shelf
           id="person-catalog"
-          eyebrow="Read or listen now"
-          title={kind === "author" ? `By ${name} on LiteraryWorm` : `Narrated by ${name}`}
+          eyebrow={t("Read or listen now")}
+          title={kind === "author" ? t("By {name} on LiteraryWorm", { name }) : t("Narrated by {name}", { name })}
           items={catalog.map(fromLocal)}
         />
       )}
       {showGoogle && (
         <BookFeed
           id="person-google"
-          eyebrow="From Google Books"
-          title={`More by ${name}`}
+          eyebrow={t("From Google Books")}
+          title={t("More by {name}", { name })}
           query={{ mode: "author", name }}
           ageRating={ageRating}
-          emptyHint="Google Books has nothing else under this name."
-          endText="That's everything Google Books lists under this name."
+          emptyHint={t("Google Books has nothing else under this name.")}
+          endText={t("That's everything Google Books lists under this name.")}
         />
       )}
       {catalog.length === 0 && !showGoogle && (
         <p className="person-empty">
           {kind === "narrator"
-            ? "Nothing narrated by them is on LiteraryWorm for this profile yet."
-            : "Nothing by them is on LiteraryWorm for this profile yet."}{" "}
-          Follow them to see their new titles first on Home.
+            ? t("Nothing narrated by them is on LiteraryWorm for this profile yet.")
+            : t("Nothing by them is on LiteraryWorm for this profile yet.")}{" "}
+          {t("Follow them to see their new titles first on Home.")}
         </p>
       )}
     </div>

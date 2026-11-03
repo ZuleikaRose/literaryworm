@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { type ClubMember } from "../lib/clubs";
 import { placeLabel } from "../lib/clubPlaces";
 import { useClubPlaces } from "../lib/useClubPlaces";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 /**
@@ -9,6 +10,7 @@ import { Icon } from "./Icon";
  * account's own choice to show it. Chapter numbers only; posts past the reader's chapter stay hidden.
  */
 export function ClubPlaces({ clubId, members, me }: { clubId: string; members: ClubMember[]; me: string | null }) {
+  const t = useT();
   const { places, sharing, error, setShare } = useClubPlaces(clubId, members, me);
   const [busy, setBusy] = useState(false);
   const [changeError, setChangeError] = useState<string | null>(null);
@@ -17,11 +19,11 @@ export function ClubPlaces({ clubId, members, me }: { clubId: string; members: C
 
   return (
     <section className="goal-card club-places" aria-labelledby="places-title">
-      <h2 id="places-title">Where everyone is</h2>
+      <h2 id="places-title">{t("Where everyone is")}</h2>
       {places === null && !error ? (
-        <p className="muted">Loading…</p>
+        <p className="muted">{t("Loading…")}</p>
       ) : others.length === 0 ? (
-        <p className="muted">No one else is showing their place yet.</p>
+        <p className="muted">{t("No one else is showing their place yet.")}</p>
       ) : (
         <ul className="club-places-list">
           {others.map((p) => (
@@ -43,8 +45,8 @@ export function ClubPlaces({ clubId, members, me }: { clubId: string; members: C
       {sharing !== null && (
         <label className="switch-row">
           <span>
-            <strong>Show my place to this club</strong>
-            <small id={hintId}>Members see your chapter and how far through you are. Nothing else about your reading.</small>
+            <strong>{t("Show my place to this club")}</strong>
+            <small id={hintId}>{t("Members see your chapter and how far through you are. Nothing else about your reading.")}</small>
           </span>
           <input
             type="checkbox"
@@ -60,7 +62,7 @@ export function ClubPlaces({ clubId, members, me }: { clubId: string; members: C
               try {
                 await setShare(on);
               } catch (err) {
-                setChangeError(err instanceof Error ? err.message : "We couldn't change that. Try again.");
+                setChangeError(err instanceof Error ? err.message : t("We couldn't change that. Try again."));
               } finally {
                 setBusy(false);
               }

@@ -8,6 +8,8 @@ import { activeLibrary } from "../store/reducer";
 import type { Highlight } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
 /**
  * Highlights review in My Library → Notes: *Review N highlights* opens today's due highlights one
@@ -15,6 +17,7 @@ import { Icon } from "./Icon";
  * it on a step, *Again soon* brings it back tomorrow.
  */
 export function HighlightReviewButton() {
+  const t = useT();
   const review = useHighlightReview();
   const [open, setOpen] = useState(false);
   if (review.total === 0) return null;
@@ -23,16 +26,18 @@ export function HighlightReviewButton() {
     <div className="highlight-review">
       {n > 0 ? (
         <button type="button" className="primary-button" onClick={() => setOpen(true)}>
-          <Icon name="clock" size={17} /> Review {n} {n === 1 ? "highlight" : "highlights"}
+          <Icon name="clock" size={17} /> {t.plural(n, { one: "Review {count} highlight", other: "Review {count} highlights" })}
         </button>
       ) : (
-        <p className="muted">No highlights to review today.</p>
+        <p className="muted">{t("No highlights to review today.")}</p>
       )}
       <p className="field-hint">
-        Each highlight comes back the day after you make it, then after {HIGHLIGHT_INTERVALS.join(", ").replace(/, (\d+)$/, " and $1")} days while it
-        still matters, and every {HIGHLIGHT_INTERVALS[HIGHLIGHT_INTERVALS.length - 1]} days after that. Up to 10 a day.
+        {t("Each highlight comes back the day after you make it, then after {intervals} days while it still matters, and every {last} days after that. Up to 10 a day.", {
+          intervals: t("{list} and {last}", { list: HIGHLIGHT_INTERVALS.slice(0, -1).join(", "), last: HIGHLIGHT_INTERVALS[HIGHLIGHT_INTERVALS.length - 1] }),
+          last: HIGHLIGHT_INTERVALS[HIGHLIGHT_INTERVALS.length - 1],
+        })}
       </p>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Review highlights" size="sm">
+      <Dialog open={open} onClose={() => setOpen(false)} title={t("Review highlights")} size="sm">
         {open && <Cards deck={review.due} onClose={() => setOpen(false)} onAnswer={review.answer} />}
       </Dialog>
     </div>
@@ -41,6 +46,7 @@ export function HighlightReviewButton() {
 
 function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClose: () => void; onAnswer: (h: Highlight, stillMatters: boolean) => Promise<void> }) {
   // The deck as it was when the dialog opened, so answers don't reshuffle it.
+  const t = useT();
   const [deck] = useState(initial);
   const [at, setAt] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -53,12 +59,10 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClos
   if (!card) {
     return (
       <div className="practise-done" role="status">
-        <p>
-          That's all {deck.length} highlight{deck.length === 1 ? "" : "s"} for today.
-        </p>
+        <p>{t.plural(deck.length, { one: "That's all {count} highlight for today.", other: "That's all {count} highlights for today." })}</p>
         <div className="modal-actions">
           <button type="button" className="primary-button" onClick={onClose}>
-            Done
+            {t("Done")}
           </button>
         </div>
       </div>
@@ -67,8 +71,8 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClos
 
   const book = getBook(card.bookId);
   const upload = uploads.find((u) => u.id === card.bookId);
-  const title = book?.title ?? upload?.title ?? library[card.bookId]?.title ?? "Untitled book";
-  const chapter = book?.chapters[card.chapterIndex]?.title ?? upload?.chapterTitles[card.chapterIndex] ?? `Chapter ${card.chapterIndex + 1}`;
+  const title = book?.title ?? upload?.title ?? library[card.bookId]?.title ?? t("Untitled book");
+  const chapter = book?.chapters[card.chapterIndex]?.title ?? upload?.chapterTitles[card.chapterIndex] ?? t("Chapter {n}", { n: card.chapterIndex + 1 });
 
   async function answer(stillMatters: boolean) {
     setError(null);
@@ -77,7 +81,7 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClos
       await onAnswer(card, stillMatters);
       setAt((i) => i + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't save that. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't save that. Try again."));
     } finally {
       setBusy(false);
     }
@@ -86,19 +90,22 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClos
   return (
     <div className="practise-card">
       <p className="muted">
-        Highlight {at + 1} of {deck.length}
+        {t("Highlight {n} of {total}", { n: at + 1, total: deck.length })}
       </p>
       <blockquote className={`highlight-quote highlight-review-quote quote-${card.color}`}>{card.quote}</blockquote>
       {card.note && (
         <p className="highlight-review-note">
-          <strong>Your note:</strong> {card.note}
+          <strong>{t("Your note:")}</strong> {card.note}
         </p>
       )}
       <p className="word-source">
-        From{" "}
-        <Link to={`/read/${card.bookId}?chapter=${card.chapterIndex}&page=${card.page}`}>
-          {title}, {chapter}
-        </Link>
+        {rich(t("From {place}"), {
+          place: (
+            <Link to={`/read/${card.bookId}?chapter=${card.chapterIndex}&page=${card.page}`}>
+              {title}, {chapter}
+            </Link>
+          ),
+        })}
       </p>
       {error && (
         <p className="field-error" role="alert">
@@ -107,10 +114,10 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: Highlight[]; onClos
       )}
       <div className="modal-actions">
         <button type="button" className="secondary-button" disabled={busy} onClick={() => answer(false)}>
-          Again soon
+          {t("Again soon")}
         </button>
         <button type="button" className="primary-button" disabled={busy} onClick={() => answer(true)}>
-          Still matters
+          {t("Still matters")}
         </button>
       </div>
     </div>

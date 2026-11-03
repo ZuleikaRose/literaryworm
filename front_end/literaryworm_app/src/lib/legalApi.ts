@@ -1,5 +1,6 @@
 import type { LegalPage, LegalSection } from "../data/legal";
 import { AccountError } from "./accountApi";
+import { tr } from "./i18n";
 import { supabase } from "./supabase";
 
 /**
@@ -21,13 +22,13 @@ const toPage = (row: Row): LegalPage => ({
 export async function loadLegalPages(): Promise<LegalPage[] | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.from("legal_pages").select("slug, title, summary, sections, updated_at").order("position");
-  if (error) throw new AccountError("We couldn't load the latest policies.");
+  if (error) throw new AccountError(tr("We couldn't load the latest policies."));
   return (data as Row[]).map(toPage);
 }
 
 /** Saves an edited page (editors and admins only; the database keeps the version it replaces). Returns it as saved. */
 export async function saveLegalPage(slug: string, edit: { title: string; summary: string; sections: LegalSection[] }): Promise<LegalPage> {
-  if (!supabase) throw new AccountError("Editing policies needs the LiteraryWorm backend.");
+  if (!supabase) throw new AccountError(tr("Editing policies needs the LiteraryWorm backend."));
   const { data, error } = await supabase
     .from("legal_pages")
     .update({ title: edit.title.trim(), summary: edit.summary.trim(), sections: edit.sections })
@@ -36,11 +37,11 @@ export async function saveLegalPage(slug: string, edit: { title: string; summary
     .maybeSingle();
   if (error) {
     if (error.code === "23514" || /section/i.test(error.message)) {
-      throw new AccountError("Each section needs a heading (up to 120 characters) and at least one paragraph (up to 5000 characters each).");
+      throw new AccountError(tr("Each section needs a heading (up to 120 characters) and at least one paragraph (up to 5000 characters each)."));
     }
-    throw new AccountError("We couldn't save the page. Try again.");
+    throw new AccountError(tr("We couldn't save the page. Try again."));
   }
   // RLS returns nothing when the account isn't an admin.
-  if (!data) throw new AccountError("Only LiteraryWorm editors and admins can edit policies.");
+  if (!data) throw new AccountError(tr("Only LiteraryWorm editors and admins can edit policies."));
   return toPage(data as Row);
 }

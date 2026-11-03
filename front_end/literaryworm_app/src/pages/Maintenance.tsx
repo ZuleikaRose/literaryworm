@@ -16,8 +16,10 @@ import {
   toLocalInput,
 } from "../lib/maintenance";
 import { addNotice, deleteNotice, loadAllNotices, updateNotice } from "../lib/maintenanceApi";
+import { tk } from "../lib/i18n";
 import { hasRole } from "../lib/staff";
 import { useStaffRoles } from "../lib/useStaffRoles";
+import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 
@@ -60,14 +62,15 @@ const fromNotice = (n: MaintenanceNotice): Draft => ({
   ends: toLocalInput(n.endsAt),
 });
 
-const STATE_LABEL = { scheduled: "Not showing yet", announced: "Showing", "under way": "Happening now", over: "Over" } as const;
+const STATE_LABEL = { scheduled: tk("Not showing yet"), announced: tk("Showing"), "under way": tk("Happening now"), over: tk("Over") } as const;
 
 /**
  * /maintenance, for developers and admins: the notices that show across the site before and during
  * planned work. Add, edit and delete them; the database checks the role (has_staff_role('developer')).
  */
 export default function Maintenance() {
-  useTitle("Maintenance notices");
+  const t = useT();
+  useTitle(t("Maintenance notices"));
   const roles = useStaffRoles();
   const isDemo = useStore().state.account?.isDemo ?? false;
   const allowed = hasRole(roles, "developer");
@@ -75,14 +78,14 @@ export default function Maintenance() {
   return (
     <div className="page dashboard-page maintenance-page">
       <BackLink />
-      <h1>Maintenance notices</h1>
+      <h1>{t("Maintenance notices")}</h1>
       {allowed ? (
         <Notices />
       ) : (
         <p className="account-sub">
           {isDemo
-            ? "The demo household has no staff access."
-            : "Maintenance notices are for developers and admins. An admin can give you access in Account → Team access."}
+            ? t("The demo household has no staff access.")
+            : t("Maintenance notices are for developers and admins. An admin can give you access in Account → Team access.")}
         </p>
       )}
     </div>
@@ -90,6 +93,7 @@ export default function Maintenance() {
 }
 
 function Notices() {
+  const t = useT();
   const [list, setList] = useState<MaintenanceNotice[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<MaintenanceNotice | null>(null);
@@ -157,10 +161,10 @@ function Notices() {
       const input = { title: parsed.title, message: parsed.message, announceAt: parsed.announceAt!, startsAt: parsed.startsAt!, endsAt: parsed.endsAt! };
       const saved = editing ? await updateNotice(editing.id, input) : await addNotice(input);
       setList((current) => [saved, ...(current ?? []).filter((n) => n.id !== saved.id)]);
-      setDone(editing ? "Notice saved." : `Notice added. It shows from ${new Date(saved.announceAt).toLocaleString()}.`);
+      setDone(editing ? t("Notice saved.") : t("Notice added. It shows from {when}.", { when: new Date(saved.announceAt).toLocaleString() }));
       reset();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "We couldn't save the notice. Try again.");
+      setFormError(err instanceof Error ? err.message : t("We couldn't save the notice. Try again."));
     } finally {
       setBusy(false);
     }
@@ -175,9 +179,9 @@ function Notices() {
       setList((current) => (current ?? []).filter((n) => n.id !== gone.id));
       if (editing?.id === gone.id) reset();
       setRemoving(null);
-      setDone(`${gone.title} deleted.`);
+      setDone(t("{title} deleted.", { title: gone.title }));
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : "We couldn't delete the notice. Try again.");
+      setRemoveError(err instanceof Error ? err.message : t("We couldn't delete the notice. Try again."));
     }
   };
 
@@ -186,19 +190,17 @@ function Notices() {
   return (
     <>
       <p className="account-sub">
-        A notice shows as a banner at the top of every page, to visitors and members, from when it's announced until the work
-        ends. Times are in your time zone; readers see them in theirs. Release to the dev site first, test it, then promote to
-        the main site during the time you've announced.
+        {t("A notice shows as a banner at the top of every page, to visitors and members, from when it's announced until the work ends. Times are in your time zone; readers see them in theirs. Release to the dev site first, test it, then promote to the main site during the time you've announced.")}
       </p>
 
       <form className="support-form maintenance-form" noValidate onSubmit={save}>
         <h2 ref={formRef} tabIndex={-1}>
-          {editing ? `Edit: ${editing.title}` : "New notice"}
+          {editing ? t("Edit: {title}", { title: editing.title }) : t("New notice")}
         </h2>
-        <Field label="Title" maxLength={NOTICE_TITLE_MAX} value={draft.title} onChange={(e) => set("title", e.target.value)} error={errors.title} />
+        <Field label={t("Title")} maxLength={NOTICE_TITLE_MAX} value={draft.title} onChange={(e) => set("title", e.target.value)} error={errors.title} />
         <div className="field">
           <label className="field-label" htmlFor={messageId}>
-            Message
+            {t("Message")}
           </label>
           <textarea
             id={messageId}
@@ -217,29 +219,29 @@ function Notices() {
             </p>
           ) : (
             <p className="field-hint" id={`${messageId}-hint`}>
-              What will happen and what readers should expect. {draft.message.trim().length} of {NOTICE_MESSAGE_MAX} characters.
+              {t("What will happen and what readers should expect. {n} of {max} characters.", { n: draft.message.trim().length, max: NOTICE_MESSAGE_MAX })}
             </p>
           )}
         </div>
         <div className="maintenance-times">
-          <Field label="Work starts" type="datetime-local" value={draft.starts} onChange={(e) => set("starts", e.target.value)} error={errors.startsAt} />
-          <Field label="Work ends" type="datetime-local" value={draft.ends} onChange={(e) => set("ends", e.target.value)} error={errors.endsAt} hint="Up to 7 days after it starts." />
+          <Field label={t("Work starts")} type="datetime-local" value={draft.starts} onChange={(e) => set("starts", e.target.value)} error={errors.startsAt} />
+          <Field label={t("Work ends")} type="datetime-local" value={draft.ends} onChange={(e) => set("ends", e.target.value)} error={errors.endsAt} hint={t("Up to 7 days after it starts.")} />
           <Field
-            label="Show the notice from"
+            label={t("Show the notice from")}
             type="datetime-local"
             value={draft.announce}
             onChange={(e) => set("announce", e.target.value)}
             error={errors.announceAt}
-            hint="Up to 30 days before the work starts."
+            hint={t("Up to 30 days before the work starts.")}
           />
         </div>
         {preview && (
           <div className="maintenance-preview">
-            <p className="eyebrow">Preview</p>
+            <p className="eyebrow">{t("Preview")}</p>
             <div className="maintenance-notice">
               <Icon name="alert" size={18} />
               <p>
-                <strong>{draft.title.trim() || "Title"}</strong> <span className="maintenance-when">{preview}.</span> {draft.message.trim()}
+                <strong>{draft.title.trim() || t("Title")}</strong> <span className="maintenance-when">{preview}.</span> {draft.message.trim()}
               </p>
             </div>
           </div>
@@ -252,11 +254,11 @@ function Notices() {
         )}
         <div className="modal-actions">
           <button type="submit" className="primary-button" disabled={busy}>
-            {busy ? "Saving…" : editing ? "Save notice" : "Add notice"}
+            {busy ? t("Saving…") : editing ? t("Save notice") : t("Add notice")}
           </button>
           {editing && (
             <button type="button" className="secondary-button" onClick={reset}>
-              Cancel editing
+              {t("Cancel editing")}
             </button>
           )}
         </div>
@@ -270,14 +272,14 @@ function Notices() {
       )}
 
       <section className="maintenance-list" aria-labelledby="maintenance-all">
-        <h2 id="maintenance-all">All notices</h2>
+        <h2 id="maintenance-all">{t("All notices")}</h2>
         {loadError && (
           <div className="form-alert" role="alert">
             <Icon name="alert" size={17} />
             <p>{loadError}</p>
           </div>
         )}
-        {list && list.length === 0 && <p className="account-sub">No notices yet.</p>}
+        {list && list.length === 0 && <p className="account-sub">{t("No notices yet.")}</p>}
         {list && list.length > 0 && (
           <ul>
             {sortForStaff(list, now).map((n) => {
@@ -286,15 +288,15 @@ function Notices() {
                 <li key={n.id} className={`maintenance-item is-${state.replace(" ", "-")}`}>
                   <div>
                     <p className="maintenance-item-head">
-                      <strong>{n.title}</strong> <span className="maintenance-pill">{STATE_LABEL[state]}</span>
+                      <strong>{n.title}</strong> <span className="maintenance-pill">{t(STATE_LABEL[state])}</span>
                     </p>
                     <p className="maintenance-when">{noticeWhen(n)}</p>
                     <p className="account-sub">{n.message}</p>
-                    <p className="field-hint">Shows from {new Date(n.announceAt).toLocaleString()}</p>
+                    <p className="field-hint">{t("Shows from {when}", { when: new Date(n.announceAt).toLocaleString() })}</p>
                   </div>
                   <div className="maintenance-actions">
                     <button type="button" className="text-button" onClick={() => startEdit(n)}>
-                      Edit<span className="visually-hidden"> {n.title}</span>
+                      {t("Edit")}<span className="visually-hidden"> {n.title}</span>
                     </button>
                     <button
                       type="button"
@@ -304,7 +306,7 @@ function Notices() {
                         setRemoving(n);
                       }}
                     >
-                      Delete<span className="visually-hidden"> {n.title}</span>
+                      {t("Delete")}<span className="visually-hidden"> {n.title}</span>
                     </button>
                   </div>
                 </li>
@@ -318,9 +320,9 @@ function Notices() {
         open={removing !== null}
         onClose={() => setRemoving(null)}
         size="sm"
-        eyebrow="Maintenance notices"
-        title={`Delete ${removing?.title ?? "notice"}?`}
-        description={<p>{removing && noticeState(removing, now) !== "over" ? "It stops showing on the site straight away." : "It's removed from this list."}</p>}
+        eyebrow={t("Maintenance notices")}
+        title={t("Delete {title}?", { title: removing?.title ?? t("notice") })}
+        description={<p>{removing && noticeState(removing, now) !== "over" ? t("It stops showing on the site straight away.") : t("It's removed from this list.")}</p>}
       >
         {removeError && (
           <div className="form-alert" role="alert">
@@ -330,10 +332,10 @@ function Notices() {
         )}
         <div className="modal-actions">
           <button type="button" className="danger-button" onClick={confirmRemove}>
-            Delete
+            {t("Delete")}
           </button>
           <button type="button" className="secondary-button" onClick={() => setRemoving(null)}>
-            Keep it
+            {t("Keep it")}
           </button>
         </div>
       </Dialog>

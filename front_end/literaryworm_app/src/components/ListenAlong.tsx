@@ -4,6 +4,8 @@ import { getBook } from "../data/books";
 import { type ListenAlongState, setListenAlong, useListenAlong } from "../lib/listenAlong";
 import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, moveSession, watchSession } from "../lib/listenAlongApi";
 import { usePlayback } from "../lib/playback";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
 import { Icon } from "./Icon";
@@ -42,15 +44,17 @@ export function ListenAlong() {
 
 /** `trouble`: the session can't be reached just now (it keeps trying; the bar says so). */
 function Bar({ session, trouble, onLeave }: { session: ListenAlongState; trouble: boolean; onLeave: () => void }) {
+  const t = useT();
+  const club = <Link to={`/clubs/${session.clubId}`}>{session.clubName}</Link>;
   return (
     <div className="listen-along-bar" role="status">
       <Icon name={trouble ? "alert" : "users"} size={16} />
       <span>
-        {session.role === "host" ? "You're leading" : "Listening along with"} <Link to={`/clubs/${session.clubId}`}>{session.clubName}</Link>
-        {trouble && (session.role === "host" ? ". Members may be out of step: reconnecting…" : ". Can't reach the session: reconnecting…")}
+        {rich(session.role === "host" ? t("You're leading {club}") : t("Listening along with {club}"), { club })}
+        {trouble && (session.role === "host" ? t(". Members may be out of step: reconnecting…") : t(". Can't reach the session: reconnecting…"))}
       </span>
       <button type="button" className="text-button" onClick={onLeave}>
-        {session.role === "host" ? "Stop" : "Leave"}
+        {session.role === "host" ? t("Stop") : t("Leave")}
       </button>
     </div>
   );

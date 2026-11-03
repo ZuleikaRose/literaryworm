@@ -2,6 +2,8 @@ import { type FormEvent, useCallback, useEffect, useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { hasRole, roleLabel, STAFF_ROLES, type StaffMember, type StaffRole } from "../lib/staff";
 import { grantStaffRole, loadStaff, revokeStaffRole } from "../lib/staffApi";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 /**
@@ -10,38 +12,40 @@ import { Icon } from "./Icon";
  * remove roles.
  */
 export function TeamAccess({ roles }: { roles: StaffRole[] }) {
+  const t = useT();
   const isAdmin = roles.includes("admin");
   return (
     <div className="team-access">
       <p>
-        Your access: <strong>{roles.map(roleLabel).join(", ")}</strong>.
+        {rich(t("Your access: {roles}."), { roles: <strong>{roles.map(roleLabel).join(", ")}</strong> })}
       </p>
-      <ul className="team-roles" aria-label="What each role can do">
+      <ul className="team-roles" aria-label={t("What each role can do")}>
         {STAFF_ROLES.map((r) => (
           <li key={r.value}>
-            <strong>{r.label}</strong> <span>{r.description}</span>
+            <strong>{t(r.label)}</strong> <span>{t(r.description)}</span>
           </li>
         ))}
       </ul>
       <p className="goal-hint">
-        Every role comes with a complimentary Premium membership, never charged, for as long as it's held. When someone's last
-        role is removed, it ends and they can choose a plan.
+        {t(
+          "Every role comes with a complimentary Premium membership, never charged, for as long as it's held. When someone's last role is removed, it ends and they can choose a plan.",
+        )}
       </p>
       {(hasRole(roles, "billing") || hasRole(roles, "customer_service") || hasRole(roles, "developer")) && (
         <p className="team-tools">
           {hasRole(roles, "billing") && (
             <Link className="secondary-button" to="/dashboard">
-              Open the dashboard
+              {t("Open the dashboard")}
             </Link>
           )}
           {hasRole(roles, "customer_service") && (
             <Link className="secondary-button" to="/support">
-              Look up a member
+              {t("Look up a member")}
             </Link>
           )}
           {hasRole(roles, "developer") && (
             <Link className="secondary-button" to="/maintenance">
-              Maintenance notices
+              {t("Maintenance notices")}
             </Link>
           )}
         </p>
@@ -52,6 +56,7 @@ export function TeamAccess({ roles }: { roles: StaffRole[] }) {
 }
 
 function TeamManager() {
+  const t = useT();
   const [team, setTeam] = useState<StaffMember[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -81,13 +86,13 @@ function TeamManager() {
       const result = await grantStaffRole(email, role);
       setDone(
         result === "invited"
-          ? `${email.trim()} has no account yet. They'll be ${roleLabel(role)} as soon as they sign up with that email.`
-          : `${email.trim()} is now ${roleLabel(role)}.`,
+          ? t("{email} has no account yet. They'll be {role} as soon as they sign up with that email.", { email: email.trim(), role: roleLabel(role) })
+          : t("{email} is now {role}.", { email: email.trim(), role: roleLabel(role) }),
       );
       setEmail("");
       await reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't give that access. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't give that access. Try again."));
     } finally {
       setBusy(false);
     }
@@ -98,19 +103,19 @@ function TeamManager() {
     setDone(null);
     try {
       await revokeStaffRole(member.email, r);
-      setDone(`${member.email} is no longer ${roleLabel(r)}.`);
+      setDone(t("{email} is no longer {role}.", { email: member.email, role: roleLabel(r) }));
       await reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't remove that access. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't remove that access. Try again."));
     }
   };
 
   return (
     <>
-      <h3 className="team-heading">The team</h3>
+      <h3 className="team-heading">{t("The team")}</h3>
       {team === null && !error && (
         <p className="goal-hint" role="status">
-          Loading the team…
+          {t("Loading the team…")}
         </p>
       )}
       {team && (
@@ -121,7 +126,7 @@ function TeamManager() {
                 <strong>{m.name ?? m.email}</strong>
                 <small>
                   {m.name ? m.email : ""}
-                  {m.invited ? (m.name ? " · " : "") + "invited, not signed up yet" : ""}
+                  {m.invited ? (m.name ? " · " : "") + t("invited, not signed up yet") : ""}
                 </small>
               </span>
               <span className="team-chips">
@@ -130,9 +135,7 @@ function TeamManager() {
                     {roleLabel(r)}
                     <button type="button" className="icon-button" onClick={() => revoke(m, r)}>
                       <Icon name="close" size={14} />
-                      <span className="visually-hidden">
-                        Remove {roleLabel(r)} from {m.email}
-                      </span>
+                      <span className="visually-hidden">{t("Remove {role} from {email}", { role: roleLabel(r), email: m.email })}</span>
                     </button>
                   </span>
                 ))}
@@ -145,7 +148,7 @@ function TeamManager() {
       <form className="team-grant" onSubmit={grant} noValidate>
         <div className="field">
           <label className="field-label" htmlFor={`${id}-email`}>
-            Email
+            {t("Email")}
           </label>
           <input
             id={`${id}-email`}
@@ -159,21 +162,21 @@ function TeamManager() {
         </div>
         <div className="field">
           <label className="field-label" htmlFor={`${id}-role`}>
-            Access
+            {t("Access")}
           </label>
           <select id={`${id}-role`} className="field-input" value={role} onChange={(e) => setRole(e.target.value as StaffRole)}>
             {STAFF_ROLES.map((r) => (
               <option key={r.value} value={r.value}>
-                {r.label}
+                {t(r.label)}
               </option>
             ))}
           </select>
         </div>
         <button type="submit" className="primary-button small-button" disabled={busy || !email.trim()}>
-          {busy ? "Giving access…" : "Give access"}
+          {busy ? t("Giving access…") : t("Give access")}
         </button>
         <p className="goal-hint" id={`${id}-hint`}>
-          Someone without an account gets the access, and the complimentary membership, when they sign up with this email.
+          {t("Someone without an account gets the access, and the complimentary membership, when they sign up with this email.")}
         </p>
       </form>
       {error && (

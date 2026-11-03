@@ -1,6 +1,7 @@
 import { getBook } from "../data/books";
 import type { Highlight, ReadingDay, SavedWord } from "../types";
 import { STREAK_SECONDS } from "./goals";
+import { tk } from "./i18n";
 import { allSeries } from "./series";
 
 /**
@@ -25,36 +26,36 @@ export interface Badge extends BadgeRule {
 }
 
 export const BADGE_RULES: BadgeRule[] = [
-  { id: "first-book", title: "First finish", description: "Finish a book", target: 1, icon: "bookOpen" },
-  { id: "books-10", title: "Ten books", description: "Finish 10 books", target: 10, icon: "library" },
-  { id: "books-25", title: "Twenty-five books", description: "Finish 25 books", target: 25, icon: "library" },
-  { id: "books-50", title: "Fifty books", description: "Finish 50 books", target: 50, icon: "library" },
-  { id: "books-100", title: "A hundred books", description: "Finish 100 books", target: 100, icon: "library" },
-  { id: "streak-7", title: "A week in a row", description: "Read or listen 7 days in a row", target: 7, icon: "clock" },
-  { id: "streak-14", title: "Two weeks in a row", description: "Read or listen 14 days in a row", target: 14, icon: "clock" },
-  { id: "streak-30", title: "A month in a row", description: "Read or listen 30 days in a row", target: 30, icon: "clock" },
-  { id: "streak-100", title: "A hundred days in a row", description: "Read or listen 100 days in a row", target: 100, icon: "clock" },
-  { id: "days-100", title: "A hundred reading days", description: "Read or listen on 100 different days", target: 100, icon: "clock" },
-  { id: "marathon", title: "Marathon day", description: "Read or listen for 3 hours in one day", target: 3, icon: "clock" },
-  { id: "hours-10", title: "Ten hours", description: "Spend 10 hours reading or listening", target: 10, icon: "clock" },
-  { id: "hours-50", title: "Fifty hours", description: "Spend 50 hours reading or listening", target: 50, icon: "clock" },
-  { id: "hours-100", title: "A hundred hours", description: "Spend 100 hours reading or listening", target: 100, icon: "clock" },
-  { id: "hours-250", title: "Two hundred fifty hours", description: "Spend 250 hours reading or listening", target: 250, icon: "clock" },
-  { id: "listener-1", title: "First listen", description: "Listen for an hour", target: 1, icon: "headphones" },
-  { id: "listener-10", title: "Good listener", description: "Listen for 10 hours", target: 10, icon: "headphones" },
-  { id: "listener-50", title: "Devoted listener", description: "Listen for 50 hours", target: 50, icon: "headphones" },
-  { id: "genres-5", title: "Explorer", description: "Finish books in 5 different genres", target: 5, icon: "star" },
-  { id: "genres-10", title: "Wide reader", description: "Finish books in 10 different genres", target: 10, icon: "star" },
-  { id: "language-1", title: "World reader", description: "Finish a book in a language other than English", target: 1, icon: "bookOpen" },
-  { id: "classics-10", title: "Classic reader", description: "Finish 10 public-domain classics", target: 10, icon: "bookOpen" },
-  { id: "classics-25", title: "Classics shelf", description: "Finish 25 public-domain classics", target: 25, icon: "bookOpen" },
-  { id: "series-1", title: "Series complete", description: "Finish every book of a series on LiteraryWorm", target: 1, icon: "list" },
-  { id: "series-3", title: "Series fan", description: "Finish every book of 3 series on LiteraryWorm", target: 3, icon: "list" },
-  { id: "goal", title: "Goal reached", description: "Reach a yearly reading goal", target: 1, icon: "star" },
-  { id: "words-10", title: "Word collector", description: "Keep 10 words in My words", target: 10, icon: "dictionary" },
-  { id: "words-50", title: "Wordsmith", description: "Keep 50 words in My words", target: 50, icon: "dictionary" },
-  { id: "highlights-25", title: "Highlighter", description: "Make 25 highlights", target: 25, icon: "highlighter" },
-  { id: "highlights-100", title: "Avid highlighter", description: "Make 100 highlights", target: 100, icon: "highlighter" },
+  { id: "first-book", title: tk("First finish"), description: tk("Finish a book"), target: 1, icon: "bookOpen" },
+  { id: "books-10", title: tk("Ten books"), description: tk("Finish 10 books"), target: 10, icon: "library" },
+  { id: "books-25", title: tk("Twenty-five books"), description: tk("Finish 25 books"), target: 25, icon: "library" },
+  { id: "books-50", title: tk("Fifty books"), description: tk("Finish 50 books"), target: 50, icon: "library" },
+  { id: "books-100", title: tk("A hundred books"), description: tk("Finish 100 books"), target: 100, icon: "library" },
+  { id: "streak-7", title: tk("A week in a row"), description: tk("Read or listen 7 days in a row"), target: 7, icon: "clock" },
+  { id: "streak-14", title: tk("Two weeks in a row"), description: tk("Read or listen 14 days in a row"), target: 14, icon: "clock" },
+  { id: "streak-30", title: tk("A month in a row"), description: tk("Read or listen 30 days in a row"), target: 30, icon: "clock" },
+  { id: "streak-100", title: tk("A hundred days in a row"), description: tk("Read or listen 100 days in a row"), target: 100, icon: "clock" },
+  { id: "days-100", title: tk("A hundred reading days"), description: tk("Read or listen on 100 different days"), target: 100, icon: "clock" },
+  { id: "marathon", title: tk("Marathon day"), description: tk("Read or listen for 3 hours in one day"), target: 3, icon: "clock" },
+  { id: "hours-10", title: tk("Ten hours"), description: tk("Spend 10 hours reading or listening"), target: 10, icon: "clock" },
+  { id: "hours-50", title: tk("Fifty hours"), description: tk("Spend 50 hours reading or listening"), target: 50, icon: "clock" },
+  { id: "hours-100", title: tk("A hundred hours"), description: tk("Spend 100 hours reading or listening"), target: 100, icon: "clock" },
+  { id: "hours-250", title: tk("Two hundred fifty hours"), description: tk("Spend 250 hours reading or listening"), target: 250, icon: "clock" },
+  { id: "listener-1", title: tk("First listen"), description: tk("Listen for an hour"), target: 1, icon: "headphones" },
+  { id: "listener-10", title: tk("Good listener"), description: tk("Listen for 10 hours"), target: 10, icon: "headphones" },
+  { id: "listener-50", title: tk("Devoted listener"), description: tk("Listen for 50 hours"), target: 50, icon: "headphones" },
+  { id: "genres-5", title: tk("Explorer"), description: tk("Finish books in 5 different genres"), target: 5, icon: "star" },
+  { id: "genres-10", title: tk("Wide reader"), description: tk("Finish books in 10 different genres"), target: 10, icon: "star" },
+  { id: "language-1", title: tk("World reader"), description: tk("Finish a book in a language other than English"), target: 1, icon: "bookOpen" },
+  { id: "classics-10", title: tk("Classic reader"), description: tk("Finish 10 public-domain classics"), target: 10, icon: "bookOpen" },
+  { id: "classics-25", title: tk("Classics shelf"), description: tk("Finish 25 public-domain classics"), target: 25, icon: "bookOpen" },
+  { id: "series-1", title: tk("Series complete"), description: tk("Finish every book of a series on LiteraryWorm"), target: 1, icon: "list" },
+  { id: "series-3", title: tk("Series fan"), description: tk("Finish every book of 3 series on LiteraryWorm"), target: 3, icon: "list" },
+  { id: "goal", title: tk("Goal reached"), description: tk("Reach a yearly reading goal"), target: 1, icon: "star" },
+  { id: "words-10", title: tk("Word collector"), description: tk("Keep 10 words in My words"), target: 10, icon: "dictionary" },
+  { id: "words-50", title: tk("Wordsmith"), description: tk("Keep 50 words in My words"), target: 50, icon: "dictionary" },
+  { id: "highlights-25", title: tk("Highlighter"), description: tk("Make 25 highlights"), target: 25, icon: "highlighter" },
+  { id: "highlights-100", title: tk("Avid highlighter"), description: tk("Make 100 highlights"), target: 100, icon: "highlighter" },
 ];
 
 /** How long a new badge stays in the bell. */

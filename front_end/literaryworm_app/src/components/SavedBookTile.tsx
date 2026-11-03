@@ -5,6 +5,7 @@ import type { AgeRating } from "../types";
 import { BookCard } from "./BookCard";
 import { BookTile, BookTileSkeleton } from "./BookTile";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 /**
  * A saved book id (favourite, shared list) as a grid item: the catalog card, or a Google Books
@@ -12,6 +13,7 @@ import { Icon } from "./Icon";
  * by their rating, Google's by its mature flag (and none at all for Kids).
  */
 export function SavedBookTile({ bookId, ageRating = "all" }: { bookId: string; ageRating?: AgeRating }) {
+  const t = useT();
   const book = getBook(bookId);
   const hidden = book ? !isAllowed(book.ageRating, ageRating) : ageRating === "kids";
   const { state } = useVolume(book || hidden ? null : bookId);
@@ -41,8 +43,8 @@ export function SavedBookTile({ bookId, ageRating = "all" }: { bookId: string; a
             </span>
           </span>
           <span className="book-card-copy">
-            <strong>Book details unavailable</strong>
-            <small>Open its page to try again</small>
+            <strong>{t("Book details unavailable")}</strong>
+            <small>{t("Open its page to try again")}</small>
           </span>
         </Link>
       </li>

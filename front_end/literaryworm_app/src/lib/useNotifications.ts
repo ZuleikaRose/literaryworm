@@ -16,6 +16,7 @@ import { today } from "./reading";
 import { listeningAlert } from "./planLimits";
 import { useClubs } from "./useClubs";
 import { requestAlerts, waitingRequests } from "./bookRequests";
+import { tr } from "./i18n";
 
 /**
  * The notification bell for the active profile (lib/notifications.ts works out what counts).
@@ -57,7 +58,7 @@ export function useNotifications() {
         ? await clubsApi.loadOpenPolls()
         : list.flatMap((c) => demoPollsFor(c.id).filter((p) => p.closedAt === null).map((poll) => ({ poll, clubName: c.name })));
       const names = new Map(open.map((o) => [o.poll.clubId, o.clubName]));
-      setPolls(pollAlerts(open.map((o) => o.poll), (clubId) => memberships[clubId]?.notify === false, me, (clubId) => names.get(clubId) ?? "Your book club"));
+      setPolls(pollAlerts(open.map((o) => o.poll), (clubId) => memberships[clubId]?.notify === false, me, (clubId) => names.get(clubId) ?? tr("Your book club")));
     } catch (err) {
       console.error("notifications: couldn't check book clubs:", err instanceof Error ? err.message : err);
     }

@@ -3,37 +3,39 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { AccountError } from "../lib/accountApi";
 import { type EmailList, unsubscribe } from "../lib/changelogApi";
+import { rich, tk } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
 
 /** What each email is called, where it's turned back on, and the page to offer instead. */
 const LISTS: Record<EmailList, { name: string; ask: string; settings: string; place: string; instead: { to: string; label: string } }> = {
   "whats-new": {
-    name: "the monthly What's new email",
-    ask: "Stop getting the monthly email of what's new in LiteraryWorm?",
+    name: tk("the monthly What's new email"),
+    ask: tk("Stop getting the monthly email of what's new in LiteraryWorm?"),
     settings: "/account#preferences",
-    place: "Account → Preferences",
-    instead: { to: "/whats-new", label: "See what's new instead" },
+    place: tk("Account → Preferences"),
+    instead: { to: "/whats-new", label: tk("See what's new instead") },
   },
   "kids-report": {
-    name: "the weekly Kids reading report",
-    ask: "Stop getting the weekly email of how the Kids profiles read?",
+    name: tk("the weekly Kids reading report"),
+    ask: tk("Stop getting the weekly email of how the Kids profiles read?"),
     settings: "/account#family",
-    place: "Account → Family",
-    instead: { to: "/account#family", label: "See it in Account instead" },
+    place: tk("Account → Family"),
+    instead: { to: "/account#family", label: tk("See it in Account instead") },
   },
   "club-meetings": {
-    name: "book club meeting emails",
-    ask: "Stop getting an email the day before your book clubs meet, and when a meeting moves or is cancelled?",
+    name: tk("book club meeting emails"),
+    ask: tk("Stop getting an email the day before your book clubs meet, and when a meeting moves or is cancelled?"),
     settings: "/account#preferences",
-    place: "Account → Preferences",
-    instead: { to: "/library?view=clubs", label: "See your clubs instead" },
+    place: tk("Account → Preferences"),
+    instead: { to: "/library?view=clubs", label: tk("See your clubs instead") },
   },
   "club-posts": {
-    name: "the daily book club posts email",
-    ask: "Stop getting a daily email of new posts in your book clubs?",
+    name: tk("the daily book club posts email"),
+    ask: tk("Stop getting a daily email of new posts in your book clubs?"),
     settings: "/account#preferences",
-    place: "Account → Preferences",
-    instead: { to: "/library?view=clubs", label: "See your clubs instead" },
+    place: tk("Account → Preferences"),
+    instead: { to: "/library?view=clubs", label: tk("See your clubs instead") },
   },
 };
 
@@ -44,7 +46,8 @@ const LISTS: Record<EmailList, { name: string; ask: string; settings: string; pl
  * unsubscribe function directly.
  */
 export default function Unsubscribe() {
-  useTitle("Unsubscribe");
+  const t = useT();
+  useTitle(t("Unsubscribe"));
   const [params] = useSearchParams();
   const token = params.get("t") ?? "";
   const given = params.get("l");
@@ -60,26 +63,31 @@ export default function Unsubscribe() {
       await unsubscribe(token, list);
       setStatus("done");
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
       setStatus("ready");
     }
   };
 
   return (
     <article className="page legal-page">
-      <h1>Unsubscribe</h1>
+      <h1>{t("Unsubscribe")}</h1>
       {status === "done" ? (
         <p className="form-success" role="status">
-          <Icon name="check" size={17} /> You won't get {about.name} any more. You can turn it back on in{" "}
-          <Link to={about.settings}>{about.place}</Link>.
+          <Icon name="check" size={17} />{" "}
+          {rich(t("You won't get {name} any more. You can turn it back on in {place}."), {
+            name: t(about.name),
+            place: <Link to={about.settings}>{t(about.place)}</Link>,
+          })}
         </p>
       ) : !token ? (
         <p>
-          This link is missing its code. Turn the email off in <Link to={about.settings}>{about.place}</Link> instead.
+          {rich(t("This link is missing its code. Turn the email off in {place} instead."), {
+            place: <Link to={about.settings}>{t(about.place)}</Link>,
+          })}
         </p>
       ) : (
         <>
-          <p className="legal-summary">{about.ask} Other emails, like receipts and password resets, still arrive.</p>
+          <p className="legal-summary">{t(about.ask)} {t("Other emails, like receipts and password resets, still arrive.")}</p>
           {error && (
             <div className="form-alert" role="alert">
               <Icon name="alert" size={17} />
@@ -88,10 +96,10 @@ export default function Unsubscribe() {
           )}
           <div className="goal-actions">
             <button type="button" className="primary-button" disabled={status === "busy"} onClick={confirm}>
-              {status === "busy" ? "Unsubscribing…" : "Unsubscribe"}
+              {status === "busy" ? t("Unsubscribing…") : t("Unsubscribe")}
             </button>
             <Link className="secondary-button" to={about.instead.to}>
-              {about.instead.label}
+              {t(about.instead.label)}
             </Link>
           </div>
         </>

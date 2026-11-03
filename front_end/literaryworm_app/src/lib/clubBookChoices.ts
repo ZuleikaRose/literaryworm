@@ -1,4 +1,5 @@
 import type { Book, LibraryEntry, Progress, UploadedBook } from "../types";
+import { tr } from "./i18n";
 import { sameBook } from "./importCsv";
 import { type ClubBookSort, type SeriesPlace, seriesInTitle, sortClubBooks } from "./librarySort";
 import { keywordText, wordsMatch } from "./search";
@@ -108,16 +109,16 @@ export function isbnMatches(choices: ClubBookChoice[], editions: IsbnBook[]): Cl
 }
 
 /** What a date sort goes by, said under Sort by; null for the sorts that need no explaining. */
-export function clubSortNote(sort: ClubBookSort, source: "catalog" | "uploads"): string | null {
+export function clubSortNote(sort: ClubBookSort, source: "catalog" | "uploads", t: typeof tr = tr): string | null {
   const dated = sort === "added" || sort === "added-oldest" || sort === "updated";
   if (dated && source === "catalog") {
     return sort === "updated"
-      ? "Books in your library come first, the one you read or changed last at the top."
-      : "Books in your library come first, by when you added them.";
+      ? t("Books in your library come first, the one you read or changed last at the top.")
+      : t("Books in your library come first, by when you added them.");
   }
-  if (sort === "updated") return "The upload you read last comes first; ones you haven't opened go by when you uploaded them.";
+  if (sort === "updated") return t("The upload you read last comes first; ones you haven't opened go by when you uploaded them.");
   if ((sort === "published" || sort === "published-oldest") && source === "uploads") {
-    return "Uses the year in each EPUB. Uploads without one, and any added before 2 November 2026, come last.";
+    return t("Uses the year in each EPUB. Uploads without one, and any added before 2 November 2026, come last.");
   }
   return null;
 }

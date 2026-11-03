@@ -4,11 +4,13 @@ import { books, getBook, isAllowed } from "../data/books";
 import { type ClubPoll, leader, POLL_DEFAULT_QUESTION, POLL_OPTIONS_MAX, POLL_QUESTION_MAX, pollError, tally } from "../lib/clubPolls";
 import { keywordText, wordsMatch } from "../lib/search";
 import { useClubPolls } from "../lib/useClubPolls";
+import { rich, type T } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import type { AgeRating } from "../types";
 import { Icon } from "./Icon";
 
 const titleOf = (id: string) => getBook(id)?.title ?? "A LiteraryWorm title";
-const votesText = (n: number) => `${n} ${n === 1 ? "vote" : "votes"}`;
+const votesText = (t: T, n: number) => t.plural(n, { one: "{count} vote", other: "{count} votes" });
 
 /**
  * Polls on a club's page (lib/clubPolls.ts, lib/useClubPolls.ts): the owner offers 2 to 5
@@ -29,6 +31,7 @@ export function ClubPolls({
   members: { userId: string; name: string }[];
   ageRating: AgeRating;
 }) {
+  const t = useT();
   const { polls, error: loadError, vote, start, close, remove } = useClubPolls(clubId);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,7 +39,7 @@ export function ClubPolls({
   const titleId = useId();
   const open = polls?.find((p) => p.closedAt === null);
   const closed = polls?.find((p) => p.closedAt !== null);
-  const nameOf = (userId: string) => (userId === me ? "You" : (members.find((m) => m.userId === userId)?.name ?? "A member"));
+  const nameOf = (userId: string) => (userId === me ? t("You") : (members.find((m) => m.userId === userId)?.name ?? t("A member")));
 
   const act = async (work: () => Promise<void>) => {
     setBusy(true);
@@ -44,7 +47,7 @@ export function ClubPolls({
     try {
       await work();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't work. Try again.");
+      setError(err instanceof Error ? err.message : t("That didn't work. Try again."));
     } finally {
       setBusy(false);
     }
@@ -52,7 +55,7 @@ export function ClubPolls({
 
   return (
     <section className="goal-card club-polls" aria-labelledby={titleId}>
-      <h2 id={titleId}>What to read next</h2>
+      <h2 id={titleId}>{t("What to read next")}</h2>
       {loadError && <p className="goal-hint">{loadError}</p>}
       {error && (
         <p className="field-error" role="alert">
@@ -63,19 +66,23 @@ export function ClubPolls({
       {closed && (!open || isOwner) && (
         <div className="club-poll-result">
           <p>
-            <strong>{titleOf(closed.winner ?? "")}</strong> won <q>{closed.question}</q> with {votesText(tally(closed)[closed.options.indexOf(closed.winner ?? "")] ?? 0)}.
+            {rich(t("{title} won {question} with {votes}."), {
+              title: <strong>{titleOf(closed.winner ?? "")}</strong>,
+              question: <q>{closed.question}</q>,
+              votes: votesText(t, tally(closed)[closed.options.indexOf(closed.winner ?? "")] ?? 0),
+            })}
           </p>
           <div className="goal-actions">
             <Link className="ghost-button small-button" to={`/books/${closed.winner}`}>
-              About the book
+              {t("About the book")}
             </Link>
             {isOwner && (
               <>
                 <Link className="primary-button small-button" to={`/library?view=clubs&start=${closed.winner}`}>
-                  Start a club with it
+                  {t("Start a club with it")}
                 </Link>
                 <button type="button" className="text-button" disabled={busy} onClick={() => act(() => remove(closed))}>
-                  Delete<span className="visually-hidden"> the closed poll</span>
+                  {t("Delete")}<span className="visually-hidden"> {t("the closed poll")}</span>
                 </button>
               </>
             )}
@@ -84,10 +91,10 @@ export function ClubPolls({
       )}
       {!open && polls && !asking && (
         <>
-          {!closed && <p className="goal-hint">{isOwner ? "Ask the club what to read next: offer two to five books and everyone votes." : "No polls yet. The club's owner can ask what to read next."}</p>}
+          {!closed && <p className="goal-hint">{isOwner ? t("Ask the club what to read next: offer two to five books and everyone votes.") : t("No polls yet. The club's owner can ask what to read next.")}</p>}
           {isOwner && (
             <button type="button" className="secondary-button small-button" onClick={() => setAsking(true)}>
-              <Icon name="plus" size={15} /> Start a poll
+              <Icon name="plus" size={15} /> {t("Start a poll")}
             </button>
           )}
         </>
@@ -130,6 +137,7 @@ function OpenPoll({
   close: (poll: ClubPoll, winnerIfDemo: string) => Promise<void>;
   remove: (poll: ClubPoll) => Promise<void>;
 }) {
+  const t = useT();
   const counts = tally(poll);
   const mine = poll.votes[me];
   return (
@@ -145,9 +153,9 @@ function OpenPoll({
             <li key={id} className={mine === i ? "is-mine" : undefined}>
               <div>
                 <Link to={`/books/${id}`}>{book?.title ?? id}</Link>
-                {book && <small> by {book.author}</small>}
+                {book && <small>{t(" by {author}", { author: book.author })}</small>}
                 <p className="goal-hint">
-                  {votesText(counts[i])}
+                  {votesText(t, counts[i])}
                   {voters.length > 0 && `: ${voters.join(", ")}`}
                 </p>
               </div>
@@ -158,21 +166,21 @@ function OpenPoll({
                 disabled={busy}
                 onClick={() => act(() => vote(poll, mine === i ? null : i, me))}
               >
-                {mine === i ? "Your vote" : "Vote"}
-                <span className="visually-hidden"> for {book?.title ?? id}</span>
+                {mine === i ? t("Your vote") : t("Vote")}
+                <span className="visually-hidden">{t(" for {title}", { title: book?.title ?? id })}</span>
               </button>
             </li>
           );
         })}
       </ul>
-      <p className="goal-hint">{mine === undefined ? "Choose a book to vote. You can change your vote until the poll closes." : "Select Your vote again to take it back."}</p>
+      <p className="goal-hint">{mine === undefined ? t("Choose a book to vote. You can change your vote until the poll closes.") : t("Select Your vote again to take it back.")}</p>
       {isOwner && (
         <div className="goal-actions">
           <button type="button" className="secondary-button small-button" disabled={busy} onClick={() => act(() => close(poll, leader(poll)))}>
-            Close the poll
+            {t("Close the poll")}
           </button>
           <button type="button" className="text-button" disabled={busy} onClick={() => act(() => remove(poll))}>
-            Delete<span className="visually-hidden"> the poll</span>
+            {t("Delete")}<span className="visually-hidden"> {t("the poll")}</span>
           </button>
         </div>
       )}
@@ -191,7 +199,8 @@ function PollForm({
   onCancel: () => void;
   onStart: (question: string, options: string[]) => void;
 }) {
-  const [question, setQuestion] = useState(POLL_DEFAULT_QUESTION);
+  const t = useT();
+  const [question, setQuestion] = useState(() => t(POLL_DEFAULT_QUESTION));
   const [query, setQuery] = useState("");
   const [options, setOptions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -213,13 +222,13 @@ function PollForm({
     <form className="club-poll-form" onSubmit={submit} noValidate>
       <div className="field">
         <label className="field-label" htmlFor={`${id}-q`}>
-          Question
+          {t("Question")}
         </label>
         <input id={`${id}-q`} className="field-input" maxLength={POLL_QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)} />
       </div>
       <div className="field">
         <label className="field-label" htmlFor={`${id}-find`}>
-          Find a book to offer
+          {t("Find a book to offer")}
         </label>
         <input
           id={`${id}-find`}
@@ -231,15 +240,15 @@ function PollForm({
           onChange={(e) => setQuery(e.target.value)}
         />
         <p className="goal-hint" id={`${id}-count`}>
-          {options.length} of {POLL_OPTIONS_MAX} books chosen. Search by title, author or keywords.
+          {t("{n} of {max} books chosen. Search by title, author or keywords.", { n: options.length, max: POLL_OPTIONS_MAX })}
         </p>
       </div>
       {found.length > 0 && (
-        <ul className="club-poll-found" role="list" aria-label="Books found">
+        <ul className="club-poll-found" role="list" aria-label={t("Books found")}>
           {found.map((b) => (
             <li key={b.id}>
               <span>
-                {b.title} <small>by {b.author}</small>
+                {b.title} <small>{t("by {author}", { author: b.author })}</small>
               </span>
               <button
                 type="button"
@@ -249,19 +258,19 @@ function PollForm({
                   setQuery("");
                 }}
               >
-                Add<span className="visually-hidden"> {b.title}</span>
+                {t("Add")}<span className="visually-hidden"> {b.title}</span>
               </button>
             </li>
           ))}
         </ul>
       )}
       {options.length > 0 && (
-        <ol className="club-poll-chosen" aria-label="Books in the poll">
+        <ol className="club-poll-chosen" aria-label={t("Books in the poll")}>
           {options.map((o) => (
             <li key={o}>
               <span>{titleOf(o)}</span>
               <button type="button" className="text-button" onClick={() => setOptions((list) => list.filter((x) => x !== o))}>
-                Remove<span className="visually-hidden"> {titleOf(o)}</span>
+                {t("Remove")}<span className="visually-hidden"> {titleOf(o)}</span>
               </button>
             </li>
           ))}
@@ -274,10 +283,10 @@ function PollForm({
       )}
       <div className="goal-actions">
         <button type="submit" className="primary-button small-button" disabled={busy} aria-describedby={error ? `${id}-error` : undefined}>
-          Start the poll
+          {t("Start the poll")}
         </button>
         <button type="button" className="ghost-button small-button" onClick={onCancel}>
-          Cancel
+          {t("Cancel")}
         </button>
       </div>
     </form>

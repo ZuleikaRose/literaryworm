@@ -5,6 +5,7 @@ import type { Profile } from "../types";
 import * as accountApi from "./accountApi";
 import { profileRoom, profilesInUse } from "./planLimits";
 import { pinAttemptResult } from "./profiles";
+import { tr } from "./i18n";
 
 /** What the profile editor saves. `pin`: undefined keeps the current PIN, null removes it. */
 export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes" | "weeklyGoalMinutes" | "bedtime" | "wakeTime"> & {
@@ -136,9 +137,9 @@ export function useProfiles() {
    */
   async function setAside(profile: Profile, aside: boolean, password: string) {
     const inUse = profilesInUse(state.profiles);
-    if (aside && !inUse.some((p) => p.id !== profile.id)) throw new accountApi.AccountError("Keep at least one profile in use.");
+    if (aside && !inUse.some((p) => p.id !== profile.id)) throw new accountApi.AccountError(tr("Keep at least one profile in use."));
     if (!aside && inUse.length >= profileRoom(account)) {
-      throw new accountApi.AccountError("Your plan has no room for another profile. Set one aside or change plan first.");
+      throw new accountApi.AccountError(tr("Your plan has no room for another profile. Set one aside or change plan first."));
     }
     if (remote) {
       await accountApi.changeProtectedProfile({ action: aside ? "set_aside" : "bring_back", profileId: profile.id }, password);

@@ -8,11 +8,12 @@ import { ReaderLogList } from "../components/ReaderLogList";
 import { initials } from "../lib/bookDetail";
 import { fetchReader, fetchReaderLogs, LogsApiError } from "../lib/logsApi";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import type { ReadingLog } from "../types";
 import NotFound from "./NotFound";
 
-type Load = { status: "loading" } | { status: "missing" } | { status: "error"; message: string } | { status: "done"; name: string; logs: ReadingLog[] };
+type Load = { status: "loading" } | { status: "missing" } | { status: "error"; message: string | null } | { status: "done"; name: string; logs: ReadingLog[] };
 
 /** A reader's page (/readers/:id): their public logs, for members who turned their page on. */
 export default function ReaderProfile() {
@@ -23,7 +24,8 @@ export default function ReaderProfile() {
 function ReaderPage({ id }: { id: string }) {
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const signedIn = Boolean(useStore().state.account);
-  useTitle(load.status === "done" ? `${load.name} (reader)` : "Reader");
+  const t = useT();
+  useTitle(load.status === "done" ? t("{name} (reader)", { name: load.name }) : t("Reader"));
 
   useEffect(() => {
     let live = true;
@@ -37,7 +39,7 @@ function ReaderPage({ id }: { id: string }) {
         const logs = await fetchReaderLogs([reader.id]);
         if (live) setLoad({ status: "done", name: reader.name, logs });
       } catch (err) {
-        if (live) setLoad({ status: "error", message: err instanceof LogsApiError ? err.message : "Something went wrong. Try again." });
+        if (live) setLoad({ status: "error", message: err instanceof LogsApiError ? err.message : null });
       }
     })();
     return () => {
@@ -62,10 +64,10 @@ function ReaderPage({ id }: { id: string }) {
         />
       )}
       <BackLink />
-      {load.status === "loading" && <p role="status">Loading this reader…</p>}
+      {load.status === "loading" && <p role="status">{t("Loading this reader…")}</p>}
       {load.status === "error" && (
         <p className="form-alert" role="alert">
-          {load.message}
+          {load.message ?? t("Something went wrong. Try again.")}
         </p>
       )}
       {load.status === "done" && (
@@ -75,22 +77,26 @@ function ReaderPage({ id }: { id: string }) {
               {initials(load.name)}
             </span>
             <div className="person-heading">
-              <p className="eyebrow">Reader</p>
+              <p className="eyebrow">{t("Reader")}</p>
               <h1>{load.name}</h1>
               <p className="person-count">
-                {load.logs.length === 0 ? "No logs yet" : `${load.logs.length === 30 ? "Their latest 30 logs" : `${load.logs.length} ${load.logs.length === 1 ? "log" : "logs"}`}`}
+                {load.logs.length === 0
+                  ? t("No logs yet")
+                  : load.logs.length === 30
+                    ? t("Their latest 30 logs")
+                    : t.plural(load.logs.length, { one: "{count} log", other: "{count} logs" })}
               </p>
             </div>
             {signedIn ? (
               <ReaderFollowButton readerId={id} name={load.name} />
             ) : (
               <Link className="secondary-button" to="/signin">
-                Log in to follow
+                {t("Log in to follow")}
               </Link>
             )}
           </header>
           {load.logs.length === 0 ? (
-            <p className="person-empty">When {load.name} writes a log about a book, it shows up here.</p>
+            <p className="person-empty">{t("When {name} writes a log about a book, it shows up here.", { name: load.name })}</p>
           ) : (
             <ReaderLogList logs={load.logs} />
           )}

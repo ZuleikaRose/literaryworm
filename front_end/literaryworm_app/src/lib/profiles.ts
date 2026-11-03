@@ -1,3 +1,4 @@
+import { tk, tr } from "./i18n";
 import type { AgeRating, Profile } from "../types";
 
 export const PIN_LENGTH = 4;
@@ -7,38 +8,38 @@ export const PROFILE_NAME_MAX = 20;
 
 /** Daily reading and listening limits, in minutes. `null` means no limit. */
 export const dailyLimitOptions: { value: number | null; label: string }[] = [
-  { value: null, label: "No limit" },
-  { value: 30, label: "30 minutes" },
-  { value: 60, label: "1 hour" },
-  { value: 90, label: "1 hour 30 minutes" },
-  { value: 120, label: "2 hours" },
-  { value: 180, label: "3 hours" },
-  { value: 240, label: "4 hours" },
+  { value: null, label: tk("No limit") },
+  { value: 30, label: tk("30 minutes") },
+  { value: 60, label: tk("1 hour") },
+  { value: 90, label: tk("1 hour 30 minutes") },
+  { value: 120, label: tk("2 hours") },
+  { value: 180, label: tk("3 hours") },
+  { value: 240, label: tk("4 hours") },
 ];
 
 /** A Kids profile's weekly reading goal, set by a grown-up (the same choices as the database). */
 export const weeklyGoalOptions: { value: number | null; label: string }[] = [
-  { value: null, label: "No weekly goal" },
-  { value: 60, label: "1 hour a week" },
-  { value: 90, label: "1 hour 30 minutes a week" },
-  { value: 120, label: "2 hours a week" },
-  { value: 180, label: "3 hours a week" },
-  { value: 240, label: "4 hours a week" },
-  { value: 300, label: "5 hours a week" },
+  { value: null, label: tk("No weekly goal") },
+  { value: 60, label: tk("1 hour a week") },
+  { value: 90, label: tk("1 hour 30 minutes a week") },
+  { value: 120, label: tk("2 hours a week") },
+  { value: 180, label: tk("3 hours a week") },
+  { value: 240, label: tk("4 hours a week") },
+  { value: 300, label: tk("5 hours a week") },
 ];
 
 export const ageRatingDetails: Record<AgeRating, { label: string; description: string }> = {
   kids: {
-    label: "Kids",
-    description: "Under 13. Kids titles only, a simpler layout, and no chat, public reviews, sharing or payments.",
+    label: tk("Kids"),
+    description: tk("Under 13. Kids titles only, a simpler layout, and no chat, public reviews, sharing or payments."),
   },
   teen: {
-    label: "Teen",
-    description: "13 to 17. Teen and Kids titles. Reviews show a display name only.",
+    label: tk("Teen"),
+    description: tk("13 to 17. Teen and Kids titles. Reviews show a display name only."),
   },
   all: {
-    label: "All",
-    description: "Every title in the catalog.",
+    label: tk("All"),
+    description: tk("Every title in the catalog."),
   },
 };
 
@@ -69,8 +70,8 @@ export function pinAttemptResult(profile: Profile, pin: string, now = Date.now()
 
 export function validateProfileName(name: string, others: Profile[]): string | null {
   const v = name.trim();
-  if (!v) return "Enter a name for this profile.";
-  if (v.length > PROFILE_NAME_MAX) return `Use ${PROFILE_NAME_MAX} characters or fewer.`;
-  if (others.some((p) => p.name.trim().toLowerCase() === v.toLowerCase())) return "Another profile already uses this name.";
+  if (!v) return tr("Enter a name for this profile.");
+  if (v.length > PROFILE_NAME_MAX) return tr("Use {max} characters or fewer.", { max: PROFILE_NAME_MAX });
+  if (others.some((p) => p.name.trim().toLowerCase() === v.toLowerCase())) return tr("Another profile already uses this name.");
   return null;
 }

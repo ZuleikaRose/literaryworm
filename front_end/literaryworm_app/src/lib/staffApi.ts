@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { AccountError, signedInUserId } from "./accountApi";
 import type { StaffMember, StaffRole } from "./staff";
 import { supabase } from "./supabase";
@@ -8,7 +9,7 @@ import { supabase } from "./supabase";
  */
 
 function client() {
-  if (!supabase) throw new AccountError("Team access needs the LiteraryWorm backend.");
+  if (!supabase) throw new AccountError(tr("Team access needs the LiteraryWorm backend."));
   return supabase;
 }
 
@@ -16,14 +17,14 @@ function client() {
 export async function myStaffRoles(): Promise<StaffRole[]> {
   const db = client();
   const { data, error } = await db.from("staff_roles").select("role").eq("user_id", await signedInUserId());
-  if (error) throw new AccountError("We couldn't check your access.");
+  if (error) throw new AccountError(tr("We couldn't check your access."));
   return (data as { role: StaffRole }[]).map((r) => r.role);
 }
 
 /** Everyone with a role, and waiting invitations (admins only). */
 export async function loadStaff(): Promise<StaffMember[]> {
   const { data, error } = await client().rpc("staff_members");
-  if (error) throw new AccountError("We couldn't load the team. Try again.");
+  if (error) throw new AccountError(tr("We couldn't load the team. Try again."));
   return (data as { user_id: string | null; email: string; display_name: string | null; roles: StaffRole[]; invited: boolean }[]).map((m) => ({
     userId: m.user_id,
     email: m.email,
@@ -37,9 +38,9 @@ export async function loadStaff(): Promise<StaffMember[]> {
 export async function grantStaffRole(email: string, role: StaffRole): Promise<"granted" | "invited"> {
   const { data, error } = await client().rpc("grant_staff_role", { p_email: email, p_role: role });
   if (error) {
-    if (/email address/i.test(error.message)) throw new AccountError("Enter an email address, like name@example.com.");
-    if (/Only admins/i.test(error.message)) throw new AccountError("Only admins can give access.");
-    throw new AccountError("We couldn't give that access. Try again.");
+    if (/email address/i.test(error.message)) throw new AccountError(tr("Enter an email address, like name@example.com."));
+    if (/Only admins/i.test(error.message)) throw new AccountError(tr("Only admins can give access."));
+    throw new AccountError(tr("We couldn't give that access. Try again."));
   }
   return data === "invited" ? "invited" : "granted";
 }
@@ -48,9 +49,9 @@ export async function grantStaffRole(email: string, role: StaffRole): Promise<"g
 export async function revokeStaffRole(email: string, role: StaffRole): Promise<void> {
   const { error } = await client().rpc("revoke_staff_role", { p_email: email, p_role: role });
   if (error) {
-    if (/at least one admin/i.test(error.message)) throw new AccountError("LiteraryWorm needs at least one admin. Make someone else an admin first.");
-    if (/Only admins/i.test(error.message)) throw new AccountError("Only admins can remove access.");
-    throw new AccountError("We couldn't remove that access. Try again.");
+    if (/at least one admin/i.test(error.message)) throw new AccountError(tr("LiteraryWorm needs at least one admin. Make someone else an admin first."));
+    if (/Only admins/i.test(error.message)) throw new AccountError(tr("Only admins can remove access."));
+    throw new AccountError(tr("We couldn't remove that access. Try again."));
   }
 }
 
@@ -106,8 +107,8 @@ interface DashboardRow {
 export async function loadDashboard(): Promise<StaffDashboard> {
   const { data, error } = await client().rpc("staff_dashboard");
   if (error) {
-    if (/Only billing staff/i.test(error.message)) throw new AccountError("The dashboard is for billing staff and admins.");
-    throw new AccountError("We couldn't load the dashboard. Try again.");
+    if (/Only billing staff/i.test(error.message)) throw new AccountError(tr("The dashboard is for billing staff and admins."));
+    throw new AccountError(tr("We couldn't load the dashboard. Try again."));
   }
   const d = data as DashboardRow;
   return {
@@ -202,12 +203,12 @@ interface LookupRow {
 export async function lookupMember(email: string): Promise<MemberLookup | null> {
   const { data, error } = await client().rpc("support_member_lookup", { p_email: email.trim() });
   if (error) {
-    if (/Only customer service/i.test(error.message)) throw new AccountError("Member lookup is for customer service staff and admins.");
-    if (/Enter the member/i.test(error.message)) throw new AccountError("Enter the member's email address.");
-    throw new AccountError("We couldn't look that up. Try again.");
+    if (/Only customer service/i.test(error.message)) throw new AccountError(tr("Member lookup is for customer service staff and admins."));
+    if (/Enter the member/i.test(error.message)) throw new AccountError(tr("Enter the member's email address."));
+    throw new AccountError(tr("We couldn't look that up. Try again."));
   }
   const row = data as LookupRow;
-  if (row.status === "too_many") throw new AccountError("That's 60 lookups this hour. Try again later.");
+  if (row.status === "too_many") throw new AccountError(tr("That's 60 lookups this hour. Try again later."));
   if (row.status === "not_found" || !row.member) return null;
   const m = row.member;
   return {

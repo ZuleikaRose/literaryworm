@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { fetchMostFollowed } from "../lib/followersApi";
 import { followerCountNow, followersShort, personInitials, personPath } from "../lib/people";
 import { useFollows } from "../lib/useFollows";
+import { useT } from "../lib/useT";
 import { FollowButton } from "./FollowButton";
 
 /** Fewer than this and the row isn't worth showing. */
@@ -14,6 +15,7 @@ const MIN_AUTHORS = 3;
  * when the counts can't be read. Not shown to Kids profiles (Browse leaves it out).
  */
 export function MostFollowed() {
+  const t = useT();
   const id = useId();
   const follows = useFollows();
   // Whether the profile followed each author when the counts came, so Follow moves the number.
@@ -40,8 +42,8 @@ export function MostFollowed() {
     <section className="author-results most-followed" aria-labelledby={`${id}-title`}>
       <div className="section-heading">
         <div>
-          <p className="eyebrow">What readers here follow</p>
-          <h2 id={`${id}-title`}>Most-followed authors</h2>
+          <p className="eyebrow">{t("What readers here follow")}</p>
+          <h2 id={`${id}-title`}>{t("Most-followed authors")}</h2>
         </div>
       </div>
       <ul className="author-list" role="list">

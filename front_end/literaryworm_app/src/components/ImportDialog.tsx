@@ -17,6 +17,7 @@ import { useLibrary } from "../lib/useLibrary";
 import type { Profile } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 /** Google Books searches go through the books function, which allows 60 a minute: stay under it. */
 const SEARCH_GAP_MS = 1100;
@@ -47,14 +48,16 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * read are added as Finished without counting towards today's goal.
  */
 export function ImportDialog({ open, onClose, profile }: { open: boolean; onClose: () => void; profile: Profile }) {
+  const t = useT();
   return (
-    <Dialog open={open} onClose={onClose} title="Import your reading" eyebrow="Goodreads or StoryGraph">
+    <Dialog open={open} onClose={onClose} title={t("Import your reading")} eyebrow={t("Goodreads or StoryGraph")}>
       {open && <Importer profile={profile} onClose={onClose} />}
     </Dialog>
   );
 }
 
 function Importer({ profile, onClose }: { profile: Profile; onClose: () => void }) {
+  const t = useT();
   const library = useLibrary();
   const collections = useCollections();
   const [step, setStep] = useState<Step>({ name: "choose" });
@@ -81,13 +84,13 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
     setFileError(null);
     if (!picked) return;
     if (picked.size > IMPORT_MAX_BYTES) {
-      setFileError("That file is over 5 MB. Choose the CSV export, not a backup or a spreadsheet.");
+      setFileError(t("That file is over 5 MB. Choose the CSV export, not a backup or a spreadsheet."));
       return;
     }
     try {
       setFile(readImport(await picked.text()));
     } catch (err) {
-      setFileError(err instanceof Error ? err.message : "We couldn't read that file.");
+      setFileError(err instanceof Error ? err.message : t("We couldn't read that file."));
     }
   }
 
@@ -145,7 +148,7 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
         added += 1;
         if (m.row.rating) await collections.rate(m.bookId, m.row.rating);
       } catch (err) {
-        failed.push(`${m.title}: ${err instanceof Error ? err.message : "couldn't be added"}`);
+        failed.push(`${m.title}: ${err instanceof Error ? err.message : t("couldn't be added")}`);
       }
       if (!liveRef.current) return;
       setStep({ name: "adding", total: picked.length, done: added + failed.length });
@@ -159,12 +162,11 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
     return (
       <div className="import">
         <p className="goal-hint" id={hintId}>
-          On Goodreads: My Books → Import and export → Export library. On StoryGraph: Manage account → Export StoryGraph library. The
-          file stays on this device; only book titles are looked up.
+          {t("On Goodreads: My Books → Import and export → Export library. On StoryGraph: Manage account → Export StoryGraph library. The file stays on this device; only book titles are looked up.")}
         </p>
         <div className="field">
           <label className="field-label" htmlFor={`${id}-file`}>
-            Your export (CSV)
+            {t("Your export (CSV)")}
           </label>
           <input
             id={`${id}-file`}
@@ -182,16 +184,22 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
         )}
         {file && (
           <p className="form-success" role="status">
-            <Icon name="check" size={17} /> {SOURCE_NAMES[file.source]} export: {file.rows.length} {file.rows.length === 1 ? "book" : "books"}
-            {file.skipped > 0 && ` (${file.skipped} left out: not finished or without a title)`}.
+            <Icon name="check" size={17} />{" "}
+            {file.skipped > 0
+              ? t.plural(
+                  file.rows.length,
+                  { one: "{source} export: {count} book ({skipped} left out: not finished or without a title).", other: "{source} export: {count} books ({skipped} left out: not finished or without a title)." },
+                  { source: SOURCE_NAMES[file.source], skipped: file.skipped },
+                )
+              : t.plural(file.rows.length, { one: "{source} export: {count} book.", other: "{source} export: {count} books." }, { source: SOURCE_NAMES[file.source] })}
           </p>
         )}
         <div className="modal-actions">
           <button type="button" className="primary-button" disabled={!file || file.rows.length === 0} onClick={() => file && findBooks(file)}>
-            Find these books
+            {t("Find these books")}
           </button>
           <button type="button" className="secondary-button" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </button>
         </div>
       </div>
@@ -203,13 +211,13 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
     return (
       <div className="import">
         <p role="status">
-          Finding your books: {step.checked} of {total} checked.
+          {t("Finding your books: {checked} of {total} checked.", { checked: step.checked, total })}
         </p>
-        <progress className="goal-bar" max={total} value={step.checked} aria-label={`${step.checked} of ${total} books checked`} />
-        <p className="goal-hint">LiteraryWorm titles are found at once; others are looked up on Google Books about one a second.</p>
+        <progress className="goal-bar" max={total} value={step.checked} aria-label={t("{checked} of {total} books checked", { checked: step.checked, total })} />
+        <p className="goal-hint">{t("LiteraryWorm titles are found at once; others are looked up on Google Books about one a second.")}</p>
         <div className="modal-actions">
           <button type="button" className="secondary-button" onClick={() => (stopRef.current = true)}>
-            Stop and review what's found
+            {t("Stop and review what's found")}
           </button>
         </div>
       </div>
@@ -228,8 +236,17 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
     return (
       <div className="import">
         <p role="status">
-          Found {step.matches.length} of {step.file.rows.length} {step.file.rows.length === 1 ? "book" : "books"}
-          {step.stopped && " before you stopped"}. Untick any that aren't right.
+          {step.stopped
+            ? t.plural(
+                step.file.rows.length,
+                { one: "Found {found} of {count} book before you stopped. Untick any that aren't right.", other: "Found {found} of {count} books before you stopped. Untick any that aren't right." },
+                { found: step.matches.length },
+              )
+            : t.plural(
+                step.file.rows.length,
+                { one: "Found {found} of {count} book. Untick any that aren't right.", other: "Found {found} of {count} books. Untick any that aren't right." },
+                { found: step.matches.length },
+              )}
         </p>
         {step.matches.length > 0 && (
           <ul className="import-list" role="list">
@@ -242,9 +259,9 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
                     <span>
                       <strong>{m.title}</strong>
                       <small>
-                        {m.authors[0] ?? m.row.author} · {m.from} · {STATUS_LABEL[m.row.status]}
-                        {m.row.rating && ` · ${{ love: "Love it", like: "Like it", "not-for-me": "Not for me" }[m.row.rating]}`}
-                        {have && " · Already in your library"}
+                        {m.authors[0] ?? m.row.author} · {m.from} · {t(STATUS_LABEL[m.row.status])}
+                        {m.row.rating && ` · ${{ love: t("Love it"), like: t("Like it"), "not-for-me": t("Not for me") }[m.row.rating]}`}
+                        {have && ` · ${t("Already in your library")}`}
                       </small>
                     </span>
                   </label>
@@ -255,7 +272,7 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
         )}
         {step.missing.length > 0 && (
           <details className="import-missing">
-            <summary>Not found ({step.missing.length})</summary>
+            <summary>{t("Not found ({n})", { n: step.missing.length })}</summary>
             <ul role="list">
               {step.missing.map((r) => (
                 <li key={r.line}>
@@ -264,15 +281,15 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
                 </li>
               ))}
             </ul>
-            <p className="goal-hint">Search for these by title and add them from their pages.</p>
+            <p className="goal-hint">{t("Search for these by title and add them from their pages.")}</p>
           </details>
         )}
         <div className="modal-actions">
           <button type="button" className="primary-button" disabled={count === 0} onClick={() => addBooks(step.matches)}>
-            Add {count} {count === 1 ? "book" : "books"}
+            {t.plural(count, { one: "Add {count} book", other: "Add {count} books" })}
           </button>
           <button type="button" className="secondary-button" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </button>
         </div>
       </div>
@@ -283,9 +300,9 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
     return (
       <div className="import">
         <p role="status">
-          Adding to your library: {step.done} of {step.total}.
+          {t("Adding to your library: {done} of {total}.", { done: step.done, total: step.total })}
         </p>
-        <progress className="goal-bar" max={step.total} value={step.done} aria-label={`${step.done} of ${step.total} books added`} />
+        <progress className="goal-bar" max={step.total} value={step.done} aria-label={t("{done} of {total} books added", { done: step.done, total: step.total })} />
       </div>
     );
   }
@@ -293,14 +310,14 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
   return (
     <div className="import">
       <p className="form-success" role="status">
-        <Icon name="check" size={17} /> Added {step.added} {step.added === 1 ? "book" : "books"} to your library.
+        <Icon name="check" size={17} /> {t.plural(step.added, { one: "Added {count} book to your library.", other: "Added {count} books to your library." })}
       </p>
       {step.failed.length > 0 && (
         <div className="form-alert" role="alert">
           <Icon name="alert" size={17} />
           <div>
             <p>
-              {step.failed.length} {step.failed.length === 1 ? "book" : "books"} couldn't be added:
+              {t.plural(step.failed.length, { one: "{count} book couldn't be added:", other: "{count} books couldn't be added:" })}
             </p>
             <ul>
               {step.failed.slice(0, 10).map((f) => (
@@ -310,10 +327,10 @@ function Importer({ profile, onClose }: { profile: Profile; onClose: () => void 
           </div>
         </div>
       )}
-      <p className="goal-hint">Books you'd read are in Finished, without counting towards this year's goal or stats, since they were read before.</p>
+      <p className="goal-hint">{t("Books you'd read are in Finished, without counting towards this year's goal or stats, since they were read before.")}</p>
       <div className="modal-actions">
         <button type="button" className="primary-button" onClick={onClose}>
-          Done
+          {t("Done")}
         </button>
       </div>
     </div>

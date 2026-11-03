@@ -1,4 +1,5 @@
 import builtIn from "../data/changelog.json";
+import { activeLanguage, dateLocale, tk, tr } from "./i18n";
 
 /**
  * What's new: the changes to LiteraryWorm, newest first. Entries come from Supabase
@@ -25,9 +26,9 @@ export interface ChangeEntry {
 }
 
 export const CHANGE_KINDS: { value: ChangeKind; label: string; plural: string }[] = [
-  { value: "feature", label: "New feature", plural: "New features" },
-  { value: "update", label: "Update", plural: "Updates" },
-  { value: "fix", label: "Fix", plural: "Fixes" },
+  { value: "feature", label: tk("New feature"), plural: tk("New features") },
+  { value: "update", label: tk("Update"), plural: tk("Updates") },
+  { value: "fix", label: tk("Fix"), plural: tk("Fixes") },
 ];
 
 export const kindLabel = (kind: ChangeKind) => CHANGE_KINDS.find((k) => k.value === kind)?.label ?? kind;
@@ -101,31 +102,34 @@ export function filterEntries(entries: ChangeEntry[], filter: ChangeFilter, toda
   return entries.filter((e) => e.kind === filter);
 }
 
+/** Dates are written the British way in English, else in the language chosen. */
+const labelLocale = () => (activeLanguage() === "en" ? "en-GB" : dateLocale());
+
 /** "October 2026" for a version's month, from its first entry's date. */
 export function releaseLabel(releasedOn: string): string {
   const [y, m] = releasedOn.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(Date.UTC(y, m - 1, 1));
+  return new Intl.DateTimeFormat(labelLocale(), { month: "long", year: "numeric", timeZone: "UTC" }).format(Date.UTC(y, m - 1, 1));
 }
 
 /** "30 October 2026". */
 export function dayLabel(day: string): string {
   const [y, m, d] = day.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(Date.UTC(y, m - 1, d));
+  return new Intl.DateTimeFormat(labelLocale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(Date.UTC(y, m - 1, d));
 }
 
 export type ChangeInput = Omit<ChangeEntry, "id">;
 
 /** A plain-words problem with an entry, or null when the database will take it. */
 export function entryError(e: ChangeInput): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.releasedOn) || Number.isNaN(Date.parse(e.releasedOn))) return "Choose the day it was released.";
-  if (!VERSION_PATTERN.test(e.version.trim())) return "Write the version like 2026.10, or 2026.10.1 for a smaller release.";
-  if (!CHANGE_KINDS.some((k) => k.value === e.kind)) return "Choose new feature, update or fix.";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.releasedOn) || Number.isNaN(Date.parse(e.releasedOn))) return tr("Choose the day it was released.");
+  if (!VERSION_PATTERN.test(e.version.trim())) return tr("Write the version like 2026.10, or 2026.10.1 for a smaller release.");
+  if (!CHANGE_KINDS.some((k) => k.value === e.kind)) return tr("Choose new feature, update or fix.");
   const title = e.title.trim();
-  if (!title) return "Give the change a title.";
-  if (title.length > TITLE_MAX) return `Keep the title to ${TITLE_MAX} characters.`;
+  if (!title) return tr("Give the change a title.");
+  if (title.length > TITLE_MAX) return tr("Keep the title to {max} characters.", { max: TITLE_MAX });
   const body = e.body.trim();
-  if (!body) return "Say what changed, in a sentence or two.";
-  if (body.length > BODY_MAX) return `Keep it to ${BODY_MAX} characters.`;
+  if (!body) return tr("Say what changed, in a sentence or two.");
+  if (body.length > BODY_MAX) return tr("Keep it to {max} characters.", { max: BODY_MAX });
   return null;
 }
 

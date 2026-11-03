@@ -5,6 +5,7 @@ import { today } from "../lib/reading";
 import { useReadingPlans } from "../lib/useReadingPlans";
 import { useStore } from "../store/context";
 import { activeLibrary, activeReading } from "../store/reducer";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 /**
@@ -12,6 +13,7 @@ import { Icon } from "./Icon";
  * linking to the book page, which has the day's share at the reader's own pace.
  */
 export function ReadingPlansCard() {
+  const tt = useT();
   const reading = useReadingPlans();
   const { state } = useStore();
   const progress = activeReading(state).progress;
@@ -22,7 +24,7 @@ export function ReadingPlansCard() {
       const place = progress[plan.bookId];
       const book = getBook(plan.bookId);
       const t = planToday(plan, { pages: book?.pages ?? 0 }, place?.finished ? 1 : (place?.fraction ?? plan.startFraction), now, null, null);
-      return { plan, t, title: book?.title ?? library[plan.bookId]?.title ?? "A book" };
+      return { plan, t, title: book?.title ?? library[plan.bookId]?.title ?? tt("A book") };
     })
     .filter((r) => r.t.status !== "done");
   if (rows.length === 0) return null;
@@ -30,14 +32,14 @@ export function ReadingPlansCard() {
   return (
     <section className="reading-plans-card" aria-labelledby="reading-plans-title">
       <h2 id="reading-plans-title">
-        <Icon name="calendar" size={18} /> Your reading plans
+        <Icon name="calendar" size={18} /> {tt("Your reading plans")}
       </h2>
       <ul role="list">
         {rows.map(({ plan, t, title }) => (
           <li key={plan.bookId}>
             <Link to={`/books/${plan.bookId}`}>{title}</Link>
             <span className="muted">
-              {t.status === "overdue" ? "" : `${t.daysLeft === 1 ? "Last day" : `${t.daysLeft} days left`} · `}
+              {t.status === "overdue" ? "" : `${t.daysLeft === 1 ? tt("Last day") : tt("{n} days left", { n: t.daysLeft })} · `}
               <span className={`plan-status plan-${t.status}`}>{statusText(t)}</span>
             </span>
           </li>

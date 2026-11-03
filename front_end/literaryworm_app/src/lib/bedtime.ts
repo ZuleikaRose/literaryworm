@@ -1,4 +1,5 @@
 import type { Profile } from "../types";
+import { activeLanguage, dateLocale } from "./i18n";
 
 /**
  * Bedtime for Kids profiles: a grown-up picks a bedtime and a wake-up time in the profile editor
@@ -21,9 +22,12 @@ export function minutesOf(time: string): number {
   return h * 60 + m;
 }
 
-/** "20:30" as "8:30pm", "07:00" as "7am". */
+/** "20:30" as "8:30pm", "07:00" as "7am" (other languages write the time their own way). */
 export function timeLabel(time: string): string {
   const [h, m] = time.split(":").map(Number);
+  if (activeLanguage() !== "en") {
+    return new Intl.DateTimeFormat(dateLocale(), { hour: "numeric", minute: "2-digit", timeZone: "UTC" }).format(Date.UTC(2000, 0, 1, h, m));
+  }
   const hour = h % 12 === 0 ? 12 : h % 12;
   return `${hour}${m ? `:${String(m).padStart(2, "0")}` : ""}${h < 12 ? "am" : "pm"}`;
 }

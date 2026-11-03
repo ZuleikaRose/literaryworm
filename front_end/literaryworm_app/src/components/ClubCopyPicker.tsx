@@ -4,6 +4,8 @@ import { isbnMatches, uploadChoice } from "../lib/clubBookChoices";
 import { type Club, copyChoices } from "../lib/clubs";
 import { useClubs } from "../lib/useClubs";
 import { isbnNoteFor, useIsbnLookup } from "../lib/useIsbnLookup";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import type { UploadedBook } from "../types";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
@@ -15,6 +17,7 @@ import { Icon } from "./Icon";
  * come first; the search narrows by title or author.
  */
 export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; uploads: UploadedBook[]; onLinked: () => void }) {
+  const t = useT();
   const clubs = useClubs();
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -28,7 +31,7 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
       : []
     : ranked;
   const isbnNote = isbnNoteFor(lookup, choices.length, "uploads");
-  const book = club.bookTitle ?? "the club's book";
+  const book = club.bookTitle ?? t("the club's book");
 
   const use = async (upload: UploadedBook) => {
     setBusy(upload.id);
@@ -37,7 +40,7 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
       await clubs.linkCopy(club.id, upload.id);
       onLinked();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't use that copy. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't use that copy. Try again."));
       setBusy(null);
     }
   };
@@ -46,30 +49,35 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
     <div className="club-page page-content">
       <header className="club-header club-header-plain">
         <div>
-        <p className="eyebrow">Book club</p>
+        <p className="eyebrow">{t("Book club")}</p>
         <h1>{club.name}</h1>
         <p>
-          Reading <strong>{book}</strong>
-          {club.bookAuthor && ` by ${club.bookAuthor}`}, an uploaded book.
+          {club.bookAuthor
+            ? rich(t("Reading {title} by {author}, an uploaded book."), { title: <strong>{book}</strong>, author: club.bookAuthor })
+            : rich(t("Reading {title}, an uploaded book."), { title: <strong>{book}</strong> })}
         </p>
         </div>
       </header>
       <section className="club-copy" aria-labelledby="club-copy-title">
-        <h2 id="club-copy-title">Choose your copy</h2>
+        <h2 id="club-copy-title">{t("Choose your copy")}</h2>
         <p>
-          Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload{" "}
-          {club.bookTitle ? <em>{club.bookTitle}</em> : "it"} (a DRM-free EPUB, such as one you bought) on this profile, then choose it below.
+          {club.bookTitle
+            ? rich(
+                t("Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload {title} (a DRM-free EPUB, such as one you bought) on this profile, then choose it below."),
+                { title: <em>{club.bookTitle}</em> },
+              )
+            : t("Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload it (a DRM-free EPUB, such as one you bought) on this profile, then choose it below.")}
         </p>
         {uploads.length === 0 ? (
-          <p className="goal-hint">You haven't uploaded any books on this profile yet.</p>
+          <p className="goal-hint">{t("You haven't uploaded any books on this profile yet.")}</p>
         ) : (
           <>
             <Field
-              label="Find your copy"
+              label={t("Find your copy")}
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Title, Author or ISBN"
+              placeholder={t("Title, Author or ISBN")}
               hint={isbnNote ?? undefined}
               autoComplete="off"
             />
@@ -78,7 +86,7 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
             </p>
             {choices.length === 0 ? (
               <p className="goal-hint" role="status">
-                {lookup.isbn && !lookup.done ? "Looking up that ISBN…" : "None of your uploads match that search."}
+                {lookup.isbn && !lookup.done ? t("Looking up that ISBN…") : t("None of your uploads match that search.")}
               </p>
             ) : (
               <ul className="club-copy-list" role="list">
@@ -89,7 +97,7 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
                       {u.author && <small> {u.author}</small>}
                     </span>
                     <button type="button" className="secondary-button small-button" disabled={busy !== null} onClick={() => use(u)}>
-                      {busy === u.id ? "Choosing…" : "Use this copy"}
+                      {busy === u.id ? t("Choosing…") : t("Use this copy")}
                     </button>
                   </li>
                 ))}
@@ -104,10 +112,10 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
         )}
         <div className="goal-actions">
           <Link className="primary-button small-button" to="/library?view=uploads">
-            Upload a book
+            {t("Upload a book")}
           </Link>
           <Link className="ghost-button small-button" to="/library?view=clubs">
-            Your clubs
+            {t("Your clubs")}
           </Link>
         </div>
       </section>

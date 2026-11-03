@@ -23,8 +23,10 @@ import { useStore } from "../store/context";
 import type { Profile } from "../types";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
+import { tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
-const message = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong. Try again.");
+const message = (err: unknown) => (err instanceof Error ? err.message : tr("Something went wrong. Try again."));
 
 /**
  * My Library → Goals → Household challenges: goals the household's profiles take on together.
@@ -32,6 +34,7 @@ const message = (err: unknown) => (err instanceof Error ? err.message : "Somethi
  * days); the active profile joins, leaves, starts one, or deletes one it started.
  */
 export function ChallengesView({ profile }: { profile: Profile }) {
+  const t = useT();
   const challenges = useChallenges();
   const [list, setList] = useState<Challenge[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -64,13 +67,13 @@ export function ChallengesView({ profile }: { profile: Profile }) {
       <div className="challenges-heading">
         <div>
           <h2 id="challenges-title" tabIndex={-1} ref={headingRef}>
-            Household challenges
+            {t("Household challenges")}
           </h2>
-          <p className="goal-hint">Goals to take on together. Everyone in the household can join and see how the others are doing.</p>
+          <p className="goal-hint">{t("Goals to take on together. Everyone in the household can join and see how the others are doing.")}</p>
         </div>
         {!starting && (
           <button type="button" className="primary-button small-button" onClick={() => setStarting(true)}>
-            <Icon name="plus" size={15} /> Start a challenge
+            <Icon name="plus" size={15} /> {t("Start a challenge")}
           </button>
         )}
       </div>
@@ -85,7 +88,7 @@ export function ChallengesView({ profile }: { profile: Profile }) {
           onCancel={() => setStarting(false)}
           onStarted={async (title) => {
             setStarting(false);
-            setAnnouncement(`Started ${title}.`);
+            setAnnouncement(t("Started {title}.", { title }));
             await refresh();
             headingRef.current?.focus();
           }}
@@ -98,14 +101,14 @@ export function ChallengesView({ profile }: { profile: Profile }) {
           <div>
             <p>{loadError}</p>
             <button type="button" className="secondary-button small-button" onClick={() => void refresh()}>
-              Try again
+              {t("Try again")}
             </button>
           </div>
         </div>
       ) : list === null ? (
-        <p className="goal-hint">Loading challenges…</p>
+        <p className="goal-hint">{t("Loading challenges…")}</p>
       ) : list.length === 0 ? (
-        !starting && <p className="challenges-empty">No challenges yet. Start one, and the rest of the household can join in.</p>
+        !starting && <p className="challenges-empty">{t("No challenges yet. Start one, and the rest of the household can join in.")}</p>
       ) : (
         <>
           <ul className="challenge-list" role="list">
@@ -116,7 +119,7 @@ export function ChallengesView({ profile }: { profile: Profile }) {
           {ended.length > 0 && (
             <details className="challenges-ended">
               <summary>
-                Finished challenges ({ended.length})
+                {t("Finished challenges ({n})", { n: ended.length })}
               </summary>
               <ul className="challenge-list" role="list">
                 {ended.map((c) => (
@@ -147,6 +150,7 @@ function ChallengeCard({
   afterDelete: () => void;
 }) {
   const { state } = useStore();
+  const t = useT();
   const challenges = useChallenges();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,10 +162,10 @@ function ChallengeCard({
   const left = daysLeft(c, now);
   const when =
     status === "upcoming"
-      ? `Starts ${dayLabel(c.startsOn)}`
+      ? t("Starts {day}", { day: dayLabel(c.startsOn) })
       : status === "ended"
-        ? "Finished"
-        : `${left} ${left === 1 ? "day" : "days"} left`;
+        ? t("Finished")
+        : t.plural(left, { one: "{count} day left", other: "{count} days left" });
 
   const run = async (action: () => Promise<void>, done: string, after?: () => void) => {
     setBusy(true);
@@ -184,15 +188,15 @@ function ChallengeCard({
         <div>
           <h3>{c.title}</h3>
           <p className="goal-hint">
-            {CHALLENGE_KINDS.find((k) => k.value === c.kind)?.label} · {rangeLabel(c.startsOn, c.endsOn)} · <strong>{when}</strong>
+            {t(CHALLENGE_KINDS.find((k) => k.value === c.kind)?.label ?? "")} · {rangeLabel(c.startsOn, c.endsOn)} · <strong>{when}</strong>
           </p>
         </div>
       </div>
 
       {rows.length === 0 ? (
-        <p className="goal-hint">Nobody has joined yet.</p>
+        <p className="goal-hint">{t("Nobody has joined yet.")}</p>
       ) : (
-        <ol className="challenge-standings" aria-label={`Progress in ${c.title}`}>
+        <ol className="challenge-standings" aria-label={t("Progress in {title}", { title: c.title })}>
           {rows.map((r) => {
             const who = nameOf(r.profileId);
             if (!who) return null;
@@ -201,13 +205,13 @@ function ChallengeCard({
                 <Avatar name={who.name} avatar={who.avatar} size={32} />
                 <span className="challenge-name">
                   {who.name}
-                  {who.id === profile.id && <span className="visually-hidden"> (you)</span>}
+                  {who.id === profile.id && <span className="visually-hidden">{t(" (you)")}</span>}
                 </span>
-                <progress className="goal-bar" max={c.target} value={Math.min(r.value, c.target)} aria-label={`${who.name}: ${r.value} of ${c.target} ${unit(c.kind, c.target)}`} />
+                <progress className="goal-bar" max={c.target} value={Math.min(r.value, c.target)} aria-label={t("{name}: {value} of {target} {unit}", { name: who.name, value: r.value, target: c.target, unit: unit(c.kind, c.target) })} />
                 <span className="challenge-count">
                   {r.done ? (
                     <>
-                      <Icon name="check" size={15} /> Done
+                      <Icon name="check" size={15} /> {t("Done")}
                     </>
                   ) : (
                     `${r.value} / ${c.target}`
@@ -228,12 +232,12 @@ function ChallengeCard({
       <div className="goal-actions">
         {status !== "ended" &&
           (joined ? (
-            <button type="button" className="ghost-button small-button" disabled={busy} onClick={() => run(() => challenges.leave(c.id, profile.id), `${profile.name} left ${c.title}.`)}>
-              Leave<span className="visually-hidden"> {c.title}</span>
+            <button type="button" className="ghost-button small-button" disabled={busy} onClick={() => run(() => challenges.leave(c.id, profile.id), t("{name} left {title}.", { name: profile.name, title: c.title }))}>
+              {t("Leave")}<span className="visually-hidden"> {c.title}</span>
             </button>
           ) : (
-            <button type="button" className="secondary-button small-button" disabled={busy} onClick={() => run(() => challenges.join(c.id, profile.id), `${profile.name} joined ${c.title}.`)}>
-              Join<span className="visually-hidden"> {c.title}</span>
+            <button type="button" className="secondary-button small-button" disabled={busy} onClick={() => run(() => challenges.join(c.id, profile.id), t("{name} joined {title}.", { name: profile.name, title: c.title }))}>
+              {t("Join")}<span className="visually-hidden"> {c.title}</span>
             </button>
           ))}
         {c.createdBy === profile.id && (
@@ -241,9 +245,9 @@ function ChallengeCard({
             type="button"
             className="ghost-button small-button danger-text"
             disabled={busy}
-            onClick={() => run(() => challenges.remove(c.id), `Deleted ${c.title}.`, afterDelete)}
+            onClick={() => run(() => challenges.remove(c.id), t("Deleted {title}.", { title: c.title }), afterDelete)}
           >
-            <Icon name="trash" size={15} /> Delete<span className="visually-hidden"> {c.title}</span>
+            <Icon name="trash" size={15} /> {t("Delete")}<span className="visually-hidden"> {c.title}</span>
           </button>
         )}
       </div>
@@ -252,6 +256,7 @@ function ChallengeCard({
 }
 
 function StartChallenge({ profile, onCancel, onStarted }: { profile: Profile; onCancel: () => void; onStarted: (title: string) => Promise<void> }) {
+  const t = useT();
   const challenges = useChallenges();
   const now = today();
   const [kind, setKind] = useState<ChallengeKind>("books");
@@ -292,23 +297,23 @@ function StartChallenge({ profile, onCancel, onStarted }: { profile: Profile; on
 
   return (
     <form className="goal-card challenge-form" onSubmit={submit} noValidate aria-labelledby={`${id}-title`}>
-      <h3 id={`${id}-title`}>Start a challenge</h3>
+      <h3 id={`${id}-title`}>{t("Start a challenge")}</h3>
       <div className="challenge-form-row">
         <div className="field">
           <label className="field-label" htmlFor={`${id}-kind`}>
-            Count
+            {t("Count")}
           </label>
           <select ref={firstRef} id={`${id}-kind`} className="field-input" value={kind} onChange={(e) => setKind(e.target.value as ChallengeKind)}>
             {CHALLENGE_KINDS.map((k) => (
               <option key={k.value} value={k.value}>
-                {k.label}
+                {t(k.label)}
               </option>
             ))}
           </select>
         </div>
         <div className="field">
           <label className="field-label" htmlFor={`${id}-target`}>
-            Target
+            {t("Target")}
           </label>
           <input
             id={`${id}-target`}
@@ -324,12 +329,12 @@ function StartChallenge({ profile, onCancel, onStarted }: { profile: Profile; on
         </div>
       </div>
       <fieldset className="segmented">
-        <legend className="field-label">When</legend>
+        <legend className="field-label">{t("When")}</legend>
         <div>
           {RANGE_PRESETS.map((p) => (
             <label key={p.value}>
               <input type="radio" name={`${id}-when`} value={p.value} checked={preset === p.value} onChange={() => setPreset(p.value)} />
-              <span>{p.label}</span>
+              <span>{t(p.label)}</span>
             </label>
           ))}
         </div>
@@ -337,7 +342,7 @@ function StartChallenge({ profile, onCancel, onStarted }: { profile: Profile; on
       <p className="goal-hint">{rangeLabel(range.startsOn, range.endsOn)}</p>
       <div className="field">
         <label className="field-label" htmlFor={`${id}-name`}>
-          Name
+          {t("Name")}
         </label>
         <input
           id={`${id}-name`}
@@ -353,13 +358,13 @@ function StartChallenge({ profile, onCancel, onStarted }: { profile: Profile; on
           <Icon name="alert" size={15} /> {error}
         </p>
       )}
-      <p className="goal-hint">{profile.name} joins straight away; the rest of the household can join from here.</p>
+      <p className="goal-hint">{t("{name} joins straight away; the rest of the household can join from here.", { name: profile.name })}</p>
       <div className="goal-actions">
         <button type="submit" className="primary-button small-button" disabled={busy}>
-          {busy ? "Starting…" : "Start the challenge"}
+          {busy ? t("Starting…") : t("Start the challenge")}
         </button>
         <button type="button" className="ghost-button small-button" onClick={onCancel}>
-          Cancel
+          {t("Cancel")}
         </button>
       </div>
     </form>

@@ -11,11 +11,19 @@ import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 import { YearCardDialog } from "./YearCardDialog";
 import { YearStoryDialog } from "./YearStoryDialog";
+import { dateLocale, rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 
-const MONTHS = Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat(undefined, { month: "short", timeZone: "UTC" }).format(Date.UTC(2024, m, 1)));
-const MONTHS_LONG = Array.from({ length: 12 }, (_, m) => new Intl.DateTimeFormat(undefined, { month: "long", timeZone: "UTC" }).format(Date.UTC(2024, m, 1)));
-// 7 January 2024 was a Sunday.
-const WEEKDAYS = Array.from({ length: 7 }, (_, d) => new Intl.DateTimeFormat(undefined, { weekday: "long", timeZone: "UTC" }).format(Date.UTC(2024, 0, 7 + d)));
+// Month and weekday names: the device's own in English, the chosen language's otherwise.
+function calendarNames(locale: string | undefined) {
+  const format = (options: Intl.DateTimeFormatOptions, date: number) => new Intl.DateTimeFormat(locale, { ...options, timeZone: "UTC" }).format(date);
+  return {
+    months: Array.from({ length: 12 }, (_, m) => format({ month: "short" }, Date.UTC(2024, m, 1))),
+    monthsLong: Array.from({ length: 12 }, (_, m) => format({ month: "long" }, Date.UTC(2024, m, 1))),
+    // 7 January 2024 was a Sunday.
+    weekdays: Array.from({ length: 7 }, (_, d) => format({ weekday: "long" }, Date.UTC(2024, 0, 7 + d))),
+  };
+}
 const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
 
 /**
@@ -24,6 +32,8 @@ const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part /
  * books themselves. Any year with reading can be picked.
  */
 export function StatsView({ profile }: { profile: Profile }) {
+  const t = useT();
+  const { months: MONTHS, monthsLong: MONTHS_LONG, weekdays: WEEKDAYS } = useMemo(() => calendarNames(t.lang === "en" ? undefined : dateLocale(t.lang)), [t.lang]);
   const { state } = useStore();
   const { goals, days } = useGoals();
   const current = Number(today().slice(0, 4));
@@ -43,24 +53,24 @@ export function StatsView({ profile }: { profile: Profile }) {
     <div className="stats">
       <header className="stats-header">
         <div>
-          <p className="eyebrow">{profile.name}'s year in review</p>
-          <h2>{year} in books</h2>
+          <p className="eyebrow">{t("{name}'s year in review", { name: profile.name })}</p>
+          <h2>{t("{year} in books", { year })}</h2>
         </div>
         <div className="stats-header-actions">
           {hasReading && (
             <button type="button" className="secondary-button small-button" onClick={() => setSharing(true)}>
-              <Icon name="share" size={16} /> Share as a picture
+              <Icon name="share" size={16} /> {t("Share as a picture")}
             </button>
           )}
           {hasReading && (
             <button type="button" className="secondary-button small-button" onClick={() => setStory(true)}>
-              <Icon name="play" size={16} /> Play as a story
+              <Icon name="play" size={16} /> {t("Play as a story")}
             </button>
           )}
         {years.length > 1 && (
           <div className="stats-year">
             <label className="field-label" htmlFor={yearId}>
-              Year
+              {t("Year")}
             </label>
             <select id={yearId} className="field-input" value={year} onChange={(e) => setYear(Number(e.target.value))}>
               {years.map((y) => (
@@ -78,7 +88,7 @@ export function StatsView({ profile }: { profile: Profile }) {
 
       {!hasReading ? (
         <p className="stats-empty">
-          Nothing read or listened to in {year} yet. Time counts while the reader is open or the player is playing, and shows here.
+          {t("Nothing read or listened to in {year} yet. Time counts while the reader is open or the player is playing, and shows here.", { year })}
         </p>
       ) : (
         <>
@@ -86,53 +96,54 @@ export function StatsView({ profile }: { profile: Profile }) {
             <li>
               <Icon name="clock" size={20} />
               <strong>{readingTime(s.seconds)}</strong>
-              <span>reading and listening</span>
+              <span>{t("reading and listening")}</span>
             </li>
             <li>
               <Icon name="check" size={20} />
               <strong>{s.finished}</strong>
               <span>
-                {s.finished === 1 ? "book" : "books"} finished
-                {goal !== null && ` of a goal of ${goal}${s.finished >= goal ? ", goal met" : ""}`}
+                {goal === null
+                  ? t.plural(s.finished, { one: "book finished", other: "books finished" })
+                  : s.finished >= goal
+                    ? t.plural(s.finished, { one: "book finished of a goal of {goal}, goal met", other: "books finished of a goal of {goal}, goal met" }, { goal })
+                    : t.plural(s.finished, { one: "book finished of a goal of {goal}", other: "books finished of a goal of {goal}" }, { goal })}
               </span>
             </li>
             <li>
               <Icon name="bookOpen" size={20} />
               <strong>{s.daysRead}</strong>
-              <span>{s.daysRead === 1 ? "day" : "days"} with reading</span>
+              <span>{t.plural(s.daysRead, { one: "day with reading", other: "days with reading" })}</span>
             </li>
             <li>
               <Icon name="star" size={20} />
               <strong>{s.longestStreak}</strong>
-              <span>{s.longestStreak === 1 ? "day" : "days"} in a row, the longest streak</span>
+              <span>{t.plural(s.longestStreak, { one: "day in a row, the longest streak", other: "days in a row, the longest streak" })}</span>
             </li>
             <li>
               <Icon name="highlighter" size={20} />
               <strong>{s.highlights}</strong>
-              <span>
-                {s.highlights === 1 ? "highlight" : "highlights"}, {s.notes} with a note
-              </span>
+              <span>{t.plural(s.highlights, { one: "highlight, {notes} with a note", other: "highlights, {notes} with a note" }, { notes: s.notes })}</span>
             </li>
           </ul>
 
           <section className="stats-card" aria-labelledby="stats-split">
-            <h3 id="stats-split">Reading and listening</h3>
+            <h3 id="stats-split">{t("Reading and listening")}</h3>
             <div className="stats-split" aria-hidden="true">
               <span className="stats-split-read" style={{ "--share": `${percent(s.read, s.seconds)}%` } as CSSProperties} />
               <span className="stats-split-listen" style={{ "--share": `${percent(s.listened, s.seconds)}%` } as CSSProperties} />
             </div>
             <ul className="stats-legend" role="list">
               <li>
-                <span className="swatch read" aria-hidden="true" /> Reading: {readingTime(s.read)} ({percent(s.read, s.seconds)}%)
+                <span className="swatch read" aria-hidden="true" /> {t("Reading: {time} ({percent}%)", { time: readingTime(s.read), percent: percent(s.read, s.seconds) })}
               </li>
               <li>
-                <span className="swatch listen" aria-hidden="true" /> Listening: {readingTime(s.listened)} ({percent(s.listened, s.seconds)}%)
+                <span className="swatch listen" aria-hidden="true" /> {t("Listening: {time} ({percent}%)", { time: readingTime(s.listened), percent: percent(s.listened, s.seconds) })}
               </li>
             </ul>
           </section>
 
           <section className="stats-card" aria-labelledby="stats-months">
-            <h3 id="stats-months">Month by month</h3>
+            <h3 id="stats-months">{t("Month by month")}</h3>
             <ol className="stats-months" role="list">
               {s.months.map((m) => (
                 <li key={m.month}>
@@ -142,8 +153,9 @@ export function StatsView({ profile }: { profile: Profile }) {
                   <span className="stats-month-name">
                     <span aria-hidden="true">{MONTHS[m.month]}</span>
                     <span className="visually-hidden">
-                      {MONTHS_LONG[m.month]}: {readingTime(m.seconds)}
-                      {m.listened > 0 && `, ${readingTime(m.listened)} of it listening`}
+                      {m.listened > 0
+                        ? t("{month}: {time}, {listened} of it listening", { month: MONTHS_LONG[m.month], time: readingTime(m.seconds), listened: readingTime(m.listened) })
+                        : t("{month}: {time}", { month: MONTHS_LONG[m.month], time: readingTime(m.seconds) })}
                     </span>
                   </span>
                 </li>
@@ -152,12 +164,12 @@ export function StatsView({ profile }: { profile: Profile }) {
             <p className="goal-hint">
               {s.busiestMonth !== null && (
                 <>
-                  Busiest month: <strong>{MONTHS_LONG[s.busiestMonth]}</strong> ({readingTime(s.months[s.busiestMonth].seconds)}).{" "}
+                  {rich(t("Busiest month: {month} ({time})."), { month: <strong>{MONTHS_LONG[s.busiestMonth]}</strong>, time: readingTime(s.months[s.busiestMonth].seconds) })}{" "}
                 </>
               )}
               {s.favouriteWeekday !== null && (
                 <>
-                  Favourite day to read: <strong>{WEEKDAYS[s.favouriteWeekday]}</strong>.
+                  {rich(t("Favourite day to read: {day}."), { day: <strong>{WEEKDAYS[s.favouriteWeekday]}</strong> })}
                 </>
               )}
             </p>
@@ -167,14 +179,12 @@ export function StatsView({ profile }: { profile: Profile }) {
             <div className="stats-pair">
               {s.genres.length > 0 && (
                 <section className="stats-card" aria-labelledby="stats-genres">
-                  <h3 id="stats-genres">Top genres</h3>
+                  <h3 id="stats-genres">{t("Top genres")}</h3>
                   <ol className="stats-rank">
                     {s.genres.map((g) => (
                       <li key={g.name}>
                         <span>{g.name}</span>
-                        <span>
-                          {g.count} {g.count === 1 ? "book" : "books"}
-                        </span>
+                        <span>{t.plural(g.count, { one: "{count} book", other: "{count} books" })}</span>
                       </li>
                     ))}
                   </ol>
@@ -182,14 +192,12 @@ export function StatsView({ profile }: { profile: Profile }) {
               )}
               {s.authors.length > 0 && (
                 <section className="stats-card" aria-labelledby="stats-authors">
-                  <h3 id="stats-authors">Top authors</h3>
+                  <h3 id="stats-authors">{t("Top authors")}</h3>
                   <ol className="stats-rank">
                     {s.authors.map((a) => (
                       <li key={a.name}>
                         <span>{a.name}</span>
-                        <span>
-                          {a.count} {a.count === 1 ? "book" : "books"}
-                        </span>
+                        <span>{t.plural(a.count, { one: "{count} book", other: "{count} books" })}</span>
                       </li>
                     ))}
                   </ol>
@@ -200,7 +208,7 @@ export function StatsView({ profile }: { profile: Profile }) {
 
           {s.books.some((b) => b.book) && (
             <section className="stats-card" aria-labelledby="stats-books">
-              <h3 id="stats-books">Books you finished</h3>
+              <h3 id="stats-books">{t("Books you finished")}</h3>
               <ul className="stats-books" role="list">
                 {s.books.map(
                   ({ id, book, day }) =>
@@ -218,7 +226,7 @@ export function StatsView({ profile }: { profile: Profile }) {
                 )}
               </ul>
               {s.finished > s.books.filter((b) => b.book).length && (
-                <p className="goal-hint">Books marked finished before LiteraryWorm kept their names are counted but not listed.</p>
+                <p className="goal-hint">{t("Books marked finished before LiteraryWorm kept their names are counted but not listed.")}</p>
               )}
             </section>
           )}

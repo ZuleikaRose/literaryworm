@@ -2,16 +2,18 @@ import { type FormEvent, useEffect, useId, useState } from "react";
 import { AccountError, type BillingInvoice, billingHistory, type MembershipDiscount, redeemPromoCode } from "../lib/accountApi";
 import { afterDiscountLabel, discountLabel, formatMoney, longDate, promoCodeError } from "../lib/billing";
 import type { BillingInterval } from "../types";
+import { tk, tr } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 const STATUS: Record<BillingInvoice["status"], string> = {
-  paid: "Paid",
-  open: "Due",
-  void: "Not charged",
-  uncollectible: "Payment failed",
+  paid: tk("Paid"),
+  open: tk("Due"),
+  void: tk("Not charged"),
+  uncollectible: tk("Payment failed"),
 };
 
-const message = (err: unknown) => (err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+const message = (err: unknown) => (err instanceof AccountError ? err.message : tr("Something went wrong. Try again."));
 
 /**
  * Account → Plan and billing, for members paying through Stripe: the promo code on the
@@ -27,6 +29,7 @@ export function BillingHistory({
   monthlyPrice: string;
   interval?: BillingInterval;
 }) {
+  const t = useT();
   const [invoices, setInvoices] = useState<BillingInvoice[] | null>(null);
   const [discount, setDiscount] = useState<MembershipDiscount | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -60,23 +63,23 @@ export function BillingHistory({
       <PromoCode discount={discount} canRedeem={canRedeem} monthlyPrice={monthlyPrice} interval={interval} onApplied={setDiscount} />
 
       <section aria-labelledby="billing-history-title">
-        <h3 id="billing-history-title">Billing history</h3>
+        <h3 id="billing-history-title">{t("Billing history")}</h3>
         {loadError ? (
           <div className="form-alert" role="alert">
             <Icon name="alert" size={17} />
             <div>
               <p>{loadError}</p>
               <button type="button" className="secondary-button" onClick={retry}>
-                Try again
+                {t("Try again")}
               </button>
             </div>
           </div>
         ) : invoices === null ? (
           <p className="field-hint" role="status">
-            Loading your charges…
+            {t("Loading your charges…")}
           </p>
         ) : invoices.length === 0 ? (
-          <p className="field-hint">No charges yet.</p>
+          <p className="field-hint">{t("No charges yet.")}</p>
         ) : (
           <>
             <ul className="invoice-list" role="list">
@@ -87,12 +90,12 @@ export function BillingHistory({
                     <span className="invoice-date">{date}</span>
                     <span className="invoice-amount">
                       {formatMoney(invoice.amount, invoice.currency)}
-                      {invoice.discount > 0 && <small>{formatMoney(invoice.discount, invoice.currency)} off with a promo code</small>}
+                      {invoice.discount > 0 && <small>{t("{amount} off with a promo code", { amount: formatMoney(invoice.discount, invoice.currency) })}</small>}
                     </span>
-                    <span className={`status-pill invoice-${invoice.status}`}>{STATUS[invoice.status]}</span>
+                    <span className={`status-pill invoice-${invoice.status}`}>{t(STATUS[invoice.status])}</span>
                     {invoice.url ? (
                       <a className="text-button" href={invoice.url} target="_blank" rel="noreferrer">
-                        Receipt<span className="visually-hidden"> for {date} (opens Stripe in a new tab)</span>
+                        {t("Receipt")}<span className="visually-hidden"> {t("for {date} (opens Stripe in a new tab)", { date })}</span>
                       </a>
                     ) : (
                       <span aria-hidden="true" />
@@ -101,7 +104,7 @@ export function BillingHistory({
                 );
               })}
             </ul>
-            {invoices.length === 24 && <p className="field-hint">Showing your last 24 charges.</p>}
+            {invoices.length === 24 && <p className="field-hint">{t("Showing your last 24 charges.")}</p>}
           </>
         )}
       </section>
@@ -123,6 +126,7 @@ function PromoCode({
   interval: BillingInterval;
   onApplied: (d: MembershipDiscount) => void;
 }) {
+  const t = useT();
   const id = useId();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -143,7 +147,8 @@ function PromoCode({
       const applied = await redeemPromoCode(code.trim());
       onApplied(applied);
       setCode("");
-      setDone(`Code applied: ${discountLabel(applied)}.${afterDiscountLabel(applied, monthlyPrice, interval) ? ` ${afterDiscountLabel(applied, monthlyPrice, interval)}` : ""}`);
+      const after = afterDiscountLabel(applied, monthlyPrice, interval);
+      setDone(t("Code applied: {discount}.", { discount: discountLabel(applied) }) + (after ? ` ${after}` : ""));
     } catch (err) {
       setError(message(err));
     } finally {
@@ -153,7 +158,7 @@ function PromoCode({
 
   return (
     <section className="promo-code" aria-labelledby={`${id}-title`}>
-      <h3 id={`${id}-title`}>Promo code</h3>
+      <h3 id={`${id}-title`}>{t("Promo code")}</h3>
       {discount ? (
         <p className="promo-current">
           <Icon name="check" size={17} />
@@ -163,13 +168,13 @@ function PromoCode({
           </span>
         </p>
       ) : (
-        <p className="field-hint">No promo code on your membership.</p>
+        <p className="field-hint">{t("No promo code on your membership.")}</p>
       )}
       {canRedeem && (
         <form className="promo-form" onSubmit={submit} noValidate>
           <div className="field">
             <label className="field-label" htmlFor={id}>
-              {discount ? "Use a different code" : "Add a promo code"}
+              {discount ? t("Use a different code") : t("Add a promo code")}
             </label>
             <input
               id={id}
@@ -193,12 +198,12 @@ function PromoCode({
               </p>
             ) : (
               <p className="field-hint" id={`${id}-hint`}>
-                {discount ? "A new code replaces the one you have." : "It applies from your next charge."}
+                {discount ? t("A new code replaces the one you have.") : t("It applies from your next charge.")}
               </p>
             )}
           </div>
           <button type="submit" className="secondary-button" disabled={busy}>
-            Apply code
+            {t("Apply code")}
           </button>
         </form>
       )}

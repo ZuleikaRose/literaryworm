@@ -3,9 +3,11 @@ import { type BookNotes, downloadText, exportFileName, exportNotes, type ExportF
 import { useNotesBooks } from "../lib/useNotesBooks";
 import { HighlightReviewButton } from "./HighlightReview";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 /** Markdown and Text buttons that save the notes as a file. */
 export function ExportButtons({ books, name, label }: { books: BookNotes[]; name: string; label: string }) {
+  const t = useT();
   const save = (format: ExportFormat) => downloadText(exportNotes(books, format), exportFileName(name, format), format);
   return (
     <div className="export-buttons" role="group" aria-label={label}>
@@ -13,7 +15,7 @@ export function ExportButtons({ books, name, label }: { books: BookNotes[]; name
         <Icon name="download" size={16} /> Markdown
       </button>
       <button type="button" className="secondary-button small-button" onClick={() => save("text")}>
-        <Icon name="download" size={16} /> Text
+        <Icon name="download" size={16} /> {t("Text")}
       </button>
     </div>
   );
@@ -21,6 +23,7 @@ export function ExportButtons({ books, name, label }: { books: BookNotes[]; name
 
 /** My Library → Notes: every book with highlights, each with Export, and Export all. */
 export function NotesView() {
+  const t = useT();
   const books = useNotesBooks();
   const total = books.reduce((n, b) => n + b.highlights.length, 0);
   const entries = books.reduce((n, b) => n + (b.journal?.length ?? 0), 0);
@@ -28,10 +31,9 @@ export function NotesView() {
   if (books.length === 0) {
     return (
       <div className="library-empty">
-        <h2>No highlights yet</h2>
+        <h2>{t("No highlights yet")}</h2>
         <p>
-          Select words on a page in the reader to highlight them or add a note, or write in My journal on a book's page. They'll all
-          be here, ready to export.
+          {t("Select words on a page in the reader to highlight them or add a note, or write in My journal on a book's page. They'll all be here, ready to export.")}
         </p>
       </div>
     );
@@ -41,14 +43,21 @@ export function NotesView() {
     <section className="notes-view" aria-labelledby="notes-title">
       <div className="section-head">
         <div>
-          <h2 id="notes-title">Notes and highlights</h2>
+          <h2 id="notes-title">{t("Notes and highlights")}</h2>
           <p className="muted">
-            {total} highlight{total === 1 ? "" : "s"}
-            {entries > 0 && ` and ${entries} journal ${entries === 1 ? "entry" : "entries"}`} in {books.length} book{books.length === 1 ? "" : "s"}. Exports
-            are made on this device, never uploaded.
+            {entries > 0
+              ? t("{highlights} and {entries} in {books}. Exports are made on this device, never uploaded.", {
+                  highlights: t.plural(total, { one: "{count} highlight", other: "{count} highlights" }),
+                  entries: t.plural(entries, { one: "{count} journal entry", other: "{count} journal entries" }),
+                  books: t.plural(books.length, { one: "{count} book", other: "{count} books" }),
+                })
+              : t("{highlights} in {books}. Exports are made on this device, never uploaded.", {
+                  highlights: t.plural(total, { one: "{count} highlight", other: "{count} highlights" }),
+                  books: t.plural(books.length, { one: "{count} book", other: "{count} books" }),
+                })}
           </p>
         </div>
-        <ExportButtons books={books} name="my-literaryworm" label="Export all notes and highlights" />
+        <ExportButtons books={books} name="my-literaryworm" label={t("Export all notes and highlights")} />
       </div>
       <HighlightReviewButton />
       <ul className="notes-books" role="list">
@@ -62,11 +71,16 @@ export function NotesView() {
                 </h3>
                 <p className="muted">
                   {b.author ? `${b.author} · ` : ""}
-                  {b.highlights.length} highlight{b.highlights.length === 1 ? "" : "s"}, {notes} with a note
-                  {(b.journal?.length ?? 0) > 0 && `, ${b.journal!.length} journal ${b.journal!.length === 1 ? "entry" : "entries"}`}
+                  {(b.journal?.length ?? 0) > 0
+                    ? t("{highlights}, {notes} with a note, {entries}", {
+                        highlights: t.plural(b.highlights.length, { one: "{count} highlight", other: "{count} highlights" }),
+                        notes,
+                        entries: t.plural(b.journal!.length, { one: "{count} journal entry", other: "{count} journal entries" }),
+                      })
+                    : t("{highlights}, {notes} with a note", { highlights: t.plural(b.highlights.length, { one: "{count} highlight", other: "{count} highlights" }), notes })}
                 </p>
               </div>
-              <ExportButtons books={[b]} name={b.title} label={`Export ${b.title}`} />
+              <ExportButtons books={[b]} name={b.title} label={t("Export {title}", { title: b.title })} />
             </li>
           );
         })}

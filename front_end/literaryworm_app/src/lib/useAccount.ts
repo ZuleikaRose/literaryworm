@@ -6,6 +6,7 @@ import * as accountApi from "./accountApi";
 import { listChallenges } from "./challengesApi";
 import { AccountError, type MembershipAction } from "./accountApi";
 import { cancellationEnd, nextBillingDate } from "./billing";
+import { tr } from "./i18n";
 
 /**
  * The Account page's changes. Real accounts save to Supabase (membership and deleting go
@@ -85,7 +86,7 @@ export function useAccount() {
       await accountApi.changePassword(account.email, current, next);
       return;
     }
-    if (current !== account.password) throw new AccountError("Your current password isn't right.");
+    if (current !== account.password) throw new AccountError(tr("Your current password isn't right."));
     dispatch({ type: "updateAccount", patch: { password: next } });
   }
 
@@ -95,7 +96,7 @@ export function useAccount() {
     if (userId) {
       await accountApi.deleteAccount(password);
     } else if (password !== account.password) {
-      throw new AccountError("That isn't the account password.");
+      throw new AccountError(tr("That isn't the account password."));
     }
     // Leave first, as in useSignOut, so the guarded page doesn't send people to /signin.
     navigate("/?deleted=1");

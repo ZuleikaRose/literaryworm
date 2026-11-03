@@ -3,6 +3,7 @@ import { usesBackend } from "../lib/backend";
 import { type MaintenanceNotice, NOTICE_REFRESH_MS, noticeState, noticeWhen, showingNotices } from "../lib/maintenance";
 import { loadShowingNotices } from "../lib/maintenanceApi";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 /** Notices dismissed in this tab (in memory, like the rest of the app: a refresh shows them again). */
 const dismissed = new Set<string>();
@@ -13,6 +14,7 @@ const dismissed = new Set<string>();
  * minutes and when the tab comes back, so a notice added during a visit still appears.
  */
 export function MaintenanceBanner() {
+  const t = useT();
   const [notices, setNotices] = useState<MaintenanceNotice[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [, setDismissals] = useState(0);
@@ -48,20 +50,20 @@ export function MaintenanceBanner() {
   if (shown.length === 0) return null;
 
   return (
-    <section className="maintenance-banner" aria-label="Planned updates">
+    <section className="maintenance-banner" aria-label={t("Planned updates")}>
       {shown.map((n) => {
         const underWay = noticeState(n, now) === "under way";
         return (
           <div key={n.id} className={`maintenance-notice${underWay ? " is-under-way" : ""}`}>
             <Icon name="alert" size={18} />
             <p>
-              <strong>{underWay ? `Happening now: ${n.title}` : n.title}</strong> <span className="maintenance-when">{noticeWhen(n)}.</span>{" "}
+              <strong>{underWay ? t("Happening now: {title}", { title: n.title }) : n.title}</strong> <span className="maintenance-when">{noticeWhen(n)}.</span>{" "}
               {n.message}
             </p>
             <button
               type="button"
               className="icon-button maintenance-dismiss"
-              aria-label={`Hide the notice: ${n.title}`}
+              aria-label={t("Hide the notice: {title}", { title: n.title })}
               onClick={() => {
                 dismissed.add(n.id);
                 setDismissals((c) => c + 1);

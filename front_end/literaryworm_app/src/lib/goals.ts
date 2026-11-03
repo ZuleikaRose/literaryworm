@@ -1,4 +1,5 @@
 import type { ReadingDay } from "../types";
+import { tr } from "./i18n";
 
 /** Goals and streaks, worked out from a profile's reading days (keyed by local date, YYYY-MM-DD). */
 
@@ -124,7 +125,19 @@ export function readingTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return h > 0 ? `${h} h${m ? ` ${m} min` : ""}` : `${m} min`;
+  return h > 0 ? (m ? tr("{h} h {m} min", { h, m }) : tr("{h} h", { h })) : tr("{m} min", { m });
+}
+
+/**
+ * A weekly goal or daily limit's length as lib/profiles.ts words its choices: "30 minutes",
+ * "1 hour", "1 hour 30 minutes".
+ */
+export function durationLabel(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return tr.plural(rest, { one: "{count} minute", other: "{count} minutes" });
+  if (rest === 0) return tr.plural(hours, { one: "{count} hour", other: "{count} hours" });
+  return tr.plural(hours, { one: "{count} hour {m} minutes", other: "{count} hours {m} minutes" }, { m: rest });
 }
 
 /** A streak this long or longer gets a nudge in the bell when it's about to end. */

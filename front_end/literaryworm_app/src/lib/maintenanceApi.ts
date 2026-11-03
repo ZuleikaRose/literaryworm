@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { AccountError } from "./accountApi";
 import { type MaintenanceNotice, type NoticeRow, toNotice } from "./maintenance";
 import { supabase } from "./supabase";
@@ -15,23 +16,23 @@ export async function loadShowingNotices(): Promise<MaintenanceNotice[]> {
   if (!supabase) return [];
   const now = new Date().toISOString();
   const { data, error } = await supabase.from("maintenance_notices").select(COLUMNS).lte("announce_at", now).gt("ends_at", now).order("starts_at");
-  if (error) throw new AccountError("We couldn't check for planned updates.");
+  if (error) throw new AccountError(tr("We couldn't check for planned updates."));
   return (data as NoticeRow[]).map(toNotice);
 }
 
 function client() {
-  if (!supabase) throw new AccountError("Maintenance notices need the LiteraryWorm backend.");
+  if (!supabase) throw new AccountError(tr("Maintenance notices need the LiteraryWorm backend."));
   return supabase;
 }
 
-const NOT_ALLOWED = "Only developers and admins can change maintenance notices.";
+const notAllowed = () => tr("Only developers and admins can change maintenance notices.");
 const writeError = (error: { code?: string }) =>
-  new AccountError(error.code === "42501" ? NOT_ALLOWED : error.code === "23514" ? "Check the times: the notice must show before the work starts, and the work must end after it starts." : "We couldn't save the notice. Try again.");
+  new AccountError(error.code === "42501" ? notAllowed() : error.code === "23514" ? tr("Check the times: the notice must show before the work starts, and the work must end after it starts.") : tr("We couldn't save the notice. Try again."));
 
 /** Every notice, for staff (others get only the ones showing). */
 export async function loadAllNotices(): Promise<MaintenanceNotice[]> {
   const { data, error } = await client().from("maintenance_notices").select(COLUMNS).order("starts_at", { ascending: false });
-  if (error) throw new AccountError("We couldn't load the notices. Refresh the page to try again.");
+  if (error) throw new AccountError(tr("We couldn't load the notices. Refresh the page to try again."));
   return (data as NoticeRow[]).map(toNotice);
 }
 
@@ -60,12 +61,12 @@ export async function addNotice(input: NoticeInput): Promise<MaintenanceNotice> 
 export async function updateNotice(id: string, input: NoticeInput): Promise<MaintenanceNotice> {
   const { data, error } = await client().from("maintenance_notices").update(toRow(input)).eq("id", id).select(COLUMNS).maybeSingle();
   if (error) throw writeError(error);
-  if (!data) throw new AccountError(NOT_ALLOWED);
+  if (!data) throw new AccountError(notAllowed());
   return toNotice(data as NoticeRow);
 }
 
 export async function deleteNotice(id: string): Promise<void> {
   const { data, error } = await client().from("maintenance_notices").delete().eq("id", id).select("id");
   if (error) throw writeError(error);
-  if (!data?.length) throw new AccountError(NOT_ALLOWED);
+  if (!data?.length) throw new AccountError(notAllowed());
 }

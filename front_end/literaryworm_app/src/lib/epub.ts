@@ -1,3 +1,5 @@
+import { tr } from "./i18n";
+
 /**
  * Reads an EPUB in the browser and keeps only its text: the title, the author, and each part
  * of the book in reading order (the EPUB's spine) as plain paragraphs. Nothing is uploaded
@@ -34,13 +36,13 @@ function entries(view: DataView): Map<string, Entry> {
       break;
     }
   }
-  if (eocd < 0) throw new EpubError("This file isn't an EPUB (it isn't a ZIP file).");
+  if (eocd < 0) throw new EpubError(tr("This file isn't an EPUB (it isn't a ZIP file)."));
   const count = view.getUint16(eocd + 10, true);
   let at = view.getUint32(eocd + 16, true);
   const decoder = new TextDecoder();
   const files = new Map<string, Entry>();
   for (let i = 0; i < count; i++) {
-    if (view.getUint32(at, true) !== 0x02014b50) throw new EpubError("This EPUB is damaged.");
+    if (view.getUint32(at, true) !== 0x02014b50) throw new EpubError(tr("This EPUB is damaged."));
     const method = view.getUint16(at + 10, true);
     const compressed = view.getUint32(at + 20, true);
     const nameLength = view.getUint16(at + 28, true);
@@ -56,12 +58,12 @@ function entries(view: DataView): Map<string, Entry> {
 
 async function readText(view: DataView, entry: Entry): Promise<string> {
   const local = entry.offset;
-  if (view.getUint32(local, true) !== 0x04034b50) throw new EpubError("This EPUB is damaged.");
+  if (view.getUint32(local, true) !== 0x04034b50) throw new EpubError(tr("This EPUB is damaged."));
   const start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
   // A copy, so it's a plain ArrayBuffer view (what Blob takes).
   const data = new Uint8Array(view.buffer.slice(view.byteOffset + start, view.byteOffset + start + entry.compressed) as ArrayBuffer);
   if (entry.method === 0) return new TextDecoder().decode(data);
-  if (entry.method !== 8) throw new EpubError("This EPUB is packed in a way LiteraryWorm can't read.");
+  if (entry.method !== 8) throw new EpubError(tr("This EPUB is packed in a way LiteraryWorm can't read."));
   const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
   return new Response(stream).text();
 }
@@ -99,29 +101,29 @@ export async function readEpub(file: File): Promise<ParsedBook> {
     if (err instanceof EpubError) throw err;
     // Corrupt compressed data, unreadable XML or a file that can't be read: one plain message.
     console.error("epub: couldn't read the file:", err);
-    throw new EpubError("This EPUB is damaged or in a form LiteraryWorm can't read. Try another copy.");
+    throw new EpubError(tr("This EPUB is damaged or in a form LiteraryWorm can't read. Try another copy."));
   }
 }
 
 async function parse(file: File): Promise<ParsedBook> {
-  if (file.size > EPUB_MAX_BYTES) throw new EpubError("That file is over 50 MB. Choose a smaller EPUB.");
-  if (typeof DecompressionStream === "undefined") throw new EpubError("This browser can't open EPUBs. Try a recent Chrome, Edge, Firefox or Safari.");
+  if (file.size > EPUB_MAX_BYTES) throw new EpubError(tr("That file is over 50 MB. Choose a smaller EPUB."));
+  if (typeof DecompressionStream === "undefined") throw new EpubError(tr("This browser can't open EPUBs. Try a recent Chrome, Edge, Firefox or Safari."));
   const view = new DataView(await file.arrayBuffer());
   const files = entries(view);
   const read = (path: string) => {
     const entry = files.get(path);
-    if (!entry) throw new EpubError("This EPUB is missing a part it needs.");
+    if (!entry) throw new EpubError(tr("This EPUB is missing a part it needs."));
     return readText(view, entry);
   };
 
   const container = new DOMParser().parseFromString(await read("META-INF/container.xml"), "application/xml");
   const opfPath = container.querySelector("rootfile")?.getAttribute("full-path");
-  if (!opfPath) throw new EpubError("This EPUB is missing its table of contents.");
+  if (!opfPath) throw new EpubError(tr("This EPUB is missing its table of contents."));
   const opf = new DOMParser().parseFromString(await read(opfPath), "application/xml");
   const meta = (name: string) => (opf.getElementsByTagName(`dc:${name}`)[0]?.textContent ?? "").replace(/\s+/g, " ").trim();
   // DRM-protected books keep their text encrypted.
   if (files.has("META-INF/encryption.xml") && /EncryptedData/.test(await read("META-INF/encryption.xml"))) {
-    throw new EpubError("This EPUB is protected (DRM), so it can't be read outside the shop's own app.");
+    throw new EpubError(tr("This EPUB is protected (DRM), so it can't be read outside the shop's own app."));
   }
 
   const manifest = new Map<string, string>();
@@ -147,7 +149,7 @@ async function parse(file: File): Promise<ParsedBook> {
     carried = [];
     if (!text) continue;
     total += words(text);
-    if (total > WORDS_MAX) throw new EpubError("This book is too long for LiteraryWorm (over 5 million words).");
+    if (total > WORDS_MAX) throw new EpubError(tr("This book is too long for LiteraryWorm (over 5 million words)."));
     chapters.push({ title: heading.slice(0, 120) || `Part ${chapters.length + 1}`, text });
   }
   if (carried.length) {
@@ -155,8 +157,8 @@ async function parse(file: File): Promise<ParsedBook> {
     if (chapters.length) chapters[chapters.length - 1].text += `\n\n${text}`;
     else chapters.push({ title: "Part 1", text });
   }
-  if (!chapters.length) throw new EpubError("We couldn't find any text in this EPUB.");
-  if (chapters.length > CHAPTERS_MAX) throw new EpubError(`This EPUB has more than ${CHAPTERS_MAX} parts, more than LiteraryWorm can show.`);
+  if (!chapters.length) throw new EpubError(tr("We couldn't find any text in this EPUB."));
+  if (chapters.length > CHAPTERS_MAX) throw new EpubError(tr("This EPUB has more than {max} parts, more than LiteraryWorm can show.", { max: CHAPTERS_MAX }));
 
   return {
     title: (meta("title") || file.name.replace(/\.epub$/i, "")).slice(0, 200),

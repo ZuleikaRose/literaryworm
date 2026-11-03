@@ -4,6 +4,8 @@
  * between `announceAt` and `endsAt`. The rules here mirror the table's checks.
  */
 
+import { activeLanguage, dateLocale, tr } from "./i18n";
+
 export const NOTICE_TITLE_MAX = 80;
 export const NOTICE_MESSAGE_MAX = 500;
 const DAY = 24 * 60 * 60 * 1000;
@@ -78,23 +80,23 @@ export function noticeErrors(d: NoticeDraft, now: number, { isNew }: { isNew: bo
   const errors: Partial<Record<NoticeField, string>> = {};
   const title = d.title.trim();
   const message = d.message.trim();
-  if (!title) errors.title = "Enter a title, such as Planned update.";
-  else if (title.length > NOTICE_TITLE_MAX) errors.title = `Use ${NOTICE_TITLE_MAX} characters or fewer.`;
-  if (!message) errors.message = "Say what will happen and what readers should expect.";
-  else if (message.length > NOTICE_MESSAGE_MAX) errors.message = `Use ${NOTICE_MESSAGE_MAX} characters or fewer.`;
-  if (d.startsAt === null) errors.startsAt = "Choose when the work starts.";
-  if (d.endsAt === null) errors.endsAt = "Choose when the work ends.";
-  if (d.announceAt === null) errors.announceAt = "Choose when the notice starts showing.";
+  if (!title) errors.title = tr("Enter a title, such as Planned update.");
+  else if (title.length > NOTICE_TITLE_MAX) errors.title = tr("Use {max} characters or fewer.", { max: NOTICE_TITLE_MAX });
+  if (!message) errors.message = tr("Say what will happen and what readers should expect.");
+  else if (message.length > NOTICE_MESSAGE_MAX) errors.message = tr("Use {max} characters or fewer.", { max: NOTICE_MESSAGE_MAX });
+  if (d.startsAt === null) errors.startsAt = tr("Choose when the work starts.");
+  if (d.endsAt === null) errors.endsAt = tr("Choose when the work ends.");
+  if (d.announceAt === null) errors.announceAt = tr("Choose when the notice starts showing.");
   if (d.startsAt !== null && d.endsAt !== null) {
-    if (d.endsAt <= d.startsAt) errors.endsAt = "End it after it starts.";
-    else if (d.endsAt - d.startsAt > NOTICE_LONGEST_WORK) errors.endsAt = "Keep the work to 7 days or less.";
+    if (d.endsAt <= d.startsAt) errors.endsAt = tr("End it after it starts.");
+    else if (d.endsAt - d.startsAt > NOTICE_LONGEST_WORK) errors.endsAt = tr("Keep the work to 7 days or less.");
   }
   if (d.announceAt !== null && d.startsAt !== null) {
-    if (d.announceAt > d.startsAt) errors.announceAt = "Start showing the notice before (or when) the work starts.";
-    else if (d.startsAt - d.announceAt > NOTICE_EARLIEST_ANNOUNCE) errors.announceAt = "Show it at most 30 days ahead.";
+    if (d.announceAt > d.startsAt) errors.announceAt = tr("Start showing the notice before (or when) the work starts.");
+    else if (d.startsAt - d.announceAt > NOTICE_EARLIEST_ANNOUNCE) errors.announceAt = tr("Show it at most 30 days ahead.");
   }
   // A new notice for work that's already over would never show.
-  if (isNew && d.endsAt !== null && d.endsAt <= now && !errors.endsAt) errors.endsAt = "That time has passed. Choose a time still to come.";
+  if (isNew && d.endsAt !== null && d.endsAt <= now && !errors.endsAt) errors.endsAt = tr("That time has passed. Choose a time still to come.");
   return errors;
 }
 
@@ -124,8 +126,10 @@ const sameDay = (a: Date, b: Date, timeZone?: string) => {
 export function noticeWhen(n: Pick<MaintenanceNotice, "startsAt" | "endsAt">, timeZone?: string): string {
   const start = new Date(n.startsAt);
   const end = new Date(n.endsAt);
-  const day = new Intl.DateTimeFormat("en-GB", { timeZone, weekday: "short", day: "numeric", month: "short" });
-  const time = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  // British English in English; the reader's own language's day and month names otherwise.
+  const locale = activeLanguage() === "en" ? "en-GB" : dateLocale();
+  const day = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
+  const time = new Intl.DateTimeFormat(locale, { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
   const zone =
     // US English names US zones (EST, PDT); elsewhere it gives an offset (GMT+1), which is still clear.
     new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "short" }).formatToParts(end).find((p) => p.type === "timeZoneName")?.value ?? "";

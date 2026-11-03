@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useReaderFollows } from "../lib/useReaderFollows";
 import { Icon } from "./Icon";
+import { useT } from "../lib/useT";
 
 /** Follow / Following for a reader's page (members' grown-up and teen profiles). */
 export function ReaderFollowButton({ readerId, name }: { readerId: string; name: string }) {
+  const t = useT();
   const readers = useReaderFollows();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,13 +25,13 @@ export function ReaderFollowButton({ readerId, name }: { readerId: string; name:
           try {
             await readers.toggle(readerId, name);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+            setError(err instanceof Error ? err.message : t("Something went wrong. Try again."));
           } finally {
             setBusy(false);
           }
         }}
       >
-        <Icon name={following ? "check" : "plus"} size={16} /> {following ? "Following" : "Follow"}
+        <Icon name={following ? "check" : "plus"} size={16} /> {following ? t("Following") : t("Follow")}
         <span className="visually-hidden"> {name}</span>
       </button>
       {error && (

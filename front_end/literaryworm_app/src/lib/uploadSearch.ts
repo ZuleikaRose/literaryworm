@@ -1,5 +1,6 @@
 import type { UploadedBook } from "../types";
 import type { ReaderPage } from "./reading";
+import { tk, tr } from "./i18n";
 import { normalizeQuery, wordsMatch } from "./search";
 
 /**
@@ -11,10 +12,10 @@ import { normalizeQuery, wordsMatch } from "./search";
 export type UploadSearchBy = "title" | "author" | "keywords" | "isbn";
 
 export const UPLOAD_SEARCH_BY: { value: UploadSearchBy; label: string }[] = [
-  { value: "title", label: "Title" },
-  { value: "author", label: "Author" },
-  { value: "keywords", label: "Keywords" },
-  { value: "isbn", label: "ISBN" },
+  { value: "title", label: tk("Title") },
+  { value: "author", label: tk("Author") },
+  { value: "keywords", label: tk("Keywords") },
+  { value: "isbn", label: tk("ISBN") },
 ];
 
 /** Places shown for each book; the count says how many more there are. */
@@ -51,9 +52,9 @@ export function queryWords(q: string): string[] {
 /** A problem with the query in plain words, or null. */
 export function uploadQueryError(q: string): string | null {
   const clean = normalizeQuery(q);
-  if (!clean) return "Enter a word or two to search for.";
-  if (clean.length > UPLOAD_QUERY_MAX) return `Search is limited to ${UPLOAD_QUERY_MAX} characters. Try fewer words.`;
-  if (queryWords(clean).length === 0) return "Search using letters or numbers.";
+  if (!clean) return tr("Enter a word or two to search for.");
+  if (clean.length > UPLOAD_QUERY_MAX) return tr("Search is limited to {max} characters. Try fewer words.", { max: UPLOAD_QUERY_MAX });
+  if (queryWords(clean).length === 0) return tr("Search using letters or numbers.");
   return null;
 }
 
