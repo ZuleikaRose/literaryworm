@@ -396,9 +396,9 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 
 **Sprint chip.** A small rust-wash pill under the book's title in the reader (`role="timer"`, a full sentence as its label): clock icon, time left and pages, tabular figures. On narrow screens it floats just under the top bar, centred, and ignores the pointer.
 
-**Invite a friend.** In Account → Plan and billing under a divider: heading, the offer in one sentence with the limit, the link in a read-only field (selected on focus), *Share* (the device's share sheet, else copy) and *Copy link*, and a live line with friends signed up and months earned. A friend's own free month shows as a success note.
+**Invite a friend.** In Account → Plan and billing under a divider: heading, the offer in one sentence with the limit, the link in a read-only field (selected on focus), *Share* (the device's share sheet, else copy) and *Copy link*, and a live line with friends signed up and months earned. A friend's own free month shows as a success note. The demo shows the same card with a sample link and counts and a muted line saying it's a sample.
 
-**Gift wishlist card.** On a shared list's page, after the books: gift icon heading *Give this list as a gift*, one sentence naming the owner, a hint when more than 10 books are on it, and *Choose a gift*. Gifts then shows *From {name}'s wishlist* as a success note above the book picker.
+**Gift wishlist card.** On a shared list's page, after the books: gift icon heading *Give this list as a gift*, one sentence naming the owner, a hint when more than 10 books are on it, and *Choose a gift*. Gifts then shows *From {name}'s wishlist* as a success note above the book picker. In the demo, Gifts' info note links to the sample wishlist, and *Continue to payment* shows an alert under the button that the demo can't pay.
 
 ## Motion
 

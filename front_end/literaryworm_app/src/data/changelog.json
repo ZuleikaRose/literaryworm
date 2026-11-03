@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-03",
     "version": "2026.11",
     "kind": "update",
+    "title": "The demo shows the newest features",
+    "body": "Try the demo now has a sample invite link in Account → Plan and billing, last night's reading sprint in Goals and on the demo club's page, and Jordan's wishlist, which opens Gifts with its five books picked. Carmilla and The Picture of Dorian Gray are now among the LGBTQIA+ books.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
+    "kind": "update",
     "title": "LGBTQIA+ books to browse and search",
     "body": "LGBTQIA+ is now a genre on Home's Keep discovering, Discover, Search's Or browse a genre and the genre filter, and among the favourite genres for a profile. Its books come from Google Books, which files them under LGBTQ+; like every list, titles Google marks as mature are left out.",
     "major": false

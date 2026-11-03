@@ -243,3 +243,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Gift wishlists (`lib/wishlist.ts` and its test, *Give this list as a gift* on `pages/SharedList.tsx`, Gifts reads `?books=&for=`; policies 6661, What's new 6662) |
 | — | Home's sprint nudge (`SprintNudge`), the home page's cards, plan features and FAQs updated for the new features, the sitemap's footer pages dated by their last change (What's new 6663) |
 | — | LGBTQIA+ as a twentieth genre (`data/genres.ts`, the books function's `GENRES`, `subject:lgbtq`; What's new 6664) |
+| — | The demo's samples: Refer a friend (`DEMO_STATUS` in `ReferAFriend`), last night's sprints (`seedDemoSprint()` in `lib/useReadingSprint.ts`), Jordan's wishlist (`DEMO_WISHLIST_SLUG` in `lib/sharedListApi.ts`), the demo gift form's no-payment message; *Carmilla* and *Dorian Gray* tagged LGBTQIA+ (What's new 6665) |

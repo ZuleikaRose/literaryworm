@@ -484,5 +484,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Gift wishlists: every shared list is a wishlist; its page opens Gifts with up to 10 of its LiteraryWorm books picked, paid through the usual gift checkout (migrations 6661–6662) | Done |
 | —    | Home shows a running household sprint; the home page, Plans and FAQs describe the new features; ERD, schema, sitemap and public files refreshed (migration 6663) | Done |
 | —    | LGBTQIA+ added as a genre to browse, search and filter by, from Google Books (migration 6664) | Done |
+| —    | The demo shows the newest features: a sample invite link, last night's reading sprints, and Jordan's wishlist opening Gifts; two classics tagged LGBTQIA+ (migration 6665) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

@@ -161,6 +161,8 @@ Then, on 2 and 3 November 2026, eight more features, in this order:
 - Reading sprints: a 15 to 30 minute session for a household or a book club, with one timer and everyone's pages at the end.
 - Refer a friend: a month of their plan free for each of you after the friend's first payment, as Stripe balance credits, up to 2 free months for inviting.
 - Gift wishlists: a shared list's page gives it as a gift membership with up to 10 of its books.
+- LGBTQIA+ as a twentieth genre to browse, search and filter by, from Google Books.
+- The demo keeps up with these: a sample invite link, last night's reading sprints, and a sample wishlist that opens Gifts.
 
 ## Code
 
