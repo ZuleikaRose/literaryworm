@@ -710,6 +710,17 @@ select pg_temp.expect_error($$update public.subscriptions set gift_until = now()
 select pg_temp.expect_error($$update public.subscriptions set switch_to_monthly = 'basic'$$, 'scheduling monthly billing from the browser');
 select pg_temp.expect_error($$update public.reader_profiles set weekly_goal_minutes = 60$$, 'setting a Kids weekly goal without the account password');
 select pg_temp.expect_error($$update public.reader_profiles set bedtime = '22:00', wake_time = '08:00'$$, 'changing a Kids bedtime without the account password');
+-- The app language follows the profile (6647): a member sets their own profiles' language, only one of the seven.
+update public.reader_profiles set ui_language = 'es';
+select pg_temp.check((select count(*) > 0 and bool_and(ui_language = 'es') from public.reader_profiles), 'a member saves a profile''s language');
+select pg_temp.expect_error($$update public.reader_profiles set ui_language = 'xx'$$, 'a language the app doesn''t speak');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}';
+update public.reader_profiles set ui_language = 'de' where account_id = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}';
+select pg_temp.check((select bool_and(ui_language = 'es') from public.reader_profiles), 'another account can''t change a profile''s language');
+update public.reader_profiles set ui_language = null;
 reset role;
 -- Bedtime: both or neither, only listed times, and cleared when a profile leaves Kids.
 select pg_temp.expect_error($$update public.reader_profiles set bedtime = '20:00' where name = 'Mia'$$, 'a bedtime without a wake-up time');

@@ -1,3 +1,4 @@
+import type { UiLanguage } from "./lib/i18n";
 /** Age ratings are ordered: a profile sees every title at or below its own rating. */
 export type AgeRating = "kids" | "teen" | "all";
 export type Format = "ebook" | "audiobook";
@@ -401,6 +402,8 @@ export interface ProfileData {
   words: SavedWord[];
   /** This profile's reading pace in words a minute, learnt in the reader (null until it has one). */
   readingWpm: number | null;
+  /** The app language this profile chose in the accessibility menu (members: reader_profiles.ui_language), null until chosen. */
+  uiLanguage: UiLanguage | null;
   /** Up next: catalog audiobooks queued to play after this one, in order. */
   upNext: string[];
   /** Chapter quizzes taken: the latest score for each book and chapter. */

@@ -1,3 +1,4 @@
+import { useLanguageSync } from "../lib/useLanguageSync";
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Footer } from "../components/Footer";
@@ -17,6 +18,7 @@ export function AppEffects() {
   const { state } = useStore();
   useAuthSync();
   useReadingSync();
+  useLanguageSync();
   const { pathname, hash } = useLocation();
   const { a11y } = state;
 

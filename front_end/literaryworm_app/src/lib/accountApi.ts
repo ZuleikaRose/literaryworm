@@ -1,4 +1,4 @@
-import { tr } from "./i18n";
+import { isUiLanguage, tr, type UiLanguage } from "./i18n";
 import type { AccountReading } from "../store/state";
 import type { Collections } from "./collections";
 import type {
@@ -1192,6 +1192,7 @@ const emptyCollections = (): Collections => ({
   authorNews: [],
   words: [],
   readingWpm: null,
+  uiLanguage: null,
   upNext: [],
   quizResults: [],
   readerFollows: [],
@@ -1260,6 +1261,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   for (const p of await loadProfileExtras()) {
     of(p.id).readingWpm = p.reading_wpm;
     of(p.id).upNext = p.up_next ?? [];
+    of(p.id).uiLanguage = p.ui_language && isUiLanguage(p.ui_language) ? p.ui_language : null;
   }
   return byProfile;
 }
@@ -1797,18 +1799,24 @@ export async function deleteJournalEntry(id: string): Promise<void> {
 // --- Reading pace (reader_profiles.reading_wpm) -------------------------------
 
 /** Every profile's reading pace and Up next queue. Extras: if they can't load, the account still opens. */
-async function loadProfileExtras(): Promise<{ id: string; reading_wpm: number | null; up_next: string[] | null }[]> {
-  const { data, error } = await client().from("reader_profiles").select("id, reading_wpm, up_next");
+async function loadProfileExtras(): Promise<{ id: string; reading_wpm: number | null; up_next: string[] | null; ui_language: string | null }[]> {
+  const { data, error } = await client().from("reader_profiles").select("id, reading_wpm, up_next, ui_language");
   if (error) {
     console.error("collections: couldn't load reading pace and Up next:", error.message);
     return [];
   }
-  return data as { id: string; reading_wpm: number | null; up_next: string[] | null }[];
+  return data as { id: string; reading_wpm: number | null; up_next: string[] | null; ui_language: string | null }[];
 }
 
 export async function saveUpNext(profileId: string, ids: string[]): Promise<void> {
   const { error } = await client().from("reader_profiles").update({ up_next: ids }).eq("id", profileId);
   if (error) throw new AccountError("We couldn't change Up next. Try again.");
+}
+
+/** The app language a profile chose, so every device it's used on opens in it. */
+export async function saveUiLanguage(profileId: string, language: UiLanguage): Promise<void> {
+  const { error } = await client().from("reader_profiles").update({ ui_language: language }).eq("id", profileId);
+  if (error) throw new AccountError(tr("We couldn't save your language."));
 }
 
 export async function saveReadingPace(profileId: string, wpm: number): Promise<void> {

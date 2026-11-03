@@ -3,7 +3,7 @@ import type { ProfileData } from "../types";
 /** A profile's favourites, ratings, custom lists, recent searches, goals, reading days, player settings and uploads (saved per profile for members). */
 export type Collections = Pick<
   ProfileData,
-  "favorites" | "ratings" | "customLists" | "recentSearches" | "readingGoals" | "readingDays" | "player" | "uploads" | "follows" | "reminders" | "notificationsSeenAt" | "authorNews" | "words" | "readingWpm" | "upNext" | "quizResults" | "readerFollows" | "bookRequests" | "journal" | "moods"
+  "favorites" | "ratings" | "customLists" | "recentSearches" | "readingGoals" | "readingDays" | "player" | "uploads" | "follows" | "reminders" | "notificationsSeenAt" | "authorNews" | "words" | "readingWpm" | "uiLanguage" | "upNext" | "quizResults" | "readerFollows" | "bookRequests" | "journal" | "moods"
 >;
 
 /** The same limits as the database. */

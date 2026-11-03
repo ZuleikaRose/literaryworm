@@ -110,6 +110,7 @@ export const emptyProfileData = (): ProfileData => ({
   authorNews: [],
   words: [],
   readingWpm: null,
+  uiLanguage: null,
   upNext: [],
   quizResults: [],
   readerFollows: [],
