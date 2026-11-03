@@ -1,3 +1,4 @@
+import { SprintNudge } from "../components/SprintNudge";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookFeed } from "../components/BookFeed";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
@@ -187,6 +188,7 @@ export default function Browse() {
             </span>
           </Link>
         )}
+        <SprintNudge />
         <ReadingPlansCard />
         {continueReading.length > 0 && (
           <Shelf

@@ -267,6 +267,7 @@ function StartHere() {
           {profile?.ageRating !== "kids" && (
             <p className="field-hint">{t("In any classic, select a passage and choose Translate to read it in English or another language.")}</p>
           )}
+          <p className="field-hint">{t("To use LiteraryWorm itself in Spanish, French, German, Portuguese, Italian or Dutch, choose Language in the accessibility menu at the top of the page.")}</p>
         </section>
       )}
       <KeywordIdeas />

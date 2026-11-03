@@ -151,6 +151,17 @@ Then, on 2 November 2026, search grew:
 - Starting a club, Find a book and Find one of your uploads take a title, author, keywords or ISBN in one box.
 - Ahrefs Web Analytics to count visits: no cookies, only with consent, never for Kids profiles, with every policy saying so.
 
+Then, on 2 and 3 November 2026, eight more features, in this order:
+
+- Discussion questions for book clubs: Claude writes 5 to 8 questions about one chapter of a classic, from the text up to that chapter only, kept so every club gets the same ones.
+- Voice control in car mode: off until turned on, the browser's speech recognition hears Play, Pause, Back, Forward, the chapters and Exit car mode; never on Kids profiles.
+- Polls on a club's next book: the owner offers 2 to 5 titles, members vote, and the winner starts the next club in one step.
+- Stronger high contrast: AAA text on black or white, on from the start when the device asks for more contrast, with Windows contrast themes supported.
+- The app in seven languages (English, Spanish, French, German, Portuguese, Italian, Dutch), each profile's choice kept on every device; policies and Help stay in English with a note.
+- Reading sprints: a 15 to 30 minute session for a household or a book club, with one timer and everyone's pages at the end.
+- Refer a friend: a month of their plan free for each of you after the friend's first payment, as Stripe balance credits, up to 2 free months for inviting.
+- Gift wishlists: a shared list's page gives it as a gift membership with up to 10 of its books.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

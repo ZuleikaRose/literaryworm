@@ -4,8 +4,8 @@ Contact: hello [at] literaryworm.com
 Location: Global
 
 /* SITE */
-Last update: November 2, 2026
-Language: English
+Last update: November 3, 2026
+Language: English, Spanish, French, German, Portuguese, Italian and Dutch (policies and Help in English)
 Doctype: HTML5
 IDE: Visual Studio Code
 
@@ -19,9 +19,9 @@ Framework: React with TypeScript, built with Vite
 Hosting: Vercel
 Analytics: Ahrefs Web Analytics (no cookies, with consent, never for Kids profiles)
 Database and sign-in: Supabase (PostgreSQL, Auth, Storage, Edge Functions), managed with the Supabase CLI v3
-Payments: Stripe
+Payments: Stripe (memberships, gifts and invitation credits)
 Email: Mailgun
-AI summaries, content notes, recaps, quizzes, translations and Ask the book: Claude by Anthropic
+AI summaries, content notes, recaps, quizzes, translations, club discussion questions and Ask the book: Claude by Anthropic
 Structured data: schema.org (WebSite, Organization, Product, FAQPage, Book)
 Standards: HTML5, CSS3, WCAG 2.2 Level AA (partially conformant: see the Accessibility Policy), installable web app (PWA)
 

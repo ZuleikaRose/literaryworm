@@ -392,6 +392,14 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 
 **Write a log dialog.** Native `<dialog>`: eyebrow *Public reading log*, a labelled textarea with a live character count (1–5000), rating as radio chips (No rating, 1–5), *Posting as* and *Publish log* (*Save changes* when editing). Errors sit under the field and are linked with `aria-describedby`.
 
+**Reading sprint card.** A goal card (Goals, a club page): clock icon in the heading, one-line hint, then either the *Length* select (15, 20, 25, 30 minutes) and *Start a sprint*, or the running timer in the display face at 2.6rem with tabular figures (`role="timer"`), the reader count, *Join the sprint* or the reader's pages so far with *Read now*, and the readers as pills. When it ends: *Last sprint* results, one row per reader with pages on the right, and the total.
+
+**Sprint chip.** A small rust-wash pill under the book's title in the reader (`role="timer"`, a full sentence as its label): clock icon, time left and pages, tabular figures. On narrow screens it floats just under the top bar, centred, and ignores the pointer.
+
+**Invite a friend.** In Account → Plan and billing under a divider: heading, the offer in one sentence with the limit, the link in a read-only field (selected on focus), *Share* (the device's share sheet, else copy) and *Copy link*, and a live line with friends signed up and months earned. A friend's own free month shows as a success note.
+
+**Gift wishlist card.** On a shared list's page, after the books: gift icon heading *Give this list as a gift*, one sentence naming the owner, a hint when more than 10 books are on it, and *Choose a gift*. Gifts then shows *From {name}'s wishlist* as a success note above the book picker.
+
 ## Motion
 
 - Durations: 140ms (hover, press), 220ms (popovers, toggles), 420ms (panels appearing).
@@ -421,3 +429,5 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 - Errors say what happened and how to fix it, without apologizing: "Use at least 15 characters. A short phrase works well."
 - Never reveal whether an email has an account.
 - Money and renewal terms are stated in full before anyone confirms.
+
+**Other languages.** Translations follow the same rules: short sentences, plain words, the reader addressed the way each dictionary already does (tú in Spanish, vous in French, du in German, the formal o seu in European Portuguese, tu in Italian, je in Dutch). Book titles, people's names, brand and plan names stay as they are; text that's saved or exported stays English.

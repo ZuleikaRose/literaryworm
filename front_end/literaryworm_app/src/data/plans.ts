@@ -22,7 +22,7 @@ export const plans: Plan[] = [
       tk("Didn't finish for books you put down, and Read again to count every reread"),
       tk("AI book summaries and content notes, and Ask the book, Translate and Previously… recaps on the classics"),
       tk("Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story"),
-      tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, shared highlights, listening along and where everyone is in the book"),
+      tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, reading sprints, shared highlights, listening along and where everyone is in the book"),
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
       tk("Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, and read offline"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
@@ -47,7 +47,7 @@ export const plans: Plan[] = [
       tk("Kids can ask a grown-up for any other book, and a grown-up says yes or no"),
       tk("PIN locks and daily reading limits for any profile, and bedtimes for Kids profiles"),
       tk("Each profile keeps its own favourites, lists, goals and stats"),
-      tk("Household reading challenges to take on together"),
+      tk("Household reading challenges and reading sprints to take on together"),
       tk("A family shelf of books grown-ups put out for everyone at home"),
     ],
   },
@@ -104,8 +104,12 @@ export const planFaqs = [
     a: tk("Yes, on monthly billing. Pause from Account and nothing is charged until you resume. Your library, profiles and progress stay as they are. A yearly membership is already paid for the year, so it can't be paused."),
   },
   {
+    q: tk("How does inviting a friend work?"),
+    a: tk("Share your link from Account → Plan and billing. When a friend who's new to LiteraryWorm joins with it and makes their first payment, you each get a month of your own plan free, taken off your next bill.\n\nYou can earn up to 2 free months by inviting friends, and every friend you invite still gets theirs. Staff memberships aren't billed, so they don't take part."),
+  },
+  {
     q: tk("Can I give LiteraryWorm as a gift?"),
-    a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, paid once. Add up to 10 LiteraryWorm books to start them off, from a title or one of your lists. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library."),
+    a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, paid once. Add up to 10 LiteraryWorm books to start them off, from a title, one of your lists or the wishlist someone shared with you. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library."),
   },
   {
     q: tk("Is LiteraryWorm safe for my kids?"),
@@ -141,7 +145,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read in other languages?"),
-    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
+    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in English, Spanish, French, German, Portuguese, Italian and Dutch: choose one in the accessibility menu, and your profile keeps it on every device. Policies and Help stay in English.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
   },
   {
     q: tk("Who can see what I read?"),

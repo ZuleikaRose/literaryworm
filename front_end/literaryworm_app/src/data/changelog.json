@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-03",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Home tells you when a sprint is on",
+    "body": "When someone at home starts a reading sprint, Home shows the time left and takes you to Goals to join in. The home page, Plans and the FAQs now describe reading sprints, gift wishlists, inviting friends and the app in seven languages.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Gift wishlists",
     "body": "Every list you share by link is now a wishlist too. Its page has Give this list as a gift, which opens Gifts with up to 10 of its LiteraryWorm books already picked, so family and friends can give you a membership that comes with the books you want.",

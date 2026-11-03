@@ -16,7 +16,11 @@ from xml.sax.saxutils import escape
 
 APP = Path(__file__).resolve().parent.parent
 SITE = "https://www.literaryworm.com"
-TODAY = date.today().isoformat()
+# Today, or the newest What's new entry if that's later (the site is updated in UTC).
+TODAY = max(
+    date.today().isoformat(),
+    max((e["releasedOn"] for e in json.loads((Path(__file__).resolve().parent.parent / "src/data/changelog.json").read_text(encoding="utf-8"))), default=""),
+)
 
 
 def ids(path: Path, pattern: str) -> list[str]:
@@ -27,12 +31,15 @@ def ids(path: Path, pattern: str) -> list[str]:
 def main() -> None:
     books = ids(APP / "src/data/books.ts", r'^    id: "([^"]+)",$')
     series = ids(APP / "src/data/series.ts", r'name: "([^"]+)"')
-    legal = [page["slug"] for page in json.loads((APP / "src/data/legalPages.json").read_text(encoding="utf-8"))]
+    pages = json.loads((APP / "src/data/legalPages.json").read_text(encoding="utf-8"))
+    legal = [page["slug"] for page in pages]
+    # Each footer page's lastmod is the day its text last changed (its "updated").
+    updated = {page["slug"]: page.get("updated") for page in pages}
     if len(books) < 100 or not legal:
         raise SystemExit(f"Found only {len(books)} books and {len(legal)} footer pages: has the data's shape changed?")
 
     urls: list[tuple[str, str | None]] = [("/", TODAY), ("/plans", TODAY), ("/whats-new", TODAY), ("/search", None), ("/signup", None)]
-    urls += [(f"/legal/{slug}", None) for slug in legal]
+    urls += [(f"/legal/{slug}", updated.get(slug)) for slug in legal]
     urls += [(f"/books/{quote(book)}", None) for book in books]
     urls += [(f"/series/{quote(name, safe='')}", None) for name in series]
 

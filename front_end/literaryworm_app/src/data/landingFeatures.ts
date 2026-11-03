@@ -25,7 +25,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "star",
     title: tk("Goals, streaks and badges"),
-    body: tk("Set a yearly goal, plan to finish a book by a date, keep a streak with two rest days a month, see your time with each book, earn 30 badges, and start a reading challenge with the whole household."),
+    body: tk("Set a yearly goal, plan to finish a book by a date, keep a streak with two rest days a month, see your time with each book, earn 30 badges, start a reading challenge with the whole household, or read together in a 15 to 30 minute reading sprint."),
   },
   {
     icon: "heart",
@@ -40,7 +40,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "users",
     title: tk("Book clubs and buddy reads"),
-    body: tk("Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden, and on the classics AI discussion questions for each chapter you've reached get the conversation going. Read a LiteraryWorm title or a book you uploaded (find it by title, author, keywords or ISBN), see where everyone is, plan meetings and add them to your calendar, and vote on what to read next."),
+    body: tk("Read with a whole club, or start a buddy read with one friend in a tap. Talk about the book without spoilers: posts and shared highlights past your chapter stay hidden, and on the classics AI discussion questions for each chapter you've reached get the conversation going. Read a LiteraryWorm title or a book you uploaded (find it by title, author, keywords or ISBN), see where everyone is, plan meetings and add them to your calendar, vote on what to read next, and run a reading sprint together."),
   },
   {
     icon: "bookOpen",
@@ -56,6 +56,16 @@ export const landingFeatures: LandingFeature[] = [
     icon: "download",
     title: tk("Read offline"),
     body: tk("Save books to your device for the plane, have an audiobook keep its next chapters ready for the commute, and install LiteraryWorm like an app."),
+  },
+  {
+    icon: "globe",
+    title: tk("In your language, your way"),
+    body: tk("Use LiteraryWorm in English, Spanish, French, German, Portuguese, Italian or Dutch, with larger text, high contrast and a dyslexia-friendly font. Each profile keeps its language on every device."),
+  },
+  {
+    icon: "gift",
+    title: tk("Gifts, wishlists and invitations"),
+    body: tk("Give months of any plan with books picked, straight from someone's shared wishlist if you like. Invite friends too: when one joins and pays, you each get a month free (up to 2 for you)."),
   },
   {
     icon: "bell",
