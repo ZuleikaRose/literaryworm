@@ -144,6 +144,8 @@ select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0
 -- Profiles set aside don't count towards the plan; bringing one back needs room; a smaller plan
 -- coming (a yearly membership moving to Basic at renewal) sets the newest aside, keeping the oldest.
 -- Standard's room is 3 (migration 6585): Ann, Sam and Mia fill it.
+-- In one transaction now() doesn't move, so every profile was made "at once": make Ann's the oldest, as it is in life.
+update public.reader_profiles set created_at = created_at - interval '1 minute' where account_id = '00000000-0000-0000-0000-00000000000a' and name = 'Ann';
 update public.reader_profiles set set_aside_at = now() where account_id = '00000000-0000-0000-0000-00000000000a' and name = 'Mia';
 insert into public.reader_profiles (account_id, name) values ('00000000-0000-0000-0000-00000000000a', 'Fourth');
 select pg_temp.check((select count(*) from public.reader_profiles where account_id = '00000000-0000-0000-0000-00000000000a' and set_aside_at is null) = 3, 'a profile set aside leaves room for another');
@@ -585,9 +587,11 @@ select pg_temp.check((select count(*) = 2 from public.staff_members() where not 
 select pg_temp.expect_error($$select public.revoke_staff_role('a@test', 'admin')$$, 'removing the last admin');
 select pg_temp.check((select (d->'accounts'->>'total')::int = 2 and jsonb_array_length(d->'memberships') = 3 and jsonb_array_length(d->'weekly_sign_ups') = 12
   and not (d::text ~* '@test') from public.staff_dashboard() d), 'admins see the dashboard: totals only, no emails');
-update public.legal_pages set summary = 'Updated summary.' where slug = 'terms';
-select pg_temp.check((select summary = 'Updated summary.' and updated_by = '00000000-0000-0000-0000-00000000000a' from public.legal_pages where slug = 'terms')
-  and (select count(*) = 1 and bool_and(summary <> 'Updated summary.') from public.legal_page_revisions where slug = 'terms' and replaced_by = '00000000-0000-0000-0000-00000000000a'), 'an admin edits a page; the old version is kept and the editor stamped');
+-- The edit adds to whatever the summary says, so it's a change on any database (one where an earlier
+-- run was kept, too; an edit that changes nothing rightly records nothing).
+update public.legal_pages set summary = summary || ' Edited by the security test.' where slug = 'terms';
+select pg_temp.check((select summary like '% Edited by the security test.' and updated_by = '00000000-0000-0000-0000-00000000000a' from public.legal_pages where slug = 'terms')
+  and (select count(*) = 1 and bool_and(summary not like '% Edited by the security test.') from public.legal_page_revisions where slug = 'terms' and replaced_by = '00000000-0000-0000-0000-00000000000a'), 'an admin edits a page; the old version is kept and the editor stamped');
 select pg_temp.expect_error($$update public.legal_pages set sections = '[{"heading": "", "paragraphs": ["x"]}]' where slug = 'terms'$$, 'a section with no heading');
 select pg_temp.expect_error($$update public.legal_pages set sections = '{"not": "a list"}' where slug = 'terms'$$, 'sections that aren''t a list');
 select pg_temp.expect_error($$update public.legal_pages set slug = 'renamed' where slug = 'terms'$$, 'renaming a page');
