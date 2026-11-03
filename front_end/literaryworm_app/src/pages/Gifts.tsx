@@ -1,3 +1,4 @@
+import { readWishlistParams } from "../lib/wishlist";
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -104,8 +105,11 @@ function BuyGift() {
   const [recipient, setRecipient] = useState("");
   const [recipientError, setRecipientError] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  // LiteraryWorm books that come with the gift (components/GiftBooksPicker.tsx).
-  const [books, setBooks] = useState<string[]>([]);
+  // LiteraryWorm books that come with the gift (components/GiftBooksPicker.tsx); from a wishlist's
+  // *Give this list as a gift* (/gifts?books=…&for=…), its books are picked to start with.
+  const [params] = useSearchParams();
+  const [wish] = useState(() => readWishlistParams(params, (bookId) => Boolean(getBook(bookId))));
+  const [books, setBooks] = useState<string[]>(wish.books);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bounds = giftStartBounds();
@@ -271,6 +275,12 @@ function BuyGift() {
             </div>
           )}
         </fieldset>
+        {wish.forName && (
+          <p className="form-success wishlist-note">
+            <Icon name="gift" size={16} />
+            {t.plural(wish.books.length, { one: "From {name}'s wishlist: {count} book is picked. Change it below if you like.", other: "From {name}'s wishlist: {count} books are picked. Change them below if you like." }, { name: wish.forName })}
+          </p>
+        )}
         <GiftBooksPicker books={books} onChange={setBooks} />
         <div className="gift-total">
           <p>

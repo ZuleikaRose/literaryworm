@@ -481,5 +481,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Each profile's language is saved and follows it to every device (migrations 6647–6648) | Done |
 | —    | Reading sprints: a 15–30 minute session a household or a book club joins, with a shared timer, a timer in the reader and everyone's pages when it ends; Realtime for members, the demo in memory; RLS and security checks (migrations 6649–6656) | Done |
 | —    | Refer a friend: a member's link gives a friend a month of their plan free after their first payment, and the member a month of theirs, up to 2 free months for inviting; Stripe balance credits added once by the webhook, never for staff; Terms and Privacy updated (migrations 6657–6660) | Done |
+| —    | Gift wishlists: every shared list is a wishlist; its page opens Gifts with up to 10 of its LiteraryWorm books picked, paid through the usual gift checkout (migrations 6661–6662) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

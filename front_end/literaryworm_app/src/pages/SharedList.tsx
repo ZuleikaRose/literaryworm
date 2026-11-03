@@ -1,3 +1,6 @@
+import { getBook } from "../data/books";
+import { wishlistGiftBooks, wishlistGiftPath, wishlistLeftOut } from "../lib/wishlist";
+import { GIFT_BOOKS_MAX } from "../lib/gifts";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -117,11 +120,36 @@ export default function SharedList() {
             ))}
           </ul>
         ))}
+      {current.status === "ready" && profile?.ageRating !== "kids" && <GiveWishlist list={current.list} />}
       {!state.account && current.status === "ready" && (
         <p className="shared-list-cta">
           {rich(t("Read and listen to books like these on LiteraryWorm. {link}"), { link: <Link to="/plans">{t("See plans")}</Link> })}
         </p>
       )}
     </div>
+  );
+}
+
+const inCatalog = (id: string) => Boolean(getBook(id));
+
+/** A shared list is a wishlist too: give its owner a gift membership with its LiteraryWorm books. */
+function GiveWishlist({ list }: { list: SharedListData }) {
+  const t = useT();
+  const books = wishlistGiftBooks(list.items, inCatalog);
+  if (books.length === 0) return null;
+  const leftOut = wishlistLeftOut(list.items, inCatalog);
+  return (
+    <section className="goal-card wishlist-gift" aria-labelledby="wishlist-gift-title">
+      <h2 id="wishlist-gift-title">
+        <Icon name="gift" size={18} /> {t("Give this list as a gift")}
+      </h2>
+      <p>
+        {t("Buy {name} a gift membership that comes with this list's LiteraryWorm books. They get a code to redeem, and the books go into their library.", { name: list.owner })}
+      </p>
+      {leftOut > 0 && <p className="goal-hint">{t("A gift can come with up to {max} books, so the first {max} are picked. You can change them.", { max: GIFT_BOOKS_MAX })}</p>}
+      <Link className="primary-button small-button" to={wishlistGiftPath(books, list.owner)}>
+        {t("Choose a gift")}
+      </Link>
+    </section>
   );
 }

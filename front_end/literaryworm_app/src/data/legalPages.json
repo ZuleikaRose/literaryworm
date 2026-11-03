@@ -186,7 +186,7 @@
           "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. Book covers and the Google Books preview load from books.google.com directly in your browser, and Google sets third-party cookies there (see the Cookie Policy).",
           "LibriVox recordings stream from the Internet Archive directly from your browser. The app's fonts load from Google Fonts the same way, so Google receives your IP address with those requests.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself.",
-          "Lists you share can be read by anyone with the link. Staff with the right access can see account details to run the service and help you.",
+          "Lists you share can be read by anyone with the link, who can also buy you a gift membership that comes with their LiteraryWorm books. Staff with the right access can see account details to run the service and help you.",
           "Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address.",
           "They see the name and email, when the account was made, whether the email is confirmed and two-step sign-in is on, the plan and its billing state (never card details), how many profiles there are, this month's listening against the plan, and the devices keeping books offline. They never see your library, reading, notes, highlights or searches. Every lookup is recorded with who made it and when, and the record is deleted after a year.",
           "Business Transfers. We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company."
@@ -1740,7 +1740,8 @@
         "paragraphs": [
           "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one.",
           "To hear when a book you set Remind me on comes out, turn on Notifications on this device in Account → Preferences. Once it's on, choose there which notifications you get: books you're waiting for, club meetings, new club posts up to your chapter, an evening streak nudge, and answers to Kids book requests. On iPhone and iPad, add LiteraryWorm to your Home Screen first (Share, then Add to Home Screen) and turn them on in the app.",
-          "When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it."
+          "When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it.",
+            "A list you share by link is a wishlist too: its page has Give this list as a gift, which opens Gifts with up to 10 of its LiteraryWorm books already picked. Share a list in My Library → Lists to let family and friends know what you'd like."
         ]
       },
       {

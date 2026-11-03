@@ -2296,3 +2296,27 @@ body:has(.mini-player) .listen-along-bar {
   background: var(--surface-raised);
   overflow-wrap: anywhere;
 }
+
+/* Gift wishlists: a shared list's Give this list as a gift (pages/SharedList.tsx), and the note on Gifts. */
+.wishlist-gift {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  max-width: 640px;
+  margin-top: 28px;
+}
+
+.wishlist-gift h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.wishlist-gift p {
+  margin: 0;
+}
+
+.wishlist-note {
+  margin: 0 0 12px;
+}

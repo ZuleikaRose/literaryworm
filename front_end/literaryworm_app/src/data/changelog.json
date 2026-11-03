@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-03",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Gift wishlists",
+    "body": "Every list you share by link is now a wishlist too. Its page has Give this list as a gift, which opens Gifts with up to 10 of its LiteraryWorm books already picked, so family and friends can give you a membership that comes with the books you want.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Invite a friend, both get a month free",
     "body": "Share your link from Account → Plan and billing. When a friend joins with it and makes their first payment, you each get a month of your own plan free, taken off your next bill. You can earn up to 2 free months this way, and every friend you invite still gets theirs.",
     "major": true

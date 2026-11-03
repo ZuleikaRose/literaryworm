@@ -1097,7 +1097,8 @@ function ShareDialog({
       title={list?.name ?? t("Share list")}
       description={
         <p>
-          {t("Anyone with the link can see this list's name, description, your profile's name and its books. They never see your account, library or reading history.")}
+          {t("Anyone with the link can see this list's name, description, your profile's name and its books. They never see your account, library or reading history.")}{" "}
+          {t("It's a wishlist too: whoever has the link can give you a gift membership that comes with its LiteraryWorm books.")}
         </p>
       }
     >
