@@ -1,4 +1,5 @@
 import type { LibraryEntry, ReadingDay } from "../types";
+import { activeLanguage, tr } from "./i18n";
 
 /**
  * Rereads, worked out from a profile's reading days (each day keeps the books finished on it), so
@@ -32,14 +33,32 @@ export function ordinal(n: number): string {
   return `${n}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"}`;
 }
 
+/** An ordinal in the language chosen: 2nd in English, 2.º in Spanish and Portuguese, 2e in French and Dutch, 2. in German, 2º in Italian. */
+function localOrdinal(n: number): string {
+  switch (activeLanguage()) {
+    case "es":
+    case "pt":
+      return `${n}.º`;
+    case "fr":
+    case "nl":
+      return `${n}e`;
+    case "de":
+      return `${n}.`;
+    case "it":
+      return `${n}º`;
+    default:
+      return ordinal(n);
+  }
+}
+
 /** "Read twice", "Read 3 times"; empty when read once or never (nothing to say). */
 export function timesReadLabel(times: number): string {
   if (times < 2) return "";
-  return times === 2 ? "Read twice" : `Read ${times} times`;
+  return times === 2 ? tr("Read twice") : tr("Read {n} times", { n: times });
 }
 
 /** What the book page says about a book's reads: "Your 2nd read" while rereading, else "Read twice". */
 export function readsLine(entry: Pick<LibraryEntry, "status"> | undefined, days: string[]): string {
-  if (isRereading(entry, days)) return `Your ${ordinal(days.length + 1)} read`;
+  if (isRereading(entry, days)) return tr("Your {ordinal} read", { ordinal: localOrdinal(days.length + 1) });
   return timesReadLabel(timesRead(entry, days));
 }

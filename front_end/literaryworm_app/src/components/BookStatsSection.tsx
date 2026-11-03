@@ -1,5 +1,6 @@
 import { bookStats, paceText, spentText } from "../lib/bookStats";
 import { useBookDays } from "../lib/useBookDays";
+import { useT } from "../lib/useT";
 
 const dayText = (day: string) =>
   new Date(`${day}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
@@ -11,54 +12,55 @@ const dayText = (day: string) =>
  */
 export function BookStatsSection({ bookId, at, finished }: { bookId: string; at: number | null; finished: boolean }) {
   const days = useBookDays(bookId);
+  const t = useT();
   const stats = days ? bookStats(days, finished ? 1 : at) : null;
   if (!stats) return null;
   const reading = stats.seconds - stats.listened;
   return (
     <section className="book-stats" aria-labelledby="book-stats-title">
       <div className="logs-intro">
-        <p className="eyebrow">Only you</p>
-        <h2 id="book-stats-title">Your time with this book</h2>
-        <p>Worked out from the minutes this profile read and listened.</p>
+        <p className="eyebrow">{t("Only you")}</p>
+        <h2 id="book-stats-title">{t("Your time with this book")}</h2>
+        <p>{t("Worked out from the minutes this profile read and listened.")}</p>
       </div>
       <div className="book-stats-body">
         <dl className="book-stats-grid">
           <div>
-            <dt>Time spent</dt>
+            <dt>{t("Time spent")}</dt>
             <dd>{spentText(stats.seconds)}</dd>
           </div>
           {stats.listened > 0 && reading > 0 && (
             <div>
-              <dt>Reading and listening</dt>
+              <dt>{t("Reading and listening")}</dt>
               <dd>
-                {spentText(reading)} reading, {spentText(stats.listened)} listening
+                {t("{reading} reading, {listening} listening", { reading: spentText(reading), listening: spentText(stats.listened) })}
               </dd>
             </div>
           )}
           <div>
-            <dt>{stats.days === 1 ? "Day" : "Days"}</dt>
+            <dt>{stats.days === 1 ? t("Day") : t("Days")}</dt>
             <dd>
               {stats.days === 1
                 ? dayText(stats.first)
-                : `${stats.days} days, ${dayText(stats.first)} to ${dayText(stats.last)}`}
+                : t("{n} days, {first} to {last}", { n: stats.days, first: dayText(stats.first), last: dayText(stats.last) })}
             </dd>
           </div>
           {stats.perHour !== null && (
             <div>
-              <dt>Pace</dt>
+              <dt>{t("Pace")}</dt>
               <dd>{paceText(stats.perHour)}</dd>
             </div>
           )}
           {stats.leftSeconds !== null && !finished && (
             <div>
-              <dt>At that pace</dt>
-              <dd>About {spentText(stats.leftSeconds)} to the end</dd>
+              <dt>{t("At that pace")}</dt>
+              <dd>{t("About {time} to the end", { time: spentText(stats.leftSeconds) })}</dd>
             </div>
           )}
         </dl>
         {stats.days > 1 && (
           <div>
-            <h3 className="book-stats-subtitle">Your biggest days</h3>
+            <h3 className="book-stats-subtitle">{t("Your biggest days")}</h3>
             <ol className="book-stats-days">
               {stats.topDays.map((d) => (
                 <li key={d.day}>

@@ -7,6 +7,8 @@ import { announceScheduleChange, type ListenSchedule as Schedule, schedulePath }
 import { takeOfflinePlace } from "../lib/offlinePlaces";
 import { ListenSchedule } from "./ListenSchedule";
 import { nextPlanUp, planCheckoutPath } from "../lib/planLimits";
+import { dateLocale, rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import type { Book, PlanId } from "../types";
 import { Icon } from "./Icon";
@@ -27,6 +29,7 @@ interface PlacesFull {
  * reading and listening without a connection, or remove it again.
  */
 export function OfflineBook({ book }: { book: Book }) {
+  const t = useT();
   const [state, setState] = useState<OfflineState | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +59,7 @@ export function OfflineBook({ book }: { book: Book }) {
       await Promise.all([import("../pages/Reader"), import("../pages/Player")]);
       await work();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't work. Try again.");
+      setError(err instanceof Error ? err.message : t("That didn't work. Try again."));
     } finally {
       setBusy(null);
       setVersion((n) => n + 1);
@@ -87,17 +90,17 @@ export function OfflineBook({ book }: { book: Book }) {
   };
 
   const free = (device: OfflineDevice, pending: PlacesFull) =>
-    run(`Freeing ${device.label}…`, async () => {
+    run(t("Freeing {device}…", { device: device.label }), async () => {
       await freeOfflineDevice(device.id);
       if (pending.schedule) {
         // Take the freed place, then turn on the schedule that was waiting; the downloader keeps
         // only the chapters it asks for.
-        if (userId && (await takeOfflinePlace(userId)).status === "full") throw new Error("That place was taken again. Try another device.");
+        if (userId && (await takeOfflinePlace(userId)).status === "full") throw new Error(t("That place was taken again. Try another device."));
         await writeNote(schedulePath(book.id), pending.schedule);
         announceScheduleChange(book.id);
         return;
       }
-      await save(pending.withAudio, (done, total) => setBusy(`Saving the audio: chapter ${done} of ${total}…`))();
+      await save(pending.withAudio, (done, total) => setBusy(t("Saving the audio: chapter {done} of {total}…", { done, total })))();
     });
 
   const fullNext = full ? nextPlanUp(full.planId) : null;
@@ -107,14 +110,14 @@ export function OfflineBook({ book }: { book: Book }) {
 
   return (
     <section className="offline-book" aria-labelledby="offline-title">
-      <h2 id="offline-title">Read offline</h2>
+      <h2 id="offline-title">{t("Read offline")}</h2>
       <p className="goal-hint" role="status">
         {busy ??
           (saved
             ? audioSaved
-              ? "The text and audio are saved on this device."
-              : "The text is saved on this device; a voice can read it aloud offline too."
-            : "Save this book on this device to read it without a connection.")}
+              ? t("The text and audio are saved on this device.")
+              : t("The text is saved on this device; a voice can read it aloud offline too.")
+            : t("Save this book on this device to read it without a connection."))}
       </p>
       {error && (
         <p className="field-error" role="alert">
@@ -124,12 +127,20 @@ export function OfflineBook({ book }: { book: Book }) {
       {full && (
         <div className="offline-full" role="alert">
           <p>
-            Your {planById.get(full.planId)?.name ?? "Basic"} plan keeps offline books on {full.limit} {full.limit === 1 ? "device" : "devices"}, and{" "}
-            {full.limit === 1 ? "it's" : "they're all"} in use. Free one to use this device instead; its offline books are removed the next time it opens LiteraryWorm.
+            {t.plural(
+              full.limit,
+              {
+                one: "Your {plan} plan keeps offline books on {count} device, and it's in use. Free one to use this device instead; its offline books are removed the next time it opens LiteraryWorm.",
+                other: "Your {plan} plan keeps offline books on {count} devices, and they're all in use. Free one to use this device instead; its offline books are removed the next time it opens LiteraryWorm.",
+              },
+              { plan: planById.get(full.planId)?.name ?? "Basic" },
+            )}
             {fullNext && (
               <>
                 {" "}
-                Or <Link to={planCheckoutPath(fullNext)}>move to {fullNext.name}</Link> for {fullNext.offlineDevices} devices.
+                {rich(t("Or {link} for {n} devices.", { n: fullNext.offlineDevices }), {
+                  link: <Link to={planCheckoutPath(fullNext)}>{t("move to {plan}", { plan: fullNext.name })}</Link>,
+                })}
               </>
             )}
           </p>
@@ -138,10 +149,10 @@ export function OfflineBook({ book }: { book: Book }) {
               <li key={d.id}>
                 <span>
                   {d.label}
-                  <span className="muted"> · last used {new Date(d.lastSeenAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</span>
+                  <span className="muted">{t(" · last used {date}", { date: new Date(d.lastSeenAt).toLocaleDateString(t.lang === "en" ? "en-GB" : dateLocale(t.lang), { day: "numeric", month: "long" }) })}</span>
                 </span>
                 <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => free(d, full)}>
-                  Free<span className="visually-hidden"> {d.label}</span>
+                  {t("Free")}<span className="visually-hidden"> {d.label}</span>
                 </button>
               </li>
             ))}
@@ -150,8 +161,8 @@ export function OfflineBook({ book }: { book: Book }) {
       )}
       <div className="goal-actions">
         {!saved && (
-          <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => run("Saving the text…", save(false))}>
-            <Icon name="download" size={15} /> Save the text (small)
+          <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => run(t("Saving the text…"), save(false))}>
+            <Icon name="download" size={15} /> {t("Save the text (small)")}
           </button>
         )}
         {!audioSaved && state !== null && state.tracks > 0 && (
@@ -159,14 +170,14 @@ export function OfflineBook({ book }: { book: Book }) {
             type="button"
             className="ghost-button small-button"
             disabled={busy !== null}
-            onClick={() => run("Saving the audio…", save(true, (done, total) => setBusy(`Saving the audio: chapter ${done} of ${total}…`)))}
+            onClick={() => run(t("Saving the audio…"), save(true, (done, total) => setBusy(t("Saving the audio: chapter {done} of {total}…", { done, total }))))}
           >
-            <Icon name="headphones" size={15} /> {saved ? "Add the audio" : "Save text and audio"} (about {megabytes} MB)
+            <Icon name="headphones" size={15} /> {saved ? t("Add the audio (about {mb} MB)", { mb: megabytes }) : t("Save text and audio (about {mb} MB)", { mb: megabytes })}
           </button>
         )}
         {(saved || (state?.audio ?? 0) > 0) && (
-          <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => run("Removing…", () => removeOffline(book))}>
-            <Icon name="trash" size={15} /> Remove from this device
+          <button type="button" className="ghost-button small-button" disabled={busy !== null} onClick={() => run(t("Removing…"), () => removeOffline(book))}>
+            <Icon name="trash" size={15} /> {t("Remove from this device")}
           </button>
         )}
       </div>

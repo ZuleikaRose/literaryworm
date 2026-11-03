@@ -1,4 +1,5 @@
 import type { JournalEntry } from "../types";
+import { activeLanguage, dateLocale, tr } from "./i18n";
 
 /**
  * Reading journal: a profile's private, dated entries about a book, kept apart from the public
@@ -10,10 +11,10 @@ export const JOURNAL_MAX = 1000;
 /** What's wrong with an entry, or null: the table's checks, in plain words. */
 export function journalError(body: string, writtenOn: string, today: string): string | null {
   const text = body.trim();
-  if (!text) return "Write something first.";
-  if (text.length > JOURNAL_BODY_MAX) return `Keep an entry to ${JOURNAL_BODY_MAX.toLocaleString("en")} characters.`;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(writtenOn) || Number.isNaN(Date.parse(`${writtenOn}T00:00:00Z`))) return "Pick the day it's about.";
-  if (writtenOn > today) return "Pick today or a day before.";
+  if (!text) return tr("Write something first.");
+  if (text.length > JOURNAL_BODY_MAX) return tr("Keep an entry to {max} characters.", { max: JOURNAL_BODY_MAX.toLocaleString(dateLocale()) });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(writtenOn) || Number.isNaN(Date.parse(`${writtenOn}T00:00:00Z`))) return tr("Pick the day it's about.");
+  if (writtenOn > today) return tr("Pick today or a day before.");
   return null;
 }
 
@@ -26,7 +27,17 @@ export function byNewest(a: JournalEntry, b: JournalEntry): number {
   return b.writtenOn.localeCompare(a.writtenOn) || b.createdAt - a.createdAt;
 }
 
-const dayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const dayFormats = new Map<string, Intl.DateTimeFormat>();
+const dayFormat = () => {
+  // English keeps the day-month order it has always had; other languages their own.
+  const locale = activeLanguage() === "en" ? "en-GB" : dateLocale();
+  let format = dayFormats.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    dayFormats.set(locale, format);
+  }
+  return format;
+};
 
-/** "Sat, 31 October 2026" for a YYYY-MM-DD day. */
-export const journalDay = (day: string) => dayFormat.format(new Date(`${day}T00:00:00Z`));
+/** "Sat, 31 October 2026" for a YYYY-MM-DD day, in the language chosen. */
+export const journalDay = (day: string) => dayFormat().format(new Date(`${day}T00:00:00Z`));

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { buddyFinish, buddyName, newInviteCode } from "../lib/clubs";
 import { today } from "../lib/reading";
 import { useClubs } from "../lib/useClubs";
+import { useT } from "../lib/useT";
 import { useActiveProfile } from "../store/context";
 import type { Book } from "../types";
 import { Icon } from "./Icon";
@@ -15,6 +16,7 @@ export function BuddyReadButton({ book }: { book: Book }) {
   const profile = useActiveProfile();
   const clubs = useClubs();
   const navigate = useNavigate();
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!profile || profile.ageRating === "kids") return null;
@@ -27,7 +29,7 @@ export function BuddyReadButton({ book }: { book: Book }) {
       const id = await clubs.create({ name: buddyName(book.title), bookId: book.id, bookTitle: null, bookAuthor: null, startsOn: now, finishesOn: buddyFinish(now), inviteCode: newInviteCode(), buddy: true });
       navigate(`/clubs/${id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't start the buddy read. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't start the buddy read. Try again."));
       setBusy(false);
     }
   }
@@ -35,7 +37,7 @@ export function BuddyReadButton({ book }: { book: Book }) {
   return (
     <>
       <button type="button" className="secondary-button" disabled={busy} onClick={start}>
-        <Icon name="users" size={17} /> {busy ? "Starting…" : "Read with a friend"}
+        <Icon name="users" size={17} /> {busy ? t("Starting…") : t("Read with a friend")}
       </button>
       {error && (
         <p className="field-error" role="alert">

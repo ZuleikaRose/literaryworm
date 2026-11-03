@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { initials } from "../lib/bookDetail";
+import { useT } from "../lib/useT";
 import type { ReadingLog } from "../types";
 import { Icon } from "./Icon";
 
@@ -16,6 +17,7 @@ const LONG = 420;
 
 /** One reader's log: display name, date, optional rating and the text. */
 export function LogCard({ log, onEdit, onDelete }: LogCardProps) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const bodyId = useId();
   const long = log.body.length > LONG;
@@ -31,15 +33,15 @@ export function LogCard({ log, onEdit, onDelete }: LogCardProps) {
         <div className="log-byline">
           <h3 className="reader-name">
             {log.publicReader && log.userId && !own ? <Link to={`/readers/${log.userId}`}>{log.displayName}</Link> : log.displayName}
-            {own && <span className="own-tag">You</span>}
+            {own && <span className="own-tag">{t("You")}</span>}
           </h3>
           <small>
             <time dateTime={new Date(log.createdAt).toISOString()}>{dateFormat.format(log.createdAt)}</time>
-            {edited && " · edited"}
+            {edited && t(" · edited")}
           </small>
         </div>
         {log.rating !== null && (
-          <span className="log-rating" role="img" aria-label={`Rated ${log.rating} out of 5`}>
+          <span className="log-rating" role="img" aria-label={t("Rated {rating} out of 5", { rating: log.rating })}>
             {Array.from({ length: 5 }, (_, i) => (
               <Icon key={i} name="star" size={13} filled={i < log.rating!} />
             ))}
@@ -52,18 +54,18 @@ export function LogCard({ log, onEdit, onDelete }: LogCardProps) {
       <div className="log-actions">
         {long && (
           <button type="button" className="text-button" aria-expanded={expanded} aria-controls={bodyId} onClick={() => setExpanded((e) => !e)}>
-            {expanded ? "Show less" : "Read full log"}
+            {expanded ? t("Show less") : t("Read full log")}
             <Icon name="chevronDown" size={14} className={expanded ? "flip" : undefined} />
           </button>
         )}
         {onEdit && (
           <button type="button" className="ghost-button small-button" onClick={onEdit}>
-            <Icon name="edit" size={15} /> Edit<span className="visually-hidden"> your log</span>
+            <Icon name="edit" size={15} /> {t("Edit")}<span className="visually-hidden">{t(" your log")}</span>
           </button>
         )}
         {onDelete && (
           <button type="button" className="ghost-button small-button danger-text" onClick={onDelete}>
-            <Icon name="trash" size={15} /> Delete<span className="visually-hidden"> your log</span>
+            <Icon name="trash" size={15} /> {t("Delete")}<span className="visually-hidden">{t(" your log")}</span>
           </button>
         )}
       </div>

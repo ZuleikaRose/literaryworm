@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { type BookContentNotes, LEVEL_LABEL, notesLine, present, topicLabel } from "../lib/contentNotes";
 import { getContentNotes } from "../lib/contentNotesApi";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 type Load = { status: "idle" | "loading" } | { status: "ready"; notes: BookContentNotes } | { status: "error"; message: string };
@@ -10,6 +11,7 @@ type Load = { status: "idle" | "loading" } | { status: "ready"; notes: BookConte
  * the reader opens them. `compact` is the one-line version under a Kids profile's book request.
  */
 export function ContentNotes({ bookId, compact = false }: { bookId: string; compact?: boolean }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [load, setLoad] = useState<Load>({ status: "idle" });
   const panelId = useId();
@@ -34,20 +36,20 @@ export function ContentNotes({ bookId, compact = false }: { bookId: string; comp
         <>
           <p>{load.notes.overall}</p>
           {present(load.notes.notes).length === 0 ? (
-            <p>Nothing to flag.</p>
+            <p>{t("Nothing to flag.")}</p>
           ) : (
             <dl className="content-notes-list">
               {present(load.notes.notes).map((n) => (
                 <div key={n.topic}>
                   <dt>
-                    {topicLabel(n.topic)}: <span className={`content-level level-${n.level}`}>{LEVEL_LABEL[n.level]}</span>
+                    {t(topicLabel(n.topic))}: <span className={`content-level level-${n.level}`}>{t(LEVEL_LABEL[n.level])}</span>
                   </dt>
                   {n.note && <dd>{n.note}</dd>}
                 </div>
               ))}
             </dl>
           )}
-          <p className="summary-hint">Written by AI from the book's details, so it can miss things. Check anything that matters to you.</p>
+          <p className="summary-hint">{t("Written by AI from the book's details, so it can miss things. Check anything that matters to you.")}</p>
         </>
       )
     ) : load.status === "error" ? (
@@ -55,7 +57,7 @@ export function ContentNotes({ bookId, compact = false }: { bookId: string; comp
         <Icon name="alert" size={17} /> {load.message}
       </p>
     ) : (
-      open && <p className="summary-hint">Writing the content notes…</p>
+      open && <p className="summary-hint">{t("Writing the content notes…")}</p>
     );
 
   return (
@@ -70,7 +72,7 @@ export function ContentNotes({ bookId, compact = false }: { bookId: string; comp
           setOpen((o) => !o);
         }}
       >
-        Content notes{compact ? "" : " (written by AI)"}
+        {compact ? t("Content notes") : t("Content notes (written by AI)")}
         <Icon name="chevronDown" size={14} className={open ? "flip" : undefined} />
       </button>
       <div id={panelId} hidden={!open} aria-live="polite">

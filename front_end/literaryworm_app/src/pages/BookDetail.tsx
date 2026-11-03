@@ -35,6 +35,8 @@ import { fallbackCover } from "../lib/coverFallback";
 import { useBookFeed } from "../lib/useBookFeed";
 import { usePublicLogs } from "../lib/usePublicLogs";
 import { useTitle } from "../lib/useTitle";
+import { useT } from "../lib/useT";
+import { rich, tk } from "../lib/i18n";
 import { useVolume } from "../lib/useVolume";
 import { AccountError, addLog, deleteLog, updateLog } from "../lib/accountApi";
 import { personName, personPath } from "../lib/people";
@@ -82,31 +84,33 @@ export default function BookDetail() {
 }
 
 function NotOnShelf({ profile, book }: { profile: Profile; book?: Book }) {
-  useTitle("Not on this shelf");
+  const t = useT();
+  useTitle(t("Not on this shelf"));
   return (
     <section className="page empty-state">
       <span className="empty-icon">
         <Icon name="lock" size={28} />
       </span>
-      <h1>This book isn't on {profile.name}'s shelf</h1>
+      <h1>{t("This book isn't on {name}'s shelf", { name: profile.name })}</h1>
       <p>
         {profile.ageRating === "kids"
-          ? "Kids profiles show books picked for younger readers. Ask a grown-up if you'd like this one."
-          : "This title is rated for adults. A grown-up can open it from their own profile."}
+          ? t("Kids profiles show books picked for younger readers. Ask a grown-up if you'd like this one.")
+          : t("This title is rated for adults. A grown-up can open it from their own profile.")}
       </p>
       {book && <AskGrownUp book={book} />}
       <Link className={book && canAsk(book, profile) ? "secondary-button" : "primary-button"} to="/browse">
-        Go to home
+        {t("Go to home")}
       </Link>
     </section>
   );
 }
 
 function DetailSkeleton() {
+  const t = useT();
   return (
     <div className="detail-page" aria-busy="true">
       <p className="visually-hidden" role="status">
-        Loading book details
+        {t("Loading book details")}
       </p>
       <div className="book-hero" aria-hidden="true">
         <div className="detail-cover">
@@ -125,22 +129,24 @@ function DetailSkeleton() {
 }
 
 function DetailError({ message, onRetry }: { message: string; onRetry: () => void }) {
-  useTitle("Book details");
+  const t = useT();
+  useTitle(t("Book details"));
   return (
     <section className="page empty-state" role="alert">
       <span className="empty-icon">
         <Icon name="alert" size={28} />
       </span>
-      <h1>We couldn't load this book</h1>
+      <h1>{t("We couldn't load this book")}</h1>
       <p>{message}</p>
       <button type="button" className="primary-button" onClick={onRetry}>
-        Try again
+        {t("Try again")}
       </button>
     </section>
   );
 }
 
 function DetailCover({ view }: { view: DetailView }) {
+  const t = useT();
   const [broken, setBroken] = useState(false);
   if (view.coverUrl && !broken) {
     return (
@@ -150,7 +156,7 @@ function DetailCover({ view }: { view: DetailView }) {
       </span>
     );
   }
-  const author = view.authors.join(", ") || "Unknown author";
+  const author = view.authors.join(", ") || t("Unknown author");
   const book = view.local ?? { cover: fallbackCover(view.id), genres: view.categories.slice(0, 1), title: view.title, author };
   return <Cover book={book} size="xl" />;
 }
@@ -173,6 +179,7 @@ type Pending = { kind: "remove" } | { kind: "deleteLog"; log: ReadingLog } | nul
 
 function DetailPage({ view }: { view: DetailView }) {
   useTitle(view.title);
+  const t = useT();
   const { state, dispatch } = useStore();
   const profile = useActiveProfile();
   const data = useProfileData();
@@ -207,11 +214,11 @@ function DetailPage({ view }: { view: DetailView }) {
   const bookmarkCount = profile ? activeReading(state).bookmarks.filter((b) => b.bookId === view.id).length : 0;
   const highlightCount = profile ? activeReading(state).highlights.filter((h) => h.bookId === view.id).length : 0;
   const resume = (format: "ebook" | "audiobook") =>
-    place && !place.finished && place.format === format ? ` · ${Math.round(place.fraction * 100)}%` : null;
+    place && !place.finished && place.format === format ? Math.round(place.fraction * 100) : null;
   const canWriteLogs = Boolean(profile && profile.ageRating !== "kids");
   // "Your 2nd read" / "Read twice" (lib/rereads.ts, from the profile's finish days).
   const reads = profile ? readsLine(entry, finishDays(data.readingDays, view.id)) : "";
-  const author = view.authors.join(", ") || "Unknown author";
+  const author = view.authors.join(", ") || t("Unknown author");
 
   // This session's logs (sample ones and any written here) plus everyone's from Supabase.
   const sessionLogs = state.logs.filter((l) => l.bookId === view.id);
@@ -231,7 +238,7 @@ function DetailPage({ view }: { view: DetailView }) {
       await work();
       return true;
     } catch (err) {
-      setActionError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setActionError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
       return false;
     } finally {
       setBusy(false);
@@ -251,7 +258,7 @@ function DetailPage({ view }: { view: DetailView }) {
     const ok = await attempt(() =>
       library.add({ bookId: view.id, title: view.title, authors: view.authors, cover: view.coverUrl, published: view.release?.date ?? null }, status),
     );
-    if (ok) setAnnouncement(`Added ${view.title} to your library.`);
+    if (ok) setAnnouncement(t("Added {title} to your library.", { title: view.title }));
   }
 
   async function removeFromLibrary() {
@@ -262,7 +269,11 @@ function DetailPage({ view }: { view: DetailView }) {
     // The database deleted this reader's logs with the book; show the list without them.
     if (userId && hadLogs) remote.reload();
     focusTarget.current = "library-action";
-    setAnnouncement(hadLogs ? `Removed ${view.title} and your logs about it.` : `Removed ${view.title} from your library.`);
+    setAnnouncement(
+      hadLogs
+        ? t("Removed {title} and your logs about it.", { title: view.title })
+        : t("Removed {title} from your library.", { title: view.title }),
+    );
   }
 
   async function saveLog(body: string, value: number | null) {
@@ -279,7 +290,7 @@ function DetailPage({ view }: { view: DetailView }) {
       }
     });
     setWriting(null);
-    if (ok) setAnnouncement(editing ? "Your log is updated." : "Log published. Readers can now find it on this page.");
+    if (ok) setAnnouncement(editing ? t("Your log is updated.") : t("Log published. Readers can now find it on this page."));
   }
 
   async function removeLog(log: ReadingLog) {
@@ -294,24 +305,24 @@ function DetailPage({ view }: { view: DetailView }) {
     });
     if (ok) {
       focusTarget.current = "logs-title";
-      setAnnouncement("Your log is deleted.");
+      setAnnouncement(t("Your log is deleted."));
     }
   }
 
   async function rate(value: RatingValue) {
     if (!requireProfile()) return;
     const next = rating === value ? null : value;
-    if (await attempt(() => collections.rate(view.id, next))) setAnnouncement(next ? "Rating saved." : "Rating cleared.");
+    if (await attempt(() => collections.rate(view.id, next))) setAnnouncement(next ? t("Rating saved.") : t("Rating cleared."));
   }
 
   async function toggleFavorite() {
     if (!requireProfile()) return;
     const ok = await attempt(() => collections.toggleFavorite(view.id));
-    if (ok) setAnnouncement(favorite ? "Removed from your favorites." : "Added to your favorites.");
+    if (ok) setAnnouncement(favorite ? t("Removed from your favorites.") : t("Added to your favorites."));
   }
 
   const longDescription = (view.description?.length ?? 0) > 700;
-  const description = view.description ?? "No description is available for this book yet.";
+  const description = view.description ?? t("No description is available for this book yet.");
 
   return (
     <div className="detail-page">
@@ -334,8 +345,8 @@ function DetailPage({ view }: { view: DetailView }) {
           {view.subtitle && <p className="book-subtitle">{view.subtitle}</p>}
           {view.local && <SeriesLine bookId={view.id} />}
           <p className="byline">
-            by{" "}
-            {view.authors.length ? (
+            {rich(t("by {authors}"), {
+              authors: view.authors.length ? (
               view.authors.map((name, i) => (
                 <span key={name}>
                   {i > 0 && ", "}
@@ -351,26 +362,27 @@ function DetailPage({ view }: { view: DetailView }) {
               ))
             ) : (
               <strong>{author}</strong>
-            )}
+            ),
+            })}
           </p>
-          <ul className="book-meta" aria-label="At a glance">
+          <ul className="book-meta" aria-label={t("At a glance")}>
             {view.averageRating !== null && (
               <li className="meta-rating">
                 <Icon name="star" size={16} filled />
                 <span>
                   {view.averageRating.toFixed(1)}
-                  <span className="visually-hidden"> out of 5 average rating</span>
+                  <span className="visually-hidden"> {t("out of 5 average rating")}</span>
                 </span>
               </li>
             )}
             {view.ratingsCount !== null && (
               <li>
-                {view.ratingsCount.toLocaleString()} {view.ratingsCount === 1 ? "rating" : "ratings"}
+                {t.plural(view.ratingsCount, { one: "{count} rating", other: "{count} ratings" }, { count: view.ratingsCount.toLocaleString() })}
               </li>
             )}
-            {view.pageCount !== null && <li>{view.pageCount.toLocaleString()} pages</li>}
+            {view.pageCount !== null && <li>{t("{n} pages", { n: view.pageCount.toLocaleString() })}</li>}
             <li>
-              {logs.length} {logs.length === 1 ? "log" : "logs"}
+              {t.plural(logs.length, { one: "{count} log", other: "{count} logs" })}
               {remote.status === "idle" && "+"}
             </li>
           </ul>
@@ -388,7 +400,7 @@ function DetailPage({ view }: { view: DetailView }) {
               aria-controls="book-description"
               onClick={() => setDescriptionOpen((o) => !o)}
             >
-              {descriptionOpen ? "Show less" : "Read the full description"}
+              {descriptionOpen ? t("Show less") : t("Read the full description")}
               <Icon name="chevronDown" size={14} className={descriptionOpen ? "flip" : undefined} />
             </button>
           )}
@@ -397,12 +409,12 @@ function DetailPage({ view }: { view: DetailView }) {
             <div className="detail-actions">
               {view.local.formats.includes("ebook") && (
                 <Link className="primary-button" to={`/read/${view.id}`}>
-                  <Icon name="bookOpen" size={18} /> {resume("ebook") ? `Continue reading${resume("ebook")}` : "Read"}
+                  <Icon name="bookOpen" size={18} /> {resume("ebook") !== null ? t("Continue reading · {percent}%", { percent: resume("ebook")! }) : t("Read")}
                 </Link>
               )}
               {view.local.formats.includes("audiobook") && (
                 <Link className="secondary-button" to={`/listen/${view.id}`}>
-                  <Icon name="headphones" size={18} /> {resume("audiobook") ? `Continue listening${resume("audiobook")}` : "Listen"}
+                  <Icon name="headphones" size={18} /> {resume("audiobook") !== null ? t("Continue listening · {percent}%", { percent: resume("audiobook")! }) : t("Listen")}
                 </Link>
               )}
               <UpNextButton book={view.local} />
@@ -415,7 +427,7 @@ function DetailPage({ view }: { view: DetailView }) {
             {entry ? (
               <>
                 <label className="status-field">
-                  <span className="visually-hidden">Reading status</span>
+                  <span className="visually-hidden">{t("Reading status")}</span>
                   <Icon name="bookmark" size={16} filled />
                   <select
                     className="status-select"
@@ -424,12 +436,12 @@ function DetailPage({ view }: { view: DetailView }) {
                     onChange={async (e) => {
                       const status = e.target.value as ReadingStatus;
                       if (await attempt(() => library.setStatus(view.id, status)))
-                        setAnnouncement(`Marked as ${readingStatusLabel[status].toLowerCase()}.`);
+                        setAnnouncement(t("Marked as {status}.", { status: t(readingStatusLabel[status]).toLowerCase() }));
                     }}
                   >
                     {Object.entries(readingStatusLabel).map(([value, label]) => (
                       <option key={value} value={value}>
-                        {label}
+                        {t(label)}
                       </option>
                     ))}
                   </select>
@@ -442,15 +454,15 @@ function DetailPage({ view }: { view: DetailView }) {
                     disabled={busy}
                     onClick={async () => {
                       if (await attempt(() => library.readAgain(view.id)))
-                        setAnnouncement("Moved to Reading, from the start. Finishing it again counts as another read.");
+                        setAnnouncement(t("Moved to Reading, from the start. Finishing it again counts as another read."));
                     }}
                   >
-                    <Icon name="bookOpen" size={17} /> Read again
+                    <Icon name="bookOpen" size={17} /> {t("Read again")}
                   </button>
                 )}
                 {canWriteLogs && (
                   <button type="button" className="secondary-button" onClick={() => setWriting({})}>
-                    <Icon name="edit" size={17} /> Write a log
+                    <Icon name="edit" size={17} /> {t("Write a log")}
                   </button>
                 )}
                 <button
@@ -458,7 +470,7 @@ function DetailPage({ view }: { view: DetailView }) {
                   className="ghost-button"
                   onClick={() => (removeWarning ? setPending({ kind: "remove" }) : removeFromLibrary())}
                 >
-                  <Icon name="trash" size={16} /> Remove from library
+                  <Icon name="trash" size={16} /> {t("Remove from library")}
                 </button>
               </>
             ) : (
@@ -469,7 +481,7 @@ function DetailPage({ view }: { view: DetailView }) {
                 disabled={busy}
                 onClick={() => addToLibrary()}
               >
-                <Icon name="bookmark" size={18} /> {busy ? "Adding…" : "Add to my library"}
+                <Icon name="bookmark" size={18} /> {busy ? t("Adding…") : t("Add to my library")}
               </button>
             )}
           </div>
@@ -486,12 +498,12 @@ function DetailPage({ view }: { view: DetailView }) {
           )}
 
           {profile && (
-            <div className="taste-row" role="group" aria-label="Your rating">
+            <div className="taste-row" role="group" aria-label={t("Your rating")}>
               {(
                 [
-                  ["not-for-me", "Not for me", "thumbDown"],
-                  ["like", "I like this", "thumbUp"],
-                  ["love", "I love this", "heart"],
+                  ["not-for-me", tk("Not for me"), "thumbDown"],
+                  ["like", tk("I like this"), "thumbUp"],
+                  ["love", tk("I love this"), "heart"],
                 ] as const
               ).map(([value, label, icon]) => (
                 <button
@@ -502,7 +514,7 @@ function DetailPage({ view }: { view: DetailView }) {
                   disabled={busy}
                   onClick={() => rate(value)}
                 >
-                  <Icon name={icon} size={16} filled={rating === value} /> {label}
+                  <Icon name={icon} size={16} filled={rating === value} /> {t(label)}
                 </button>
               ))}
               <button
@@ -512,7 +524,7 @@ function DetailPage({ view }: { view: DetailView }) {
                 disabled={busy}
                 onClick={toggleFavorite}
               >
-                <Icon name="star" size={16} filled={favorite} /> Favorite
+                <Icon name="star" size={16} filled={favorite} /> {t("Favorite")}
               </button>
             </div>
           )}
@@ -522,12 +534,12 @@ function DetailPage({ view }: { view: DetailView }) {
           <p className="privacy-note">
             <Icon name="lock" size={15} />
             {!profile
-              ? "Sign in to save books and write logs. Your library is private; logs are public."
+              ? t("Sign in to save books and write logs. Your library is private; logs are public.")
               : !entry && canWriteLogs
-                ? "Add this book to your library to write a log about it. Your library is private; logs are public."
+                ? t("Add this book to your library to write a log about it. Your library is private; logs are public.")
                 : canWriteLogs
-                  ? "Your library and reading status are private. Logs you publish are public."
-                  : "Your library is private. Kids profiles can read logs but don't post them."}
+                  ? t("Your library and reading status are private. Logs you publish are public.")
+                  : t("Your library is private. Kids profiles can read logs but don't post them.")}
           </p>
         </div>
       </section>
@@ -542,16 +554,17 @@ function DetailPage({ view }: { view: DetailView }) {
 
       {view.facts.length > 0 && (
         <section className="book-facts" aria-labelledby="facts-title">
-          <h2 id="facts-title">Book details</h2>
+          <h2 id="facts-title">{t("Book details")}</h2>
           <dl>
             {view.facts.map((fact) => (
               <div key={fact.label} className={fact.wide ? "fact-wide" : undefined}>
                 <dt>{fact.label}</dt>
                 <dd>
-                  {fact.narrator && fact.value.startsWith(fact.narrator) ? (
+                  {fact.narrator && fact.value.includes(fact.narrator) ? (
                     <>
+                      {fact.value.slice(0, fact.value.indexOf(fact.narrator))}
                       <Link to={personPath("narrator", fact.narrator)}>{fact.narrator}</Link>
-                      {fact.value.slice(fact.narrator.length)}
+                      {fact.value.slice(fact.value.indexOf(fact.narrator) + fact.narrator.length)}
                     </>
                   ) : (
                     fact.value
@@ -562,12 +575,15 @@ function DetailPage({ view }: { view: DetailView }) {
           </dl>
           {view.googleLink && (
             <p className="source-credit">
-              Details from{" "}
-              <a href={view.googleLink} target="_blank" rel="noopener noreferrer">
-                Google Books
-                <Icon name="external" size={13} />
-                <span className="visually-hidden"> (opens in a new tab)</span>
-              </a>
+              {rich(t("Details from {source}"), {
+                source: (
+                  <a href={view.googleLink} target="_blank" rel="noopener noreferrer">
+                    Google Books
+                    <Icon name="external" size={13} />
+                    <span className="visually-hidden"> {t("(opens in a new tab)")}</span>
+                  </a>
+                ),
+              })}
             </p>
           )}
         </section>
@@ -583,11 +599,11 @@ function DetailPage({ view }: { view: DetailView }) {
 
       <section className="logs-section" id="logs" aria-labelledby="logs-title">
         <div className="logs-intro">
-          <p className="eyebrow">Community notes</p>
+          <p className="eyebrow">{t("Community notes")}</p>
           <h2 id="logs-title" tabIndex={-1}>
-            Reader logs
+            {t("Reader logs")}
           </h2>
-          <p>Ideas, reactions and moments worth remembering from people reading this book.</p>
+          <p>{t("Ideas, reactions and moments worth remembering from people reading this book.")}</p>
         </div>
         <div className="logs-list">
           {logs.map((log) => {
@@ -604,28 +620,28 @@ function DetailPage({ view }: { view: DetailView }) {
 
           {remote.status === "loading" && (
             <p className="logs-status" role="status">
-              Loading reader logs…
+              {t("Loading reader logs…")}
             </p>
           )}
           {remote.status === "error" && (
             <div className="logs-status" role="alert">
               <p>{remote.error}</p>
               <button type="button" className="secondary-button" onClick={remote.retry}>
-                Try again
+                {t("Try again")}
               </button>
             </div>
           )}
           {remote.status === "idle" && (
             <button type="button" className="secondary-button logs-more" onClick={remote.loadMore}>
-              Load more logs
+              {t("Load more logs")}
             </button>
           )}
           {remote.status !== "loading" && remote.status !== "error" && logs.length === 0 && (
             <div className="logs-empty">
               <Icon name="edit" size={22} />
               <p>
-                No logs yet.{" "}
-                {canWriteLogs ? (entry ? "Be the first to write one." : "Add it to your library to write the first.") : null}
+                {t("No logs yet.")}{" "}
+                {canWriteLogs ? (entry ? t("Be the first to write one.") : t("Add it to your library to write the first.")) : null}
               </p>
             </div>
           )}
@@ -658,10 +674,10 @@ function DetailPage({ view }: { view: DetailView }) {
         open={pending !== null}
         onClose={() => setPending(null)}
         size="sm"
-        title={pending?.kind === "remove" ? `Remove ${view.title}?` : "Delete this log?"}
+        title={pending?.kind === "remove" ? t("Remove {title}?", { title: view.title }) : t("Delete this log?")}
         description={
           <p>
-            {pending?.kind === "remove" ? removeWarning : "It will disappear from this book's page. This can't be undone."}
+            {pending?.kind === "remove" ? removeWarning : t("It will disappear from this book's page. This can't be undone.")}
           </p>
         }
       >
@@ -674,10 +690,10 @@ function DetailPage({ view }: { view: DetailView }) {
               if (pending?.kind === "deleteLog") return removeLog(pending.log);
             }}
           >
-            {pending?.kind === "remove" ? "Remove book" : "Delete log"}
+            {pending?.kind === "remove" ? t("Remove book") : t("Delete log")}
           </button>
           <button type="button" className="secondary-button" onClick={() => setPending(null)}>
-            Keep it
+            {t("Keep it")}
           </button>
         </div>
       </Dialog>
@@ -687,18 +703,22 @@ function DetailPage({ view }: { view: DetailView }) {
 
 /** "Book 2 of 6 in Anne of Green Gables", linking to the series page. */
 function SeriesLine({ bookId }: { bookId: string }) {
+  const t = useT();
   const place = seriesPlace(bookId);
   if (!place) return null;
+  const link = <Link to={seriesPath(place.series.name)}>{place.series.name}</Link>;
   return (
     <p className="book-subtitle">
-      {place.total > 1 ? `Book ${place.position} of ${place.total} in ` : "Part of "}
-      <Link to={seriesPath(place.series.name)}>{place.series.name}</Link>
+      {place.total > 1
+        ? rich(t("Book {position} of {total} in {series}"), { position: place.position, total: place.total, series: link })
+        : rich(t("Part of {series}"), { series: link })}
     </p>
   );
 }
 
 /** The rest of the series, with what comes next first. */
 function SeriesShelf({ bookId, ageRating }: { bookId: string; ageRating: AgeRating }) {
+  const t = useT();
   const place = seriesPlace(bookId);
   if (!place || place.total < 2) return null;
   const next = nextInSeries(bookId, ageRating);
@@ -707,12 +727,12 @@ function SeriesShelf({ bookId, ageRating }: { bookId: string; ageRating: AgeRati
   return (
     <Shelf
       id="series"
-      eyebrow={next ? `Next in the series: ${next.title}` : "The series"}
+      eyebrow={next ? t("Next in the series: {title}", { title: next.title }) : t("The series")}
       title={place.series.name}
       items={items.map(fromLocal)}
       action={
         <Link className="secondary-button" to={seriesPath(place.series.name)}>
-          See the series
+          {t("See the series")}
         </Link>
       }
     />
@@ -720,12 +740,13 @@ function SeriesShelf({ bookId, ageRating }: { bookId: string; ageRating: AgeRati
 }
 
 function CatalogMoreLikeThis({ view, ageRating }: { view: DetailView; ageRating: AgeRating }) {
+  const t = useT();
   const book = getBook(view.id);
   const allowed = books.filter((b) => isAllowed(b.ageRating, ageRating));
   // Closest first: shared genres, then the same author or series (lib/recommend.ts).
   const similar = (book ? moreLike(book, allowed, new Set()) : allowed.filter((b) => b.id !== view.id && b.genres.some((g) => view.categories.includes(g))).slice(0, 12)).map(fromLocal);
   if (!similar.length) return null;
-  return <Shelf id="more-like-this" title="More like this" items={similar} />;
+  return <Shelf id="more-like-this" title={t("More like this")} items={similar} />;
 }
 
 function GoogleMoreLikeThis({ view, ageRating }: { view: DetailView; ageRating: AgeRating }) {
@@ -734,11 +755,12 @@ function GoogleMoreLikeThis({ view, ageRating }: { view: DetailView; ageRating: 
 }
 
 function GenreMoreLikeThis({ id, genre, ageRating }: { id: string; genre: BrowseGenre; ageRating: AgeRating }) {
+  const t = useT();
   const feed = useBookFeed(genre === "technology" ? { mode: "home" } : { mode: "genre", genre }, ageRating);
   return (
     <Shelf
       id="more-like-this"
-      title="More like this"
+      title={t("More like this")}
       items={feed.items.filter((b) => b.id !== id)}
       status={feed.status}
       error={feed.error}

@@ -1,4 +1,4 @@
-import { tk } from "./i18n";
+import { tk, tr } from "./i18n";
 import type { BookMood, Mood, Pace } from "../types";
 
 /**
@@ -54,7 +54,7 @@ export const isEmptyMood = (m: BookMood | null | undefined) => !m || (m.moods.le
 /** "Funny, hopeful · Fast", for a list row or an export. */
 export function moodSummary(m: BookMood | null | undefined): string {
   if (isEmptyMood(m)) return "";
-  const moods = m!.moods.map((x) => moodLabel(x).toLowerCase()).join(", ");
+  const moods = m!.moods.map((x) => tr(moodLabel(x)).toLowerCase()).join(", ");
   const words = moods ? moods[0].toUpperCase() + moods.slice(1) : "";
-  return [words, m!.pace ? `${paceLabel(m!.pace)} pace` : ""].filter(Boolean).join(" · ");
+  return [words, m!.pace ? tr("{pace} pace", { pace: tr(paceLabel(m!.pace)) }) : ""].filter(Boolean).join(" · ");
 }

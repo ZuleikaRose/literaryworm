@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getBook } from "../data/books";
 import { canFillShelf } from "../lib/familyShelf";
 import { useFamilyShelf } from "../lib/useFamilyShelf";
+import { useT } from "../lib/useT";
 import { useActiveProfile } from "../store/context";
 import { Icon } from "./Icon";
 
@@ -12,6 +13,7 @@ import { Icon } from "./Icon";
 export function FamilyShelfButton({ bookId }: { bookId: string }) {
   const profile = useActiveProfile();
   const shelf = useFamilyShelf();
+  const t = useT();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   if (!profile || !canFillShelf(profile) || !getBook(bookId) || !shelf.loaded) return null;
@@ -23,7 +25,7 @@ export function FamilyShelfButton({ bookId }: { bookId: string }) {
     try {
       await (on ? shelf.remove(bookId) : shelf.add(profile!.id, bookId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "We couldn't change the family shelf. Try again.");
+      setError(err instanceof Error ? err.message : t("We couldn't change the family shelf. Try again."));
     } finally {
       setBusy(false);
     }
@@ -32,7 +34,7 @@ export function FamilyShelfButton({ bookId }: { bookId: string }) {
   return (
     <>
       <button type="button" className="ghost-button" aria-pressed={on} disabled={busy} onClick={toggle}>
-        <Icon name={on ? "check" : "users"} size={17} /> {on ? "On the family shelf" : "Add to the family shelf"}
+        <Icon name={on ? "check" : "users"} size={17} /> {on ? t("On the family shelf") : t("Add to the family shelf")}
       </button>
       {error && (
         <p className="field-error" role="alert">

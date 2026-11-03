@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { ESSENTIAL } from "../lib/consent";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 /**
@@ -8,6 +9,7 @@ import { Icon } from "./Icon";
  * marked essential: the consent banner would otherwise hold back something the reader chose.
  */
 export function GooglePreview({ id, title, kind }: { id: string; title: string; kind: "full" | "partial" }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const openRef = useRef<HTMLButtonElement>(null);
@@ -15,8 +17,8 @@ export function GooglePreview({ id, title, kind }: { id: string; title: string; 
 
   return (
     <section className="book-preview" aria-labelledby="preview-title">
-      <p className="eyebrow">From Google Books</p>
-      <h2 id="preview-title">{kind === "full" ? "Read it on Google Books" : "Preview"}</h2>
+      <p className="eyebrow">{t("From Google Books")}</p>
+      <h2 id="preview-title">{kind === "full" ? t("Read it on Google Books") : t("Preview")}</h2>
       {open ? (
         <>
           <iframe
@@ -24,7 +26,7 @@ export function GooglePreview({ id, title, kind }: { id: string; title: string; 
             className="book-preview-frame"
             {...ESSENTIAL}
             src={src}
-            title={`Google Books ${kind === "full" ? "viewer" : "preview"}: ${title}`}
+            title={kind === "full" ? t("Google Books viewer: {title}", { title }) : t("Google Books preview: {title}", { title })}
             loading="lazy"
             allowFullScreen
           />
@@ -36,16 +38,16 @@ export function GooglePreview({ id, title, kind }: { id: string; title: string; 
               requestAnimationFrame(() => openRef.current?.focus());
             }}
           >
-            Close the preview
+            {t("Close the preview")}
           </button>
         </>
       ) : (
         <>
           <p className="book-preview-intro">
             {kind === "full"
-              ? "Google Books shows every page of this edition. It opens in Google's viewer here on the page."
-              : "Google Books shows some pages of this edition. They open in Google's viewer here on the page."}{" "}
-            It loads from books.google.com, and Google sets its own third-party cookies when it does.
+              ? t("Google Books shows every page of this edition. It opens in Google's viewer here on the page.")
+              : t("Google Books shows some pages of this edition. They open in Google's viewer here on the page.")}{" "}
+            {t("It loads from books.google.com, and Google sets its own third-party cookies when it does.")}
           </p>
           <button
             ref={openRef}
@@ -57,7 +59,7 @@ export function GooglePreview({ id, title, kind }: { id: string; title: string; 
               requestAnimationFrame(() => frameRef.current?.focus());
             }}
           >
-            <Icon name="bookOpen" size={17} /> {kind === "full" ? "Open Google's viewer" : "Open the preview"}
+            <Icon name="bookOpen" size={17} /> {kind === "full" ? t("Open Google's viewer") : t("Open the preview")}
           </button>
         </>
       )}

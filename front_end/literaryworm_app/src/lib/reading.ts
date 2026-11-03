@@ -1,4 +1,5 @@
 import type { Book, PlayerSettings, ReaderSettings } from "../types";
+import { tr } from "./i18n";
 
 /** Positions in a book, for the reader (pages) and the player (seconds). */
 
@@ -179,14 +180,15 @@ export const defaultReaderSettings: ReaderSettings = {
  */
 export function lostWithBook(logs: number, hasPlace: boolean, bookmarks: number, highlights = 0): string | null {
   const parts = [
-    logs > 0 && (logs === 1 ? "your log" : `your ${logs} logs`),
-    hasPlace && "your place in the book",
-    bookmarks > 0 && (bookmarks === 1 ? "your bookmark" : `your ${bookmarks} bookmarks`),
-    highlights > 0 && (highlights === 1 ? "your highlight" : `your ${highlights} highlights and notes`),
+    logs > 0 && tr.plural(logs, { one: "your log", other: "your {count} logs" }),
+    hasPlace && tr("your place in the book"),
+    bookmarks > 0 && tr.plural(bookmarks, { one: "your bookmark", other: "your {count} bookmarks" }),
+    highlights > 0 && tr.plural(highlights, { one: "your highlight", other: "your {count} highlights and notes" }),
   ].filter((part): part is string => Boolean(part));
   if (parts.length === 0) return null;
-  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-  return `${list[0].toUpperCase()}${list.slice(1)} will be deleted too. This can't be undone.`;
+  const list = parts.length === 1 ? parts[0] : tr("{list} and {last}", { list: parts.slice(0, -1).join(", "), last: parts[parts.length - 1] });
+  const sentence = tr("{list} will be deleted too. This can't be undone.", { list });
+  return `${sentence[0].toUpperCase()}${sentence.slice(1)}`;
 }
 
 /** Today's date in the device's time zone, for the daily limit. */

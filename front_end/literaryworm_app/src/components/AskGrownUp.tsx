@@ -3,6 +3,8 @@ import type { Book } from "../types";
 import { AccountError } from "../lib/accountApi";
 import { canAsk, requestFor } from "../lib/bookRequests";
 import { useBookRequests } from "../lib/useBookRequests";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useActiveProfile } from "../store/context";
 import { Icon } from "./Icon";
 
@@ -16,6 +18,7 @@ export function AskGrownUp({ book }: { book: Book }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
+  const t = useT();
   if (!profile || !canAsk(book, profile)) return null;
   const request = requestFor(requestsOf(profile.id), book.id);
 
@@ -25,7 +28,7 @@ export function AskGrownUp({ book }: { book: Book }) {
     try {
       await action();
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "That didn't work. Try again.");
+      setError(err instanceof AccountError ? err.message : t("That didn't work. Try again."));
     } finally {
       setBusy(false);
     }
@@ -35,19 +38,19 @@ export function AskGrownUp({ book }: { book: Book }) {
     <div className="ask-grown-up">
       {!request ? (
         <button type="button" className="primary-button" disabled={busy} aria-describedby={error ? errorId : undefined} onClick={() => run(() => ask(profile, book.id))}>
-          <Icon name="bell" size={17} /> {busy ? "Asking…" : "Ask a grown-up"}
+          <Icon name="bell" size={17} /> {busy ? t("Asking…") : t("Ask a grown-up")}
         </button>
       ) : request.status === "pending" ? (
         <>
           <p role="status">
-            <Icon name="check" size={16} /> You asked for <cite>{book.title}</cite>. A grown-up can say yes in Account → Family.
+            <Icon name="check" size={16} /> {rich(t("You asked for {title}. A grown-up can say yes in Account → Family."), { title: <cite>{book.title}</cite> })}
           </p>
           <button type="button" className="text-button" disabled={busy} onClick={() => run(() => remove(profile, book.id))}>
-            Don't ask after all
+            {t("Don't ask after all")}
           </button>
         </>
       ) : request.status === "declined" ? (
-        <p role="status">A grown-up said not this one for now. Talk to them if you'd still like to read it.</p>
+        <p role="status">{t("A grown-up said not this one for now. Talk to them if you'd still like to read it.")}</p>
       ) : null}
       {error && (
         <p className="field-error" id={errorId}>

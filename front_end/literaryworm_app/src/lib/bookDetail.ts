@@ -1,5 +1,6 @@
 import { ageRatingLabel, listenMinutes } from "../data/books";
 import { releaseDay, releaseLabel } from "./release";
+import { tr } from "./i18n";
 import type { Book } from "../types";
 import type { VolumeDetail } from "./booksApi";
 
@@ -57,7 +58,12 @@ function hoursLabel(minutes: number): string {
   const whole = Math.round(minutes);
   const h = Math.floor(whole / 60);
   const m = whole % 60;
-  return h ? `${h} hr ${m} min` : `${m} min`;
+  return h ? tr("{h} hr {m} min", { h, m }) : tr("{m} min", { m });
+}
+
+/** "Ebook and Audiobook". */
+function formatsLabel(names: string[]): string {
+  return names.length > 1 ? tr("{list} and {last}", { list: names.slice(0, -1).join(", "), last: names[names.length - 1] }) : names.join("");
 }
 
 function releaseOf(published: string | null): DetailView["release"] {
@@ -94,17 +100,17 @@ export function fromCatalogBook(book: Book): DetailView {
     pageCount: book.pages,
     facts: compact([
       {
-        label: "Narrator",
-        value: book.recording ? `${book.recording.narrator} (LibriVox recording)` : (book.narrator ?? null),
+        label: tr("Narrator"),
+        value: book.recording ? tr("{narrator} (LibriVox recording)", { narrator: book.recording.narrator }) : (book.narrator ?? null),
         narrator: book.recording?.narrator ?? book.narrator,
       },
-      { label: "Publisher", value: book.publisher },
-      { label: "Published", value: String(book.year) },
-      { label: "Length", value: `${book.pages} pages · ${hoursLabel(listenMinutes(book))} listening` },
-      { label: "Format", value: book.formats.map((f) => (f === "ebook" ? "Ebook" : "Audiobook")).join(" and ") },
-      { label: "Language", value: book.language },
-      { label: "Age rating", value: ageRatingLabel[book.ageRating] },
-      { label: "Content notes", value: book.contentNotes?.join(", ") ?? null, wide: true },
+      { label: tr("Publisher"), value: book.publisher },
+      { label: tr("Published"), value: String(book.year) },
+      { label: tr("Length"), value: tr("{pages} pages · {time} listening", { pages: book.pages, time: hoursLabel(listenMinutes(book)) }) },
+      { label: tr("Format"), value: formatsLabel(book.formats.map((f) => (f === "ebook" ? tr("Ebook") : tr("Audiobook")))) },
+      { label: tr("Language"), value: book.language },
+      { label: tr("Age rating"), value: ageRatingLabel[book.ageRating] },
+      { label: tr("Content notes"), value: book.contentNotes?.join(", ") ?? null, wide: true },
     ]),
     googleLink: null,
     release: null,
@@ -126,11 +132,11 @@ export function fromVolume(volume: VolumeDetail): DetailView {
     ratingsCount: volume.ratingsCount,
     pageCount: volume.pageCount,
     facts: compact([
-      { label: "Publisher", value: volume.publisher },
-      { label: "Published", value: publishedLabel(volume.publishedDate) },
-      { label: "Pages", value: volume.pageCount ? String(volume.pageCount) : null },
-      { label: "Language", value: languageName(volume.language) },
-      { label: "Categories", value: volume.categories.join(" · ") || null, wide: true },
+      { label: tr("Publisher"), value: volume.publisher },
+      { label: tr("Published"), value: publishedLabel(volume.publishedDate) },
+      { label: tr("Pages"), value: volume.pageCount ? String(volume.pageCount) : null },
+      { label: tr("Language"), value: languageName(volume.language) },
+      { label: tr("Categories"), value: volume.categories.join(" · ") || null, wide: true },
     ]),
     googleLink: volume.previewLink,
     release: releaseOf(volume.publishedDate),

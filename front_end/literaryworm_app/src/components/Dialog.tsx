@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 interface DialogProps {
@@ -17,6 +18,7 @@ interface DialogProps {
  * closes on Escape, and returns focus to whatever opened it.
  */
 export function Dialog({ open, onClose, title, eyebrow, description, children, size = "md" }: DialogProps) {
+  const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const descId = useId();
@@ -48,7 +50,7 @@ export function Dialog({ open, onClose, title, eyebrow, description, children, s
         <div className="modal-body">
           <button type="button" className="modal-close" onClick={onClose}>
             <Icon name="close" size={18} />
-            <span className="visually-hidden">Close</span>
+            <span className="visually-hidden">{t("Close")}</span>
           </button>
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           <h2 id={titleId} className="modal-title">

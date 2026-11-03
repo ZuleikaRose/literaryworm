@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { AccountError } from "../lib/accountApi";
 import { isEmptyMood, MOODS, MOODS_MAX, moodLabel, moodSummary, PACES, paceLabel, toggleMood } from "../lib/moods";
 import { useCollections } from "../lib/useCollections";
+import { useT } from "../lib/useT";
 import type { BookMood, Mood, Pace } from "../types";
 import { Icon } from "./Icon";
 
@@ -11,6 +12,7 @@ import { Icon } from "./Icon";
  */
 export function MoodPicker({ bookId }: { bookId: string }) {
   const collections = useCollections();
+  const t = useT();
   const mood: BookMood = collections.moods[bookId] ?? { moods: [], pace: null };
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -26,7 +28,7 @@ export function MoodPicker({ bookId }: { bookId: string }) {
       await collections.setMood(bookId, next);
       setMessage(done);
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "We couldn't save the moods. Try again.");
+      setError(err instanceof AccountError ? err.message : t("We couldn't save the moods. Try again."));
     } finally {
       setBusy(false);
     }
@@ -35,27 +37,27 @@ export function MoodPicker({ bookId }: { bookId: string }) {
   function pickMood(m: Mood) {
     const moods = toggleMood(mood.moods, m);
     if (!moods) {
-      setError(`Pick up to ${MOODS_MAX} moods. Turn one off to choose ${moodLabel(m).toLowerCase()}.`);
+      setError(t("Pick up to {max} moods. Turn one off to choose {mood}.", { max: MOODS_MAX, mood: t(moodLabel(m)).toLowerCase() }));
       return;
     }
-    void save({ ...mood, moods }, moods.includes(m) ? `Added ${moodLabel(m).toLowerCase()}.` : `Removed ${moodLabel(m).toLowerCase()}.`);
+    void save({ ...mood, moods }, moods.includes(m) ? t("Added {mood}.", { mood: t(moodLabel(m)).toLowerCase() }) : t("Removed {mood}.", { mood: t(moodLabel(m)).toLowerCase() }));
   }
 
   function pickPace(p: Pace) {
     const pace = mood.pace === p ? null : p;
-    void save({ ...mood, pace }, pace ? `Pace: ${paceLabel(pace).toLowerCase()}.` : "Pace cleared.");
+    void save({ ...mood, pace }, pace ? t("Pace: {pace}.", { pace: t(paceLabel(pace)).toLowerCase() }) : t("Pace cleared."));
   }
 
   const summary = moodSummary(mood);
   return (
     <div className="mood-picker">
       <button type="button" className="text-button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}>
-        {isEmptyMood(mood) ? "How did it feel? Add moods and pace" : `How it felt: ${summary}`}
+        {isEmptyMood(mood) ? t("How did it feel? Add moods and pace") : t("How it felt: {summary}", { summary })}
         <Icon name="chevronDown" size={14} className={open ? "flip" : undefined} />
       </button>
       <div id={panelId} hidden={!open}>
         <fieldset className="mood-group" aria-describedby={error ? errorId : undefined}>
-          <legend>Moods (up to {MOODS_MAX})</legend>
+          <legend>{t("Moods (up to {max})", { max: MOODS_MAX })}</legend>
           <div className="taste-row">
             {MOODS.map((m) => (
               <button
@@ -66,17 +68,17 @@ export function MoodPicker({ bookId }: { bookId: string }) {
                 disabled={busy}
                 onClick={() => pickMood(m.value)}
               >
-                {m.label}
+                {t(m.label)}
               </button>
             ))}
           </div>
         </fieldset>
         <fieldset className="mood-group">
-          <legend>Pace</legend>
+          <legend>{t("Pace")}</legend>
           <div className="taste-row">
             {PACES.map((p) => (
               <button key={p.value} type="button" className="taste-button" aria-pressed={mood.pace === p.value} disabled={busy} onClick={() => pickPace(p.value)}>
-                {p.label}
+                {t(p.label)}
               </button>
             ))}
           </div>

@@ -1,4 +1,5 @@
 import type { ReadingPlan } from "../types";
+import { tr } from "./i18n";
 import { DEFAULT_WPM } from "./pace";
 
 export type { ReadingPlan };
@@ -23,10 +24,10 @@ export const daysBetween = (a: string, b: string) => Math.round(dayNumber(b) - d
 
 /** Why a finish date can't be used, or null when it can: today or later, at most two years ahead. */
 export function planDateError(finishBy: string, today: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(finishBy) || Number.isNaN(dayNumber(finishBy))) return "Choose the day you'd like to finish by.";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(finishBy) || Number.isNaN(dayNumber(finishBy))) return tr("Choose the day you'd like to finish by.");
   const ahead = daysBetween(today, finishBy);
-  if (ahead < 0) return "Choose today or a day still to come.";
-  if (ahead > PLAN_DAYS_MAX) return "Choose a day within the next two years.";
+  if (ahead < 0) return tr("Choose today or a day still to come.");
+  if (ahead > PLAN_DAYS_MAX) return tr("Choose a day within the next two years.");
   return null;
 }
 
@@ -80,23 +81,31 @@ export function planToday(
 
 /** "About 25 minutes or 14 pages a day". */
 export function dailyText(t: Pick<PlanToday, "minutesPerDay" | "pagesPerDay">): string {
-  const minutes = t.minutesPerDay >= 60 ? `${Math.floor(t.minutesPerDay / 60)} hr${t.minutesPerDay % 60 ? ` ${t.minutesPerDay % 60} min` : ""}` : `${t.minutesPerDay} minute${t.minutesPerDay === 1 ? "" : "s"}`;
-  return t.pagesPerDay ? `About ${minutes} or ${t.pagesPerDay} page${t.pagesPerDay === 1 ? "" : "s"} a day` : `About ${minutes} a day`;
+  const h = Math.floor(t.minutesPerDay / 60);
+  const m = t.minutesPerDay % 60;
+  const minutes =
+    t.minutesPerDay >= 60
+      ? m
+        ? tr("{h} hr {m} min", { h, m })
+        : tr("{h} hr", { h })
+      : tr.plural(t.minutesPerDay, { one: "{count} minute", other: "{count} minutes" });
+  return t.pagesPerDay
+    ? tr.plural(t.pagesPerDay, { one: "About {minutes} or {count} page a day", other: "About {minutes} or {count} pages a day" }, { minutes })
+    : tr("About {minutes} a day", { minutes });
 }
 
 /** "2 days ahead", "On track", "1 day behind", "Finished", "The date has passed". */
 export function statusText(t: Pick<PlanToday, "status" | "daysAhead">): string {
-  const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
   switch (t.status) {
     case "done":
-      return "Finished";
+      return tr("Finished");
     case "overdue":
-      return "The date has passed";
+      return tr("The date has passed");
     case "ahead":
-      return `${days(t.daysAhead)} ahead`;
+      return tr.plural(t.daysAhead, { one: "{count} day ahead", other: "{count} days ahead" });
     case "behind":
-      return `${days(-t.daysAhead)} behind`;
+      return tr.plural(-t.daysAhead, { one: "{count} day behind", other: "{count} days behind" });
     default:
-      return "On track";
+      return tr("On track");
   }
 }

@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 /** Back to the previous page in the app, or home when the page was opened from a link. */
@@ -7,6 +8,7 @@ export function BackLink() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useStore();
+  const t = useT();
   const home = state.activeProfileId ? "/browse" : "/";
   // Go back when there's somewhere in the app to go back to; otherwise (opened from a link) go home.
   const canGoBack = location.key !== "default";
@@ -20,7 +22,7 @@ export function BackLink() {
         navigate(-1);
       }}
     >
-      <Icon name="arrowLeft" size={18} /> Back
+      <Icon name="arrowLeft" size={18} /> {t("Back")}
     </Link>
   );
 }

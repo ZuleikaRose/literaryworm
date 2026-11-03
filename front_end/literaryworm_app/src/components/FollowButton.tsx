@@ -2,11 +2,13 @@ import { useId, useState } from "react";
 import { AccountError } from "../lib/accountApi";
 import type { PersonKind } from "../lib/people";
 import { useFollows } from "../lib/useFollows";
+import { useT } from "../lib/useT";
 import { Icon } from "./Icon";
 
 /** Follow or unfollow an author or narrator for the active profile (saved first for members). */
 export function FollowButton({ kind, name, small = false }: { kind: PersonKind; name: string; small?: boolean }) {
   const follows = useFollows();
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Said only after a change, so screen readers aren't told on arrival.
@@ -19,9 +21,9 @@ export function FollowButton({ kind, name, small = false }: { kind: PersonKind; 
     setError(null);
     try {
       await follows.toggle(kind, name);
-      setAnnouncement(following ? `You no longer follow ${name}.` : `You follow ${name}.`);
+      setAnnouncement(following ? t("You no longer follow {name}.", { name }) : t("You follow {name}.", { name }));
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
     } finally {
       setBusy(false);
     }
@@ -37,7 +39,7 @@ export function FollowButton({ kind, name, small = false }: { kind: PersonKind; 
         disabled={busy}
         onClick={toggle}
       >
-        <Icon name={following ? "check" : "plus"} size={16} /> {following ? "Following" : "Follow"}
+        <Icon name={following ? "check" : "plus"} size={16} /> {following ? t("Following") : t("Follow")}
         {small && <span className="visually-hidden"> {name}</span>}
       </button>
       {error && (

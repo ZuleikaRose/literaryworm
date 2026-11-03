@@ -1,4 +1,5 @@
 import type { ReadingLog } from "../types";
+import { tk } from "../lib/i18n";
 
 const day = 86_400_000;
 const now = Date.now();
@@ -43,8 +44,8 @@ export const seedLogs: ReadingLog[] = [
 export const LOG_MAX = 5000;
 
 export const readingStatusLabel = {
-  want_to_read: "Want to read",
-  reading: "Reading",
-  finished: "Finished",
-  did_not_finish: "Didn't finish",
-} as const;
+  want_to_read: tk("Want to read"),
+  reading: tk("Reading"),
+  finished: tk("Finished"),
+  did_not_finish: tk("Didn't finish"),
+};

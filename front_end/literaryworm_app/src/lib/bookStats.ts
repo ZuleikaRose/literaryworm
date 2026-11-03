@@ -1,4 +1,5 @@
 import type { BookDay } from "../types";
+import { tr } from "./i18n";
 
 /**
  * Reading statistics for one book: the time a profile spent with it, day by day, and where in the
@@ -75,17 +76,17 @@ export function bookStats(days: Record<string, BookDay> | undefined, at: number 
 /** "3 hr 20 min", "45 min", "under a minute". */
 export function spentText(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 1) return "under a minute";
+  if (minutes < 1) return tr("under a minute");
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  if (h === 0) return `${m} min`;
-  return m === 0 ? `${h} hr` : `${h} hr ${m} min`;
+  if (h === 0) return tr("{m} min", { m });
+  return m === 0 ? tr("{h} hr", { h }) : tr("{h} hr {m} min", { h, m });
 }
 
 /** "About 12% an hour". */
 export function paceText(perHour: number): string {
   const percent = perHour * 100;
-  return percent < 1 ? "Under 1% of the book an hour" : `About ${Math.round(percent)}% of the book an hour`;
+  return percent < 1 ? tr("Under 1% of the book an hour") : tr("About {percent}% of the book an hour", { percent: Math.round(percent) });
 }
 
 /** Rows from `book_reading_days` as days. */
