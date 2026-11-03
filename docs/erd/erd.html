@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6660, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6662, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -981,7 +981,7 @@
             ["", "words", "integer"],
             ["", "storage_path", "text (unique)"],
             ["", "created_at", "timestamptz"],
-            ["", "published_year?", "smallint 1–9999"],
+            ["", "published_year", "smallint 1–9999", true],
           ],
           note: "The text is JSON in the private user-books bucket, at <user_id>/<id>.json (Storage RLS: own folder only, 15 MB). The id is a valid volume id, so the library, progress and highlights work. FK (profile_id, user_id) → reader_profiles, on delete cascade; indexed, and user_id. Not on Kids profiles; up to 50. RLS: owner only.",
         },
