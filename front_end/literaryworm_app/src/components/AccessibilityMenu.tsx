@@ -1,28 +1,36 @@
 import { useId } from "react";
+import { tk, UI_LANGUAGES, type UiLanguage } from "../lib/i18n";
 import { TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
 import { usePopover } from "../lib/usePopover";
+import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import { startingA11y } from "../store/state";
 import type { A11ySettings } from "../types";
 import { Icon } from "./Icon";
 
 const textSizes = [
-  { value: 1, label: "Default" },
-  { value: 1.15, label: "Large" },
-  { value: 1.3, label: "Larger" },
+  { value: 1, label: tk("Default") },
+  { value: 1.15, label: tk("Large") },
+  { value: 1.3, label: tk("Larger") },
 ];
 
 const toggles: { key: "readableFont" | "highContrast" | "underlineLinks" | "reduceMotion"; label: string; hint: string }[] = [
-  { key: "readableFont", label: "Dyslexia-friendly font", hint: "Switches the interface to Lexend" },
-  { key: "highContrast", label: "High contrast", hint: "Black or white backgrounds, bolder text and edges; on when your device asks for more contrast" },
-  { key: "underlineLinks", label: "Highlight links", hint: "Underlines every link" },
-  { key: "reduceMotion", label: "Stop animations", hint: "Turns off movement and the carousel" },
+  { key: "readableFont", label: tk("Dyslexia-friendly font"), hint: tk("Switches the interface to Lexend") },
+  {
+    key: "highContrast",
+    label: tk("High contrast"),
+    hint: tk("Black or white backgrounds, bolder text and edges; on when your device asks for more contrast"),
+  },
+  { key: "underlineLinks", label: tk("Highlight links"), hint: tk("Underlines every link") },
+  { key: "reduceMotion", label: tk("Stop animations"), hint: tk("Turns off movement and the carousel") },
 ];
 
 export function AccessibilityMenu() {
   const { state, dispatch } = useStore();
+  const t = useT();
   const { open, toggle, wrapRef, triggerRef } = usePopover();
   const panelId = useId();
+  const languageId = useId();
   const a11y = state.a11y;
   const set = (patch: Partial<A11ySettings>) => dispatch({ type: "updateA11y", patch });
 
@@ -37,14 +45,27 @@ export function AccessibilityMenu() {
         onClick={toggle}
       >
         <Icon name="accessibility" />
-        <span className="visually-hidden">Accessibility menu</span>
+        <span className="visually-hidden">{t("Accessibility menu")}</span>
       </button>
       {open && (
-        <div id={panelId} className="popover a11y-panel" role="region" aria-label="Accessibility settings">
-          <h2 className="popover-title">Accessibility</h2>
+        <div id={panelId} className="popover a11y-panel" role="region" aria-label={t("Accessibility settings")}>
+          <h2 className="popover-title">{t("Accessibility")}</h2>
+
+          <div className="field a11y-language">
+            <label className="field-label" htmlFor={languageId}>
+              {t("Language")}
+            </label>
+            <select id={languageId} className="field-input" value={a11y.language} onChange={(e) => set({ language: e.target.value as UiLanguage })}>
+              {UI_LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code} lang={l.code}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <fieldset className="segmented">
-            <legend>Text size</legend>
+            <legend>{t("Text size")}</legend>
             <div>
               {textSizes.map((s) => (
                 <label key={s.value}>
@@ -54,20 +75,20 @@ export function AccessibilityMenu() {
                     checked={a11y.textScale === s.value}
                     onChange={() => set({ textScale: s.value })}
                   />
-                  <span>{s.label}</span>
+                  <span>{t(s.label)}</span>
                 </label>
               ))}
             </div>
           </fieldset>
 
           <fieldset className="segmented">
-            <legend>Theme</legend>
+            <legend>{t("Theme")}</legend>
             <div>
-              {(["dark", "light"] as const).map((t) => (
-                <label key={t}>
-                  <input type="radio" name="theme" checked={a11y.theme === t} onChange={() => set({ theme: t })} />
+              {(["dark", "light"] as const).map((theme) => (
+                <label key={theme}>
+                  <input type="radio" name="theme" checked={a11y.theme === theme} onChange={() => set({ theme })} />
                   <span>
-                    <Icon name={t === "dark" ? "moon" : "sun"} size={15} /> {t === "dark" ? "Dark" : "Light"}
+                    <Icon name={theme === "dark" ? "moon" : "sun"} size={15} /> {theme === "dark" ? t("Dark") : t("Light")}
                   </span>
                 </label>
               ))}
@@ -75,30 +96,30 @@ export function AccessibilityMenu() {
           </fieldset>
 
           <ul className="switch-list">
-            {toggles.map((t) => (
-              <li key={t.key}>
+            {toggles.map((item) => (
+              <li key={item.key}>
                 <label className="switch-row">
                   <span>
-                    <strong>{t.label}</strong>
-                    <small>{t.hint}</small>
+                    <strong>{t(item.label)}</strong>
+                    <small>{t(item.hint)}</small>
                   </span>
                   <input
                     type="checkbox"
                     role="switch"
                     className="switch"
-                    checked={Boolean(a11y[t.key])}
-                    onChange={(e) => set({ [t.key]: e.target.checked })}
+                    checked={Boolean(a11y[item.key])}
+                    onChange={(e) => set({ [item.key]: e.target.checked })}
                   />
                 </label>
               </li>
             ))}
           </ul>
 
-          <h3 className="popover-subtitle">Audio and transcripts</h3>
+          <h3 className="popover-subtitle">{t("Audio and transcripts")}</h3>
           <label className="switch-row a11y-transcript-switch">
             <span>
-              <strong>Read-along transcript</strong>
-              <small>Shows the words in the audiobook player</small>
+              <strong>{t("Read-along transcript")}</strong>
+              <small>{t("Shows the words in the audiobook player")}</small>
             </span>
             <input
               type="checkbox"
@@ -109,7 +130,7 @@ export function AccessibilityMenu() {
             />
           </label>
           <fieldset className="segmented">
-            <legend>Transcript size</legend>
+            <legend>{t("Transcript size")}</legend>
             <div>
               {TRANSCRIPT_SIZES.map((s) => (
                 <label key={s.value}>
@@ -119,13 +140,13 @@ export function AccessibilityMenu() {
                     checked={a11y.transcriptSize === s.value}
                     onChange={() => set({ transcriptSize: s.value })}
                   />
-                  <span>{s.label}</span>
+                  <span>{t(s.label)}</span>
                 </label>
               ))}
             </div>
           </fieldset>
           <fieldset className="segmented">
-            <legend>Transcript language</legend>
+            <legend>{t("Transcript language")}</legend>
             <div>
               {TRANSCRIPT_LANGUAGES.map((l) => (
                 <label key={l.value}>
@@ -142,7 +163,7 @@ export function AccessibilityMenu() {
           </fieldset>
 
           <button type="button" className="text-button" onClick={() => set(startingA11y())}>
-            Reset to defaults
+            {t("Reset to defaults")}
           </button>
         </div>
       )}

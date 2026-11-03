@@ -1,3 +1,4 @@
+import { browserUiLanguage } from "../lib/i18n";
 import { prefersMoreContrast } from "../lib/contrast";
 import { getBook } from "../data/books";
 import { DEMO_UPLOAD_READING, demoUploads } from "../data/demoUploads";
@@ -72,7 +73,7 @@ export interface Household {
 export const MAX_PROFILES = 12;
 
 /** The accessibility settings a visit starts with: the defaults, with High contrast on when the device asks for more contrast. */
-export const startingA11y = (): A11ySettings => ({ ...defaultA11y, highContrast: prefersMoreContrast() });
+export const startingA11y = (): A11ySettings => ({ ...defaultA11y, highContrast: prefersMoreContrast(), language: browserUiLanguage() });
 
 export const defaultA11y: A11ySettings = {
   textScale: 1,
@@ -84,6 +85,7 @@ export const defaultA11y: A11ySettings = {
   transcript: true,
   transcriptSize: "medium",
   transcriptLanguage: "en",
+  language: "en",
 };
 
 export const emptyProfileData = (): ProfileData => ({

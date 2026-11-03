@@ -1,3 +1,4 @@
+import { useT } from "../lib/useT";
 import { startTransition, useId } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePopover } from "../lib/usePopover";
@@ -8,6 +9,7 @@ import { Icon } from "./Icon";
 
 export function ProfileMenu() {
   const { state, dispatch } = useStore();
+  const t = useT();
   const profile = useActiveProfile();
   const navigate = useNavigate();
   const signOutAndLeave = useSignOut();
@@ -42,13 +44,13 @@ export function ProfileMenu() {
       >
         <Avatar name={profile.name} avatar={profile.avatar} />
         <span className="profile-button-name">{profile.name}</span>
-        <span className="visually-hidden">, profile menu</span>
+        <span className="visually-hidden">{t(", profile menu")}</span>
       </button>
       {open && (
         <div id={menuId} className="popover profile-menu">
           {others.length > 0 && (
             <>
-              <p className="popover-label">Switch profile</p>
+              <p className="popover-label">{t("Switch profile")}</p>
               <ul className="menu-list">
                 {others.map((p) => (
                   <li key={p.id}>
@@ -66,24 +68,24 @@ export function ProfileMenu() {
           <ul className="menu-list">
             <li>
               <button type="button" className="menu-item" onClick={switchTo}>
-                <Icon name="users" size={18} /> Manage profiles
+                <Icon name="users" size={18} /> {t("Manage profiles")}
               </button>
             </li>
             <li>
               <Link className="menu-item" to="/account" onClick={() => close(false)}>
-                <Icon name="settings" size={18} /> Account
+                <Icon name="settings" size={18} /> {t("Account")}
               </Link>
             </li>
             {profile.ageRating !== "kids" && (
               <li>
                 <Link className="menu-item" to="/gifts" onClick={() => close(false)}>
-                  <Icon name="gift" size={18} /> Gifts
+                  <Icon name="gift" size={18} /> {t("Gifts")}
                 </Link>
               </li>
             )}
             <li>
               <button type="button" className="menu-item" onClick={signOut}>
-                <Icon name="logOut" size={18} /> Sign out
+                <Icon name="logOut" size={18} /> {t("Sign out")}
               </button>
             </li>
           </ul>

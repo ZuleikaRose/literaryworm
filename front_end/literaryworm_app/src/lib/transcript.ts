@@ -1,12 +1,13 @@
+import { tk } from "./i18n";
 import { samplePageSentences } from "../data/sampleText";
 import type { A11ySettings, Book, TranscriptLanguage } from "../types";
 import { speakingParts } from "./narration";
 import { chapterTimes, readerPages } from "./reading";
 
 export const TRANSCRIPT_SIZES: { value: A11ySettings["transcriptSize"]; label: string }[] = [
-  { value: "small", label: "Small" },
-  { value: "medium", label: "Medium" },
-  { value: "large", label: "Large" },
+  { value: "small", label: tk("Small") },
+  { value: "medium", label: tk("Medium") },
+  { value: "large", label: tk("Large") },
 ];
 
 /** Each language's name in that language. */

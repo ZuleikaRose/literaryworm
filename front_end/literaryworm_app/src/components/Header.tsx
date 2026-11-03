@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { usesBackend } from "../lib/booksApi";
 import { cleanIsbn, searchUrl, unfiltered, type SearchBy } from "../lib/search";
+import { tk } from "../lib/i18n";
 import { useSignOut } from "../lib/useSignOut";
+import { useT } from "../lib/useT";
 import { useActiveProfile, useStore } from "../store/context";
 import { AccessibilityMenu } from "./AccessibilityMenu";
 import { Icon } from "./Icon";
@@ -10,6 +12,7 @@ import { NotificationBell } from "./NotificationBell";
 import { ProfileMenu } from "./ProfileMenu";
 
 export function Brand({ to }: { to: string }) {
+  const t = useT();
   return (
     <Link className="brand" to={to}>
       <span className="brand-mark">
@@ -18,20 +21,21 @@ export function Brand({ to }: { to: string }) {
       <strong>
         Literary<span>Worm</span>
       </strong>
-      <span className="visually-hidden">, home</span>
+      <span className="visually-hidden">{t(", home")}</span>
     </Link>
   );
 }
 
 const HEADER_SEARCH: Record<SearchBy, { label: string; placeholder: string }> = {
-  title: { label: "Title", placeholder: "Search by title" },
-  author: { label: "Author", placeholder: "Search by author" },
-  keywords: { label: "Keywords", placeholder: "Search by keywords" },
-  isbn: { label: "ISBN", placeholder: "Search by ISBN" },
+  title: { label: tk("Title"), placeholder: tk("Search by title") },
+  author: { label: tk("Author"), placeholder: tk("Search by author") },
+  keywords: { label: tk("Keywords"), placeholder: tk("Search by keywords") },
+  isbn: { label: tk("ISBN"), placeholder: tk("Search by ISBN") },
 };
 
 function HeaderSearch() {
   const navigate = useNavigate();
+  const t = useT();
   const profile = useActiveProfile();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -66,17 +70,17 @@ function HeaderSearch() {
     <form className="search-box" role="search" onSubmit={submit}>
       <Icon name="search" size={19} />
       <label className="visually-hidden" htmlFor="header-search-by">
-        Search by
+        {t("Search by")}
       </label>
       <select id="header-search-by" className="search-box-by" value={by} onChange={(e) => setBy(e.target.value as SearchBy)}>
         {choices.map((c) => (
           <option key={c} value={c}>
-            {HEADER_SEARCH[c].label}
+            {t(HEADER_SEARCH[c].label)}
           </option>
         ))}
       </select>
       <label className="visually-hidden" htmlFor="header-search">
-        {HEADER_SEARCH[by].placeholder}
+        {t(HEADER_SEARCH[by].placeholder)}
       </label>
       <input
         ref={inputRef}
@@ -84,7 +88,7 @@ function HeaderSearch() {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={HEADER_SEARCH[by].placeholder}
+        placeholder={t(HEADER_SEARCH[by].placeholder)}
         inputMode={by === "isbn" ? "numeric" : undefined}
         autoComplete="off"
       />
@@ -95,6 +99,7 @@ function HeaderSearch() {
 
 export function Header() {
   const { state } = useStore();
+  const t = useT();
   const profile = useActiveProfile();
   const signOut = useSignOut();
   const isMember = Boolean(state.account && profile);
@@ -105,19 +110,19 @@ export function Header() {
       <Brand to={isMember ? "/browse" : "/"} />
       {/* The search page has its own, larger box, so the header's steps aside there. */}
       {isMember && location.pathname !== "/search" && <HeaderSearch />}
-      <nav className="desktop-nav" aria-label="Primary">
+      <nav className="desktop-nav" aria-label={t("Primary")}>
         {isMember ? (
           <>
-            <NavLink to="/browse">Discover</NavLink>
-            <NavLink to="/library">My Library</NavLink>
+            <NavLink to="/browse">{t("Discover")}</NavLink>
+            <NavLink to="/library">{t("My Library")}</NavLink>
           </>
         ) : (
           <>
             <NavLink to="/" end>
-              Home
+              {t("Home")}
             </NavLink>
-            <NavLink to="/search">Search</NavLink>
-            <NavLink to="/plans">Plans</NavLink>
+            <NavLink to="/search">{t("Search")}</NavLink>
+            <NavLink to="/plans">{t("Plans")}</NavLink>
           </>
         )}
       </nav>
@@ -125,7 +130,7 @@ export function Header() {
         {!isMember && (
           <Link className="icon-button header-search-link" to="/search">
             <Icon name="search" size={20} />
-            <span className="visually-hidden">Search</span>
+            <span className="visually-hidden">{t("Search")}</span>
           </Link>
         )}
         {isMember && <NotificationBell />}
@@ -135,27 +140,27 @@ export function Header() {
         ) : state.account ? (
           <>
             <button type="button" className="login-button" onClick={signOut}>
-              Log out
+              {t("Log out")}
             </button>
             {state.account.planId ? (
               location.pathname !== "/profiles" && (
                 <Link className="signup-button" to="/profiles">
-                  Choose profile
+                  {t("Choose profile")}
                 </Link>
               )
             ) : (
               <Link className="signup-button" to="/plans?setup=1">
-                Finish setup
+                {t("Finish setup")}
               </Link>
             )}
           </>
         ) : (
           <>
             <Link className="login-button" to="/signin">
-              Log in
+              {t("Log in")}
             </Link>
             <Link className="signup-button" to="/signup">
-              Sign up
+              {t("Sign up")}
             </Link>
           </>
         )}

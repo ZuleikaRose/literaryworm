@@ -7,6 +7,7 @@ import { LegalEditor } from "../components/LegalEditor";
 import { hasRole } from "../lib/staff";
 import { replaceLegalPage, useLegalPages } from "../lib/useLegalPages";
 import { useStaffRoles } from "../lib/useStaffRoles";
+import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
 import NotFound from "./NotFound";
 
@@ -23,11 +24,13 @@ export default function Legal() {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
+  const t = useT();
   useTitle(page?.title ?? "");
   if (!page) return <NotFound />;
 
   return (
-    <article className="page legal-page">
+    // Policies and Help are written in English only, so the page says so to screen readers too.
+    <article className="page legal-page" lang="en">
       <StructuredData
         id="page"
         data={pageData({
@@ -41,6 +44,11 @@ export default function Legal() {
       <h1 ref={heading} tabIndex={-1}>
         {page.title}
       </h1>
+      {t.lang !== "en" && (
+        <p className="legal-language-note" role="note" lang={t.lang}>
+          <Icon name="globe" size={16} /> {t("This page is only available in English. The English version is the one that applies.")}
+        </p>
+      )}
       {editing ? (
         <LegalEditor
           key={page.slug}

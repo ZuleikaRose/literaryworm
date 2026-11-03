@@ -241,6 +241,23 @@ describe("a visitor", () => {
   });
 });
 
+describe("languages", () => {
+  it("switches the app's language from the accessibility menu, keeping policies in English with a note", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    await page.getByRole("button", { name: "Accessibility menu" }).click();
+    await page.getByLabel("Language").selectOption("fr");
+    await page.getByRole("link", { name: "Formules" }).first().waitFor();
+    await expect(page.evaluate(() => document.documentElement.lang)).resolves.toBe("fr");
+    await page.keyboard.press("Escape");
+    await page.getByRole("link", { name: "Politique de confidentialité" }).click();
+    await page.getByText("Cette page n’existe qu’en anglais. C’est la version anglaise qui fait foi.").waitFor();
+    await expect(page.locator("article").getAttribute("lang")).resolves.toBe("en");
+    await page.getByRole("heading", { level: 1, name: "Privacy Policy" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+});
+
 describe("the demo household", () => {
   it("signs in and lands on Discover with the bell", async () => {
     const { page, errors } = await newPage();

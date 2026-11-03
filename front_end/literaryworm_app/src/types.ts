@@ -526,6 +526,8 @@ export interface A11ySettings {
   transcript: boolean;
   transcriptSize: "small" | "medium" | "large";
   transcriptLanguage: TranscriptLanguage;
+  /** The app's language (lib/i18n.ts): the browser's when it's one the app speaks, else English. */
+  language: import("./lib/i18n").UiLanguage;
 }
 
 export type TranscriptLanguage = "en" | "es";

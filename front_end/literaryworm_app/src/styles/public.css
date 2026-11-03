@@ -767,3 +767,21 @@ select.field-input {
     grid-template-columns: 1fr;
   }
 }
+
+/* Policies and Help are in English only: a note in the reader's language says so (pages/Legal.tsx). */
+.legal-language-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--surface-raised);
+}
+
+.legal-language-note .icon {
+  flex: none;
+  margin-top: 3px;
+}
