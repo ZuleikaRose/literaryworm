@@ -97,6 +97,10 @@ describe("genres", () => {
     expect(genreForCategories(["Biography & Autobiography / Personal Memoirs"])).toBe("biography");
     expect(genreForCategories(["Computers / Programming"])).toBe("technology");
     expect(genreForCategories(["Self-Help / Personal Growth"])).toBe("self-help");
+    expect(genreForCategories(["Fiction / LGBTQ+ / Gay"])).toBe("lgbtqia");
+    expect(genreForCategories(["Social Science / LGBTQ+ Studies / General"])).toBe("lgbtqia");
+    expect(genreForCategories(["Fiction / Lesbian"])).toBe("lgbtqia");
+    expect(genreForCategories(["Young Adult Fiction / LGBTQ+"])).toBe("young-adult");
     expect(genreForCategories(["Cooking"])).toBe("non-fiction");
     expect(genreForCategories([])).toBeNull();
   });

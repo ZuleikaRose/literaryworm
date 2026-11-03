@@ -74,6 +74,7 @@ Deno.test("an empty filtered list is asked again with plain words, once", async 
   const cases: [string, string, string][] = [
     ["mode=genre&genre=technology", "subject:technology", "technology"],
     ["mode=genre&genre=sci-fi&page=2", 'subject:"science fiction"', '"science fiction"'],
+    ["mode=genre&genre=lgbtqia", "subject:lgbtq", "lgbtq"],
     ["mode=search&q=the%20hobbit", "intitle:the intitle:hobbit", "the hobbit"],
     ["mode=search&q=dune&genre=horror&sort=newest", "intitle:dune subject:horror", "dune horror"],
     ["mode=author&name=Matt%20Haig", 'inauthor:"Matt Haig"', '"Matt Haig"'],
@@ -139,6 +140,7 @@ Deno.test("each genre maps to a subject query", async () => {
     "historical-fiction": 'subject:"historical fiction"',
     children: 'subject:"juvenile fiction"',
     "self-help": 'subject:"self-help"',
+    lgbtqia: "subject:lgbtq",
   };
   for (const [genre, q] of Object.entries(expected)) {
     const { calls, fetcher } = stub(200, fullPage);

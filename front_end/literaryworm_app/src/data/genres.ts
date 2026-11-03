@@ -24,6 +24,7 @@ export const browseGenres = [
   { id: "science", label: tk("Science"), shelf: false },
   { id: "self-help", label: tk("Self-Help"), shelf: false },
   { id: "poetry", label: tk("Poetry"), shelf: false },
+  { id: "lgbtqia", label: tk("LGBTQIA+"), shelf: false },
 ] as const;
 
 export type BrowseGenre = (typeof browseGenres)[number]["id"];
@@ -69,6 +70,8 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
   science: ["Science"],
   "self-help": ["Self-development"],
   poetry: ["Poetry"],
+  // No catalog title is tagged LGBTQIA+ yet: the genre comes from Google Books.
+  lgbtqia: ["LGBTQIA+"],
 };
 
 /**
@@ -79,6 +82,8 @@ export function genreForCategories(categories: string[]): BrowseGenre | null {
   const text = categories.join(" ").toLowerCase();
   if (/juvenile/.test(text)) return "children";
   if (/young adult/.test(text)) return "young-adult";
+  // BISAC's LGBTQ+ categories, and the older Gay and Lesbian ones.
+  if (/lgbt|\bgay\b|lesbian|bisexual|transgender|queer|intersex|asexual/.test(text)) return "lgbtqia";
   if (/science fiction|sci-fi/.test(text)) return "sci-fi";
   if (/horror/.test(text)) return "horror";
   if (/fantasy/.test(text)) return "fantasy";

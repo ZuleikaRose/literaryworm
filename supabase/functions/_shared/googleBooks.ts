@@ -32,6 +32,8 @@ export const GENRE_QUERIES: Record<Genre, string> = {
   science: "subject:science",
   "self-help": 'subject:"self-help"',
   poetry: "subject:poetry",
+  // BISAC's LGBTQ+ categories (Fiction / LGBTQ+, Social Science / LGBTQ+ Studies) match the word lgbtq.
+  lgbtqia: "subject:lgbtq",
 };
 
 // The same genres as plain words, for when Google answers a `subject:` query with
@@ -56,6 +58,7 @@ export const GENRE_WORDS: Record<Genre, string> = {
   science: "science",
   "self-help": '"self help"',
   poetry: "poetry",
+  lgbtqia: "lgbtq",
 };
 
 export const HOME_QUERY = "technology";

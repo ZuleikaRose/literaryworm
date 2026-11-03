@@ -150,7 +150,7 @@ describe("a visitor", () => {
     await page.getByRole("heading", { name: "Fantasy books" }).waitFor();
     await expect(genres.getByRole("link", { name: "Fantasy" }).getAttribute("aria-current")).resolves.toBe("page");
 
-    const all = ["Technology", "Adventure", "Sci-Fi", "Fiction", "Non-Fiction", "Horror", "Fantasy", "Mystery", "Thriller", "Romance", "Classics", "Historical Fiction", "Young Adult", "Children's", "Biography & Memoir", "History", "Science", "Self-Help", "Poetry"];
+    const all = ["Technology", "Adventure", "Sci-Fi", "Fiction", "Non-Fiction", "Horror", "Fantasy", "Mystery", "Thriller", "Romance", "Classics", "Historical Fiction", "Young Adult", "Children's", "Biography & Memoir", "History", "Science", "Self-Help", "Poetry", "LGBTQIA+"];
     await expect(genres.getByRole("link").allInnerTexts()).resolves.toEqual(all);
 
     await page.goto(`${BASE_URL}/search`);

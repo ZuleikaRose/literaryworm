@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-03",
     "version": "2026.11",
     "kind": "update",
+    "title": "LGBTQIA+ books to browse and search",
+    "body": "LGBTQIA+ is now a genre on Home's Keep discovering, Discover, Search's Or browse a genre and the genre filter, and among the favourite genres for a profile. Its books come from Google Books, which files them under LGBTQ+; like every list, titles Google marks as mature are left out.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Home tells you when a sprint is on",
     "body": "When someone at home starts a reading sprint, Home shows the time left and takes you to Goals to join in. The home page, Plans and the FAQs now describe reading sprints, gift wishlists, inviting friends and the app in seven languages.",
     "major": false

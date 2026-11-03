@@ -794,6 +794,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 242. **Gift wishlists.** A list shared by link (My Library → Lists → Share) is a wishlist too. Its page has *Give this list as a gift*, which opens Gifts with up to 10 of its LiteraryWorm books already picked and notes whose wishlist it is; the buyer chooses the plan and months and pays through the usual gift checkout. Google Books titles on the list can't come with a gift, and Kids profiles don't see the offer.
 
+243. **LGBTQIA+ books.** LGBTQIA+ is the twentieth genre: a link in Home's *Keep discovering*, on Discover and Search, a choice in Search's genre filter and among a profile's favourite genres. Its books come from Google Books' LGBTQ+ categories, without the titles Google marks as mature; Kids profiles see only the sample catalog, which has none tagged yet.
+
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 
 224. **Google Books cookies, said plainly.** Because we use the Google Books API, covers of Google Books titles and the Google Books preview load from books.google.com, and Google sets third-party cookies there. The Cookie Policy lists them, and the Privacy Policy, Help, the FAQ, the Children's Privacy Notice and the preview's note say so (migration 6618).

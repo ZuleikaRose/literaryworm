@@ -8,6 +8,7 @@ export const GENRES = [
   "adventure", "technology", "horror", "sci-fi", "fiction", "non-fiction",
   "fantasy", "mystery", "thriller", "romance", "classics", "historical-fiction",
   "young-adult", "children", "biography", "history", "science", "self-help", "poetry",
+  "lgbtqia",
 ] as const;
 export type Genre = (typeof GENRES)[number];
 
