@@ -89,7 +89,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I try it before I pay?"),
-    a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs and challenges. Nothing you do there is saved, and it can't take payments."),
+    a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs, challenges and a reading sprint, with an invite link and a wishlist to try. Nothing you do there is saved, and it can't take payments."),
   },
   {
     q: tk("How does billing work?"),
