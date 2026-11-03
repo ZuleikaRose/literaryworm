@@ -521,6 +521,8 @@ export interface ReadingLog {
 export interface A11ySettings {
   textScale: number;
   readableFont: boolean;
+  /** The whole interface in OpenDyslexic (self-hosted); turning it on turns Lexend off, and the other way round. */
+  dyslexicFont: boolean;
   highContrast: boolean;
   reduceMotion: boolean;
   underlineLinks: boolean;

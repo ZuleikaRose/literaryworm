@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import type { BookSummary, FeedQuery } from "../lib/booksApi";
+import { sampleOf } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
 import type { AgeRating } from "../types";
 import { BookTile, BookTileSkeleton } from "./BookTile";
@@ -20,6 +21,11 @@ interface BookFeedProps {
   endText?: string;
   /** Told the books loaded so far, each time more arrive (author search lists their authors). */
   onItems?: (items: BookSummary[]) => void;
+  /** Queries to run on into when this one runs out (members' Home: the other genres). */
+  then?: FeedQuery[];
+  /** Show only this many books, then `sampleEnd` instead of loading more (the public home's sample). */
+  sampleSize?: number;
+  sampleEnd?: ReactNode;
 }
 
 /**
@@ -27,9 +33,16 @@ interface BookFeedProps {
  * discovering"). A Load more button does the same for keyboard users and browsers without
  * IntersectionObserver.
  */
-export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint, endText, onItems }: BookFeedProps) {
+export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint, endText, onItems, then, sampleSize, sampleEnd }: BookFeedProps) {
   const t = useT();
-  const { items, status, error, loadMore, retry } = useBookFeed(query, ageRating);
+  const feed = useBookFeed(query, ageRating, then);
+  const { error, retry } = feed;
+  // A visitor's sample stops at its size: no more pages are asked for once it's full.
+  const { shown: items, capped } = sampleOf(feed.items, sampleSize);
+  const status = capped ? "end" : feed.status;
+  const loadMore = feed.loadMore;
+  // The invitation shows once the sample is full, or the list ran out before it filled.
+  const sampleDone = sampleSize !== undefined && status === "end" && items.length > 0;
   const report = useRef(onItems);
   useEffect(() => {
     report.current = onItems;
@@ -104,7 +117,9 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
         </div>
       )}
 
-      {status === "end" && items.length > 0 && <p className="feed-end">{endText ?? t("That's everything in {title}.", { title })}</p>}
+      {sampleDone && sampleEnd}
+
+      {status === "end" && !sampleDone && items.length > 0 && <p className="feed-end">{endText ?? t("That's everything in {title}.", { title })}</p>}
 
       {status === "idle" && (
         <div className="feed-more" ref={sentinel}>

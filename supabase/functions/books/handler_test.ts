@@ -1,5 +1,7 @@
 // deno test supabase/functions/books — runs offline with a stubbed Google.
 import { assert, assertEquals, assertFalse } from "jsr:@std/assert@1.0.13";
+import type { BookCache, CachedList } from "../_shared/bookCache.ts";
+import type { BookDetail, BookPage } from "../_shared/googleBooks.ts";
 import { handle } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
@@ -371,4 +373,70 @@ Deno.test("keywords search Google's plain index, with the same options as search
   assertEquals(url.searchParams.get("startIndex"), "20");
   const bad = await handle(get("mode=keywords&q=dune&name=x"), { fetcher });
   assertEquals(bad.status, 400);
+});
+
+// --- The Supabase cache (migration 6666) ---------------------------------------
+
+/** An in-memory BookCache, as the function would see the tables. */
+function memoryCache() {
+  const volumes = new Map<string, { detail: BookDetail; stale: boolean }>();
+  const lists = new Map<string, CachedList>();
+  const cache: BookCache = {
+    getVolume: (id) => Promise.resolve(volumes.get(id)?.stale === false ? volumes.get(id)!.detail : null),
+    putVolume: (detail) => Promise.resolve(void volumes.set(detail.id, { detail, stale: false })),
+    getList: (key) => Promise.resolve(lists.get(key) ?? null),
+    putList: (key, page: BookPage) => Promise.resolve(void lists.set(key, { page, volumeIds: page.items.map((b) => b.id), fresh: true })),
+  };
+  return { cache, volumes, lists };
+}
+
+Deno.test("a book's details are asked of Google once, then served from the cache", async () => {
+  const { calls, fetcher } = stub(200, volume("abc123"));
+  const { cache } = memoryCache();
+  const first = await handle(get("mode=volume&id=abc123"), { fetcher, cache });
+  assertEquals(first.headers.get("X-Book-Cache"), "miss");
+  const second = await handle(get("mode=volume&id=abc123"), { fetcher, cache });
+  assertEquals(second.headers.get("X-Book-Cache"), "hit");
+  assertEquals((await second.json()).title, "Book abc123");
+  assertEquals(calls.length, 1);
+});
+
+Deno.test("a fresh list page is served from the cache; an empty one is never kept", async () => {
+  const { calls, fetcher } = stub(200, fullPage);
+  const { cache, lists } = memoryCache();
+  await handle(get("mode=genre&genre=horror"), { fetcher, cache });
+  const res = await handle(get("mode=genre&genre=horror"), { fetcher, cache });
+  assertEquals(res.headers.get("X-Book-Cache"), "hit");
+  assertEquals((await res.json()).items.length, 20);
+  assertEquals(calls.length, 1);
+
+  const empty = stub(200, { totalItems: 0 });
+  await handle(get("mode=search&q=zzzz"), { fetcher: empty.fetcher, cache, emptyRetryMs: 0 });
+  assertEquals([...lists.keys()].filter((k) => k.includes("zzzz")).length, 0);
+});
+
+Deno.test("a stale list page is asked again, and served as it was if Google fails", async () => {
+  const { cache, lists } = memoryCache();
+  await handle(get("mode=home"), { fetcher: stub(200, fullPage).fetcher, cache });
+  for (const [k, v] of lists) lists.set(k, { ...v, fresh: false });
+
+  const failing = stub(403, { error: { message: "quota" } });
+  const res = await handle(get("mode=home"), { fetcher: failing.fetcher, cache, apiKeys: ["k1"] });
+  assertEquals(res.status, 200);
+  assertEquals(res.headers.get("X-Book-Cache"), "stale");
+  assertEquals((await res.json()).items.length, 20);
+  assert(failing.calls.length >= 1, "a week-old page is checked with Google first");
+});
+
+Deno.test("a cache that throws never fails the request", async () => {
+  const broken: BookCache = {
+    getVolume: () => Promise.reject(new Error("db down")),
+    putVolume: () => Promise.reject(new Error("db down")),
+    getList: () => Promise.reject(new Error("db down")),
+    putList: () => Promise.reject(new Error("db down")),
+  };
+  const res = await handle(get("mode=volume&id=abc123"), { fetcher: stub(200, volume("abc123")).fetcher, cache: broken });
+  assertEquals(res.status, 200);
+  const list = await handle(get("mode=home"), { fetcher: stub(200, fullPage).fetcher, cache: broken });
+  assertEquals(list.status, 200);
 });

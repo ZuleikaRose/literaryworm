@@ -1,54 +1,63 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AgeRating } from "../types";
 import { BooksApiError, type BookSummary, type FeedQuery, feedKey, fetchBookPage } from "./booksApi";
+import { nextFeedStep } from "./feedChain";
 
 export type FeedStatus = "loading" | "idle" | "error" | "end";
 
 interface FeedState {
   key: string;
   items: BookSummary[];
+  /** Which query of the chain is being read (0 is the first), and its next page. */
+  step: number;
   nextPage: number;
   status: FeedStatus;
   error: string | null;
 }
 
-const initial = (key: string): FeedState => ({ key, items: [], nextPage: 0, status: "loading", error: null });
+const initial = (key: string): FeedState => ({ key, items: [], step: 0, nextPage: 0, status: "loading", error: null });
 
 /**
  * A list that grows a page at a time (Load more or infinite scroll). Changing the query
  * starts over, and answers for an earlier query are ignored. Duplicate ids are dropped.
+ * With `then`, the list runs on into those queries in turn when one runs out (members'
+ * Home scrolls from one genre into the next, lib/feedChain.ts).
  */
-export function useBookFeed(query: FeedQuery, ageRating: AgeRating = "all") {
-  const key = `${feedKey(query)}|${ageRating}`;
+export function useBookFeed(query: FeedQuery, ageRating: AgeRating = "all", then: FeedQuery[] = []) {
+  const chain = [query, ...then];
+  const key = `${chain.map(feedKey).join(">")}|${ageRating}`;
   const [state, setState] = useState<FeedState>(() => initial(key));
-  const [requested, setRequested] = useState({ key, page: 0, attempt: 0 });
-  const latestQuery = useRef(query);
+  const [requested, setRequested] = useState({ key, step: 0, page: 0, attempt: 0 });
+  const latestChain = useRef(chain);
 
   // A new query replaces the list straight away (adjusting state during render).
   if (state.key !== key) {
     setState(initial(key));
-    setRequested({ key, page: 0, attempt: 0 });
+    setRequested({ key, step: 0, page: 0, attempt: 0 });
   }
 
   useEffect(() => {
-    latestQuery.current = query;
+    latestChain.current = chain;
   });
 
   useEffect(() => {
     if (requested.key !== key) return;
     let current = true;
-    const { page } = requested;
-    fetchBookPage(latestQuery.current, page, ageRating)
+    const { step, page } = requested;
+    const steps = latestChain.current.length;
+    fetchBookPage(latestChain.current[step], page, ageRating)
       .then((result) => {
         if (!current) return;
         setState((s) => {
           if (s.key !== key) return s;
           const seen = new Set(s.items.map((b) => b.id));
+          const next = nextFeedStep(step, page, result.hasMore, steps);
           return {
             key,
-            items: page === 0 ? result.items : [...s.items, ...result.items.filter((b) => !seen.has(b.id))],
-            nextPage: page + 1,
-            status: result.hasMore ? "idle" : "end",
+            items: step === 0 && page === 0 ? result.items : [...s.items, ...result.items.filter((b) => !seen.has(b.id))],
+            step: next.step,
+            nextPage: next.done ? page + 1 : next.page,
+            status: next.done ? "end" : "idle",
             error: null,
           };
         });
@@ -63,19 +72,19 @@ export function useBookFeed(query: FeedQuery, ageRating: AgeRating = "all") {
     };
   }, [requested, key, ageRating]);
 
-  const { status, nextPage } = state.key === key ? state : initial(key);
+  const { status, nextPage, step } = state.key === key ? state : initial(key);
 
   // Each request shows "loading" from the moment it's asked for.
   const loadMore = useCallback(() => {
     if (status !== "idle") return;
     setState((s) => (s.key === key ? { ...s, status: "loading", error: null } : s));
-    setRequested({ key, page: nextPage, attempt: 0 });
-  }, [status, nextPage, key]);
+    setRequested({ key, step, page: nextPage, attempt: 0 });
+  }, [status, nextPage, step, key]);
 
   const retry = useCallback(() => {
     setState((s) => (s.key === key ? { ...s, status: "loading", error: null } : s));
-    setRequested((r) => ({ key, page: nextPage, attempt: r.attempt + 1 }));
-  }, [nextPage, key]);
+    setRequested((r) => ({ key, step, page: nextPage, attempt: r.attempt + 1 }));
+  }, [nextPage, step, key]);
 
   const view = state.key === key ? state : initial(key);
   return { items: view.items, status: view.status, error: view.error, loadMore, retry };

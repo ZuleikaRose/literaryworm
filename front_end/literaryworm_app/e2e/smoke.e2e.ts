@@ -141,6 +141,38 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows a visitor a sample of books on the home page, then asks them to log in to keep scrolling", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/?genre=fantasy`);
+    const feed = page.locator("section.book-feed");
+    await feed.getByRole("heading", { name: "Want to keep scrolling?" }).waitFor();
+    expect(await feed.locator(".catalog-grid > li").count()).toBeLessThanOrEqual(20);
+    expect(await feed.getByRole("button", { name: "Load more books" }).count()).toBe(0);
+    await feed.getByRole("link", { name: "Log in" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("turns on OpenDyslexic from the accessibility menu, which turns Lexend off, and the menu scrolls on a short window", async () => {
+    const { page, errors } = await newPage();
+    await page.setViewportSize({ width: 1280, height: 420 });
+    await page.goto(BASE_URL);
+    await page.getByRole("button", { name: "Accessibility menu" }).click();
+    const panel = page.getByRole("region", { name: "Accessibility settings" });
+    await panel.getByRole("switch", { name: /Dyslexia-friendly font/ }).check();
+    await panel.getByRole("switch", { name: /OpenDyslexic font/ }).check();
+    expect(await page.evaluate(() => document.documentElement.hasAttribute("data-dyslexic-font"))).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.hasAttribute("data-readable-font"))).toBe(false);
+    expect(await panel.getByRole("switch", { name: /Dyslexia-friendly font/ }).isChecked()).toBe(false);
+    // The panel fits the window and scrolls to its last control.
+    const box = await panel.boundingBox();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(420);
+    expect(await panel.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+    await panel.getByRole("button", { name: "Reset to defaults" }).scrollIntoViewIfNeeded();
+    await panel.getByRole("button", { name: "Reset to defaults" }).click();
+    expect(await page.evaluate(() => document.documentElement.hasAttribute("data-dyslexic-font"))).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("browses a new genre from Home, and narrows a search by it", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
@@ -270,6 +302,24 @@ describe("languages", () => {
 });
 
 describe("the demo household", () => {
+  it("keeps scrolling on Home from one genre into the next", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/browse?genre=poetry");
+    const feed = page.locator("section.book-feed");
+    await feed.getByRole("heading", { name: "Poetry books" }).waitFor();
+    const tiles = feed.locator(".catalog-grid > li");
+    await tiles.first().waitFor();
+    const first = await tiles.count();
+    // Poetry alone runs out quickly; the feed doesn't stop there but runs on into the next genre.
+    const more = feed.getByRole("button", { name: "Load more books" });
+    await more.click();
+    await page.waitForFunction((n) => document.querySelectorAll("section.book-feed .catalog-grid > li").length > n, first);
+    expect(await feed.getByText(/That's everything in/).count()).toBe(0);
+    expect(await feed.getByRole("heading", { name: "Want to keep scrolling?" }).count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("signs in and lands on Discover with the bell", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

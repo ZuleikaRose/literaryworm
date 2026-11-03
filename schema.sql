@@ -11244,3 +11244,97 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$L
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-03'::date, '2026.11', 'update', $lw$The demo shows the newest features$lw$, $lw$Try the demo now has a sample invite link in Account → Plan and billing, last night's reading sprint in Goals and on the demo club's page, and Jordan's wishlist, which opens Gifts with its five books picked. Carmilla and The Picture of Dorian Gray are now among the LGBTQIA+ books.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$The demo shows the newest features$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261103006666_google_books_cache.sql
+-- =============================================================================
+-- A cache of what Google Books has told the `books` Edge Function, so the same answer is never
+-- asked for twice and the Google Books API quota goes much further.
+--
+--   google_books_volumes: one book's details (an edition, by its volume id), with its cover link,
+--     kept until another edition of the same book turns up; then it's marked stale and the next
+--     request for it downloads it again.
+--   google_books_lists: one page of a list (Home, a genre, a search, an author, an ISBN), kept a
+--     week (LIST_FRESH in _shared/bookCache.ts). Refreshing a page is how new editions are found:
+--     a volume id the page didn't have before, with the same title and author as a cached volume,
+--     marks that volume stale.
+--
+-- Only the function (service_role) reads and writes these rows; browser roles have no access and
+-- go through the function. Nothing here is about a person: the requests' IPs and users aren't kept.
+
+create table public.google_books_volumes (
+  id         text        primary key check (id ~ '^[A-Za-z0-9_-]{1,40}$'),
+  -- The shaped BookDetail the function returns (_shared/googleBooks.ts), cover link included.
+  detail     jsonb       not null check (jsonb_typeof(detail) = 'object' and octet_length(detail::text) <= 32768),
+  -- Normalised title and first author's surname (workKey()), shared by every edition of a book.
+  work_key   text        not null check (char_length(work_key) between 1 and 400),
+  -- Another edition has appeared since this was downloaded: the next request downloads it again.
+  stale      boolean     not null default false,
+  fetched_at timestamptz not null default now()
+);
+
+create index google_books_volumes_work_key on public.google_books_volumes (work_key);
+
+create table public.google_books_lists (
+  -- The query as sent to Google (q, page, sort, language): listCacheKey().
+  key        text        primary key check (char_length(key) between 1 and 600),
+  -- The shaped BookPage the function returns.
+  page       jsonb       not null check (jsonb_typeof(page) = 'object' and octet_length(page::text) <= 65536),
+  volume_ids text[]      not null default '{}' check (cardinality(volume_ids) <= 40),
+  fetched_at timestamptz not null default now()
+);
+
+alter table public.google_books_volumes enable row level security;
+alter table public.google_books_lists enable row level security;
+revoke all on public.google_books_volumes from public, anon, authenticated;
+revoke all on public.google_books_lists from public, anon, authenticated;
+grant select, insert, update, delete on public.google_books_volumes to service_role;
+grant select, insert, update, delete on public.google_books_lists to service_role;
+
+-- Says out loud what RLS already does with no permissive policy: browser roles can't touch the cache.
+create policy "No browser access to cached volumes"
+  on public.google_books_volumes as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+create policy "No browser access to cached lists"
+  on public.google_books_lists as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+-- Lists nobody has asked for in a month go (each search is a row); volumes stay, since a book's
+-- details only change with a new edition.
+select cron.schedule(
+  'google-books-lists-cleanup',
+  '40 3 * * *',
+  $$delete from public.google_books_lists where fetched_at < now() - interval '30 days'$$
+);
+
+-- =============================================================================
+-- 20261103006667_whats_new_endless_home_cache.sql
+-- =============================================================================
+-- Members' Home keeps scrolling through every genre, visitors see a sample, OpenDyslexic in the accessibility
+-- menu (which now scrolls), and Google Books answers kept in Supabase (6666). These are their What's new entries;
+-- src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-03'::date, '2026.11', 'feature', $lw$Keep scrolling on Home, and OpenDyslexic for the whole app$lw$, $lw$Keep discovering on Home no longer stops at the end of a genre: it runs on into the next one, through every genre, for as long as you scroll. Visitors to the public home page see a sample of books first, then can log in, join or try the demo to keep going. The accessibility menu has a new OpenDyslexic switch that sets the whole app in OpenDyslexic (choosing it turns Lexend off, and the other way round), and the menu now scrolls inside the window, so its last settings are never cut off on a smaller screen.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Keep scrolling on Home, and OpenDyslexic for the whole app$lw$ and c.version = '2026.11');
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-03'::date, '2026.11', 'update', $lw$Books load faster, from our own copy$lw$, $lw$When Google Books tells us about a book or a list, we now keep the answer, cover link included. A book's details are asked for once and kept until another edition of it appears; lists are checked again once a week, which is how new editions are found. If Google Books is having trouble, you see last week's list instead of an error. Nothing about you is kept with them.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Books load faster, from our own copy$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261103006668_accessibility_opendyslexic_legal.sql
+-- =============================================================================
+-- The accessibility menu has an OpenDyslexic switch for the whole app and scrolls on a small screen: the
+-- Accessibility Policy says so. src/data/legalPages.json has the same. Added once; a page an editor has
+-- reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$The accessibility menu at the top of every page changes text size, theme (dark or light), an easier-to-read font, high contrast, underlined links and reduced motion. Your choices last for the visit.$lw$, $lw$The accessibility menu at the top of every page changes text size, theme (dark or light), the font (Lexend, or OpenDyslexic, a typeface made for readers with dyslexia), high contrast, underlined links and reduced motion. It scrolls inside the window on a small screen. Your choices last for the visit.$lw$)::jsonb, updated_at = now()
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$The accessibility menu at the top of every page changes text size, theme (dark or light), an easier-to-read font, high contrast, underlined links and reduced motion. Your choices last for the visit.$lw$) > 0;

@@ -2,6 +2,22 @@
   {
     "releasedOn": "2026-11-03",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Keep scrolling on Home, and OpenDyslexic for the whole app",
+    "body": "Keep discovering on Home no longer stops at the end of a genre: it runs on into the next one, through every genre, for as long as you scroll. Visitors to the public home page see a sample of books first, then can log in, join or try the demo to keep going. The accessibility menu has a new OpenDyslexic switch that sets the whole app in OpenDyslexic (choosing it turns Lexend off, and the other way round), and the menu now scrolls inside the window, so its last settings are never cut off on a smaller screen.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Books load faster, from our own copy",
+    "body": "When Google Books tells us about a book or a list, we now keep the answer, cover link included. A book's details are asked for once and kept until another edition of it appears; lists are checked again once a week, which is how new editions are found. If Google Books is having trouble, you see last week's list instead of an error. Nothing about you is kept with them.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
     "kind": "update",
     "title": "The demo shows the newest features",
     "body": "Try the demo now has a sample invite link in Account → Plan and billing, last night's reading sprint in Goals and on the demo club's page, and Jordan's wishlist, which opens Gifts with its five books picked. Carmilla and The Picture of Dorian Gray are now among the LGBTQIA+ books.",

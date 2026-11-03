@@ -262,6 +262,37 @@
   }
 }
 
+/* The end of a visitor's sample on the public home: an invitation to log in or join. */
+.feed-sample-end {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 40px auto 0;
+  padding: 28px 20px;
+  max-width: 640px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.feed-sample-end h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.feed-sample-end p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.feed-sample-end .hero-actions {
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
 .feed-end {
   margin: 48px 0 0;
   color: var(--faint);

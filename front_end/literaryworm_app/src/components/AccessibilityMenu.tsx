@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import { tk, UI_LANGUAGES, type UiLanguage } from "../lib/i18n";
 import { TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
 import { usePopover } from "../lib/usePopover";
@@ -14,8 +14,15 @@ const textSizes = [
   { value: 1.3, label: tk("Larger") },
 ];
 
-const toggles: { key: "readableFont" | "highContrast" | "underlineLinks" | "reduceMotion"; label: string; hint: string }[] = [
+type ToggleKey = "readableFont" | "dyslexicFont" | "highContrast" | "underlineLinks" | "reduceMotion";
+
+const toggles: { key: ToggleKey; label: string; hint: string }[] = [
   { key: "readableFont", label: tk("Dyslexia-friendly font"), hint: tk("Switches the interface to Lexend") },
+  {
+    key: "dyslexicFont",
+    label: tk("OpenDyslexic font"),
+    hint: tk("Switches the interface to OpenDyslexic, a typeface made for readers with dyslexia"),
+  },
   {
     key: "highContrast",
     label: tk("High contrast"),
@@ -25,6 +32,13 @@ const toggles: { key: "readableFont" | "highContrast" | "underlineLinks" | "redu
   { key: "reduceMotion", label: tk("Stop animations"), hint: tk("Turns off movement and the carousel") },
 ];
 
+/** One interface font at a time: turning Lexend or OpenDyslexic on turns the other off. */
+function togglePatch(key: ToggleKey, on: boolean): Partial<A11ySettings> {
+  if (on && key === "readableFont") return { readableFont: true, dyslexicFont: false };
+  if (on && key === "dyslexicFont") return { dyslexicFont: true, readableFont: false };
+  return { [key]: on };
+}
+
 export function AccessibilityMenu() {
   const { state, dispatch } = useStore();
   const t = useT();
@@ -33,6 +47,25 @@ export function AccessibilityMenu() {
   const languageId = useId();
   const a11y = state.a11y;
   const set = (patch: Partial<A11ySettings>) => dispatch({ type: "updateA11y", patch });
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // The panel fits the window below where it opens (lower when the maintenance banner shows) and
+  // scrolls inside itself, so its last settings are never cut off on a short screen.
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+    const fit = () => {
+      const room = window.innerHeight - panel.getBoundingClientRect().top - 12;
+      panel.style.maxHeight = `${Math.max(room, 160)}px`;
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    window.addEventListener("scroll", fit, { passive: true });
+    return () => {
+      window.removeEventListener("resize", fit);
+      window.removeEventListener("scroll", fit);
+    };
+  }, [open]);
 
   return (
     <div className="popover-wrap" ref={wrapRef}>
@@ -48,7 +81,7 @@ export function AccessibilityMenu() {
         <span className="visually-hidden">{t("Accessibility menu")}</span>
       </button>
       {open && (
-        <div id={panelId} className="popover a11y-panel" role="region" aria-label={t("Accessibility settings")}>
+        <div ref={panelRef} id={panelId} className="popover a11y-panel" role="region" aria-label={t("Accessibility settings")}>
           <h2 className="popover-title">{t("Accessibility")}</h2>
 
           <div className="field a11y-language">
@@ -108,7 +141,7 @@ export function AccessibilityMenu() {
                     role="switch"
                     className="switch"
                     checked={Boolean(a11y[item.key])}
-                    onChange={(e) => set({ [item.key]: e.target.checked })}
+                    onChange={(e) => set(togglePatch(item.key, e.target.checked))}
                   />
                 </label>
               </li>

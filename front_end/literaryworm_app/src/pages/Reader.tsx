@@ -35,8 +35,6 @@ import { readerAction } from "../lib/shortcuts";
 import { ShortcutsDialog } from "../components/ShortcutsDialog";
 import { QuizDialog } from "../components/QuizDialog";
 import { ReadingGuide } from "../components/ReadingGuide";
-import "@fontsource/opendyslexic/400.css";
-import "@fontsource/opendyslexic/700.css";
 import { useActiveProfile, useProfileData } from "../store/context";
 import { countPage } from "../lib/sprintCounter";
 import { SprintChip } from "../components/SprintChip";

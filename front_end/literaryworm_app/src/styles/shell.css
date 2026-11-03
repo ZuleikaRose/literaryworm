@@ -242,6 +242,12 @@
   box-shadow: var(--shadow-float);
   transform-origin: top right;
   animation: popover-in var(--dur) var(--ease-out);
+  /* A long panel (the accessibility menu on a short window) scrolls inside the screen
+     instead of running off the bottom, where the fixed header would never reach it. */
+  max-height: calc(100vh - var(--header-h) - 24px);
+  max-height: calc(100dvh - var(--header-h) - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @keyframes popover-in {

@@ -30,6 +30,7 @@ export function AppEffects() {
     root.dataset.theme = a11y.theme;
     root.lang = a11y.language;
     root.toggleAttribute("data-readable-font", a11y.readableFont);
+    root.toggleAttribute("data-dyslexic-font", a11y.dyslexicFont);
     root.toggleAttribute("data-high-contrast", a11y.highContrast);
     root.toggleAttribute("data-reduce-motion", a11y.reduceMotion);
     root.toggleAttribute("data-underline-links", a11y.underlineLinks);

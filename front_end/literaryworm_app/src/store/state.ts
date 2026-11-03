@@ -78,6 +78,7 @@ export const startingA11y = (): A11ySettings => ({ ...defaultA11y, highContrast:
 export const defaultA11y: A11ySettings = {
   textScale: 1,
   readableFont: false,
+  dyslexicFont: false,
   highContrast: false,
   reduceMotion: false,
   underlineLinks: false,

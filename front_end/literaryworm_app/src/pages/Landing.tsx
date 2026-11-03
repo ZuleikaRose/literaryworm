@@ -8,10 +8,11 @@ import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../data/books";
-import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
+import { type BrowseGenre, browseGenres, genreLabel, isBrowseGenre } from "../data/genres";
 import { landingFeatures } from "../data/landingFeatures";
 import { formatPrice, planFaqs, plans } from "../data/plans";
 import { StructuredData } from "../components/StructuredData";
+import { genreQuery, genresAfter, VISITOR_SAMPLE } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
 import { faqData, membershipData, siteDescription, pageData } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
@@ -108,7 +109,8 @@ export default function Landing() {
           items={technology.items}
           status={technology.status}
           error={technology.error}
-          onLoadMore={technology.loadMore}
+          // A sample for visitors; members (and the demo) can keep going.
+          onLoadMore={state.account ? technology.loadMore : undefined}
           onRetry={technology.retry}
           action={
             <a className="view-all" href="#discover">
@@ -282,8 +284,29 @@ export default function Landing() {
             id="discover"
             eyebrow={t("Keep discovering")}
             title={t("{genre} books", { genre: t(genreLabel(genre)) })}
-            query={genre === "technology" ? { mode: "home" } : { mode: "genre", genre }}
+            query={genreQuery(genre)}
             controls={<GenreNav current={genre} basePath="/" />}
+            // Logged in, it scrolls on through every genre; a visitor sees a sample, then an invitation.
+            then={state.account ? genresAfter(genre, browseGenres.map((g) => g.id)) : undefined}
+            endText={state.account ? t("That's every genre. Pick one above to start again.") : undefined}
+            sampleSize={state.account ? undefined : VISITOR_SAMPLE}
+            sampleEnd={
+              <div className="feed-sample-end">
+                <h3>{t("Want to keep scrolling?")}</h3>
+                <p>{t("Log in or join to scroll through every genre without stopping, or try the demo household first.")}</p>
+                <div className="hero-actions">
+                  <Link className="primary-button" to="/signin">
+                    {t("Log in")}
+                  </Link>
+                  <Link className="secondary-button" to="/plans">
+                    {t("See plans and join")}
+                  </Link>
+                  <button type="button" className="text-button" onClick={tryDemo}>
+                    {t("Try the demo")}
+                  </button>
+                </div>
+              </div>
+            }
           />
         </div>
       </div>

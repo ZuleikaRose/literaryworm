@@ -11,7 +11,12 @@
 //   ?mode=author&name=Matt%20Haig&page=0  one author's books (their page)
 //   ?mode=isbn&isbn=9780141439518&page=0  the editions with that ISBN (10 or 13 digits)
 //   ?mode=volume&id=zyTCAlFPjgYC      one book's details
+//
+// Answers are kept in Supabase (_shared/bookCache.ts, migration 6666): a book's details until
+// another edition of it appears, a list page for a week. Google is asked only for what isn't
+// kept, and a kept copy is served if Google fails. The X-Book-Cache header says which it was.
 
+import { type BookCache, listCacheKey } from "../_shared/bookCache.ts";
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, requireMethod } from "../_shared/http.ts";
 import {
@@ -47,7 +52,19 @@ export type Deps = {
   rateLimit?: (req: Request) => Promise<void>;
   /** Pause before re-asking Home after an empty first page (tests use 0). */
   emptyRetryMs?: number;
+  /** Where Google's answers are kept (supabaseBookCache()); none asks Google every time. */
+  cache?: BookCache;
 };
+
+/** A cache step that fails is logged and skipped: the request goes on without it. */
+async function safely<T>(what: string, run: () => Promise<T> | undefined): Promise<T | undefined> {
+  try {
+    return await run();
+  } catch (err) {
+    console.warn("book cache:", what, "failed:", err instanceof Error ? err.message : String(err));
+    return undefined;
+  }
+}
 
 function isEmptyList(body: unknown): boolean {
   const raw = body as { totalItems?: unknown; items?: unknown } | null;
@@ -74,8 +91,11 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
 
     if (mode === "volume") {
       const id = parseVolumeId(params.get("id"));
-      const body = await ask((k) => volumeUrl(id, k));
-      return json(req, METHODS, shapeDetail(body), 200, { "Cache-Control": "public, max-age=3600" });
+      const kept = await safely("read volume", () => deps.cache?.getVolume(id));
+      if (kept) return json(req, METHODS, kept, 200, { "Cache-Control": "public, max-age=3600", "X-Book-Cache": "hit" });
+      const detail = shapeDetail(await ask((k) => volumeUrl(id, k)));
+      await safely("save volume", () => deps.cache?.putVolume(detail));
+      return json(req, METHODS, detail, 200, { "Cache-Control": "public, max-age=3600", "X-Book-Cache": "miss" });
     }
 
     const page = parsePage(params.get("page"));
@@ -111,7 +131,21 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     const filtered = mode === "search" || mode === "keywords";
     const sort = filtered ? parseSort(params.get("sort")) : "relevance";
     const lang = filtered ? parseLanguage(params.get("lang")) : null;
-    let body = await ask((k) => listUrl(q, page, k, sort, lang));
+    const cacheKey = listCacheKey(q, page, sort, lang);
+    const kept = await safely("read list", () => deps.cache?.getList(cacheKey));
+    if (kept?.fresh) {
+      return json(req, METHODS, kept.page, 200, { "Cache-Control": "public, max-age=300", "X-Book-Cache": "hit" });
+    }
+    let body: unknown;
+    try {
+      body = await ask((k) => listUrl(q, page, k, sort, lang));
+    } catch (err) {
+      // Google is failing: last week's copy is better than an error.
+      if (kept && err instanceof HttpError && err.code !== "not_found") {
+        return json(req, METHODS, kept.page, 200, { "Cache-Control": "public, max-age=60", "X-Book-Cache": "stale" });
+      }
+      throw err;
+    }
     if (isEmptyList(body)) {
       if (plain !== q) {
         // Google sometimes answers every `subject:` and `intitle:` query with nothing while
@@ -125,7 +159,10 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
         body = await ask((k) => listUrl(q, page, k, sort, lang));
       }
     }
-    return json(req, METHODS, shapePage(body, page), 200, { "Cache-Control": "public, max-age=300" });
+    const shaped = shapePage(body, page);
+    // An empty page is often Google struggling, not the truth: don't keep it.
+    if (shaped.items.length) await safely("save list", () => deps.cache?.putList(cacheKey, shaped, kept ?? null));
+    return json(req, METHODS, shaped, 200, { "Cache-Control": "public, max-age=300", "X-Book-Cache": "miss" });
   } catch (err) {
     return errorResponse(req, METHODS, err);
   }

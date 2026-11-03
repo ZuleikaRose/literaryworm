@@ -7,6 +7,9 @@ import { registerServiceWorker } from "./lib/offline";
 import "./lib/installApp";
 import { PlaybackProvider } from "./components/PlaybackProvider";
 import { StoreProvider } from "./store/StoreProvider";
+// OpenDyslexic for the accessibility menu and the reader (self-hosted; fetched only when shown).
+import "@fontsource/opendyslexic/400.css";
+import "@fontsource/opendyslexic/700.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/shell.css";

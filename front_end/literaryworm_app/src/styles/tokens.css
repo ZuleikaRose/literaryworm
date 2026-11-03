@@ -223,3 +223,11 @@
   --font-display: "Lexend", system-ui, sans-serif;
   --font-reading: "Lexend", system-ui, sans-serif;
 }
+
+/* OpenDyslexic from the accessibility menu (SIL OFL, self-hosted by @fontsource/opendyslexic,
+   imported in main.tsx; the files download only while it's on). */
+:root[data-dyslexic-font] {
+  --font-body: "OpenDyslexic", "Lexend", system-ui, sans-serif;
+  --font-display: "OpenDyslexic", "Lexend", system-ui, sans-serif;
+  --font-reading: "OpenDyslexic", "Lexend", system-ui, sans-serif;
+}
