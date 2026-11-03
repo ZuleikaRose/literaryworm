@@ -981,6 +981,50 @@ select pg_temp.expect_error('select public.club_calendar_secret()', 'reading the
 reset role;
 reset request.jwt.claims;
 
+-- Refer a friend (6657): codes made by my_referral_code() (never for staff, so Ann has none), referrals noted at sign-up, rewards claimed by
+-- stripe-webhook only, and at most 2 free months in all for the member who invites.
+reset role;
+reset request.jwt.claims;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.expect_error('select public.my_referral_code()', 'a referral code for staff');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check(public.my_referral_code() ~ '^[A-HJ-NP-Z2-9]{8}$' and public.my_referral_code() = public.my_referral_code(), 'a member gets one referral code');
+select pg_temp.expect_error($$insert into public.referral_codes (account_id, code) values ('00000000-0000-0000-0000-00000000000b', 'ABCDEFGH')$$, 'writing a referral code from the browser');
+select pg_temp.expect_error($$insert into public.referrals (referrer_id, referred_id) values ('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000b')$$, 'noting a referral from the browser');
+select pg_temp.expect_error($$select * from public.claim_referral_reward('00000000-0000-0000-0000-00000000000b')$$, 'claiming a referral reward from the browser');
+reset role;
+-- Three friends sign up with Ben's code and pay; a fourth signs up with a code that doesn't exist.
+insert into auth.users (id, email, raw_user_meta_data)
+select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'friend' || n || '@test',
+       jsonb_build_object('display_name', 'Friend ' || n, 'date_of_birth', '1990-01-01', 'terms_accepted', true,
+                          'referral_code', case when n = 4 then 'ZZZZZZZZ' else lower((select code from public.referral_codes where account_id = '00000000-0000-0000-0000-00000000000b')) end)
+from generate_series(1, 4) n;
+select pg_temp.check((select count(*) from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b') = 3, 'a sign-up with a code is noted; a code that matches nothing is ignored');
+insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at)
+select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'basic', 1, now() from generate_series(1, 3) n;
+insert into public.stripe_customers (user_id, customer_id)
+select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'cus_friend' || n from generate_series(1, 3) n;
+insert into public.stripe_customers (user_id, customer_id) values ('00000000-0000-0000-0000-00000000000b', 'cus_ben') on conflict (user_id) do nothing;
+insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at) values ('00000000-0000-0000-0000-00000000000b', 'standard', 1, now())
+  on conflict (user_id) do update set status = 'active';
+set role service_role;
+select pg_temp.check((select count(*) = 1 and bool_and(friend_cents = 1500 and referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter a month each');
+select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')) = 0, 'a referral is rewarded once');
+select pg_temp.check((select bool_and(referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2')), 'the inviter''s second month');
+select pg_temp.check((select bool_and(friend_cents = 1500 and referrer_cents is null) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'no more than 2 free months for inviting, while the friend still gets theirs');
+select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'limit_reached', 'the third is noted as past the limit');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 2 from public.my_referrals()), 'the inviter sees their counts');
+select pg_temp.check((select count(*) from public.referrals) = 0, 'the inviter can''t read who they invited');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = 1500) from public.referrals), 'an invited member sees their own month');
+select pg_temp.expect_error($$select friend_credit_id from public.referrals$$, 'reading Stripe''s credit ids');
+reset role;
+reset request.jwt.claim.sub;
+
 -- Every public table has RLS on -----------------------------------------------
 select pg_temp.check(not exists (
   select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace

@@ -32,6 +32,17 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("tells a friend who follows an invitation link about their free month", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/signup?ref=abcd2345`);
+    await page.getByText("A friend invited you: after your first payment, a month of your plan is free.").waitFor();
+    // A link without a real code says nothing about it.
+    await page.goto(`${BASE_URL}/signup?ref=nope`);
+    await page.getByRole("heading", { name: "Create your account" }).waitFor();
+    await expect(page.getByText(/A friend invited you/).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/plans`);

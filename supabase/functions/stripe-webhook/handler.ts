@@ -15,6 +15,9 @@
 // customer.subscription.created/.updated/.deleted and invoice.paid/.payment_failed (keep it in
 // step), invoice.created (staff), and charge.dispute.created, charge.refunded and
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
+//
+// Refer a friend: an invited member's first paid invoice credits a month of each member's plan to
+// them and to whoever invited them (claim_referral_reward() decides, once; see rewardReferral()).
 
 import { CATALOG } from "../_shared/catalog.ts";
 import type { Stripe } from "../_shared/stripe.ts";
@@ -38,6 +41,22 @@ export interface Deps {
   /** Makes the gift code for a paid gift Checkout; does nothing if it already exists. */
   createGift: (gift: NewGift) => Promise<void>;
   deleteDraftInvoice: (invoiceId: string) => Promise<void>;
+  /** Refer a friend: claims the invited member's referral once (null when there's nothing to give). */
+  claimReferral: (referredId: string) => Promise<ReferralReward | null>;
+  /** Adds a credit to a Stripe customer's balance (taken off their next invoices); returns its id. */
+  creditCustomer: (customerId: string, cents: number, idempotencyKey: string, description: string) => Promise<string>;
+  recordReferralCredits: (referralId: string, friendCredit: string, referrerCredit: string | null) => Promise<void>;
+  releaseReferral: (referralId: string) => Promise<void>;
+}
+
+/** What claim_referral_reward() gives: a month of each member's own plan, in cents. */
+export interface ReferralReward {
+  referralId: string;
+  friendCustomer: string;
+  friendCents: number;
+  /** Null when the inviter gets nothing for this one (staff, no membership, or 2 months already earned). */
+  referrerCustomer: string | null;
+  referrerCents: number | null;
 }
 
 export interface NewGift {
@@ -107,6 +126,31 @@ async function syncSubscription(deps: Deps, sub: Stripe.Subscription): Promise<v
   }
 }
 
+/**
+ * Refer a friend: when an invited member's first payment goes through, a month of their plan is
+ * credited to them and a month of the inviter's own plan to the inviter (at most 2 in all for
+ * inviting; the database decides). Idempotency keys keep a retried event from crediting twice.
+ */
+async function rewardReferral(deps: Deps, customerId: string | null, amountPaid: number): Promise<void> {
+  if (!customerId || amountPaid <= 0) return;
+  const userId = await deps.userForCustomer(customerId);
+  if (!userId || (await deps.isStaff(userId))) return;
+  const reward = await deps.claimReferral(userId);
+  if (!reward) return;
+  try {
+    const friend = await deps.creditCustomer(reward.friendCustomer, reward.friendCents, `referral-${reward.referralId}-friend`, "A month free: you joined with a friend's invitation");
+    let referrer: string | null = null;
+    if (reward.referrerCustomer && reward.referrerCents) {
+      referrer = await deps.creditCustomer(reward.referrerCustomer, reward.referrerCents, `referral-${reward.referralId}-referrer`, "A month free: a friend you invited joined");
+    }
+    await deps.recordReferralCredits(reward.referralId, friend, referrer);
+  } catch (err) {
+    // Handed back, so Stripe's retry of this event tries again.
+    await deps.releaseReferral(reward.referralId);
+    throw err;
+  }
+}
+
 async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed":
@@ -148,6 +192,8 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
         return;
       }
       await deps.startMembership(userId, subscriptionRow(sub), new Date(session.created * 1000).toISOString());
+      // The first payment may have come in before the membership was written: reward it now.
+      if (session.payment_status === "paid") await rewardReferral(deps, idOf(sub.customer), session.amount_total ?? 0);
       return;
     }
     case "customer.subscription.created":
@@ -158,6 +204,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
     case "invoice.payment_failed": {
       const subId = invoiceSubscriptionId(event.data.object);
       if (subId) await syncSubscription(deps, await deps.getSubscription(subId));
+      if (event.type === "invoice.paid" && subId) await rewardReferral(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);
       return;
     }
     case "invoice.created": {

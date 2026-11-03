@@ -89,6 +89,8 @@ export interface SignUpInput {
   password: string;
   dob: string;
   marketingEmails: boolean;
+  /** A friend's invitation code from /signup?ref= (lib/referrals.ts), noted with the new account. */
+  referralCode?: string | null;
 }
 
 /**
@@ -107,6 +109,7 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
         date_of_birth: input.dob,
         terms_accepted: true,
         marketing_emails: input.marketingEmails,
+        ...(input.referralCode ? { referral_code: input.referralCode } : {}),
       },
     },
   });

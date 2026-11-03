@@ -74,5 +74,37 @@ Deno.serve((req) =>
     async deleteDraftInvoice(invoiceId) {
       await stripeClient().invoices.del(invoiceId);
     },
+    async claimReferral(referredId) {
+      const { data, error } = await serviceClient().rpc("claim_referral_reward", { p_referred: referredId });
+      if (error) throw error;
+      const row = (data ?? [])[0] as
+        | { referral_id: string; friend_customer: string | null; friend_cents: number | null; referrer_customer: string | null; referrer_cents: number | null }
+        | undefined;
+      if (!row?.friend_customer || !row.friend_cents) return null;
+      return {
+        referralId: row.referral_id,
+        friendCustomer: row.friend_customer,
+        friendCents: row.friend_cents,
+        referrerCustomer: row.referrer_customer,
+        referrerCents: row.referrer_cents,
+      };
+    },
+    async creditCustomer(customerId, cents, idempotencyKey, description) {
+      // A negative balance is a credit: Stripe takes it off the customer's next invoices.
+      const txn = await stripeClient().customers.createBalanceTransaction(
+        customerId,
+        { amount: -cents, currency: "usd", description },
+        { idempotencyKey },
+      );
+      return txn.id;
+    },
+    async recordReferralCredits(referralId, friendCredit, referrerCredit) {
+      const { error } = await serviceClient().rpc("record_referral_credits", { p_referral: referralId, p_friend: friendCredit, p_referrer: referrerCredit });
+      if (error) throw error;
+    },
+    async releaseReferral(referralId) {
+      const { error } = await serviceClient().rpc("release_referral_reward", { p_referral: referralId });
+      if (error) console.error(`stripe-webhook: couldn't hand back referral ${referralId}`, error.message);
+    },
   })
 );

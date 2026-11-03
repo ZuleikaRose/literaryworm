@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6656, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6660, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -725,6 +725,31 @@
           note: "Each profile in a sprint and the pages it turned in the reader, saved when it ends. Written only through join_reading_sprint() and finish_reading_sprint(); readable by whoever can see the sprint (for Realtime). Names come from reading_sprint_names(): a club sees display names, never which profile.",
         },
         {
+          id: "referral_codes", color: colors.billing, x: 840, y: 9260, sub: "one per account",
+          cols: [
+            ["pk fk", "account_id", "uuid"],
+            ["", "code", "text 8 (unique)"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "A member's invitation code, made by my_referral_code() (never for staff). RLS: the owner reads it; nobody writes it from the browser.",
+        },
+        {
+          id: "referrals", color: colors.billing, x: 1260, y: 9520, sub: "refer a friend",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "referrer_id", "uuid"],
+            ["fk", "referred_id", "uuid (unique)"],
+            ["", "created_at", "timestamptz"],
+            ["", "rewarded_at", "timestamptz", true],
+            ["", "friend_credit_cents", "integer", true],
+            ["", "referrer_credit_cents", "integer", true],
+            ["", "referrer_skipped", "text: staff, no_membership, limit_reached", true],
+            ["", "friend_credit_id", "text (Stripe)", true],
+            ["", "referrer_credit_id", "text (Stripe)", true],
+          ],
+          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits a month of each member's plan to their Stripe balance; the inviter earns at most 2 months in all. RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals().",
+        },
+        {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -1137,6 +1162,9 @@
         ["club_polls", "club_id", "book_clubs", "id", "N : 1"],
         ["club_poll_votes", "poll_id", "club_polls", "id", "N : 1"],
         ["reading_sprints", "club_id", "book_clubs", "id", "N : 1 (optional)"],
+        ["referral_codes", "account_id", "auth.users", "id", "1 : 1"],
+        ["referrals", "referrer_id", "auth.users", "id", "N : 1"],
+        ["referrals", "referred_id", "auth.users", "id", "1 : 1"],
         ["reading_sprints", "started_by", "reader_profiles", "id", "N : 1"],
         ["reading_sprint_readers", "sprint_id", "reading_sprints", "id", "N : 1"],
         ["reading_sprint_readers", "profile_id", "reader_profiles", "id", "N : 1"],

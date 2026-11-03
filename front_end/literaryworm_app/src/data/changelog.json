@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-03",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Invite a friend, both get a month free",
+    "body": "Share your link from Account → Plan and billing. When a friend joins with it and makes their first payment, you each get a month of your own plan free, taken off your next bill. You can earn up to 2 free months this way, and every friend you invite still gets theirs.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-03",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Reading sprints",
     "body": "Start a 15 to 30 minute reading sprint from Goals for everyone at home, or from a book club's page for its members. Everyone sees the same timer, the reader shows the time left and your pages as you go, and when it ends you see how many pages each of you turned. Kids profiles can join sprints at home.",
     "major": false

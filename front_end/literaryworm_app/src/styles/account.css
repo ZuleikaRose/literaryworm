@@ -1248,3 +1248,28 @@
     margin-left: -10px;
   }
 }
+
+/* Refer a friend (components/ReferAFriend.tsx) */
+.account-section .refer-friend {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.refer-friend h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.refer-friend .field-hint,
+.refer-friend .form-success {
+  margin: 0;
+}
+
+.refer-link .field-input {
+  width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}

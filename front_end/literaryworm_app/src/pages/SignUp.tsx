@@ -1,3 +1,4 @@
+import { cleanReferralCode } from "../lib/referrals";
 import { useRef, useState, type FormEvent } from "react";
 import { HOME_CRUMB, pageData } from "../lib/seo";
 import { StructuredData } from "../components/StructuredData";
@@ -31,6 +32,7 @@ export default function SignUp() {
   const [params] = useSearchParams();
   const planParam = params.get("plan") as PlanId | null;
   const plan = planParam ? planById.get(planParam) : undefined;
+  const referralCode = cleanReferralCode(params.get("ref"));
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -81,7 +83,7 @@ export default function SignUp() {
       setBusy(true);
       setFormError(null);
       try {
-        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing });
+        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing, referralCode });
         // Confirmed straight away: useAuthSync loads the account and the redirect above continues to the plan step.
         if (needsConfirmation) setSentTo(email.trim());
       } catch (err) {
@@ -170,6 +172,12 @@ export default function SignUp() {
               <>
                 {" "}
                 {rich(t("You picked {plan}; you'll confirm it before paying anything."), { plan: <strong>{plan.name}</strong> })}
+              </>
+            )}
+            {referralCode && (
+              <>
+                {" "}
+                <strong>{t("A friend invited you: after your first payment, a month of your plan is free.")}</strong>
               </>
             )}
           </p>

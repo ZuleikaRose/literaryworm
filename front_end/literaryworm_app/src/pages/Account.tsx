@@ -1,3 +1,4 @@
+import { ReferAFriend } from "../components/ReferAFriend";
 import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AccountPasswordField } from "../components/AccountPasswordField";
@@ -273,6 +274,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
           {t("Choose a plan")}
         </Link>
         {billed && <RedeemGift account={account} />}
+        {billed && <ReferAFriend />}
       </Section>
     );
   }
@@ -472,6 +474,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
       <Feedback error={error} done={done} />
 
       {billed && <RedeemGift account={account} />}
+      {billed && <ReferAFriend />}
 
       <PlanUsage planId={plan.id} />
       {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={price} interval={account.billingInterval} />}

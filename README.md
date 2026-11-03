@@ -480,5 +480,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | The app in English, Spanish, French, German, Portuguese, Italian and Dutch, chosen in the accessibility menu and starting in the browser's language; every screen, message and date follows it, books stay as written, policies stay in English with a note, and a test fails if any text is missing from a language (migrations 6645–6646) | Done |
 | —    | Each profile's language is saved and follows it to every device (migrations 6647–6648) | Done |
 | —    | Reading sprints: a 15–30 minute session a household or a book club joins, with a shared timer, a timer in the reader and everyone's pages when it ends; Realtime for members, the demo in memory; RLS and security checks (migrations 6649–6656) | Done |
+| —    | Refer a friend: a member's link gives a friend a month of their plan free after their first payment, and the member a month of theirs, up to 2 free months for inviting; Stripe balance credits added once by the webhook, never for staff; Terms and Privacy updated (migrations 6657–6660) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
