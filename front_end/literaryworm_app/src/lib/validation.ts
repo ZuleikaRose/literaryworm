@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import type { AppState } from "../store/state";
 import { emailKey } from "../store/state";
 
@@ -26,17 +27,17 @@ const breached = new Set([
 
 export function validateEmail(email: string): string | null {
   const v = email.trim();
-  if (!v) return "Enter your email address.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Enter an email address like name@example.com.";
+  if (!v) return tr("Enter your email address.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return tr("Enter an email address like name@example.com.");
   return null;
 }
 
 /** NIST SP 800-63B style: length and breach checks, no forced character mix. */
 export function validateNewPassword(password: string): string | null {
-  if (!password) return "Choose a password.";
-  if (password.length < PASSWORD_MIN) return `Use at least ${PASSWORD_MIN} characters. A short phrase works well.`;
-  if (password.length > PASSWORD_MAX) return `Use ${PASSWORD_MAX} characters or fewer.`;
-  if (breached.has(password.toLowerCase())) return "This password has appeared in a data breach. Choose a different one.";
+  if (!password) return tr("Choose a password.");
+  if (password.length < PASSWORD_MIN) return tr("Use at least {n} characters. A short phrase works well.", { n: PASSWORD_MIN });
+  if (password.length > PASSWORD_MAX) return tr("Use {n} characters or fewer.", { n: PASSWORD_MAX });
+  if (breached.has(password.toLowerCase())) return tr("This password has appeared in a data breach. Choose a different one.");
   return null;
 }
 
@@ -50,12 +51,12 @@ export function ageOn(dob: string, today = new Date()): number {
 }
 
 export function validateDob(dob: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) return "Enter your date of birth.";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) return tr("Enter your date of birth.");
   const age = ageOn(dob);
-  if (Number.isNaN(age) || age > 120) return "Check your date of birth.";
-  if (age < 0) return "Your date of birth can't be in the future.";
+  if (Number.isNaN(age) || age > 120) return tr("Check your date of birth.");
+  if (age < 0) return tr("Your date of birth can't be in the future.");
   if (age < MIN_ACCOUNT_AGE)
-    return "Account holders must be 18 or older. A parent or guardian can open an account and add a Kids or Teen profile for you.";
+    return tr("Account holders must be 18 or older. A parent or guardian can open an account and add a Kids or Teen profile for you.");
   return null;
 }
 

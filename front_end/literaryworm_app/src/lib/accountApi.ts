@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import type { AccountReading } from "../store/state";
 import type { Collections } from "./collections";
 import type {
@@ -48,7 +49,7 @@ export class AccountError extends Error {}
 /** Log-in refused because the address isn't confirmed yet: the page offers to send the link again. */
 export class UnconfirmedEmailError extends AccountError {}
 
-const OFFLINE = "We couldn't reach LiteraryWorm. Check your connection and try again.";
+const OFFLINE = tr("We couldn't reach LiteraryWorm. Check your connection and try again.");
 
 function client() {
   if (!supabase) throw new AccountError("Accounts need the LiteraryWorm backend, which isn't set up in this copy of the app.");
@@ -59,14 +60,14 @@ function client() {
 function authMessage(error: { message?: string; status?: number; code?: string }): string {
   const text = (error.message ?? "").toLowerCase();
   if (error.code === "email_not_confirmed" || text.includes("email not confirmed"))
-    return "Confirm your email first: open the link we sent you, then log in.";
+    return tr("Confirm your email first: open the link we sent you, then log in.");
   if (text.includes("invalid login") || error.status === 400)
-    return "That email and password don't match an account. Check them and try again, or reset your password.";
+    return tr("That email and password don't match an account. Check them and try again, or reset your password.");
   if (error.status === 429 || text.includes("rate limit"))
-    return "Too many tries in a short time. Wait a few minutes, then try again.";
-  if (text.includes("password")) return "Choose a password of 15 to 64 characters that hasn't appeared in a data breach.";
+    return tr("Too many tries in a short time. Wait a few minutes, then try again.");
+  if (text.includes("password")) return tr("Choose a password of 15 to 64 characters that hasn't appeared in a data breach.");
   if (text.includes("fetch") || text.includes("network")) return OFFLINE;
-  return "Something went wrong on our side. Try again in a moment.";
+  return tr("Something went wrong on our side. Try again in a moment.");
 }
 
 /**
@@ -112,9 +113,9 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
   if (error || !data.session) signingInHere = false;
   if (error) {
     if ((error.message ?? "").toLowerCase().includes("database error"))
-      throw new AccountError("We couldn't create the account. Check your name and date of birth (18 or older), then try again.");
+      throw new AccountError(tr("We couldn't create the account. Check your name and date of birth (18 or older), then try again."));
     if (error.status === 422 && (error.message ?? "").toLowerCase().includes("password"))
-      throw new AccountError("Choose a password of 15 to 64 characters that hasn't appeared in a data breach.");
+      throw new AccountError(tr("Choose a password of 15 to 64 characters that hasn't appeared in a data breach."));
     throw new AccountError(authMessage(error));
   }
   return { needsConfirmation: !data.session };
@@ -174,8 +175,8 @@ export async function resendConfirmation(email: string): Promise<void> {
     throw new AccountError(OFFLINE);
   }
   if (!error) return;
-  if (error.status === 429) throw new AccountError("We've just sent one. Wait a minute, then try again.");
-  throw new AccountError("We couldn't send the email just now. Try again in a moment.");
+  if (error.status === 429) throw new AccountError(tr("We've just sent one. Wait a minute, then try again."));
+  throw new AccountError(tr("We couldn't send the email just now. Try again in a moment."));
 }
 
 /**
@@ -193,7 +194,7 @@ export async function sendPasswordReset(email: string): Promise<void> {
   }
   if (!error) return;
   if (error.status === 429) throw new AccountError(authMessage(error));
-  throw new AccountError("We couldn't send the reset link just now. Try again in a moment.");
+  throw new AccountError(tr("We couldn't send the reset link just now. Try again in a moment."));
 }
 
 export async function setNewPassword(password: string): Promise<void> {
@@ -247,7 +248,7 @@ export async function secondStepNeeded(): Promise<boolean> {
 }
 
 function codeMessage(error: { message?: string; status?: number; code?: string }): string {
-  if (error.status === 429) return "Too many tries in a short time. Wait a few minutes, then try again.";
+  if (error.status === 429) return tr("Too many tries in a short time. Wait a few minutes, then try again.");
   if (error.code === "mfa_verification_failed" || error.status === 422 || error.status === 400)
     return "That code isn't right. Check the app and enter the newest code.";
   if ((error.message ?? "").toLowerCase().includes("fetch")) return OFFLINE;
@@ -263,7 +264,7 @@ async function verifiedFactors() {
 /** Finishes logging in with a code from the authenticator app. */
 export async function verifySecondStep(code: string): Promise<void> {
   const [factor] = await verifiedFactors();
-  if (!factor) throw new AccountError("Two-step sign-in isn't set up for this account. Log in again.");
+  if (!factor) throw new AccountError(tr("Two-step sign-in isn't set up for this account. Log in again."));
   const { error } = await client().auth.mfa.challengeAndVerify({ factorId: factor.id, code });
   if (error) throw new AccountError(codeMessage(error));
 }

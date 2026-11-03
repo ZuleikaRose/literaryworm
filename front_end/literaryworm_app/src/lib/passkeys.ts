@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 /**
  * Passkeys (WebAuthn, through Supabase Auth): a way to log in with the phone, computer or security
  * key itself (Face ID, Touch ID, Windows Hello, a phone's screen lock, a password manager or a
@@ -78,22 +79,22 @@ export function passkeyMessage(error: PasskeyProblem, during: "add" | "signin"):
   const name = error.name ?? "";
   // The person closed the prompt, or it timed out: not a failure worth alarming anyone about.
   if (code === "ERROR_CEREMONY_ABORTED" || name === "NotAllowedError" || causeName === "NotAllowedError" || name === "AbortError")
-    return during === "add" ? "No passkey was added. Try again when you're ready." : "Passkey log-in was cancelled. Try again, or log in with your password.";
+    return during === "add" ? tr("No passkey was added. Try again when you're ready.") : tr("Passkey log-in was cancelled. Try again, or log in with your password.");
   if (code === "ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED" || code === "webauthn_credential_exists")
-    return "That device or security key already has a passkey for this account.";
-  if (code === "too_many_passkeys") return "This account has the most passkeys it can have. Remove one you no longer use, then add the new one.";
-  if (code === "passkey_disabled") return "Passkeys aren't available right now. Log in with your password.";
+    return tr("That device or security key already has a passkey for this account.");
+  if (code === "too_many_passkeys") return tr("This account has the most passkeys it can have. Remove one you no longer use, then add the new one.");
+  if (code === "passkey_disabled") return tr("Passkeys aren't available right now. Log in with your password.");
   if (code === "webauthn_credential_not_found")
-    return "That passkey isn't linked to a LiteraryWorm account. Log in with your password, then add a passkey in Account → Sign-in.";
-  if (code === "webauthn_challenge_expired" || code === "webauthn_challenge_not_found") return "That took too long. Try again.";
-  if (code === "webauthn_verification_failed") return "We couldn't check that passkey. Try again, or use another one.";
-  if (code === "email_not_confirmed") return "Confirm your email first: open the link we sent you, then log in.";
-  if (code === "user_banned") return "This account can't log in. Contact support.";
+    return tr("That passkey isn't linked to a LiteraryWorm account. Log in with your password, then add a passkey in Account → Sign-in.");
+  if (code === "webauthn_challenge_expired" || code === "webauthn_challenge_not_found") return tr("That took too long. Try again.");
+  if (code === "webauthn_verification_failed") return tr("We couldn't check that passkey. Try again, or use another one.");
+  if (code === "email_not_confirmed") return tr("Confirm your email first: open the link we sent you, then log in.");
+  if (code === "user_banned") return tr("This account can't log in. Contact support.");
   if (code === "ERROR_INVALID_DOMAIN" || code === "ERROR_INVALID_RP_ID")
-    return "Passkeys only work on literaryworm.com. Open the site there and try again.";
-  if (error.status === 429) return "Too many tries in a short time. Wait a few minutes, then try again.";
-  if ((error.message ?? "").toLowerCase().includes("fetch")) return "We couldn't reach LiteraryWorm. Check your connection and try again.";
-  return during === "add" ? "We couldn't add the passkey. Try again." : "We couldn't log you in with a passkey. Try again, or log in with your password.";
+    return tr("Passkeys only work on literaryworm.com. Open the site there and try again.");
+  if (error.status === 429) return tr("Too many tries in a short time. Wait a few minutes, then try again.");
+  if ((error.message ?? "").toLowerCase().includes("fetch")) return tr("We couldn't reach LiteraryWorm. Check your connection and try again.");
+  return during === "add" ? tr("We couldn't add the passkey. Try again.") : tr("We couldn't log you in with a passkey. Try again, or log in with your password.");
 }
 
 /**

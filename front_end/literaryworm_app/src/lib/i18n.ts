@@ -1,3 +1,4 @@
+import { createElement, Fragment, type ReactNode } from "react";
 /**
  * The app's languages (the accessibility menu's Language). Text is translated by its English
  * wording: t("Log in") looks up "Log in" in the chosen language's dictionary
@@ -62,6 +63,27 @@ export interface PluralForms {
 export function pluralize(messages: Messages | undefined, lang: UiLanguage, count: number, forms: PluralForms, vars?: Vars): string {
   const rule = new Intl.PluralRules(lang).select(count);
   return translate(messages, rule === "one" ? forms.one : forms.other, { count, ...vars });
+}
+
+// The language chosen now, for code outside React (messages made in src/lib): set by useT().
+let active: { lang: UiLanguage; messages: Messages | undefined } = { lang: "en", messages: undefined };
+export function setActiveLanguage(lang: UiLanguage, messages: Messages | undefined) {
+  active = { lang, messages };
+}
+
+/** t() for code outside React: in the language chosen when it runs (an error made now reads in it). */
+export const tr = (key: string, vars?: Vars) => translate(active.messages, key, vars);
+
+/**
+ * A translated sentence with parts that are elements (bold, a link): rich(t("Log in with {email}."),
+ * { email: <strong>…</strong> }). The sentence stays whole for translators; each {name} is replaced
+ * by its element.
+ */
+export function rich(text: string, parts: Record<string, ReactNode>): ReactNode[] {
+  return text.split(/(\{\w+\})/).map((piece, i) => {
+    const name = /^\{(\w+)\}$/.exec(piece)?.[1];
+    return createElement(Fragment, { key: i }, name && name in parts ? parts[name] : piece);
+  });
 }
 
 /** Marks a text kept in a list or table for translation where it's shown (t(label)); returns it as is. */

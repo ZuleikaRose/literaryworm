@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useStore } from "../store/context";
-import { makeT, type Messages, type T, type UiLanguage } from "./i18n";
+import { makeT, type Messages, setActiveLanguage, type T, type UiLanguage } from "./i18n";
 
 // Each language's dictionary is its own file, fetched the first time it's chosen.
 const loaders = import.meta.glob<{ default: Messages }>("../data/i18n/*.json");
@@ -34,5 +34,6 @@ export function useT(): T {
   const lang = useLanguage();
   const messages = useSyncExternalStore(subscribe, () => cache[lang]);
   useEffect(() => load(lang), [lang]);
+  useEffect(() => setActiveLanguage(lang, messages), [lang, messages]);
   return useMemo(() => makeT(lang, messages), [lang, messages]);
 }

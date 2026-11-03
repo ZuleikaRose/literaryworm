@@ -18,7 +18,7 @@ function sourceKeys(): Set<string> {
         const src = readFileSync(path, "utf8")
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/^\s*\/\/.*$/gm, "");
-        for (const m of src.matchAll(new RegExp(String.raw`(?<![\w.$])tk?\(\s*${STRING}`, "g"))) keys.add(unquote(m[1]));
+        for (const m of src.matchAll(new RegExp(String.raw`(?<![\w.$])t[kr]?\(\s*${STRING}`, "g"))) keys.add(unquote(m[1]));
         for (const m of src.matchAll(new RegExp(String.raw`\bt\.plural\([^;]*?\{\s*one:\s*${STRING},\s*other:\s*${STRING}`, "g"))) {
           keys.add(unquote(m[1]));
           keys.add(unquote(m[2]));
@@ -66,4 +66,12 @@ describe("languages", () => {
       expect(wrong).toEqual([]);
     });
   }
+});
+
+describe("rich sentences", () => {
+  it("swap placeholders for elements and keep the rest as text", async () => {
+    const { rich } = await import("./i18n");
+    const parts = rich("Log in with {email} and {password}.", { email: "E", password: "P" }) as { props: { children: unknown } }[];
+    expect(parts.map((p) => p.props.children)).toEqual(["Log in with ", "E", " and ", "P", "."]);
+  });
 });

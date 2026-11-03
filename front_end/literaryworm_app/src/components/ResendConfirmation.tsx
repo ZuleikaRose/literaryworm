@@ -1,3 +1,5 @@
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useEffect, useState } from "react";
 import { AccountError, resendConfirmation } from "../lib/accountApi";
 import { Icon } from "./Icon";
@@ -11,6 +13,7 @@ export function ResendConfirmation({ email }: { email: string }) {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [wait, setWait] = useState(0);
+  const t = useT();
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -27,7 +30,7 @@ export function ResendConfirmation({ email }: { email: string }) {
       setSent(true);
       setWait(WAIT_SECONDS);
     } catch (err) {
-      setError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
     } finally {
       setBusy(false);
     }
@@ -36,14 +39,12 @@ export function ResendConfirmation({ email }: { email: string }) {
   return (
     <div className="resend-confirmation">
       <button type="button" className="secondary-button auth-submit" disabled={busy || wait > 0} onClick={send}>
-        <Icon name="mail" size={16} /> {wait > 0 ? `Send again in ${wait} s` : "Send the email again"}
+        <Icon name="mail" size={16} /> {wait > 0 ? t("Send again in {n} s", { n: wait }) : t("Send the email again")}
       </button>
       {sent && (
         <div className="form-success" role="status">
           <Icon name="check" size={17} />
-          <p>
-            Sent again to <strong>{email.trim()}</strong>. It can take a few minutes to arrive.
-          </p>
+          <p>{rich(t("Sent again to {email}. It can take a few minutes to arrive."), { email: <strong>{email.trim()}</strong> })}</p>
         </div>
       )}
       {error && (

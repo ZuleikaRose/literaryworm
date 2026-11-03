@@ -10,6 +10,8 @@ import { ResendConfirmation } from "../components/ResendConfirmation";
 import { planById } from "../data/plans";
 import { AccountError, signUp } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
+import { rich } from "../lib/i18n";
+import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
 import { PASSWORD_MAX, PASSWORD_MIN, validateDob, validateEmail, validateNewPassword } from "../lib/validation";
 import { useStore } from "../store/context";
@@ -22,7 +24,8 @@ type Errors = Partial<Record<FieldName, string>>;
 const today = new Date().toISOString().slice(0, 10);
 
 export default function SignUp() {
-  useTitle("Create your account");
+  const t = useT();
+  useTitle(t("Create your account"));
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -48,16 +51,16 @@ export default function SignUp() {
 
   const validate = (): Errors => {
     const next: Errors = {};
-    if (!name.trim()) next.name = "Enter your name.";
+    if (!name.trim()) next.name = t("Enter your name.");
     const emailError = validateEmail(email);
     if (emailError) next.email = emailError;
     // Real accounts: Supabase answers the same way for new and existing emails, so nothing is revealed here.
-    else if (!usesBackend && state.households[emailKey(email)]) next.email = "An account already uses this email. Log in instead.";
+    else if (!usesBackend && state.households[emailKey(email)]) next.email = t("An account already uses this email. Log in instead.");
     const passwordError = validateNewPassword(password);
     if (passwordError) next.password = passwordError;
     const dobError = validateDob(dob);
     if (dobError) next.dob = dobError;
-    if (!terms) next.terms = "Accept the Terms of Service to create an account.";
+    if (!terms) next.terms = t("Accept the Terms of Service to create an account.");
     return next;
   };
 
@@ -82,7 +85,7 @@ export default function SignUp() {
         // Confirmed straight away: useAuthSync loads the account and the redirect above continues to the plan step.
         if (needsConfirmation) setSentTo(email.trim());
       } catch (err) {
-        setFormError(err instanceof AccountError ? err.message : "Something went wrong. Try again.");
+        setFormError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
       } finally {
         setBusy(false);
       }
@@ -127,24 +130,24 @@ export default function SignUp() {
   if (sentTo) {
     return (
       <AuthCard
-        eyebrow="Check your email"
-        title="Confirm your email address"
+        eyebrow={t("Check your email")}
+        title={t("Confirm your email address")}
         intro={
           <p>
-            We've sent a link to <strong>{sentTo}</strong>. Open it to confirm your address, then log in to choose your
-            plan. The link works for 1 hour.
+            {rich(t("We've sent a link to {email}. Open it to confirm your address, then log in to choose your plan. The link works for 1 hour."), {
+              email: <strong>{sentTo}</strong>,
+            })}
           </p>
         }
         footer={
           <>
-            <span>Confirmed already?</span>
-            <Link to="/signin">Log in</Link>
+            <span>{t("Confirmed already?")}</span>
+            <Link to="/signin">{t("Log in")}</Link>
           </>
         }
       >
         <p className="auth-note">
-          No email after a few minutes? Check your spam folder. If you already have an account with this email, log in
-          or reset your password instead.
+          {t("No email after a few minutes? Check your spam folder. If you already have an account with this email, log in or reset your password instead.")}
         </p>
         <ResendConfirmation email={sentTo} />
       </AuthCard>
@@ -158,23 +161,23 @@ export default function SignUp() {
         data={pageData({ path: "/signup", name: "Create your account", crumbs: [HOME_CRUMB, { name: "Create your account", path: "/signup" }] })}
       />
       <AuthCard
-        eyebrow="Join LiteraryWorm"
-        title="Create your account"
+        eyebrow={t("Join LiteraryWorm")}
+        title={t("Create your account")}
         intro={
           <p>
-            Account holders must be 18 or older. You'll add profiles for everyone else at home next.
+            {t("Account holders must be 18 or older. You'll add profiles for everyone else at home next.")}
             {plan && (
               <>
                 {" "}
-                You picked <strong>{plan.name}</strong>; you'll confirm it before paying anything.
+                {rich(t("You picked {plan}; you'll confirm it before paying anything."), { plan: <strong>{plan.name}</strong> })}
               </>
             )}
           </p>
         }
         footer={
           <>
-            <span>Already have an account?</span>
-            <Link to="/signin">Log in</Link>
+            <span>{t("Already have an account?")}</span>
+            <Link to="/signin">{t("Log in")}</Link>
           </>
         }
       >
@@ -186,24 +189,24 @@ export default function SignUp() {
         )}
         <form ref={formRef} className="auth-form" noValidate onSubmit={submit}>
           <Field
-            label="Your name"
+            label={t("Your name")}
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             error={liveErrors.name}
           />
           <Field
-            label="Email address"
+            label={t("Email address")}
             type="email"
             autoComplete="email"
             inputMode="email"
-            placeholder="you@example.com"
+            placeholder={t("you@example.com")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={liveErrors.email}
           />
           <PasswordField
-            label="Password"
+            label={t("Password")}
             autoComplete="new-password"
             maxLength={PASSWORD_MAX}
             value={password}
@@ -211,11 +214,11 @@ export default function SignUp() {
             error={liveErrors.password}
             hint={
               <>
-                {PASSWORD_MIN} to {PASSWORD_MAX} characters. No need for symbols or numbers; a short phrase is strong.{" "}
+                {t("{min} to {max} characters. No need for symbols or numbers; a short phrase is strong.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}{" "}
                 <span className={length >= PASSWORD_MIN ? "hint-ok" : undefined} aria-live="polite">
                   {length >= PASSWORD_MIN ? (
                     <>
-                      <Icon name="check" size={13} /> Long enough
+                      <Icon name="check" size={13} /> {t("Long enough")}
                     </>
                   ) : (
                     `${length}/${PASSWORD_MIN}`
@@ -225,14 +228,14 @@ export default function SignUp() {
             }
           />
           <Field
-            label="Date of birth"
+            label={t("Date of birth")}
             type="date"
             autoComplete="bday"
             max={today}
             value={dob}
             onChange={(e) => setDob(e.target.value)}
             error={liveErrors.dob}
-            hint="We use this only to confirm you're 18 or older."
+            hint={t("We use this only to confirm you're 18 or older.")}
           />
 
           <div className="auth-checks">
@@ -245,8 +248,10 @@ export default function SignUp() {
                 aria-describedby={liveErrors.terms ? "terms-error" : undefined}
               />
               <span>
-                I accept the <Link to="/legal/terms">Terms of Service</Link> and have read the{" "}
-                <Link to="/legal/privacy">Privacy Policy</Link>.
+                {rich(t("I accept the {terms} and have read the {privacy}."), {
+                  terms: <Link to="/legal/terms">{t("Terms of Service")}</Link>,
+                  privacy: <Link to="/legal/privacy">{t("Privacy Policy")}</Link>,
+                })}
               </span>
             </label>
             {liveErrors.terms && (
@@ -257,12 +262,12 @@ export default function SignUp() {
             )}
             <label className="check-row">
               <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
-              <span>Email me about new releases and offers. You can change this any time.</span>
+              <span>{t("Email me about new releases and offers. You can change this any time.")}</span>
             </label>
           </div>
 
           <button type="submit" className="primary-button auth-submit" disabled={busy}>
-            {busy ? "Creating your account…" : "Create account"}
+            {busy ? t("Creating your account…") : t("Create account")}
           </button>
         </form>
       </AuthCard>
