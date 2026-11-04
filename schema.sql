@@ -11983,3 +11983,23 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-04'::date, '2026.11', 'update', $lw$Genres that fit better$lw$, $lw$Genres such as Pets, Cooking and House & Home now show only books filed under that subject, so a novel that just has the word in its title no longer turns up there. This applies when you browse a genre and when you narrow a search to one.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Genres that fit better$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006695_whats_new_fuller_genres.sql
+-- =============================================================================
+-- What's new: thin genre pages top up from the next one; covers have alt text; the genres FAQ. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'update', $lw$Fuller genre pages and described covers$lw$, $lw$When a genre's page comes back with only a few books, the next page now loads straight away, so you aren't left with two books and a button. Book covers now tell screen readers which book they show, and the FAQ answers which genres you can browse.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Fuller genre pages and described covers$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006696_covers_alt_accessibility.sql
+-- =============================================================================
+-- The Accessibility Policy: book covers now have text alternatives ("Cover of …"). Same text as src/data/legalPages.json, matched as stored.
+-- Changed once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$Pictures that carry meaning, like shared quote cards, have text alternatives; decorative covers are hidden from screen readers and their titles are always written nearby.$lw$, $lw$Book covers are described as the cover of their title, and shared pictures, like quote cards, by what they show; drawn covers, which only repeat the title written beside them, are hidden from screen readers.$lw$)::jsonb, updated_at = now()
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$Pictures that carry meaning, like shared quote cards, have text alternatives; decorative covers are hidden from screen readers and their titles are always written nearby.$lw$) > 0;
