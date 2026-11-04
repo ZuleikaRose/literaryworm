@@ -66,6 +66,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* It gives way first when the header is tight, so the menu and buttons always fit. */
+  min-width: 0;
   width: min(34vw, 450px);
   height: 42px;
   padding: 0 13px;
@@ -145,6 +147,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   transition: color var(--dur-fast) ease;
+  white-space: nowrap;
 }
 
 .desktop-nav a:hover,
@@ -598,6 +601,26 @@
 }
 
 /* ---------- Responsive ---------- */
+
+/* A member's header holds the search box, three links and four buttons: on narrower computer
+   screens it closes up, and the Ctrl K hint goes (the shortcut still works). */
+@media (max-width: 1200px) {
+  .topbar {
+    gap: 20px;
+  }
+
+  .search-box kbd {
+    display: none;
+  }
+}
+
+/* Closer still, the profile button shows only its avatar (its name is still its label), so the
+   search box keeps room for the words. */
+@media (max-width: 1000px) {
+  .profile-button-name {
+    display: none;
+  }
+}
 
 @media (max-width: 900px) {
   .topbar {

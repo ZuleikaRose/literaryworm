@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-04",
     "version": "2026.11",
     "kind": "update",
+    "title": "Search in the menu when you're logged in",
+    "body": "The header menu now has Search between Discover and My Library when you're logged in, so the full Search page, with its filters and genres, is a click away, as it already was on a phone. The header also fits better on smaller laptop screens.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Fuller genre pages and described covers",
     "body": "When a genre's page comes back with only a few books, the next page now loads straight away, so you aren't left with two books and a button. Book covers now tell screen readers which book they show, and the FAQ answers which genres you can browse.",
     "major": false

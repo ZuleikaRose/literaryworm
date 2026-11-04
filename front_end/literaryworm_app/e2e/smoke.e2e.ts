@@ -329,6 +329,22 @@ describe("languages", () => {
 });
 
 describe("the demo household", () => {
+  it("offers the Search page in a member's header menu, and the header fits from computer to tablet", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    const menu = page.getByRole("navigation", { name: "Primary" }).first();
+    await expect(menu.getByRole("link").allInnerTexts()).resolves.toEqual(["Discover", "Search", "My Library"]);
+    await menu.getByRole("link", { name: "Search" }).click();
+    await page.waitForURL(/\/search$/);
+    // React Router marks the new page's link a moment after the address changes: wait for it.
+    await page.locator('.desktop-nav a[aria-current="page"]', { hasText: "Search" }).waitFor({ timeout: 5000 });
+    for (const width of [1280, 1024, 920]) {
+      await page.setViewportSize({ width, height: 800 });
+      expect(await scrollsSideways(page)).toBe(false);
+    }
+    expect(errors()).toEqual([]);
+  });
+
   it("keeps scrolling on Home from one genre into the next", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

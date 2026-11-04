@@ -114,6 +114,8 @@ export function Header() {
         {isMember ? (
           <>
             <NavLink to="/browse">{t("Discover")}</NavLink>
+            {/* The full Search page (filters, genres, search by author, keywords or ISBN), not just the box. */}
+            <NavLink to="/search">{t("Search")}</NavLink>
             <NavLink to="/library">{t("My Library")}</NavLink>
           </>
         ) : (
