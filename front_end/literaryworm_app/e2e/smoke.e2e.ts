@@ -1410,8 +1410,14 @@ describe("the demo household", () => {
     await page.getByText(/3 words\. 2 to review today/).waitFor();
     await goInApp(page, "/library?view=notes");
     await page.getByRole("heading", { name: /No highlights yet|Notes and highlights/ }).waitFor();
+    // The demo follows a sample reader, Jordan, and shows her newest logs (data/demoReaders.ts).
     await goInApp(page, "/library?view=readers");
-    await page.getByRole("heading", { name: "Following readers is for members" }).waitFor();
+    await page.getByRole("heading", { name: "Readers you follow" }).waitFor();
+    await page.getByText(/Read it in two evenings/).waitFor();
+    // And two of Avery's own lists.
+    await goInApp(page, "/library?view=lists");
+    await page.getByText("Holiday reads").first().waitFor();
+    await page.getByText("Classics to finish").first().waitFor();
     expect(errors()).toEqual([]);
   });
 

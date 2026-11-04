@@ -1,3 +1,4 @@
+import { DEMO_READER_ID, demoReaderLogs } from "../data/demoReaders";
 import type { ReadingLog } from "../types";
 import { PUBLISHABLE_KEY, SUPABASE_URL, usesBackend } from "./backend";
 
@@ -89,8 +90,10 @@ export const READER_FEED_SIZE = 30;
  * only readers who turned their page on, newest first.
  */
 export async function fetchReaderLogs(readerIds: string[]): Promise<ReadingLog[]> {
+  // The demo's sample reader's logs are made here, never asked for.
+  const sample = readerIds.includes(DEMO_READER_ID) ? demoReaderLogs(Date.now()) : [];
   const ids = readerIds.filter((id) => UUID.test(id)).slice(0, 200);
-  if (!usesBackend || ids.length === 0) return [];
+  if (!usesBackend || ids.length === 0) return sample;
   const params = new URLSearchParams({
     select: "id,user_id,volume_id,body,rating,created_at,updated_at,author:profiles!inner(display_name,public_reader)",
     user_id: `in.(${ids.join(",")})`,
@@ -106,7 +109,7 @@ export async function fetchReaderLogs(readerIds: string[]): Promise<ReadingLog[]
   }
   if (!res.ok) throw new LogsApiError("We couldn't load reader logs right now. Try again in a moment.");
   const rows = (await res.json()) as (Row & { volume_id: string })[];
-  return rows.map((row) => ({
+  const found: ReadingLog[] = rows.map((row) => ({
     id: row.id,
     bookId: row.volume_id,
     profileId: null,
@@ -118,4 +121,5 @@ export async function fetchReaderLogs(readerIds: string[]): Promise<ReadingLog[]
     createdAt: Date.parse(row.created_at),
     updatedAt: Date.parse(row.updated_at),
   }));
+  return [...sample, ...found].sort((a, b) => b.createdAt - a.createdAt);
 }

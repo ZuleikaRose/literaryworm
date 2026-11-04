@@ -2,6 +2,7 @@ import { browserUiLanguage } from "../lib/i18n";
 import { DEFAULT_SAVED_A11Y } from "../lib/a11ySync";
 import { prefersMoreContrast } from "../lib/contrast";
 import { getBook } from "../data/books";
+import { DEMO_READER_ID, DEMO_READER_NAME } from "../data/demoReaders";
 import { DEMO_UPLOAD_READING, demoUploads } from "../data/demoUploads";
 import { seedLogs } from "../data/logs";
 import { usesBackend } from "../lib/backend";
@@ -194,9 +195,9 @@ function demoWord(word: string, definition: string, bookId: string, reviewDue: s
   return { word, definition, bookId, chapterIndex: 0, page: null, context: null, learned: false, reviewDue, reviewStep, createdAt };
 }
 
-/** A demo highlight on Frankenstein's first page (its real words and offsets). */
-function demoHighlight(id: string, quote: string, start: number, color: Highlight["color"], note: string | null, createdAt: number): Highlight {
-  return { id, bookId: "frankenstein", chapterIndex: 0, page: 0, start, end: start + quote.length, quote, color, note, createdAt, reviewDue: null, reviewStep: 0 };
+/** A demo highlight on a book's first page (its real words and offsets in public/texts/<id>.json). */
+function demoHighlight(id: string, quote: string, start: number, color: Highlight["color"], note: string | null, createdAt: number, bookId = "frankenstein"): Highlight {
+  return { id, bookId, chapterIndex: 0, page: 0, start, end: start + quote.length, quote, color, note, createdAt, reviewDue: null, reviewStep: 0 };
 }
 
 export function demoHousehold(): Household {
@@ -227,6 +228,40 @@ export function demoHousehold(): Household {
     ]),
     uploads,
     favorites: ["circe"],
+    // Two of Avery's own lists (My Library → Lists); the demo can't share them by link.
+    customLists: [
+      {
+        id: "demo-list-holiday",
+        name: "Holiday reads",
+        description: "Light, kind books for a week away.",
+        bookIds: ["the-midnight-library", "anne-of-green-gables", "circe"],
+        shareSlug: null,
+      },
+      { id: "demo-list-classics", name: "Classics to finish", description: "", bookIds: ["moby-dick", "jane-eyre", "middlemarch"], shareSlug: null },
+    ],
+    // The first lines of Pride and Prejudice, which Avery finished (real offsets on its first page).
+    highlights: [
+      demoHighlight(
+        "demo-highlight-avery-1",
+        "It is a truth universally acknowledged, that a single man in possession of a good fortune must be in want of a wife.",
+        0,
+        "green",
+        "The best first line in English. Every word is doing a job.",
+        now - 26 * day,
+        "pride-and-prejudice",
+      ),
+      demoHighlight(
+        "demo-highlight-avery-2",
+        "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered as the rightful property of some one or other of their daughters.",
+        118,
+        "pink",
+        null,
+        now - 26 * day,
+        "pride-and-prejudice",
+      ),
+    ],
+    // A sample reader to follow (data/demoReaders.ts), for My Library → Readers.
+    readerFollows: [{ readerId: DEMO_READER_ID, name: DEMO_READER_NAME }],
     follows: [
       { kind: "author", name: "Matt Haig" },
       { kind: "narrator", name: "Imogen Hale" },
@@ -264,6 +299,8 @@ export function demoHousehold(): Household {
       [today(new Date(now - 4 * 86_400_000))]: { seconds: 20 * 60, listened: 0, finished: 1, books: ["peter-pan"] },
     },
     library: Object.fromEntries([catalogEntry("the-wild-robot", "reading", now - 2 * 86_400_000)]),
+    // The author of the book Mia's listening to, for My Library → Following and Home's new-from row.
+    follows: [{ kind: "author", name: "Peter Brown" }],
     progress: {
       "the-wild-robot": {
         bookId: "the-wild-robot",
@@ -333,6 +370,9 @@ function samData(now: number): ProfileData {
   return {
     ...emptyProfileData(),
     library: Object.fromEntries([catalogEntry("frankenstein", "reading", now - 8 * 86_400_000)]),
+    // The author of the book Sam's reading, and the sample reader (data/demoReaders.ts).
+    follows: [{ kind: "author", name: "Mary Shelley" }],
+    readerFollows: [{ readerId: DEMO_READER_ID, name: DEMO_READER_NAME }],
     highlights: [
       demoHighlight("demo-highlight-1", intro, 0, "yellow", "Mary Shelley defending the premise before the story starts.", now - 7 * 86_400_000),
       demoHighlight("demo-highlight-2", weaving, 311, "blue", null, now - 6 * 86_400_000),

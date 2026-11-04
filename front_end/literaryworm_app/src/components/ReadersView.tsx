@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { DEMO_READER_ID } from "../data/demoReaders";
 import { fetchReaderLogs, LogsApiError } from "../lib/logsApi";
 import { useReaderFollows } from "../lib/useReaderFollows";
+import { useActiveProfile } from "../store/context";
 import type { ReadingLog } from "../types";
 import { Icon } from "./Icon";
 import { ReaderFollowButton } from "./ReaderFollowButton";
@@ -13,6 +15,7 @@ import { useT } from "../lib/useT";
 export function ReadersView() {
   const t = useT();
   const readers = useReaderFollows();
+  const kids = useActiveProfile()?.ageRating === "kids";
   const ids = readers.follows.map((f) => f.readerId).join(",");
   const [logs, setLogs] = useState<ReadingLog[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export function ReadersView() {
   if (!readers.available) {
     return (
       <div className="library-empty">
-        <h2>{t("Following readers is for members")}</h2>
+        <h2>{kids ? t("Kids profiles don't follow readers") : t("Following readers is for members")}</h2>
         <p>{t("Members can follow other readers who share their logs, and see what they're reading here. Kids profiles don't follow readers.")}</p>
       </div>
     );
@@ -59,7 +62,8 @@ export function ReadersView() {
         {readers.follows.map((f) => (
           <li key={f.readerId}>
             <div className="author-text">
-              <Link to={`/readers/${f.readerId}`}>{f.name}</Link>
+              {/* The demo's sample reader has no reader page. */}
+              {f.readerId === DEMO_READER_ID ? <strong>{f.name}</strong> : <Link to={`/readers/${f.readerId}`}>{f.name}</Link>}
             </div>
             <ReaderFollowButton readerId={f.readerId} name={f.name} />
           </li>

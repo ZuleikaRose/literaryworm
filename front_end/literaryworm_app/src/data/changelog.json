@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-04",
     "version": "2026.11",
     "kind": "update",
+    "title": "A fuller demo",
+    "body": "The demo household now shows more of what members get: Avery has two lists and highlights in Pride and Prejudice, Avery and Sam follow a sample reader and see her newest logs, and Sam and Mia follow an author each. A Kids profile's Readers page now says plainly that Kids profiles don't follow readers.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Search in the menu when you're logged in",
     "body": "The header menu now has Search between Discover and My Library when you're logged in, so the full Search page, with its filters and genres, is a click away, as it already was on a phone. The header also fits better on smaller laptop screens.",
     "major": false

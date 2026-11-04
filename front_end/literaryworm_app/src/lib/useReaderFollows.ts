@@ -5,21 +5,25 @@ import * as accountApi from "./accountApi";
 export const READER_FOLLOWS_MAX = 200;
 
 /**
- * Readers the active profile follows (members who turned their reader page on). Members only:
- * saved to `reader_follows` first, then the store. Not for Kids profiles or the demo.
+ * Readers the active profile follows (members who turned their reader page on): members' are saved
+ * to `reader_follows` first, then the store; the demo's stay in memory (it starts out following its
+ * sample reader, data/demoReaders.ts). Not for Kids profiles.
  */
 export function useReaderFollows() {
   const { state, dispatch } = useStore();
   const profile = useActiveProfile();
   const follows = useProfileData().readerFollows;
-  const available = Boolean(state.account?.userId) && profile?.ageRating !== "kids";
+  const demo = Boolean(state.account?.isDemo);
+  const available = (Boolean(state.account?.userId) || demo) && profile?.ageRating !== "kids";
 
   async function toggle(readerId: string, name: string) {
     if (!profile || !available) return;
     const following = follows.some((f) => f.readerId === readerId);
     if (!following && follows.length >= READER_FOLLOWS_MAX) throw new accountApi.AccountError(`A profile can follow up to ${READER_FOLLOWS_MAX} readers.`);
-    if (following) await accountApi.unfollowReader(profile.id, readerId);
-    else await accountApi.followReader(profile.id, readerId);
+    if (!demo) {
+      if (following) await accountApi.unfollowReader(profile.id, readerId);
+      else await accountApi.followReader(profile.id, readerId);
+    }
     dispatch({
       type: "patchProfileData",
       patch: { readerFollows: following ? follows.filter((f) => f.readerId !== readerId) : [...follows, { readerId, name }] },
