@@ -180,6 +180,8 @@ Then, on 4 November 2026, five more, in this order:
 
 The same day, a fix from a reader's report: Search's Filters scroll on their own on a computer when they're taller than the window.
 
+Then every Google Books genre: 64 to browse and filter by on Home and Search (every top-level BISAC subject, none repeated), with Kids profiles offered only the genres the sample catalog has.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

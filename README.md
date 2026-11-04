@@ -493,5 +493,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | True read-along for three LibriVox classics: the recording lined up with the text (`scripts/align-librivox.py`, `lib/alignment.ts`, `public/alignments/`: all 102 chapters, 93–99% of words matched; marked `synchronizedAudioText` in the books' structured data; What's new and the Accessibility Policy, migrations 6688–6689) | Done (pilot) |
 | —    | An age gate before an adult profile or a visitor opens a book marked mature, kept per profile (migrations 6684–6686) | Done |
 | —    | Search's Filters scroll on their own on a computer when they're taller than the window (a reader's report; migration 6690) | Done |
+| —    | Every Google Books genre: 64 to browse and filter by on Home and Search, none repeated (migrations 6692–6693) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
