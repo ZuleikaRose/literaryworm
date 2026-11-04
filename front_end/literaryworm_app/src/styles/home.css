@@ -212,8 +212,26 @@
 
 .feed-more {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: 12px 20px;
   margin-top: 44px;
+}
+
+/* Which genre an endless feed has reached (members' Keep discovering). */
+.feed-showing {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* An endless feed can hold hundreds of books: those far off screen skip layout and painting until
+   they come near, keeping long scrolls smooth on older phones. The size is a placeholder until a
+   tile has been drawn once ("auto" then remembers its real size), so the page doesn't jump. */
+.catalog-grid-endless > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
 }
 
 .load-trigger {

@@ -10,12 +10,14 @@ interface FeedState {
   items: BookSummary[];
   /** Which query of the chain is being read (0 is the first), and its next page. */
   step: number;
+  /** The chain query the newest books came from (what the list is showing now). */
+  loadedStep: number;
   nextPage: number;
   status: FeedStatus;
   error: string | null;
 }
 
-const initial = (key: string): FeedState => ({ key, items: [], step: 0, nextPage: 0, status: "loading", error: null });
+const initial = (key: string): FeedState => ({ key, items: [], step: 0, loadedStep: 0, nextPage: 0, status: "loading", error: null });
 
 /**
  * A list that grows a page at a time (Load more or infinite scroll). Changing the query
@@ -52,10 +54,12 @@ export function useBookFeed(query: FeedQuery, ageRating: AgeRating = "all", then
           if (s.key !== key) return s;
           const seen = new Set(s.items.map((b) => b.id));
           const next = nextFeedStep(step, page, result.hasMore, steps);
+          const added = result.items.some((b) => !seen.has(b.id));
           return {
             key,
             items: step === 0 && page === 0 ? result.items : [...s.items, ...result.items.filter((b) => !seen.has(b.id))],
             step: next.step,
+            loadedStep: added ? step : s.loadedStep,
             nextPage: next.done ? page + 1 : next.page,
             status: next.done ? "end" : "idle",
             error: null,
@@ -87,5 +91,5 @@ export function useBookFeed(query: FeedQuery, ageRating: AgeRating = "all", then
   }, [nextPage, step, key]);
 
   const view = state.key === key ? state : initial(key);
-  return { items: view.items, status: view.status, error: view.error, loadMore, retry };
+  return { items: view.items, status: view.status, error: view.error, loadMore, retry, loadedStep: view.loadedStep };
 }

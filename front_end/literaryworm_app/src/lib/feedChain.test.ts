@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { genreQuery, genresAfter, nextFeedStep, sampleOf, VISITOR_SAMPLE } from "./feedChain";
+import { genreOrderAfter, genreQuery, genresAfter, nextFeedStep, sampleOf, VISITOR_SAMPLE } from "./feedChain";
 
 describe("genreQuery", () => {
   it("asks the home list for Technology and genre mode for the rest", () => {
@@ -21,6 +21,14 @@ describe("genresAfter", () => {
 
   it("takes every genre in order when the current one isn't in the list", () => {
     expect(genresAfter("poetry", ["technology", "horror"])).toEqual([{ mode: "home" }, { mode: "genre", genre: "horror" }]);
+  });
+});
+
+describe("genreOrderAfter", () => {
+  it("lists the genres in the order the feed reads them, wrapping round, without the current one", () => {
+    expect(genreOrderAfter("sci-fi", ["technology", "adventure", "sci-fi", "horror"])).toEqual(["horror", "technology", "adventure"]);
+    expect(genreOrderAfter("horror", ["technology", "adventure", "sci-fi", "horror"])).toEqual(["technology", "adventure", "sci-fi"]);
+    expect(genreOrderAfter("technology", ["technology"])).toEqual([]);
   });
 });
 

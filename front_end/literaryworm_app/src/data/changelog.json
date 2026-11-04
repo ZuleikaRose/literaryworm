@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-04",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Keep discovering stays quick, with Back to top",
+    "body": "Members' Keep discovering on Home now says which genre it has reached as it runs on from one to the next, and once it's long it offers Back to top of the feed. Books far off the screen aren't drawn until you come near them, so a long scroll stays smooth on older phones.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Accessibility settings follow your profile",
     "body": "The accessibility menu now remembers your choices for each profile: text size, theme, Lexend or OpenDyslexic, high contrast, underlined links, stopped animations and the read-along transcript's settings. A member's profile opens with them on every device, so you set them once.",

@@ -12,7 +12,7 @@ import { type BrowseGenre, browseGenres, genreLabel, isBrowseGenre } from "../da
 import { landingFeatures } from "../data/landingFeatures";
 import { formatPrice, planFaqs, plans } from "../data/plans";
 import { StructuredData } from "../components/StructuredData";
-import { genreQuery, genresAfter, VISITOR_SAMPLE } from "../lib/feedChain";
+import { genreOrderAfter, genreQuery, genresAfter, VISITOR_SAMPLE } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
 import { faqData, membershipData, siteDescription, pageData } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
@@ -288,6 +288,7 @@ export default function Landing() {
             controls={<GenreNav current={genre} basePath="/" />}
             // Logged in, it scrolls on through every genre; a visitor sees a sample, then an invitation.
             then={state.account ? genresAfter(genre, browseGenres.map((g) => g.id)) : undefined}
+            stepLabels={state.account ? [genre, ...genreOrderAfter(genre, browseGenres.map((g) => g.id))].map((g) => t(genreLabel(g))) : undefined}
             endText={state.account ? t("That's every genre. Pick one above to start again.") : undefined}
             sampleSize={state.account ? undefined : VISITOR_SAMPLE}
             sampleEnd={

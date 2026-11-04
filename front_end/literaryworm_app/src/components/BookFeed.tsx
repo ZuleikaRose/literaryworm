@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import type { BookSummary, FeedQuery } from "../lib/booksApi";
-import { sampleOf } from "../lib/feedChain";
+import { BACK_TO_TOP_AFTER, sampleOf } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
 import type { AgeRating } from "../types";
 import { BookTile, BookTileSkeleton } from "./BookTile";
@@ -26,6 +26,8 @@ interface BookFeedProps {
   /** Show only this many books, then `sampleEnd` instead of loading more (the public home's sample). */
   sampleSize?: number;
   sampleEnd?: ReactNode;
+  /** What each query in the chain is called ([query, ...then]), so the feed can say which genre it's showing. */
+  stepLabels?: string[];
 }
 
 /**
@@ -33,7 +35,7 @@ interface BookFeedProps {
  * discovering"). A Load more button does the same for keyboard users and browsers without
  * IntersectionObserver.
  */
-export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint, endText, onItems, then, sampleSize, sampleEnd }: BookFeedProps) {
+export function BookFeed({ id, title, eyebrow, query, ageRating = "all", controls, emptyHint, endText, onItems, then, sampleSize, sampleEnd, stepLabels }: BookFeedProps) {
   const t = useT();
   const feed = useBookFeed(query, ageRating, then);
   const { error, retry } = feed;
@@ -52,6 +54,14 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
   }, [items]);
   const sentinel = useRef<HTMLDivElement>(null);
   const headingId = `${id}-title`;
+  const heading = useRef<HTMLHeadingElement>(null);
+  const showing = stepLabels?.[feed.loadedStep];
+  // Long feeds: books far off screen aren't laid out or painted (content-visibility), and Back to top is offered.
+  const long = items.length >= BACK_TO_TOP_AFTER;
+  const backToTop = () => {
+    heading.current?.scrollIntoView({ block: "start" });
+    heading.current?.focus({ preventScroll: true });
+  };
 
   useEffect(() => {
     const el = sentinel.current;
@@ -70,7 +80,10 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
       <div className="section-heading catalog-heading">
         <div>
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-          <h2 id={headingId}>{title}</h2>
+          <h2 id={headingId} ref={heading} tabIndex={-1}>
+            {title}
+          </h2>
+          {showing && items.length > 0 && <p className="feed-showing">{t("Now showing: {genre}", { genre: showing })}</p>}
         </div>
         <p className="results-count" aria-live="polite">
           {items.length > 0 && t.plural(items.length, { one: "{count} book loaded", other: "{count} books loaded" })}
@@ -87,7 +100,7 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
       )}
 
       {items.length > 0 && (
-        <ul className="catalog-grid" role="list">
+        <ul className={then?.length ? "catalog-grid catalog-grid-endless" : "catalog-grid"} role="list">
           {items.map((book, i) => (
             <li key={book.id}>
               <BookTile book={book} priority={i < 6} />
@@ -125,6 +138,19 @@ export function BookFeed({ id, title, eyebrow, query, ageRating = "all", control
         <div className="feed-more" ref={sentinel}>
           <button type="button" className="secondary-button" onClick={loadMore}>
             {t("Load more books")}
+          </button>
+          {long && (
+            <button type="button" className="text-button" onClick={backToTop}>
+              {t("Back to top of the feed")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {status !== "idle" && long && (
+        <div className="feed-more">
+          <button type="button" className="text-button" onClick={backToTop}>
+            {t("Back to top of the feed")}
           </button>
         </div>
       )}

@@ -487,5 +487,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | The demo shows the newest features: a sample invite link, last night's reading sprints, and Jordan's wishlist opening Gifts; two classics tagged LGBTQIA+ (migration 6665) | Done |
 | —    | Members' Home keeps scrolling through every genre and visitors see a sample; an OpenDyslexic switch in the accessibility menu, which now scrolls inside the window; Google Books answers kept briefly in Supabase, only as long as Google's cache headers allow and at most 7 days (migrations 6666–6671; Help, FAQ and plan feature updated too) | Done |
 | —    | The accessibility menu's settings follow each profile to every device (migrations 6673–6675) | Done |
+| —    | The endless feed stays quick: Now showing the genre it's reached, Back to top, books off screen not drawn (migration 6676) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

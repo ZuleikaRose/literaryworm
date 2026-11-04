@@ -25,7 +25,7 @@ import { useFamilyShelf } from "../lib/useFamilyShelf";
 import { continueSeries } from "../lib/series";
 import { moreLike, recommend, type Seed, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
-import { genreQuery, genresAfter } from "../lib/feedChain";
+import { genreOrderAfter, genreQuery, genresAfter } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
@@ -312,6 +312,7 @@ export default function Browse() {
             query={genreQuery(genre)}
             // Endless: when this genre runs out, the feed runs on into the others.
             then={genresAfter(genre, browseGenres.map((g) => g.id))}
+            stepLabels={[genre, ...genreOrderAfter(genre, browseGenres.map((g) => g.id))].map((g) => t(genreLabel(g)))}
             endText={t("That's every genre. Pick one above to start again.")}
             ageRating={profile.ageRating}
             controls={<GenreNav current={genre} basePath="/browse" />}

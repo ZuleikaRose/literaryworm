@@ -12,12 +12,20 @@ export function genreQuery(genre: BrowseGenre): FeedQuery {
   return genre === "technology" ? { mode: "home" } : { mode: "genre", genre };
 }
 
-/** The genres to run on into after `current`, in the order given, each once. */
-export function genresAfter(current: BrowseGenre, genres: readonly BrowseGenre[]): FeedQuery[] {
+/** The genres a chained feed reads after `current`, in the order given (wrapping round), each once. */
+export function genreOrderAfter(current: BrowseGenre, genres: readonly BrowseGenre[]): BrowseGenre[] {
   const start = genres.indexOf(current);
   const ordered = start < 0 ? genres : [...genres.slice(start + 1), ...genres.slice(0, start)];
-  return ordered.filter((g) => g !== current).map(genreQuery);
+  return ordered.filter((g) => g !== current);
 }
+
+/** The queries to run on into after `current` (genreOrderAfter() as feed queries). */
+export function genresAfter(current: BrowseGenre, genres: readonly BrowseGenre[]): FeedQuery[] {
+  return genreOrderAfter(current, genres).map(genreQuery);
+}
+
+/** Once a feed is this long, a Back to top button is offered. */
+export const BACK_TO_TOP_AFTER = 40;
 
 export type FeedStep = { step: number; page: number; done: boolean };
 

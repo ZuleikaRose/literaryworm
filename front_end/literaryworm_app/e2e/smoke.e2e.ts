@@ -310,6 +310,7 @@ describe("the demo household", () => {
     await goInApp(page, "/browse?genre=poetry");
     const feed = page.locator("section.book-feed");
     await feed.getByRole("heading", { name: "Poetry books" }).waitFor();
+    await feed.getByText("Now showing: Poetry").waitFor();
     const tiles = feed.locator(".catalog-grid > li");
     await tiles.first().waitFor();
     const first = await tiles.count();
@@ -319,6 +320,19 @@ describe("the demo household", () => {
     await page.waitForFunction((n) => document.querySelectorAll("section.book-feed .catalog-grid > li").length > n, first);
     expect(await feed.getByText(/That's everything in/).count()).toBe(0);
     expect(await feed.getByRole("heading", { name: "Want to keep scrolling?" }).count()).toBe(0);
+    // It says which genre it has reached: no longer Poetry once the next genre's books arrive.
+    await page.waitForFunction(() => {
+      const line = document.querySelector("section.book-feed .feed-showing")?.textContent ?? "";
+      return line.startsWith("Now showing:") && line !== "Now showing: Poetry";
+    });
+    // A long feed offers Back to top, which returns to the feed's heading.
+    const back = feed.getByRole("button", { name: "Back to top of the feed" });
+    for (let i = 0; i < 10 && !(await back.first().isVisible()); i++) {
+      if (await more.isVisible()) await more.click();
+      await page.waitForTimeout(150);
+    }
+    await back.first().click();
+    expect(await page.evaluate(() => document.activeElement?.textContent)).toBe("Poetry books");
     expect(errors()).toEqual([]);
   });
 
