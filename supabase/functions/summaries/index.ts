@@ -1,6 +1,7 @@
 import { CATALOG } from "../_shared/catalog.ts";
 import { callGoogleWithKeys, googleKeys, shapeDetail, volumeUrl } from "../_shared/googleBooks.ts";
 import { clientIp } from "../_shared/http.ts";
+import { isOpenLibraryId, openLibraryDetail } from "../_shared/openLibrary.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { writeSummaries } from "./claude.ts";
@@ -19,9 +20,11 @@ async function describe(id: string): Promise<BookFacts> {
       publicDomain: book.publicDomain,
     };
   }
-  // Any other id is a Google Books volume (callGoogle turns a 404 into not_found); the main
-  // key first, then the fallbacks.
-  const detail = shapeDetail(await callGoogleWithKeys((key) => volumeUrl(id, key), googleKeys()));
+  // An `ol-` id is an Open Library work; any other is a Google Books volume (callGoogle turns a 404
+  // into not_found), the main key first, then the fallbacks.
+  const detail = isOpenLibraryId(id)
+    ? await openLibraryDetail(id)
+    : shapeDetail(await callGoogleWithKeys((key) => volumeUrl(id, key), googleKeys()));
   return {
     id,
     title: detail.title,

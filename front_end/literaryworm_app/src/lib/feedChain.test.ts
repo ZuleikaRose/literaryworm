@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { genreOrderAfter, genreQuery, genresAfter, nextFeedStep, sampleOf, VISITOR_SAMPLE } from "./feedChain";
+import { genreOrderAfter, genreQuery, genresAfter, nextFeedStep, openLibraryFor, sampleOf, VISITOR_SAMPLE } from "./feedChain";
 
 describe("genreQuery", () => {
   it("asks the home list for Technology and genre mode for the rest", () => {
@@ -21,6 +21,20 @@ describe("genresAfter", () => {
 
   it("takes every genre in order when the current one isn't in the list", () => {
     expect(genresAfter("poetry", ["technology", "horror"])).toEqual([{ mode: "home" }, { mode: "genre", genre: "horror" }]);
+  });
+});
+
+describe("Open Library on Home", () => {
+  it("asks Open Library first only when told to", () => {
+    expect(genreQuery("technology", true)).toEqual({ mode: "home", source: "openlibrary" });
+    expect(genreQuery("horror", true)).toEqual({ mode: "genre", genre: "horror", source: "openlibrary" });
+    expect(genresAfter("horror", ["technology", "horror"], true)).toEqual([{ mode: "home", source: "openlibrary" }]);
+  });
+
+  it("is for adult profiles only", () => {
+    expect(openLibraryFor("all")).toBe(true);
+    expect(openLibraryFor("teen")).toBe(false);
+    expect(openLibraryFor("kids")).toBe(false);
   });
 });
 

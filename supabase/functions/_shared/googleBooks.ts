@@ -72,6 +72,8 @@ export type BookSummary = {
   categories: string[];
   /** Pages in this edition, when Google knows (search's length filter uses it). */
   pageCount: number | null;
+  /** Set on books from Open Library (_shared/openLibrary.ts); Google's books leave it out. */
+  source?: "openlibrary";
 };
 
 export type BookDetail = BookSummary & {

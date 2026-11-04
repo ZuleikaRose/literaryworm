@@ -25,7 +25,7 @@ import { useFamilyShelf } from "../lib/useFamilyShelf";
 import { continueSeries } from "../lib/series";
 import { moreLike, recommend, type Seed, tasteSeeds } from "../lib/recommend";
 import { surpriseBook } from "../lib/search";
-import { genreOrderAfter, genreQuery, genresAfter } from "../lib/feedChain";
+import { genreOrderAfter, genreQuery, genresAfter, openLibraryFor } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
 import { useLibrary } from "../lib/useLibrary";
 import { useTitle } from "../lib/useTitle";
@@ -40,8 +40,9 @@ import type { AgeRating, Book } from "../types";
  * favourite genres beyond them (`favourite` adds an eyebrow). The others are in the genre links.
  */
 function GenreShelf({ genre, ageRating, favourite = false }: { genre: BrowseGenre; ageRating: AgeRating; favourite?: boolean }) {
-  // Technology uses the same "technology" list as the public home page.
-  const feed = useBookFeed(genre === "technology" ? { mode: "home" } : { mode: "genre", genre }, ageRating);
+  // Technology uses the same "technology" list as the public home page; adult profiles' rows come
+  // from Open Library first, so Home asks Google Books far less (lib/feedChain.ts openLibraryFor()).
+  const feed = useBookFeed(genreQuery(genre, openLibraryFor(ageRating)), ageRating);
   const t = useT();
   return (
     <Shelf
@@ -309,9 +310,9 @@ export default function Browse() {
             id="discover"
             eyebrow={t("Keep discovering")}
             title={t("{genre} books", { genre: t(genreLabel(genre)) })}
-            query={genreQuery(genre)}
+            query={genreQuery(genre, openLibraryFor(profile.ageRating))}
             // Endless: when this genre runs out, the feed runs on into the others.
-            then={genresAfter(genre, browseGenres.map((g) => g.id))}
+            then={genresAfter(genre, browseGenres.map((g) => g.id), openLibraryFor(profile.ageRating))}
             stepLabels={[genre, ...genreOrderAfter(genre, browseGenres.map((g) => g.id))].map((g) => t(genreLabel(g)))}
             endText={t("That's every genre. Pick one above to start again.")}
             ageRating={profile.ageRating}

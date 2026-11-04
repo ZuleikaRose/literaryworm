@@ -30,8 +30,10 @@ export interface DetailView {
   pageCount: number | null;
   /** The extra fields the brief asks for, as a definition list. */
   facts: Fact[];
-  /** Google's page for the title, credited on the page. */
+  /** Google's page for the title, credited on the page (or Open Library's, for its books). */
   googleLink: string | null;
+  /** Who the details came from, for the credit line. */
+  sourceName: "Google Books" | "Open Library";
 }
 
 const languageNames = new Intl.DisplayNames(undefined, { type: "language" });
@@ -113,6 +115,7 @@ export function fromCatalogBook(book: Book): DetailView {
       { label: tr("Content notes"), value: book.contentNotes?.join(", ") ?? null, wide: true },
     ]),
     googleLink: null,
+    sourceName: "Google Books",
     release: null,
     preview: null,
   };
@@ -139,6 +142,7 @@ export function fromVolume(volume: VolumeDetail): DetailView {
       { label: tr("Categories"), value: volume.categories.join(" · ") || null, wide: true },
     ]),
     googleLink: volume.previewLink,
+    sourceName: volume.source === "openlibrary" ? "Open Library" : "Google Books",
     release: releaseOf(volume.publishedDate),
     preview: volume.preview ?? null,
   };

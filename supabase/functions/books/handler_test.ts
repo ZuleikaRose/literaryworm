@@ -448,3 +448,58 @@ Deno.test("a cache that throws never fails the request", async () => {
   const list = await handle(get("mode=home"), { fetcher: stub(200, fullPage, cacheable).fetcher, cache: broken });
   assertEquals(list.status, 200);
 });
+
+// --- Open Library (members' Home for adult profiles) ---------------------------------
+
+const olDocs = { numFound: 500, docs: Array.from({ length: 20 }, (_, i) => ({ key: `/works/OL${i + 1}W`, title: `Open ${i + 1}`, author_name: ["O. Writer"], cover_i: 1, subject: ["Fantasy"] })) };
+
+Deno.test("source=openlibrary asks Open Library for a genre, keeps it a day, and never asks Google", async () => {
+  const google = stub(200, fullPage, cacheable);
+  const ol = stub(200, olDocs);
+  const { cache, lists } = memoryCache();
+  const res = await handle(get("mode=genre&genre=fantasy&source=openlibrary"), { fetcher: google.fetcher, openLibraryFetcher: ol.fetcher, cache });
+  assertEquals(res.headers.get("X-Book-Source"), "openlibrary");
+  const body = await res.json();
+  assertEquals(body.items[0].id, "ol-OL1W");
+  assertEquals(google.calls.length, 0);
+  assertEquals(ol.calls[0].url.searchParams.get("subject"), "fantasy");
+  assertEquals([...lists.values()][0].seconds, 24 * 60 * 60);
+  const again = await handle(get("mode=genre&genre=fantasy&source=openlibrary"), { fetcher: google.fetcher, openLibraryFetcher: ol.fetcher, cache });
+  assertEquals(again.headers.get("X-Book-Cache"), "hit");
+  assertEquals(ol.calls.length, 1);
+});
+
+Deno.test("when Open Library fails or has nothing, Google answers as before", async () => {
+  for (const ol of [stub(503, {}), stub(200, { numFound: 0, docs: [] })]) {
+    const google = stub(200, fullPage, cacheable);
+    const res = await handle(get("mode=home&source=openlibrary"), { fetcher: google.fetcher, openLibraryFetcher: ol.fetcher });
+    assertEquals(res.status, 200);
+    assertEquals((await res.json()).items[0].id, "id0");
+    assertEquals(google.calls[0].url.searchParams.get("q"), "technology");
+  }
+});
+
+Deno.test("only openlibrary is a source, and only on home and genre", async () => {
+  assertEquals((await handle(get("mode=home&source=google"))).status, 400);
+  assertEquals((await handle(get("mode=search&q=dune&source=openlibrary"))).status, 400);
+});
+
+Deno.test("an ol- book id opens from Open Library, not Google", async () => {
+  const google = stub(200, volume("x"));
+  const calls: string[] = [];
+  const olFetcher = ((input: URL) => {
+    const url = new URL(input);
+    calls.push(url.pathname);
+    const body = url.pathname === "/search.json"
+      ? { numFound: 1, docs: [{ key: "/works/OL8400950W", title: "The Blade Itself", author_name: ["Joe Abercrombie"], subject: ["Fantasy"] }] }
+      : { description: "Logen Ninefingers has run out of luck." };
+    return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
+  }) as typeof fetch;
+  const res = await handle(get("mode=volume&id=ol-OL8400950W"), { fetcher: google.fetcher, openLibraryFetcher: olFetcher });
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.title, "The Blade Itself");
+  assertEquals(body.source, "openlibrary");
+  assertEquals(google.calls.length, 0);
+  assertEquals(calls.sort(), ["/search.json", "/works/OL8400950W.json"]);
+});

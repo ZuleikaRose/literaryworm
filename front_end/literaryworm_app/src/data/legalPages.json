@@ -116,7 +116,8 @@
           "Information automatically collected. In Short: Some information — such as your Internet Protocol (IP) address and browser and device characteristics — is collected automatically when you visit our Services.",
           "Log and Usage Data. Our hosting and backend providers (Vercel and Supabase) automatically record service-related, diagnostic and performance information when you access the Services, in log files. This may include your IP address, browser type, the date and time of requests, the pages and files requested, and error reports. It is used to keep the Services secure and working, not for advertising, and we don't build profiles from it.",
           "Location Data. We don't collect your device's location, and we don't use GPS or similar technologies.",
-          "Google API. We use the Google Books API only for book information: our server sends it search words or an ISBN, book ids and the names of authors people follow, never who's asking. Our use of information received from Google APIs will adhere to Google API Services User Data Policy, including the Limited Use requirements."
+          "Google API. We use the Google Books API only for book information: our server sends it search words or an ISBN, book ids and the names of authors people follow, never who's asking. Our use of information received from Google APIs will adhere to Google API Services User Data Policy, including the Limited Use requirements.",
+          "Open Library. On an adult profile's Home, the genre rows and Keep discovering come from Open Library (openlibrary.org, run by the Internet Archive) when it can answer, and from Google Books when it can't. Our server asks it for a genre's books and a book's details, never who's asking, and keeps its answers for a day. The covers of those books load in your browser from covers.openlibrary.org, which receives your IP address like any website; it sets no cookies."
         ]
       },
       {
@@ -396,8 +397,8 @@
           "What you keep about books: the words you save from the dictionary (with the sentence you met them in and when each is next due for review), your private reading journal (dated entries about a book that only your account sees), ratings, the moods and pace you tag books with, favourites and lists, and your Up next queue.",
           "Who and what you follow: the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days, the new books we find by the authors you follow), release reminders and recent searches.",
           "Your goals and time: reading goals, the household challenges your profiles start or join, time read and listened each day, and the time each profile spends with each book on each day and where in the book the day started and ended (for the book page's Your time with this book).",
-            "Reading sprints: when a sprint started and how long it ran, which of your profiles joined, and the pages each turned in the reader during it, kept for 90 days. A household sees its profiles' names; in a book club, members see each other's display names and pages, never which profile read.",
-            "Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, and the month credited to each of you (with Stripe's reference for the credit). You see how many friends signed up and how many months you've earned, never who they are; a friend sees only their own month.",
+          "Reading sprints: when a sprint started and how long it ran, which of your profiles joined, and the pages each turned in the reader during it, kept for 90 days. A household sees its profiles' names; in a book club, members see each other's display names and pages, never which profile read.",
+          "Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, and the month credited to each of you (with Stripe's reference for the credit). You see how many friends signed up and how many months you've earned, never who they are; a friend sees only their own month.",
           "Your plans and progress: reading plans (the day a profile chose to finish a book by, and where it was in the book when the plan started), your reading pace (words a minute, used to show the time left in a chapter), chapter quiz scores, and the books you finish.",
           "If you turn on your reader page (it's off until you do), the reading logs you've already made public are listed together on one public page under your display name, and other members can follow it; who follows whom is never shown, and turning the page off removes its followers. Exports of your highlights and notes are made in your browser and downloaded to your device; they're never uploaded.",
           "So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive; we don't record or keep them, or who shared them.",
@@ -522,7 +523,7 @@
         "paragraphs": [
           "Some parts of LiteraryWorm load straight from other companies' servers, so your browser sends them requests, with your IP address, and they handle them under their own policies.",
           "Google Fonts (fonts.googleapis.com and fonts.gstatic.com) serves the app's typefaces. Google Books (books.google.com) serves covers and the preview, and sets the cookies described above.",
-          "The Internet Archive (archive.org) streams LibriVox recordings and audio clips. Termly (app.termly.io) serves the consent banner.",
+          "The Internet Archive (archive.org) streams LibriVox recordings and audio clips, and its Open Library (covers.openlibrary.org) serves the covers of the Open Library books on an adult profile's Home; Open Library sets no cookies when they load. Termly (app.termly.io) serves the consent banner.",
           "When you pay, you go to Stripe's own checkout page, where Stripe sets its own cookies under its privacy policy. We never see your card details.",
           "OpenDyslexic, the reading font, is part of the app itself, so choosing it sends nothing to anyone.",
           "Ahrefs (analytics.ahrefs.com) serves our visit counter, which loads only if you allow analytics. It sets no cookies and keeps nothing in your browser, and it's off for Kids profiles and on pages whose links carry codes. The Privacy Policy, section 4, says what it receives."
@@ -751,7 +752,7 @@
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-11-03",
+    "updated": "2026-11-04",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
@@ -929,7 +930,7 @@
       {
         "heading": "12. Third-party websites and content",
         "paragraphs": [
-          "The Services contain (or you may be sent via the Site) links to other websites (\"Third-Party Websites\"), such as Google Books, the Internet Archive, LibriVox and Project Gutenberg, as well as articles, photographs, text, graphics, pictures, designs, music, sound, video, information, applications, software, and other content or items belonging to or originating from third parties (\"Third-Party Content\"), such as book details and covers from Google Books and recordings from LibriVox.",
+          "The Services contain (or you may be sent via the Site) links to other websites (\"Third-Party Websites\"), such as Google Books, the Internet Archive, LibriVox and Project Gutenberg, as well as articles, photographs, text, graphics, pictures, designs, music, sound, video, information, applications, software, and other content or items belonging to or originating from third parties (\"Third-Party Content\"), such as book details and covers from Google Books and Open Library, and recordings from LibriVox.",
           "Such Third-Party Websites and Third-Party Content are not investigated, monitored, or checked for accuracy, appropriateness, or completeness by us, and we are not responsible for any Third-Party Websites accessed through the Services or any Third-Party Content posted on, available through, or installed from the Services, including the content, accuracy, offensiveness, opinions, reliability, privacy practices, or other policies of or contained in the Third-Party Websites or the Third-Party Content.",
           "Inclusion of, linking to, or permitting the use or installation of any Third-Party Websites or any Third-Party Content does not imply approval or endorsement thereof by us. If you decide to leave the Services and access the Third-Party Websites or to use or install any Third-Party Content, you do so at your own risk, and you should be aware these Legal Terms no longer govern.",
           "You should review the applicable terms and policies, including privacy and data gathering practices, of any website to which you navigate from the Services or relating to any applications you use or install from the Services.",
@@ -1672,6 +1673,7 @@
         "heading": "Where do the books come from?",
         "paragraphs": [
           "LiteraryWorm uses the Google Books API to show book details and covers when you browse and search, so you can find almost any book, save it to your library and write about it.",
+          "On an adult profile's Home, the genre rows and Keep discovering come from Open Library, a free catalogue run by the Internet Archive, and fall back to Google Books when it has nothing; those books' pages say Details from Open Library. Teen profiles, search and the public home page use Google Books, which leaves out titles it marks as mature.",
           "Search finds books by title, or choose Author, Keywords or ISBN. Keywords looks for every word you type anywhere: the title, author, narrator, description, genres or series, so time travel romance finds books about both. Keyword searches have the same filters as a title search.",
           "Those covers, and the Google Books preview on some book pages, load from books.google.com, so Google sets its own third-party cookies on our website when they load. The Cookie Policy explains them, and blocking third-party cookies in your browser stops them without stopping LiteraryWorm.",
           "The books you can read and listen to in full are public-domain classics: texts from Project Gutenberg and recordings from LibriVox. Other LiteraryWorm titles show sample pages."
@@ -1743,7 +1745,7 @@
           "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one.",
           "To hear when a book you set Remind me on comes out, turn on Notifications on this device in Account → Preferences. Once it's on, choose there which notifications you get: books you're waiting for, club meetings, new club posts up to your chapter, an evening streak nudge, and answers to Kids book requests. On iPhone and iPad, add LiteraryWorm to your Home Screen first (Share, then Add to Home Screen) and turn them on in the app.",
           "When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it.",
-            "A list you share by link is a wishlist too: its page has Give this list as a gift, which opens Gifts with up to 10 of its LiteraryWorm books already picked. Share a list in My Library → Lists to let family and friends know what you'd like."
+          "A list you share by link is a wishlist too: its page has Give this list as a gift, which opens Gifts with up to 10 of its LiteraryWorm books already picked. Share a list in My Library → Lists to let family and friends know what you'd like."
         ]
       },
       {
@@ -1767,7 +1769,7 @@
         ]
       }
     ],
-    "updated": "2026-11-03"
+    "updated": "2026-11-04"
   },
   {
     "slug": "status",

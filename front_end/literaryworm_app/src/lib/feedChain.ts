@@ -7,10 +7,17 @@ import type { FeedQuery } from "./booksApi";
 /** How many books the public home shows to a visitor who isn't logged in: one page. */
 export const VISITOR_SAMPLE = 20;
 
-/** The query a genre's feed asks (Technology is the books function's home list). */
-export function genreQuery(genre: BrowseGenre): FeedQuery {
-  return genre === "technology" ? { mode: "home" } : { mode: "genre", genre };
+/** The query a genre's feed asks (Technology is the books function's home list); Open Library first when asked. */
+export function genreQuery(genre: BrowseGenre, openLibrary = false): FeedQuery {
+  const source = openLibrary ? ({ source: "openlibrary" } as const) : {};
+  return genre === "technology" ? { mode: "home", ...source } : { mode: "genre", genre, ...source };
 }
+
+/**
+ * Whether a profile's Home lists may come from Open Library: adult ("All") profiles only, since
+ * Open Library has no maturity rating; Teen profiles keep Google's not-mature lists, Kids the catalog.
+ */
+export const openLibraryFor = (ageRating: string): boolean => ageRating === "all";
 
 /** The genres a chained feed reads after `current`, in the order given (wrapping round), each once. */
 export function genreOrderAfter(current: BrowseGenre, genres: readonly BrowseGenre[]): BrowseGenre[] {
@@ -20,8 +27,8 @@ export function genreOrderAfter(current: BrowseGenre, genres: readonly BrowseGen
 }
 
 /** The queries to run on into after `current` (genreOrderAfter() as feed queries). */
-export function genresAfter(current: BrowseGenre, genres: readonly BrowseGenre[]): FeedQuery[] {
-  return genreOrderAfter(current, genres).map(genreQuery);
+export function genresAfter(current: BrowseGenre, genres: readonly BrowseGenre[], openLibrary = false): FeedQuery[] {
+  return genreOrderAfter(current, genres).map((g) => genreQuery(g, openLibrary));
 }
 
 /** Once a feed is this long, a Back to top button is offered. */

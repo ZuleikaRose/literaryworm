@@ -51,7 +51,7 @@ import { activeReading } from "../store/reducer";
 import type { AgeRating, Book, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
 import NotFound from "./NotFound";
 
-/** Google Books volume ids (the same check the books Edge Function makes). */
+/** Google Books volume ids and Open Library's `ol-OL…W` (the same check the books Edge Function makes). */
 const VOLUME_ID = /^[A-Za-z0-9_-]{1,40}$/;
 
 /**
@@ -578,7 +578,7 @@ function DetailPage({ view }: { view: DetailView }) {
               {rich(t("Details from {source}"), {
                 source: (
                   <a href={view.googleLink} target="_blank" rel="noopener noreferrer">
-                    Google Books
+                    {view.sourceName}
                     <Icon name="external" size={13} />
                     <span className="visually-hidden"> {t("(opens in a new tab)")}</span>
                   </a>

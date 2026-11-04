@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-04",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "More books on Home, from Open Library",
+    "body": "On a grown-up's profile, Home's genre rows and Keep discovering now come from Open Library, the free catalogue run by the Internet Archive, with Google Books stepping in when it has nothing. You'll see different books and editions, with Details from Open Library on their pages. Teen profiles, search and the public home page still use Google Books.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
     "kind": "update",
     "title": "Keep discovering stays quick, with Back to top",
     "body": "Members' Keep discovering on Home now says which genre it has reached as it runs on from one to the next, and once it's long it offers Back to top of the feed. Books far off the screen aren't drawn until you come near them, so a long scroll stays smooth on older phones.",

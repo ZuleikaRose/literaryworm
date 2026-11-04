@@ -16,12 +16,14 @@ export interface BookSummary {
   id: string;
   title: string;
   authors: string[];
-  /** https URL from Google Books, or null to draw a cover. */
+  /** https URL from Google Books or Open Library, or null to draw a cover. */
   cover: string | null;
   publishedYear: string | null;
   categories: string[];
   /** Pages in this edition, when known (search's length filter). */
   pageCount?: number | null;
+  /** Set on books from Open Library (ids `ol-OL…W`); Google Books otherwise. */
+  source?: "openlibrary";
   /** Set for titles from the LiteraryWorm catalog, which draws its own covers. */
   local?: Book;
 }
@@ -51,8 +53,9 @@ export interface VolumeDetail extends Omit<BookSummary, "local"> {
 }
 
 export type FeedQuery =
-  | { mode: "home" }
-  | { mode: "genre"; genre: BrowseGenre }
+  /** `source: "openlibrary"`: ask Open Library first (members' Home for adult profiles), Google if it can't answer. */
+  | { mode: "home"; source?: "openlibrary" }
+  | { mode: "genre"; genre: BrowseGenre; source?: "openlibrary" }
   | {
       mode: "search";
       q: string;
@@ -87,13 +90,13 @@ export const MAX_PAGE = 19;
 export { usesBackend };
 
 export function feedKey(query: FeedQuery): string {
-  if (query.mode === "genre") return `genre:${query.genre}`;
+  if (query.mode === "genre") return `genre:${query.genre}${query.source ? `|${query.source}` : ""}`;
   if (query.mode === "isbn") return `isbn:${query.isbn}`;
   if (query.mode === "author") return `author:${query.name}|${query.loose ? "loose" : ""}|${query.length ?? ""}`;
   if (query.mode === "search") {
     return `search:${query.keywords ? "keywords:" : ""}${query.q}|${query.genre ?? ""}|${query.sort ?? "relevance"}|${query.lang ?? ""}|${query.length ?? ""}`;
   }
-  return "home";
+  return query.source ? `home|${query.source}` : "home";
 }
 
 export function fromLocal(book: Book): BookSummary {
@@ -126,6 +129,7 @@ function fetchRemote(query: FeedQuery, page: number): Promise<BookPage> {
   const mode = query.mode === "search" && query.keywords ? "keywords" : query.mode;
   const params = new URLSearchParams({ mode, page: String(page) });
   if (query.mode === "genre") params.set("genre", query.genre);
+  if ((query.mode === "genre" || query.mode === "home") && query.source) params.set("source", query.source);
   if (query.mode === "author") params.set("name", query.name);
   if (query.mode === "isbn") params.set("isbn", query.isbn);
   if (query.mode === "search") {
