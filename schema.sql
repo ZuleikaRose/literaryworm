@@ -11952,3 +11952,25 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$S
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-04'::date, '2026.11', 'update', $lw$Two new questions in the FAQ$lw$, $lw$The FAQ on Home and Plans now answers whether you can read along while you listen, and how to earn credit by recommending LiteraryWorm through the affiliate program.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Two new questions in the FAQ$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006692_whats_new_genres.sql
+-- =============================================================================
+-- What's new: every top-level Google Books (BISAC) subject as a genre, 64 in all. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'feature', $lw$Every Google Books genre$lw$, $lw$Home and Search now have 64 genres to browse and filter by: besides Fantasy, Mystery, Romance and the rest, every subject Google Books files books under, from Antiques & Collectibles, Cooking and Comics & Graphic Novels to Philosophy, Travel and True Crime, with none repeated. On a phone, Home's genres are one row you swipe along. Kids profiles see the genres with books chosen for them.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Every Google Books genre$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006693_genres_help.sql
+-- =============================================================================
+-- Help: the 64 genres (every top-level Google Books subject), a paragraph after the one about Keep discovering.
+-- Same text as src/data/legalPages.json, matched as stored (the closing quote of that paragraph, unescaped).
+-- Added once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$Logged in, Keep discovering on Home runs on from one genre into the next."$lw$, $lw$Logged in, Keep discovering on Home runs on from one genre into the next.", "There are 64 genres to browse and search by: the main ones, such as Fantasy, Mystery and Romance, and every subject Google Books files books under, from Antiques & Collectibles and Cooking to Travel and True Crime. Kids profiles see the genres with books chosen for them."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$Logged in, Keep discovering on Home runs on from one genre into the next."$lw$) > 0
+  and strpos(sections::text, $lw$There are 64 genres$lw$) = 0;
