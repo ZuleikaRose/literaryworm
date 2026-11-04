@@ -8,7 +8,7 @@
         "heading": "Accessibility features",
         "paragraphs": [
           "You should be able to change colors, contrast levels, and fonts; zoom in up to 200% without loss of information or functionality; navigate the website with just a keyboard, including keyboard shortcuts in the player; listen to the website using a screen reader, with labelled controls; use the read-along transcript with audiobooks; stop moving images with reduced motion; and turn on underlined links.",
-          "The accessibility menu at the top of every page changes text size, theme (dark or light), the font (Lexend, or OpenDyslexic, a typeface made for readers with dyslexia), high contrast, underlined links and reduced motion. It scrolls inside any window too short to show it all. Your choices last for the visit.",
+          "The accessibility menu at the top of every page changes text size, theme (dark or light), the font (Lexend, or OpenDyslexic, a typeface made for readers with dyslexia), high contrast, underlined links and reduced motion. It scrolls inside any window too short to show it all. A member's profile keeps your choices on every device; otherwise they last for the visit.",
           "Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian or Dutch; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies.",
           "High contrast turns the app black or white, with text at the WCAG AAA level (7:1) and stronger edges on buttons and fields, and links underlined. It's on from the start when your device asks for more contrast (Increase contrast on iPhone, iPad and Mac). With a Windows contrast theme, buttons, switches and progress bars keep their edges and the chosen option is highlighted.",
           "Every page works with a keyboard alone, and the player has keyboard shortcuts, listed under its controls. Buttons and links are at least 44 pixels square, focus is always visible, and dialogs keep focus inside them and return it when they close.",
@@ -69,13 +69,13 @@
         ]
       }
     ],
-    "updated": "2026-11-03"
+    "updated": "2026-11-04"
   },
   {
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-11-03",
+    "updated": "2026-11-04",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -391,7 +391,7 @@
           "If you turn on notifications on a device, we keep that browser's push address and keys, a name for the device (like Chrome on Windows) and when it last got a notification, until you turn them off there or log out on it. Grown-up and teen profiles can put catalog books on a family shelf for the household; we keep which books, which profile added each and when, until they're taken off or the account is deleted.",
           "In a book club, if you turn on Show my place to this club, its members see the chapter you've reached in the club's book, how far through it you are and when you last read; turning it off hides it again.",
           "If you share one of your highlights with a book club, its members see the passage, its chapter and colour, your display name and, if you choose, your note, until you stop sharing it, delete the highlight or leave the club.",
-          "Your household: each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal, bedtime and wake-up time (Kids profiles) and player settings, the app language it chose, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer.",
+          "Your household: each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal, bedtime and wake-up time (Kids profiles) and player settings, the app language and accessibility settings it chose, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer.",
           "Your reading: your library, reading progress, bookmarks, highlights and notes (with when each highlight is next due for review).",
           "What you keep about books: the words you save from the dictionary (with the sentence you met them in and when each is next due for review), your private reading journal (dated entries about a book that only your account sees), ratings, the moods and pace you tag books with, favourites and lists, and your Up next queue.",
           "Who and what you follow: the authors and narrators you follow (their pages show how many readers follow them, never who; and, for 60 days, the new books we find by the authors you follow), release reminders and recent searches.",
@@ -433,7 +433,7 @@
     "slug": "cookies",
     "title": "Cookie Policy",
     "summary": "What LiteraryWorm keeps in your browser, the few cookies set when you use it, and how to control them. We use no advertising or analytics cookies.",
-    "updated": "2026-11-01",
+    "updated": "2026-11-04",
     "sections": [
       {
         "heading": "In short",
@@ -513,7 +513,7 @@
           "Next to them the app keeps a small note of which account's offline place this device holds (a random id, not your name or email), so the place can be freed from another device; it goes when the books do.",
           "Books you upload: once you've opened one, or searched your uploads by keywords, its text is kept on that device so it keeps working if your connection drops. It's removed when you delete the book or log out.",
           "Everything else, such as reader settings, playback speed, the demo household and uploads made in the demo, stays in the open tab only and is gone when you refresh or close it.",
-          "Your library, reading progress, bookmarks, highlights, saved words, lists, Up next queue, ratings, reading time and pace, quiz scores, player settings, club activity and uploaded books are saved with your account on our servers (Supabase), not in browser cookies. The Privacy Policy says how we use them, and Account lets you download or delete them.",
+          "Your library, reading progress, bookmarks, highlights, saved words, lists, Up next queue, ratings, reading time and pace, quiz scores, player and accessibility settings, club activity and uploaded books are saved with your account on our servers (Supabase), not in browser cookies. The Privacy Policy says how we use them, and Account lets you download or delete them.",
           "Listening on a speaker or TV uses your browser's own Chromecast or AirPlay picker: it loads no script, sets no cookie and keeps nothing in your browser, and the speaker plays the recording straight from the Internet Archive."
         ]
       },

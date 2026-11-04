@@ -1,4 +1,5 @@
 import { browserUiLanguage } from "../lib/i18n";
+import { DEFAULT_SAVED_A11Y } from "../lib/a11ySync";
 import { prefersMoreContrast } from "../lib/contrast";
 import { getBook } from "../data/books";
 import { DEMO_UPLOAD_READING, demoUploads } from "../data/demoUploads";
@@ -75,19 +76,7 @@ export const MAX_PROFILES = 12;
 /** The accessibility settings a visit starts with: the defaults, with High contrast on when the device asks for more contrast. */
 export const startingA11y = (): A11ySettings => ({ ...defaultA11y, highContrast: prefersMoreContrast(), language: browserUiLanguage() });
 
-export const defaultA11y: A11ySettings = {
-  textScale: 1,
-  readableFont: false,
-  dyslexicFont: false,
-  highContrast: false,
-  reduceMotion: false,
-  underlineLinks: false,
-  theme: "dark",
-  transcript: true,
-  transcriptSize: "medium",
-  transcriptLanguage: "en",
-  language: "en",
-};
+export const defaultA11y: A11ySettings = { ...DEFAULT_SAVED_A11Y, language: "en" };
 
 export const emptyProfileData = (): ProfileData => ({
   library: {},
@@ -112,6 +101,7 @@ export const emptyProfileData = (): ProfileData => ({
   words: [],
   readingWpm: null,
   uiLanguage: null,
+  a11ySettings: null,
   upNext: [],
   quizResults: [],
   readerFollows: [],

@@ -1026,6 +1026,37 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("keeps each profile's accessibility settings, and brings them back when it's chosen again", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    const dyslexic = () => page.evaluate(() => document.documentElement.hasAttribute("data-dyslexic-font"));
+    const setOpenDyslexic = async (on: boolean) => {
+      await page.getByRole("button", { name: "Accessibility menu" }).click();
+      const toggle = page.getByRole("region", { name: "Accessibility settings" }).getByRole("switch", { name: /OpenDyslexic font/ });
+      if (on) await toggle.check();
+      else await toggle.uncheck();
+      await page.keyboard.press("Escape");
+    };
+    const choose = async (name: RegExp) => {
+      await goInApp(page, "/profiles");
+      await page.getByRole("button", { name }).click();
+      await page.waitForURL(/\/browse/);
+    };
+
+    await setOpenDyslexic(true);
+    expect(await dyslexic()).toBe(true);
+    // Sam has nothing kept yet, so what's on screen stays until Sam changes it.
+    await choose(/^Sam/);
+    expect(await dyslexic()).toBe(true);
+    await setOpenDyslexic(false);
+    // Back to the first profile: its own choice comes back; then Sam's.
+    await choose(/^Avery/);
+    await page.waitForFunction(() => document.documentElement.hasAttribute("data-dyslexic-font"));
+    await choose(/^Sam/);
+    await page.waitForFunction(() => !document.documentElement.hasAttribute("data-dyslexic-font"));
+    expect(errors()).toEqual([]);
+  });
+
   it("offers the new genres as favourites, and gives a favourite beyond the six its own Home row", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

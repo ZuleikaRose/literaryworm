@@ -11381,3 +11381,51 @@ update public.legal_pages
 set sections = replace(sections::text, $lw$It scrolls inside the window on a small screen.$lw$, $lw$It scrolls inside any window too short to show it all.$lw$)::jsonb, updated_at = now()
 where slug = $lw$accessibility$lw$
   and strpos(sections::text, $lw$It scrolls inside the window on a small screen.$lw$) > 0;
+
+-- =============================================================================
+-- 20261104006673_profile_a11y_settings.sql
+-- =============================================================================
+-- The accessibility menu follows the profile (story 61): the settings a profile chooses (text size,
+-- theme, Lexend or OpenDyslexic, high contrast, underlined links, reduced motion and the read-along
+-- transcript's settings) are kept here in the background, so every device it's used on opens with
+-- them. The app checks each field when it reads them (parseSavedA11y() in src/lib/a11ySync.ts); the
+-- database keeps them small and an object. Null until the profile changes something. The language is
+-- kept on its own (ui_language, 6647). RLS on reader_profiles already limits rows to the account's own.
+
+alter table public.reader_profiles
+  add column a11y_settings jsonb
+    check (a11y_settings is null or (jsonb_typeof(a11y_settings) = 'object' and octet_length(a11y_settings::text) <= 1000));
+
+grant select (a11y_settings) on public.reader_profiles to authenticated;
+grant update (a11y_settings) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261104006674_profile_a11y_settings_legal.sql
+-- =============================================================================
+-- The accessibility menu's settings are kept per profile (6673): the Privacy Policy and Cookie Policy list them among
+-- what's kept, and the Accessibility Policy says a member's profile keeps them on every device. src/data/legalPages.json
+-- has the same. Added once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$player settings, the app language it chose, and whether it's set aside.$lw$, $lw$player settings, the app language and accessibility settings it chose, and whether it's set aside.$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$player settings, the app language it chose, and whether it's set aside.$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$quiz scores, player settings, club activity$lw$, $lw$quiz scores, player and accessibility settings, club activity$lw$)::jsonb, updated_at = now()
+where slug = $lw$cookies$lw$
+  and strpos(sections::text, $lw$quiz scores, player settings, club activity$lw$) > 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$It scrolls inside any window too short to show it all. Your choices last for the visit.$lw$, $lw$It scrolls inside any window too short to show it all. A member's profile keeps your choices on every device; otherwise they last for the visit.$lw$)::jsonb, updated_at = now()
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$It scrolls inside any window too short to show it all. Your choices last for the visit.$lw$) > 0;
+
+-- =============================================================================
+-- 20261104006675_whats_new_profile_a11y_settings.sql
+-- =============================================================================
+-- What's new: the accessibility menu's settings follow the profile (6673). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'feature', $lw$Accessibility settings follow your profile$lw$, $lw$The accessibility menu now remembers your choices for each profile: text size, theme, Lexend or OpenDyslexic, high contrast, underlined links, stopped animations and the read-along transcript's settings. A member's profile opens with them on every device, so you set them once.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Accessibility settings follow your profile$lw$ and c.version = '2026.11');

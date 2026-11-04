@@ -1,4 +1,5 @@
 import { useSprintSaver } from "../lib/useSprintSaver";
+import { useA11ySync } from "../lib/useA11ySync";
 import { useLanguageSync } from "../lib/useLanguageSync";
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
@@ -20,6 +21,7 @@ export function AppEffects() {
   useAuthSync();
   useReadingSync();
   useLanguageSync();
+  useA11ySync();
   useSprintSaver();
   const { pathname, hash } = useLocation();
   const { a11y } = state;

@@ -170,6 +170,14 @@ Then, on 3 November 2026:
 - The accessibility menu scrolls inside the window (it was cut off on a computer screen) and has an OpenDyslexic switch for the whole app.
 - Google Books answers cached in Supabase only as long as Google's cache headers allow, at most 7 days, to follow the Google APIs Terms; nothing kept when Google allows none.
 
+Then, on 4 November 2026, five more, in this order:
+
+- The accessibility menu's settings kept for each profile, on every device.
+- The endless feed kept light: only books near the screen are drawn, with Back to top and the genre it has reached.
+- Open Library as a second source for book details and covers, so fewer Google Books requests are made.
+- An affiliate program: approved affiliates earn 20% of a referred member's first payment as account credit.
+- True read-along for three classics: the LibriVox recording lined up with the text word by word.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

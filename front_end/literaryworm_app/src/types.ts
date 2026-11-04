@@ -404,6 +404,8 @@ export interface ProfileData {
   readingWpm: number | null;
   /** The app language this profile chose in the accessibility menu (members: reader_profiles.ui_language), null until chosen. */
   uiLanguage: UiLanguage | null;
+  /** The rest of the accessibility menu as this profile left it (members: reader_profiles.a11y_settings), null until changed. */
+  a11ySettings: SavedA11y | null;
   /** Up next: catalog audiobooks queued to play after this one, in order. */
   upNext: string[];
   /** Chapter quizzes taken: the latest score for each book and chapter. */
@@ -517,6 +519,9 @@ export interface ReadingLog {
   createdAt: number;
   updatedAt: number;
 }
+
+/** The accessibility settings a profile keeps (lib/a11ySync.ts): everything in the menu but the language. */
+export type SavedA11y = Omit<A11ySettings, "language">;
 
 export interface A11ySettings {
   textScale: number;

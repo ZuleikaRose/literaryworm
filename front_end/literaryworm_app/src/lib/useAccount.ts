@@ -148,6 +148,8 @@ export function useAccount() {
           readingWordsPerMinute: data?.readingWpm ?? null,
           newFromFollowedAuthors: (data?.authorNews ?? []).map(({ foundAt, ...n }) => ({ ...n, foundAt: new Date(foundAt).toISOString() })),
           player: data?.player ?? null,
+          appLanguage: data?.uiLanguage ?? null,
+          accessibilitySettings: data?.a11ySettings ?? null,
           // What was uploaded (the books' text stays in the app; it's the member's own file).
           uploads: (data?.uploads ?? []).map(({ id, title, author, chapterTitles, words, createdAt }) => ({ id, title, author, chapters: chapterTitles, words, uploadedAt: new Date(createdAt).toISOString() })),
           // Kept on this device for this visit only.

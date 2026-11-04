@@ -28,7 +28,9 @@ import type {
   QuizResult,
   ReadingPlan,
   ReadingStatus,
+  SavedA11y,
 } from "../types";
+import { DEFAULT_SAVED_A11Y, parseSavedA11y } from "./a11ySync";
 import { bookDaysFromRows } from "./bookStats";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { forgetDeviceId } from "./deviceId";
@@ -1196,6 +1198,7 @@ const emptyCollections = (): Collections => ({
   words: [],
   readingWpm: null,
   uiLanguage: null,
+  a11ySettings: null,
   upNext: [],
   quizResults: [],
   readerFollows: [],
@@ -1265,6 +1268,7 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
     of(p.id).readingWpm = p.reading_wpm;
     of(p.id).upNext = p.up_next ?? [];
     of(p.id).uiLanguage = p.ui_language && isUiLanguage(p.ui_language) ? p.ui_language : null;
+    of(p.id).a11ySettings = parseSavedA11y(p.a11y_settings, DEFAULT_SAVED_A11Y);
   }
   return byProfile;
 }
@@ -1802,13 +1806,13 @@ export async function deleteJournalEntry(id: string): Promise<void> {
 // --- Reading pace (reader_profiles.reading_wpm) -------------------------------
 
 /** Every profile's reading pace and Up next queue. Extras: if they can't load, the account still opens. */
-async function loadProfileExtras(): Promise<{ id: string; reading_wpm: number | null; up_next: string[] | null; ui_language: string | null }[]> {
-  const { data, error } = await client().from("reader_profiles").select("id, reading_wpm, up_next, ui_language");
+async function loadProfileExtras(): Promise<{ id: string; reading_wpm: number | null; up_next: string[] | null; ui_language: string | null; a11y_settings: unknown }[]> {
+  const { data, error } = await client().from("reader_profiles").select("id, reading_wpm, up_next, ui_language, a11y_settings");
   if (error) {
     console.error("collections: couldn't load reading pace and Up next:", error.message);
     return [];
   }
-  return data as { id: string; reading_wpm: number | null; up_next: string[] | null; ui_language: string | null }[];
+  return data as { id: string; reading_wpm: number | null; up_next: string[] | null; ui_language: string | null; a11y_settings: unknown }[];
 }
 
 export async function saveUpNext(profileId: string, ids: string[]): Promise<void> {
@@ -1820,6 +1824,12 @@ export async function saveUpNext(profileId: string, ids: string[]): Promise<void
 export async function saveUiLanguage(profileId: string, language: UiLanguage): Promise<void> {
   const { error } = await client().from("reader_profiles").update({ ui_language: language }).eq("id", profileId);
   if (error) throw new AccountError(tr("We couldn't save your language."));
+}
+
+/** The accessibility settings a profile chose, so every device it's used on opens with them (migration 6673). */
+export async function saveA11ySettings(profileId: string, settings: SavedA11y): Promise<void> {
+  const { error } = await client().from("reader_profiles").update({ a11y_settings: settings }).eq("id", profileId);
+  if (error) throw new AccountError(tr("We couldn't save your accessibility settings."));
 }
 
 export async function saveReadingPace(profileId: string, wpm: number): Promise<void> {
