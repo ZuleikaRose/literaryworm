@@ -248,3 +248,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Accessibility settings per profile (`lib/a11ySync.ts` and its test, `useA11ySync()`, `reader_profiles.a11y_settings`; migrations 6673–6675) |
 | — | The endless feed kept light (`content-visibility` on `.catalog-grid-endless`, *Now showing*, *Back to top of the feed*, `BACK_TO_TOP_AFTER`; What's new 6676) |
 | — | Open Library on adult profiles' Home (`_shared/openLibrary.ts` with Deno tests, `source=openlibrary`, `ol-` ids in `mode=volume` and `summaries`, `openLibraryFor()`; policies 6677, What's new 6678) |
+| — | Affiliate program (`/affiliates`, `/affiliates/review`, `lib/affiliates.ts` and its test, `lib/affiliatesApi.ts`, `affiliate-click` function, `stripe-webhook` commission; migrations 6679–6683) |

@@ -200,6 +200,29 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows the affiliate program from the footer, and asks a visitor to log in to apply", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    await page.getByRole("contentinfo").getByRole("link", { name: "Affiliate program" }).click();
+    await page.waitForURL(/\/affiliates$/);
+    await page.getByRole("heading", { level: 1, name: "Recommend LiteraryWorm, earn account credit" }).waitFor();
+    await page.getByText(/Never market LiteraryWorm to children/).waitFor();
+    await page.getByRole("main").getByRole("link", { name: "Log in" }).waitFor();
+    expect(await page.getByRole("button", { name: "Send application" }).count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("notes an affiliate's link on sign-up without saying who", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/signup?aff=abcdefgh23`);
+    await page.getByText("You came through a LiteraryWorm affiliate's link: they'll see that someone signed up, never who.").waitFor();
+    // A code that isn't an affiliate code says nothing.
+    await page.goto(`${BASE_URL}/signup?aff=AVERY234`);
+    await page.getByRole("heading", { level: 1 }).first().waitFor();
+    expect(await page.getByText(/affiliate's link/).count()).toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("groups the footer's links under Explore, Help, Your privacy and Legal", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
@@ -1037,6 +1060,18 @@ describe("the demo household", () => {
     await passkeys.getByText("The demo household can't add passkeys.").waitFor();
     await expect(passkeys.getByRole("button", { name: /Add a passkey/ }).count()).resolves.toBe(0);
     await page.getByRole("heading", { name: "Two-step sign-in" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows the demo a sample affiliate dashboard", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/affiliates");
+    const panel = page.getByRole("region", { name: "Your affiliate link" });
+    await panel.getByText(/In the demo the link and counts are a sample/).waitFor();
+    expect(await panel.getByRole("textbox", { name: "Your link" }).inputValue()).toMatch(/\/signup\?aff=AVERYREAD2$/);
+    await panel.getByText("Credit earned").waitFor();
+    await panel.getByText("$16.00").waitFor();
     expect(errors()).toEqual([]);
   });
 

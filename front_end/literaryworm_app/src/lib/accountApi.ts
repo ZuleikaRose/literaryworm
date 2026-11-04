@@ -93,6 +93,8 @@ export interface SignUpInput {
   marketingEmails: boolean;
   /** A friend's invitation code from /signup?ref= (lib/referrals.ts), noted with the new account. */
   referralCode?: string | null;
+  /** An approved affiliate's code from /signup?aff= (lib/affiliates.ts), noted with the new account. */
+  affiliateCode?: string | null;
 }
 
 /**
@@ -112,6 +114,7 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
         terms_accepted: true,
         marketing_emails: input.marketingEmails,
         ...(input.referralCode ? { referral_code: input.referralCode } : {}),
+        ...(input.affiliateCode ? { affiliate_code: input.affiliateCode } : {}),
       },
     },
   });

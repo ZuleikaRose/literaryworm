@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-04",
     "version": "2026.11",
     "kind": "feature",
+    "title": "The affiliate program",
+    "body": "Recommend LiteraryWorm and earn credit: members can apply on the new Affiliate program page in the footer. Once you're approved, you get your own sign-up link, and when someone joins with it and makes their first payment, 20% of that payment is added to your membership as credit. You see visits, sign-ups and credit earned, never who signed up. Affiliates say they earn a commission wherever they share, and never aim it at children.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "More books on Home, from Open Library",
     "body": "On a grown-up's profile, Home's genre rows and Keep discovering now come from Open Library, the free catalogue run by the Internet Archive, with Google Books stepping in when it has nothing. You'll see different books and editions, with Details from Open Library on their pages. Teen profiles, search and the public home page still use Google Books.",
     "major": false

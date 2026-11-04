@@ -122,6 +122,8 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Featured carousel.** Copy on the left (eyebrow, large title, byline, three-line synopsis, primary button), cover on the right. Controls: Pause/Play, Previous, dots, Next, all 44px. Advances every 7 seconds; stops while hovered or focused; starts paused when motion is reduced.
 
+**Affiliate program.** `/affiliates` is a plain page (eyebrow, h1, summary), a numbered *How it works* and a bulleted *The rules*, then one raised card (`.affiliate-panel`, at most 640px): the application form with three required checkboxes, the status, or the link with Copy and five stat tiles (`.affiliate-stats`, auto-fit 140px, muted label over a 22px figure).
+
 **Popovers.** Accessibility menu and profile menu: raised surface, floating shadow, open with a short scale-and-fade, close on Escape (focus returns to the button) or outside click. Full-width under the header on phones. A popover never runs off the screen: it's capped at the window's height below the header and scrolls inside itself (the accessibility panel measures the room below where it opens, so the maintenance banner can't push it off).
 
 **Alerts.** Error: red border and wash, `role="alert"`. Success: green border and wash, `role="status"`.

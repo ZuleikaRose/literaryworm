@@ -544,3 +544,83 @@
   min-height: 44px;
   font-weight: 600;
 }
+
+/* ---------- Affiliate program (/affiliates, /affiliates/review) ---------- */
+
+.affiliate-rules {
+  margin: 32px 0;
+}
+
+.affiliate-rules h2 {
+  margin: 28px 0 10px;
+  font-size: 1.25rem;
+}
+
+.affiliate-steps,
+.affiliate-terms {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 22px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.affiliate-panel {
+  display: grid;
+  gap: 14px;
+  max-width: 640px;
+  margin-top: 24px;
+}
+
+.affiliate-panel h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.affiliate-panel p {
+  margin: 0;
+}
+
+.affiliate-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.affiliate-stats div {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.affiliate-stats dt {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.affiliate-stats dd {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.affiliate-review-list {
+  display: grid;
+  gap: 14px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.affiliate-review-list li {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+

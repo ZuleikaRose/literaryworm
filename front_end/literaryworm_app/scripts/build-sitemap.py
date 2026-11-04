@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes public/sitemap.xml: the pages anyone can open without logging in.
 
-The home page, Plans, What's new, Search and Sign up; the footer pages (src/data/legalPages.json);
+The home page, Plans, What's new, Search, Sign up and the affiliate program; the footer pages (src/data/legalPages.json);
 every catalog book page (src/data/books.ts) and series page (src/data/series.ts). Members-only
 pages are left out (robots.txt disallows them). Run it after adding titles, series or footer pages:
 
@@ -38,7 +38,7 @@ def main() -> None:
     if len(books) < 100 or not legal:
         raise SystemExit(f"Found only {len(books)} books and {len(legal)} footer pages: has the data's shape changed?")
 
-    urls: list[tuple[str, str | None]] = [("/", TODAY), ("/plans", TODAY), ("/whats-new", TODAY), ("/search", None), ("/signup", None)]
+    urls: list[tuple[str, str | None]] = [("/", TODAY), ("/plans", TODAY), ("/whats-new", TODAY), ("/search", None), ("/signup", None), ("/affiliates", None)]
     urls += [(f"/legal/{slug}", updated.get(slug)) for slug in legal]
     urls += [(f"/books/{quote(book)}", None) for book in books]
     urls += [(f"/series/{quote(name, safe='')}", None) for name in series]

@@ -102,6 +102,21 @@ Deno.serve((req) =>
       const { error } = await serviceClient().rpc("record_referral_credits", { p_referral: referralId, p_friend: friendCredit, p_referrer: referrerCredit });
       if (error) throw error;
     },
+    async claimAffiliate(referredId, amountCents) {
+      const { data, error } = await serviceClient().rpc("claim_affiliate_commission", { p_referred: referredId, p_amount_cents: amountCents });
+      if (error) throw error;
+      const row = (data ?? [])[0] as { referral_id: string; affiliate_customer: string | null; commission_cents: number | null } | undefined;
+      if (!row?.affiliate_customer || !row.commission_cents) return null;
+      return { referralId: row.referral_id, affiliateCustomer: row.affiliate_customer, cents: row.commission_cents };
+    },
+    async recordAffiliateCredit(referralId, creditId) {
+      const { error } = await serviceClient().rpc("record_affiliate_credit", { p_referral: referralId, p_credit: creditId });
+      if (error) throw error;
+    },
+    async releaseAffiliate(referralId) {
+      const { error } = await serviceClient().rpc("release_affiliate_commission", { p_referral: referralId });
+      if (error) console.error(`stripe-webhook: couldn't hand back affiliate commission ${referralId}`, error.message);
+    },
     async releaseReferral(referralId) {
       const { error } = await serviceClient().rpc("release_referral_reward", { p_referral: referralId });
       if (error) console.error(`stripe-webhook: couldn't hand back referral ${referralId}`, error.message);

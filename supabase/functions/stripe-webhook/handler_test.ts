@@ -1,7 +1,7 @@
 // deno test --allow-env supabase/functions/stripe-webhook — runs offline with stubbed Stripe and database.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import type { Stripe } from "../_shared/stripe.ts";
-import { type Deps, handle, type NewGift, type ReferralReward, type SubscriptionFields } from "./handler.ts";
+import { type AffiliateCommission, type Deps, handle, type NewGift, type ReferralReward, type SubscriptionFields } from "./handler.ts";
 
 const USER = "00000000-0000-0000-0000-00000000000a";
 const PERIOD_END = 1_798_761_600; // 2027-01-01T00:00:00Z
@@ -36,10 +36,15 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     sub: subscription(),
     staff: false,
     reward: null as ReferralReward | null,
+    commission: null as AffiliateCommission | null,
+    claimedAmounts: [] as number[],
+    affiliateCredits: [] as [string, string][],
+    affiliateReleased: [] as string[],
     credits: [] as { customer: string; cents: number; key: string }[],
     recorded: [] as [string, string, string | null][],
     released: [] as string[],
     failCredit: false,
+    failAffiliate: false,
   };
   const deps: Deps = {
     verify: (_body, signature) => (signature === "good" ? Promise.resolve(ev) : Promise.reject(new Error("bad"))),
@@ -79,6 +84,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     },
     creditCustomer: (customer, cents, key) => {
       if (state.failCredit && key.endsWith("-referrer")) return Promise.reject(new Error("stripe down"));
+      if (state.failAffiliate && key.startsWith("affiliate-")) return Promise.reject(new Error("stripe down"));
       state.credits.push({ customer, cents, key });
       return Promise.resolve(`cbtxn_${state.credits.length}`);
     },
@@ -88,6 +94,21 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     },
     releaseReferral: (id) => {
       state.released.push(id);
+      return Promise.resolve();
+    },
+    claimAffiliate: (_id, amount) => {
+      // Claimed once, like claim_affiliate_commission().
+      state.claimedAmounts.push(amount);
+      const commission = state.commission;
+      state.commission = null;
+      return Promise.resolve(commission);
+    },
+    recordAffiliateCredit: (id, credit) => {
+      state.affiliateCredits.push([id, credit]);
+      return Promise.resolve();
+    },
+    releaseAffiliate: (id) => {
+      state.affiliateReleased.push(id);
       return Promise.resolve();
     },
     ...overrides,
@@ -316,5 +337,46 @@ Deno.test("if Stripe fails, the referral is handed back and the event retried", 
   assertEquals(res.status, 500);
   assertEquals(state.released, ["ref_1"]);
   assertEquals(state.recorded, []);
+  assertEquals(state.handled.size, 0);
+});
+
+// Affiliates ----------------------------------------------------------------------------------------
+
+const COMMISSION: AffiliateCommission = { referralId: "aff_1", affiliateCustomer: "cus_9", cents: 300 };
+
+Deno.test("a referred member's first payment credits the affiliate 20%, asked with the amount paid", async () => {
+  const { state, deps } = setup(paid(1500));
+  state.commission = { ...COMMISSION };
+  const res = await handle(post(), deps);
+  assertEquals(res.status, 200);
+  assertEquals(state.claimedAmounts, [1500]);
+  assertEquals(state.credits, [{ customer: "cus_9", cents: 300, key: "affiliate-aff_1" }]);
+  assertEquals(state.affiliateCredits, [["aff_1", "cbtxn_1"]]);
+});
+
+Deno.test("a member who came by both a friend and an affiliate rewards both", async () => {
+  const { state, deps } = setup(paid(1500));
+  state.reward = { ...REWARD };
+  state.commission = { ...COMMISSION };
+  await handle(post(), deps);
+  assertEquals(state.credits.map((c) => c.key), ["referral-ref_1-friend", "referral-ref_1-referrer", "affiliate-aff_1"]);
+});
+
+Deno.test("nothing charged means no commission is claimed yet", async () => {
+  const { state, deps } = setup(paid(0));
+  state.commission = { ...COMMISSION };
+  await handle(post(), deps);
+  assertEquals(state.claimedAmounts, []);
+  assertEquals(state.credits, []);
+});
+
+Deno.test("if Stripe fails, the commission is handed back and the event retried", async () => {
+  const { state, deps } = setup(paid(1500));
+  state.commission = { ...COMMISSION };
+  state.failAffiliate = true;
+  const res = await handle(post(), deps);
+  assertEquals(res.status, 500);
+  assertEquals(state.affiliateReleased, ["aff_1"]);
+  assertEquals(state.affiliateCredits, []);
   assertEquals(state.handled.size, 0);
 });

@@ -518,7 +518,7 @@ These are flagged for your legal review. Laws and rules change, and some depend 
     - **Reviews and chat:** now governed by Community Guidelines with Report and Block buttons, a moderator role, and an audit log.
     - **Kids' reviews:** show a display name, never a child's real name. The original rule "reviews always show the real author's name" exposed children's names publicly.
     - **Copyright/DMCA:** added a page and a registered DMCA agent to preserve safe-harbor protection.
-11. **Affiliate program.** Limited to adults, with FTC Endorsement Guides disclosure requirements, no marketing to children, and tax forms for payouts.
+11. **Affiliate program.** Limited to adults, with FTC Endorsement Guides disclosure requirements and no marketing to children. *As built (4 November 2026):* commission is 20% of a referred member's first payment as credit on the affiliate's own membership, so there are no payouts or tax forms; applications are reviewed by sales staff.
 12. **Cookies and privacy choices.** Added a cookie banner and a Your Privacy Choices page that honors Global Privacy Control, as required by CCPA/CPRA for any "sharing" for targeted ads.
 13. **Netflix-style, not Netflix.** Keep the layout pattern, but use your own visual identity, colors, and wording to avoid trade-dress confusion. The rating label "Love this!" became "I love this," and you shouldn't use Netflix's red and black, typefaces, or logo shapes. Run a trademark clearance search on "LiteraryWorm," a common name in the book space, before launch.
 

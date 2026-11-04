@@ -20,6 +20,7 @@ const PRIVATE_PATHS = [
   /^\/support\b/,
   /^\/dashboard\b/,
   /^\/maintenance\b/,
+  /^\/affiliates\/review\b/,
 ];
 
 /** Whether analytics may run on this page for this profile: never for Kids, never on private pages. */

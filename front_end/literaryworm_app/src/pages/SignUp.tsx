@@ -1,5 +1,7 @@
 import { cleanReferralCode } from "../lib/referrals";
-import { useRef, useState, type FormEvent } from "react";
+import { cleanAffiliateCode } from "../lib/affiliates";
+import { recordAffiliateClick } from "../lib/affiliatesApi";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { HOME_CRUMB, pageData } from "../lib/seo";
 import { StructuredData } from "../components/StructuredData";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
@@ -33,6 +35,11 @@ export default function SignUp() {
   const planParam = params.get("plan") as PlanId | null;
   const plan = planParam ? planById.get(planParam) : undefined;
   const referralCode = cleanReferralCode(params.get("ref"));
+  const affiliateCode = cleanAffiliateCode(params.get("aff"));
+  // A visit through an affiliate's link is counted once (the affiliate-click function allows one a day per visitor).
+  useEffect(() => {
+    if (affiliateCode) recordAffiliateClick(affiliateCode);
+  }, [affiliateCode]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -83,7 +90,7 @@ export default function SignUp() {
       setBusy(true);
       setFormError(null);
       try {
-        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing, referralCode });
+        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing, referralCode, affiliateCode });
         // Confirmed straight away: useAuthSync loads the account and the redirect above continues to the plan step.
         if (needsConfirmation) setSentTo(email.trim());
       } catch (err) {
@@ -178,6 +185,12 @@ export default function SignUp() {
               <>
                 {" "}
                 <strong>{t("A friend invited you: after your first payment, a month of your plan is free.")}</strong>
+              </>
+            )}
+            {affiliateCode && (
+              <>
+                {" "}
+                {t("You came through a LiteraryWorm affiliate's link: they'll see that someone signed up, never who.")}
               </>
             )}
           </p>

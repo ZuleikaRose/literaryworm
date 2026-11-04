@@ -489,5 +489,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | The accessibility menu's settings follow each profile to every device (migrations 6673–6675) | Done |
 | —    | The endless feed stays quick: Now showing the genre it's reached, Back to top, books off screen not drawn (migration 6676) | Done |
 | —    | Open Library as a second book source for adult profiles' Home, Google Books as the fallback; policies say so (migrations 6677–6678) | Done |
+| —    | The affiliate program: apply, staff review, a sign-up link, counts, and 20% of a referred member's first payment as account credit (migrations 6679–6683, `affiliate-click` function) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

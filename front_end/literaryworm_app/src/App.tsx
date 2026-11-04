@@ -29,6 +29,7 @@ import Search from "./pages/Search";
 import SharedList from "./pages/SharedList";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import Affiliates from "./pages/Affiliates";
 
 // The reader and player (with their study tools) load when first opened, keeping the first download small.
 const Reader = lazy(() => import("./pages/Reader"));
@@ -37,6 +38,7 @@ const Player = lazy(() => import("./pages/Player"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Support = lazy(() => import("./pages/Support"));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
+const AffiliateReview = lazy(() => import("./pages/AffiliateReview"));
 
 /** Old /book/:id links keep working. */
 function LegacyBookRedirect() {
@@ -62,6 +64,7 @@ export default function App() {
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="legal/:slug" element={<Legal />} />
           <Route path="whats-new" element={<WhatsNew />} />
+          <Route path="affiliates" element={<Affiliates />} />
           <Route path="unsubscribe" element={<Unsubscribe />} />
           {/* Book details are public (the brief's /books/:id); actions ask visitors to sign in. */}
           <Route path="books/:id" element={<BookDetail />} />
@@ -108,6 +111,14 @@ export default function App() {
               element={
                 <Suspense fallback={null}>
                   <Maintenance />
+                </Suspense>
+              }
+            />
+            <Route
+              path="affiliates/review"
+              element={
+                <Suspense fallback={null}>
+                  <AffiliateReview />
                 </Suspense>
               }
             />

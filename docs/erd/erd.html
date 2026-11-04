@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6678, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6683, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -751,6 +751,47 @@
           note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits a month of each member's plan to their Stripe balance; the inviter earns at most 2 months in all. RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals().",
         },
         {
+          id: "affiliates", color: colors.billing, x: 0, y: 10020, sub: "affiliate program",
+          cols: [
+            ["pk", "account_id", "uuid"],
+            ["", "status", "text: pending, approved, declined, suspended"],
+            ["", "website", "text (https)"],
+            ["", "channels", "text (10–500)"],
+            ["", "terms_accepted_at", "timestamptz"],
+            ["", "discloses_commission", "boolean (true)"],
+            ["", "no_marketing_to_children", "boolean (true)"],
+            ["", "code", "text (unique, 10)", true],
+            ["", "applied_at", "timestamptz"],
+            ["", "decided_at", "timestamptz", true],
+            ["fk", "decided_by", "uuid", true],
+          ],
+          note: "One application per account (apply_affiliate(); staff can't). Sales staff and admins decide through review_affiliate() (approving makes the code) and read applications through affiliate_applications(), display names only. RLS: the owner reads their own row.",
+        },
+        {
+          id: "affiliate_clicks", color: colors.billing, x: 420, y: 10020, sub: "visits per day",
+          cols: [
+            ["pk", "affiliate_id", "uuid"],
+            ["pk", "day", "date"],
+            ["", "clicks", "integer"],
+          ],
+          note: "Visits to an approved affiliate's link, counted by the affiliate-click function (one per visitor's IP, code and day; the IP is never stored). Kept two years. No browser access.",
+        },
+        {
+          id: "affiliate_referrals", color: colors.billing, x: 840, y: 10020, sub: "20% of a first payment",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "affiliate_id", "uuid"],
+            ["fk", "referred_id", "uuid (unique)"],
+            ["", "created_at", "timestamptz"],
+            ["", "rewarded_at", "timestamptz", true],
+            ["", "first_payment_cents", "integer", true],
+            ["", "commission_cents", "integer", true],
+            ["", "skipped", "text: staff, no_membership, not_approved", true],
+            ["", "credit_id", "text (Stripe)", true],
+          ],
+          note: "Who signed up with which code (trigger on auth.users). stripe-webhook claims it once on the first paid invoice (claim_affiliate_commission()) and credits 20% to the affiliate's Stripe balance. Affiliates see counts only (my_affiliate()). No browser access.",
+        },
+        {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -1113,6 +1154,10 @@
       // [fromTable, fromColumn, toTable, toColumn, cardinality label]
       const relations = [
         ["profiles", "id", "auth.users", "id", "1 : 1"],
+        ["affiliates", "account_id", "auth.users", "id", "1 : 1"],
+        ["affiliate_clicks", "affiliate_id", "affiliates", "account_id", "N : 1"],
+        ["affiliate_referrals", "affiliate_id", "affiliates", "account_id", "N : 1"],
+        ["affiliate_referrals", "referred_id", "auth.users", "id", "1 : 1"],
         ["account_private", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "plan_id", "plans", "id", "N : 1"],

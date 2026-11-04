@@ -78,6 +78,9 @@ export function Footer() {
                 <Link to="/gifts">{t("Gift a membership")}</Link>
               </li>
               <li>
+                <Link to="/affiliates">{t("Affiliate program")}</Link>
+              </li>
+              <li>
                 <Link to="/search">{t("Search")}</Link>
               </li>
             </ul>

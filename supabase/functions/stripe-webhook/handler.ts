@@ -18,6 +18,10 @@
 //
 // Refer a friend: an invited member's first paid invoice credits a month of each member's plan to
 // them and to whoever invited them (claim_referral_reward() decides, once; see rewardReferral()).
+//
+// Affiliates: a member who signed up with an approved affiliate's code earns that affiliate 20% of
+// their first payment as a balance credit (claim_affiliate_commission() decides, once; see
+// rewardAffiliate()). Credits only, never payouts.
 
 import { CATALOG } from "../_shared/catalog.ts";
 import type { Stripe } from "../_shared/stripe.ts";
@@ -47,6 +51,17 @@ export interface Deps {
   creditCustomer: (customerId: string, cents: number, idempotencyKey: string, description: string) => Promise<string>;
   recordReferralCredits: (referralId: string, friendCredit: string, referrerCredit: string | null) => Promise<void>;
   releaseReferral: (referralId: string) => Promise<void>;
+  /** Affiliates: claims the referred member's commission once (null when there's nothing to give). */
+  claimAffiliate: (referredId: string, amountCents: number) => Promise<AffiliateCommission | null>;
+  recordAffiliateCredit: (referralId: string, creditId: string) => Promise<void>;
+  releaseAffiliate: (referralId: string) => Promise<void>;
+}
+
+/** What claim_affiliate_commission() gives: 20% of the referred member's first payment, in cents. */
+export interface AffiliateCommission {
+  referralId: string;
+  affiliateCustomer: string;
+  cents: number;
 }
 
 /** What claim_referral_reward() gives: a month of each member's own plan, in cents. */
@@ -151,6 +166,31 @@ async function rewardReferral(deps: Deps, customerId: string | null, amountPaid:
   }
 }
 
+/**
+ * Affiliates: when a member who signed up with an affiliate's code makes their first payment, 20% of
+ * it is credited to the affiliate's own Stripe balance (the database decides, once). An idempotency
+ * key per referral keeps a retried event from crediting twice; a failure hands the claim back.
+ */
+async function rewardAffiliate(deps: Deps, customerId: string | null, amountPaid: number): Promise<void> {
+  if (!customerId || amountPaid <= 0) return;
+  const userId = await deps.userForCustomer(customerId);
+  if (!userId) return;
+  const commission = await deps.claimAffiliate(userId, amountPaid);
+  if (!commission) return;
+  try {
+    const credit = await deps.creditCustomer(
+      commission.affiliateCustomer,
+      commission.cents,
+      `affiliate-${commission.referralId}`,
+      "Affiliate commission: 20% of a referred member's first payment",
+    );
+    await deps.recordAffiliateCredit(commission.referralId, credit);
+  } catch (err) {
+    await deps.releaseAffiliate(commission.referralId);
+    throw err;
+  }
+}
+
 async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed":
@@ -193,7 +233,10 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
       }
       await deps.startMembership(userId, subscriptionRow(sub), new Date(session.created * 1000).toISOString());
       // The first payment may have come in before the membership was written: reward it now.
-      if (session.payment_status === "paid") await rewardReferral(deps, idOf(sub.customer), session.amount_total ?? 0);
+      if (session.payment_status === "paid") {
+        await rewardReferral(deps, idOf(sub.customer), session.amount_total ?? 0);
+        await rewardAffiliate(deps, idOf(sub.customer), session.amount_total ?? 0);
+      }
       return;
     }
     case "customer.subscription.created":
@@ -204,7 +247,10 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
     case "invoice.payment_failed": {
       const subId = invoiceSubscriptionId(event.data.object);
       if (subId) await syncSubscription(deps, await deps.getSubscription(subId));
-      if (event.type === "invoice.paid" && subId) await rewardReferral(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);
+      if (event.type === "invoice.paid" && subId) {
+        await rewardReferral(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);
+        await rewardAffiliate(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);
+      }
       return;
     }
     case "invoice.created": {

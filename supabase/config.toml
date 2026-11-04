@@ -5,6 +5,11 @@
 # parameter and rate limits each IP instead of requiring a login.
 verify_jwt = false
 
+[functions.affiliate-click]
+# Public: visitors following an affiliate's link. One code per request, validated; one count per
+# visitor's IP, code and day, and the IP is never stored.
+verify_jwt = false
+
 [functions.manage-profile]
 verify_jwt = true
 
