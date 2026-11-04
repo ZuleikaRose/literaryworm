@@ -177,9 +177,10 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     const filtered = mode === "search" || mode === "keywords";
     const sort = filtered ? parseSort(params.get("sort")) : "relevance";
     const lang = filtered ? parseLanguage(params.get("lang")) : null;
-    // Checked pages are 40 books before the check, so they're kept apart from 20-book pages of the same query.
+    // Checked pages are 40 books before the check, so they're kept apart from 20-book pages of the same query;
+    // the version changes whenever the check does, so pages kept under an older rule are never served.
     const size = checked ? CHECKED_PAGE_SIZE : PAGE_SIZE;
-    const cacheKey = listCacheKey(checked ? `${q} [${checked} by heading]` : q, page, sort, lang);
+    const cacheKey = listCacheKey(checked ? `${q} [${checked} by heading, v2]` : q, page, sort, lang);
     const kept = await safely("read list", () => deps.cache?.getList(cacheKey));
     if (kept) return json(req, METHODS, kept, 200, { "Cache-Control": "public, max-age=60", "X-Book-Cache": "hit" });
     let body = await ask((k) => listUrl(q, page, k, sort, lang, size));
