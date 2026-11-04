@@ -490,6 +490,7 @@ function SmallCover({
   bookId: string;
   details: ReturnType<typeof useEntryDetails>;
 }) {
+  const t = useT();
   const [broken, setBroken] = useState(false);
   if (details.local) return <Cover book={details.local} size="sm" />;
   if (details.cover && !broken) {
@@ -498,7 +499,7 @@ function SmallCover({
         <img
           {...ESSENTIAL}
           src={details.cover}
-          alt=""
+          alt={t("Cover of {title}", { title: details.title })}
           referrerPolicy="no-referrer"
           loading="lazy"
           onError={() => setBroken(true)}

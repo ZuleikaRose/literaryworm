@@ -31,11 +31,10 @@ export function BookTile({ book, priority = false, progress, to }: BookTileProps
       <span className="book-card-cover">
         {book.cover && !broken ? (
           <span className="book-cover cover-md cover-photo">
-            {/* Decorative: the title and author are repeated as text below. */}
             <img
               {...ESSENTIAL}
               src={book.cover}
-              alt=""
+              alt={t("Cover of {title}", { title: book.title })}
               loading={priority ? "eager" : "lazy"}
               decoding="async"
               referrerPolicy="no-referrer"

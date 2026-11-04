@@ -163,8 +163,7 @@ function DetailCover({ view }: { view: DetailView }) {
   if (view.coverUrl && !broken) {
     return (
       <span className="book-cover cover-xl cover-photo">
-        {/* Decorative: the title is the page heading. */}
-        <img {...ESSENTIAL} src={view.coverUrl} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} />
+        <img {...ESSENTIAL} src={view.coverUrl} alt={t("Cover of {title}", { title: view.title })} referrerPolicy="no-referrer" onError={() => setBroken(true)} />
       </span>
     );
   }

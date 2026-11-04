@@ -129,6 +129,10 @@ export const planFaqs = [
     a: tk("LiteraryWorm uses the Google Books API to find books and show their details and covers, so you can search almost any book, save it to your library and write about it. The books you can read and listen to in full here are public-domain classics, with texts from Project Gutenberg and recordings from LibriVox.\n\nThose covers, and the Google Books preview on some book pages, load from books.google.com, so Google sets its own third-party cookies on our website when they do. Blocking third-party cookies in your browser stops them, and LiteraryWorm keeps working.\n\nTo read a book you own, upload it (up to 20 EPUBs at a time, each up to 50 MB): for example, buy a book its publisher sells DRM-free on Google Play Books, download the EPUB from your Google Play Books library, and add it in My Library → Uploads.\n\nIt opens in the reader with your place, bookmarks and highlights, and keeps working if your connection drops once you've opened it. Books with DRM can't be uploaded, and removing DRM isn't allowed."),
   },
   {
+    q: tk("What genres can I browse?"),
+    a: tk("64. The main ones, such as Fantasy, Mystery, Romance, Classics, Sci-Fi and Horror, and every subject Google Books files books under, from Antiques & Collectibles, Cooking and Comics & Graphic Novels to Philosophy, Travel and True Crime. Browse them on Home, filter a search by one, or pick favourites for your profile.\n\nKids profiles see the genres with books chosen for them."),
+  },
+  {
     q: tk("What happens when the month's listening runs out?"),
     a: tk("Basic includes 5 hours of audiobooks a month and Standard 30, shared by everyone in the household on every device; Premium has no limit. When they're used up, audiobooks pause until the 1st of the next month and your place is saved. Reading has no limit, and you can move to a bigger plan at any time. Account → Plan and billing shows how much you've listened this month."),
   },
