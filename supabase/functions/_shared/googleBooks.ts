@@ -152,54 +152,55 @@ export const GENRE_WORDS: Record<Genre, string> = {
 
 export const HOME_QUERY = "technology";
 
-// The BISAC genres' own top-level headings. Google's `subject:` matches words loosely (Pets finds
-// Pet Sematary, filed under Fiction), so their pages keep only books whose categories start with
-// one of these; a book Google gives no categories is kept, since nothing says it doesn't fit.
+// The BISAC genres' own top-level headings, and the library-catalogue names Google gives many books
+// instead (Social sciences, Cookery, Medicine). Google's `subject:` matches words loosely (Pets
+// finds Pet Sematary, filed under Fiction), so their pages keep only books whose categories start
+// with one of these; a book Google gives no categories is kept, since nothing says it doesn't fit.
 // The first twenty genres are broader than one heading (Adventure, Classics…) and aren't checked.
 export const GENRE_HEADINGS: Partial<Record<Genre, readonly string[]>> = {
-  antiques: ["antiques & collectibles"],
+  antiques: ["antiques & collectibles", "antiques", "collectibles"],
   architecture: ["architecture"],
-  art: ["art"],
+  art: ["art", "arts"],
   bibles: ["bibles"],
-  "body-mind-spirit": ["body, mind & spirit"],
-  business: ["business & economics"],
-  comics: ["comics & graphic novels"],
-  computers: ["computers"],
-  cooking: ["cooking"],
-  crafts: ["crafts & hobbies"],
+  "body-mind-spirit": ["body, mind & spirit", "spirituality", "occultism", "new age movement"],
+  business: ["business & economics", "business", "economics", "management"],
+  comics: ["comics & graphic novels", "comic books, strips, etc", "graphic novels"],
+  computers: ["computers", "computer science", "computer software", "computer programming"],
+  cooking: ["cooking", "cookery"],
+  crafts: ["crafts & hobbies", "handicraft", "hobbies"],
   design: ["design"],
   drama: ["drama"],
   education: ["education"],
-  family: ["family & relationships"],
+  family: ["family & relationships", "parenting", "families", "child rearing"],
   "foreign-language": ["foreign language study"],
-  games: ["games & activities"],
+  games: ["games & activities", "games", "puzzles"],
   gardening: ["gardening"],
-  health: ["health & fitness"],
-  "house-home": ["house & home"],
-  humor: ["humor"],
+  health: ["health & fitness", "health", "physical fitness", "nutrition"],
+  "house-home": ["house & home", "interior decoration", "home economics", "dwellings"],
+  humor: ["humor", "humour", "wit and humor"],
   "juvenile-nonfiction": ["juvenile nonfiction"],
-  "language-arts": ["language arts & disciplines"],
+  "language-arts": ["language arts & disciplines", "linguistics", "language and languages"],
   law: ["law"],
   "literary-collections": ["literary collections"],
-  "literary-criticism": ["literary criticism"],
-  mathematics: ["mathematics"],
-  medical: ["medical"],
+  "literary-criticism": ["literary criticism", "criticism"],
+  mathematics: ["mathematics", "math"],
+  medical: ["medical", "medicine"],
   music: ["music"],
-  nature: ["nature"],
-  "performing-arts": ["performing arts"],
+  nature: ["nature", "natural history"],
+  "performing-arts": ["performing arts", "theater", "motion pictures", "dance"],
   pets: ["pets"],
   philosophy: ["philosophy"],
   photography: ["photography"],
-  "political-science": ["political science"],
+  "political-science": ["political science", "politics and government", "politics"],
   psychology: ["psychology"],
-  reference: ["reference"],
+  reference: ["reference", "encyclopedias and dictionaries", "dictionaries"],
   religion: ["religion"],
-  "social-science": ["social science"],
-  sports: ["sports & recreation"],
-  "study-aids": ["study aids"],
-  transportation: ["transportation"],
+  "social-science": ["social science", "social sciences", "sociology"],
+  sports: ["sports & recreation", "sports", "recreation"],
+  "study-aids": ["study aids", "examinations", "study guides"],
+  transportation: ["transportation", "railroads", "automobiles", "aeronautics"],
   travel: ["travel"],
-  "true-crime": ["true crime"],
+  "true-crime": ["true crime", "crime", "murder"],
   "young-adult-nonfiction": ["young adult nonfiction"],
 };
 
@@ -552,8 +553,10 @@ export function shapePage(body: unknown, page: number, size: number = PAGE_SIZE)
     }
   }
   const rawCount = Array.isArray(raw.items) ? raw.items.length : 0;
-  // Google's totalItems is an estimate; a short page means we've reached the end. Google stops
-  // answering past about 400 results, so neither do we.
-  const hasMore = rawCount === size && (page + 1) * size < Math.min(totalItems, 400);
+  // Google's totalItems is an estimate; a short 20-book page means we've reached the end. Asked for
+  // 40, Google often sends fewer while it has more, so there only its total says when to stop. It
+  // stops answering past about 400 results, so neither do we.
+  const full = size === PAGE_SIZE ? rawCount === size : rawCount > 0;
+  const hasMore = full && (page + 1) * size < Math.min(totalItems, 400);
   return { items, page, pageSize: size, hasMore, totalItems };
 }
