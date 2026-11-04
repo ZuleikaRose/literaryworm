@@ -810,6 +810,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 250. **Search in the member menu.** Logged in, the header menu on a computer is Discover, Search and My Library, so the full Search page (filters, genres, search by author, keywords or ISBN) is one click away, as the tab bar already made it on phones. The header fits from 1440px down to the phone layout: the search box gives way first, the *Ctrl K* hint goes under 1200px and the profile button shows only its avatar under 1000px.
 
+251. **One address per page for search engines.** Every page now carries a canonical link (and `og:url`) to its own path on www.literaryworm.com without the query, so Home's genre views, search queries and invitation or tracking links don't compete with the page they're on (`canonicalUrl()` in `lib/seo.ts`, `components/Canonical.tsx`; a smoke test checks it).
+
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 
 224. **Google Books cookies, said plainly.** Because we use the Google Books API, covers of Google Books titles and the Google Books preview load from books.google.com, and Google sets third-party cookies there. The Cookie Policy lists them, and the Privacy Policy, Help, the FAQ, the Children's Privacy Notice and the preview's note say so (migration 6618).
