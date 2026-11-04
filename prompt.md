@@ -180,7 +180,7 @@ Then, on 4 November 2026, five more, in this order:
 
 The same day, a fix from a reader's report: Search's Filters scroll on their own on a computer when they're taller than the window.
 
-Then every Google Books genre: 64 to browse and filter by on Home and Search (every top-level BISAC subject, none repeated), with Kids profiles offered only the genres the sample catalog has. Those genres then keep only books filed under their own subject heading, thin pages top up from the next one, every photo cover has alt text, and the FAQ says which genres there are.
+Then every Google Books genre: 64 to browse and filter by on Home and Search (every top-level BISAC subject, none repeated), with Kids profiles offered only the genres the sample catalog has. Those genres then keep only books filed under their own subject heading, thin pages top up from the next one, every photo cover has alt text, and the FAQ says which genres there are. Logged-in members get Search in the header menu too.
 
 ## Code
 
