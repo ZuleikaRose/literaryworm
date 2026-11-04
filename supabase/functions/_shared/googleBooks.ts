@@ -124,7 +124,7 @@ export const GENRE_WORDS: Record<Genre, string> = {
   health: "health fitness",
   "house-home": '"home improvement"',
   humor: "humor",
-  "juvenile-nonfiction": '"children's nonfiction"',
+  "juvenile-nonfiction": '"children\'s nonfiction"',
   "language-arts": "linguistics",
   law: "law",
   "literary-collections": "anthology",

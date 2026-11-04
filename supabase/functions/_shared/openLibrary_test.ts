@@ -1,3 +1,4 @@
+import { GENRES } from "./validate.ts";
 // deno test supabase/functions/_shared/openLibrary_test.ts
 import { assert, assertEquals, assertFalse } from "jsr:@std/assert@1.0.13";
 import {
@@ -30,7 +31,8 @@ Deno.test("an Open Library id is ol- and a work id", () => {
 });
 
 Deno.test("every browse genre has an Open Library subject", () => {
-  assertEquals(Object.keys(OPEN_LIBRARY_SUBJECTS).length, 20);
+  assertEquals(Object.keys(OPEN_LIBRARY_SUBJECTS).sort(), [...GENRES].sort());
+  assert(Object.values(OPEN_LIBRARY_SUBJECTS).every((subject) => subject.length > 0));
   const url = subjectUrl("sci-fi", 2);
   assertEquals(url.searchParams.get("subject"), "science fiction");
   assertEquals(url.searchParams.get("page"), "3");
