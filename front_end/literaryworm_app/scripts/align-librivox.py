@@ -28,7 +28,9 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import unicodedata
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -91,17 +93,34 @@ def heard_words(whisper_json: Path) -> list[tuple[str, float]]:
     return words
 
 
+def download(url: str, tries: int = 5) -> bytes:
+    """A track from the Internet Archive, trying again after a pause when it answers with a server error or times out."""
+    for attempt in range(1, tries + 1):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(request, timeout=120) as response:
+                return response.read()
+        except urllib.error.HTTPError as err:
+            if err.code < 500 or attempt == tries:
+                raise
+        except (urllib.error.URLError, TimeoutError):
+            if attempt == tries:
+                raise
+        wait = 15 * attempt
+        print(f"  download failed, trying again in {wait} s: {url}", file=sys.stderr)
+        time.sleep(wait)
+    raise AssertionError("unreachable")
+
+
 def transcribe(url: str, work: Path, index: int, whisper: str, model: str, threads: int) -> Path:
     mp3, wav, out = work / f"{index:03d}.mp3", work / f"{index:03d}.wav", work / f"{index:03d}"
     if not mp3.exists():
-        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-        with urllib.request.urlopen(request, timeout=120) as response:
-            mp3.write_bytes(response.read())
+        mp3.write_bytes(download(url))
     if not wav.exists():
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(mp3), "-ar", "16000", "-ac", "1", str(wav)], check=True)
     result = out.with_suffix(".json")
     if not result.exists():
-        subprocess.run([whisper, "-m", model, "-f", str(wav), "-ml", "1", "-oj", "-of", str(out), "-t", str(threads), "-np"], check=True)
+        subprocess.run([whisper, "-m", model, "-f", str(wav), "-ml", "1", "-sow", "-oj", "-of", str(out), "-t", str(threads), "-np"], check=True)
     wav.unlink(missing_ok=True)  # the WAV is large; the MP3 and the words are kept for re-runs
     return result
 

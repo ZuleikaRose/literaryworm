@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-04",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Read along with the real recording",
+    "body": "For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, the player's transcript now shows the book's own words while the LibriVox recording plays, each sentence marked as it's read. We lined each recording up with the text once, ahead of time; nothing about your listening is sent anywhere.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "An age check for books marked mature",
     "body": "Before a grown-up's profile, or a visitor, opens a book that Google Books or Open Library marks as mature, LiteraryWorm now asks you to confirm you're 18 or older. A profile is asked once, on every device; a visitor once a visit. Kids and Teen profiles still can't open these books at all.",
     "major": false
