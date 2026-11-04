@@ -113,6 +113,10 @@ export const planFaqs = [
     a: tk("Share your link from Account → Plan and billing. When a friend who's new to LiteraryWorm joins with it and makes their first payment, you each get a month of your own plan free, taken off your next bill.\n\nYou can earn up to 2 free months by inviting friends, and every friend you invite still gets theirs. Staff memberships aren't billed, so they don't take part."),
   },
   {
+    q: tk("Can I earn credit by recommending LiteraryWorm?"),
+    a: tk("Yes, through the affiliate program. Members can apply on the Affiliate program page, linked in the footer. Once you're approved, you get your own sign-up link, and when someone joins with it and makes their first payment, 20% of that payment is added to your membership as credit. It's credit, not cash.\n\nAffiliates say they earn a commission wherever they share the link, and never aim it at children. Staff can't take part."),
+  },
+  {
     q: tk("Can I give LiteraryWorm as a gift?"),
     a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, paid once. Add up to 10 LiteraryWorm books to start them off, from a title, one of your lists or the wishlist someone shared with you. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library."),
   },
@@ -135,6 +139,10 @@ export const planFaqs = [
   {
     q: tk("Are there audiobooks?"),
     a: tk("Yes. The public-domain classics play their LibriVox recordings, read by volunteers, with a mini-player that keeps going while you browse and controls on your lock screen. Other titles can be read aloud by your device's own voice, and you can carry on listening on another device where you left off. Coming back after a break, Previously… in the player catches you up on the story so far."),
+  },
+  {
+    q: tk("Can I read along while I listen?"),
+    a: tk("Yes. Turn on the Read-along in the player to see the words with each sentence marked as it's read. For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, it's the book's own text, lined up with the LibriVox recording. When your device's voice reads a classic, it shows the real text too. You choose the size of the text, and you can tap a sentence to jump there."),
   },
   {
     q: tk("Can my book club read a book I bought?"),

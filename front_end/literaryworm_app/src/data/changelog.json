@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-04",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Two new questions in the FAQ",
+    "body": "The FAQ on Home and Plans now answers whether you can read along while you listen, and how to earn credit by recommending LiteraryWorm through the affiliate program.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
     "kind": "fix",
     "title": "Search filters scroll on a computer",
     "body": "On Search, the Filters beside the results now scroll on their own when they're taller than your window, so Length and Sort by are always within reach.",
