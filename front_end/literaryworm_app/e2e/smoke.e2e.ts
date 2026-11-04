@@ -1421,6 +1421,19 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lists the demo's reminder for its sample upcoming book, whose page has Remind me set and says it's a sample", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=reminders");
+    const row = page.locator(".reminder-row").filter({ hasText: "The Lighthouse at Wren Cove" });
+    await row.getByText(/^Due /).waitFor();
+    await row.getByRole("link", { name: "The Lighthouse at Wren Cove" }).click();
+    await page.getByRole("heading", { name: "The Lighthouse at Wren Cove", level: 1 }).waitFor();
+    await page.getByText(/A sample upcoming book for the LiteraryWorm demo, not a real title/).waitFor();
+    await page.getByRole("button", { name: /Reminder set/ }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("reviews the words due today from Home, and asks them again later", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

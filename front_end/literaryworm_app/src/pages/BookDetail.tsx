@@ -24,6 +24,7 @@ import { LogCard } from "../components/LogCard";
 import { LogDialog } from "../components/LogDialog";
 import { Shelf } from "../components/Shelf";
 import { books, getBook, isAllowed } from "../data/books";
+import { DEMO_UPCOMING_ID, demoUpcomingVolume } from "../data/demoUpcoming";
 import { moreLike } from "../lib/recommend";
 import { type BrowseGenre, genreForCategories } from "../data/genres";
 import { readingStatusLabel } from "../data/logs";
@@ -63,12 +64,15 @@ const VOLUME_ID = /^[A-Za-z0-9_-]{1,40}$/;
  */
 export default function BookDetail() {
   const id = useParams().id ?? "";
+  const { state } = useStore();
   const profile = useActiveProfile();
   const local = getBook(id);
   const isVolume = !local && VOLUME_ID.test(id);
   // Kids profiles only see the LiteraryWorm catalog, so a Google title isn't even fetched.
   const kidsBlocked = isVolume && profile?.ageRating === "kids";
-  const { state: volume, retry } = useVolume(isVolume && !kidsBlocked ? id : null);
+  // The demo's sample upcoming book (data/demoUpcoming.ts) is drawn here, never fetched.
+  const demoUpcoming = Boolean(state.account?.isDemo) && id === DEMO_UPCOMING_ID && profile?.ageRating !== "kids";
+  const { state: volume, retry } = useVolume(isVolume && !kidsBlocked && !demoUpcoming ? id : null);
   const profileData = useProfileData();
   const requests = profileData.bookRequests;
   // Bumped when a visitor confirms they're 18 or older, so the page shows the book (lib/adultGate.ts).
@@ -79,6 +83,7 @@ export default function BookDetail() {
     return <NotOnShelf profile={profile!} book={local} />;
   }
   if (local) return <DetailPage key={id} view={fromCatalogBook(local)} />;
+  if (demoUpcoming) return <DetailPage key={id} view={fromVolume(demoUpcomingVolume())} />;
 
   if (!volume || volume.status === "loading") return <DetailSkeleton />;
   if (volume.status === "error") {

@@ -16,8 +16,15 @@ let browser: Browser | null = null;
 /** Every context a test opened; closed after each test so pages (and their timers) don't pile up. */
 const contexts: BrowserContext[] = [];
 
+/**
+ * The run's browser, launched again if it went away (it crashed, or something on the machine killed
+ * it), so one lost browser fails one test rather than every test after it.
+ */
 export async function openBrowser(): Promise<Browser> {
-  browser ??= await chromium.launch();
+  if (!browser?.isConnected()) {
+    contexts.splice(0);
+    browser = await chromium.launch();
+  }
   return browser;
 }
 

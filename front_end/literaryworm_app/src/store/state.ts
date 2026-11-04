@@ -3,6 +3,7 @@ import { DEFAULT_SAVED_A11Y } from "../lib/a11ySync";
 import { prefersMoreContrast } from "../lib/contrast";
 import { getBook } from "../data/books";
 import { DEMO_READER_ID, DEMO_READER_NAME } from "../data/demoReaders";
+import { demoUpcomingReminder } from "../data/demoUpcoming";
 import { DEMO_UPLOAD_READING, demoUploads } from "../data/demoUploads";
 import { seedLogs } from "../data/logs";
 import { usesBackend } from "../lib/backend";
@@ -262,6 +263,8 @@ export function demoHousehold(): Household {
     ],
     // A sample reader to follow (data/demoReaders.ts), for My Library → Readers.
     readerFollows: [{ readerId: DEMO_READER_ID, name: DEMO_READER_NAME }],
+    // A reminder for the sample upcoming book (data/demoUpcoming.ts), for My Library → Reminders.
+    reminders: [demoUpcomingReminder(now)],
     follows: [
       { kind: "author", name: "Matt Haig" },
       { kind: "narrator", name: "Imogen Hale" },
