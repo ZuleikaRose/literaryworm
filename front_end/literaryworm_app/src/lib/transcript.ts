@@ -1,7 +1,7 @@
 import { tk } from "./i18n";
 import { samplePageSentences } from "../data/sampleText";
 import type { A11ySettings, Book, TranscriptLanguage } from "../types";
-import { speakingParts } from "./narration";
+import { speakingParts } from "./speaking";
 import { chapterTimes, readerPages } from "./reading";
 
 export const TRANSCRIPT_SIZES: { value: A11ySettings["transcriptSize"]; label: string }[] = [

@@ -18,6 +18,7 @@ import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
 import { rich } from "../lib/i18n";
+import { useAlignment } from "../lib/useAlignment";
 import { useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
@@ -35,6 +36,8 @@ function PlayerView({ book }: { book: Book }) {
   const { narrationVoice } = useProfileData();
   const voices = useVoices();
   const narration = resolveNarration(book, narrationVoice, voices);
+  // The pilot's books have their recording lined up with the text, for a true read-along.
+  const alignment = useAlignment(book, narration.kind === "recording" && state.a11y.transcript);
   const voiceValue = narration.kind === "speech" ? narration.voice.voiceURI : narration.kind === "recording" ? LIBRIVOX_VOICE : SILENT_VOICE;
   const accents = (["British", "American", "Australian"] as const)
     .map((accent) => [accent, voices.filter((v) => accentOf(v) === accent)] as const)
@@ -393,9 +396,17 @@ function PlayerView({ book }: { book: Book }) {
           </p>
         </div>
 
-        {/* A real recording has no sentence timings, so its book shows no transcript; a device voice reading the real text does. */}
-        {state.a11y.transcript && !finished && (!book.recording || narration.kind === "speech") && (
-          <Transcript book={book} chapterIndex={chapterIndex} position={position} onSeek={seek} realText={Boolean(book.recording)} />
+        {/* A real recording shows the transcript only where it has been lined up with the text (the pilot,
+            lib/alignment.ts); a device voice reading the real text always does. */}
+        {state.a11y.transcript && !finished && (!book.recording || narration.kind === "speech" || alignment) && (
+          <Transcript
+            book={book}
+            chapterIndex={chapterIndex}
+            position={position}
+            onSeek={seek}
+            realText={Boolean(book.recording)}
+            alignment={narration.kind === "speech" ? null : alignment}
+          />
         )}
       </main>
 

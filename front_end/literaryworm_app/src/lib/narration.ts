@@ -8,6 +8,7 @@ import { keepUploadOffline, offlineUploadText } from "./uploadCache";
 import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
 import { tr } from "./i18n";
+import { speakingParts } from "./speaking";
 
 /**
  * Who reads an audiobook aloud. The playback engine (components/PlaybackProvider.tsx) keeps the
@@ -142,42 +143,8 @@ export function recordingNarrator(tracks: RecordingTrack[], starts: number[], ev
 
 /** About how many characters a voice reads a second at 1×, to move the clock between sentences. */
 const CHARS_PER_SECOND = 14;
-/** Long sentences are spoken in parts: some browsers cut off a long utterance. */
-const MAX_PART = 220;
-const ABBREVIATION = /(?:^|\s)(?:Mr|Mrs|Ms|Dr|St|Mt|Jr|Sr|Messrs|Capt|Col|Gen|Rev|Prof|Lt|Sgt|No)\.\s*$/;
-
-export interface Part {
-  text: string;
-  /** Characters before it in its chapter. */
-  offset: number;
-}
-
-/** A chapter's text in the pieces a voice speaks: sentences, long ones split at commas. */
-export function speakingParts(text: string): Part[] {
-  const split = text.replace(/\s+/g, " ").match(/[^.!?…]+(?:[.!?…]+["”’)]*\s*|$)/g) ?? [];
-  // "Mr." and the like end a word, not a sentence: keep them with what follows.
-  const sentences: string[] = [];
-  for (const piece of split) {
-    const previous = sentences[sentences.length - 1];
-    if (previous !== undefined && ABBREVIATION.test(previous)) sentences[sentences.length - 1] = previous + piece;
-    else sentences.push(piece);
-  }
-  const parts: Part[] = [];
-  let offset = 0;
-  for (const sentence of sentences) {
-    let rest = sentence;
-    while (rest.length > MAX_PART) {
-      const cut = Math.max(rest.lastIndexOf(", ", MAX_PART), rest.lastIndexOf("; ", MAX_PART), rest.lastIndexOf(" ", MAX_PART));
-      const piece = rest.slice(0, cut > 0 ? cut + 1 : MAX_PART);
-      parts.push({ text: piece, offset });
-      offset += piece.length;
-      rest = rest.slice(piece.length);
-    }
-    if (rest.trim()) parts.push({ text: rest, offset });
-    offset += rest.length;
-  }
-  return parts;
-}
+// The pieces a voice speaks live in lib/speaking.ts (pure); re-exported for existing imports.
+export { type Part, speakingParts } from "./speaking";
 
 /** The device's voice reading `chapters` (one text each), timed to the book's chapter lengths. */
 export function speechNarrator(

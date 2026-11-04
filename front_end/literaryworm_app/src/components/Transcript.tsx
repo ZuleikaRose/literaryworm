@@ -1,6 +1,7 @@
 import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { bookText } from "../lib/narration";
 import { chapterTranscript, lineAt, textTranscript, TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
+import { type Alignment, alignedTranscript } from "../lib/alignment";
 import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import type { A11ySettings, Book } from "../types";
@@ -41,12 +42,15 @@ export function Transcript({
   position,
   onSeek,
   realText = false,
+  alignment = null,
 }: {
   book: Book;
   chapterIndex: number;
   position: number;
   onSeek: (seconds: number) => void;
   realText?: boolean;
+  /** The LibriVox recording lined up with the text (lib/alignment.ts): its sentences follow the real narrator. */
+  alignment?: Alignment | null;
 }) {
   const t = useT();
   const { state, dispatch } = useStore();
@@ -63,9 +67,11 @@ export function Transcript({
       realText
         ? chapterText === undefined
           ? []
-          : textTranscript(book, chapterIndex, chapterText)
+          : alignment
+            ? (alignedTranscript(book, chapterIndex, chapterText, alignment.chapters[chapterIndex] ?? []) ?? [])
+            : textTranscript(book, chapterIndex, chapterText)
         : chapterTranscript(book, chapterIndex, language),
-    [book, chapterIndex, language, realText, chapterText],
+    [book, chapterIndex, language, realText, chapterText, alignment],
   );
   const current = lineAt(lines, position);
 
