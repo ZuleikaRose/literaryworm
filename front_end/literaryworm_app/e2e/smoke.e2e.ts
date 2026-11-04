@@ -1456,7 +1456,8 @@ describe("the demo household", () => {
     await list.getByText("Read the storm chapter twice.").waitFor();
     // It's in My Library → Notes, ready to export.
     await goInApp(page, "/library?view=notes");
-    await page.getByText(/1 journal entry in 1 book/).waitFor();
+    // Avery's highlights in Pride and Prejudice are counted there too.
+    await page.getByText(/1 journal entry/).first().waitFor();
     await goInApp(page, "/books/frankenstein");
     await page.getByRole("region", { name: "My journal" }).getByRole("button", { name: /^Delete/ }).click();
     await page.getByRole("dialog", { name: "Delete this journal entry?" }).getByRole("button", { name: "Delete entry" }).click();
@@ -1758,8 +1759,14 @@ describe("the demo household", () => {
     await section.getByText(/1 more is from chapters you haven't reached/).waitFor();
     await section.getByRole("button", { name: "Show it anyway" }).click();
     await section.getByText("In vain have I struggled.").waitFor();
-    // With no highlights of the book yet, it says how to make one.
-    await section.getByRole("link", { name: "Pride and Prejudice" }).waitFor();
+    // Avery has highlighted the book's first lines, so one can be shared with the club (in memory in the demo).
+    await section.getByRole("heading", { name: "Share one of yours" }).waitFor();
+    const pick = section.getByLabel("Highlight");
+    await expect(pick.locator("option").count()).resolves.toBeGreaterThan(0);
+    await pick.selectOption({ index: 0 });
+    await section.getByRole("button", { name: "Share with the club" }).click();
+    await page.getByText("Shared with the club.").waitFor();
+    await section.getByRole("button", { name: /^Stop sharing/ }).first().waitFor();
     expect(errors()).toEqual([]);
   });
 
