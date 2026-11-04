@@ -11934,3 +11934,12 @@ update public.legal_pages
 set sections = replace(sections::text, $lw$The read-along transcript for some titles is sample text rather than the exact recording, and is hidden while a real recording plays.$lw$, $lw$The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays.$lw$)::jsonb, updated_at = now()
 where slug = $lw$accessibility$lw$
   and strpos(sections::text, $lw$The read-along transcript for some titles is sample text rather than the exact recording, and is hidden while a real recording plays.$lw$) > 0;
+
+-- =============================================================================
+-- 20261104006690_whats_new_search_filters.sql
+-- =============================================================================
+-- What's new: the Search page's Filters scroll on their own on a computer. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'fix', $lw$Search filters scroll on a computer$lw$, $lw$On Search, the Filters beside the results now scroll on their own when they're taller than your window, so Length and Sort by are always within reach.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Search filters scroll on a computer$lw$ and c.version = '2026.11');
