@@ -152,6 +152,73 @@ export const GENRE_WORDS: Record<Genre, string> = {
 
 export const HOME_QUERY = "technology";
 
+// The BISAC genres' own top-level headings. Google's `subject:` matches words loosely (Pets finds
+// Pet Sematary, filed under Fiction), so their pages keep only books whose categories start with
+// one of these; a book Google gives no categories is kept, since nothing says it doesn't fit.
+// The first twenty genres are broader than one heading (Adventure, Classics…) and aren't checked.
+export const GENRE_HEADINGS: Partial<Record<Genre, readonly string[]>> = {
+  antiques: ["antiques & collectibles"],
+  architecture: ["architecture"],
+  art: ["art"],
+  bibles: ["bibles"],
+  "body-mind-spirit": ["body, mind & spirit"],
+  business: ["business & economics"],
+  comics: ["comics & graphic novels"],
+  computers: ["computers"],
+  cooking: ["cooking"],
+  crafts: ["crafts & hobbies"],
+  design: ["design"],
+  drama: ["drama"],
+  education: ["education"],
+  family: ["family & relationships"],
+  "foreign-language": ["foreign language study"],
+  games: ["games & activities"],
+  gardening: ["gardening"],
+  health: ["health & fitness"],
+  "house-home": ["house & home"],
+  humor: ["humor"],
+  "juvenile-nonfiction": ["juvenile nonfiction"],
+  "language-arts": ["language arts & disciplines"],
+  law: ["law"],
+  "literary-collections": ["literary collections"],
+  "literary-criticism": ["literary criticism"],
+  mathematics: ["mathematics"],
+  medical: ["medical"],
+  music: ["music"],
+  nature: ["nature"],
+  "performing-arts": ["performing arts"],
+  pets: ["pets"],
+  philosophy: ["philosophy"],
+  photography: ["photography"],
+  "political-science": ["political science"],
+  psychology: ["psychology"],
+  reference: ["reference"],
+  religion: ["religion"],
+  "social-science": ["social science"],
+  sports: ["sports & recreation"],
+  "study-aids": ["study aids"],
+  transportation: ["transportation"],
+  travel: ["travel"],
+  "true-crime": ["true crime"],
+  "young-adult-nonfiction": ["young adult nonfiction"],
+};
+
+// How many books to ask Google for at once when a page will be checked by heading: its most, so
+// enough are left after the check.
+export const CHECKED_PAGE_SIZE = 40;
+
+/** Whether a book fits a genre by its categories' top-level BISAC headings (see GENRE_HEADINGS). */
+export function fitsGenre(book: Pick<BookSummary, "categories">, genre: Genre): boolean {
+  const headings = GENRE_HEADINGS[genre];
+  if (!headings || book.categories.length === 0) return true;
+  return book.categories.some((c) => headings.includes(c.split("/")[0].trim().toLowerCase()));
+}
+
+/** A page with only the books that fit the genre. */
+export function keepGenre(page: BookPage, genre: Genre): BookPage {
+  return { ...page, items: page.items.filter((book) => fitsGenre(book, genre)) };
+}
+
 export type BookSummary = {
   id: string;
   title: string;
@@ -221,11 +288,12 @@ export function listUrl(
   key: string | undefined,
   sort: Sort = "relevance",
   lang: Language | null = null,
+  size: number = PAGE_SIZE,
 ): URL {
   const url = new URL(API);
   url.searchParams.set("q", q);
-  url.searchParams.set("startIndex", String(page * PAGE_SIZE));
-  url.searchParams.set("maxResults", String(PAGE_SIZE));
+  url.searchParams.set("startIndex", String(page * size));
+  url.searchParams.set("maxResults", String(size));
   url.searchParams.set("printType", "books");
   if (sort === "newest") url.searchParams.set("orderBy", "newest");
   if (lang) url.searchParams.set("langRestrict", lang);
@@ -471,7 +539,7 @@ function previewKind(access: Record<string, unknown>): BookDetail["preview"] {
   return null;
 }
 
-export function shapePage(body: unknown, page: number): BookPage {
+export function shapePage(body: unknown, page: number, size: number = PAGE_SIZE): BookPage {
   const raw = obj(body);
   const totalItems = num(raw.totalItems) ?? 0;
   const items: BookSummary[] = [];
@@ -484,7 +552,8 @@ export function shapePage(body: unknown, page: number): BookPage {
     }
   }
   const rawCount = Array.isArray(raw.items) ? raw.items.length : 0;
-  // Google's totalItems is an estimate; a short page means we've reached the end.
-  const hasMore = rawCount === PAGE_SIZE && (page + 1) * PAGE_SIZE < totalItems && page < 19;
-  return { items, page, pageSize: PAGE_SIZE, hasMore, totalItems };
+  // Google's totalItems is an estimate; a short page means we've reached the end. Google stops
+  // answering past about 400 results, so neither do we.
+  const hasMore = rawCount === size && (page + 1) * size < Math.min(totalItems, 400);
+  return { items, page, pageSize: size, hasMore, totalItems };
 }

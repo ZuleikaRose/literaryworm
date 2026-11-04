@@ -503,3 +503,50 @@ Deno.test("an ol- book id opens from Open Library, not Google", async () => {
   assertEquals(google.calls.length, 0);
   assertEquals(calls.sort(), ["/search.json", "/works/OL8400950W.json"]);
 });
+
+// The BISAC genres (GENRE_HEADINGS) are checked by heading: Google's subject: search is loose.
+const checkedPage = {
+  totalItems: 500,
+  items: [
+    volume("cat", { categories: ["Pets / Cats"] }),
+    volume("horror", { title: "Pet Sematary", categories: ["Fiction / Horror"] }),
+    volume("bare"),
+    volume("dog", { categories: ["Juvenile Nonfiction / Animals / Dogs", "Pets / Dogs / General"] }),
+    ...Array.from({ length: 36 }, (_, i) => volume(`more${i}`, { categories: ["Pets"] })),
+  ],
+};
+
+Deno.test("a BISAC genre asks for 40 books and keeps only those filed under its heading", async () => {
+  const { calls, fetcher } = stub(200, checkedPage);
+  const res = await handle(get("mode=genre&genre=pets&page=1"), { fetcher });
+  const body = await res.json();
+  assertEquals(calls[0].url.searchParams.get("maxResults"), "40");
+  assertEquals(calls[0].url.searchParams.get("startIndex"), "40");
+  const ids = body.items.map((b: { id: string }) => b.id);
+  assertFalse(ids.includes("horror"));
+  // Filed under Pets as well as Juvenile Nonfiction, and a book with no categories at all: both kept.
+  assert(ids.includes("cat") && ids.includes("dog") && ids.includes("bare"));
+  assertEquals(body.items.length, 39);
+  assertEquals(body.pageSize, 40);
+  assert(body.hasMore);
+});
+
+Deno.test("a search narrowed to a BISAC genre is checked too; the first twenty genres aren't", async () => {
+  const pets = stub(200, checkedPage);
+  const narrowed = await (await handle(get("mode=search&q=cat&genre=pets"), { fetcher: pets.fetcher })).json();
+  assertFalse(narrowed.items.some((b: { id: string }) => b.id === "horror"));
+  assertEquals(pets.calls[0].url.searchParams.get("maxResults"), "40");
+  const horror = stub(200, checkedPage);
+  const broad = await (await handle(get("mode=genre&genre=horror"), { fetcher: horror.fetcher })).json();
+  assertEquals(horror.calls[0].url.searchParams.get("maxResults"), "20");
+  assert(broad.items.some((b: { id: string }) => b.id === "horror"));
+});
+
+Deno.test("a BISAC genre comes from Google even when Open Library is asked for, so it can be checked", async () => {
+  const google = stub(200, checkedPage);
+  const ol = stub(200, olDocs);
+  const res = await handle(get("mode=genre&genre=pets&source=openlibrary"), { fetcher: google.fetcher, openLibraryFetcher: ol.fetcher });
+  await res.body?.cancel();
+  assertEquals(ol.calls.length, 0);
+  assertEquals(google.calls.length, 1);
+});

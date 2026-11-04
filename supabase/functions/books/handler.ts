@@ -25,10 +25,13 @@ import { errorResponse, HttpError, json, requireMethod } from "../_shared/http.t
 import {
   authorQuery,
   callGoogleWithKeys,
+  CHECKED_PAGE_SIZE,
+  GENRE_HEADINGS,
   GENRE_QUERIES,
   GENRE_WORDS,
   type GoogleMeta,
   HOME_QUERY,
+  keepGenre,
   listUrl,
   plainQuery,
   shapeDetail,
@@ -36,7 +39,7 @@ import {
   titleQuery,
   volumeUrl,
 } from "../_shared/googleBooks.ts";
-import { parseGenre, parseIsbn, parseLanguage, parseName, parsePage, parseQuery, parseSort, parseVolumeId } from "../_shared/validate.ts";
+import { type Genre, PAGE_SIZE, parseGenre, parseIsbn, parseLanguage, parseName, parsePage, parseQuery, parseSort, parseVolumeId } from "../_shared/validate.ts";
 
 const METHODS = "GET";
 const ALLOWED_PARAMS: Record<string, string[]> = {
@@ -118,9 +121,12 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     }
 
     const page = parsePage(params.get("page"));
-    if (params.has("source")) {
-      if (params.get("source") !== "openlibrary") throw new HttpError("bad_request", "source must be openlibrary.");
-      const genre = mode === "genre" ? parseGenre(params.get("genre")) : "technology";
+    if (params.has("source") && params.get("source") !== "openlibrary") throw new HttpError("bad_request", "source must be openlibrary.");
+    const olGenre = mode === "genre" ? parseGenre(params.get("genre")) : "technology";
+    // Open Library's subjects are free tags, not BISAC headings, so the genres checked by heading
+    // (GENRE_HEADINGS) always come from Google, where the check can run.
+    if (params.has("source") && !GENRE_HEADINGS[olGenre]) {
+      const genre = olGenre;
       const olKey = `openlibrary:${genre}:${page}`;
       const keptOl = await safely("read list", () => deps.cache?.getList(olKey));
       if (keptOl) return json(req, METHODS, keptOl, 200, { "Cache-Control": "public, max-age=300", "X-Book-Cache": "hit" });
@@ -136,6 +142,8 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
       }
     }
     let q = HOME_QUERY;
+    // A genre whose pages are checked by heading (GENRE_HEADINGS), in genre mode or narrowing a search.
+    let checked: Genre | null = null;
     // The same request without Google's operators, asked when the filtered one finds nothing.
     let plain = HOME_QUERY;
     if (mode === "search" || mode === "keywords") {
@@ -148,6 +156,7 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
         const genre = parseGenre(params.get("genre"));
         q += ` ${GENRE_QUERIES[genre]}`;
         plain += ` ${GENRE_WORDS[genre]}`;
+        if (GENRE_HEADINGS[genre]) checked = genre;
       }
     } else if (mode === "author") {
       const name = parseName(params.get("name"));
@@ -163,28 +172,32 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
       const genre = parseGenre(params.get("genre"));
       q = GENRE_QUERIES[genre];
       plain = GENRE_WORDS[genre];
+      if (GENRE_HEADINGS[genre]) checked = genre;
     }
     const filtered = mode === "search" || mode === "keywords";
     const sort = filtered ? parseSort(params.get("sort")) : "relevance";
     const lang = filtered ? parseLanguage(params.get("lang")) : null;
-    const cacheKey = listCacheKey(q, page, sort, lang);
+    // Checked pages are 40 books before the check, so they're kept apart from 20-book pages of the same query.
+    const size = checked ? CHECKED_PAGE_SIZE : PAGE_SIZE;
+    const cacheKey = listCacheKey(checked ? `${q} [${checked} by heading]` : q, page, sort, lang);
     const kept = await safely("read list", () => deps.cache?.getList(cacheKey));
     if (kept) return json(req, METHODS, kept, 200, { "Cache-Control": "public, max-age=60", "X-Book-Cache": "hit" });
-    let body = await ask((k) => listUrl(q, page, k, sort, lang));
+    let body = await ask((k) => listUrl(q, page, k, sort, lang, size));
     if (isEmptyList(body)) {
       if (plain !== q) {
         // Google sometimes answers every `subject:` and `intitle:` query with nothing while
         // plain searches still work, so ask with the plain words (looser: they can match
         // anywhere in the book, not just the title or subject).
-        body = await ask((k) => listUrl(plain, page, k, sort, lang));
+        body = await ask((k) => listUrl(plain, page, k, sort, lang, size));
       } else if (page === 0) {
         // When Google is struggling it sometimes answers 200 with no results at all. A real
         // "nothing found" is rare for a first page, so ask once more before believing it.
         await new Promise((resolve) => setTimeout(resolve, deps.emptyRetryMs ?? 600));
-        body = await ask((k) => listUrl(q, page, k, sort, lang));
+        body = await ask((k) => listUrl(q, page, k, sort, lang, size));
       }
     }
-    const shaped = shapePage(body, page);
+    const whole = shapePage(body, page, size);
+    const shaped = checked ? keepGenre(whole, checked) : whole;
     // An empty page is often Google struggling, not the truth: don't keep it.
     if (shaped.items.length) await safely("save list", () => deps.cache?.putList(cacheKey, shaped, keepFor(meta.cacheSeconds)));
     return json(req, METHODS, shaped, 200, { "Cache-Control": browserCache(300), "X-Book-Cache": "miss" });
