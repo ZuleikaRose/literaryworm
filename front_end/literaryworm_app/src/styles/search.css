@@ -122,10 +122,20 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Sticky beside the results, but never taller than the window under the header: the filters
+   scroll on their own (Length and the rest stay reachable), and reaching their end doesn't
+   scroll the results. The padding, taken back by the margin, keeps focus rings unclipped. */
 .search-sidebar {
   position: sticky;
   top: calc(var(--header-h) + 20px);
   align-self: start;
+  max-height: calc(100vh - var(--header-h) - 40px);
+  max-height: calc(100dvh - var(--header-h) - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 4px 8px 16px 4px;
+  margin: -4px -8px 0 -4px;
 }
 
 .search-sidebar h2 {

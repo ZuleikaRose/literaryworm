@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-04",
     "version": "2026.11",
+    "kind": "fix",
+    "title": "Search filters scroll on a computer",
+    "body": "On Search, the Filters beside the results now scroll on their own when they're taller than your window, so Length and Sort by are always within reach.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Read along with the real recording",
     "body": "For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, the player's transcript now shows the book's own words while the LibriVox recording plays, each sentence marked as it's read. We lined each recording up with the text once, ahead of time; nothing about your listening is sent anywhere.",
