@@ -87,6 +87,13 @@ Deno.test("a work's details come from its search entry and its record", () => {
   assert(mature.mature);
 });
 
+Deno.test("a work in several languages names none, rather than the first edition's", () => {
+  const many = shapeOpenLibraryDetail({ docs: [doc(9, { language: ["ita", "ger", "fre", "eng"] })] }, {});
+  assertEquals(many.language, null);
+  const none = shapeOpenLibraryDetail({ docs: [doc(10, {})] }, {});
+  assertEquals(none.language, null);
+});
+
 Deno.test("requests name the app and a contact, as Open Library asks", async () => {
   let ua: string | null = null;
   const fetcher = ((_: URL, init?: RequestInit) => {

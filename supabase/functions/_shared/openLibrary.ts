@@ -134,7 +134,10 @@ export function shapeOpenLibraryDetail(searchBody: unknown, work: unknown): Book
   if (!fallbackSummary) throw new HttpError("not_found", "We couldn't find that book.");
   const rawDescription = typeof w.description === "string" ? w.description : str(obj(w.description).value, 20000);
   const description = rawDescription ? rawDescription.replace(/\r\n/g, "\n").trim().slice(0, 8000) : null;
-  const language = strings(obj(doc).language, 5)[0];
+  // The search entry lists every edition's language (a classic can list a dozen), so a language is
+  // given only when all its editions share one; otherwise the page doesn't name one.
+  const languages = strings(obj(doc).language, 50);
+  const language = languages.length === 1 ? languages[0] : undefined;
   const workId = fallbackSummary.id.slice(3);
   return {
     ...fallbackSummary,
