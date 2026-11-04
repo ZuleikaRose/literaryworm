@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-04",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Every Google Books genre",
+    "body": "Home and Search now have 64 genres to browse and filter by: besides Fantasy, Mystery, Romance and the rest, every subject Google Books files books under, from Antiques & Collectibles, Cooking and Comics & Graphic Novels to Philosophy, Travel and True Crime, with none repeated. On a phone, Home's genres are one row you swipe along. Kids profiles see the genres with books chosen for them.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
     "kind": "update",
     "title": "Two new questions in the FAQ",
     "body": "The FAQ on Home and Plans now answers whether you can read along while you listen, and how to earn credit by recommending LiteraryWorm through the affiliate program.",
