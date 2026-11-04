@@ -46,6 +46,19 @@ export function nextFeedStep(step: number, page: number, hasMore: boolean, chain
   return { step, page, done: true };
 }
 
+/** A page with fewer books than this is topped up from the next page straight away. */
+export const TOP_UP_BELOW = 8;
+/** How many pages in a row a feed tops up on its own, before waiting for Load more again. */
+export const TOP_UP_MAX = 3;
+
+/**
+ * Whether to fetch the next page at once: the page just loaded brought only a few books (a genre
+ * whose pages keep only books filed under its heading can come back thin) and there's more to come.
+ */
+export function shouldTopUp(pageBooks: number, done: boolean, topUps: number): boolean {
+  return !done && pageBooks < TOP_UP_BELOW && topUps < TOP_UP_MAX;
+}
+
 /** The books to show: every one loaded, or the first `limit` of them for a visitor's sample. */
 export function sampleOf<T>(items: T[], limit: number | undefined): { shown: T[]; capped: boolean } {
   if (limit === undefined || items.length < limit) return { shown: items, capped: false };

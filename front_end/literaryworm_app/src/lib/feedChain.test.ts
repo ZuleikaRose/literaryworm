@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { genreOrderAfter, genreQuery, genresAfter, nextFeedStep, openLibraryFor, sampleOf, VISITOR_SAMPLE } from "./feedChain";
+import { genreOrderAfter, genreQuery, genresAfter, nextFeedStep, openLibraryFor, sampleOf, shouldTopUp, TOP_UP_BELOW, TOP_UP_MAX, VISITOR_SAMPLE } from "./feedChain";
 
 describe("genreQuery", () => {
   it("asks the home list for Technology and genre mode for the rest", () => {
@@ -76,5 +76,19 @@ describe("sampleOf", () => {
 
   it("isn't capped until the limit is reached", () => {
     expect(sampleOf(books.slice(0, 5), 20)).toEqual({ shown: books.slice(0, 5), capped: false });
+  });
+});
+
+describe("shouldTopUp", () => {
+  it("fetches the next page at once after a thin page, while there's more", () => {
+    expect(shouldTopUp(2, false, 0)).toBe(true);
+    expect(shouldTopUp(TOP_UP_BELOW - 1, false, TOP_UP_MAX - 1)).toBe(true);
+  });
+
+  it("waits for Load more after a full page, at the end, or after three top-ups in a row", () => {
+    expect(shouldTopUp(TOP_UP_BELOW, false, 0)).toBe(false);
+    expect(shouldTopUp(20, false, 0)).toBe(false);
+    expect(shouldTopUp(2, true, 0)).toBe(false);
+    expect(shouldTopUp(0, false, TOP_UP_MAX)).toBe(false);
   });
 });
