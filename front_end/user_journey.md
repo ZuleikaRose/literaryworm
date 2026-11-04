@@ -39,7 +39,7 @@ LiteraryWorm gives readers one legal, affordable place to discover, read, listen
 **Read and listen**
 
 - Ebook reader: adjustable font, size, spacing, theme (light, sepia, dark), bookmarks, highlights, notes, built-in dictionary, chapter list, and progress synced across devices.
-- Audiobook player: chapter list, playback speed (0.5× to 3×), skip back/forward 15 seconds, sleep timer, and a read-along transcript where the publisher provides one.
+- Audiobook player: chapter list, playback speed (0.5× to 3×), skip back/forward 15 seconds, sleep timer, and a read-along transcript where the publisher provides one (for now, the book's own text timed to the LibriVox recording of Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice).
 - Continue Reading picks up where each profile stopped, on any device.
 - Download licensed titles for offline reading and listening.
 
@@ -237,7 +237,7 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
 
   - **Controls:** play/pause, skip back/forward 15 seconds, playback speed, sleep timer, chapter list, and a progress bar with chapter marks.
   - **Skip buttons:** Skip Opening Credits and Skip Closing Credits appear while those parts play. At the end of a book in a series, a countdown offers the next book (if autoplay of the next title is on).
-  - **Read-along:** a transcript that highlights along with the narration, where the publisher provides one. Transcript language and size are adjustable.
+  - **Read-along:** a transcript that highlights along with the narration, where the publisher provides one. Transcript language and size are adjustable. For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice it's the book's own text, lined up with the LibriVox recording ahead of time, so each sentence is marked as the reader says it.
   - **Keyboard:** all controls work by keyboard. Playback continues on the lock screen of phones.
 - **Google Books Title page (books outside LiteraryWorm's licensed catalog):**
 
@@ -797,6 +797,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 243. **LGBTQIA+ books.** LGBTQIA+ is the twentieth genre: a link in Home's *Keep discovering*, on Discover and Search, a choice in Search's genre filter and among a profile's favourite genres. Its books come from Google Books' LGBTQ+ categories, without the titles Google marks as mature; Kids profiles see only the sample catalog, which has none tagged yet.
 
 244. **The demo shows the newest features.** Try the demo's Account → Plan and billing has *Invite a friend* with a sample link (`/signup?ref=AVERY234`) and counts (2 signed up, 1 joined, 1 month earned), and nothing is sent anywhere. Goals and the demo club's page show last night's 20-minute sprint (Avery 14 pages and Sam 9 at home; Jordan, you and Priya in the club) until a new one starts. Gifts links to *Jordan's wishlist* (`/lists/demo-jordans-wishlist0`), whose *Give this list as a gift* opens Gifts with its five books picked; *Continue to payment* explains the demo can't pay. *Carmilla* and *The Picture of Dorian Gray* are LGBTQIA+ catalog books.
+
+245. **True read-along (pilot).** For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, the player's Read-along shows the book's own text while the LibriVox recording plays, each sentence marked as the reader says it. Each recording was lined up with the text once, ahead of time (`scripts/align-librivox.py`, all 102 chapters, 93–99% of words matched); its note says so. Other recordings still hide the transcript.
 
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 

@@ -176,7 +176,7 @@ Then, on 4 November 2026, five more, in this order:
 - The endless feed kept light: only books near the screen are drawn, with Back to top and the genre it has reached.
 - Open Library as a second source for book details and covers, so fewer Google Books requests are made.
 - An affiliate program: approved affiliates earn 20% of a referred member's first payment as account credit.
-- True read-along for three classics: the LibriVox recording lined up with the text word by word.
+- True read-along for three classics: the LibriVox recording lined up with the text word by word (files generated the same day for Alice, Frankenstein and Pride and Prejudice: 102 chapters, 93–99% of words matched).
 
 ## Code
 
