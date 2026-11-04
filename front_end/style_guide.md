@@ -112,7 +112,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 
 **Book card.** Cover, then title (Manrope), author, star rating; optional progress bar on the cover. Lifts 6px on hover (pointer devices only).
 
-**Book tile (Google Books).** Same layout as the book card, with Google's cover image (https only, lazy-loaded, `alt=""` because the title is repeated) or, when there is none, a drawn cover picked from the catalog's palettes by the book's id. Shows the published year instead of a rating.
+**Book tile (Google Books).** Same layout as the book card, with Google's cover image (https only, lazy-loaded, alt text *Cover of {title}*) or, when there is none, a drawn cover picked from the catalog's palettes by the book's id. Shows the published year instead of a rating.
 
 **Home row (shelf).** Heading on the left; *See all* and two 44px arrow buttons on the right. Scrolls left and right only (arrows, swipe, or Tab through the books), with the row bleeding to the screen edge. Rows from the books service end with a dashed *Load more* card. Top 10 puts a large outlined rank number beside each cover.
 
@@ -426,7 +426,7 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 - Every icon is decorative (`aria-hidden`) and every icon-only button has a text label.
 - *Skip to content* link; page titles change per route.
 - The accessibility menu offers two interface fonts, Lexend (*Dyslexia-friendly font*) and OpenDyslexic (*OpenDyslexic font*), one at a time; OpenDyslexic is self-hosted and set through `--font-body`, `--font-display` and `--font-reading` under `[data-dyslexic-font]`.
-- Covers are decorative; the title and author are always in text.
+- Photo covers (Google Books, Open Library) have alt text *Cover of {title}* (book tiles, My Library rows, the book page); drawn covers only repeat the title beside them, so they're `aria-hidden`. The title and author are always in text.
 
 ---
 

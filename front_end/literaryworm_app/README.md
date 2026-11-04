@@ -254,3 +254,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Search's Filters sidebar scrolls on its own when taller than the window (`.search-sidebar` in `styles/search.css`; migration 6690) |
 | — | Every Google Books genre (64; `data/genres.ts`, `useBrowseGenres()`, `catalogGenres`, `BISAC_HEADINGS`; the books function's `GENRES` and query maps; one swipeable row on phones; migrations 6692–6693) |
 | — | Genres that fit better (`GENRE_HEADINGS`, `fitsGenre()`, `keepGenre()`, `CHECKED_PAGE_SIZE` 40 in the books function; migration 6694) |
+| — | Fuller genre pages (`shouldTopUp()` in `lib/feedChain.ts`), photo covers' alt text *Cover of {title}*, the genres FAQ (migrations 6695–6696) |
