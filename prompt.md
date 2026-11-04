@@ -178,6 +178,8 @@ Then, on 4 November 2026, five more, in this order:
 - An affiliate program: approved affiliates earn 20% of a referred member's first payment as account credit.
 - True read-along for three classics: the LibriVox recording lined up with the text word by word (files generated the same day for Alice, Frankenstein and Pride and Prejudice: 102 chapters, 93–99% of words matched).
 
+The same day, a fix from a reader's report: Search's Filters scroll on their own on a computer when they're taller than the window.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

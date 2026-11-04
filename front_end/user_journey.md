@@ -800,6 +800,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 245. **True read-along (pilot).** For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, the player's Read-along shows the book's own text while the LibriVox recording plays, each sentence marked as the reader says it. Each recording was lined up with the text once, ahead of time (`scripts/align-librivox.py`, all 102 chapters, 93–99% of words matched); its note says so. Other recordings still hide the transcript.
 
+246. **Search filters you can reach.** On a computer, Search's Filters stay beside the results as you scroll; when they're taller than the window, they now scroll on their own, so Length and Sort by are always within reach (a reader's report, 4 November 2026).
+
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 
 224. **Google Books cookies, said plainly.** Because we use the Google Books API, covers of Google Books titles and the Google Books preview load from books.google.com, and Google sets third-party cookies there. The Cookie Policy lists them, and the Privacy Policy, Help, the FAQ, the Children's Privacy Notice and the preview's note say so (migration 6618).

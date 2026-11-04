@@ -251,3 +251,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Affiliate program (`/affiliates`, `/affiliates/review`, `lib/affiliates.ts` and its test, `lib/affiliatesApi.ts`, `affiliate-click` function, `stripe-webhook` commission; migrations 6679–6683) |
 | — | Read-along pilot: `scripts/align-librivox.py` (whisper.cpp + ffmpeg, run once per book), `public/alignments/<id>.json` (Alice, Frankenstein and Pride and Prejudice, generated 4 November 2026; migrations 6688–6689), `lib/alignment.ts` and its test, `useAlignment()`, the player's transcript for real recordings; `speakingParts()` moved to `lib/speaking.ts` |
 | — | Age gate for mature books (`lib/adultGate.ts` and its test, `AdultGate`, `reader_profiles.mature_ok_at`; migrations 6684–6686) |
+| — | Search's Filters sidebar scrolls on its own when taller than the window (`.search-sidebar` in `styles/search.css`; migration 6690) |
