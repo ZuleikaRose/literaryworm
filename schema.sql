@@ -11913,3 +11913,24 @@ set sections = replace(sections::text, $lw$LiteraryWorm uses the Google Books AP
 where slug = $lw$help$lw$
   and strpos(sections::text, $lw$LiteraryWorm uses the Google Books API to show book details and covers when you browse and search, so you can find almost any book, save it to your library and write about it."$lw$) > 0
   and strpos(sections::text, $lw$Open Library$lw$) = 0;
+
+-- =============================================================================
+-- 20261104006688_whats_new_read_along.sql
+-- =============================================================================
+-- What's new: true read-along for three LibriVox classics (public/alignments). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'feature', $lw$Read along with the real recording$lw$, $lw$For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, the player's transcript now shows the book's own words while the LibriVox recording plays, each sentence marked as it's read. We lined each recording up with the text once, ahead of time; nothing about your listening is sent anywhere.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Read along with the real recording$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006689_read_along_accessibility.sql
+-- =============================================================================
+-- The Accessibility Policy's read-along note: Alice, Frankenstein and Pride and Prejudice now show the book's own
+-- text timed to the LibriVox recording (public/alignments). Same text as src/data/legalPages.json, matched as stored.
+-- Changed once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$The read-along transcript for some titles is sample text rather than the exact recording, and is hidden while a real recording plays.$lw$, $lw$The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays.$lw$)::jsonb, updated_at = now()
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$The read-along transcript for some titles is sample text rather than the exact recording, and is hidden while a real recording plays.$lw$) > 0;
