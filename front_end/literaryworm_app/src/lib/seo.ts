@@ -1,5 +1,6 @@
 import { formatPrice, plans } from "../data/plans";
 import type { Book } from "../types";
+import { isAligned } from "./alignment";
 
 /**
  * What search engines show for the site. index.html carries the site-wide description and the
@@ -123,7 +124,9 @@ export function bookData(book: Pick<Book, "id" | "title" | "author" | "year" | "
     editions.push({ "@type": "Book", bookFormat: "https://schema.org/EBook", inLanguage, url, ...(book.pages > 0 ? { numberOfPages: book.pages } : {}) });
   }
   if (book.recording) {
-    editions.push({ "@type": "Audiobook", bookFormat: "https://schema.org/AudiobookFormat", inLanguage, url, readBy: { "@type": "Person", name: book.recording.narrator } });
+    // The pilot's recordings are lined up with the text, so the player shows it sentence by sentence (lib/alignment.ts).
+    const synced = isAligned(book.id) ? { accessibilityFeature: ["synchronizedAudioText"] } : {};
+    editions.push({ "@type": "Audiobook", bookFormat: "https://schema.org/AudiobookFormat", inLanguage, url, readBy: { "@type": "Person", name: book.recording.narrator }, ...synced });
   }
   return {
     "@context": "https://schema.org",

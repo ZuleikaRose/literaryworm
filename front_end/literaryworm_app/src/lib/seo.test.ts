@@ -55,6 +55,12 @@ describe("page structured data", () => {
     expect(data.workExample[1].readBy?.name).toBe(book.recording!.narrator);
   });
 
+  it("says an aligned recording has its text in step with the audio, and only an aligned one", () => {
+    const edition = (id: string) => (bookData(getBook(id)!) as unknown as { workExample: Record<string, unknown>[] }).workExample.find((w) => w["@type"] === "Audiobook")!;
+    expect(edition("pride-and-prejudice").accessibilityFeature).toEqual(["synchronizedAudioText"]);
+    expect(edition("dracula").accessibilityFeature).toBeUndefined();
+  });
+
   it("gives a book in another language its language code", () => {
     expect(bookData(getBook("candide-fr")!).inLanguage).toBe("fr");
     expect(bookData(getBook("frankenstein")!).inLanguage).toBe("en");

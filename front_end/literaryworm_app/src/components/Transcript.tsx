@@ -161,9 +161,11 @@ export function Transcript({
         ))}
       </div>
       <p className="transcript-note">
-        {realText
-          ? t("The book's public-domain text, marked as your device's voice reads it. Choose a sentence to jump there.")
-          : t("Sample transcript: placeholder text timed to the sample clock. Choose a sentence to jump there.")}
+        {realText && alignment
+          ? t("The book's public-domain text, marked as the LibriVox reader reads it. Choose a sentence to jump there.")
+          : realText
+            ? t("The book's public-domain text, marked as your device's voice reads it. Choose a sentence to jump there.")
+            : t("Sample transcript: placeholder text timed to the sample clock. Choose a sentence to jump there.")}
       </p>
     </section>
   );
