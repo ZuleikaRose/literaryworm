@@ -498,5 +498,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Fuller genre pages (thin pages top up from the next one), alt text on every photo cover, and a genres FAQ (migrations 6695–6696) | Done |
 | —    | Search in a member's header menu, and a header that fits on smaller laptops (migration 6697) | Done |
 | —    | A canonical address on every page for search engines (`canonicalUrl()`, `Canonical.tsx`) | Done |
+| —    | A fuller demo: lists, highlights, a followed sample reader and followed authors for every profile (migration 6698) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

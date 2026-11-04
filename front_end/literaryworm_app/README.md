@@ -257,3 +257,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Fuller genre pages (`shouldTopUp()` in `lib/feedChain.ts`), photo covers' alt text *Cover of {title}*, the genres FAQ (migrations 6695–6696) |
 | — | Search in the member header menu (`Header.tsx`), the header fitting from 1440px to 901px (`shell.css`), smoke test (migration 6697) |
 | — | Canonical links on every page (`canonicalUrl()` in `lib/seo.ts`, `components/Canonical.tsx`, test and smoke test) |
+| — | A fuller demo (`data/demoReaders.ts`, `store/state.ts` samples, `useReaderFollows()` in memory for the demo; migration 6698) |
