@@ -9,7 +9,8 @@ import { FollowButton } from "../components/FollowButton";
 import { Icon } from "../components/Icon";
 import { SearchFilters } from "../components/SearchFilters";
 import { WhatsNewLink } from "../components/WhatsNewLink";
-import { browseGenres, genreHref, genreLabel } from "../data/genres";
+import { genreHref, genreLabel } from "../data/genres";
+import { useBrowseGenres } from "../lib/useBrowseGenres";
 import { type BookSummary, usesBackend } from "../lib/booksApi";
 import { fetchFollowerCounts } from "../lib/followersApi";
 import { otherLanguageBooks } from "../lib/languages";
@@ -208,6 +209,7 @@ function StartHere() {
   const profile = useActiveProfile();
   const recent = profile ? collections.recentSearches : [];
   const genreBase = profile ? "/browse" : "/";
+  const genres = useBrowseGenres();
   const otherLanguages = otherLanguageBooks(profile?.ageRating ?? "all");
   // The moods this profile has tagged books with (lib/moods.ts), each a link to those books in My Library.
   const t = useT();
@@ -242,7 +244,7 @@ function StartHere() {
         <h2 id="browse-genres-title">{t("Or browse a genre")}</h2>
         <nav className="genre-nav" aria-label={t("Genres")}>
           <ul role="list">
-            {browseGenres.map((g) => (
+            {genres.map((g) => (
               <li key={g.id}>
                 <Link to={genreHref(genreBase, g.id)}>{t(g.label)}</Link>
               </li>

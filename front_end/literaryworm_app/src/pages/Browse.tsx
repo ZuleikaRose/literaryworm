@@ -12,6 +12,7 @@ import { KeywordIdeas } from "../components/KeywordIdeas";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
+import { useBrowseGenres } from "../lib/useBrowseGenres";
 import { fromLocal } from "../lib/booksApi";
 import { otherLanguageBooks } from "../lib/languages";
 import { FEEL_GOOD } from "../lib/moods";
@@ -80,6 +81,8 @@ function becauseTitle(t: T, reason: Seed["reason"], title: string) {
 
 export default function Browse() {
   const t = useT();
+  const genres = useBrowseGenres();
+  const genreIds = genres.map((g) => g.id);
   useTitle(t("Home"));
   const profile = useActiveProfile()!;
   const reading = activeReading(useStore().state);
@@ -88,7 +91,8 @@ export default function Browse() {
   const library = useLibrary();
   const data = useProfileData();
   const genreParam = params.get("genre");
-  const genre: BrowseGenre = isBrowseGenre(genreParam) ? genreParam : "technology";
+  // A genre this reader isn't offered (a Kids profile following a link to Cooking, say) opens the default.
+  const genre: BrowseGenre = isBrowseGenre(genreParam) && genreIds.includes(genreParam) ? genreParam : "technology";
 
   const visible = (b: Book | undefined): b is Book => !!b && isAllowed(b.ageRating, profile.ageRating);
   const catalog = books.filter(visible);
@@ -151,7 +155,7 @@ export default function Browse() {
     .filter((row) => row.items.length >= 3);
   // Up to two favourite genres that don't already have a row (the brief's six do).
   const favouriteShelves = [
-    ...new Set(profile.favoriteGenres.map(favouriteGenreId).filter((id): id is BrowseGenre => id !== null && !browseGenres.find((g) => g.id === id)?.shelf)),
+    ...new Set(profile.favoriteGenres.map(favouriteGenreId).filter((id): id is BrowseGenre => id !== null && genreIds.includes(id) && !browseGenres.find((g) => g.id === id)?.shelf)),
   ].slice(0, 2);
   const picked = recommend(catalog, taste, profile.favoriteGenres, new Set([...inLibrary, ...because.flatMap((r) => r.items.map((b) => b.id))]));
 
@@ -312,8 +316,8 @@ export default function Browse() {
             title={t("{genre} books", { genre: t(genreLabel(genre)) })}
             query={genreQuery(genre, openLibraryFor(profile.ageRating))}
             // Endless: when this genre runs out, the feed runs on into the others.
-            then={genresAfter(genre, browseGenres.map((g) => g.id), openLibraryFor(profile.ageRating))}
-            stepLabels={[genre, ...genreOrderAfter(genre, browseGenres.map((g) => g.id))].map((g) => t(genreLabel(g)))}
+            then={genresAfter(genre, genreIds, openLibraryFor(profile.ageRating))}
+            stepLabels={[genre, ...genreOrderAfter(genre, genreIds)].map((g) => t(genreLabel(g)))}
             endText={t("That's every genre. Pick one above to start again.")}
             ageRating={profile.ageRating}
             controls={<GenreNav current={genre} basePath="/browse" />}

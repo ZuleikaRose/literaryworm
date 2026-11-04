@@ -1,8 +1,8 @@
 import { tk } from "../lib/i18n";
 /**
  * The genres to browse and search by, in the order the UI lists them: the six the assessment
- * brief requires first (`shelf`: each has its own row on Home), then the rest. The `books`
- * Edge Function's GENRES list must match.
+ * brief requires first (`shelf`: each has its own row on Home), then the rest, then every other
+ * top-level Google Books (BISAC) subject. The `books` Edge Function's GENRES list must match.
  */
 export const browseGenres = [
   { id: "technology", label: tk("Technology"), shelf: true },
@@ -25,6 +25,51 @@ export const browseGenres = [
   { id: "self-help", label: tk("Self-Help"), shelf: false },
   { id: "poetry", label: tk("Poetry"), shelf: false },
   { id: "lgbtqia", label: tk("LGBTQIA+"), shelf: false },
+  // Every other top-level Google Books (BISAC) subject, A to Z, none repeating one above.
+  { id: "antiques", label: tk("Antiques & Collectibles"), shelf: false },
+  { id: "architecture", label: tk("Architecture"), shelf: false },
+  { id: "art", label: tk("Art"), shelf: false },
+  { id: "bibles", label: tk("Bibles"), shelf: false },
+  { id: "body-mind-spirit", label: tk("Body, Mind & Spirit"), shelf: false },
+  { id: "business", label: tk("Business & Economics"), shelf: false },
+  { id: "comics", label: tk("Comics & Graphic Novels"), shelf: false },
+  { id: "computers", label: tk("Computers"), shelf: false },
+  { id: "cooking", label: tk("Cooking"), shelf: false },
+  { id: "crafts", label: tk("Crafts & Hobbies"), shelf: false },
+  { id: "design", label: tk("Design"), shelf: false },
+  { id: "drama", label: tk("Drama"), shelf: false },
+  { id: "education", label: tk("Education"), shelf: false },
+  { id: "family", label: tk("Family & Relationships"), shelf: false },
+  { id: "foreign-language", label: tk("Foreign Language Study"), shelf: false },
+  { id: "games", label: tk("Games & Activities"), shelf: false },
+  { id: "gardening", label: tk("Gardening"), shelf: false },
+  { id: "health", label: tk("Health & Fitness"), shelf: false },
+  { id: "house-home", label: tk("House & Home"), shelf: false },
+  { id: "humor", label: tk("Humor"), shelf: false },
+  { id: "juvenile-nonfiction", label: tk("Children's Non-Fiction"), shelf: false },
+  { id: "language-arts", label: tk("Language Arts"), shelf: false },
+  { id: "law", label: tk("Law"), shelf: false },
+  { id: "literary-collections", label: tk("Literary Collections"), shelf: false },
+  { id: "literary-criticism", label: tk("Literary Criticism"), shelf: false },
+  { id: "mathematics", label: tk("Mathematics"), shelf: false },
+  { id: "medical", label: tk("Medical"), shelf: false },
+  { id: "music", label: tk("Music"), shelf: false },
+  { id: "nature", label: tk("Nature"), shelf: false },
+  { id: "performing-arts", label: tk("Performing Arts"), shelf: false },
+  { id: "pets", label: tk("Pets"), shelf: false },
+  { id: "philosophy", label: tk("Philosophy"), shelf: false },
+  { id: "photography", label: tk("Photography"), shelf: false },
+  { id: "political-science", label: tk("Political Science"), shelf: false },
+  { id: "psychology", label: tk("Psychology"), shelf: false },
+  { id: "reference", label: tk("Reference"), shelf: false },
+  { id: "religion", label: tk("Religion"), shelf: false },
+  { id: "social-science", label: tk("Social Science"), shelf: false },
+  { id: "sports", label: tk("Sports & Recreation"), shelf: false },
+  { id: "study-aids", label: tk("Study Aids"), shelf: false },
+  { id: "transportation", label: tk("Transportation"), shelf: false },
+  { id: "travel", label: tk("Travel"), shelf: false },
+  { id: "true-crime", label: tk("True Crime"), shelf: false },
+  { id: "young-adult-nonfiction", label: tk("Young Adult Non-Fiction"), shelf: false },
 ] as const;
 
 export type BrowseGenre = (typeof browseGenres)[number]["id"];
@@ -72,7 +117,112 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
   poetry: ["Poetry"],
   // Carmilla and The Picture of Dorian Gray; Google Books adds many more.
   lgbtqia: ["LGBTQIA+"],
+  // The catalog has no titles in most of the BISAC subjects; Kids profiles and copies without the
+  // backend aren't offered those (catalogGenres), and Google Books fills them for everyone else.
+  antiques: [],
+  architecture: [],
+  art: [],
+  bibles: [],
+  "body-mind-spirit": [],
+  business: [],
+  comics: [],
+  computers: [],
+  cooking: [],
+  crafts: [],
+  design: [],
+  drama: [],
+  education: [],
+  family: ["Family"],
+  "foreign-language": [],
+  games: [],
+  gardening: [],
+  health: [],
+  "house-home": [],
+  humor: [],
+  "juvenile-nonfiction": [],
+  "language-arts": [],
+  law: [],
+  "literary-collections": [],
+  "literary-criticism": [],
+  mathematics: [],
+  medical: [],
+  music: [],
+  nature: [],
+  "performing-arts": [],
+  pets: [],
+  philosophy: [],
+  photography: [],
+  "political-science": [],
+  psychology: [],
+  reference: [],
+  religion: [],
+  "social-science": [],
+  sports: [],
+  "study-aids": [],
+  transportation: [],
+  travel: [],
+  "true-crime": [],
+  "young-adult-nonfiction": [],
 };
+
+/** Top-level BISAC headings (the part of a Google category before " / ") that are a genre of their own. */
+const BISAC_HEADINGS: Record<string, BrowseGenre> = {
+  "antiques & collectibles": "antiques",
+  "architecture": "architecture",
+  "art": "art",
+  "bibles": "bibles",
+  "body, mind & spirit": "body-mind-spirit",
+  "business & economics": "business",
+  "comics & graphic novels": "comics",
+  "computers": "computers",
+  "cooking": "cooking",
+  "crafts & hobbies": "crafts",
+  "design": "design",
+  "drama": "drama",
+  "education": "education",
+  "family & relationships": "family",
+  "foreign language study": "foreign-language",
+  "games & activities": "games",
+  "gardening": "gardening",
+  "health & fitness": "health",
+  "house & home": "house-home",
+  "humor": "humor",
+  "juvenile nonfiction": "juvenile-nonfiction",
+  "language arts & disciplines": "language-arts",
+  "law": "law",
+  "literary collections": "literary-collections",
+  "literary criticism": "literary-criticism",
+  "mathematics": "mathematics",
+  "medical": "medical",
+  "music": "music",
+  "nature": "nature",
+  "performing arts": "performing-arts",
+  "pets": "pets",
+  "philosophy": "philosophy",
+  "photography": "photography",
+  "political science": "political-science",
+  "psychology": "psychology",
+  "reference": "reference",
+  "religion": "religion",
+  "social science": "social-science",
+  "sports & recreation": "sports",
+  "study aids": "study-aids",
+  "transportation": "transportation",
+  "travel": "travel",
+  "true crime": "true-crime",
+  "young adult nonfiction": "young-adult-nonfiction",
+};
+
+/** The genres the sample catalog has titles in. */
+export const catalogGenres = browseGenres.filter((g) => sampleCatalogGenres[g.id].length > 0);
+
+/**
+ * The genres a reader is offered: all of them, or, when their books come only from the sample
+ * catalog (Kids profiles, a copy without the backend), just the ones it has titles in.
+ */
+export function genresFor(sampleOnly: boolean): readonly (typeof browseGenres)[number][] {
+  return sampleOnly ? catalogGenres : browseGenres;
+}
 
 /**
  * The browse genre closest to a Google Books title's categories (for More like this), or
@@ -80,10 +230,16 @@ export const sampleCatalogGenres: Record<BrowseGenre, string[]> = {
  */
 export function genreForCategories(categories: string[]): BrowseGenre | null {
   const text = categories.join(" ").toLowerCase();
+  // A subject with a genre of its own, by its top-level heading (so Fiction / Religious stays fiction).
+  const headings = categories.map((c) => BISAC_HEADINGS[c.split("/")[0].trim().toLowerCase()]);
+  const nonFiction = headings.find((h) => h === "juvenile-nonfiction" || h === "young-adult-nonfiction");
+  if (nonFiction) return nonFiction;
   if (/juvenile/.test(text)) return "children";
   if (/young adult/.test(text)) return "young-adult";
   // BISAC's LGBTQ+ categories, and the older Gay and Lesbian ones.
   if (/lgbt|\bgay\b|lesbian|bisexual|transgender|queer|intersex|asexual/.test(text)) return "lgbtqia";
+  const subject = headings.find(Boolean);
+  if (subject) return subject;
   if (/science fiction|sci-fi/.test(text)) return "sci-fi";
   if (/horror/.test(text)) return "horror";
   if (/fantasy/.test(text)) return "fantasy";

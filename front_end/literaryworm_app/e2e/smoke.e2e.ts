@@ -184,7 +184,9 @@ describe("a visitor", () => {
     await page.getByRole("heading", { name: "Fantasy books" }).waitFor();
     await expect(genres.getByRole("link", { name: "Fantasy" }).getAttribute("aria-current")).resolves.toBe("page");
 
-    const all = ["Technology", "Adventure", "Sci-Fi", "Fiction", "Non-Fiction", "Horror", "Fantasy", "Mystery", "Thriller", "Romance", "Classics", "Historical Fiction", "Young Adult", "Children's", "Biography & Memoir", "History", "Science", "Self-Help", "Poetry", "LGBTQIA+"];
+    // Without the backend (as here, and for Kids profiles) only the genres with sample titles are offered:
+    // of the 44 Google Books subjects added after the first twenty, Family & Relationships is the one.
+    const all = ["Technology", "Adventure", "Sci-Fi", "Fiction", "Non-Fiction", "Horror", "Fantasy", "Mystery", "Thriller", "Romance", "Classics", "Historical Fiction", "Young Adult", "Children's", "Biography & Memoir", "History", "Science", "Self-Help", "Poetry", "LGBTQIA+", "Family & Relationships"];
     await expect(genres.getByRole("link").allInnerTexts()).resolves.toEqual(all);
 
     await page.goto(`${BASE_URL}/search`);

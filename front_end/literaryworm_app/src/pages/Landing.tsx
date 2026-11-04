@@ -8,7 +8,8 @@ import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { ageRatingLabel, books, getBook, isAllowed, listenMinutes } from "../data/books";
-import { type BrowseGenre, browseGenres, genreLabel, isBrowseGenre } from "../data/genres";
+import { type BrowseGenre, genreLabel, isBrowseGenre } from "../data/genres";
+import { useBrowseGenres } from "../lib/useBrowseGenres";
 import { landingFeatures } from "../data/landingFeatures";
 import { formatPrice, planFaqs, plans } from "../data/plans";
 import { StructuredData } from "../components/StructuredData";
@@ -30,6 +31,7 @@ const household: { name: string; avatar: number; rating: AgeRating; note: string
 
 export default function Landing() {
   const t = useT();
+  const genreIds = useBrowseGenres().map((g) => g.id);
   useTitle(t("Read and listen in one place"), siteDescription());
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
@@ -287,8 +289,8 @@ export default function Landing() {
             query={genreQuery(genre)}
             controls={<GenreNav current={genre} basePath="/" />}
             // Logged in, it scrolls on through every genre; a visitor sees a sample, then an invitation.
-            then={state.account ? genresAfter(genre, browseGenres.map((g) => g.id)) : undefined}
-            stepLabels={state.account ? [genre, ...genreOrderAfter(genre, browseGenres.map((g) => g.id))].map((g) => t(genreLabel(g))) : undefined}
+            then={state.account ? genresAfter(genre, genreIds) : undefined}
+            stepLabels={state.account ? [genre, ...genreOrderAfter(genre, genreIds)].map((g) => t(genreLabel(g))) : undefined}
             endText={state.account ? t("That's every genre. Pick one above to start again.") : undefined}
             sampleSize={state.account ? undefined : VISITOR_SAMPLE}
             sampleEnd={

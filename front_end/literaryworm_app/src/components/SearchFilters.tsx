@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { tk } from "../lib/i18n";
-import { browseGenres } from "../data/genres";
+import { useBrowseGenres } from "../lib/useBrowseGenres";
 import { useT } from "../lib/useT";
 import { hasAllFilters, SEARCH_LANGUAGES, SEARCH_LENGTHS, type SearchParams } from "../lib/search";
 
@@ -49,6 +49,7 @@ function ChipGroup<T extends string | null>({
  * keywords). A search by author has only where results come from and length (Google's author search has no others).
  */
 export function SearchFilters({ value, onChange, showSource }: SearchFiltersProps) {
+  const genres = useBrowseGenres();
   return (
     <div className="search-filters">
       {showSource && (
@@ -68,7 +69,7 @@ export function SearchFilters({ value, onChange, showSource }: SearchFiltersProp
           <ChipGroup
             legend={tk("Genre")}
             current={value.genre}
-            options={[{ value: null, label: tk("Any genre") }, ...browseGenres.map((g) => ({ value: g.id, label: g.label }))]}
+            options={[{ value: null, label: tk("Any genre") }, ...genres.map((g) => ({ value: g.id, label: g.label }))]}
             onPick={(genre) => onChange({ ...value, genre })}
           />
           <ChipGroup

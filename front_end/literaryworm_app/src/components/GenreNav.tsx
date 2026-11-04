@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useT } from "../lib/useT";
-import { type BrowseGenre, browseGenres, genreHref } from "../data/genres";
+import { type BrowseGenre, genreHref } from "../data/genres";
+import { useBrowseGenres } from "../lib/useBrowseGenres";
 
 interface GenreNavProps {
   current: BrowseGenre;
@@ -14,10 +16,20 @@ interface GenreNavProps {
  */
 export function GenreNav({ current, basePath }: GenreNavProps) {
   const t = useT();
+  const genres = useBrowseGenres();
+  const list = useRef<HTMLUListElement>(null);
+  // On phones the genres are one row that scrolls sideways (.genre-nav-row): bring the chosen one into
+  // view inside the row, without moving the page.
+  useEffect(() => {
+    const ul = list.current;
+    const chosen = ul?.querySelector<HTMLElement>('[aria-current="page"]')?.parentElement;
+    if (!ul || !chosen || ul.scrollWidth <= ul.clientWidth) return;
+    ul.scrollLeft = chosen.offsetLeft - ul.offsetLeft - (ul.clientWidth - chosen.offsetWidth) / 2;
+  }, [current]);
   return (
-    <nav className="genre-nav" aria-label={t("Genres")}>
-      <ul role="list">
-        {browseGenres.map((g) => (
+    <nav className="genre-nav genre-nav-row" aria-label={t("Genres")}>
+      <ul ref={list} role="list">
+        {genres.map((g) => (
           <li key={g.id}>
             <Link
               to={genreHref(basePath, g.id)}

@@ -9,6 +9,14 @@ export const GENRES = [
   "fantasy", "mystery", "thriller", "romance", "classics", "historical-fiction",
   "young-adult", "children", "biography", "history", "science", "self-help", "poetry",
   "lgbtqia",
+  // Every other top-level Google Books (BISAC) subject, A to Z by label.
+  "antiques", "architecture", "art", "bibles", "body-mind-spirit", "business", "comics",
+  "computers", "cooking", "crafts", "design", "drama", "education", "family", "foreign-language",
+  "games", "gardening", "health", "house-home", "humor", "juvenile-nonfiction", "language-arts",
+  "law", "literary-collections", "literary-criticism", "mathematics", "medical", "music", "nature",
+  "performing-arts", "pets", "philosophy", "photography", "political-science", "psychology",
+  "reference", "religion", "social-science", "sports", "study-aids", "transportation", "travel",
+  "true-crime", "young-adult-nonfiction",
 ] as const;
 export type Genre = (typeof GENRES)[number];
 

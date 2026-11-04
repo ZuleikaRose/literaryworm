@@ -210,6 +210,24 @@
   background: var(--rust-bright);
 }
 
+/* The feed's genres (GenreNav) on phones: one row that scrolls sideways inside itself, so 64 genres
+   don't push the books two screens down. The page never scrolls sideways; links stay 44px targets. */
+@media (max-width: 600px) {
+  .genre-nav-row ul {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding: 2px 2px 10px;
+    scrollbar-width: thin;
+  }
+
+  .genre-nav-row li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+}
+
 .feed-more {
   display: flex;
   flex-wrap: wrap;

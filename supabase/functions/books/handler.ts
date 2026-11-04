@@ -7,7 +7,7 @@
 //     &genre=sci-fi&sort=newest&lang=es optional: narrow to a genre or a language, newest first
 //   ?mode=keywords&q=time%20travel&page=0  keywords anywhere Google indexes a book (title, author,
 //     description, subjects); the same genre, sort and lang options as search
-//   ?mode=genre&genre=sci-fi&page=0   one of the six required genres
+//   ?mode=genre&genre=sci-fi&page=0   one of the genres in GENRES (_shared/validate.ts)
 //   ?mode=author&name=Matt%20Haig&page=0  one author's books (their page)
 //   ?mode=isbn&isbn=9780141439518&page=0  the editions with that ISBN (10 or 13 digits)
 //   ?mode=volume&id=zyTCAlFPjgYC      one book's details (an `ol-OL…W` id is an Open Library work)

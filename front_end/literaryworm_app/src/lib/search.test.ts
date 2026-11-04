@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "@jest/globals";
-import { browseGenres, favouriteGenreId, favouriteGenreLabel, genreForCategories, inFavouriteGenre } from "../data/genres";
+import { browseGenres, favouriteGenreId, favouriteGenreLabel, genreForCategories, genresFor, inFavouriteGenre, sampleCatalogGenres } from "../data/genres";
 import { catalogMatches, cleanIsbn, hasAllFilters, didYouMean, fitsLength, normalizeQuery, queryError, readSearchParams, searchUrl, unfiltered } from "./search";
 
 describe("queries", () => {
@@ -76,6 +77,22 @@ describe("genres", () => {
     expect(browseGenres.slice(0, 6).every((g) => g.shelf)).toBe(true);
     expect(browseGenres.length).toBeGreaterThan(6);
     expect(new Set(browseGenres.map((g) => g.id)).size).toBe(browseGenres.length);
+    // No genre is listed twice under another name, in any case.
+    expect(new Set(browseGenres.map((g) => g.label.toLowerCase())).size).toBe(browseGenres.length);
+  });
+
+  it("has the same genres as the books Edge Function's GENRES list", () => {
+    const source = readFileSync("../../supabase/functions/_shared/validate.ts", "utf8");
+    const list = source.slice(source.indexOf("export const GENRES = ["), source.indexOf("] as const;"));
+    expect([...list.matchAll(/"([a-z-]+)"/g)].map((m) => m[1]).sort()).toEqual(browseGenres.map((g) => g.id).sort());
+  });
+
+  it("offers a reader on the sample catalog only the genres it has titles in", () => {
+    expect(genresFor(false)).toBe(browseGenres);
+    const sample = genresFor(true).map((g) => g.id);
+    expect(sample).toEqual(expect.arrayContaining(["technology", "adventure", "sci-fi", "fiction", "non-fiction", "horror", "family"]));
+    expect(sample).not.toContain("cooking");
+    expect(genresFor(true).every((g) => sampleCatalogGenres[g.id].length > 0)).toBe(true);
   });
 
   it("reads a new genre from the URL and narrows the sample catalog by it", () => {
@@ -95,13 +112,27 @@ describe("genres", () => {
     expect(genreForCategories(["Fiction / Mystery & Detective"])).toBe("mystery");
     expect(genreForCategories(["Fiction / Historical / General"])).toBe("historical-fiction");
     expect(genreForCategories(["Biography & Autobiography / Personal Memoirs"])).toBe("biography");
-    expect(genreForCategories(["Computers / Programming"])).toBe("technology");
+    // Computers is a genre of its own now; Technology & Engineering stays technology.
+    expect(genreForCategories(["Computers / Programming"])).toBe("computers");
+    expect(genreForCategories(["Technology & Engineering / Electronics"])).toBe("technology");
     expect(genreForCategories(["Self-Help / Personal Growth"])).toBe("self-help");
     expect(genreForCategories(["Fiction / LGBTQ+ / Gay"])).toBe("lgbtqia");
     expect(genreForCategories(["Social Science / LGBTQ+ Studies / General"])).toBe("lgbtqia");
     expect(genreForCategories(["Fiction / Lesbian"])).toBe("lgbtqia");
     expect(genreForCategories(["Young Adult Fiction / LGBTQ+"])).toBe("young-adult");
-    expect(genreForCategories(["Cooking"])).toBe("non-fiction");
+    // Every top-level BISAC subject has a genre now, found by its heading.
+    expect(genreForCategories(["Cooking"])).toBe("cooking");
+    expect(genreForCategories(["Cooking / Regional & Ethnic / Italian"])).toBe("cooking");
+    expect(genreForCategories(["Body, Mind & Spirit / Meditation"])).toBe("body-mind-spirit");
+    expect(genreForCategories(["Comics & Graphic Novels / Manga / General"])).toBe("comics");
+    expect(genreForCategories(["Language Arts & Disciplines / Linguistics"])).toBe("language-arts");
+    expect(genreForCategories(["True Crime / Murder / General"])).toBe("true-crime");
+    expect(genreForCategories(["Literary Criticism / Science Fiction & Fantasy"])).toBe("literary-criticism");
+    // A novel about a subject stays fiction; children's and teen non-fiction keep their own genres.
+    expect(genreForCategories(["Fiction / Religious"])).toBe("fiction");
+    expect(genreForCategories(["Juvenile Nonfiction / Animals / Dogs"])).toBe("juvenile-nonfiction");
+    expect(genreForCategories(["Young Adult Nonfiction / History"])).toBe("young-adult-nonfiction");
+    expect(genreForCategories(["Juvenile Fiction / Animals / Dogs"])).toBe("children");
     expect(genreForCategories([])).toBeNull();
   });
 
