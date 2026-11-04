@@ -102,6 +102,7 @@ export const emptyProfileData = (): ProfileData => ({
   readingWpm: null,
   uiLanguage: null,
   a11ySettings: null,
+  matureOkAt: null,
   upNext: [],
   quizResults: [],
   readerFollows: [],

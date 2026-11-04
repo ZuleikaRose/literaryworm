@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-04",
     "version": "2026.11",
     "kind": "feature",
+    "title": "An age check for books marked mature",
+    "body": "Before a grown-up's profile, or a visitor, opens a book that Google Books or Open Library marks as mature, LiteraryWorm now asks you to confirm you're 18 or older. A profile is asked once, on every device; a visitor once a visit. Kids and Teen profiles still can't open these books at all.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "The affiliate program",
     "body": "Recommend LiteraryWorm and earn credit: members can apply on the new Affiliate program page in the footer. Once you're approved, you get your own sign-up link, and when someone joins with it and makes their first payment, 20% of that payment is added to your membership as credit. You see visits, sign-ups and credit earned, never who signed up. Affiliates say they earn a commission wherever they share, and never aim it at children.",
     "major": true

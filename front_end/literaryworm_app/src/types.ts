@@ -406,6 +406,8 @@ export interface ProfileData {
   uiLanguage: UiLanguage | null;
   /** The rest of the accessibility menu as this profile left it (members: reader_profiles.a11y_settings), null until changed. */
   a11ySettings: SavedA11y | null;
+  /** When this (adult) profile confirmed it's 18 or older to open a book marked mature (lib/adultGate.ts); null until then. */
+  matureOkAt: number | null;
   /** Up next: catalog audiobooks queued to play after this one, in order. */
   upNext: string[];
   /** Chapter quizzes taken: the latest score for each book and chapter. */

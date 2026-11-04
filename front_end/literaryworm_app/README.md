@@ -250,3 +250,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Open Library on adult profiles' Home (`_shared/openLibrary.ts` with Deno tests, `source=openlibrary`, `ol-` ids in `mode=volume` and `summaries`, `openLibraryFor()`; policies 6677, What's new 6678) |
 | — | Affiliate program (`/affiliates`, `/affiliates/review`, `lib/affiliates.ts` and its test, `lib/affiliatesApi.ts`, `affiliate-click` function, `stripe-webhook` commission; migrations 6679–6683) |
 | — | Read-along pilot: `scripts/align-librivox.py` (whisper.cpp + ffmpeg, run once per book), `public/alignments/<id>.json`, `lib/alignment.ts` and its test, `useAlignment()`, the player's transcript for real recordings; `speakingParts()` moved to `lib/speaking.ts` |
+| — | Age gate for mature books (`lib/adultGate.ts` and its test, `AdultGate`, `reader_profiles.mature_ok_at`; migrations 6684–6686) |

@@ -11842,3 +11842,55 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-04'::date, '2026.11', 'feature', $lw$The affiliate program$lw$, $lw$Recommend LiteraryWorm and earn credit: members can apply on the new Affiliate program page in the footer. Once you're approved, you get your own sign-up link, and when someone joins with it and makes their first payment, 20% of that payment is added to your membership as credit. You see visits, sign-ups and credit earned, never who signed up. Affiliates say they earn a commission wherever they share, and never aim it at children.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$The affiliate program$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006684_profile_mature_ok.sql
+-- =============================================================================
+-- The age gate for books marked mature (lib/adultGate.ts): when an adult profile confirms it's 18 or
+-- older to open one, the time is kept here, so it isn't asked again on any device. Kids and Teen
+-- profiles never open those books (the app shows Not on this shelf), so for them it's always null.
+-- RLS on reader_profiles already limits rows to the account's own.
+
+alter table public.reader_profiles add column mature_ok_at timestamptz;
+
+grant select (mature_ok_at) on public.reader_profiles to authenticated;
+grant update (mature_ok_at) on public.reader_profiles to authenticated;
+
+-- Only an adult ("all") profile can say it's an adult; changing a profile's rating clears it.
+create or replace function private.mature_ok_adults_only()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.age_rating <> 'all' then
+    new.mature_ok_at := null;
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function private.mature_ok_adults_only() from public, anon, authenticated;
+
+create trigger mature_ok_adults_only
+  before insert or update of mature_ok_at, age_rating on public.reader_profiles
+  for each row execute function private.mature_ok_adults_only();
+
+-- =============================================================================
+-- 20261104006685_profile_mature_ok_legal.sql
+-- =============================================================================
+-- The age gate for books marked mature (6684): the Privacy Policy lists the confirmation among what's kept for a
+-- profile. src/data/legalPages.json has the same. Added once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$player settings, the app language and accessibility settings it chose, and whether it's set aside.$lw$, $lw$player settings, the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside.$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$player settings, the app language and accessibility settings it chose, and whether it's set aside.$lw$) > 0;
+
+-- =============================================================================
+-- 20261104006686_whats_new_age_gate.sql
+-- =============================================================================
+-- What's new: the age check for books marked mature (6684). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'feature', $lw$An age check for books marked mature$lw$, $lw$Before a grown-up's profile, or a visitor, opens a book that Google Books or Open Library marks as mature, LiteraryWorm now asks you to confirm you're 18 or older. A profile is asked once, on every device; a visitor once a visit. Kids and Teen profiles still can't open these books at all.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$An age check for books marked mature$lw$ and c.version = '2026.11');

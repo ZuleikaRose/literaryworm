@@ -50,6 +50,8 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { AgeRating, Book, Profile, RatingValue, ReadingLog, ReadingStatus } from "../types";
 import NotFound from "./NotFound";
+import { AdultGate } from "../components/AdultGate";
+import { adultGate, visitorIsAdult } from "../lib/adultGate";
 
 /** Google Books volume ids and Open Library's `ol-OL…W` (the same check the books Edge Function makes). */
 const VOLUME_ID = /^[A-Za-z0-9_-]{1,40}$/;
@@ -67,7 +69,10 @@ export default function BookDetail() {
   // Kids profiles only see the LiteraryWorm catalog, so a Google title isn't even fetched.
   const kidsBlocked = isVolume && profile?.ageRating === "kids";
   const { state: volume, retry } = useVolume(isVolume && !kidsBlocked ? id : null);
-  const requests = useProfileData().bookRequests;
+  const profileData = useProfileData();
+  const requests = profileData.bookRequests;
+  // Bumped when a visitor confirms they're 18 or older, so the page shows the book (lib/adultGate.ts).
+  const [, setPassed] = useState(0);
 
   if (!local && !isVolume) return <NotFound />;
   if (kidsBlocked || (local && profile && !mayOpen(local, profile, requests))) {
@@ -79,7 +84,14 @@ export default function BookDetail() {
   if (volume.status === "error") {
     return volume.code === "not_found" ? <NotFound /> : <DetailError message={volume.message} onRetry={retry} />;
   }
-  if (volume.volume.mature && profile && profile.ageRating !== "all") return <NotOnShelf profile={profile} />;
+  const gate = adultGate({
+    mature: volume.volume.mature,
+    ageRating: profile?.ageRating ?? null,
+    profileConfirmedAt: profileData.matureOkAt ?? null,
+    visitorConfirmed: visitorIsAdult(),
+  });
+  if (gate === "blocked") return <NotOnShelf profile={profile!} />;
+  if (gate === "gate") return <AdultGate onConfirmed={() => setPassed((n) => n + 1)} />;
   return <DetailPage key={id} view={fromVolume(volume.volume)} />;
 }
 
