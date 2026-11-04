@@ -24,7 +24,7 @@ LiteraryWorm's full-text and audio library is public-domain classics: texts from
   - Premium: $30.00/month or $300.00/year (up to 12 profiles, unlimited audiobooks, offline on 24 devices)
 - Gift memberships of 1, 3, 6 or 12 months, with up to 10 books to start with.
 - **Affiliate program** (/affiliates): approved members earn 20% of a referred member's first payment as account credit (no cash payouts), must disclose the commission and never market to children.
-- **Try the demo** on the log-in page: a sample household kept in memory (books, clubs, a reading sprint, an invite link and a wishlist to give), which can't take payments.
+- **Try the demo** on the log-in page: a sample household kept in memory (books, clubs, a reading sprint, reading lists, highlights, a sample reader to follow, an invite link and a wishlist to give), which can't take payments.
 
 ## Additional Resources
 
