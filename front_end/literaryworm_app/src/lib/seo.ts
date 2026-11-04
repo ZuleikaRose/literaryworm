@@ -9,6 +9,16 @@ import { isAligned } from "./alignment";
  * page that shows it, through components/StructuredData.tsx, so no page claims what it doesn't show.
  */
 export const SITE_URL = "https://www.literaryworm.com";
+
+/**
+ * A page's one address for search engines (`<link rel="canonical">`, set by components/Canonical.tsx):
+ * the site's own host, the path without a trailing slash, and no query, so Home's ?genre= views, a
+ * search's ?q= and invitation links (?ref=, ?aff=) all count as the page they're on.
+ */
+export function canonicalUrl(pathname: string): string {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  return `${SITE_URL}${path}`;
+}
 export const LOGO_URL = `${SITE_URL}/icons/icon-512.png`;
 export const SUPPORT_EMAIL = "support@literaryworm.com";
 

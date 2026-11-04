@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getBook } from "../data/books";
 import { planFaqs, plans } from "../data/plans";
-import { bookData, faqData, membershipData, planPrices, plansDescription, siteDescription, structuredData, absoluteUrl, bookRef, HOME_CRUMB, MEMBERSHIP_ID, pageData, personNode, seriesData, SITE_URL } from "./seo";
+import { bookData, canonicalUrl, faqData, membershipData, planPrices, plansDescription, siteDescription, structuredData, absoluteUrl, bookRef, HOME_CRUMB, MEMBERSHIP_ID, pageData, personNode, seriesData, SITE_URL } from "./seo";
 
 const html = readFileSync(join(__dirname, "../../index.html"), "utf8");
 const meta = (attr: string) => html.match(new RegExp(`<meta ${attr} content="([^"]*)"`))?.[1];
@@ -114,5 +114,14 @@ describe("each page's own structured data", () => {
     expect(personNode("Mary Shelley", "/authors/Mary%20Shelley")).toEqual({ "@type": "Person", name: "Mary Shelley", url: `${SITE_URL}/authors/Mary%20Shelley` });
     expect(membershipData()["@id"]).toBe(MEMBERSHIP_ID);
     expect(absoluteUrl("/plans")).toBe(`${SITE_URL}/plans`);
+  });
+});
+
+describe("canonicalUrl", () => {
+  it("is the page's path on the site's own host, without a query or trailing slash", () => {
+    expect(canonicalUrl("/")).toBe("https://www.literaryworm.com/");
+    expect(canonicalUrl("/plans/")).toBe("https://www.literaryworm.com/plans");
+    expect(canonicalUrl("/books/pride-and-prejudice")).toBe("https://www.literaryworm.com/books/pride-and-prejudice");
+    expect(canonicalUrl("/authors/Jane%20Austen")).toBe("https://www.literaryworm.com/authors/Jane%20Austen");
   });
 });

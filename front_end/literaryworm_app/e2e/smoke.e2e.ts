@@ -328,6 +328,20 @@ describe("languages", () => {
   });
 });
 
+describe("search engines", () => {
+  it("gives each page its own canonical address, without the query", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/plans?ref=ABCD1234&utm_source=x`);
+    await page.getByRole("heading", { level: 1 }).first().waitFor();
+    const canonical = () => page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href);
+    await expect(canonical()).resolves.toBe("https://www.literaryworm.com/plans");
+    await page.getByRole("navigation", { name: "Primary" }).first().getByRole("link", { name: "Search" }).click();
+    await page.waitForURL(/\/search/);
+    await page.waitForFunction(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href.endsWith("/search"));
+    expect(errors()).toEqual([]);
+  });
+});
+
 describe("the demo household", () => {
   it("offers the Search page in a member's header menu, and the header fits from computer to tablet", async () => {
     const { page, errors } = await newPage();
