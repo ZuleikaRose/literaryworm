@@ -253,3 +253,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Age gate for mature books (`lib/adultGate.ts` and its test, `AdultGate`, `reader_profiles.mature_ok_at`; migrations 6684–6686) |
 | — | Search's Filters sidebar scrolls on its own when taller than the window (`.search-sidebar` in `styles/search.css`; migration 6690) |
 | — | Every Google Books genre (64; `data/genres.ts`, `useBrowseGenres()`, `catalogGenres`, `BISAC_HEADINGS`; the books function's `GENRES` and query maps; one swipeable row on phones; migrations 6692–6693) |
+| — | Genres that fit better (`GENRE_HEADINGS`, `fitsGenre()`, `keepGenre()`, `CHECKED_PAGE_SIZE` 40 in the books function; migration 6694) |
