@@ -1,4 +1,4 @@
-// True read-along for LibriVox recordings (pilot: ALIGNED_BOOKS). scripts/align-librivox.py lines a
+// True read-along for LibriVox recordings (ALIGNED_BOOKS). scripts/align-librivox.py lines a
 // recording up with the book's own text once, ahead of time, and writes public/alignments/<id>.json:
 // for each chapter (one recording track), anchors of [word index in the chapter's text, seconds into
 // the track], about every ten matched words. Words are the chapter text split on whitespace, the same
@@ -10,8 +10,17 @@ import { speakingParts } from "./speaking";
 import { chapterTimes } from "./reading";
 import type { TranscriptLine } from "./transcript";
 
-/** The books with an alignment file (the pilot). */
-export const ALIGNED_BOOKS = ["frankenstein", "pride-and-prejudice", "alice-in-wonderland"] as const;
+/** The books with an alignment file. */
+export const ALIGNED_BOOKS = [
+  "frankenstein",
+  "pride-and-prejudice",
+  "alice-in-wonderland",
+  "through-the-looking-glass",
+  "a-christmas-carol",
+  "the-wonderful-wizard-of-oz",
+  "dr-jekyll-and-mr-hyde",
+  "the-call-of-the-wild",
+] as const;
 
 export const isAligned = (bookId: string): boolean => (ALIGNED_BOOKS as readonly string[]).includes(bookId);
 

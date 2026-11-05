@@ -490,7 +490,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | The endless feed stays quick: Now showing the genre it's reached, Back to top, books off screen not drawn (migration 6676) | Done |
 | —    | Open Library as a second book source for adult profiles' Home, Google Books as the fallback; policies say so (migrations 6677–6678) | Done |
 | —    | The affiliate program: apply, staff review, a sign-up link, counts, and 20% of a referred member's first payment as account credit (migrations 6679–6683, `affiliate-click` function) | Done |
-| —    | True read-along for three LibriVox classics: the recording lined up with the text (`scripts/align-librivox.py`, `lib/alignment.ts`, `public/alignments/`: all 102 chapters, 93–99% of words matched; marked `synchronizedAudioText` in the books' structured data; What's new and the Accessibility Policy, migrations 6688–6689) | Done (pilot) |
+| —    | True read-along for three LibriVox classics (eight since migration 6700): the recording lined up with the text (`scripts/align-librivox.py`, `lib/alignment.ts`, `public/alignments/`: all 102 chapters, 93–99% of words matched; marked `synchronizedAudioText` in the books' structured data; What's new and the Accessibility Policy, migrations 6688–6689) | Done (pilot) |
 | —    | An age gate before an adult profile or a visitor opens a book marked mature, kept per profile (migrations 6684–6686) | Done |
 | —    | Search's Filters scroll on their own on a computer when they're taller than the window (a reader's report; migration 6690) | Done |
 | —    | Every Google Books genre: 64 to browse and filter by on Home and Search, none repeated (migrations 6692–6693) | Done |
@@ -499,5 +499,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Search in a member's header menu, and a header that fits on smaller laptops (migration 6697) | Done |
 | —    | A canonical address on every page for search engines (`canonicalUrl()`, `Canonical.tsx`) | Done |
 | —    | A fuller demo: lists, highlights, a followed sample reader and followed authors for every profile (migration 6698) | Done |
+| —    | Eight read-along books: five more LibriVox recordings lined up with their text, and a sample reminder in the demo (migrations 6699–6700) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

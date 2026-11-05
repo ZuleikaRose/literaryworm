@@ -258,3 +258,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Search in the member header menu (`Header.tsx`), the header fitting from 1440px to 901px (`shell.css`), smoke test (migration 6697) |
 | — | Canonical links on every page (`canonicalUrl()` in `lib/seo.ts`, `components/Canonical.tsx`, test and smoke test) |
 | — | A fuller demo (`data/demoReaders.ts`, `store/state.ts` samples, `useReaderFollows()` in memory for the demo; migration 6698) |
+| — | Five more read-along books (`ALIGNED_BOOKS`, `public/alignments/`: Looking-Glass, A Christmas Carol, Oz, Jekyll and Hyde, The Call of the Wild; migrations 6699–6700) and the demo's sample reminder (`data/demoUpcoming.ts` and its test); `e2e/browser.ts` relaunches a lost browser |

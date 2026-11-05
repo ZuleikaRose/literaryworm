@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-04",
     "version": "2026.11",
     "kind": "update",
+    "title": "More books to read along with",
+    "body": "Five more classics now show the book's own words as the LibriVox recording plays, each sentence marked as it's read: Through the Looking-Glass, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild. That makes eight, with Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice. The demo also has a reminder set for a sample upcoming book, so you can see how Remind me works.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-04",
+    "version": "2026.11",
+    "kind": "update",
     "title": "A fuller demo",
     "body": "The demo household now shows more of what members get: Avery has two lists and highlights in Pride and Prejudice, Avery and Sam follow a sample reader and see her newest logs, and Sam and Mia follow an author each. A Kids profile's Readers page now says plainly that Kids profiles don't follow readers.",
     "major": false

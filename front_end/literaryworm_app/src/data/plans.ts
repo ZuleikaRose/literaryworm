@@ -90,7 +90,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I try it before I pay?"),
-    a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs, challenges and a reading sprint, plus reading lists, highlights, a reader to follow, an invite link and a wishlist to try. Nothing you do there is saved, and it can't take payments."),
+    a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs, challenges and a reading sprint, plus reading lists, highlights, a reader to follow, a release reminder, an invite link and a wishlist to try. Nothing you do there is saved, and it can't take payments."),
   },
   {
     q: tk("Can I look at books without an account?"),
@@ -146,7 +146,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read along while I listen?"),
-    a: tk("Yes. Turn on the Read-along in the player to see the words with each sentence marked as it's read. For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice, it's the book's own text, lined up with the LibriVox recording. When your device's voice reads a classic, it shows the real text too. You choose the size of the text, and you can tap a sentence to jump there."),
+    a: tk("Yes. Turn on the Read-along in the player to see the words with each sentence marked as it's read. For eight classics (Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild), it's the book's own text, lined up with the LibriVox recording. When your device's voice reads a classic, it shows the real text too. You choose the size of the text, and you can tap a sentence to jump there."),
   },
   {
     q: tk("Can my book club read a book I bought?"),

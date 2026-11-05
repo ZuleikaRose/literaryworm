@@ -12021,3 +12021,23 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$S
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-04'::date, '2026.11', 'update', $lw$A fuller demo$lw$, $lw$The demo household now shows more of what members get: Avery has two lists and highlights in Pride and Prejudice, Avery and Sam follow a sample reader and see her newest logs, and Sam and Mia follow an author each. A Kids profile's Readers page now says plainly that Kids profiles don't follow readers.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$A fuller demo$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006699_whats_new_more_read_along.sql
+-- =============================================================================
+-- What's new: five more read-along books, and the demo's sample reminder. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-04'::date, '2026.11', 'update', $lw$More books to read along with$lw$, $lw$Five more classics now show the book's own words as the LibriVox recording plays, each sentence marked as it's read: Through the Looking-Glass, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild. That makes eight, with Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice. The demo also has a reminder set for a sample upcoming book, so you can see how Remind me works.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$More books to read along with$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261104006700_read_along_more_books_accessibility.sql
+-- =============================================================================
+-- The Accessibility Policy's read-along note now names all eight books with an alignment file (public/alignments).
+-- Same text as src/data/legalPages.json, matched as stored. Changed once; a page an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice it shows the book's own text$lw$, $lw$For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild it shows the book's own text$lw$)::jsonb, updated_at = now()
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$For Alice's Adventures in Wonderland, Frankenstein and Pride and Prejudice it shows the book's own text$lw$) > 0;

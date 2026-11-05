@@ -3,10 +3,19 @@ import type { Book } from "../types";
 import { alignedTranscript, type Anchor, isAligned, parseAlignment, wordsBefore, wordTime } from "./alignment";
 
 describe("isAligned", () => {
-  it("names the pilot's three books", () => {
-    expect(isAligned("frankenstein")).toBe(true);
-    expect(isAligned("pride-and-prejudice")).toBe(true);
-    expect(isAligned("alice-in-wonderland")).toBe(true);
+  it("names the eight books with an alignment file", () => {
+    for (const id of [
+      "frankenstein",
+      "pride-and-prejudice",
+      "alice-in-wonderland",
+      "through-the-looking-glass",
+      "a-christmas-carol",
+      "the-wonderful-wizard-of-oz",
+      "dr-jekyll-and-mr-hyde",
+      "the-call-of-the-wild",
+    ]) {
+      expect(isAligned(id)).toBe(true);
+    }
     expect(isAligned("dracula")).toBe(false);
   });
 });
