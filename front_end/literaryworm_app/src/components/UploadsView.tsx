@@ -16,6 +16,7 @@ import { isbnNoteFor, useIsbnLookup } from "../lib/useIsbnLookup";
 import { Cover } from "./Cover";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { UploadRecordingLink } from "./UploadRecordingLink";
 import { dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
 
@@ -335,6 +336,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
                       {place && ` · ${place.finished ? t("finished") : t("{n}% read", { n: Math.round(place.fraction * 100) })}`}
                     </small>
                     {found && <KeywordHits upload={u} result={found} />}
+                    <UploadRecordingLink upload={u} />
                   </div>
                   <div className="library-row-actions">
                     <Link
@@ -343,6 +345,10 @@ export function UploadsView({ profile }: { profile: Profile }) {
                     >
                       <Icon name="bookOpen" size={15} />{" "}
                       {place && !place.finished ? t("Continue") : t("Read")}
+                      <span className="visually-hidden"> {u.title}</span>
+                    </Link>
+                    <Link className="secondary-button small-button" to={`/listen/${u.id}`}>
+                      <Icon name="headphones" size={15} /> {t("Listen")}
                       <span className="visually-hidden"> {u.title}</span>
                     </Link>
                     <button

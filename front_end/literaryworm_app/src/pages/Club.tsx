@@ -740,7 +740,8 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ClubPolls clubId={club.id} isOwner={isOwner} me={me} members={members} ageRating={profile?.ageRating ?? "all"} />
           <ReadingSprint scope={{ kind: "club", clubId: club.id }} readPath={`/read/${book.id}`} />
-          <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
+          {/* Each member listens to their own copy of an upload, so there's no shared place to keep in step. */}
+          {!isUploadClub(club) && <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />}
           <ClubPlaces clubId={club.id} members={members} me={me} />
           {(!club.buddy || buddyOpen(club)) && (
           <section className="goal-card" aria-labelledby="invite-title">

@@ -500,5 +500,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | A canonical address on every page for search engines (`canonicalUrl()`, `Canonical.tsx`) | Done |
 | —    | A fuller demo: lists, highlights, a followed sample reader and followed authors for every profile (migration 6698) | Done |
 | —    | Eight read-along books: five more LibriVox recordings lined up with their text, and a sample reminder in the demo (migrations 6699–6700) | Done |
+| —    | Listen to your uploads: a device voice reads them in the player, and an upload the catalog has with a LibriVox recording offers it, read by a person; the demo has Frankenstein's opening (migrations 6701–6702) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

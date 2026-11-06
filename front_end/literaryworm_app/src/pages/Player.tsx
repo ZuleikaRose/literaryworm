@@ -5,6 +5,7 @@ import { RecapDialog } from "../components/RecapDialog";
 import { ClipDialog } from "../components/ClipDialog";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
+import { UploadRecordingLink } from "../components/UploadRecordingLink";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
@@ -345,7 +346,7 @@ function PlayerView({ book }: { book: Book }) {
                         ))}
                       </optgroup>
                     ))}
-                    {!book.recording && <option value={SILENT_VOICE}>{t("No voice (silent sample)")}</option>}
+                    {!book.recording && <option value={SILENT_VOICE}>{book.upload ? t("No voice") : t("No voice (silent sample)")}</option>}
                   </select>
                 </label>
               </div>
@@ -376,9 +377,13 @@ function PlayerView({ book }: { book: Book }) {
             ) : narration.kind === "speech" ? (
               book.recording ? (
                 <>{t("Read aloud by your device's {voice} voice from the full public-domain text (Project Gutenberg).", { voice: voiceLabel(narration.voice) })}</>
+              ) : book.upload ? (
+                <>{t("Read aloud by your device's {voice} voice from your upload.", { voice: voiceLabel(narration.voice) })}</>
               ) : (
                 <>{t("Read aloud by your device's {voice} voice from sample text: this title's narration isn't licensed yet.", { voice: voiceLabel(narration.voice) })}</>
               )
+            ) : book.upload ? (
+              <>{t("No voice is reading, so the clock runs silently. Choose a voice to hear your upload read aloud.")}</>
             ) : (
               <>{t("Sample player: this title's narration isn't licensed yet, so the clock runs silently.")}</>
             )}{" "}
@@ -394,6 +399,7 @@ function PlayerView({ book }: { book: Book }) {
               forward: player.skipForward,
             })}
           </p>
+          {book.upload && <UploadRecordingLink upload={book} className="reader-sample-note" />}
         </div>
 
         {/* A real recording shows the transcript only where it has been lined up with the text (the pilot,
@@ -404,7 +410,7 @@ function PlayerView({ book }: { book: Book }) {
             chapterIndex={chapterIndex}
             position={position}
             onSeek={seek}
-            realText={Boolean(book.recording)}
+            realText={Boolean(book.recording || book.upload)}
             alignment={narration.kind === "speech" ? null : alignment}
           />
         )}

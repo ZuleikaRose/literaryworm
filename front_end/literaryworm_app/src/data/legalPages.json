@@ -75,7 +75,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-11-04",
+    "updated": "2026-11-06",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -406,7 +406,8 @@
           "Things you share or add: reading logs (public, with your display name), book club posts, whether you're coming to a club's meetings and your votes in its polls (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text, title, author and the year the file says it was published, never the file itself; if you start a book club around one, the club's members see its title and author, never its text).",
           "Devices: while you're signed in, a short label for each browser you use the app in (such as \"Chrome on Windows\") so you can send a book to another device. For each device that keeps books with Read offline, the same kind of label and when it was last used, so your plan's offline devices can be counted and you can free one.",
           "LiteraryWorm never asks for access to your local network (the other devices on your home Wi-Fi) and doesn't need it for anything, including Listen on another device and playing on a speaker or TV. If your browser asks, choose Block.",
-          "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing."
+          "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing.",
+          "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves."
         ]
       },
       {
@@ -1688,6 +1689,7 @@
         "paragraphs": [
           "Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.",
           "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
+          "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
           "To find one of your uploads, search them in My Library → Uploads by title, author, keywords or ISBN. Keywords also looks through the books' text and shows where the words are, each place a link to that page, on your device. An ISBN is looked up on Google Books and matched to your uploads by title and author."
         ]
       },
@@ -1739,7 +1741,7 @@
           "On a public-domain book, Discussion questions under a club's discussion gives five to eight questions about a chapter you've reached, written by AI from the book up to the end of that chapter only. Choose Start a post with this to begin a post with one.",
           "A club can read a LiteraryWorm title or a book you uploaded, such as a DRM-free EPUB you bought. When you start a club in My Library → Clubs, choose LiteraryWorm books or My uploads under Book from, then find the book by title, author, keywords or ISBN in one box. Keywords also look through descriptions and genres, and an ISBN is looked up on Google Books and matched by title and author.",
           "Sort the list by title, author, numbers first or series in reading order, and filter it to one series.",
-          "Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. An uploaded book has no recording, so there's no listening along.",
+          "Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. Listen together isn't offered for an uploaded book, because each member listens to their own copy.",
           "To read a book with one friend, choose Read with a friend on its page. A buddy read is a book club for two: send your friend its code, and you get spoiler-safe posts by chapter, meetings and shared highlights.",
           "A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."
         ]
@@ -1775,7 +1777,7 @@
         ]
       }
     ],
-    "updated": "2026-11-04"
+    "updated": "2026-11-06"
   },
   {
     "slug": "status",

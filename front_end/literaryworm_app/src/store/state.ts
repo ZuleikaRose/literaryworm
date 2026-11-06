@@ -207,7 +207,7 @@ export function demoHousehold(): Household {
   const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60, weeklyGoalMinutes: 120 });
   const now = Date.now();
   const day = 86_400_000;
-  // Three sample EPUBs (data/demoUploads.ts): two in a series, one being read.
+  // Four sample EPUBs (data/demoUploads.ts): two in a series, one being read, one with a LibriVox recording.
   const uploads = demoUploads(now);
   const reading = uploads.find((u) => u.id === DEMO_UPLOAD_READING)!;
   const averyData: ProfileData = {

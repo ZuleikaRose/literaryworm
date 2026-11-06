@@ -1802,6 +1802,17 @@ body:has(.mini-player) .listen-along-bar {
   }
 }
 
+.upload-recording {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.upload-recording svg {
+  vertical-align: -2px;
+}
+
 .upload-search-summary {
   margin: 0 0 16px;
   color: var(--ink-soft);

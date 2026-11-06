@@ -4,8 +4,10 @@ import type { UploadedBook } from "../types";
  * The demo's sample uploads (Avery's My Library → Uploads), so visitors can try searching
  * uploads by title, author or keywords, every Sort by (two books in a series, a stand-alone,
  * published years, one being read) and starting a club around an upload, without an EPUB of
- * their own. The text is original, written for LiteraryWorm's demo; like the rest of the demo it
- * lives only in this tab. Kept clear of the words the upload smoke tests search for.
+ * their own. The text is original, written for LiteraryWorm's demo, except the opening of
+ * Frankenstein (public domain, from Project Gutenberg), there to show an upload with a LibriVox
+ * recording; like the rest of the demo it lives only in this tab. Kept clear of the words the
+ * upload smoke tests search for.
  */
 
 interface DemoUpload {
@@ -103,6 +105,36 @@ const DEMO_UPLOADS: DemoUpload[] = [
         text: [
           "By October there were more apples than one person could eat, bake or give away. I stored them in the cellar on slatted shelves, each wrapped in newspaper, and the house smelled of them until spring.",
           "The neighbour came to look, and stayed for a slice of pie, and admitted that perhaps the trees had not been past saving after all.",
+        ].join("\n\n"),
+      },
+    ],
+  },
+  {
+    // A public-domain classic as Project Gutenberg's EPUB names it (the opening letters only), so
+    // the demo shows an upload the catalog has a LibriVox recording of (lib/uploadRecording.ts).
+    id: "u-d3e0a1000000000000000000000000a4",
+    title: "Frankenstein; Or, The Modern Prometheus",
+    author: "Mary Wollstonecraft Shelley",
+    publishedYear: 1818,
+    daysAgo: 30,
+    chapters: [
+      {
+        title: "Letter 1",
+        text: [
+          "To Mrs. SAVILLE, England.",
+          "St. Petersburgh, Dec. 11th, 17—.",
+          "You will rejoice to hear that no disaster has accompanied the commencement of an enterprise which you have regarded with such evil forebodings. I arrived here yesterday; and my first task is to assure my dear sister of my welfare, and increasing confidence in the success of my undertaking.",
+          "I am already far north of London; and as I walk in the streets of Petersburgh, I feel a cold northern breeze play upon my cheeks, which braces my nerves, and fills me with delight. Do you understand this feeling? This breeze, which has travelled from the regions towards which I am advancing, gives me a foretaste of those icy climes. Inspirited by this wind of promise, my day dreams become more fervent and vivid. I try in vain to be persuaded that the pole is the seat of frost and desolation; it ever presents itself to my imagination as the region of beauty and delight. There, Margaret, the sun is for ever visible; its broad disk just skirting the horizon, and diffusing a perpetual splendour. There—for with your leave, my sister, I will put some trust in preceding navigators—there snow and frost are banished; and, sailing over a calm sea, we may be wafted to a land surpassing in wonders and in beauty every region hitherto discovered on the habitable globe. Its productions and features may be without example, as the phænomena of the heavenly bodies undoubtedly are in those undiscovered solitudes. What may not be expected in a country of eternal light? I may there discover the wondrous power which attracts the needle; and may regulate a thousand celestial observations, that require only this voyage to render their seeming eccentricities consistent for ever. I shall satiate my ardent curiosity with the sight of a part of the world never before visited, and may tread a land never before imprinted by the foot of man. These are my enticements, and they are sufficient to conquer all fear of danger or death, and to induce me to commence this laborious voyage with the joy a child feels when he embarks in a little boat, with his holiday mates, on an expedition of discovery up his native river. But, supposing all these conjectures to be false, you cannot contest the inestimable benefit which I shall confer on all mankind to the last generation, by discovering a passage near the pole to those countries, to reach which at present so many months are requisite; or by ascertaining the secret of the magnet, which, if at all possible, can only be effected by an undertaking such as mine.",
+        ].join("\n\n"),
+      },
+      {
+        title: "Letter 2",
+        text: [
+          "To Mrs. SAVILLE, England.",
+          "Archangel, 28th March, 17—.",
+          "How slowly the time passes here, encompassed as I am by frost and snow; yet a second step is taken towards my enterprise. I have hired a vessel, and am occupied in collecting my sailors; those whom I have already engaged appear to be men on whom I can depend, and are certainly possessed of dauntless courage.",
+          "But I have one want which I have never yet been able to satisfy; and the absence of the object of which I now feel as a most severe evil. I have no friend, Margaret: when I am glowing with the enthusiasm of success, there will be none to participate my joy; if I am assailed by disappointment, no one will endeavour to sustain me in dejection. I shall commit my thoughts to paper, it is true; but that is a poor medium for the communication of feeling. I desire the company of a man who could sympathize with me; whose eyes would reply to mine. You may deem me romantic, my dear sister, but I bitterly feel the want of a friend. I have no one near me, gentle yet courageous, possessed of a cultivated as well as of a capacious mind, whose tastes are like my own, to approve or amend my plans. How would such a friend repair the faults of your poor brother! I am too ardent in execution, and too impatient of difficulties. But it is a still greater evil to me that I am self-educated: for the first fourteen years of my life I ran wild on a common, and read nothing but our uncle Thomas’s books of voyages. At that age I became acquainted with the celebrated poets of our own country; but it was only when it had ceased to be in my power to derive its most important benefits from such a conviction, that I perceived the necessity of becoming acquainted with more languages than that of my native country. Now I am twenty-eight, and am in reality more illiterate than many school-boys of fifteen. It is true that I have thought more, and that my day dreams are more extended and magnificent; but they want (as the painters call it) keeping; and I greatly need a friend who would have sense enough not to despise me as romantic, and affection enough for me to endeavour to regulate my mind.",
+          "Well, these are useless complaints; I shall certainly find no friend on the wide ocean, nor even here in Archangel, among merchants and seamen. Yet some feelings, unallied to the dross of human nature, beat even in these rugged bosoms. My lieutenant, for instance, is a man of wonderful courage and enterprise; he is madly desirous of glory. He is an Englishman, and in the midst of national and professional prejudices, unsoftened by cultivation, retains some of the noblest endowments of humanity. I first became acquainted with him on board a whale vessel: finding that he was unemployed in this city, I easily engaged him to assist in my enterprise.",
         ].join("\n\n"),
       },
     ],

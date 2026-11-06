@@ -259,3 +259,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Canonical links on every page (`canonicalUrl()` in `lib/seo.ts`, `components/Canonical.tsx`, test and smoke test) |
 | — | A fuller demo (`data/demoReaders.ts`, `store/state.ts` samples, `useReaderFollows()` in memory for the demo; migration 6698) |
 | — | Five more read-along books (`ALIGNED_BOOKS`, `public/alignments/`: Looking-Glass, A Christmas Carol, Oz, Jekyll and Hyde, The Call of the Wild; migrations 6699–6700) and the demo's sample reminder (`data/demoUpcoming.ts` and its test); `e2e/browser.ts` relaunches a lost browser |
+| — | Listening to uploads: `formats` includes audiobook in `uploadToBook()`, `recordingFor()` in `lib/uploadRecording.ts`, `components/UploadRecordingLink.tsx` (Uploads rows, the book page, the player), a Frankenstein sample in `data/demoUploads.ts`; migrations 6701–6702 |

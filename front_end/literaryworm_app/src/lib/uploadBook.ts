@@ -2,9 +2,11 @@ import type { Book, UploadedBook } from "../types";
 import { fallbackCover } from "./coverFallback";
 
 /**
- * Uploaded books as Books (pure, no React or store, so tests and lib/clubs.ts can use it):
- * ebook only (no recording), rated for everyone on the profile that uploaded them, with a drawn
- * cover. lib/uploads.ts re-exports these with the hooks.
+ * Uploaded books as Books (pure, no React or store, so tests and lib/clubs.ts can use it): read
+ * in the reader, or listened to in the player with a device voice reading the text (no
+ * recording; lib/uploadRecording.ts finds a LibriVox one where the catalog has the title), rated
+ * for everyone on the profile that uploaded them, with a drawn cover. lib/uploads.ts re-exports
+ * these with the hooks.
  */
 
 /** Average reading speed, for a chapter's length in minutes. */
@@ -27,7 +29,7 @@ export function uploadToBook(upload: UploadedBook): Book {
     rating: 0,
     ratingsCount: 0,
     pages: Math.max(1, Math.round(words / 280)),
-    formats: ["ebook"],
+    formats: ["ebook", "audiobook"],
     ageRating: "all",
     language: "en",
     synopsis: "",

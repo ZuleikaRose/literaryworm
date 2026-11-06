@@ -992,22 +992,44 @@ describe("the demo household", () => {
     };
     const first = "Leviathan Rising (The Drift, #1)";
     const second = "Calibans War (The Drift, #2)";
-    // With the demo's three sample uploads (data/demoUploads.ts).
+    // With the demo's four sample uploads (data/demoUploads.ts).
     const tide = "The Tide Clock (The Lantern Coast, #1)";
     const salt = "The Salt Archive (The Lantern Coast, #2)";
     const orchard = "Notes from a Small Orchard";
+    const frank = "Frankenstein; Or, The Modern Prometheus";
     await sortBy.selectOption("published");
     await page.waitForURL(/sort=published/);
-    await settles([salt, tide, first, orchard, second]);
+    await settles([salt, tide, first, orchard, second, frank]);
     await sortBy.selectOption("published-oldest");
-    await settles([second, orchard, first, tide, salt]);
+    await settles([frank, second, orchard, first, tide, salt]);
     await sortBy.selectOption("series");
     await page.waitForURL(/sort=series/);
-    await settles([first, second, tide, salt, orchard]);
+    await settles([first, second, tide, salt, frank, orchard]);
     await sortBy.selectOption("author");
-    await settles([first, second, orchard, salt, tide]);
+    await settles([first, second, orchard, salt, tide, frank]);
     await sortBy.selectOption("added");
     await page.waitForURL((url) => !url.search.includes("sort="));
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
+  it("plays an upload aloud, and offers the LibriVox recording when the catalog has the book", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=uploads");
+    // The demo's Frankenstein upload is the catalog's title, which a LibriVox volunteer reads.
+    const row = page.locator(".library-row", { has: page.getByRole("link", { name: "Frankenstein; Or, The Modern Prometheus", exact: true }) });
+    const recording = row.getByRole("link", { name: /Listen to their recording/ });
+    await recording.waitFor();
+    expect(await recording.getAttribute("href")).toBe("/listen/frankenstein");
+    // The sample uploads with original text have no recording to offer.
+    const orchard = page.locator(".library-row", { has: page.getByRole("link", { name: "Notes from a Small Orchard", exact: true }) });
+    expect(await orchard.getByRole("link", { name: /Listen to their recording/ }).count()).toBe(0);
+    // Listen opens the upload itself in the player, read by a device voice (or silently without one).
+    await row.getByRole("link", { name: /^Listen Frankenstein/ }).click();
+    await page.waitForURL(/\/listen\/u-d3e0a1000000000000000000000000a4$/);
+    await page.getByRole("heading", { name: "Frankenstein; Or, The Modern Prometheus" }).first().waitFor();
+    await page.getByRole("link", { name: /Listen to their recording/ }).waitFor();
     expect(await scrollsSideways(page)).toBe(false);
     expect(errors()).toEqual([]);
   });

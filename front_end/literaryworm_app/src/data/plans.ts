@@ -24,7 +24,7 @@ export const plans: Plan[] = [
       tk("Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story"),
       tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, reading sprints, shared highlights, listening along and where everyone is in the book"),
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
-      tk("Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, and read offline"),
+      tk("Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
       tk("Keep discovering on Home that runs on through every genre for as long as you scroll"),

@@ -1,6 +1,7 @@
 import { type CSSProperties, type FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBook } from "../data/books";
+import { useUploadedBook } from "../lib/uploads";
 import type { ListeningDevice } from "../lib/devicesApi";
 import { bookText } from "../lib/narration";
 import { usePlayback } from "../lib/playback";
@@ -545,8 +546,10 @@ export function HandoffPrompt() {
   const navigate = useNavigate();
   const t = useT();
   const { incoming } = link;
+  // An upload is found among the active profile's own (they aren't in the catalog).
+  const uploaded = useUploadedBook(incoming?.bookId);
   if (!incoming) return null;
-  const book = getBook(incoming.bookId);
+  const book = getBook(incoming.bookId) ?? uploaded;
   const profile = state.profiles.find((p) => p.id === incoming.profileId);
   if (!book || !profile) return null;
   const otherProfile = profile.id !== state.activeProfileId;

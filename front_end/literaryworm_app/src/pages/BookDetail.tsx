@@ -15,6 +15,7 @@ import { ContentNotes } from "../components/ContentNotes";
 import { Dialog } from "../components/Dialog";
 import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
+import { UploadRecordingLink } from "../components/UploadRecordingLink";
 import { AskGrownUp } from "../components/AskGrownUp";
 import { BookStatsSection } from "../components/BookStatsSection";
 import { ReadingPlanSection } from "../components/ReadingPlanSection";
@@ -438,6 +439,7 @@ function DetailPage({ view }: { view: DetailView }) {
               <BuddyReadButton book={view.local} />
             </div>
           )}
+          {view.local?.upload && profile && <UploadRecordingLink upload={view.local} />}
 
           <div className="detail-actions">
             {entry ? (
