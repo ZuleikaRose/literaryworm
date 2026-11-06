@@ -8,7 +8,9 @@ import { useDeviceLink } from "../lib/useDeviceLink";
 import { useDailyLimit } from "../lib/useDailyLimit";
 import { useListeningAllowance } from "../lib/useListeningAllowance";
 import { tr } from "../lib/i18n";
-import { bookText, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
+import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
+import { naturalVoiceUrl } from "../lib/naturalVoiceApi";
+import { useNaturalVoiceOffered } from "../lib/useNaturalVoice";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
 import { emailKey } from "../store/state";
@@ -167,7 +169,8 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
 /**
  * The clock for one open book. A narrator (lib/narration.ts) makes the sound: the book's
- * LibriVox recording or a device voice reading its text, and the clock follows it; with neither,
+ * LibriVox recording, a device voice reading its text, or a natural voice reading a member's
+ * upload, and the clock follows it; with neither,
  * a silent sample clock runs at the chosen speed. Either way it stops when paused, at a sleep
  * timer or at the daily limit, and saves the place as it goes and as it stops. Renders nothing.
  */
@@ -273,18 +276,21 @@ function Engine({
     clock.current = { ...clock.current, position, speed, volume, sleep, sleepLeft, running, autoSkipIntro, autoSkipOutro, save, endChapter };
   });
 
-  // Who reads: the recording, a device voice (once the book's text has loaded), or nobody.
+  // Who reads: the recording, a device voice or a natural voice (once the book's text has loaded), or nobody.
   const voices = useVoices();
-  const narration = resolveNarration(book, narrationVoice, voices);
+  const naturalOffered = useNaturalVoiceOffered(book);
+  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered);
   const voice = narration.kind === "speech" ? narration.voice : null;
   const voiceRef = useRef(voice);
   useEffect(() => {
     voiceRef.current = voice;
   });
-  const narrationKey = voice ? voice.voiceURI : narration.kind;
+  const naturalId = narration.kind === "natural" ? narration.voice.id : null;
+  const narrationKey = voice ? voice.voiceURI : naturalId ? `natural:${naturalId}` : narration.kind;
+  const readsText = narration.kind === "speech" || narration.kind === "natural";
   const [text, setText] = useState<string[] | null>(null);
   useEffect(() => {
-    if (narration.kind !== "speech") return;
+    if (!readsText) return;
     let live = true;
     bookText(book).then(
       (chapters) => live && setText(chapters),
@@ -293,7 +299,7 @@ function Engine({
     return () => {
       live = false;
     };
-  }, [narration.kind, book]);
+  }, [readsText, book]);
 
   useEffect(() => {
     const loading = tr("Loading the narration…");
@@ -307,12 +313,15 @@ function Engine({
       },
     };
     const v = voiceRef.current;
+    const natural = narrationKey.startsWith("natural:") ? narrationKey.slice("natural:".length) : null;
     const n =
       narrationKey === "recording" && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
-        : v && text
-          ? speechNarrator(text, starts, lengths, v, events)
-          : null;
+        : natural && text
+          ? naturalNarrator(text, starts, lengths, (chapter, segment) => naturalVoiceUrl(book.id, chapter, segment, natural), events)
+          : v && text
+            ? speechNarrator(text, starts, lengths, v, events)
+            : null;
     if (!n) return;
     const c = clock.current;
     n.setRate(c.speed);

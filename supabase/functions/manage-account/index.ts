@@ -4,6 +4,7 @@ import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { discountView, type InvoiceView, invoiceView, releaseSchedule, Stripe, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice } from "../_shared/stripeCustomers.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
+import { removeAccountVoices } from "../_shared/uploadVoices.ts";
 import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
 
 // Enough of each discount to show it: the coupon's terms and the code the member typed.
@@ -158,6 +159,8 @@ Deno.serve((req) =>
         const { error: removeError } = await db.storage.from("user-books").remove(files.map((f) => `${userId}/${f.name}`));
         if (removeError) throw removeError;
       }
+      // Their natural-voice pieces too (upload-voices bucket, the same folder name).
+      await removeAccountVoices(db, userId);
       // Every table the account owns references auth.users (directly or through
       // library_items and profiles) with on delete cascade.
       const { error } = await db.auth.admin.deleteUser(userId);

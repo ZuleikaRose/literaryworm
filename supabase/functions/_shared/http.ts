@@ -11,6 +11,7 @@ export type ErrorCode =
   | "method_not_allowed"
   | "payload_too_large"
   | "rate_limited"
+  | "limit_reached"
   | "upstream_error"
   | "upstream_timeout"
   | "server_error";
@@ -23,6 +24,8 @@ const STATUS: Record<ErrorCode, number> = {
   method_not_allowed: 405,
   payload_too_large: 413,
   rate_limited: 429,
+  // A monthly allowance is used up (natural voices); unlike rate_limited, waiting a minute won't help.
+  limit_reached: 403,
   upstream_error: 502,
   server_error: 500,
   upstream_timeout: 504,

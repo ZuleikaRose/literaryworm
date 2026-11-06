@@ -297,6 +297,7 @@ Create an account with **Sign up** to use the real backend: your library and log
 | `GOOGLE_BOOKS_API_KEY_1_AMILLAGE`, `_1_ALICEMILLAGE`, `_1_ROSEZULEIKA`, `_1_ALICESUCC`, `_1_FEMSHEP` | Supabase → Edge Functions → Secrets only | **No.** Fallback Google Books keys, tried in turn when the main key is rate-limited, refused or failing. |
 | `ALLOWED_ORIGINS`               | Supabase → Edge Functions → Secrets                   | Not secret; lists the origins allowed by CORS (localhost and literaryworm.com) |
 | `ANTHROPIC_API_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** Used only by the `summaries`, `ask`, `characters`, `quiz` and `recaps` functions to ask Claude. |
+| `GOOGLE_TTS_API_KEY`            | Supabase → Edge Functions → Secrets only              | **No.** A Google Cloud key limited to the Text-to-Speech API, used only by the `natural-voice` function. |
 | `STRIPE_SECRET_KEY`             | Supabase → Edge Functions → Secrets only              | **No.** A restricted Stripe key for `checkout`, `manage-account` and `stripe-webhook`. |
 | `STRIPE_WEBHOOK_SECRET`         | Supabase → Edge Functions → Secrets only              | **No.** Checks the signature on Stripe's webhook calls. |
 | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` | Supabase → Edge Functions → Secrets only | **No.** The app's own emails (book out, club invites and meetings, new books from followed authors, What's new, Kids report, gifts, deletion confirmation). |
@@ -501,5 +502,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | A fuller demo: lists, highlights, a followed sample reader and followed authors for every profile (migration 6698) | Done |
 | —    | Eight read-along books: five more LibriVox recordings lined up with their text, and a sample reminder in the demo (migrations 6699–6700) | Done |
 | —    | Listen to your uploads: a device voice reads them in the player, and an upload the catalog has with a LibriVox recording offers it, read by a person; the demo has Frankenstein's opening (migrations 6701–6702) | Done |
+| —    | Natural voices for uploads: members choose one of six Google voices (Chirp 3: HD) in the player; each piece is voiced once and kept with the upload, within a monthly allowance by plan; not on Kids profiles (the `natural-voice` function, `upload-voices` bucket, `natural_voice_usage`; migrations 6703–6705) | Done |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-06",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Natural voices for your uploads",
+    "body": "Members can now have their uploaded books read aloud by a natural-sounding voice from Google: in the player, open Voice and choose one of six natural voices, British, American or Australian. Each part of the book is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes some new natural-voice reading a month (Basic 2 hours, Standard 6, Premium 12). Not on Kids profiles.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-06",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Listen to the books you upload",
     "body": "Your uploaded EPUBs can now be listened to as well as read: choose Listen in My Library → Uploads or on the book's page, and one of your device's voices reads it in the player, with your place, speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, your upload offers that too, read by a person: choose Listen to their recording. The demo's uploads include the opening of Frankenstein to show it.",
     "major": true

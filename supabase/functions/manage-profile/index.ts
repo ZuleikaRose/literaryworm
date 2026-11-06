@@ -23,6 +23,7 @@ import { onlyKeys, parseInt, parseText, parseUuid } from "../_shared/validate.ts
 import { CATALOG } from "../_shared/catalog.ts";
 import { notifyAccount, requestPush } from "../_shared/pushAccount.ts";
 import { parseBedtime } from "./bedtime.ts";
+import { removeUploadVoices } from "../_shared/uploadVoices.ts";
 
 const METHODS = "POST";
 const DAILY_LIMITS = [30, 60, 90, 120, 180, 240];
@@ -226,7 +227,7 @@ Deno.serve(async (req) => {
         if (!count) throw new HttpError("bad_request", "An account keeps at least one profile in use.");
         // The profile's uploaded books go with it; their text files are in Storage.
         const { data: uploads, error: uploadsError } = await db.from("uploaded_books")
-          .select("storage_path").eq("profile_id", profileId).eq("user_id", user.id);
+          .select("id, storage_path").eq("profile_id", profileId).eq("user_id", user.id);
         if (uploadsError) dbError(uploadsError);
         const { data, error } = await db.from("reader_profiles").delete()
           .eq("id", profileId).eq("account_id", user.id).select("id");
@@ -236,6 +237,10 @@ Deno.serve(async (req) => {
           const { error: removeError } = await db.storage.from("user-books").remove(uploads.map((u) => u.storage_path));
           // The profile is gone and nothing lists the files; log it rather than fail the delete.
           if (removeError) console.error("manage-profile: couldn't remove uploaded book files", removeError.message);
+          // And their natural-voice pieces (upload-voices bucket).
+          await removeUploadVoices(db, user.id, uploads.map((u) => u.id)).catch((e: unknown) =>
+            console.error("manage-profile: couldn't remove natural-voice pieces", e instanceof Error ? e.message : e)
+          );
         }
         return json(req, METHODS, { ok: true });
       }

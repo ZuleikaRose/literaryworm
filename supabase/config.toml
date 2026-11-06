@@ -130,6 +130,10 @@ verify_jwt = false
 # club_calendar_secret kept in Vault); asking for a link checks the session itself.
 verify_jwt = false
 
+[functions.natural-voice]
+# Members only: the function checks the session (and the second step) with requireUser().
+verify_jwt = true
+
 # Two-step sign-in with an authenticator app (on by default on hosted projects; the CLI's default is off).
 [auth.mfa.totp]
 enroll_enabled = true

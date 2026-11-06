@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6702, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6705, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -793,6 +793,15 @@
           note: "Who signed up with which code (trigger on auth.users). stripe-webhook claims it once on the first paid invoice (claim_affiliate_commission()) and credits 20% to the affiliate's Stripe balance. Affiliates see counts only (my_affiliate()). No browser access.",
         },
         {
+          id: "natural_voice_usage", color: colors.server, x: 1260, y: 10020, sub: "natural voices · per month",
+          cols: [
+            ["pk fk", "account_id", "uuid"],
+            ["pk", "month", "date (1st)"],
+            ["", "characters", "integer ≥ 0"],
+          ],
+          note: "Characters of each account's uploads sent to Google Text-to-Speech a month, against the plan's natural-voice allowance. Written only by claim_natural_voice() / release_natural_voice() from the natural-voice function; members read their own row. The voiced MP3s are kept in the private upload-voices bucket beside each upload.",
+        },
+        {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -1160,6 +1169,7 @@
         ["affiliate_referrals", "affiliate_id", "affiliates", "account_id", "N : 1"],
         ["affiliate_referrals", "referred_id", "auth.users", "id", "1 : 1"],
         ["account_private", "user_id", "auth.users", "id", "1 : 1"],
+        ["natural_voice_usage", "account_id", "auth.users", "id", "N : 1"],
         ["subscriptions", "user_id", "auth.users", "id", "1 : 1"],
         ["subscriptions", "plan_id", "plans", "id", "N : 1"],
         ["subscriptions", "switch_to_monthly", "plans", "id", "N : 1"],

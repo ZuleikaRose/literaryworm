@@ -1,5 +1,6 @@
 import type { UploadedBook } from "../types";
 import { AccountError, signedInUserId } from "./accountApi";
+import { removeUploadVoices } from "./naturalVoiceApi";
 import { supabase } from "./supabase";
 
 /**
@@ -106,7 +107,7 @@ export async function loadUploadText(path: string): Promise<string[]> {
   return chapters as string[];
 }
 
-/** Deletes an uploaded book: its listing, then its text. */
+/** Deletes an uploaded book: its listing, then its text and any natural-voice pieces. */
 export async function deleteUpload(book: UploadedBook): Promise<void> {
   const db = client();
   const { error } = await db.from("uploaded_books").delete().eq("id", book.id);
@@ -115,5 +116,9 @@ export async function deleteUpload(book: UploadedBook): Promise<void> {
     const removed = await db.storage.from(BUCKET).remove([book.path]);
     // Already unlisted, so nothing shows it; the file is only wasted space.
     if (removed.error) console.error("uploads: couldn't remove the book's file", removed.error.message);
+    // And any pieces a natural voice read (the upload-voices bucket, under the same account folder).
+    await removeUploadVoices(book.path.split("/")[0], book.id).catch((err: unknown) =>
+      console.error("uploads: couldn't remove the natural-voice pieces", err instanceof Error ? err.message : err),
+    );
   }
 }

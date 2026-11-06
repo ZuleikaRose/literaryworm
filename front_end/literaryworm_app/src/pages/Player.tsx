@@ -9,7 +9,9 @@ import { UploadRecordingLink } from "../components/UploadRecordingLink";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
-import { accentOf, LIBRIVOX_VOICE, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
+import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
+import { NATURAL_PREFIX, NATURAL_VOICE_HOURS, NATURAL_VOICES, type NaturalVoiceAccent } from "../lib/naturalVoice";
+import { useNaturalVoiceOffered } from "../lib/useNaturalVoice";
 import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
 import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
@@ -20,7 +22,7 @@ import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
 import { rich } from "../lib/i18n";
 import { useAlignment } from "../lib/useAlignment";
-import { useProfileData, useStore } from "../store/context";
+import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 
@@ -36,10 +38,14 @@ function PlayerView({ book }: { book: Book }) {
   const { state, dispatch } = useStore();
   const { narrationVoice } = useProfileData();
   const voices = useVoices();
-  const narration = resolveNarration(book, narrationVoice, voices);
+  const naturalOffered = useNaturalVoiceOffered(book);
+  const profile = useActiveProfile();
+  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered);
   // The pilot's books have their recording lined up with the text, for a true read-along.
   const alignment = useAlignment(book, narration.kind === "recording" && state.a11y.transcript);
-  const voiceValue = narration.kind === "speech" ? narration.voice.voiceURI : narration.kind === "recording" ? LIBRIVOX_VOICE : SILENT_VOICE;
+  const voiceValue = narrationValue(narration);
+  const accentName = (accent: NaturalVoiceAccent) => (accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English"));
+  const naturalHours = NATURAL_VOICE_HOURS[state.account?.planId ?? "basic"] ?? 0;
   const accents = (["British", "American", "Australian"] as const)
     .map((accent) => [accent, voices.filter((v) => accentOf(v) === accent)] as const)
     .filter(([, list]) => list.length > 0);
@@ -337,6 +343,15 @@ function PlayerView({ book }: { book: Book }) {
                   <span>{t("Voice")}</span>
                   <select value={voiceValue} onChange={(e) => dispatch({ type: "setNarrationVoice", voice: e.target.value })}>
                     {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
+                    {naturalOffered && (
+                      <optgroup label={t("Natural voices (Google)")}>
+                        {NATURAL_VOICES.map((v) => (
+                          <option key={v.id} value={NATURAL_PREFIX + v.id}>
+                            {t("{name}, {accent}", { name: v.name, accent: accentName(v.accent) })}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                     {accents.map(([accent, list]) => (
                       <optgroup key={accent} label={accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English")}>
                         {list.map((v) => (
@@ -374,11 +389,22 @@ function PlayerView({ book }: { book: Book }) {
                   ),
                 })}
               </>
+            ) : narration.kind === "natural" ? (
+              <>
+                {t("Read aloud by {voice}, a natural voice from Google, from your upload. Each part is voiced the first time you play it and kept with your upload, so listening again is free.", { voice: narration.voice.name })}{" "}
+                {t.plural(naturalHours, {
+                  one: "Your plan includes {count} hour of new natural-voice reading a month.",
+                  other: "Your plan includes {count} hours of new natural-voice reading a month.",
+                })}
+              </>
             ) : narration.kind === "speech" ? (
               book.recording ? (
                 <>{t("Read aloud by your device's {voice} voice from the full public-domain text (Project Gutenberg).", { voice: voiceLabel(narration.voice) })}</>
               ) : book.upload ? (
-                <>{t("Read aloud by your device's {voice} voice from your upload.", { voice: voiceLabel(narration.voice) })}</>
+                <>
+                  {t("Read aloud by your device's {voice} voice from your upload.", { voice: voiceLabel(narration.voice) })}
+                  {naturalOffered && ` ${t("Or choose a natural voice from Google in Voice.")}`}
+                </>
               ) : (
                 <>{t("Read aloud by your device's {voice} voice from sample text: this title's narration isn't licensed yet.", { voice: voiceLabel(narration.voice) })}</>
               )
@@ -399,6 +425,9 @@ function PlayerView({ book }: { book: Book }) {
               forward: player.skipForward,
             })}
           </p>
+          {book.upload && !naturalOffered && !state.account?.userId && profile?.ageRating !== "kids" && (
+            <p className="reader-sample-note">{t("Members can choose a natural voice from Google for their uploads.")}</p>
+          )}
           {book.upload && <UploadRecordingLink upload={book} className="reader-sample-note" />}
         </div>
 

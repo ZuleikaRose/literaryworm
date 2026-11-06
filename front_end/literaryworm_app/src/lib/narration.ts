@@ -9,11 +9,13 @@ import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
 import { tr } from "./i18n";
 import { speakingParts } from "./speaking";
+import { DEFAULT_NATURAL_VOICE, NATURAL_PREFIX, type NaturalVoice, naturalVoice, type VoiceSegment, voiceSegments } from "./naturalVoice";
 
 /**
  * Who reads an audiobook aloud. The playback engine (components/PlaybackProvider.tsx) keeps the
  * clock, sleep timer, limits and saving; a narrator only makes the sound and says where it is.
- * Two kinds: a book's LibriVox recording, and the device's own voices reading the text.
+ * Three kinds: a book's LibriVox recording, the device's own voices reading the text, and (for
+ * members' uploads) a natural voice from Google reading it a piece at a time (lib/naturalVoice.ts).
  */
 
 export interface NarratorEvents {
@@ -44,20 +46,43 @@ export interface Narrator {
 export const LIBRIVOX_VOICE = "librivox";
 export const SILENT_VOICE = "silent";
 
-export type Narration = { kind: "recording" } | { kind: "speech"; voice: SpeechSynthesisVoice } | { kind: "silent" };
+export type Narration =
+  | { kind: "recording" }
+  | { kind: "speech"; voice: SpeechSynthesisVoice }
+  | { kind: "natural"; voice: NaturalVoice }
+  | { kind: "silent" };
 
 /**
  * Who reads `book` for a profile's choice (ProfileData.narrationVoice) on this device. The
- * recording is the default where there is one; a voice the device doesn't have falls back to the
- * default; with no voices at all, the sample clock runs silently.
+ * recording is the default where there is one; where natural voices are offered (`natural`: a
+ * member's upload, not on Kids profiles) the default is the first natural voice; a voice the
+ * device doesn't have falls back to the default; with no voices at all, the sample clock runs
+ * silently.
  */
-export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[]): Narration {
+export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[], natural = false): Narration {
   if (choice === SILENT_VOICE && !book.recording) return { kind: "silent" };
+  const naturalChoice = natural && choice?.startsWith(NATURAL_PREFIX) ? naturalVoice(choice.slice(NATURAL_PREFIX.length)) : null;
+  if (naturalChoice) return { kind: "natural", voice: naturalChoice };
   const chosen = choice ? voices.find((v) => v.voiceURI === choice) : undefined;
   if (chosen) return { kind: "speech", voice: chosen };
   if (book.recording) return { kind: "recording" };
+  if (natural) return { kind: "natural", voice: naturalVoice(DEFAULT_NATURAL_VOICE)! };
   const fallback = defaultVoice(voices);
   return fallback ? { kind: "speech", voice: fallback } : { kind: "silent" };
+}
+
+/** ProfileData.narrationVoice for a narration (the player's Voice menu). */
+export function narrationValue(narration: Narration): string {
+  switch (narration.kind) {
+    case "speech":
+      return narration.voice.voiceURI;
+    case "natural":
+      return NATURAL_PREFIX + narration.voice.id;
+    case "recording":
+      return LIBRIVOX_VOICE;
+    default:
+      return SILENT_VOICE;
+  }
 }
 
 /** The book's LibriVox recording: one audio element playing one chapter's track at a time. */
@@ -260,6 +285,197 @@ export function speechNarrator(
     dispose: () => {
       stop();
       generation += 1;
+    },
+  };
+}
+
+/**
+ * A natural voice reading `chapters` (one text each) a piece at a time: each piece's link comes
+ * from `pieceUrl` (the natural-voice function voices it the first time), and the next piece is
+ * asked for while one plays, so they follow on. Timed like a device voice: the chapter's length
+ * shared out by characters. Plays at any speed (one copy, voiced at 1×).
+ */
+export function naturalNarrator(
+  chapters: string[],
+  starts: number[],
+  lengths: number[],
+  pieceUrl: (chapter: number, segment: number) => Promise<string>,
+  events: NarratorEvents,
+): Narrator {
+  const audio = new Audio();
+  audio.preload = "auto";
+  const pieces: (VoiceSegment[] | undefined)[] = [];
+  const piecesOf = (c: number) => (pieces[c] ??= voiceSegments(chapters[c] ?? ""));
+  const sizeOf = (c: number) => {
+    const last = piecesOf(c).at(-1);
+    return last ? last.offset + last.text.length : 1;
+  };
+  const links = new Map<string, Promise<string>>();
+  const linkFor = (c: number, s: number) => {
+    const key = `${c}:${s}`;
+    let link = links.get(key);
+    if (!link) {
+      link = pieceUrl(c, s);
+      link.catch(() => links.delete(key));
+      links.set(key, link);
+    }
+    return link;
+  };
+
+  let chapter = 0;
+  let segment = 0;
+  let within = 0; // how far into the piece to start, 0–1, until it's loaded
+  let loaded: string | null = null; // the piece in the audio element, as "chapter:segment"
+  let playing = false;
+  let cued = false;
+  let retried = false;
+  let generation = 0; // a load from before a cue or a stop doesn't play
+
+  const here = () => `${chapter}:${segment}`;
+  const fail = (message: string) => {
+    playing = false;
+    events.onError(message);
+  };
+
+  /** Puts the current piece in the audio element (asking for its link first) and plays it if wanted. */
+  const load = () => {
+    const mine = ++generation;
+    if (segment >= piecesOf(chapter).length) {
+      // An empty chapter, or past the last piece: the chapter is over. The engine cues the next
+      // one and starts it (or doesn't, at a sleep timer).
+      if (playing) {
+        playing = false;
+        events.onChapterEnd(chapter);
+      }
+      return;
+    }
+    if (loaded === here()) {
+      if (playing) audio.play().catch(onPlayError);
+      return;
+    }
+    if (playing) events.onWaiting();
+    linkFor(chapter, segment).then(
+      (url) => {
+        if (mine !== generation) return;
+        loaded = here();
+        audio.src = url;
+        const startAt = within;
+        if (startAt > 0) {
+          audio.addEventListener("loadedmetadata", () => {
+            if (loaded === here() && Number.isFinite(audio.duration)) audio.currentTime = startAt * audio.duration;
+          }, { once: true });
+        }
+        if (playing) audio.play().catch(onPlayError);
+      },
+      (err: unknown) => {
+        if (mine !== generation) return;
+        if (playing) fail(err instanceof Error ? err.message : tr("We couldn't play the narration. Check your connection, then press play to try again."));
+      },
+    );
+  };
+
+  const onPlayError = (err: unknown) => {
+    if (err instanceof DOMException && err.name === "AbortError") return;
+    fail(
+      err instanceof DOMException && err.name === "NotAllowedError"
+        ? tr("Press play to start the narration.")
+        : tr("We couldn't play the narration. Check your connection, then press play to try again."),
+    );
+  };
+
+  const onEnded = () => {
+    if (!playing) return;
+    segment += 1;
+    within = 0;
+    if (segment >= piecesOf(chapter).length) {
+      playing = false;
+      events.onChapterEnd(chapter);
+      return;
+    }
+    load();
+  };
+  const onWaiting = () => events.onWaiting();
+  const onPlaying = () => {
+    retried = false;
+    events.onPlaying();
+    // Ask for the next piece now, so it's voiced before this one ends.
+    const next = segment + 1 < piecesOf(chapter).length ? [chapter, segment + 1] : chapter + 1 < chapters.length ? [chapter + 1, 0] : null;
+    if (next) linkFor(next[0], next[1]).catch(() => undefined);
+  };
+  const onError = () => {
+    if (!loaded) return;
+    // A link runs out after an hour: ask for a fresh one once.
+    const at = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.currentTime / audio.duration : within;
+    links.delete(loaded);
+    loaded = null;
+    if (!retried) {
+      retried = true;
+      within = at;
+      load();
+      return;
+    }
+    if (playing) fail(tr("We couldn't load the narration. Check your connection, then press play to try again."));
+  };
+  audio.addEventListener("ended", onEnded);
+  audio.addEventListener("waiting", onWaiting);
+  audio.addEventListener("playing", onPlaying);
+  audio.addEventListener("error", onError);
+
+  return {
+    cue: (seconds) => {
+      cued = true;
+      chapter = starts.reduce((found, start, i) => (seconds >= start ? i : found), 0);
+      const target = (Math.max(0, seconds - starts[chapter]) / lengths[chapter]) * sizeOf(chapter);
+      const list = piecesOf(chapter);
+      const index = list.findIndex((p) => p.offset + p.text.length > target);
+      segment = index < 0 ? list.length : index;
+      const piece = list[segment];
+      within = piece ? Math.min(1, Math.max(0, (target - piece.offset) / piece.text.length)) : 0;
+      if (loaded === here() && Number.isFinite(audio.duration)) {
+        audio.currentTime = within * audio.duration;
+        if (playing) audio.play().catch(onPlayError);
+        return;
+      }
+      audio.pause();
+      // Loaded (but not played) straight away, so Play can start it inside the click.
+      load();
+    },
+    start: () => {
+      if (playing) return;
+      playing = true;
+      load();
+    },
+    stop: () => {
+      playing = false;
+      generation += 1;
+      audio.pause();
+    },
+    isPlaying: () => playing,
+    position: () => {
+      if (!cued) return null;
+      const piece = piecesOf(chapter)[segment];
+      if (!piece) return starts[chapter] + lengths[chapter];
+      const fraction = loaded === here() && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.currentTime / audio.duration : within;
+      return starts[chapter] + ((piece.offset + fraction * piece.text.length) / sizeOf(chapter)) * lengths[chapter];
+    },
+    setRate: (rate) => {
+      audio.defaultPlaybackRate = rate;
+      audio.playbackRate = rate;
+    },
+    setVolume: (volume) => {
+      audio.volume = volume;
+      audio.muted = volume === 0;
+    },
+    dispose: () => {
+      playing = false;
+      generation += 1;
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("waiting", onWaiting);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("error", onError);
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
     },
   };
 }

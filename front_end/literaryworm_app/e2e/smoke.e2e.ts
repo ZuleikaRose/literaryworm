@@ -1030,6 +1030,9 @@ describe("the demo household", () => {
     await page.waitForURL(/\/listen\/u-d3e0a1000000000000000000000000a4$/);
     await page.getByRole("heading", { name: "Frankenstein; Or, The Modern Prometheus" }).first().waitFor();
     await page.getByRole("link", { name: /Listen to their recording/ }).waitFor();
+    // Members' natural voices (Google) are named, but the demo never voices anything.
+    await page.getByText("Members can choose a natural voice from Google for their uploads.").waitFor();
+    expect(await page.getByRole("group", { name: "Natural voices (Google)" }).count()).toBe(0);
     expect(await scrollsSideways(page)).toBe(false);
     expect(errors()).toEqual([]);
   });

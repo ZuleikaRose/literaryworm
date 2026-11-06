@@ -12077,3 +12077,159 @@ where slug = $lw$privacy$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-06'::date, '2026.11', 'feature', $lw$Listen to the books you upload$lw$, $lw$Your uploaded EPUBs can now be listened to as well as read: choose Listen in My Library → Uploads or on the book's page, and one of your device's voices reads it in the player, with your place, speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, your upload offers that too, read by a person: choose Listen to their recording. The demo's uploads include the opening of Frankenstein to show it.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Listen to the books you upload$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261106006703_natural_voices.sql
+-- =============================================================================
+-- Natural voices for uploaded books (the natural-voice Edge Function, Google Cloud Text-to-Speech).
+-- A member's upload is voiced a piece at a time as they listen; each piece is kept in the private
+-- upload-voices bucket at <user_id>/<upload_id>/<voice>-<chapter>-<piece>.mp3, so listening again
+-- is free, and is deleted with the upload, the profile or the account. Each account has a monthly
+-- allowance of new voicing by plan (NATURAL_VOICE_HOURS in lib/naturalVoice.ts and
+-- _shared/naturalVoice.ts), counted here in characters sent to Google.
+
+create table if not exists public.natural_voice_usage (
+  account_id uuid not null references auth.users (id) on delete cascade,
+  -- The first day of the month (UTC).
+  month      date not null check (extract(day from month) = 1),
+  characters integer not null default 0 check (characters >= 0),
+  primary key (account_id, month)
+);
+
+comment on table public.natural_voice_usage is
+  'Characters of each account''s uploads sent to Google Text-to-Speech a month (natural voices). Written only by claim_natural_voice() and release_natural_voice() from the natural-voice function.';
+
+alter table public.natural_voice_usage enable row level security;
+
+drop policy if exists "Members see their natural voice use" on public.natural_voice_usage;
+create policy "Members see their natural voice use" on public.natural_voice_usage for select to authenticated
+  using (account_id = (select auth.uid()));
+drop policy if exists "Two-step sign-in when turned on" on public.natural_voice_usage;
+create policy "Two-step sign-in when turned on" on public.natural_voice_usage as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.natural_voice_usage from anon, authenticated;
+grant select (account_id, month, characters) on public.natural_voice_usage to authenticated;
+grant all on public.natural_voice_usage to service_role;
+
+-- Counts p_characters against this month's p_limit; false (and nothing counted) when it won't fit.
+create or replace function public.claim_natural_voice(p_account uuid, p_characters integer, p_limit integer)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_month date := date_trunc('month', now() at time zone 'utc')::date;
+begin
+  if p_account is null or p_characters is null or p_characters < 1 or p_characters > 5000 or p_limit is null or p_limit < 0 then
+    raise exception 'claim_natural_voice: bad arguments';
+  end if;
+  insert into public.natural_voice_usage (account_id, month) values (p_account, v_month)
+  on conflict (account_id, month) do nothing;
+  update public.natural_voice_usage
+     set characters = characters + p_characters
+   where account_id = p_account and month = v_month and characters + p_characters <= p_limit;
+  return found;
+end;
+$$;
+
+-- Hands back a claim when Google couldn't voice the piece.
+create or replace function public.release_natural_voice(p_account uuid, p_characters integer)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.natural_voice_usage
+     set characters = greatest(0, characters - p_characters)
+   where account_id = p_account and month = date_trunc('month', now() at time zone 'utc')::date;
+$$;
+
+revoke execute on function public.claim_natural_voice(uuid, integer, integer) from public, anon, authenticated;
+revoke execute on function public.release_natural_voice(uuid, integer) from public, anon, authenticated;
+grant execute on function public.claim_natural_voice(uuid, integer, integer) to service_role;
+grant execute on function public.release_natural_voice(uuid, integer) to service_role;
+
+-- The bucket: private, MP3 only, 5 MB a piece. Only the function writes to it.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('upload-voices', 'upload-voices', false, 5242880, array['audio/mpeg'])
+on conflict (id) do nothing;
+
+-- Members read and remove the pieces in their own folder (playing them, deleting an upload).
+drop policy if exists "Members read their own voiced pieces" on storage.objects;
+create policy "Members read their own voiced pieces" on storage.objects for select to authenticated
+  using (bucket_id = 'upload-voices' and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "Members remove their own voiced pieces" on storage.objects;
+create policy "Members remove their own voiced pieces" on storage.objects for delete to authenticated
+  using (bucket_id = 'upload-voices' and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "Two-step sign-in for voiced pieces" on storage.objects;
+create policy "Two-step sign-in for voiced pieces" on storage.objects as restrictive for all to authenticated
+  using (bucket_id <> 'upload-voices' or (select public.second_step_done()))
+  with check (bucket_id <> 'upload-voices' or (select public.second_step_done()));
+
+-- =============================================================================
+-- 20261106006704_natural_voices_policies.sql
+-- =============================================================================
+-- Natural voices for uploads (migration 6703): the Privacy Policy names Google Cloud Text-to-Speech as an AI
+-- service provider (and no longer says we don't use Google Cloud AI), says what it's sent and what's kept, and Kids
+-- profiles aren't offered it; Help says how natural voices work and each plan's monthly hours. Same text as
+-- src/data/legalPages.json, matched as stored (whole paragraphs, with their quotes). Each change is made once; a
+-- paragraph an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Use of AI Technologies. We provide the AI Products through one third-party service provider (\"AI Service Provider\"): Anthropic (Claude). We don't use OpenAI, Hugging Face, Google Cloud AI, DeepSeek or Gemini to process your information. Figma Make was used only to design the app's screens and never receives your information. You must not use the AI Products in any way that violates the terms or policies of the AI Service Provider."$lw$, $lw$"Use of AI Technologies. We provide the AI Products through two third-party service providers (\"AI Service Providers\"): Anthropic (Claude), and Google Cloud Text-to-Speech for natural voices. We don't use OpenAI, Hugging Face, DeepSeek or Gemini to process your information. Figma Make was used only to design the app's screens and never receives your information. You must not use the AI Products in any way that violates the terms or policies of the AI Service Providers."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Use of AI Technologies. We provide the AI Products through one third-party service provider (\"AI Service Provider\"): Anthropic (Claude). We don't use OpenAI, Hugging Face, Google Cloud AI, DeepSeek or Gemini to process your information. Figma Make was used only to design the app's screens and never receives your information. You must not use the AI Products in any way that violates the terms or policies of the AI Service Provider."$lw$) > 0
+  and strpos(sections::text, $lw$Use of AI Technologies. We provide the AI Products through two third-party service providers (\"AI Service Providers\"): Anthropic (Claude), and Google Cloud Text-to-Speech for natural voices. We don't use OpenAI, Hugging Face, DeepSeek or Gemini to process your information. Figma Make was used only to design the app's screens and never receives your information. You must not use the AI Products in any way that violates the terms or policies of the AI Service Providers.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Chapter quizzes: a few questions about a chapter of a public-domain book, written for young readers. We send only that chapter's text, nothing about you, and keep the quiz so every reader of that chapter gets the same one; your score is saved with your profile."$lw$, $lw$"Chapter quizzes: a few questions about a chapter of a public-domain book, written for young readers. We send only that chapter's text, nothing about you, and keep the quiz so every reader of that chapter gets the same one; your score is saved with your profile.", "Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, about a minute and a half at a time, nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Chapter quizzes: a few questions about a chapter of a public-domain book, written for young readers. We send only that chapter's text, nothing about you, and keep the quiz so every reader of that chapter gets the same one; your score is saved with your profile."$lw$) > 0
+  and strpos(sections::text, $lw$Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, about a minute and a half at a time, nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI."$lw$, $lw$"Ask the book, Translate, Who's who, natural voices and book clubs (with their discussion questions) aren't offered to Kids profiles; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI."$lw$) > 0
+  and strpos(sections::text, $lw$Ask the book, Translate, Who's who, natural voices and book clubs (with their discussion questions) aren't offered to Kids profiles; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreement with the AI Service Provider. We don't use your reading history, notes, uploads or posts to train AI models."$lw$, $lw$"How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreements with the AI Service Providers. We don't use your reading history, notes, uploads or posts to train AI models."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreement with the AI Service Provider. We don't use your reading history, notes, uploads or posts to train AI models."$lw$) > 0
+  and strpos(sections::text, $lw$How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreements with the AI Service Providers. We don't use your reading history, notes, uploads or posts to train AI models.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6)."$lw$, $lw$"Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6).", "Google Cloud Text-to-Speech reads members' uploaded books aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6)."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6)."$lw$) > 0
+  and strpos(sections::text, $lw$Google Cloud Text-to-Speech reads members' uploaded books aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6).$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves."$lw$, $lw$"Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.", "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves."$lw$) > 0
+  and strpos(sections::text, $lw$Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Your account, household and reading: until you delete them. Deleting a profile deletes its data, including its uploaded books."$lw$, $lw$"Your account, household and reading: until you delete them. Deleting a profile deletes its data, including its uploaded books and any natural-voice audio made from them."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Your account, household and reading: until you delete them. Deleting a profile deletes its data, including its uploaded books."$lw$) > 0
+  and strpos(sections::text, $lw$Your account, household and reading: until you delete them. Deleting a profile deletes its data, including its uploaded books and any natural-voice audio made from them.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's."$lw$, $lw$"Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.", "Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles). Each part of your book is voiced the first time you play it and kept with your upload, so listening again is free. Each month your plan includes new natural-voice reading: Basic 2 hours, Standard 6, Premium 12. Listening counts towards your plan's audiobook hours as usual."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's."$lw$) > 0
+  and strpos(sections::text, $lw$Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles). Each part of your book is voiced the first time you play it and kept with your upload, so listening again is free. Each month your plan includes new natural-voice reading: Basic 2 hours, Standard 6, Premium 12. Listening counts towards your plan's audiobook hours as usual.$lw$) = 0;
+
+-- =============================================================================
+-- 20261106006705_whats_new_natural_voices.sql
+-- =============================================================================
+-- What's new: natural voices (Google Cloud Text-to-Speech) for members' uploads. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-06'::date, '2026.11', 'feature', $lw$Natural voices for your uploads$lw$, $lw$Members can now have their uploaded books read aloud by a natural-sounding voice from Google: in the player, open Voice and choose one of six natural voices, British, American or Australian. Each part of the book is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes some new natural-voice reading a month (Basic 2 hours, Standard 6, Premium 12). Not on Kids profiles.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices for your uploads$lw$ and c.version = '2026.11');
