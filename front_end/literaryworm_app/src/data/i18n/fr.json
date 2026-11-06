@@ -1659,6 +1659,7 @@
   "Read aloud by your device's {voice} voice from the full public-domain text (Project Gutenberg).": "Lu à voix haute par la voix {voice} de votre appareil à partir du texte intégral du domaine public (Project Gutenberg).",
   "Read aloud by your device's {voice} voice from your upload.": "Lu à voix haute par la voix {voice} de votre appareil, à partir de votre livre importé.",
   "Read aloud by {voice}, a natural voice from Google, from your upload. Each part is voiced the first time you play it and kept with your upload, so listening again is free.": "Lu à voix haute par {voice}, une voix naturelle de Google, à partir de votre livre importé. Chaque partie est générée la première fois que vous l'écoutez et conservée avec votre livre : la réécouter est gratuit.",
+  "Read aloud by {voice}, a natural voice from Google. In the demo, this sample upload was voiced ahead of time; members' uploads are voiced as they listen, a part at a time, and kept so listening again is free.": "Lu à voix haute par {voice}, une voix naturelle de Google. Dans la démo, ce livre d'exemple a été généré à l'avance ; les livres importés des membres sont générés pendant l'écoute, une partie à la fois, et conservés pour que la réécoute soit gratuite.",
   "Read and listen here": "Lisez et écoutez ici",
   "Read and listen in one place": "Lisez et écoutez au même endroit",
   "Read and listen to books like these on LiteraryWorm. {link}": "Lisez et écoutez des livres comme ceux-ci sur LiteraryWorm. {link}",

@@ -11,7 +11,7 @@ import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPan
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { NATURAL_PREFIX, NATURAL_VOICE_HOURS, NATURAL_VOICES, type NaturalVoiceAccent } from "../lib/naturalVoice";
-import { useNaturalVoiceOffered } from "../lib/useNaturalVoice";
+import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
 import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
@@ -38,7 +38,8 @@ function PlayerView({ book }: { book: Book }) {
   const { state, dispatch } = useStore();
   const { narrationVoice } = useProfileData();
   const voices = useVoices();
-  const naturalOffered = useNaturalVoiceOffered(book);
+  const naturalSource = useNaturalVoice(book);
+  const naturalOffered = naturalSource !== null;
   const profile = useActiveProfile();
   const narration = resolveNarration(book, narrationVoice, voices, naturalOffered);
   // The pilot's books have their recording lined up with the text, for a true read-along.
@@ -391,11 +392,14 @@ function PlayerView({ book }: { book: Book }) {
               </>
             ) : narration.kind === "natural" ? (
               <>
-                {t("Read aloud by {voice}, a natural voice from Google, from your upload. Each part is voiced the first time you play it and kept with your upload, so listening again is free.", { voice: narration.voice.name })}{" "}
-                {t.plural(naturalHours, {
-                  one: "Your plan includes {count} hour of new natural-voice reading a month.",
-                  other: "Your plan includes {count} hours of new natural-voice reading a month.",
-                })}
+                {naturalSource === "demo"
+                  ? t("Read aloud by {voice}, a natural voice from Google. In the demo, this sample upload was voiced ahead of time; members' uploads are voiced as they listen, a part at a time, and kept so listening again is free.", { voice: narration.voice.name })
+                  : t("Read aloud by {voice}, a natural voice from Google, from your upload. Each part is voiced the first time you play it and kept with your upload, so listening again is free.", { voice: narration.voice.name })}{" "}
+                {naturalSource !== "demo" &&
+                  t.plural(naturalHours, {
+                      one: "Your plan includes {count} hour of new natural-voice reading a month.",
+                      other: "Your plan includes {count} hours of new natural-voice reading a month.",
+                    })}
               </>
             ) : narration.kind === "speech" ? (
               book.recording ? (

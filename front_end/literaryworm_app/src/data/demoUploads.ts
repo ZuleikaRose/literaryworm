@@ -166,3 +166,10 @@ export const DEMO_UPLOAD_TEXTS: ReadonlyMap<string, string[]> = new Map(DEMO_UPL
 
 /** The upload Avery is partway through, for Continue reading and *Recently changed*. */
 export const DEMO_UPLOAD_READING = DEMO_UPLOADS[0].id;
+
+/**
+ * The demo upload whose natural voices are recorded: the opening of Frankenstein, voiced once with
+ * every natural voice by scripts/voice-demo-sample.mjs into public/voices/demo, so the demo plays
+ * natural voices without calling Google (lib/demoVoices.ts).
+ */
+export const DEMO_NATURAL_SAMPLE = "u-d3e0a1000000000000000000000000a4";

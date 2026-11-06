@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   CHARACTERS_PER_HOUR,
@@ -13,6 +13,8 @@ import {
   voiceFile,
   voiceSegments,
 } from "./naturalVoice";
+import { DEMO_NATURAL_SAMPLE, DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
+import { demoVoicePath } from "./demoVoices";
 
 const UTF8 = new TextEncoder();
 
@@ -80,5 +82,13 @@ describe("natural voices for uploads", () => {
     for (const v of NATURAL_VOICES) expect(v.id.startsWith(`${v.languageCode}-Chirp3-HD-`)).toBe(true);
     expect(naturalVoice("en-GB-Wavenet-A")).toBeNull();
     expect(voiceFile("user", "u-1", DEFAULT_NATURAL_VOICE, 2, 7)).toBe(`user/u-1/${DEFAULT_NATURAL_VOICE}-2-7.mp3`);
+  });
+
+  it("has the demo's Frankenstein sample recorded in every natural voice (scripts/voice-demo-sample.mjs)", () => {
+    const chapters = DEMO_UPLOAD_TEXTS.get(DEMO_NATURAL_SAMPLE)!;
+    const missing = NATURAL_VOICES.flatMap((v) =>
+      chapters.flatMap((text, c) => voiceSegments(text).map((_, s) => demoVoicePath(v.id, c, s))),
+    ).filter((path) => !existsSync(join(__dirname, "../../public", path)));
+    expect(missing).toEqual([]);
   });
 });

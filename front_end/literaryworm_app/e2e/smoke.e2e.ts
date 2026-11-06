@@ -1030,11 +1030,18 @@ describe("the demo household", () => {
     await page.waitForURL(/\/listen\/u-d3e0a1000000000000000000000000a4$/);
     await page.getByRole("heading", { name: "Frankenstein; Or, The Modern Prometheus" }).first().waitFor();
     await page.getByRole("link", { name: /Listen to their recording/ }).waitFor();
-    // Members' natural voices (Google) are named, but the demo never voices anything.
-    await page.getByText("Members can choose a natural voice from Google for their uploads.").waitFor();
-    expect(await page.getByRole("group", { name: "Natural voices (Google)" }).count()).toBe(0);
+    // The demo's Frankenstein sample has natural voices (Google), recorded ahead of time, and starts with the first.
+    expect(await page.locator('optgroup[label="Natural voices (Google)"] option').count()).toBe(6);
+    await page.getByText(/Read aloud by Aoede, a natural voice from Google\. In the demo/).waitFor();
+    const piece = await page.request.get(`${BASE_URL}/voices/demo/en-GB-Chirp3-HD-Aoede-0-0.mp3`);
+    expect(piece.ok()).toBe(true);
+    expect(piece.headers()["content-type"]).toMatch(/audio\/mpeg/);
     expect(await scrollsSideways(page)).toBe(false);
     expect(errors()).toEqual([]);
+    // The demo's other uploads keep the device voices, and say members have natural voices.
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    await page.getByText("Members can choose a natural voice from Google for their uploads.").waitFor();
+    expect(await page.locator('optgroup[label="Natural voices (Google)"]').count()).toBe(0);
   });
 
   it("imports a Goodreads export without counting old reads towards this year", async () => {

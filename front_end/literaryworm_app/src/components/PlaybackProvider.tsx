@@ -10,7 +10,8 @@ import { useListeningAllowance } from "../lib/useListeningAllowance";
 import { tr } from "../lib/i18n";
 import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
 import { naturalVoiceUrl } from "../lib/naturalVoiceApi";
-import { useNaturalVoiceOffered } from "../lib/useNaturalVoice";
+import { useNaturalVoice } from "../lib/useNaturalVoice";
+import { demoVoiceUrl } from "../lib/demoVoices";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
 import { emailKey } from "../store/state";
@@ -278,14 +279,18 @@ function Engine({
 
   // Who reads: the recording, a device voice or a natural voice (once the book's text has loaded), or nobody.
   const voices = useVoices();
-  const naturalOffered = useNaturalVoiceOffered(book);
-  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered);
+  const naturalSource = useNaturalVoice(book);
+  const narration = resolveNarration(book, narrationVoice, voices, naturalSource !== null);
   const voice = narration.kind === "speech" ? narration.voice : null;
   const voiceRef = useRef(voice);
   useEffect(() => {
     voiceRef.current = voice;
   });
   const naturalId = narration.kind === "natural" ? narration.voice.id : null;
+  const naturalSourceRef = useRef(naturalSource);
+  useEffect(() => {
+    naturalSourceRef.current = naturalSource;
+  });
   const narrationKey = voice ? voice.voiceURI : naturalId ? `natural:${naturalId}` : narration.kind;
   const readsText = narration.kind === "speech" || narration.kind === "natural";
   const [text, setText] = useState<string[] | null>(null);
@@ -318,7 +323,14 @@ function Engine({
       narrationKey === "recording" && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
         : natural && text
-          ? naturalNarrator(text, starts, lengths, (chapter, segment) => naturalVoiceUrl(book.id, chapter, segment, natural), events)
+          ? naturalNarrator(
+              text,
+              starts,
+              lengths,
+              // The demo plays its recorded sample; members' pieces are voiced as they listen.
+              (chapter, segment) => (naturalSourceRef.current === "demo" ? demoVoiceUrl(natural, chapter, segment) : naturalVoiceUrl(book.id, chapter, segment, natural)),
+              events,
+            )
           : v && text
             ? speechNarrator(text, starts, lengths, v, events)
             : null;
