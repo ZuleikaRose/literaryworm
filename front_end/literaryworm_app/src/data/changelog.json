@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "update",
+    "title": "A heads-up when a payment fails",
+    "body": "If a membership payment doesn't go through, we now email you once and the bell reminds you each day, with a link to update your payment method, so your membership carries on without a gap.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Natural voices in the free week",
     "body": "A first membership's free week now includes 1 hour of natural-voice reading; your plan's full hours start with your first payment. If a payment fails, natural voices pause until one goes through.",
     "major": false

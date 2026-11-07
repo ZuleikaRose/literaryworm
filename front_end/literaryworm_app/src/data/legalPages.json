@@ -175,6 +175,7 @@
           "A reminder the day before a book club you're in meets, and a note when one of its meetings moves or is cancelled: the club's name and book and the meeting's name, times and note, with the meeting as a calendar file.",
           "If you turn it on, a daily email of new posts in your book clubs: each club's name and book, the chapters you've reached that have new posts, how many and the display names of who wrote them; never what they wrote.",
           "A reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and a gift membership a member asked us to email to you (its code, plan and months, the buyer's display name and any message they wrote).",
+          "A note when a membership payment fails (once for each failed payment, on the first attempt): that it didn't go through and where to update your payment method. It has your display name and nothing about the card.",
           "And an email confirming that your account was deleted.",
           "We turn off Mailgun's open and click tracking.",
           "Our service providers may use your information only to provide their service to us, except where this section says they handle it under their own policy.",
@@ -1715,6 +1716,7 @@
           "Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian and Romanian. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.",
           "Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.",
           "During a first membership's free week, natural voices read up to 1 hour of new text; your plan's full hours start with your first payment. If a payment fails, natural voices pause until a payment goes through (update your card in Account → Plan and billing), and then they're back straight away.",
+          "If a membership payment fails, we email you once and the bell reminds you each day until it's fixed. Update your payment method in Account → Plan and billing; Stripe tries the payment again over the next few days.",
           "To find one of your uploads, search them in My Library → Uploads by title, author, keywords or ISBN. Keywords also looks through the books' text and shows where the words are, each place a link to that page, on your device. An ISBN is looked up on Google Books and matched to your uploads by title and author."
         ]
       },

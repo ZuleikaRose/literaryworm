@@ -13,7 +13,7 @@
 //
 // Handled: checkout.session.completed and .async_payment_succeeded (start the membership, or a gift),
 // customer.subscription.created/.updated/.deleted and invoice.paid/.payment_failed (keep it in
-// step), invoice.created (staff), and charge.dispute.created, charge.refunded and
+// step; a first failed attempt also emails the member, email.ts), invoice.created (staff), and charge.dispute.created, charge.refunded and
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
 //
 // Refer a friend: an invited member's first paid invoice credits a month of each member's plan to
@@ -55,6 +55,8 @@ export interface Deps {
   claimAffiliate: (referredId: string, amountCents: number) => Promise<AffiliateCommission | null>;
   recordAffiliateCredit: (referralId: string, creditId: string) => Promise<void>;
   releaseAffiliate: (referralId: string) => Promise<void>;
+  /** Emails the member that a payment failed (a failure is only logged). */
+  notifyPaymentFailed: (userId: string) => Promise<void>;
 }
 
 /** What claim_affiliate_commission() gives: 20% of the referred member's first payment, in cents. */
@@ -255,6 +257,13 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
     case "invoice.payment_failed": {
       const subId = invoiceSubscriptionId(event.data.object);
       if (subId) await syncSubscription(deps, await deps.getSubscription(subId));
+      // A failed membership payment: the member hears once, on Stripe's first attempt (never staff).
+      if (event.type === "invoice.payment_failed" && subId && (event.data.object.attempt_count ?? 1) <= 1 && event.data.object.customer) {
+        const userId = await deps.userForCustomer(idOf(event.data.object.customer)!);
+        if (userId && !(await deps.isStaff(userId))) {
+          await deps.notifyPaymentFailed(userId).catch((err: unknown) => console.error("stripe-webhook: couldn't email a failed payment", err));
+        }
+      }
       if (event.type === "invoice.paid" && subId) {
         await rewardReferral(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);
         await rewardAffiliate(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);

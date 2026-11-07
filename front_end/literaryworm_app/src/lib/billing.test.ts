@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import type { MembershipDiscount } from "./accountApi";
-import { afterDiscountLabel, cancellationEnd, CANCEL_NOTICE_HOURS, monthsAfter, oneMonthAfter, oneYearAfter, renewalReminder, yearlyOffer, yearlySaving } from "./billing";
+import { afterDiscountLabel, cancellationEnd, CANCEL_NOTICE_HOURS, monthsAfter, oneMonthAfter, oneYearAfter, paymentAlert, renewalReminder, yearlyOffer, yearlySaving } from "./billing";
 import { perPeriod, plans, priceFor } from "../data/plans";
 
 describe("the 48-hour cancellation rule", () => {
@@ -159,5 +159,15 @@ describe("the yearly billing offer", () => {
     expect(yearlyOffer({ ...member, pastDue: true }, starts)).toBeNull();
     expect(yearlyOffer({ ...member, memberSince: null }, starts)).toBeNull();
     expect(yearlyOffer(null, starts)).toBeNull();
+  });
+});
+
+describe("the failed-payment nudge", () => {
+  it("shows while a payment has failed, new each day, never for staff", () => {
+    const now = new Date(2026, 10, 7, 15, 30).getTime();
+    expect(paymentAlert({ pastDue: true, complimentary: false }, now)).toEqual({ at: new Date(2026, 10, 7).getTime() });
+    expect(paymentAlert({ pastDue: false, complimentary: false }, now)).toBeNull();
+    expect(paymentAlert({ pastDue: true, complimentary: true }, now)).toBeNull();
+    expect(paymentAlert(null, now)).toBeNull();
   });
 });

@@ -1,6 +1,8 @@
 // Deploy with JWT verification off (Stripe doesn't send a Supabase token); every request's
 // Stripe signature is checked instead. See handler.ts.
+import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
+import { paymentFailedEmail } from "./email.ts";
 import { giftCode, releaseSchedule, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
 import { handle, type NewGift, type SubscriptionFields } from "./handler.ts";
 
@@ -122,6 +124,14 @@ Deno.serve((req) =>
     async releaseReferral(referralId) {
       const { error } = await serviceClient().rpc("release_referral_reward", { p_referral: referralId });
       if (error) console.error(`stripe-webhook: couldn't hand back referral ${referralId}`, error.message);
+    },
+    async notifyPaymentFailed(userId) {
+      const db = serviceClient();
+      const { data: user, error } = await db.auth.admin.getUserById(userId);
+      if (error || !user.user?.email) throw new Error(error?.message ?? "no email address");
+      const { data: profile } = await db.from("profiles").select("display_name").eq("id", userId).maybeSingle();
+      const email = paymentFailedEmail({ to: user.user.email, name: (profile?.display_name as string | null) ?? null, site: publicSiteOrigin() });
+      await sendWithMailgun({ ...email, tag: "payment-failed" });
     },
   })
 );

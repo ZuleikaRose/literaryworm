@@ -27,7 +27,7 @@ function meetingText(t: T, club: string, iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, polls, schedules, listening, natural, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, polls, schedules, listening, natural, renewal, payment, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const t = useT();
   const planId = useStore().state.account?.planId ?? null;
@@ -44,7 +44,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && natural === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && schedules.length === 0 && requests.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && natural === null && renewal === null && payment === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && schedules.length === 0 && requests.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
   const offerPlan = offer ? planById.get(offer.planId) : undefined;
@@ -152,10 +152,24 @@ export function NotificationBell() {
                   </ul>
                 </>
               )}
-              {(listening || natural || renewal || offerPlan) && (
+              {(listening || natural || renewal || payment || offerPlan) && (
                 <>
                   <p className="popover-label">{t("Your plan")}</p>
                   <ul className="bell-list" role="list">
+                    {payment && (
+                      <li>
+                        <Link className="bell-item" to="/account#plan" onClick={() => close(false)}>
+                          <Icon name="alert" size={18} />
+                          <span>
+                            <strong>
+                              {t("Your last payment didn't go through")}
+                              {isNewAlert(payment.at, seenBefore) && <span className="bell-new">{t("New")}</span>}
+                            </strong>
+                            <small>{t("Update your payment method in Account to keep your membership. Natural voices are paused until a payment succeeds.")}</small>
+                          </span>
+                        </Link>
+                      </li>
+                    )}
                     {renewal && plan && (
                       <li>
                         <Link className="bell-item" to="/account#plan" onClick={() => close(false)}>

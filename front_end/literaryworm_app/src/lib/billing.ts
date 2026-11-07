@@ -132,6 +132,17 @@ export function renewalReminder(
   return now >= at && now < renews ? { renewsAt: account.renewsAt, at, switchToMonthly: account.switchToMonthly ?? null } : null;
 }
 
+/**
+ * The nudge when a payment failed (Account.pastDue): in the bell until a payment succeeds, new again
+ * each day (its time is the start of today), so it isn't forgotten. Never for complimentary memberships.
+ */
+export function paymentAlert(account: Pick<Account, "pastDue" | "complimentary"> | null, now = Date.now()): { at: number } | null {
+  if (!account?.pastDue || account.complimentary) return null;
+  const day = new Date(now);
+  day.setHours(0, 0, 0, 0);
+  return { at: day.getTime() };
+}
+
 export const longDate = (d: Date) => d.toLocaleDateString(dateLocale(), { month: "long", day: "numeric", year: "numeric" });
 
 /** A plan's end date. The server stores it as midnight UTC on the billing day, so read the day in UTC. */

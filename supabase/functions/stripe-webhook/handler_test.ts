@@ -43,6 +43,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     credits: [] as { customer: string; cents: number; key: string }[],
     recorded: [] as [string, string, string | null][],
     released: [] as string[],
+    notified: [] as string[],
     failCredit: false,
     failAffiliate: false,
   };
@@ -111,6 +112,10 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
       state.affiliateReleased.push(id);
       return Promise.resolve();
     },
+    notifyPaymentFailed: (userId) => {
+      state.notified.push(userId);
+      return Promise.resolve();
+    },
     ...overrides,
   };
   return { state, deps };
@@ -166,6 +171,24 @@ Deno.test("a failed renewal marks the membership past due", async () => {
   state.sub = subscription({ status: "past_due" });
   await handle(post(), deps);
   assertEquals(state.updated.map((f) => f.status), ["past_due"]);
+});
+
+Deno.test("a first failed attempt emails the member once; retries, staff and a failing email don't", async () => {
+  const first = setup(event("invoice.payment_failed", { id: "in_1", customer: "cus_1", attempt_count: 1, parent: { subscription_details: { subscription: "sub_1" } } }));
+  first.state.sub = subscription({ status: "past_due" });
+  assertEquals((await handle(post(), first.deps)).status, 200);
+  assertEquals(first.state.notified.length, 1);
+  const retry = setup(event("invoice.payment_failed", { id: "in_1", customer: "cus_1", attempt_count: 2, parent: { subscription_details: { subscription: "sub_1" } } }));
+  await handle(post(), retry.deps);
+  assertEquals(retry.state.notified.length, 0);
+  const staff = setup(event("invoice.payment_failed", { id: "in_1", customer: "cus_1", attempt_count: 1, parent: { subscription_details: { subscription: "sub_1" } } }));
+  staff.state.staff = true;
+  await handle(post(), staff.deps);
+  assertEquals(staff.state.notified.length, 0);
+  const broken = setup(event("invoice.payment_failed", { id: "in_1", customer: "cus_1", attempt_count: 1, parent: { subscription_details: { subscription: "sub_1" } } }), {
+    notifyPaymentFailed: () => Promise.reject(new Error("Mailgun is down")),
+  });
+  assertEquals((await handle(post(), broken.deps)).status, 200);
 });
 
 Deno.test("paused collection, cancellation at period end and deletion are kept in step", async () => {
