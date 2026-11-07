@@ -19,10 +19,10 @@ export interface NaturalVoice {
   languageCode: string;
 }
 
-const voice = (languageCode: string, name: string, accent: NaturalVoiceAccent | null = null): NaturalVoice => ({
+const voice = (languageCode: string, name: string, accent: NaturalVoiceAccent | null = null, language = languageCode.slice(0, 2)): NaturalVoice => ({
   id: `${languageCode}-Chirp3-HD-${name}`,
   name,
-  language: languageCode.slice(0, 2),
+  language,
   accent,
   languageCode,
 });
@@ -50,10 +50,33 @@ export const NATURAL_VOICES: readonly NaturalVoice[] = [
   voice("pt-BR", "Charon"),
   voice("nl-NL", "Aoede"),
   voice("nl-NL", "Charon"),
+  voice("ja-JP", "Aoede"),
+  voice("ja-JP", "Charon"),
+  // Google's codes for Mandarin, Arabic and Filipino (Tagalog) aren't the book's two letters.
+  voice("cmn-CN", "Aoede", null, "zh"),
+  voice("cmn-CN", "Charon", null, "zh"),
+  voice("ko-KR", "Aoede"),
+  voice("ko-KR", "Charon"),
+  voice("hi-IN", "Aoede"),
+  voice("hi-IN", "Charon"),
+  voice("ar-XA", "Aoede", null, "ar"),
+  voice("ar-XA", "Charon", null, "ar"),
+  voice("pl-PL", "Aoede"),
+  voice("pl-PL", "Charon"),
+  voice("ru-RU", "Aoede"),
+  voice("ru-RU", "Charon"),
+  voice("tr-TR", "Aoede"),
+  voice("tr-TR", "Charon"),
+  voice("sv-SE", "Aoede"),
+  voice("sv-SE", "Charon"),
+  voice("uk-UA", "Aoede"),
+  voice("uk-UA", "Charon"),
+  voice("fil-PH", "Aoede", null, "tl"),
+  voice("fil-PH", "Charon", null, "tl"),
 ];
 
-/** The languages natural voices read, besides English. */
-export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl"] as const;
+/** The languages natural voices read, besides English (two letters, as uploaded_books.language keeps them). */
+export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl"] as const;
 
 /** The voices offered for a book: its own language's first (when there are some), then English. */
 export function voicesFor(language: string | null): NaturalVoice[] {
@@ -111,7 +134,10 @@ export function naturalVoiceOffered(input: { member: boolean; ageRating: string 
   return input.member && input.ageRating !== null && input.ageRating !== "kids" && input.uploadPath !== null;
 }
 
-/** The most characters in one piece: about 85 seconds of reading, and well under Google's 5,000 bytes a request. */
+/**
+ * The most characters in one piece: about 85 seconds of reading in English, and under Google's
+ * 5,000 bytes a request even in scripts of three bytes a character (Chinese, Japanese, Hindi).
+ */
 export const SEGMENT_CHARS = 1200;
 
 export interface VoiceSegment {
@@ -120,8 +146,9 @@ export interface VoiceSegment {
   text: string;
 }
 
-// After a sentence's end (with any closing quotes or brackets) and its spaces, or at a line break.
-const BREAK = /[.!?…]["'”’)\]]*\s+|\n\s*/g;
+// After a sentence's end (with any closing quotes or brackets) and its spaces; after a Chinese or
+// Japanese full stop, a Hindi danda or an Arabic question mark (spaces or not); or at a line break.
+const BREAK = /[.!?…]["'”’)\]]*\s+|[。！？।؟][」』”’)）]*\s*|\n\s*/g;
 
 /**
  * A chapter cut into the pieces a natural voice reads: whole sentences up to SEGMENT_CHARS, a

@@ -186,7 +186,7 @@ Then, on 6 November 2026, voices for uploads:
 
 - Listen to an uploaded book: a device voice reads it in the player, and an upload the catalog has with a LibriVox recording offers that recording, read by a person.
 - Natural voices from Google Cloud Text-to-Speech (Chirp 3: HD, six voices) for members' uploads, voiced a part at a time as they listen and kept with the upload, within a monthly allowance by plan (Basic 2 hours, Standard 6, Premium 12); never on Kids profiles. The demo's Frankenstein sample is voiced ahead of time in all six, so visitors hear them without any call to Google.
-- Then: natural voices in six more languages, hours left in Account and the bell, played parts kept for offline listening, and a read-along timed by the voice's pauses.
+- Then: natural voices in six more languages (later 17: adding Japanese, Chinese, Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog), hours left in Account and the bell, played parts kept for offline listening, and a read-along timed by the voice's pauses.
 
 ## Code
 

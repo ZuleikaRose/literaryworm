@@ -186,7 +186,11 @@ export function languageIn(raw: string | null | undefined): string | null {
 }
 
 // Three-letter codes some EPUBs use, for the languages natural voices read.
-const BIBLIOGRAPHIC: Record<string, string> = { eng: "en", fre: "fr", fra: "fr", ger: "de", deu: "de", spa: "es", ita: "it", por: "pt", dut: "nl", nld: "nl" };
+const BIBLIOGRAPHIC: Record<string, string> = {
+  eng: "en", fre: "fr", fra: "fr", ger: "de", deu: "de", spa: "es", ita: "it", por: "pt", dut: "nl", nld: "nl",
+  jpn: "ja", chi: "zh", zho: "zh", cmn: "zh", kor: "ko", hin: "hi", ara: "ar", pol: "pl", rus: "ru", tur: "tr",
+  swe: "sv", ukr: "uk", tgl: "tl", fil: "tl",
+};
 
 export const countWords = words;
 

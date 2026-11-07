@@ -101,7 +101,7 @@ describe("natural voices for uploads", () => {
   it("offers a book its own language's voices first, then the English ones, and starts with its own", () => {
     expect(voicesFor(null).every((v) => v.language === "en")).toBe(true);
     expect(voicesFor("fr").map((v) => v.language)).toEqual(["fr", "fr", "en", "en", "en", "en", "en", "en"]);
-    expect(voicesFor("ja").every((v) => v.language === "en")).toBe(true);
+    expect(voicesFor("el").every((v) => v.language === "en")).toBe(true);
     expect(defaultNaturalVoice("de").id).toBe("de-DE-Chirp3-HD-Aoede");
     expect(defaultNaturalVoice(null).id).toBe(DEFAULT_NATURAL_VOICE);
     for (const lang of NATURAL_LANGUAGES) expect(voicesFor(lang)[0].language).toBe(lang);
@@ -112,5 +112,28 @@ describe("natural voices for uploads", () => {
     expect([used / 3600, left / 3600, limit / 3600]).toEqual([4.5, 1.5, 6]);
     expect(naturalVoiceTime("basic", CHARACTERS_PER_HOUR * 9).left).toBe(0);
     expect(naturalVoiceMonth(new Date("2026-12-31T23:30:00Z"))).toBe("2026-12-01");
+  });
+
+  it("names Google's voices for languages whose codes aren't the book's two letters", () => {
+    expect(defaultNaturalVoice("zh").id).toBe("cmn-CN-Chirp3-HD-Aoede");
+    expect(defaultNaturalVoice("ar").languageCode).toBe("ar-XA");
+    expect(defaultNaturalVoice("tl").id).toBe("fil-PH-Chirp3-HD-Aoede");
+    // Filipino's code starts "fi", but it isn't offered for Finnish.
+    expect(voicesFor("fi").every((v) => v.language === "en")).toBe(true);
+  });
+
+  it("cuts Chinese, Japanese, Hindi and Arabic at their own sentence ends", () => {
+    const zh = "这是第一句。".repeat(400) + "最后一句。";
+    const pieces = voiceSegments(zh);
+    expect(pieces.length).toBeGreaterThan(1);
+    for (const p of pieces) {
+      expect(p.text.endsWith("。")).toBe(true);
+      expect(new TextEncoder().encode(p.text).length).toBeLessThan(5000);
+    }
+    expect(pieces.map((p) => p.text).join("")).toBe(zh);
+    const hi = "यह पहला वाक्य है। ".repeat(100);
+    expect(voiceSegments(hi).every((p) => p.text.endsWith("।"))).toBe(true);
+    const ar = "هل هذه جملة؟ ".repeat(150);
+    expect(voiceSegments(ar).every((p) => p.text.endsWith("؟"))).toBe(true);
   });
 });

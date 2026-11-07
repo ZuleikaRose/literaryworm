@@ -12373,3 +12373,30 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$T
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-06'::date, '2026.11', 'feature', $lw$Natural voices: more languages, offline and in step$lw$, $lw$Natural voices for your uploads now read French, German, Spanish, Italian, Portuguese and Dutch books in their own language. Account → This month shows how much of your natural-voice reading is left, and the bell tells you when most is used. Parts you've played stay on your device to listen offline, the next chapter is voiced ahead on Wi-Fi, and the read-along follows each sentence.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices: more languages, offline and in step$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261107006711_natural_voice_languages_help.sql
+-- =============================================================================
+-- Natural voices in 17 languages besides English (lib/naturalVoice.ts): Help names them and says how a book's
+-- language is found. Same text as src/data/legalPages.json, matched as stored. Each change is made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$) > 0
+  and strpos(sections::text, $lw$Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.", "Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your EPUB's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$) > 0
+  and strpos(sections::text, $lw$Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your EPUB's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006712_whats_new_natural_voice_languages.sql
+-- =============================================================================
+-- What's new: natural voices in 17 languages besides English. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Natural voices in 17 languages$lw$, $lw$Natural voices for your uploads now also read Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog books in their own language, as well as French, German, Spanish, Italian, Portuguese and Dutch. The player finds a book's language in its EPUB when you upload it.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices in 17 languages$lw$ and c.version = '2026.11');

@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Natural voices in 17 languages",
+    "body": "Natural voices for your uploads now also read Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog books in their own language, as well as French, German, Spanish, Italian, Portuguese and Dutch. The player finds a book's language in its EPUB when you upload it.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-06",
     "version": "2026.11",
     "kind": "feature",

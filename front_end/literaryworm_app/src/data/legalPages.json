@@ -1696,7 +1696,8 @@
           "Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.",
           "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
           "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
-          "Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
+          "Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
+          "Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your EPUB's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.",
           "Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.",
           "To find one of your uploads, search them in My Library → Uploads by title, author, keywords or ISBN. Keywords also looks through the books' text and shows where the words are, each place a link to that page, on your device. An ISBN is looked up on Google Books and matched to your uploads by title and author."
         ]
@@ -1785,7 +1786,7 @@
         ]
       }
     ],
-    "updated": "2026-11-06"
+    "updated": "2026-11-07"
   },
   {
     "slug": "status",
