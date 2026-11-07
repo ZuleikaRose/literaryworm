@@ -22,7 +22,7 @@ const TALK = "It was late. “Are you coming?” said Elizabeth. Mr. Darcy repli
 const CHAPTERS = ["Letter one. It was cold.", LONG, TALK];
 
 function deps(overrides: Partial<Deps> = {}) {
-  const calls = { synthesize: [] as string[], stored: [] as string[], claimed: [] as number[], released: 0, limited: 0 };
+  const calls = { synthesize: [] as string[], stored: [] as string[], claimed: [] as number[], released: 0, limited: 0, profiles: [] as [string, number][] };
   const kept = new Set<string>();
   const d: Deps = {
     user: () => Promise.resolve(USER),
@@ -48,6 +48,10 @@ function deps(overrides: Partial<Deps> = {}) {
       kept.add(path);
       return Promise.resolve();
     },
+    recordProfile: (_user, profileId, characters) => {
+      calls.profiles.push([profileId, characters]);
+      return Promise.resolve();
+    },
     rateLimit: () => {
       calls.limited++;
       return Promise.resolve();
@@ -68,6 +72,8 @@ Deno.test("voices a piece once, keeps it, and plays the kept copy after that", a
   assertEquals(calls.synthesize, [voiceSegments(LONG)[1].text]);
   assertEquals(calls.claimed, [voiceSegments(LONG)[1].text.length]);
   assertEquals(calls.stored, [path]);
+  // Noted against the upload's profile, for the family report.
+  assertEquals(calls.profiles, [["p1", voiceSegments(LONG)[1].text.length]]);
 
   const again = await handle(ask(1, 1), d);
   assertEquals(await again.json(), { url: `https://signed/${path}` });

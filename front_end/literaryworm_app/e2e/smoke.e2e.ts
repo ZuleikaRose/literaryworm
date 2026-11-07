@@ -1803,6 +1803,21 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows each profile's listening this month in Account → Family", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#family");
+    const report = page.getByRole("region", { name: "This month's listening" });
+    const table = report.getByRole("table");
+    await table.getByRole("rowheader", { name: "Avery" }).waitFor();
+    await expect(table.getByRole("rowheader").count()).resolves.toBe(3);
+    // Avery's 40 minutes of natural voices (the demo's sample) put her first.
+    await expect(table.getByRole("row").nth(1).getByRole("rowheader").innerText()).resolves.toBe("Avery");
+    await expect(table.getByRole("row").nth(1).getByRole("cell").last().innerText()).resolves.toMatch(/40/);
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("prints Mia a certificate for her first finished book", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

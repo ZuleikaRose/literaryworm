@@ -61,6 +61,10 @@ Deno.serve((req) => {
       if (error) throw error;
     },
     synthesize,
+    recordProfile: async (userId, profileId, characters) => {
+      const { error } = await db.rpc("record_natural_voice_profile", { p_account: userId, p_profile: profileId, p_characters: characters });
+      if (error) throw error;
+    },
     store: async (path, audio) => {
       const { error } = await db.storage.from(VOICE_BUCKET).upload(path, audio, { contentType: "audio/mpeg", upsert: true });
       if (error) dbError("keep the voiced piece", error);

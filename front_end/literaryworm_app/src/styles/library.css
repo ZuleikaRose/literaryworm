@@ -2413,3 +2413,26 @@ body:has(.mini-player) .listen-along-bar {
   justify-content: space-between;
   gap: 8px;
 }
+
+/* This month's listening (components/FamilyUsage.tsx, Account → Family). */
+.family-usage {
+  margin: 20px 0;
+}
+.family-usage h3 {
+  margin: 0 0 6px;
+}
+.family-usage-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.family-usage-table th,
+.family-usage-table td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.family-usage-table thead th {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}

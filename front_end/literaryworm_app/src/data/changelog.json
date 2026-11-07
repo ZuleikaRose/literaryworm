@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "See who's using the hours",
+    "body": "Account → Family now shows each profile's audiobook listening and new natural-voice reading this month, so you can see where your plan's hours go.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "update",
     "title": "The sleep timer finishes the paragraph",
     "body": "When a voice reads the book's text, the sleep timer now runs on to the end of the paragraph, up to two minutes more, so you drift off at a break rather than mid-sentence.",

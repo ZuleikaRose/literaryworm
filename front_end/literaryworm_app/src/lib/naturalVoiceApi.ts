@@ -87,3 +87,11 @@ export async function naturalVoiceUsage(month: string): Promise<{ characters: nu
   if (error) throw new Error(error.message);
   return { characters: (data?.characters as number | undefined) ?? 0, mostlyUsedAt: (data?.mostly_used_at as string | null | undefined) ?? null };
 }
+
+/** This month's new natural-voice reading per profile, in characters (natural_voice_profile_usage), for the family report. */
+export async function naturalVoiceByProfile(month: string): Promise<Record<string, number>> {
+  if (!supabase) return {};
+  const { data, error } = await supabase.from("natural_voice_profile_usage").select("profile_id, characters").eq("month", month);
+  if (error) throw new Error(error.message);
+  return Object.fromEntries((data as { profile_id: string; characters: number }[]).map((r) => [r.profile_id, r.characters]));
+}

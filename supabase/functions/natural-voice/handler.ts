@@ -44,6 +44,8 @@ export type Deps = {
   synthesize: (text: string, voiceId: string, languageCode: string) => Promise<Uint8Array>;
   /** Keeps the MP3 at path. */
   store: (path: string, audio: Uint8Array) => Promise<void>;
+  /** Adds new voicing to the upload's profile's month, for the family report (a failure is only logged). */
+  recordProfile?: (userId: string, profileId: string, characters: number) => Promise<void>;
   rateLimit?: (userId: string) => Promise<void>;
 };
 
@@ -136,6 +138,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       throw err;
     }
     await deps.store(path, audio);
+    await deps.recordProfile?.(userId, upload.profileId, text.length).catch((e: unknown) => console.error("natural-voice: couldn't note the profile's use", e));
     const url = await deps.signedUrl(path);
     if (!url) throw new HttpError("server_error", "Something went wrong. Try again.");
     return json(req, METHODS, { url });

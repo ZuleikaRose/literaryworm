@@ -3,6 +3,7 @@ import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } fr
 import { Link, useNavigate } from "react-router-dom";
 import { AccountPasswordField } from "../components/AccountPasswordField";
 import { BillingHistory } from "../components/BillingHistory";
+import { FamilyUsage } from "../components/FamilyUsage";
 import { Avatar } from "../components/Avatar";
 import { ContentNotes } from "../components/ContentNotes";
 import { usesBackend } from "../lib/backend";
@@ -1441,6 +1442,7 @@ function FamilySection() {
       <Link className="secondary-button" to="/profiles?manage=1">
         {t("Manage profiles")}
       </Link>
+      <FamilyUsage />
       <BookRequests />
       <KidsReport />
     </Section>

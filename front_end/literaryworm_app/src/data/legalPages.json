@@ -418,6 +418,7 @@
           "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.",
           "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.",
           "Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them.",
+          "For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account.",
           "Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your uploaded book says it's written in, to offer voices in it."
         ]
       },
@@ -1763,7 +1764,8 @@
           "A grown-up can give a Kids profile a bedtime in its profile editor, with the account password: from 7pm to 10pm, and when reading starts again in the morning. Between them, on that device's clock, books and audiobooks show Time for bed and the place is saved; the password allows 15 more minutes.",
           "Grown-up and teen profiles can put a book on the family shelf from its page; it shows on Home for everyone at home, and Kids profiles see only the books their rating already allows.",
           "Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you.",
-          "On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded."
+          "On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded.",
+          "Account → Family has This month's listening: each profile's audiobook listening and new natural-voice reading this month, so you can see where the plan's hours go."
         ]
       },
       {

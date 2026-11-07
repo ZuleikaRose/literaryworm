@@ -13545,3 +13545,127 @@ where slug = 'help'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'update', $lw$Natural voices in the free week$lw$, $lw$A first membership's free week now includes 1 hour of natural-voice reading; your plan's full hours start with your first payment. If a payment fails, natural voices pause until one goes through.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices in the free week$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006772_payment_failed_policies.sql
+-- =============================================================================
+-- Failed payment nudges: the Privacy Policy lists the email; Help explains it. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"A reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and a gift membership a member asked us to email to you (its code, plan and months, the buyer's display name and any message they wrote)."$lw$, $lw$"A reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and a gift membership a member asked us to email to you (its code, plan and months, the buyer's display name and any message they wrote).", "A note when a membership payment fails (once for each failed payment, on the first attempt): that it didn't go through and where to update your payment method. It has your display name and nothing about the card."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$A note when a membership payment fails (once for each failed payment, on the first attempt): that it didn't go through and where to update your payment method. It has your display name and nothing about the card.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"During a first membership's free week, natural voices read up to 1 hour of new text; your plan's full hours start with your first payment. If a payment fails, natural voices pause until a payment goes through (update your card in Account → Plan and billing), and then they're back straight away."$lw$, $lw$"During a first membership's free week, natural voices read up to 1 hour of new text; your plan's full hours start with your first payment. If a payment fails, natural voices pause until a payment goes through (update your card in Account → Plan and billing), and then they're back straight away.", "If a membership payment fails, we email you once and the bell reminds you each day until it's fixed. Update your payment method in Account → Plan and billing; Stripe tries the payment again over the next few days."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$If a membership payment fails, we email you once and the bell reminds you each day until it's fixed. Update your payment method in Account → Plan and billing; Stripe tries the payment again over the next few days.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006773_whats_new_payment_nudges.sql
+-- =============================================================================
+-- What's new: A heads-up when a payment fails. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$A heads-up when a payment fails$lw$, $lw$If a membership payment doesn't go through, we now email you once and the bell reminds you each day, with a link to update your payment method, so your membership carries on without a gap.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A heads-up when a payment fails$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006774_sleep_paragraph_help.sql
+-- =============================================================================
+-- Sleep timer to the end of a paragraph: Help explains it. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before."$lw$, $lw$"Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before.", "When a voice reads the book's text (a natural voice or one of your device's), a sleep timer in minutes runs on to the end of the paragraph being read, up to 2 minutes more, so it fades out at a break instead of mid-sentence. LibriVox recordings stop at the minutes you chose."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$When a voice reads the book's text (a natural voice or one of your device's), a sleep timer in minutes runs on to the end of the paragraph being read, up to 2 minutes more, so it fades out at a break instead of mid-sentence. LibriVox recordings stop at the minutes you chose.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006775_whats_new_sleep_paragraph.sql
+-- =============================================================================
+-- What's new: The sleep timer finishes the paragraph. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$The sleep timer finishes the paragraph$lw$, $lw$When a voice reads the book's text, the sleep timer now runs on to the end of the paragraph, up to two minutes more, so you drift off at a break rather than mid-sentence.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$The sleep timer finishes the paragraph$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006776_natural_voice_profile_usage.sql
+-- =============================================================================
+-- The family listening report (Account → Family, components/FamilyUsage.tsx): how much new
+-- natural-voice reading each profile had voiced a month, beside its audiobook listening (which
+-- reading_days already keeps). Written only by record_natural_voice_profile() from the
+-- natural-voice function after a piece is voiced; the account reads its own rows. The account's
+-- allowance is still natural_voice_usage; this only says who used it.
+
+create table if not exists public.natural_voice_profile_usage (
+  account_id uuid not null,
+  profile_id uuid not null,
+  -- The first day of the month (UTC).
+  month      date not null check (extract(day from month) = 1),
+  characters integer not null default 0 check (characters >= 0),
+  primary key (account_id, profile_id, month),
+  foreign key (profile_id, account_id) references public.reader_profiles (id, account_id) on delete cascade
+);
+
+alter table public.natural_voice_profile_usage enable row level security;
+
+drop policy if exists "Members see their profiles' natural voice use" on public.natural_voice_profile_usage;
+create policy "Members see their profiles' natural voice use" on public.natural_voice_profile_usage for select to authenticated
+  using (account_id = (select auth.uid()));
+drop policy if exists "Two-step sign-in when turned on" on public.natural_voice_profile_usage;
+create policy "Two-step sign-in when turned on" on public.natural_voice_profile_usage as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.natural_voice_profile_usage from anon, authenticated;
+grant select (account_id, profile_id, month, characters) on public.natural_voice_profile_usage to authenticated;
+grant all on public.natural_voice_profile_usage to service_role;
+
+-- Adds a voiced piece's characters to its profile's month (the natural-voice function, service role).
+create or replace function public.record_natural_voice_profile(p_account uuid, p_profile uuid, p_characters integer)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.natural_voice_profile_usage (account_id, profile_id, month, characters)
+  values (p_account, p_profile, date_trunc('month', now() at time zone 'utc')::date, greatest(0, p_characters))
+  on conflict (account_id, profile_id, month) do update
+    set characters = public.natural_voice_profile_usage.characters + excluded.characters;
+$$;
+revoke execute on function public.record_natural_voice_profile(uuid, uuid, integer) from public, anon, authenticated;
+grant execute on function public.record_natural_voice_profile(uuid, uuid, integer) to service_role;
+
+-- Kept a year, like the rest of the month counts.
+select cron.schedule('natural-voice-profile-usage-cleanup', '40 3 * * *',
+  $$delete from public.natural_voice_profile_usage where month < (date_trunc('month', now()) - interval '12 months')::date$$);
+
+-- =============================================================================
+-- 20261107006777_index_natural_voice_profile_usage_profile.sql
+-- =============================================================================
+-- The foreign key natural_voice_profile_usage (profile_id, account_id) (account_id leads the primary key).
+create index concurrently if not exists natural_voice_profile_usage_profile_idx on public.natural_voice_profile_usage (profile_id, account_id);
+
+-- =============================================================================
+-- 20261107006778_family_usage_policies.sql
+-- =============================================================================
+-- Family listening report: the Privacy Policy says what's counted; Help explains it. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them."$lw$, $lw$"Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them.", "For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded."$lw$, $lw$"On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded.", "Account → Family has This month's listening: each profile's audiobook listening and new natural-voice reading this month, so you can see where the plan's hours go."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Account → Family has This month's listening: each profile's audiobook listening and new natural-voice reading this month, so you can see where the plan's hours go.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006779_whats_new_family_usage.sql
+-- =============================================================================
+-- What's new: See who's using the hours. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$See who's using the hours$lw$, $lw$Account → Family now shows each profile's audiobook listening and new natural-voice reading this month, so you can see where your plan's hours go.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$See who's using the hours$lw$ and c.released_on = '2026-11-07');
