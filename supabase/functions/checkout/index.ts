@@ -6,8 +6,8 @@ import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
 
 const PRICES: Record<BillingInterval, Record<PlanId, string>> = {
-  month: { basic: "$30.00", standard: "$40.00", premium: "$50.00" },
-  year: { basic: "$300.00", standard: "$400.00", premium: "$500.00" },
+  month: { basic: "$30.00", standard: "$40.00", premium: "$60.00" },
+  year: { basic: "$300.00", standard: "$400.00", premium: "$600.00" },
 };
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th"}`;

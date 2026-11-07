@@ -12400,3 +12400,25 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Natural voices in 17 languages$lw$, $lw$Natural voices for your uploads now also read Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog books in their own language, as well as French, German, Spanish, Italian, Portuguese and Dutch. The player finds a book's language in its EPUB when you upload it.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices in 17 languages$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261107006713_premium_price_60.sql
+-- =============================================================================
+-- Premium's new price: $60.00 a month ($600.00 a year; a year is still ten months). Basic ($30.00)
+-- and Standard ($40.00) are unchanged, and so are Premium's profiles, listening, offline devices and
+-- natural-voice hours. src/data/plans.ts, PRICES in checkout/index.ts and index.html say the same.
+--
+-- In Stripe Premium's new prices take over its lookup keys (literaryworm_premium_monthly / _yearly,
+-- transfer_lookup_key) and the old ones are archived: memberships already running keep the price
+-- they started on. Referral credits (a month of the member's own plan) read price_cents from here.
+
+update public.plans set price_cents = 6000, yearly_price_cents = 60000 where id = 'premium';
+
+-- =============================================================================
+-- 20261107006714_whats_new_premium_price.sql
+-- =============================================================================
+-- What's new: Premium's price from migration 6713. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$A new price for Premium$lw$, $lw$From today, Premium is $60.00 a month ($600.00 a year; paying yearly still gets two months free). It keeps up to 12 profiles, unlimited audiobooks, 24 offline devices and up to 12 hours a month of Google's Chirp 3 HD voices for your uploads. Basic ($30.00) and Standard ($40.00) are unchanged. If you're already a member, your price stays as it is.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A new price for Premium$lw$ and c.released_on = '2026-11-07');

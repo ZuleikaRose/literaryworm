@@ -22,7 +22,7 @@ export function canonicalUrl(pathname: string): string {
 export const LOGO_URL = `${SITE_URL}/icons/icon-512.png`;
 export const SUPPORT_EMAIL = "support@literaryworm.com";
 
-/** "Basic $30.00, Standard $40.00 or Premium $50.00 a month" */
+/** "Basic $30.00, Standard $40.00 or Premium $60.00 a month" */
 export const planPrices = () =>
   `${plans
     .map((p) => `${p.name} ${formatPrice(p.price)}`)

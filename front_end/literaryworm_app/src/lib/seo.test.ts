@@ -10,8 +10,8 @@ const meta = (attr: string) => html.match(new RegExp(`<meta ${attr} content="([^
 
 describe("search results", () => {
   it("names every plan's monthly price", () => {
-    expect(planPrices()).toBe("Basic $30.00, Standard $40.00 or Premium $50.00 a month");
-    expect(plansDescription()).toContain("Yearly: Basic $300.00, Standard $400.00, Premium $500.00.");
+    expect(planPrices()).toBe("Basic $30.00, Standard $40.00 or Premium $60.00 a month");
+    expect(plansDescription()).toContain("Yearly: Basic $300.00, Standard $400.00, Premium $600.00.");
   });
 
   it("keeps index.html's description in step with the plans", () => {
@@ -35,7 +35,7 @@ describe("page structured data", () => {
     const product = membershipData();
     expect(product.image).toMatch(/^https:\/\/www\.literaryworm\.com\//);
     expect(product.offers).toHaveLength(plans.length * 2);
-    expect(product.offers.map((o) => o.price)).toEqual(["30.00", "300.00", "40.00", "400.00", "50.00", "500.00"]);
+    expect(product.offers.map((o) => o.price)).toEqual(["30.00", "300.00", "40.00", "400.00", "60.00", "600.00"]);
     expect(product.offers[0].hasMerchantReturnPolicy.returnPolicyCategory).toBe("https://schema.org/MerchantReturnNotPermitted");
   });
 

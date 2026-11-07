@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "update",
+    "title": "A new price for Premium",
+    "body": "From today, Premium is $60.00 a month ($600.00 a year; paying yearly still gets two months free). It keeps up to 12 profiles, unlimited audiobooks, 24 offline devices and up to 12 hours a month of Google's Chirp 3 HD voices for your uploads. Basic ($30.00) and Standard ($40.00) are unchanged. If you're already a member, your price stays as it is.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Natural voices in 17 languages",
     "body": "Natural voices for your uploads now also read Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog books in their own language, as well as French, German, Spanish, Italian, Portuguese and Dutch. The player finds a book's language in its EPUB when you upload it.",
