@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Reading schedules for book clubs",
+    "body": "A club's owner can now set how many chapters a week the club reads. Everyone sees this week's chapters on the club's page, and whether they're on track, ahead or behind.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Export your notes as a PDF",
     "body": "My Library → Notes now saves a book's highlights, notes and journal, or all of them, as a tidy PDF as well as Markdown and plain text: chapters in order, each quote marked, with its page and your note. It's made on your device.",
     "major": false

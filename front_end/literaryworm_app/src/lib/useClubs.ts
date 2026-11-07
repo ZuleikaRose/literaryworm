@@ -47,6 +47,8 @@ function seedDemo(you: string): DemoClub[] {
         inviteCode: "SundayRead",
         ownerId: "demo-jordan",
         memberCount: 3,
+        // Six chapters a week, so the club page shows a schedule.
+        chaptersPerWeek: 6,
       },
       members: [
         { userId: "demo-jordan", name: "Jordan" },
@@ -271,6 +273,15 @@ export function useClubs() {
     [remote, demo],
   );
 
+  const setSchedule = useCallback(
+    async (id: string, chaptersPerWeek: number | null) => {
+      if (remote) return clubsApi.setClubSchedule(id, chaptersPerWeek);
+      const found = demo().find((c) => c.club.id === id);
+      if (found) found.club.chaptersPerWeek = chaptersPerWeek;
+    },
+    [remote, demo],
+  );
+
   const setNotify = useCallback(
     async (id: string, notify: boolean) => {
       if (remote) return clubsApi.setClubNotify(id, notify);
@@ -280,7 +291,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy }),
-    [remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy, setSchedule }),
+    [setSchedule, remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy],
   );
 }

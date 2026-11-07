@@ -1,0 +1,9 @@
+-- Club reading schedules: Help says what they show and that nobody sees another member's place.
+-- Same text as src/data/legalPages.json; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it.", "A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$) > 0
+  and strpos(sections::text, $lw$A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's.$lw$) = 0;
+

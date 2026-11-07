@@ -2351,3 +2351,18 @@ body:has(.mini-player) .listen-along-bar {
   color: var(--success);
   vertical-align: -2px;
 }
+
+/* A club's reading schedule (components/ClubSchedule.tsx), in the side column. */
+.club-schedule p {
+  margin: 0 0 6px;
+}
+.club-schedule-standing {
+  font-weight: 600;
+}
+.club-schedule-onTrack,
+.club-schedule-ahead {
+  color: var(--success);
+}
+.club-schedule-behind {
+  color: var(--rust-ink);
+}

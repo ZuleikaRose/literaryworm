@@ -496,6 +496,18 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows the club's reading schedule and where this member stands against it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const schedule = page.getByRole("region", { name: "Reading schedule" });
+    // Started two weeks ago at six chapters a week: week 3.
+    await schedule.getByText(/^Week 3 of 11/).waitFor();
+    await schedule.getByText(/^This week: /).waitFor();
+    await schedule.getByText(/^You're (on track|\d+ chapters? (ahead|behind))\.$/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("answers the sample club's meeting and shows who's coming", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

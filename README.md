@@ -516,5 +516,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Bedtime in the Kids report: `record_bedtime()`, `reading_days.bedtime_minutes`/`late_minutes`, `kids_report_week()` returns them. Migrations 6733–6735; kids-report redeploy. |
 | —    | Theme challenges: a fourth challenge kind, nine prompts worked out in the browser. Migrations 6736–6737. |
 | —    | Notes as a PDF: a small in-browser PDF writer (`lib/notesPdf.ts`). Migrations 6738–6739 (text only). |
+| —    | Club reading schedules: `book_clubs.chapters_per_week`, worked out per member in the browser. Migrations 6740–6742. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

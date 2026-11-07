@@ -46,6 +46,7 @@ import { activeReading } from "../store/reducer";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
 import { speedFor } from "../lib/bookSpeed";
+import { ClubSchedule } from "../components/ClubSchedule";
 
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
 
@@ -738,6 +739,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         </section>
 
         <aside className="club-side">
+          <ClubSchedule club={club} book={book} isOwner={isOwner} mine={mine} />
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ClubPolls clubId={club.id} isOwner={isOwner} me={me} members={members} ageRating={profile?.ageRating ?? "all"} />
           <ReadingSprint scope={{ kind: "club", clubId: club.id }} readPath={`/read/${book.id}`} />

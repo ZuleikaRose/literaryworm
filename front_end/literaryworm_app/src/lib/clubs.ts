@@ -27,6 +27,8 @@ export interface Club {
   memberCount: number;
   /** A buddy read: a club for two, started from a book's page (book_clubs.buddy, migration 6612). */
   buddy?: boolean;
+  /** The reading schedule's chapters a week (lib/clubSchedule.ts); null or missing when there's none. */
+  chaptersPerWeek?: number | null;
 }
 
 /** How many readers a buddy read takes (join_club() checks the same). */
