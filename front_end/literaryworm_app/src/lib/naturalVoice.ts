@@ -195,12 +195,14 @@ export function voiceFile(userId: string, uploadId: string, voiceId: string, cha
 
 /**
  * Character voices: when the listener turns them on, what the characters say (the text inside
- * double quotes, “…”, "…", «…» or „…“) is read by other voices than the narration. A speaker named
+ * quotation marks or dash dialogue) is read by other voices than the narration. A speaker named
  * beside the words ("said Elizabeth", "Mr. Darcy replied") keeps the same voice all book long;
  * words with no named speaker take the speaker named elsewhere in the same paragraph, else, when
  * two people are talking in turn, the one who spoke the paragraph before last, else one voice kept
- * for speech. Voices are dealt out, not matched to the character. Names are found in English,
- * French, German and Spanish books; in other languages speech still gets its own voice. Chapters with no speech are
+ * for speech. Voices are dealt out, not matched to the character. Speech and names are found in
+ * every language uploads are read in: quotation marks of each (and 「」 『』), dialogue that opens
+ * a paragraph with a dash, verbs of saying (SAID_BY_LANGUAGE) beside capitalised names in Latin and
+ * Cyrillic scripts, and the words around the verb in Chinese, Japanese, Korean, Hindi and Arabic. Chapters with no speech are
  * read exactly as without character voices (the same pieces, the same files).
  */
 export const CAST_NAMES: readonly string[] = ["Charon", "Kore", "Puck", "Leda", "Fenrir", "Zephyr", "Orus", "Despina"];
@@ -218,26 +220,110 @@ export interface CastSegment extends VoiceSegment {
   speaker: string | null;
 }
 
-// English, then French, German and Spanish verbs of saying.
-const SAID =
-  "said|says|asked|asks|cried|replied|answered|shouted|whispered|exclaimed|continued|added|returned|called|muttered|murmured|began|remarked|observed|declared|repeated|insisted|demanded|inquired|enquired|sighed|laughed|growled|snapped|" +
-  "dit|demanda|répondit|s'écria|reprit|ajouta|murmura|cria|répliqua|" +
-  "sagte|fragte|antwortete|rief|flüsterte|meinte|erwiderte|" +
-  "dijo|preguntó|respondió|exclamó|contestó|gritó|añadió";
-const NAME = "(?:(?:Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur)\\.?\\s+)?[A-Z][a-zà-ÿ'’-]+";
-const AFTER = new RegExp(`^[,.!?;:—–-]?\\s*(?:(${NAME})\\s+(?:${SAID})(?!\\p{L})|(?:${SAID})\\s+(${NAME}))`, "u");
-const BEFORE = new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+(${NAME}))\\s*[,:]?\\s*$`, "u");
+// Verbs of saying in the languages uploads are read in, for books that write names with capital
+// letters (Latin and Cyrillic scripts): "said Elizabeth", "Elizabeth said", "dijo Juan", "сказал Иван".
+const SAID_BY_LANGUAGE: Record<string, string[]> = {
+  en: ["said", "says", "asked", "asks", "cried", "replied", "answered", "shouted", "whispered", "exclaimed", "continued", "added", "returned", "called", "muttered", "murmured", "began", "remarked", "observed", "declared", "repeated", "insisted", "demanded", "inquired", "enquired", "sighed", "laughed", "growled", "snapped"],
+  fr: ["dit", "demanda", "répondit", "s'écria", "s’écria", "reprit", "ajouta", "murmura", "cria", "répliqua", "s'exclama", "s’exclama", "chuchota"],
+  de: ["sagte", "fragte", "antwortete", "rief", "flüsterte", "meinte", "erwiderte", "murmelte", "schrie"],
+  es: ["dijo", "preguntó", "respondió", "exclamó", "contestó", "gritó", "añadió", "murmuró", "susurró", "replicó"],
+  pt: ["disse", "perguntou", "respondeu", "gritou", "exclamou", "murmurou", "sussurrou", "acrescentou", "retrucou"],
+  it: ["disse", "chiese", "rispose", "gridò", "esclamò", "domandò", "sussurrò", "mormorò", "aggiunse", "replicò"],
+  nl: ["zei", "vroeg", "antwoordde", "riep", "fluisterde", "mompelde", "zegt", "vraagt"],
+  pl: ["powiedział", "powiedziała", "zapytał", "zapytała", "spytał", "spytała", "odpowiedział", "odpowiedziała", "krzyknął", "krzyknęła", "rzekł", "rzekła", "szepnął", "szepnęła"],
+  sv: ["sade", "sa", "frågade", "svarade", "ropade", "viskade", "utbrast", "mumlade"],
+  tr: ["dedi", "sordu", "diye sordu", "cevap verdi", "yanıtladı", "bağırdı", "fısıldadı"],
+  tl: ["sabi ni", "tanong ni", "sagot ni", "sigaw ni", "bulong ni", "wika ni"],
+  ru: ["сказал", "сказала", "спросил", "спросила", "ответил", "ответила", "крикнул", "крикнула", "прошептал", "прошептала", "воскликнул", "воскликнула", "произнёс", "произнесла"],
+  uk: ["сказав", "сказала", "запитав", "запитала", "спитав", "спитала", "відповів", "відповіла", "крикнув", "крикнула", "прошепотів", "прошепотіла", "вигукнув", "вигукнула"],
+};
+// Longest first, so "sade" is tried before "sa".
+const SAID = Object.values(SAID_BY_LANGUAGE)
+  .flat()
+  .sort((a, b) => b.length - a.length)
+  .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+"))
+  .join("|");
+const TITLES = "Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur|Mademoiselle|Herr|Frau|Señor|Señora|Don|Doña|Dom|Dona|Signor|Signora|Pan|Pani|Fru|Bay|Bayan|Gospodin";
+const NAME = `(?:(?:${TITLES})\\.?\\s+)?\\p{Lu}[\\p{Ll}\\p{M}'’-]+`;
+// Scripts without capital letters name speakers with words around the verb.
+const HAN_SAID = "说道|问道|答道|喊道|叫道|回答|说|问|道|喊";
+const JA_SAID = "言った|言う|聞いた|尋ねた|答えた|叫んだ|呟いた|つぶやいた|囁いた|ささやいた";
+const KO_SAID = "말했다|물었다|대답했다|외쳤다|속삭였다|중얼거렸다";
+const HI_SAID = "कहा|पूछा|जवाब दिया|उत्तर दिया|चिल्लाया|चिल्लाई|बोला|बोली";
+const AR_SAID = "قال|قالت|سأل|سألت|أجاب|أجابت|صاح|صاحت|همس|همست";
+/** After the words: each pattern's first group that matched is the speaker. */
+const AFTER = [
+  new RegExp(`^[\\s,.!?;:—–―-]*(?:(${NAME})\\s+(?:${SAID})(?!\\p{L})|(?:${SAID})\\s+(${NAME}))`, "u"),
+  new RegExp(`^[，,。.]?\\s*(\\p{Script=Han}{2,3})(?:${HAN_SAID})`, "u"),
+  new RegExp(`^と(?:(\\p{Script=Han}{1,4}|\\p{Script=Katakana}{2,8})(?:は|が))?(?:${JA_SAID})`, "u"),
+  new RegExp(`^(?:라고|하고)\\s*(\\p{Script=Hangul}{2,4})(?:이|가|은|는)\\s*(?:${KO_SAID})`, "u"),
+  new RegExp(`^[,।]?\\s*(\\p{Script=Devanagari}+)\\s+ने\\s+(?:${HI_SAID})`, "u"),
+  new RegExp(`^[،,.]?\\s*(?:${AR_SAID})\\s+(\\p{Script=Arabic}{2,})`, "u"),
+];
+/** Before the words. */
+const BEFORE = [
+  new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+(${NAME}))\\s*[,:]?\\s*$`, "u"),
+  new RegExp(`(\\p{Script=Han}{2,3})(?:${HAN_SAID})[:：，,]?\\s*$`, "u"),
+  new RegExp(`(\\p{Script=Han}{1,4}|\\p{Script=Katakana}{2,8})(?:は|が)\\s*$`, "u"),
+  new RegExp(`(\\p{Script=Hangul}{2,4})(?:이|가|은|는)\\s*(?:${KO_SAID})[.:]?\\s*$`, "u"),
+  new RegExp(`(\\p{Script=Devanagari}+)\\s+ने\\s+(?:${HI_SAID})[,:]?\\s*$`, "u"),
+  new RegExp(`(?:${AR_SAID})\\s+(\\p{Script=Arabic}{2,})\\s*[:،,]?\\s*$`, "u"),
+];
+// Pronouns and the like, which aren't names, in every language above.
 const NOT_NAMES = new Set([
   "he", "she", "i", "they", "it", "we", "you", "one", "the", "this", "that", "then", "there", "her", "his", "him", "someone", "everyone", "nobody", "somebody",
-  "il", "elle", "ils", "elles", "on", "je", "er", "sie", "es", "ich", "man", "él", "ella", "yo", "ellos",
+  "il", "elle", "ils", "elles", "on", "je", "er", "sie", "es", "ich", "man", "él", "ella", "yo", "ellos", "ellas", "usted",
+  "ele", "ela", "eles", "eu", "você", "lui", "lei", "egli", "ella", "io", "hij", "zij", "ze", "ik", "jij",
+  "ona", "oni", "ja", "ty", "han", "hon", "jag", "de", "o", "ben", "sen", "siya", "ako", "ikaw",
+  "он", "она", "они", "я", "ты", "він", "вона", "вони",
+  "他", "她", "我", "你", "他们", "她们", "彼", "彼女", "私", "僕", "俺", "그", "그녀", "나", "너", "वह", "मैं", "उस", "هو", "هي", "أنا",
 ]);
-// Words inside double quotes, to the end of the paragraph when the closing quote is left off (as
-// novels do when a speech runs on into the next paragraph).
-const QUOTED = /“[^”\n]*(?:”|(?=\n)|$)|"[^"\n]*(?:"|(?=\n)|$)|«[^»\n]*(?:»|(?=\n)|$)|„[^“”\n]*(?:[“”]|(?=\n)|$)/g;
+// Words inside quotation marks, to the end of the paragraph when the closing mark is left off (as
+// novels do when a speech runs on into the next paragraph): “…”, "…", «…», „…“, ”…” (Swedish),
+// ‹…›, and the Japanese and Chinese 「…」 and 『…』.
+const QUOTED =
+  /“[^”\n]*(?:”|(?=\n)|$)|"[^"\n]*(?:"|(?=\n)|$)|«[^»\n]*(?:»|(?=\n)|$)|„[^“”\n]*(?:[“”]|(?=\n)|$)|”[^”\n]*(?:”|(?=\n)|$)|‹[^›\n]*(?:›|(?=\n)|$)|「[^」\n]*(?:」|(?=\n)|$)|『[^』\n]*(?:』|(?=\n)|$)/g;
+// A paragraph that opens with a dash is dialogue (Spanish, Portuguese, Italian, Polish, Russian,
+// Ukrainian, Swedish, Turkish…): "—Hola —dijo Juan—. ¿Vienes?" is speech, narration, speech.
+const DASH = /[—–―]/g;
 
-function speakerIn(match: RegExpExecArray | null): string | null {
-  const name = match ? (match[1] ?? match[2] ?? null) : null;
-  return name && !NOT_NAMES.has(name.toLowerCase()) ? name.replace(/\s+/g, " ") : null;
+function speakerIn(text: string, patterns: RegExp[]): string | null {
+  for (const pattern of patterns) {
+    const m = pattern.exec(text);
+    const name = m ? (m.slice(1).find((g) => g !== undefined) ?? null) : null;
+    if (name) return NOT_NAMES.has(name.toLowerCase()) ? null : name.replace(/\s+/g, " ");
+  }
+  return null;
+}
+
+/** Where the speech is: quoted words anywhere, and the spoken parts of paragraphs that open with a dash. */
+function speechSpans(chapter: string): { start: number; end: number }[] {
+  const spans: { start: number; end: number }[] = [];
+  for (const m of chapter.matchAll(QUOTED)) spans.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length });
+  let lineStart = 0;
+  for (const line of chapter.split("\n")) {
+    const lead = /^\s*[—–―]\s*/.exec(line);
+    if (lead) {
+      const dashes = [...line.matchAll(DASH)].map((m) => m.index ?? 0);
+      // Between dashes the parts take turns: speech, narration, speech…
+      for (let i = 0; i < dashes.length; i += 2) {
+        let start = dashes[i] + 1;
+        let end = i + 1 < dashes.length ? dashes[i + 1] : line.length;
+        while (start < end && /\s/.test(line[start])) start++;
+        while (end > start && /\s/.test(line[end - 1])) end--;
+        if (end > start) spans.push({ start: lineStart + start, end: lineStart + end });
+      }
+    }
+    lineStart += line.length + 1;
+  }
+  // In order, without overlaps (a quotation inside dash dialogue counts once), each with something to say.
+  spans.sort((a, b) => a.start - b.start);
+  const kept: { start: number; end: number }[] = [];
+  for (const s of spans) {
+    if (kept.length && s.start < kept[kept.length - 1].end) continue;
+    if (/[\p{L}\p{N}]/u.test(chapter.slice(s.start, s.end))) kept.push(s);
+  }
+  return kept;
 }
 
 /**
@@ -245,18 +331,19 @@ function speakerIn(match: RegExpExecArray | null): string | null {
  * speaker named for each speech; null when the chapter has no speech (read as voiceSegments()).
  */
 export function castSegments(chapter: string): CastSegment[] | null {
-  const quotes: { start: number; end: number; speaker: string | null }[] = [];
-  for (const m of chapter.matchAll(QUOTED)) {
-    const start = m.index ?? 0;
-    const end = start + m[0].length;
-    // Something to say: a letter or digit inside the quotes.
-    if (!/[\p{L}\p{N}]/u.test(m[0])) continue;
-    const lineStart = chapter.lastIndexOf("\n", start - 1) + 1;
-    const nextQuote = chapter.slice(end).search(/[“"«„\n]/);
-    const after = chapter.slice(end, nextQuote < 0 ? chapter.length : end + nextQuote);
-    const before = chapter.slice(Math.max(lineStart, start - 60), start);
-    quotes.push({ start, end, speaker: speakerIn(AFTER.exec(after)) ?? speakerIn(BEFORE.exec(before)) });
-  }
+  const spans = speechSpans(chapter);
+  const quotes: { start: number; end: number; speaker: string | null }[] = spans.map((s, i) => {
+    const lineStart = chapter.lastIndexOf("\n", s.start - 1) + 1;
+    const lineEnd = chapter.indexOf("\n", s.end);
+    const next = spans[i + 1]?.start ?? chapter.length;
+    const limit = Math.min(next, lineEnd < 0 ? chapter.length : lineEnd);
+    const after = chapter.slice(s.end, limit);
+    // Words that run up to the next speech, in one clause ending in a colon or comma, introduce it
+    // ("Mary said: “…”"), so they name the next speaker, not this one.
+    const introducesNext = limit === next && /[,:：，،]\s*$/u.test(after) && !/[.!?。！？।؟]/u.test(after);
+    const before = chapter.slice(Math.max(lineStart, s.start - 60, spans[i - 1]?.end ?? 0), s.start);
+    return { ...s, speaker: (introducesNext ? null : speakerIn(after, AFTER)) ?? speakerIn(before, BEFORE) };
+  });
   if (!quotes.length) return null;
   // Unnamed speech takes the speaker named nearest it in the same paragraph.
   const paragraphOf = (at: number) => chapter.lastIndexOf("\n", at - 1);

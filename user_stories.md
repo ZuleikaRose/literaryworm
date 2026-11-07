@@ -463,3 +463,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Notes as a PDF (new request) | — | Done | My Library → Notes exports a formatted PDF beside Markdown and text, made in the browser. Help 6738, What's new 6739. |
 | Club reading schedules (new request) | — | Done | A club's owner sets chapters a week; members see this week's chapters and whether they're on track. `book_clubs.chapters_per_week` (6740), Help 6741, What's new 6742. |
 | Voice a whole upload for offline listening (new request) | — | Done | *Voice the whole book* in the player voices and keeps every part on the device, on Wi-Fi, within the month's allowance. Policies 6743, What's new 6744. |
+| Character voices in every language (new request) | — | Done | Speech and speakers found in all 18 natural-voice languages: quotation marks, dash dialogue, verbs of saying, CJK/Hindi/Arabic patterns. Help 6745, What's new 6746. |

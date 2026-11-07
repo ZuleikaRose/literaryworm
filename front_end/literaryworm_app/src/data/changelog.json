@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Character voices in every language",
+    "body": "Character voices now find who's talking in all 18 languages natural voices read your uploads in, from Italian, Polish and Russian to Chinese, Japanese, Korean, Hindi and Arabic: each language's quotation marks, dialogue that starts with a dash, and the words that name the speaker.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Voice a whole upload for offline listening",
     "body": "In the player, Voice the whole book (under the natural voice reading your upload) has your natural voice read every part now, on Wi-Fi, and keeps it on your device, so the whole book plays offline. Parts already voiced don't count towards the month's natural-voice reading.",

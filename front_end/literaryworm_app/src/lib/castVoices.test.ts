@@ -92,4 +92,45 @@ describe("character voices", () => {
     const es = castSegments("“¿Vienes?”, preguntó Lucía. “Sí”, dijo él.")!.filter((p) => p.speech);
     expect(es.map((p) => p.speaker)).toEqual(["Lucía", "Lucía"]);
   });
+
+  const speakers = (chapter: string) => castSegments(chapter)!.filter((p) => p.speech).map((p) => [p.text, p.speaker]);
+
+  it.each([
+    ["Portuguese", "“Você vem?”, perguntou Maria. “Sim”, respondeu João.", ["Maria", "João"]],
+    ["Italian", "«Vieni?» chiese Lucia. «Sì» rispose Marco.", ["Lucia", "Marco"]],
+    ["Dutch", "„Kom je?” vroeg Anna. „Ja,” zei Pieter.", ["Anna", "Pieter"]],
+    ["Polish", "„Idziesz?” zapytała Ola. „Tak” – odpowiedział Piotr.", ["Ola", "Piotr"]],
+    ["Swedish", "”Kommer du?” frågade Anna. ”Ja”, sa Erik.", ["Anna", "Erik"]],
+    ["Turkish", "“Geliyor musun?” diye sordu Ayşe. “Evet,” dedi Mehmet.", ["Ayşe", "Mehmet"]],
+    ["Tagalog", "“Sasama ka ba?” tanong ni Maria. “Oo,” sabi ni Juan.", ["Maria", "Juan"]],
+    ["Russian", "«Ты идёшь?» — спросила Анна. «Да», — ответил Иван.", ["Анна", "Иван"]],
+    ["Ukrainian", "«Ти йдеш?» — запитала Оксана. «Так», — відповів Тарас.", ["Оксана", "Тарас"]],
+    ["Chinese", "张伟说：“你来吗？”李娜回答：“来。”", ["张伟", "李娜"]],
+    ["Japanese", "「行くの？」と花子が聞いた。「うん」と太郎が答えた。", ["花子", "太郎"]],
+    ["Korean", "“갈래?”라고 민수가 물었다. “응”이라고 했다.", ["민수", "민수"]],
+    ["Hindi", "राम ने कहा, “चलो।” सीता ने पूछा, “कहाँ?”", ["राम", "सीता"]],
+    ["Arabic", "قال أحمد: «هل تأتي؟» أجابت ليلى: «نعم».", ["أحمد", "ليلى"]],
+  ])("finds speakers in %s", (_language, chapter, names) => {
+    expect(speakers(chapter).map(([, who]) => who)).toEqual(names);
+  });
+
+  it("reads dash dialogue as speech, narration, speech", () => {
+    const parts = castSegments("—Hola —dijo Juan—. ¿Vienes?\n—Sí —respondió Ana.")!;
+    expect(parts.filter((p) => p.speech).map((p) => [p.text, p.speaker])).toEqual([
+      ["Hola", "Juan"],
+      [". ¿Vienes?", "Juan"],
+      ["Sí", "Ana"],
+    ]);
+    // The narration between is the narrator's.
+    expect(parts.some((p) => !p.speech && p.text.includes("dijo Juan"))).toBe(true);
+    // Russian dash dialogue, with a pronoun: turn-taking gives the speaker.
+    const ru = castSegments("— Привет, — сказал Иван.\n— Здравствуй, — ответила Анна.\n— Как дела? — спросил он.")!.filter((p) => p.speech);
+    expect(ru.map((p) => p.speaker)).toEqual(["Иван", "Анна", "Иван"]);
+  });
+
+  it("keeps pronouns out in every language, and handles empty input", () => {
+    expect(speakers("“Oui”, dit-il. «Да», — сказал он.").map(([, who]) => who)).toEqual([null, null]);
+    expect(castSegments("— ")).toBeNull();
+    expect(castSegments("「」")).toBeNull();
+  });
 });

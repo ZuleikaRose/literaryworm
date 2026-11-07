@@ -518,5 +518,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Notes as a PDF: a small in-browser PDF writer (`lib/notesPdf.ts`). Migrations 6738–6739 (text only). |
 | —    | Club reading schedules: `book_clubs.chapters_per_week`, worked out per member in the browser. Migrations 6740–6742. |
 | —    | Voice the whole book: natural-voice parts voiced ahead for a whole upload. Migrations 6743–6744 (text only). |
+| —    | Character voices in every language: speaker detection for all 18 natural-voice languages. Migrations 6745–6746 (text only); natural-voice redeploy. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
