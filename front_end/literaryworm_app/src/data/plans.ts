@@ -27,7 +27,7 @@ export const plans: Plan[] = [
       tk("Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story"),
       tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, reading sprints, shared highlights, listening along and where everyone is in the book"),
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
-      tk("Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
+      tk("Upload your own DRM-free EPUB, PDF and Kindle books, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
       tk("Natural voices from Google to read your uploads aloud: 2 hours of new voicing a month, and listening again is free"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
@@ -160,7 +160,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can my book club read a book I bought?"),
-    a: tk("Yes, if it's a DRM-free EPUB. Upload it in My Library → Uploads, then start a club and choose My uploads under Book from; find it by title, author, ISBN or keywords, and sort the list by title, author, numbers or series. Your file stays private: the club sees only the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion follows their place and never spoils what's ahead."),
+    a: tk("Yes, if it's a DRM-free EPUB, PDF or Kindle book. Upload it in My Library → Uploads, then start a club and choose My uploads under Book from; find it by title, author, ISBN or keywords, and sort the list by title, author, numbers or series. Your file stays private: the club sees only the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion follows their place and never spoils what's ahead."),
   },
   {
     q: tk("Can LiteraryWorm read my own books aloud?"),

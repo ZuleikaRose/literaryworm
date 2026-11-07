@@ -12723,3 +12723,56 @@ where slug = $lw$accessibility$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Bedtime listening$lw$, $lw$A dim, quiet way to listen before sleep, in the player and the mini-player's More: it sets the sleep timer for you (the end of the chapter when that's near, otherwise 15 minutes), the sound fades out at the end, and Dimmer darkens the screen further. Kids profiles with a bedtime are offered it in the player shortly before. The end-of-chapter sleep timer now fades out everywhere, like the minutes one.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Bedtime listening$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006724_pdf_kindle_uploads_policies.sql
+-- =============================================================================
+-- PDF and Kindle uploads (lib/bookFile.ts, lib/pdf.ts, lib/mobi.ts): Help, the Accessibility Policy, the Privacy
+-- Policy and the EULA name the new formats. Same text as src/data/legalPages.json, matched as stored. Each
+-- change is made once; a paragraph an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks."$lw$, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks."$lw$) > 0
+  and strpos(sections::text, $lw$Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks."$lw$, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks.", "A PDF keeps its text, split into parts at its bookmarks (or every 20 pages); scanned pages have no text to read. A Kindle book packed with Amazon's own compression needs converting to EPUB first (Calibre does it for free). Everything is read on your device, and only the text is kept."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks."$lw$) > 0
+  and strpos(sections::text, $lw$A PDF keeps its text, split into parts at its bookmarks (or every 20 pages); scanned pages have no text to read. A Kindle book packed with Amazon's own compression needs converting to EPUB first (Calibre does it for free). Everything is read on your device, and only the text is kept.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Books you upload show their text only; images and tables in the original EPUB aren't shown."$lw$, $lw$"Books you upload show their text only; images and tables in the original EPUB, PDF or Kindle file aren't shown."$lw$)::jsonb
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$"Books you upload show their text only; images and tables in the original EPUB aren't shown."$lw$) > 0
+  and strpos(sections::text, $lw$Books you upload show their text only; images and tables in the original EPUB, PDF or Kindle file aren't shown.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your EPUB says it's written in, to offer voices in it."$lw$, $lw$"Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your uploaded book says it's written in, to offer voices in it."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your EPUB says it's written in, to offer voices in it."$lw$) > 0
+  and strpos(sections::text, $lw$Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your uploaded book says it's written in, to offer voices in it.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUBs they upload."$lw$, $lw$"The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUB, PDF and Kindle books they upload."$lw$)::jsonb
+where slug = $lw$eula$lw$
+  and strpos(sections::text, $lw$"The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUBs they upload."$lw$) > 0
+  and strpos(sections::text, $lw$The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUB, PDF and Kindle books they upload.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your EPUB's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your EPUB's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$) > 0
+  and strpos(sections::text, $lw$Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006725_whats_new_pdf_kindle_uploads.sql
+-- =============================================================================
+-- What's new: Upload PDFs and Kindle books. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Upload PDFs and Kindle books$lw$, $lw$My Library → Uploads now takes PDFs and DRM-free Kindle books (MOBI and AZW3) as well as EPUBs. They're read on your device and kept as text, like EPUBs, so you can search them, read them anywhere, listen with any voice and read them in a club. A PDF is split into parts at its bookmarks, or every 20 pages; scanned pages have no text to read.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Upload PDFs and Kindle books$lw$ and c.released_on = '2026-11-07');

@@ -1,7 +1,8 @@
 import { activeLibrary } from "../store/reducer";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { UploadedBook } from "../types";
-import { countWords, readEpub } from "./epub";
+import { readBookFile } from "./bookFile";
+import { countWords } from "./epub";
 import { forgetUploadOffline } from "./uploadCache";
 import { newUploadId, tabTexts } from "./uploads";
 import { deleteUpload, saveUpload } from "./uploadsApi";
@@ -22,7 +23,7 @@ export function useUploads() {
   async function add(file: File): Promise<UploadedBook> {
     if (!profile) throw new Error("Choose a profile first.");
     if (profile.ageRating === "kids") throw new Error("Kids profiles can't upload books.");
-    const parsed = await readEpub(file);
+    const parsed = await readBookFile(file);
     const texts = parsed.chapters.map((c) => c.text);
     const chapterWords = texts.map(countWords);
     const book = {

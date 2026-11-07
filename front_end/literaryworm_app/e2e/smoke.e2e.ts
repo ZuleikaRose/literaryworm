@@ -2,6 +2,7 @@ import { afterAll, afterEach, describe, expect, it } from "@jest/globals";
 import { closeBrowser, closePages, goInApp, newPage, scrollsSideways, signInDemo } from "./browser";
 import { readFileSync } from "node:fs";
 import { BASE_URL } from "./config";
+import { tinyMobi, tinyPdf } from "./bookFixtures";
 import { tinyEpub } from "./epubFixture";
 
 /** The newest What's new entry's title (the top of src/data/changelog.json; tests run in the app folder). */
@@ -1019,6 +1020,29 @@ describe("the demo household", () => {
     await page.locator(".upload-search").getByRole("button", { name: "Search" }).click();
     await page.getByText(/No uploads have every word of “storm zebra”/).waitFor();
     expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
+  it("uploads a PDF and a Kindle book beside EPUBs, keeping their text", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=uploads");
+    const line = "The tide came in over the flats while the gulls argued on the harbour wall.";
+    const pdf = tinyPdf("Harbour Lights", "Mara Quinn", [[line, line, line, "The ferry was late again."], [line, line, "Nobody minded much."]]);
+    const filler = `<p>${"The lantern swung in the wind above the empty quay, and the keeper watched the boats come home. ".repeat(6)}</p>`;
+    const mobi = tinyMobi("Quay Lanterns", "Ivo Brandt", `<html><body><h1>First Night</h1>${filler}<mbp:pagebreak/><h1>Second Night</h1>${filler}</body></html>`);
+    await page.locator('input[type="file"]').setInputFiles([
+      { name: "harbour.pdf", mimeType: "application/pdf", buffer: pdf },
+      { name: "lanterns.mobi", mimeType: "application/x-mobipocket-ebook", buffer: mobi },
+    ]);
+    await page.getByRole("link", { name: "Harbour Lights", exact: true }).waitFor({ timeout: 30_000 });
+    await page.getByRole("link", { name: "Quay Lanterns", exact: true }).waitFor();
+    await page.locator(".form-success").getByText("2 books are ready to read.").waitFor();
+    // Keyword search reads the PDF's text.
+    await page.locator(".upload-search").getByLabel("Search by").selectOption("keywords");
+    await page.getByRole("searchbox", { name: "Keywords" }).fill("ferry late");
+    await page.locator(".upload-search").getByRole("button", { name: "Search" }).click();
+    await page.getByText(/1 book has “ferry late”/).first().waitFor();
     expect(errors()).toEqual([]);
   });
 

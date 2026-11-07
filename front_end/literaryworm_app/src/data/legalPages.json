@@ -37,7 +37,7 @@
         "paragraphs": [
           "The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays.",
           "Book details and covers from Google Books, and the LibriVox recordings, come from other services; we can't always fix problems in their content.",
-          "Books you upload show their text only; images and tables in the original EPUB aren't shown.",
+          "Books you upload show their text only; images and tables in the original EPUB, PDF or Kindle file aren't shown.",
           "Content notes, translations and other AI-written text can be wrong; they're labelled as written by AI.",
           "The Google Books preview is Google's own viewer, so we can't change how it works with assistive technology."
         ]
@@ -414,7 +414,7 @@
           "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing.",
           "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.",
           "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.",
-          "Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your EPUB says it's written in, to offer voices in it."
+          "Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your uploaded book says it's written in, to offer voices in it."
         ]
       },
       {
@@ -1177,7 +1177,7 @@
     "slug": "eula",
     "title": "End User License Agreement",
     "summary": "LiteraryWorm is licensed to You (End-User) by LiteraryWorm (\"Licensor\"), for use only under the terms of this License Agreement. By using the Licensed Application at https://www.literaryworm.com, or installing it on a device from your browser, and any update to it, You agree to be bound by all of the terms and conditions of this License Agreement. It sits alongside our Terms of Service; where they cover the same thing, the Terms of Service apply.",
-    "updated": "2026-10-31",
+    "updated": "2026-11-07",
     "sections": [
       {
         "heading": "In short",
@@ -1191,7 +1191,7 @@
         "heading": "1. The application",
         "paragraphs": [
           "LiteraryWorm (\"Licensed Application\") is a piece of software created to read and listen to books online. It runs in a web browser and can be installed from the browser on phones, tablets and computers (\"Devices\"). It is used to read ebooks and listen to audiobooks, keep a library and goals for each person at home, read along with book clubs, and review books and share opinions with other readers.",
-          "The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUBs they upload.",
+          "The books we offer in full are in the public domain and have no DRM. Members can also read DRM-free EPUB, PDF and Kindle books they upload.",
           "The Licensed Application is not tailored to comply with industry-specific regulations (Health Insurance Portability and Accountability Act (HIPAA), Federal Information Security Management Act (FISMA), etc.), so if your interactions would be subjected to such laws, you may not use this Licensed Application. You may not use the Licensed Application in a way that would violate the Gramm-Leach-Bliley Act (GLBA).",
           "The Licensed Application isn't sold through an app store, and no app store or other third party is a party to this License Agreement. LiteraryWorm is solely responsible for the Licensed Application and its content."
         ]
@@ -1700,11 +1700,12 @@
       {
         "heading": "Can I read my own books?",
         "paragraphs": [
-          "Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.",
+          "Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks.",
+          "A PDF keeps its text, split into parts at its bookmarks (or every 20 pages); scanned pages have no text to read. A Kindle book packed with Amazon's own compression needs converting to EPUB first (Calibre does it for free). Everything is read on your device, and only the text is kept.",
           "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
           "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
           "Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
-          "Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your EPUB's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.",
+          "Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.",
           "Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.",
           "To find one of your uploads, search them in My Library → Uploads by title, author, keywords or ISBN. Keywords also looks through the books' text and shows where the words are, each place a link to that page, on your device. An ISBN is looked up on Google Books and matched to your uploads by title and author."
         ]

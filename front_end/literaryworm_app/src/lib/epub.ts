@@ -83,8 +83,8 @@ function resolve(base: string, href: string): string {
 
 const BLOCKS = "p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, dt, dd, td";
 
-/** A page of the book as paragraphs, and its heading if it has one. */
-function pageText(xhtml: string): { heading: string; paragraphs: string[] } {
+/** A page of the book as paragraphs, and its heading if it has one (also used for Kindle books' HTML). */
+export function pageText(xhtml: string): { heading: string; paragraphs: string[] } {
   const doc = new DOMParser().parseFromString(xhtml, "application/xhtml+xml");
   const body = doc.querySelector("parsererror") ? new DOMParser().parseFromString(xhtml, "text/html").body : doc.body ?? doc.documentElement;
   body.querySelectorAll("script, style, nav[epub\\:type='toc'], svg").forEach((el) => el.remove());
@@ -95,6 +95,37 @@ function pageText(xhtml: string): { heading: string; paragraphs: string[] } {
 }
 
 const words = (text: string) => (text.match(/\S+/g) ?? []).length;
+
+/**
+ * A book's parts (each with its heading and paragraphs, in reading order) as chapters: a short part
+ * (a cover, a title page) joins the next one, and each chapter is titled by its heading or "Part n".
+ * Shared by EPUBs and Kindle books.
+ */
+export function assembleChapters(parts: { heading: string; paragraphs: string[] }[]): ParsedBook["chapters"] {
+  const chapters: ParsedBook["chapters"] = [];
+  let carried: string[] = [];
+  let total = 0;
+  parts.forEach(({ heading, paragraphs }, i) => {
+    const all = [...carried, ...paragraphs];
+    const title = heading;
+    const text = all.join("\n\n");
+    if (text.length < SHORT_PART && i !== parts.length - 1) {
+      carried = all;
+      return;
+    }
+    carried = [];
+    if (!text) return;
+    total += words(text);
+    if (total > WORDS_MAX) throw new EpubError(tr("This book is too long for LiteraryWorm (over 5 million words)."));
+    chapters.push({ title: title.slice(0, 120) || `Part ${chapters.length + 1}`, text });
+  });
+  if (carried.length) {
+    const text = carried.join("\n\n");
+    if (chapters.length) chapters[chapters.length - 1].text += `\n\n${text}`;
+    else chapters.push({ title: "Part 1", text });
+  }
+  return chapters;
+}
 
 export async function readEpub(file: File): Promise<ParsedBook> {
   try {
@@ -136,29 +167,12 @@ async function parse(file: File): Promise<ParsedBook> {
   }
   const spine = [...opf.getElementsByTagName("itemref")].filter((r) => r.getAttribute("linear") !== "no").map((r) => manifest.get(r.getAttribute("idref") ?? ""));
 
-  const chapters: ParsedBook["chapters"] = [];
-  let carried: string[] = [];
-  let total = 0;
+  const parts: { heading: string; paragraphs: string[] }[] = [];
   for (const path of spine) {
     if (!path || !files.has(path)) continue;
-    const { heading, paragraphs } = pageText(await read(path));
-    const all = [...carried, ...paragraphs];
-    const text = all.join("\n\n");
-    if (text.length < SHORT_PART && path !== spine[spine.length - 1]) {
-      carried = all;
-      continue;
-    }
-    carried = [];
-    if (!text) continue;
-    total += words(text);
-    if (total > WORDS_MAX) throw new EpubError(tr("This book is too long for LiteraryWorm (over 5 million words)."));
-    chapters.push({ title: heading.slice(0, 120) || `Part ${chapters.length + 1}`, text });
+    parts.push(pageText(await read(path)));
   }
-  if (carried.length) {
-    const text = carried.join("\n\n");
-    if (chapters.length) chapters[chapters.length - 1].text += `\n\n${text}`;
-    else chapters.push({ title: "Part 1", text });
-  }
+  const chapters = assembleChapters(parts);
   if (!chapters.length) throw new EpubError(tr("We couldn't find any text in this EPUB."));
   if (chapters.length > CHAPTERS_MAX) throw new EpubError(tr("This EPUB has more than {max} parts, more than LiteraryWorm can show.", { max: CHAPTERS_MAX }));
 

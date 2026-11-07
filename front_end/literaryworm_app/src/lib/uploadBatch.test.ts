@@ -14,17 +14,25 @@ describe("adding several books at once", () => {
     expect(plan.skipped).toEqual([]);
   });
 
-  it("keeps the 50 MB limit for each file, and skips files that aren't EPUBs", () => {
-    const plan = planBatch([epub(1), { name: "big.epub", size: EPUB_MAX_BYTES + 1 }, { name: "notes.pdf", size: 10 }, { name: "SHOUT.EPUB", size: EPUB_MAX_BYTES }]);
-    expect(plan.take.map((f) => f.name)).toEqual(["book-1.epub", "SHOUT.EPUB"]);
+  it("keeps the 50 MB limit for each file, takes PDF and Kindle books, and skips other files", () => {
+    const plan = planBatch([
+      epub(1),
+      { name: "big.epub", size: EPUB_MAX_BYTES + 1 },
+      { name: "notes.pdf", size: 10 },
+      { name: "story.MOBI", size: 10 },
+      { name: "novel.azw3", size: 10 },
+      { name: "photo.jpg", size: 10 },
+      { name: "SHOUT.EPUB", size: EPUB_MAX_BYTES },
+    ]);
+    expect(plan.take.map((f) => f.name)).toEqual(["book-1.epub", "notes.pdf", "story.MOBI", "novel.azw3", "SHOUT.EPUB"]);
     expect(plan.skipped).toEqual([
       { name: "big.epub", reason: "is over 50 MB" },
-      { name: "notes.pdf", reason: "isn't an EPUB" },
+      { name: "photo.jpg", reason: "isn't an EPUB, PDF or Kindle book" },
     ]);
   });
 
   it("doesn't count skipped files towards the 20", () => {
-    const plan = planBatch([{ name: "a.pdf", size: 1 }, ...Array.from({ length: 20 }, (_, i) => epub(i))]);
+    const plan = planBatch([{ name: "a.txt", size: 1 }, ...Array.from({ length: 20 }, (_, i) => epub(i))]);
     expect(plan.take).toHaveLength(20);
     expect(plan.overLimit).toBe(0);
   });

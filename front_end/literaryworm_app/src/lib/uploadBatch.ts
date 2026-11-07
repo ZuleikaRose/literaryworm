@@ -1,8 +1,9 @@
+import { bookFileKind } from "./bookFile";
 import { EPUB_MAX_BYTES } from "./epub";
 import { tr } from "./i18n";
 
 /**
- * Adding several EPUBs at once (My Library → Uploads): up to `UPLOADS_AT_ONCE` files per choice,
+ * Adding several books (EPUB, PDF or Kindle) at once (My Library → Uploads): up to `UPLOADS_AT_ONCE` files per choice,
  * each still at most 50 MB (`EPUB_MAX_BYTES`), read one after another so a big batch doesn't hold
  * many books in memory together. A profile keeps up to 50 uploads in all (the database checks).
  */
@@ -18,13 +19,13 @@ export interface Skipped {
   reason: string;
 }
 
-/** Which chosen files to read: EPUBs within the size limit, the first 20; the rest with a reason. */
+/** Which chosen files to read: EPUB, PDF and Kindle books within the size limit, the first 20; the rest with a reason. */
 export function planBatch<T extends BatchFile>(files: T[]): { take: T[]; skipped: Skipped[]; overLimit: number } {
   const take: T[] = [];
   const skipped: Skipped[] = [];
   let overLimit = 0;
   for (const file of files) {
-    if (!/\.epub$/i.test(file.name)) skipped.push({ name: file.name, reason: tr("isn't an EPUB") });
+    if (!bookFileKind(file.name)) skipped.push({ name: file.name, reason: tr("isn't an EPUB, PDF or Kindle book") });
     else if (file.size > EPUB_MAX_BYTES) skipped.push({ name: file.name, reason: tr("is over 50 MB") });
     else if (take.length >= UPLOADS_AT_ONCE) overLimit += 1;
     else take.push(file);

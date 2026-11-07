@@ -1,4 +1,5 @@
 import { type ChangeEvent, type FormEvent, useId, useRef, useState } from "react";
+import { BOOK_FILE_ACCEPT } from "../lib/bookFile";
 import { Link, useSearchParams } from "react-router-dom";
 import { activeReading } from "../store/reducer";
 import { useStore } from "../store/context";
@@ -21,7 +22,7 @@ import { dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
 
 /**
- * My Library → Uploads: EPUBs this profile added. Each is read in the browser (its text only)
+ * My Library → Uploads: books this profile added (EPUB, PDF or DRM-free Kindle, lib/bookFile.ts). Each is read in the browser (its text only)
  * and opens in the reader like any book, with progress, bookmarks and highlights. Not for Kids
  * profiles.
  */
@@ -99,7 +100,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
     );
   }
 
-  // Up to UPLOADS_AT_ONCE EPUBs per choice, each up to 50 MB, read one after another.
+  // Up to UPLOADS_AT_ONCE books per choice, each up to 50 MB, read one after another.
   const choose = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
@@ -110,7 +111,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
     const added: string[] = [];
     const failed: Skipped[] = [...skipped];
     for (const [i, file] of take.entries()) {
-      setBusy(take.length === 1 ? t("Reading the EPUB…") : t("Reading {n} of {total}…", { n: i + 1, total: take.length }));
+      setBusy(take.length === 1 ? t("Reading the book…") : t("Reading {n} of {total}…", { n: i + 1, total: take.length }));
       try {
         added.push((await add(file)).title);
       } catch (err) {
@@ -136,11 +137,11 @@ export function UploadsView({ profile }: { profile: Profile }) {
         <h2 id="upload-title">{t("Add a book you own")}</h2>
         <p className="goal-hint" id={hintId}>
           {remote
-            ? t("Choose up to {max} EPUBs without DRM at a time, each up to 50 MB. LiteraryWorm keeps their text only, privately for {name}. Upload only books you have the right to read.", {
+            ? t("Choose up to {max} books without DRM at a time (EPUB, PDF or Kindle MOBI and AZW3), each up to 50 MB. LiteraryWorm keeps their text only, privately for {name}. Upload only books you have the right to read.", {
                 max: UPLOADS_AT_ONCE,
                 name: profile.name,
               })
-            : t("Choose up to {max} EPUBs without DRM at a time, each up to 50 MB. LiteraryWorm keeps their text only, privately for {name} in this tab: the demo forgets it when you refresh. Upload only books you have the right to read.", {
+            : t("Choose up to {max} books without DRM at a time (EPUB, PDF or Kindle MOBI and AZW3), each up to 50 MB. LiteraryWorm keeps their text only, privately for {name} in this tab: the demo forgets it when you refresh. Upload only books you have the right to read.", {
                 max: UPLOADS_AT_ONCE,
                 name: profile.name,
               })}
@@ -156,13 +157,13 @@ export function UploadsView({ profile }: { profile: Profile }) {
           onClick={() => input.current?.click()}
         >
           <Icon name="plus" size={15} />{" "}
-          {busy ?? t("Choose EPUBs")}
+          {busy ?? t("Choose books")}
         </button>
         {/* The button opens it; it isn't reached on its own. */}
         <input
           ref={input}
           type="file"
-          accept=".epub,application/epub+zip"
+          accept={BOOK_FILE_ACCEPT}
           multiple
           hidden
           tabIndex={-1}
