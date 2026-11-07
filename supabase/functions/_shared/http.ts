@@ -12,6 +12,8 @@ export type ErrorCode =
   | "payload_too_large"
   | "rate_limited"
   | "limit_reached"
+  | "payment_required"
+  | "trial_limit_reached"
   | "upstream_error"
   | "upstream_timeout"
   | "server_error";
@@ -26,6 +28,10 @@ const STATUS: Record<ErrorCode, number> = {
   rate_limited: 429,
   // A monthly allowance is used up (natural voices); unlike rate_limited, waiting a minute won't help.
   limit_reached: 403,
+  // The membership's last payment failed (natural voices): back once a payment goes through.
+  payment_required: 402,
+  // The free week's hour of natural voices is used up; the plan's hours start with the first payment.
+  trial_limit_reached: 403,
   upstream_error: 502,
   server_error: 500,
   upstream_timeout: 504,

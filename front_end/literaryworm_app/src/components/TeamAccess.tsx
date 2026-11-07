@@ -28,7 +28,7 @@ export function TeamAccess({ roles }: { roles: StaffRole[] }) {
       </ul>
       <p className="goal-hint">
         {t(
-          "Every role comes with a complimentary Premium membership, never charged, for as long as it's held. When someone's last role is removed, it ends and they can choose a plan.",
+          "Every role comes with a complimentary membership, never charged, for as long as it's held: Premium for admins, Basic for the other roles. When someone's last role is removed, it ends and they can choose a plan.",
         )}
       </p>
       {(hasRole(roles, "billing") || hasRole(roles, "customer_service") || hasRole(roles, "developer") || hasRole(roles, "sales")) && (

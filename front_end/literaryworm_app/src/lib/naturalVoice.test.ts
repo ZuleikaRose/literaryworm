@@ -9,6 +9,7 @@ import {
   naturalVoiceMonth,
   naturalVoiceTime,
   NATURAL_VOICE_HOURS,
+  NATURAL_VOICE_TRIAL_HOURS,
   NATURAL_VOICES,
   naturalVoice,
   naturalVoiceLimit,
@@ -76,6 +77,10 @@ describe("natural voices for uploads", () => {
 
   it("has a monthly allowance for each plan, growing with the plan", () => {
     expect(naturalVoiceLimit("basic")).toBe(NATURAL_VOICE_HOURS.basic * CHARACTERS_PER_HOUR);
+    // The free week has its one hour, whatever the plan (never more than the plan's own).
+    expect(naturalVoiceLimit("premium", true)).toBe(NATURAL_VOICE_TRIAL_HOURS * CHARACTERS_PER_HOUR);
+    expect(naturalVoiceLimit("nothing", true)).toBe(0);
+    expect(naturalVoiceTime("premium", 0, true).limit).toBe(3600);
     expect(naturalVoiceLimit("basic")).toBeLessThan(naturalVoiceLimit("standard"));
     expect(naturalVoiceLimit("standard")).toBeLessThan(naturalVoiceLimit("premium"));
     expect(naturalVoiceLimit("constructor")).toBe(0);

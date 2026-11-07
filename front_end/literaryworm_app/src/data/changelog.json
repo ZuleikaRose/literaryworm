@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Natural voices in the free week",
+    "body": "A first membership's free week now includes 1 hour of natural-voice reading; your plan's full hours start with your first payment. If a payment fails, natural voices pause until one goes through.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Read along on the page",
     "body": "In the reader, books you uploaded can now be read aloud by their natural voice right on the page: the pages turn with the voice, and the word being spoken is marked as you go.",

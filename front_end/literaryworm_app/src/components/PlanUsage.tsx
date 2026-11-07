@@ -94,12 +94,19 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
           <div>
             <dt>{t("Natural voices")}</dt>
             <dd>
-              {t("{time} of {hours} hours of new natural-voice reading used for your uploads; {left} left. Listening again to parts already voiced is free. Resets on {date}.", {
-                time: hoursAndMinutes(natural.used),
-                hours: Math.round(natural.limit / 3600),
-                left: hoursAndMinutes(natural.left),
-                date: nextMonthLabel(day),
-              })}
+              {natural.paused
+                ? t("Paused because your last payment didn't go through. They come back as soon as a payment succeeds.")
+                : natural.trial
+                  ? t("{time} of your free week's 1 hour of new natural-voice reading used; {left} left. Your plan's full hours start with your first payment.", {
+                      time: hoursAndMinutes(natural.used),
+                      left: hoursAndMinutes(natural.left),
+                    })
+                  : t("{time} of {hours} hours of new natural-voice reading used for your uploads; {left} left. Listening again to parts already voiced is free. Resets on {date}.", {
+                      time: hoursAndMinutes(natural.used),
+                      hours: Math.round(natural.limit / 3600),
+                      left: hoursAndMinutes(natural.left),
+                      date: nextMonthLabel(day),
+                    })}
             </dd>
           </div>
         )}

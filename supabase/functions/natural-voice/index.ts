@@ -28,10 +28,13 @@ Deno.serve((req) => {
       if (error) dbError("read the profile", error);
       return (data?.age_rating as string | undefined) ?? null;
     },
-    plan: async (userId) => {
-      const { data, error } = await db.from("subscriptions").select("plan_id, status").eq("user_id", userId).maybeSingle();
+    membership: async (userId) => {
+      const { data, error } = await db.from("subscriptions").select("plan_id, status, trial_until").eq("user_id", userId).maybeSingle();
       if (error) dbError("read the membership", error);
-      return data && (data.status === "active" || data.status === "past_due") ? (data.plan_id as string) : null;
+      if (!data || (data.status !== "active" && data.status !== "past_due")) return null;
+      // trial_until is set only while a first membership's free week lasts (cleared when it's paid for).
+      const trial = typeof data.trial_until === "string" && Date.parse(data.trial_until) > Date.now();
+      return { plan: data.plan_id as string, pastDue: data.status === "past_due", trial };
     },
     signedUrl: async (path) => {
       const { data, error } = await db.storage.from(VOICE_BUCKET).createSignedUrl(path, SIGNED_SECONDS);

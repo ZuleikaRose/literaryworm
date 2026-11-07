@@ -25,10 +25,14 @@ export function useNaturalVoice(book: Book): "member" | "demo" | null {
  * seconds used and left of the plan's allowance, and when 80% was passed. Null for in-memory
  * accounts and Kids profiles, or until it loads.
  */
-export function useNaturalVoiceUsage(): { used: number; left: number; limit: number; mostlyUsedAt: number | null } | null {
+export function useNaturalVoiceUsage(): { used: number; left: number; limit: number; mostlyUsedAt: number | null; trial: boolean; paused: boolean } | null {
   const { state } = useStore();
   const profile = useActiveProfile();
   const planId = state.account?.planId ?? null;
+  // The free week has its one hour; a failed payment pauses natural voices until one goes through.
+  const trialUntil = state.account?.trialUntil ?? null;
+  const trial = trialUntil !== null && Date.parse(trialUntil) > Date.now();
+  const paused = Boolean(state.account?.pastDue);
   const member = usesBackend && Boolean(state.account?.userId) && profile?.ageRating !== "kids" && planId !== null;
   const [usage, setUsage] = useState<{ characters: number; mostlyUsedAt: string | null } | null>(null);
   useEffect(() => {
@@ -49,7 +53,11 @@ export function useNaturalVoiceUsage(): { used: number; left: number; limit: num
     };
   }, [member]);
   return useMemo(
-    () => (member && usage && planId ? { ...naturalVoiceTime(planId, usage.characters), mostlyUsedAt: usage.mostlyUsedAt ? Date.parse(usage.mostlyUsedAt) : null } : null),
-    [member, usage, planId],
+    () => {
+      if (!member || !usage || !planId) return null;
+      const time = naturalVoiceTime(planId, usage.characters, trial);
+      return { ...time, left: paused ? 0 : time.left, mostlyUsedAt: usage.mostlyUsedAt ? Date.parse(usage.mostlyUsedAt) : null, trial, paused };
+    },
+    [member, usage, planId, trial, paused],
   );
 }

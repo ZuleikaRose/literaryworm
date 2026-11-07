@@ -1,3 +1,4 @@
+import { NATURAL_VOICE_ALERT_SHARE } from "./naturalVoice";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { activeReading } from "../store/reducer";
@@ -143,7 +144,11 @@ export function useNotifications() {
   // Most of this month's natural-voice reading used (a member's grown-up and teen profiles; the hook skips Kids).
   const naturalUsage = useNaturalVoiceUsage();
   const natural = useMemo(
-    () => (withClubs && naturalUsage?.mostlyUsedAt ? { at: naturalUsage.mostlyUsedAt, used: naturalUsage.used, limit: naturalUsage.limit } : null),
+    // Only while it's still true: after the free week the plan's own hours may leave plenty.
+    () =>
+      withClubs && naturalUsage?.mostlyUsedAt && naturalUsage.used >= NATURAL_VOICE_ALERT_SHARE * naturalUsage.limit
+        ? { at: naturalUsage.mostlyUsedAt, used: naturalUsage.used, limit: naturalUsage.limit }
+        : null,
     [withClubs, naturalUsage],
   );
   const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [

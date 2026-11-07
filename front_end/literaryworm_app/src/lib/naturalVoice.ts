@@ -113,6 +113,12 @@ export const CHARACTERS_PER_HOUR = 50400;
  */
 export const NATURAL_VOICE_HOURS: Record<string, number> = { basic: 2, standard: 6, premium: 12 };
 
+/**
+ * During a first membership's free week, an account can have this many hours voiced, whatever its
+ * plan; the plan's own hours start with the first successful payment.
+ */
+export const NATURAL_VOICE_TRIAL_HOURS = 1;
+
 /** The share of the month's natural-voice reading at which the bell gives a heads-up. */
 export const NATURAL_VOICE_ALERT_SHARE = 0.8;
 
@@ -122,16 +128,17 @@ export function naturalVoiceMonth(now: Date): string {
 }
 
 /** Seconds of new natural-voice reading used and left this month, from characters used. */
-export function naturalVoiceTime(planId: string, characters: number): { used: number; left: number; limit: number } {
+export function naturalVoiceTime(planId: string, characters: number, trial = false): { used: number; left: number; limit: number } {
   const perSecond = CHARACTERS_PER_HOUR / 3600;
-  const limit = naturalVoiceLimit(planId) / perSecond;
+  const limit = naturalVoiceLimit(planId, trial) / perSecond;
   const used = Math.min(limit, characters / perSecond);
   return { used, left: limit - used, limit };
 }
 
-/** This month's limit for a plan, in characters sent to Google (0 for anything else). */
-export function naturalVoiceLimit(planId: string): number {
-  return Math.round((Object.hasOwn(NATURAL_VOICE_HOURS, planId) ? NATURAL_VOICE_HOURS[planId] : 0) * CHARACTERS_PER_HOUR);
+/** This month's limit for a plan, in characters sent to Google (0 for anything else); during the free week, the trial's hour at most. */
+export function naturalVoiceLimit(planId: string, trial = false): number {
+  const hours = Object.hasOwn(NATURAL_VOICE_HOURS, planId) ? NATURAL_VOICE_HOURS[planId] : 0;
+  return Math.round((trial ? Math.min(hours, NATURAL_VOICE_TRIAL_HOURS) : hours) * CHARACTERS_PER_HOUR);
 }
 
 /** Whether a profile is offered natural voices for a book: members' own stored uploads, never on Kids profiles. */

@@ -2,7 +2,7 @@
 // Google are all stand-ins.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { chapterPieces, naturalVoice, naturalVoiceLimit, piecePronunciations, pronunciationKey, sayAs, voiceSegments } from "../_shared/naturalVoice.ts";
+import { CHARACTERS_PER_HOUR, chapterPieces, NATURAL_VOICE_TRIAL_HOURS, naturalVoice, naturalVoiceLimit, piecePronunciations, pronunciationKey, sayAs, voiceSegments } from "../_shared/naturalVoice.ts";
 import { type Deps, handle } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
@@ -28,7 +28,7 @@ function deps(overrides: Partial<Deps> = {}) {
     user: () => Promise.resolve(USER),
     upload: (userId, id) => Promise.resolve(userId === USER && id === UPLOAD ? { profileId: "p1", storagePath: `${USER}/${UPLOAD}.json` } : null),
     ageRating: () => Promise.resolve("all"),
-    plan: () => Promise.resolve("standard"),
+    membership: () => Promise.resolve({ plan: "standard", pastDue: false, trial: false }),
     signedUrl: (path) => Promise.resolve(kept.has(path) ? `https://signed/${path}` : null),
     chapters: () => Promise.resolve(CHAPTERS),
     claim: (_user, characters, limit) => {
@@ -90,8 +90,34 @@ Deno.test("never on Kids profiles", async () => {
 });
 
 Deno.test("needs a running membership", async () => {
-  const { d } = deps({ plan: () => Promise.resolve(null) });
+  const { d } = deps({ membership: () => Promise.resolve(null) });
   assertEquals((await handle(ask(), d)).status, 403);
+});
+
+Deno.test("pauses while the last payment has failed, voicing nothing", async () => {
+  const { d, calls } = deps({ membership: () => Promise.resolve({ plan: "premium", pastDue: true, trial: false }) });
+  const res = await handle(ask(1, 1), d);
+  assertEquals(res.status, 402);
+  assertEquals((await res.json()).error.code, "payment_required");
+  assertEquals(calls.claimed.length + calls.synthesize.length, 0);
+});
+
+Deno.test("the free week has one hour, whatever the plan; the plan's hours after the first payment", async () => {
+  const limits: number[] = [];
+  const claim = (_user: string, _chars: number, limit: number) => {
+    limits.push(limit);
+    return Promise.resolve(true);
+  };
+  const trial = deps({ membership: () => Promise.resolve({ plan: "premium", pastDue: false, trial: true }), claim });
+  await handle(ask(1, 1), trial.d);
+  const paid = deps({ membership: () => Promise.resolve({ plan: "premium", pastDue: false, trial: false }), claim });
+  await handle(ask(1, 1), paid.d);
+  assertEquals(limits, [naturalVoiceLimit("premium", true), naturalVoiceLimit("premium")]);
+  assertEquals(naturalVoiceLimit("premium", true), NATURAL_VOICE_TRIAL_HOURS * CHARACTERS_PER_HOUR);
+  const used = deps({ membership: () => Promise.resolve({ plan: "basic", pastDue: false, trial: true }), claim: () => Promise.resolve(false) });
+  const res = await handle(ask(1, 1), used.d);
+  assertEquals(res.status, 403);
+  assertEquals((await res.json()).error.code, "trial_limit_reached");
 });
 
 Deno.test("refuses with limit_reached when this month's allowance is used up", async () => {

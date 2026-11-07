@@ -13454,3 +13454,94 @@ where slug = 'help'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Read along on the page$lw$, $lw$In the reader, books you uploaded can now be read aloud by their natural voice right on the page: the pages turn with the voice, and the word being spoken is marked as you go.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Read along on the page$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006769_staff_memberships_basic.sql
+-- =============================================================================
+-- Staff memberships by role: admins keep a complimentary Premium membership; every other staff
+-- role (Editor, Developer, Billing, Customer service, Blog, Sales) now comes with a complimentary
+-- Basic one. Still decided only by the database: subscriptions_set_complimentary() picks the plan
+-- from the account's roles each time the row is written, and sync_staff_membership() touches the
+-- row whenever a role is granted or removed, so gaining or losing the admin role moves the plan.
+-- Moving down to Basic sets aside the newest profiles past Basic's room (the existing trigger).
+
+create or replace function private.subscriptions_set_complimentary()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  new.complimentary := exists (select 1 from public.staff_roles where user_id = new.user_id);
+  if new.complimentary then
+    new.plan_id := case
+      when exists (select 1 from public.staff_roles where user_id = new.user_id and role = 'admin') then 'premium'
+      else 'basic'
+    end;
+    new.status := 'active';
+    new.billing_day := null;
+    new.cancel_at_period_end := false;
+    new.current_period_end := null;
+    new.cancel_at := null;
+    new.gift_until := null;
+    new.stripe_subscription_id := null;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function private.sync_staff_membership()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    insert into public.subscriptions (user_id, plan_id, status)
+    values (new.user_id, 'basic', 'active')
+    on conflict (user_id) do update set updated_at = now();  -- the trigger above picks the plan
+  elsif not exists (select 1 from public.staff_roles where user_id = old.user_id) then
+    -- No longer on staff: the free membership ends and the account has no plan, so it
+    -- chooses one (and agrees to its renewal terms) before anything could be charged.
+    delete from public.subscriptions where user_id = old.user_id and complimentary;
+  else
+    -- Still on staff with other roles: the plan is decided again (losing admin moves it to Basic).
+    update public.subscriptions set updated_at = now() where user_id = old.user_id and complimentary;
+  end if;
+  return null;
+end;
+$$;
+revoke execute on function private.sync_staff_membership() from public, anon, authenticated;
+
+-- Staff there are now: each membership's plan is decided again from its roles.
+update public.subscriptions set updated_at = now() where complimentary;
+
+-- =============================================================================
+-- 20261107006770_staff_basic_trial_voices_policies.sql
+-- =============================================================================
+-- Staff memberships by role, natural voices in the free week and after a failed payment: Terms and Help. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Staff memberships. People with a LiteraryWorm staff role (admin, editor, developer, billing, customer service, blog or sales) have a complimentary Premium membership for as long as they hold a role. It's never billed and can't be paused or cancelled; it ends when their last staff role is removed, and they can then choose a plan like any member."$lw$, $lw$"Staff memberships. People with a LiteraryWorm staff role (admin, editor, developer, billing, customer service, blog or sales) have a complimentary membership for as long as they hold a role: Premium for admins and Basic for every other role. Gaining or losing the admin role moves it between the two. It's never billed and can't be paused or cancelled; it ends when their last staff role is removed, and they can then choose a plan like any member."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$Staff memberships. People with a LiteraryWorm staff role (admin, editor, developer, billing, customer service, blog or sales) have a complimentary membership for as long as they hold a role: Premium for admins and Basic for every other role. Gaining or losing the admin role moves it between the two. It's never billed and can't be paused or cancelled; it ends when their last staff role is removed, and they can then choose a plan like any member.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Free week. A first membership starts with 7 days free. You add a card at checkout, but nothing is charged during those days: cancel in Account before they end and you're never charged. Otherwise the first charge is made the day they end, and billing continues from that day. The free week is once per account; returning members and gifts don't get one."$lw$, $lw$"Free week. A first membership starts with 7 days free. You add a card at checkout, but nothing is charged during those days: cancel in Account before they end and you're never charged. Otherwise the first charge is made the day they end, and billing continues from that day. The free week is once per account; returning members and gifts don't get one.", "Natural voices in the free week and after a failed payment. During the free week, natural voices read up to 1 hour of new text, whatever the plan; the plan's own hours start with the first successful payment. While a payment has failed, natural voices are paused for the account, and they come back as soon as a payment succeeds."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$Natural voices in the free week and after a failed payment. During the free week, natural voices read up to 1 hour of new text, whatever the plan; the plan's own hours start with the first successful payment. While a payment has failed, natural voices are paused for the account, and they come back as soon as a payment succeeds.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual."$lw$, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.", "During a first membership's free week, natural voices read up to 1 hour of new text; your plan's full hours start with your first payment. If a payment fails, natural voices pause until a payment goes through (update your card in Account → Plan and billing), and then they're back straight away."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$During a first membership's free week, natural voices read up to 1 hour of new text; your plan's full hours start with your first payment. If a payment fails, natural voices pause until a payment goes through (update your card in Account → Plan and billing), and then they're back straight away.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006771_whats_new_trial_voices.sql
+-- =============================================================================
+-- What's new: Natural voices in the free week. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$Natural voices in the free week$lw$, $lw$A first membership's free week now includes 1 hour of natural-voice reading; your plan's full hours start with your first payment. If a payment fails, natural voices pause until one goes through.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices in the free week$lw$ and c.released_on = '2026-11-07');

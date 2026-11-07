@@ -220,7 +220,7 @@ export default function Plans() {
         <div className="form-success" role="status">
           <Icon name="check" size={18} />
           <p>
-            {rich(t("Your staff account has a complimentary {plan} membership. It's never charged, so there's no plan to choose."), { plan: <strong>Premium</strong> })}
+            {rich(t("Your staff account has a complimentary {plan} membership. It's never charged, so there's no plan to choose."), { plan: <strong>{planById.get(account?.planId ?? "basic")?.name ?? "Basic"}</strong> })}
           </p>
         </div>
       )}

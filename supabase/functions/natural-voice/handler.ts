@@ -5,7 +5,9 @@
 // in _shared/naturalVoice.ts, which the browser cuts the same way), voiced by Google Cloud
 // Text-to-Speech the first time it's asked for and kept in the private upload-voices bucket, so
 // every later play is free. Members only, never on Kids profiles; new voicing counts against the
-// account's monthly allowance (NATURAL_VOICE_HOURS by plan). Only the piece's text goes to
+// account's monthly allowance (NATURAL_VOICE_HOURS by plan; NATURAL_VOICE_TRIAL_HOURS during a
+// first membership's free week), and they pause while the last payment has failed
+// (payment_required) until one goes through. Only the piece's text goes to
 // Google, nothing about the member. With "cast" (character voices), the chapter is cut by
 // chapterPieces() into narration and speech and the piece is read by the voice it gives (the
 // narrator's, or a character voice in the same language), kept under its own name. With
@@ -28,8 +30,8 @@ export type Deps = {
   upload: (userId: string, uploadId: string) => Promise<Upload | null>;
   /** The profile's age rating ("kids", "teen" or "all"). */
   ageRating: (profileId: string) => Promise<string | null>;
-  /** The account's plan while its membership is running (active or past due), else null. */
-  plan: (userId: string) => Promise<string | null>;
+  /** The account's membership: its plan, whether its last payment failed, and whether it's in its free week; null without one. */
+  membership: (userId: string) => Promise<{ plan: string; pastDue: boolean; trial: boolean } | null>;
   /** A signed link to a kept piece, or null when it hasn't been voiced yet. */
   signedUrl: (path: string) => Promise<string | null>;
   /** The upload's chapters, from the user-books bucket. */
@@ -92,8 +94,11 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
     const rating = await deps.ageRating(upload.profileId);
     if (rating === null || rating === "kids") throw new HttpError("forbidden", "Natural voices aren't offered on Kids profiles.");
-    const plan = await deps.plan(userId);
-    if (!plan) throw new HttpError("forbidden", "Natural voices come with a membership.");
+    const membership = await deps.membership(userId);
+    if (!membership) throw new HttpError("forbidden", "Natural voices come with a membership.");
+    // A failed payment pauses them until a payment goes through (the webhook marks it active again).
+    if (membership.pastDue) throw new HttpError("payment_required", "Natural voices are paused until your payment goes through.");
+    const { plan, trial } = membership;
 
     // Without character voices or respellings the piece's file is known at once, so a kept one costs no text read.
     if (!cast && !respelled) {
@@ -117,8 +122,11 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     await deps.rateLimit?.(userId);
     const text = sayAs(piece.text, says);
 
-    if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan)))) {
-      throw new HttpError("limit_reached", "This month's natural-voice reading is used up.");
+    if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan, trial)))) {
+      // In the free week the limit is its hour; the plan's own hours start with the first payment.
+      throw trial
+        ? new HttpError("trial_limit_reached", "The free week's hour of natural-voice reading is used up.")
+        : new HttpError("limit_reached", "This month's natural-voice reading is used up.");
     }
     let audio: Uint8Array;
     try {

@@ -1,6 +1,6 @@
 -- Security checks for the migrations: RLS isolation, column grants, sign-up
 -- validation, plan limits, Kids consent and age-rating changes, PIN lockout, rate limits, and the
--- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; every staff role's membership is complimentary and never billed; Stripe customers and events are server-only) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs, and two-step sign-in (a password-only session reaches nothing of a member who turned it on). Run against a scratch database after the
+-- "logs, progress, bookmarks and highlights need a library item" rule, and per-profile lists, ratings and shared links, goals, reading stats, clubs, club notifications and listen along, uploaded books, staff roles (only admins grant or remove them, by email or as an invitation applied at sign-up; the last admin stays; every staff role's membership is complimentary and never billed, Premium for admins and Basic for the rest; Stripe customers and events are server-only) and editable legal pages (anyone reads; editors and admins edit; every edit keeps the old version), player settings, devices and handoffs, and two-step sign-in (a password-only session reaches nothing of a member who turned it on). Run against a scratch database after the
 -- migrations (see supabase/README.md). Any failed check raises and stops.
 --
 -- Plain SQL, so it runs as it is under psql (with -v ON_ERROR_STOP=1) and through the Management
@@ -687,13 +687,24 @@ set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select public.grant_staff_role('b@test', 'sales');
 reset role;
-select pg_temp.check((select complimentary and plan_id = 'premium' and billing_day is null from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'granting Sales starts a complimentary membership');
+select pg_temp.check((select complimentary and plan_id = 'basic' and billing_day is null from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'granting Sales starts a complimentary Basic membership');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select public.grant_staff_role('b@test', 'customer_service');
 select public.revoke_staff_role('b@test', 'sales');
 reset role;
 select pg_temp.check((select complimentary from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'moving from Sales to Customer service keeps the complimentary membership');
+-- Admins have Premium; the other roles Basic. Gaining or losing admin moves the plan.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.grant_staff_role('b@test', 'admin');
+reset role;
+select pg_temp.check((select complimentary and plan_id = 'premium' from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'gaining admin moves a staff membership to Premium');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.revoke_staff_role('b@test', 'admin');
+reset role;
+select pg_temp.check((select complimentary and plan_id = 'basic' from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'losing admin moves a staff membership back to Basic');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select public.revoke_staff_role('b@test', 'customer_service');

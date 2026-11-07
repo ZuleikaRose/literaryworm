@@ -112,7 +112,7 @@ export const planFaqs = [
   },
   {
     q: tk("Is there a free trial?"),
-    a: tk("Yes. A first membership starts with 7 days free on any plan. You add a card on Stripe's payment page, but nothing is charged during those days: cancel in Account before they end and you won't be charged at all.\n\nOtherwise the first charge is made the day they end, and your membership renews from that day. The free week is once per account; returning members and gifts don't get one."),
+    a: tk("Yes. A first membership starts with 7 days free on any plan. You add a card on Stripe's payment page, but nothing is charged during those days: cancel in Account before they end and you won't be charged at all.\n\nOtherwise the first charge is made the day they end, and your membership renews from that day. The free week is once per account; returning members and gifts don't get one.\n\nDuring the free week, natural voices read up to 1 hour of new text; your plan's full hours start with your first payment."),
   },
   {
     q: tk("Can I pause instead of cancelling?"),
