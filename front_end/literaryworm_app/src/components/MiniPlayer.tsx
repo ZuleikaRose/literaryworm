@@ -139,6 +139,11 @@ function MiniPlayerView({ book }: { book: Book }) {
                   </Link>
                 </li>
                 <li>
+                  <Link className="menu-item" to={`/listen/${book.id}?view=bedtime`} onClick={() => closeMenu()}>
+                    <Icon name="moon" size={16} /> {t("Bedtime listening")}
+                  </Link>
+                </li>
+                <li>
                   <CastButton className="menu-item" recording />
                 </li>
                 {book.recording && (

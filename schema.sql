@@ -12694,3 +12694,32 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Gift cards$lw$, $lw$On Gifts you can now give a gift card as well as a membership: $25, $50 or $100 of credit for any plan, paid once. Pass the code on or have us email it, now or on a later day; when it's redeemed in Account, the credit comes off the person's next charges, whichever plan they choose.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Gift cards$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006722_bedtime_listening_help.sql
+-- =============================================================================
+-- Bedtime listening (no new data): Help (Reading and listening) and the Accessibility Policy. Same text as
+-- src/data/legalPages.json, matched as stored. Each change is made once; a paragraph an editor has reworded
+-- is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles."$lw$, $lw$"Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles.", "Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles."$lw$) > 0
+  and strpos(sections::text, $lw$Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In car mode, the buttons fill a phone or tablet screen at every size and way up, and voice control (off until you turn it on, not on Kids profiles) lets you play, pause, skip and change chapter by saying so."$lw$, $lw$"In car mode, the buttons fill a phone or tablet screen at every size and way up, and voice control (off until you turn it on, not on Kids profiles) lets you play, pause, skip and change chapter by saying so.", "Bedtime listening shows the player in warm, dark colours with large Play and Back buttons and the sleep timer, every text at a contrast of 7:1 or more; high contrast mode keeps its own colours there."$lw$)::jsonb
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$"In car mode, the buttons fill a phone or tablet screen at every size and way up, and voice control (off until you turn it on, not on Kids profiles) lets you play, pause, skip and change chapter by saying so."$lw$) > 0
+  and strpos(sections::text, $lw$Bedtime listening shows the player in warm, dark colours with large Play and Back buttons and the sleep timer, every text at a contrast of 7:1 or more; high contrast mode keeps its own colours there.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006723_whats_new_bedtime_listening.sql
+-- =============================================================================
+-- What's new: Bedtime listening. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Bedtime listening$lw$, $lw$A dim, quiet way to listen before sleep, in the player and the mini-player's More: it sets the sleep timer for you (the end of the chapter when that's near, otherwise 15 minutes), the sound fades out at the end, and Dimmer darkens the screen further. Kids profiles with a bedtime are offered it in the player shortly before. The end-of-chapter sleep timer now fades out everywhere, like the minutes one.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Bedtime listening$lw$ and c.released_on = '2026-11-07');

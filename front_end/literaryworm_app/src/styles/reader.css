@@ -1294,3 +1294,137 @@
     pointer-events: none;
   }
 }
+
+/* ---------- Bedtime listening: a dim, quiet view of the player ---------- */
+
+.bedtime-view {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto auto auto;
+  justify-items: center;
+  gap: 18px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  color: var(--bedtime-ink);
+  background: var(--bedtime-bg);
+  text-align: center;
+}
+
+/* Dimmer: a dark veil over everything, which taps pass through. */
+.bedtime-view.is-dim::after {
+  position: fixed;
+  inset: 0;
+  background: var(--bedtime-dim);
+  content: "";
+  pointer-events: none;
+}
+
+.bedtime-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  justify-self: stretch;
+}
+
+.bedtime-view .text-button,
+.bedtime-view .secondary-button {
+  color: var(--bedtime-ink);
+}
+
+.bedtime-view .secondary-button {
+  border-color: var(--bedtime-line);
+  background: var(--bedtime-surface);
+}
+
+.bedtime-now {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  max-width: 34rem;
+}
+
+.bedtime-now h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+}
+
+.bedtime-now p,
+.bedtime-note {
+  margin: 0;
+  color: var(--bedtime-muted);
+}
+
+.bedtime-now .eyebrow {
+  color: var(--bedtime-muted);
+}
+
+.bedtime-status {
+  margin-top: 8px;
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bedtime-controls {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.bedtime-button {
+  display: grid;
+  min-width: 96px;
+  min-height: 96px;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: 2px solid var(--bedtime-line);
+  border-radius: 24px;
+  color: var(--bedtime-ink);
+  background: var(--bedtime-surface);
+  font-weight: 700;
+}
+
+.bedtime-play {
+  min-width: 128px;
+  min-height: 128px;
+  border-radius: 50%;
+}
+
+.bedtime-timer span {
+  color: var(--bedtime-muted);
+}
+
+.bedtime-timer select {
+  border-color: var(--bedtime-line);
+  color: var(--bedtime-ink);
+  background: var(--bedtime-surface);
+}
+
+.bedtime-note {
+  max-width: 30rem;
+  font-size: 0.9375rem;
+}
+
+/* High contrast keeps its own colours, here too. */
+[data-high-contrast] .bedtime-view,
+[data-high-contrast] .bedtime-button,
+[data-high-contrast] .bedtime-view .secondary-button,
+[data-high-contrast] .bedtime-timer select {
+  color: var(--ink);
+  background: var(--bg-deep);
+}
+
+[data-high-contrast] .bedtime-now p,
+[data-high-contrast] .bedtime-note,
+[data-high-contrast] .bedtime-timer span,
+[data-high-contrast] .bedtime-now .eyebrow {
+  color: var(--ink);
+}
+
+.bedtime-nudge a {
+  font-weight: 700;
+}

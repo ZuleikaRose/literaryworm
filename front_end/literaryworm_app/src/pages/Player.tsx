@@ -1,6 +1,8 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { BedtimeView } from "../components/BedtimeView";
 import { CarMode } from "../components/CarMode";
+import { nearBedtime } from "../lib/bedtimeListening";
 import { RecapDialog } from "../components/RecapDialog";
 import { ClipDialog } from "../components/ClipDialog";
 import { Cover } from "../components/Cover";
@@ -64,6 +66,10 @@ function PlayerView({ book }: { book: Book }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const carMode = params.get("view") === "car";
+  const bedtimeView = params.get("view") === "bedtime";
+  // A Kids profile's bedtime coming up (the device's clock, read once): the player suggests bedtime listening.
+  const [openedAt] = useState(() => new Date());
+  const windDown = profile?.ageRating === "kids" && nearBedtime(openedAt, profile.bedtime);
   const { starts, total, places, player, settings } = controls;
   const bookmarks = activeReading(state)
     .bookmarks.filter((b) => b.bookId === book.id)
@@ -125,6 +131,7 @@ function PlayerView({ book }: { book: Book }) {
   if (live.limitReached && live.limitMinutes !== null) {
     return <DailyLimitReached limitMinutes={live.limitMinutes} onAllowMore={playback.allowMore} />;
   }
+  if (bedtimeView) return <BedtimeView book={book} controls={controls} />;
 
   const isHereMarked = bookmarks.some((b) => b.format === "audiobook" && Math.abs(b.fraction * total - position) < 5);
   const sleepValue = sleep === null ? "off" : sleep.kind === "chapter" ? "chapter" : String(sleep.minutes);
@@ -192,6 +199,13 @@ function PlayerView({ book }: { book: Book }) {
             </p>
             <p className="player-chapter">{chapterLabel(book, chapterIndex)}</p>
           </div>
+
+          {windDown && (
+            <p className="form-success bedtime-nudge">
+              <Icon name="moon" size={16} /> {t("Nearly bedtime.")}{" "}
+              <Link to={`/listen/${book.id}?view=bedtime`}>{t("Try bedtime listening")}</Link>
+            </p>
+          )}
 
           {live.saveError && (
             <p className="reader-save-error" role="alert">
@@ -316,6 +330,9 @@ function PlayerView({ book }: { book: Book }) {
               <div className="player-extras">
                 <Link className="text-button" to={`/listen/${book.id}?view=car`}>
                   <Icon name="headphones" size={16} /> {t("Car mode")}
+                </Link>
+                <Link className="text-button" to={`/listen/${book.id}?view=bedtime`}>
+                  <Icon name="moon" size={16} /> {t("Bedtime listening")}
                 </Link>
                 <CastButton recording={narration.kind === "recording"} />
                 {book.recording && (

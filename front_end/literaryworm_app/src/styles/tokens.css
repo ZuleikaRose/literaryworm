@@ -231,3 +231,13 @@
   --font-display: "OpenDyslexic", "Lexend", system-ui, sans-serif;
   --font-reading: "OpenDyslexic", "Lexend", system-ui, sans-serif;
 }
+
+/* Bedtime listening (components/BedtimeView.tsx): warm and dark in either theme, every text at 7:1 or more. */
+:root {
+  --bedtime-bg: #0e0a07;
+  --bedtime-surface: #1d1611;
+  --bedtime-line: #4a3a2c;
+  --bedtime-ink: #f3dfc4;
+  --bedtime-muted: #d2b490;
+  --bedtime-dim: rgb(0 0 0 / 55%);
+}

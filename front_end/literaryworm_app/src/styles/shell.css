@@ -482,6 +482,10 @@
     border: 1px solid ButtonText;
   }
 
+  .bedtime-button {
+    border: 2px solid ButtonText;
+  }
+
   .segmented input:checked + span {
     forced-color-adjust: none;
     border-color: Highlight;

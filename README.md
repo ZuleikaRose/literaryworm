@@ -509,5 +509,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Premium at $60.00 a month ($600.00 a year); Basic and Standard unchanged. App, translations, checkout, database (migrations 6713–6714), structured data, llms.txt and Stripe (new Premium prices take over the lookup keys; running memberships keep theirs). |
 | —    | Before you cancel: a reason (optional) and an offer that fits (pause, a smaller plan, uploads, Help, or a once-per-account month's credit through Stripe), counts by reason on the staff Dashboard. Migrations 6715–6718, `manage-account`. |
 | —    | Gift cards: $25, $50 or $100 of credit for any plan, sold on Gifts (Stripe product `literaryworm_gift_card`), redeemed into the account's Stripe balance. Migrations 6719–6721; `checkout`, `stripe-webhook`, `manage-account`, `gift-reminders`. |
+| —    | Bedtime listening: a dim player view with the sleep timer set for you and the sound fading out, suggested to Kids profiles before bedtime; the end-of-chapter timer fades too. Migrations 6722–6723 (text only). |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

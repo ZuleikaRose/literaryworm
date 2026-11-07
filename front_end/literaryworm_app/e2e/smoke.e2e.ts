@@ -756,6 +756,24 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("opens bedtime listening with a sleep timer already set, dims it, and goes back to the player", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/dune");
+    await page.getByLabel("Voice").selectOption({ label: "No voice (silent sample)" });
+    await expect(page.getByLabel("Sleep timer").inputValue()).resolves.toBe("off");
+    await page.getByRole("link", { name: "Bedtime listening" }).click();
+    const view = page.locator(".bedtime-view");
+    await view.getByText("Bedtime listening", { exact: true }).waitFor();
+    await view.getByRole("timer").filter({ hasText: /^Stops (in \d+:\d\d|at the end of this chapter)$/ }).waitFor();
+    await expect(view.getByLabel("Sleep timer").inputValue()).resolves.not.toBe("off");
+    await view.getByRole("button", { name: "Dimmer" }).click();
+    await expect(view.getByRole("button", { name: "Dimmer" }).getAttribute("aria-pressed")).resolves.toBe("true");
+    await view.getByRole("link", { name: /^Exit/ }).click();
+    await page.getByRole("heading", { level: 1, name: "Dune" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("is told about the 48-hour rule before cancelling, and sees the charge still to come after", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

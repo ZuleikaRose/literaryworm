@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Bedtime listening",
+    "body": "A dim, quiet way to listen before sleep, in the player and the mini-player's More: it sets the sleep timer for you (the end of the chapter when that's near, otherwise 15 minutes), the sound fades out at the end, and Dimmer darkens the screen further. Kids profiles with a bedtime are offered it in the player shortly before. The end-of-chapter sleep timer now fades out everywhere, like the minutes one.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Gift cards",
     "body": "On Gifts you can now give a gift card as well as a membership: $25, $50 or $100 of credit for any plan, paid once. Pass the code on or have us email it, now or on a later day; when it's redeemed in Account, the credit comes off the person's next charges, whichever plan they choose.",
     "major": true

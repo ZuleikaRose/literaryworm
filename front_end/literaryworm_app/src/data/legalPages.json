@@ -15,6 +15,7 @@
           "Screen readers hear labelled controls, headings that outline each page, and announcements when something changes, such as a saved setting or a new club post. Book covers are described as the cover of their title, and shared pictures, like quote cards, by what they show; drawn covers, which only repeat the title written beside them, are hidden from screen readers.",
           "In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration.",
           "In car mode, the buttons fill a phone or tablet screen at every size and way up, and voice control (off until you turn it on, not on Kids profiles) lets you play, pause, skip and change chapter by saying so.",
+          "Bedtime listening shows the player in warm, dark colours with large Play and Back buttons and the sleep timer, every text at a contrast of 7:1 or more; high contrast mode keeps its own colours there.",
           "Newer features follow the same rules. Mood and pace tags are buttons that say whether they're on, content notes and translations are announced when they arrive, a Kids profile's Time for bed screen works with a keyboard and screen reader, and a shared audio clip has a labelled Play button."
         ]
       },
@@ -69,7 +70,7 @@
         ]
       }
     ],
-    "updated": "2026-11-04"
+    "updated": "2026-11-07"
   },
   {
     "slug": "privacy",
@@ -1722,7 +1723,8 @@
           "On an audiobook's page, Read offline has Listen offline on a schedule: this device keeps the chapter you're on and the next 1, 3, 5 or 10 as you listen, on Wi-Fi only if you like, and can remove chapters you've finished. It counts as one of your plan's offline devices.",
           "In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.",
           "In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch.",
-          "Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles."
+          "Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles.",
+          "Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before."
         ]
       },
       {

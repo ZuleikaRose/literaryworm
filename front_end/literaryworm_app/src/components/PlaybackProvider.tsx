@@ -380,6 +380,11 @@ function Engine({
     narrator.current?.setVolume(volume);
   }, [volume]);
 
+  // A sleep timer changed or turned off part-way through its fade: back to the listener's volume.
+  useEffect(() => {
+    narrator.current?.setVolume(clock.current.volume);
+  }, [sleep]);
+
   useEffect(() => {
     if (!running) return;
     const saveAt = (seconds: number, finishedNow?: boolean) => clock.current.save(seconds, finishedNow);
@@ -402,6 +407,11 @@ function Engine({
       if ((heard === null || outro > 0) && next >= boundary && c.position < boundary) {
         c.endChapter(index);
         return;
+      }
+      // An end-of-chapter sleep timer fades out over the chapter's last seconds too.
+      if (c.sleep?.kind === "chapter") {
+        const left = (boundary - next) / Math.max(c.speed, 0.25);
+        if (left < SLEEP_FADE_SECONDS) narrator.current?.setVolume(sleepVolume(c.volume, left));
       }
       if (c.sleep?.kind === "minutes") {
         const left = c.sleepLeft - elapsed;
