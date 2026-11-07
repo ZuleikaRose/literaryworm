@@ -794,9 +794,16 @@ describe("the demo household", () => {
     await page.getByLabel("Voice").selectOption({ label: "No voice (silent sample)" });
     await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
     const dialog = page.getByRole("dialog", { name: "Player settings" });
-    await dialog.getByRole("switch", { name: /Keep this speed for this book/ }).check();
+    const own = dialog.getByRole("switch", { name: /Keep this speed for this book/ });
+    await own.check();
+    await expect(own.isChecked()).resolves.toBe(true);
     await dialog.getByRole("button", { name: "Close" }).click();
     await page.getByLabel("Speed").selectOption("2");
+    // The change has reached the book (its own speed now) before moving on.
+    await page.getByText(/At 2×:/).waitFor();
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    await expect(page.getByRole("dialog", { name: "Player settings" }).getByRole("switch", { name: /Keep this speed for this book/ }).isChecked()).resolves.toBe(true);
+    await page.getByRole("dialog", { name: "Player settings" }).getByRole("button", { name: "Close" }).click();
     await goInApp(page, "/listen/emma");
     await expect(page.getByLabel("Speed").inputValue()).resolves.toBe("1");
     await goInApp(page, "/listen/dune");
