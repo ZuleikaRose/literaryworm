@@ -75,7 +75,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-11-06",
+    "updated": "2026-11-07",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -190,6 +190,7 @@
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself.",
           "Lists you share can be read by anyone with the link, who can also buy you a gift membership that comes with their LiteraryWorm books. Staff with the right access can see account details to run the service and help you.",
           "Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address.",
+          "Why you cancelled. When you cancel, Account asks why, if you'd like to say: a reason from a short list and, if you like, a note. We keep your answer with your account, the offer we showed you and whether you stayed. Billing staff and admins see only how many members gave each reason and how many stayed, never who or what they wrote.",
           "They see the name and email, when the account was made, whether the email is confirmed and two-step sign-in is on, the plan and its billing state (never card details), how many profiles there are, this month's listening against the plan, and the devices keeping books offline. They never see your library, reading, notes, highlights or searches. Every lookup is recorded with who made it and when, and the record is deleted after a year.",
           "Business Transfers. We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company."
         ]
@@ -372,6 +373,7 @@
           "A gift recipient's email address and the buyer's message: until the gift email has gone.",
           "The one-way fingerprint of an address you invited to a book club: 30 days. New books we find by authors you follow: 60 days.",
           "The record of each support lookup: a year. Your cookie choice, kept in your browser by Termly: up to 12 months.",
+          "Why you cancelled (your reason and note), if you told us: a year, or until you delete your account. That you've had the one-time month's credit offered instead of cancelling: while your account is open.",
           "Notifications on a device: until you turn them off there or log out on it."
         ]
       },
@@ -758,7 +760,7 @@
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-11-06",
+    "updated": "2026-11-07",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
@@ -1115,6 +1117,7 @@
           "Inviting friends. Each member has a link to share from Account. When someone who hasn't had a LiteraryWorm account before signs up with it and makes their first payment, we add a month of their plan as a credit on their account, and a month of your own plan as a credit on yours. Credits come off your next invoices.",
           "You can earn up to 2 free months from inviting friends in all; the friends you invite after that still get their month. Credits have no cash value, can't be moved to another account, and aren't refunded when a membership ends. Staff memberships aren't billed, so they don't earn or receive credits.",
           "Invitations are for people you know. We may withhold or remove credits earned by signing up yourself again, by using made-up accounts, or by posting your link where it reaches people who didn't ask for it, and we may change or end the offer with notice in What's new; credits already added stay.",
+          "Staying instead of cancelling. When you cancel, we may offer something that fits your reason: pausing, a smaller plan, or once per account a credit of one month of your plan, added to your account and taken off your next charges. The credit is for memberships paid through Stripe, not during a free week or a gift's free months, has no cash value and can't be moved or refunded.",
           "Affiliate program. Members can apply on the Affiliate program page with their website or channel and how they'll share LiteraryWorm. We review each application and may decline it. An approved affiliate gets a sign-up link with their own code.",
           "When someone who hasn't had a LiteraryWorm account signs up with that link and makes their first payment, we add 20% of that payment as a credit on the affiliate's own Stripe balance, taken off their next invoices. It's earned once per member, only while the affiliate has a paid membership, and has no cash value; there are no payouts. Staff can't be affiliates.",
           "Affiliates must say that they earn a commission wherever they share their link, as the FTC's Endorsement Guides require, and must never market LiteraryWorm to children or on pages, channels or apps made for them. We may suspend an affiliate who doesn't, or who sends visitors in misleading ways; a suspended link stops counting sign-ups and earning credit, and credits already added stay."
@@ -1519,7 +1522,7 @@
     "slug": "returns",
     "title": "Return Policy",
     "summary": "How billing, cancelling and refunds work for LiteraryWorm memberships and gift memberships, and who to contact with questions.",
-    "updated": "2026-11-06",
+    "updated": "2026-11-07",
     "sections": [
       {
         "heading": "In short",
@@ -1540,6 +1543,7 @@
         "heading": "Cancelling",
         "paragraphs": [
           "Cancel at least 48 hours before your next billing date, and your plan stays active until the end of the period you've paid for, with no further charge.",
+          "When you cancel, Account asks why (you don't have to say) and may offer something that fits: pausing, a smaller plan, or once per account a month's credit taken off your next charges. Taking an offer is up to you, and it never changes the 48-hour rule or our no-refunds policy.",
           "If you cancel less than 48 hours before your billing date, that charge still goes through and isn't refunded. A monthly plan then ends at the end of the month it pays for, and a yearly plan at the end of the year it pays for.",
           "Pausing a monthly membership stops billing until you resume. Your library, profiles and progress stay as they are."
         ]
@@ -1759,6 +1763,7 @@
         "heading": "Your plan, notifications and gifts",
         "paragraphs": [
           "Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one.",
+          "Thinking of cancelling? Cancel membership in Account → Plan and billing asks why, if you'd like to say, and may suggest something that helps: pausing (on monthly billing), a smaller plan, your own uploads, Help, or once per account a month's credit if you stay. You can always cancel anyway.",
           "To hear when a book you set Remind me on comes out, turn on Notifications on this device in Account → Preferences. Once it's on, choose there which notifications you get: books you're waiting for, club meetings, new club posts up to your chapter, an evening streak nudge, and answers to Kids book requests. On iPhone and iPad, add LiteraryWorm to your Home Screen first (Share, then Add to Home Screen) and turn them on in the app.",
           "When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it.",
           "A list you share by link is a wishlist too: its page has Give this list as a gift, which opens Gifts with up to 10 of its LiteraryWorm books already picked. Share a list in My Library → Lists to let family and friends know what you'd like.",

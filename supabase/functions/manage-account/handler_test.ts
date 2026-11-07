@@ -28,6 +28,8 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
     gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null, starts_on: null, books: [] } as Gift,
     redeemedBy: null as string | null,
     addedBooks: [] as { userId: string; books: string[] }[],
+    answers: [] as { reason: string; comment: string | null; offer: string | null; outcome: string }[],
+    creditClaimed: false,
   };
   const record = (call: string) => {
     state.stripe.push(call);
@@ -80,6 +82,24 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       extendForGift: (id, until) => record(`gift ${id} ${new Date(until * 1000).toISOString().slice(0, 10)}`),
       startGift: ({ giftId, customerId, planId, until }) =>
         record(`start gift ${giftId} ${customerId} ${planId} ${new Date(until * 1000).toISOString().slice(0, 10)}`),
+      credit: (customer, cents, key) => record(`credit ${customer} ${cents} ${key}`),
+    },
+    retention: {
+      record: (_userId, answer, outcome) => {
+        state.answers.push({ ...answer, outcome });
+        return Promise.resolve();
+      },
+      creditUsed: () => Promise.resolve(state.creditClaimed),
+      claimCredit: () => {
+        if (state.creditClaimed) return Promise.resolve(false);
+        state.creditClaimed = true;
+        return Promise.resolve(true);
+      },
+      releaseCredit: () => {
+        state.creditClaimed = false;
+        return Promise.resolve();
+      },
+      monthCents: (planId) => Promise.resolve(planId === "standard" ? 4000 : 6000),
     },
     gifts: {
       find: (code) => Promise.resolve(code === GIFT_CODE ? state.gift : null),
@@ -575,4 +595,72 @@ Deno.test("a yearly membership can't be paused or move its billing day, and a la
   assertEquals(res.status, 200);
   assertEquals(res.body.cancel_at, "2027-11-05T00:00:00.000Z");
   assertEquals(state.stripe.at(-1), "cancel_at sub_1 2027-11-05T00:00:00.000Z");
+});
+
+Deno.test("cancelling keeps the member's reason and note, and refuses a note without a reason", async () => {
+  const { state, deps } = setup(paid());
+  const bad = await call(deps, { action: "cancel", comment: "too pricey" });
+  assertEquals(bad.status, 400);
+  assertEquals((await call(deps, { action: "cancel", reason: "bored" })).status, 400);
+  assertEquals(state.sub!.cancel_at_period_end, false);
+  const ok = await call(deps, { action: "cancel", reason: "too_expensive", comment: "  Too much for us right now. ", offer: "downgrade" });
+  assertEquals(ok.status, 200);
+  assertEquals(state.answers, [{ reason: "too_expensive", comment: "Too much for us right now.", offer: "downgrade", outcome: "cancelled" }]);
+});
+
+Deno.test("cancelling without an answer keeps nothing, and a failure to keep one never stops it", async () => {
+  const { state, deps } = setup(paid());
+  await call(deps, { action: "cancel" });
+  assertEquals(state.answers, []);
+  const failing = setup(paid());
+  failing.deps.retention = { ...failing.deps.retention, record: () => Promise.reject(new Error("db down")) };
+  const res = await call(failing.deps, { action: "cancel", reason: "other" });
+  assertEquals(res.status, 200);
+  assertEquals(failing.state.sub!.cancel_at_period_end, true);
+});
+
+Deno.test("the month's credit is on offer once, to a member paying through Stripe", async () => {
+  const { state, deps } = setup(paid());
+  assertEquals((await call(deps, { action: "save_offer_check" })).body, { creditCents: 4000 });
+  const took = await call(deps, { action: "save_offer", reason: "found_another" });
+  assertEquals(took.body, { creditCents: 4000 });
+  assertEquals(state.stripe, [`credit cus_1 4000 save-offer-${USER.id}`]);
+  assertEquals(state.answers, [{ reason: "found_another", comment: null, offer: "credit", outcome: "kept" }]);
+  assertEquals((await call(deps, { action: "save_offer_check" })).body, { creditCents: null });
+  assertEquals((await call(deps, { action: "save_offer", reason: "found_another" })).status, 400);
+  assertEquals(state.stripe.length, 1);
+});
+
+Deno.test("no credit during a free week, a gift, a pause, an ending membership, for staff or without Stripe", async () => {
+  for (const sub of [
+    { ...paid(), trial_until: "2026-10-30T00:00:00.000Z" },
+    { ...paid(), gift_until: "2026-12-30T00:00:00.000Z" },
+    { ...paid(), status: "paused" as const },
+    { ...paid(), cancel_at_period_end: true },
+    complimentary(),
+    active(),
+  ]) {
+    const { state, deps } = setup(sub);
+    assertEquals((await call(deps, { action: "save_offer_check" })).body, { creditCents: null });
+    assertEquals((await call(deps, { action: "save_offer", reason: "other" })).status, 400);
+    assertEquals(state.stripe, []);
+  }
+});
+
+Deno.test("the credit is handed back when Stripe fails, and needs a reason", async () => {
+  const { state, deps } = setup(paid());
+  assertEquals((await call(deps, { action: "save_offer" })).status, 400);
+  deps.billing = { ...deps.billing, credit: () => Promise.reject(new HttpError("upstream_error", "Stripe is down")) };
+  assertEquals((await call(deps, { action: "save_offer", reason: "other" })).status, 502);
+  assertEquals(state.creditClaimed, false);
+  assertEquals(state.answers, []);
+});
+
+Deno.test("taking another offer instead of cancelling is kept as kept", async () => {
+  const { state, deps } = setup(paid());
+  assertEquals((await call(deps, { action: "cancel_feedback", reason: "taking_a_break", offer: "pause" })).body, { ok: true });
+  assertEquals(state.answers, [{ reason: "taking_a_break", comment: null, offer: "pause", outcome: "kept" }]);
+  assertEquals((await call(deps, { action: "cancel_feedback", reason: "other", offer: "credit" })).status, 400);
+  assertEquals((await call(deps, { action: "cancel_feedback", reason: "other" })).status, 400);
+  assertEquals(state.sub!.cancel_at_period_end, false);
 });

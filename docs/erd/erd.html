@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6714, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6718, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -996,6 +996,30 @@
           note: "Unique (id, user_id). Index: (user_id, last_seen_at). Checks in every minute through touch_listening_device(); 20 kept an account. RLS: owner only; browser sets id, user_id and label.",
         },
         {
+          id: "cancellation_feedback", color: colors.billing, x: 0, y: 10300, sub: "why members cancel",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "account_id", "uuid"],
+            ["", "reason", "text (7 reasons)"],
+            ["", "comment", "text (500)", true],
+            ["", "offer", "text (pause, downgrade, credit, upload, help)", true],
+            ["", "outcome", "text (cancelled, kept)"],
+            ["", "plan_id", "text", true],
+            ["", "billing_interval", "text", true],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Written only by manage-account (service role), from Account's cancel dialog. FK on delete cascade, indexed. No browser access; cancellation_reasons() gives billing staff counts by reason, never who. Deleted after a year by pg_cron.",
+        },
+        {
+          id: "save_offer_credits", color: colors.billing, x: 420, y: 10300, sub: "the once-per-account month's credit",
+          cols: [
+            ["pk", "account_id", "uuid → auth.users"],
+            ["", "credited_cents", "integer"],
+            ["", "claimed_at", "timestamptz"],
+          ],
+          note: "Claimed by manage-account before Stripe credits the customer's balance (save-offer-<account> idempotency key); handed back if Stripe fails. Service role only.",
+        },
+        {
           id: "support_lookups", color: colors.server, x: 840, y: 5200, sub: "member lookup record",
           cols: [
             ["pk", "id", "bigint identity"],
@@ -1233,6 +1257,8 @@
         ["club_posts", "club_id", "club_members", "club_id", "N : 1 (pair)"],
         ["listening_devices", "user_id", "auth.users", "id", "N : 1"],
         ["offline_devices", "user_id", "auth.users", "id", "N : 1"],
+        ["cancellation_feedback", "account_id", "auth.users", "id", "N : 1"],
+        ["save_offer_credits", "account_id", "auth.users", "id", "1 : 1"],
         ["support_lookups", "staff_id", "auth.users", "id", "N : 1"],
         ["support_lookups", "member_id", "auth.users", "id", "N : 1"],
         ["playback_handoffs", "to_device_id", "listening_devices", "id", "N : 1 (pair)"],

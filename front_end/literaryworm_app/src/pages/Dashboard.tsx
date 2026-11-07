@@ -3,9 +3,10 @@ import { BackLink } from "../components/BackLink";
 import { Icon } from "../components/Icon";
 import { formatMoney } from "../lib/billing";
 import { readingTime } from "../lib/goals";
-import { dateLocale, type T } from "../lib/i18n";
+import { dateLocale, type T, tk } from "../lib/i18n";
 import { hasRole } from "../lib/staff";
-import { loadDashboard, type StaffDashboard } from "../lib/staffApi";
+import { type CancelReasonCount, loadCancelReasons, loadDashboard, type StaffDashboard } from "../lib/staffApi";
+import { CANCEL_REASON_LABEL, type SaveOffer } from "../lib/cancelSurvey";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
@@ -81,6 +82,7 @@ function DashboardBody() {
         </p>
       )}
       {data && <Totals data={data} />}
+      {data && <CancelReasons tries={tries} />}
     </>
   );
 }
@@ -205,5 +207,62 @@ function Totals({ data }: { data: StaffDashboard }) {
         </section>
       </div>
     </div>
+  );
+}
+
+const OFFER_LABEL: Record<SaveOffer, string> = {
+  pause: tk("paused instead"),
+  downgrade: tk("chose a smaller plan"),
+  credit: tk("took the month's credit"),
+  upload: tk("went to their uploads"),
+  help: tk("went to Help"),
+};
+
+/** Why members cancel over the last 90 days (counts only, from cancellation_reasons()). */
+function CancelReasons({ tries }: { tries: number }) {
+  const t = useT();
+  const [rows, setRows] = useState<CancelReasonCount[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadCancelReasons(90).then(
+      (r) => live && (setRows(r), setError(null)),
+      (err: Error) => live && setError(err.message),
+    );
+    return () => {
+      live = false;
+    };
+  }, [tries]);
+  const total = rows?.reduce((n, r) => n + r.answers, 0) ?? 0;
+  return (
+    <section className="stats-card dashboard-cancel" aria-labelledby="dash-cancel">
+      <h2 id="dash-cancel">{t("Why members cancel, last 90 days")}</h2>
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} />
+          {error}
+        </p>
+      )}
+      {rows && total === 0 && <p className="account-sub">{t("No one has given a reason yet.")}</p>}
+      {rows && total > 0 && (
+        <ul className="dashboard-list" role="list">
+          {rows.map((r) => (
+            <li key={r.reason}>
+              <strong>{t(CANCEL_REASON_LABEL[r.reason])}</strong>{" "}
+              {t.plural(r.answers, { one: "{n} answer, {kept} stayed", other: "{n} answers, {kept} stayed" }, { n: num(t, r.answers), kept: num(t, r.kept) })}
+              {Object.entries(r.keptBy).length > 0 && (
+                <span className="dashboard-note">
+                  {" ("}
+                  {Object.entries(r.keptBy)
+                    .map(([offer, n]) => `${num(t, n ?? 0)} ${t(OFFER_LABEL[offer as SaveOffer])}`)
+                    .join(", ")}
+                  {")"}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

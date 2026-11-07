@@ -7,10 +7,23 @@
 //
 //   { action: "pause" }                      stop reading and billing until resumed (monthly only)
 //   { action: "resume" }
-//   { action: "cancel" }                     ends on the next billing date with no more charges,
+//   { action: "cancel", reason?, comment?, offer? }
+//                                            ends on the next billing date with no more charges,
 //                                            given at least 48 hours' notice; with less, that charge
 //                                            still goes through and it ends a period (a month, or
 //                                            a year when billed yearly) later. No refunds
+//                                            The optional answer (why, a note, the offer shown) is
+//                                            kept in cancellation_feedback; failing to keep it never
+//                                            stops the cancellation
+//   { action: "save_offer_check" }           returns { creditCents }: the once-per-account month's
+//                                            credit on offer instead of cancelling, or null
+//   { action: "save_offer", reason, comment? }
+//                                            takes that credit (a Stripe customer balance credit of a
+//                                            month of the member's plan): claimed first, handed back
+//                                            if Stripe fails. Returns { creditCents }
+//   { action: "cancel_feedback", reason, comment?, offer }
+//                                            the member took another offer (pause, a smaller plan,
+//                                            uploads, Help) instead of cancelling: kept as "kept"
 //   { action: "restart" }                    undo a cancel before it takes effect
 //   { action: "billing_day", billingDay }    move the billing day (1-28): the days until the new
 //                                            date are free, so nothing is charged twice or lost.
@@ -40,6 +53,7 @@
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { addGiftMonths, type BillingInterval, cancellationEnd, type DiscountView, giftStarted, type InvoiceView, nextBillingDay, PLAN_NAMES, type PlanId } from "../_shared/stripe.ts";
+import { type CancelAnswer, parseCancelAnswer } from "../_shared/cancelReasons.ts";
 import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 import { deletedEmail, type Email } from "./email.ts";
 
@@ -64,6 +78,8 @@ export interface Subscription {
   complimentary: boolean;
   /** The end of a gift's free months, while they last. */
   gift_until: string | null;
+  /** The end of a first membership's free week, while it lasts. */
+  trial_until?: string | null;
   /** The plan a yearly membership moves to, monthly, at renewal (cancelling drops it). */
   switch_to_monthly?: string | null;
   /** Set once the member pays through Stripe Checkout. */
@@ -119,6 +135,22 @@ export interface Billing {
   extendForGift: (subscriptionId: string, until: number) => Promise<void>;
   /** A new subscription on the plan, free until `until`, ending then unless a card is added. */
   startGift: (input: { giftId: string; customerId: string; planId: PlanId; until: number; consentAt: string }) => Promise<void>;
+  /** A customer balance credit (taken off the next invoices), once per idempotency key. */
+  credit: (customerId: string, cents: number, idempotencyKey: string, description: string) => Promise<void>;
+}
+
+/** Why members cancel, and the once-per-account month's credit offered instead. */
+export interface Retention {
+  /** Keeps the member's answer (cancellation_feedback). */
+  record: (userId: string, answer: CancelAnswer, outcome: "cancelled" | "kept", sub: Subscription) => Promise<void>;
+  /** Whether the account has had the credit already (save_offer_credits). */
+  creditUsed: (userId: string) => Promise<boolean>;
+  /** Claims the credit; false when the account has had it. */
+  claimCredit: (userId: string, cents: number) => Promise<boolean>;
+  /** Hands a claim back when Stripe couldn't credit it. */
+  releaseCredit: (userId: string) => Promise<void>;
+  /** A month of the plan at its current price (public.plans). */
+  monthCents: (planId: string) => Promise<number>;
 }
 
 export interface Deps {
@@ -132,6 +164,7 @@ export interface Deps {
   sendEmail: (email: Email) => Promise<void>;
   billing: Billing;
   gifts: Gifts;
+  retention: Retention;
   /** The account's Stripe Customer, created the first time. */
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
   /** The site to send the member back to: the request's origin when it's allowed. */
@@ -150,6 +183,27 @@ export function nextBillingDate(billingDay: number, now: Date): Date {
   const month = now.getUTCMonth();
   const thisMonth = new Date(Date.UTC(year, month, billingDay));
   return now.getUTCDate() < billingDay ? thisMonth : new Date(Date.UTC(year, month + 1, billingDay));
+}
+
+/**
+ * The month's credit is for a member paying through Stripe right now: not during a free week or a
+ * gift's free months, not while paused or already ending, and never for staff.
+ */
+export function creditEligible(sub: Subscription | null): sub is Subscription & { stripe_customer_id: string } {
+  return Boolean(
+    sub && sub.stripe_subscription_id && sub.stripe_customer_id && sub.status === "active" && !sub.cancel_at_period_end &&
+      !sub.complimentary && !sub.gift_until && !sub.trial_until,
+  );
+}
+
+/** Keeps a member's answer; a failure is only logged, so it never stops what they asked for. */
+async function keepAnswer(deps: Deps, userId: string, answer: CancelAnswer | null, outcome: "cancelled" | "kept", sub: Subscription) {
+  if (!answer) return;
+  try {
+    await deps.retention.record(userId, answer, outcome, sub);
+  } catch (err) {
+    console.error("manage-account: couldn't keep a cancel answer:", err instanceof Error ? err.message : err);
+  }
 }
 
 async function requireSubscription(deps: Deps, userId: string): Promise<Subscription> {
@@ -202,7 +256,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         return json(req, METHODS, view(await deps.updateSubscription(user.id, { status: "active" })));
       }
       case "cancel": {
-        onlyKeys(body, ["action"]);
+        onlyKeys(body, ["action", "reason", "comment", "offer"]);
+        const answer = parseCancelAnswer(body);
         const sub = await requirePaidSubscription(deps, user.id);
         if (sub.status === "cancelled" || sub.cancel_at_period_end) return json(req, METHODS, view(sub));
         const nextBilling = sub.stripe_subscription_id && sub.current_period_end
@@ -216,20 +271,47 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
           if (late) await deps.billing.cancelAt(sub.stripe_subscription_id, Math.floor(ends.getTime() / 1000));
           else await deps.billing.setCancelAtPeriodEnd(sub.stripe_subscription_id, true);
         }
-        return json(
-          req,
-          METHODS,
-          view(
-            await deps.updateSubscription(user.id, {
-              status: "active",
-              cancel_at_period_end: true,
-              current_period_end: nextBilling.toISOString(),
-              cancel_at: ends.toISOString(),
-              // Stripe drops a scheduled move to monthly when a membership is cancelled.
-              switch_to_monthly: null,
-            }),
-          ),
-        );
+        const cancelled = await deps.updateSubscription(user.id, {
+          status: "active",
+          cancel_at_period_end: true,
+          current_period_end: nextBilling.toISOString(),
+          cancel_at: ends.toISOString(),
+          // Stripe drops a scheduled move to monthly when a membership is cancelled.
+          switch_to_monthly: null,
+        });
+        await keepAnswer(deps, user.id, answer, "cancelled", sub);
+        return json(req, METHODS, view(cancelled));
+      }
+      case "save_offer_check": {
+        onlyKeys(body, ["action"]);
+        const sub = await deps.getSubscription(user.id);
+        const open = creditEligible(sub) && !(await deps.retention.creditUsed(user.id));
+        return json(req, METHODS, { creditCents: open ? await deps.retention.monthCents(sub!.plan_id) : null });
+      }
+      case "save_offer": {
+        onlyKeys(body, ["action", "reason", "comment"]);
+        const answer = parseCancelAnswer({ ...body, offer: "credit" });
+        if (!answer) throw new HttpError("bad_request", "Choose a reason first.");
+        const sub = await deps.getSubscription(user.id);
+        if (!creditEligible(sub)) throw new HttpError("bad_request", "This offer isn't available for your membership.");
+        const cents = await deps.retention.monthCents(sub.plan_id);
+        if (!(await deps.retention.claimCredit(user.id, cents))) throw new HttpError("bad_request", "You've already had this offer.");
+        try {
+          await deps.billing.credit(sub.stripe_customer_id, cents, `save-offer-${user.id}`, "A month on us, from LiteraryWorm");
+        } catch (err) {
+          await deps.retention.releaseCredit(user.id);
+          throw err;
+        }
+        await keepAnswer(deps, user.id, answer, "kept", sub);
+        return json(req, METHODS, { creditCents: cents });
+      }
+      case "cancel_feedback": {
+        onlyKeys(body, ["action", "reason", "comment", "offer"]);
+        const answer = parseCancelAnswer(body);
+        if (!answer?.offer || answer.offer === "credit") throw new HttpError("bad_request", "Say which offer you chose instead.");
+        const sub = await requireSubscription(deps, user.id);
+        await keepAnswer(deps, user.id, answer, "kept", sub);
+        return json(req, METHODS, { ok: true });
       }
       case "restart": {
         onlyKeys(body, ["action"]);

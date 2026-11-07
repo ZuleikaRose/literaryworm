@@ -11,7 +11,7 @@ import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./
 const DISCOUNT_EXPAND = ["discounts.source.coupon", "discounts.promotion_code"];
 
 const COLUMNS =
-  "plan_id, status, billing_interval, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, switch_to_monthly, stripe_subscription_id, stripe_customer_id";
+  "plan_id, status, billing_interval, billing_day, cancel_at_period_end, current_period_end, cancel_at, complimentary, gift_until, trial_until, switch_to_monthly, stripe_subscription_id, stripe_customer_id";
 
 Deno.serve((req) =>
   handle(req, {
@@ -79,6 +79,10 @@ Deno.serve((req) =>
         const sub = await stripeClient().subscriptions.retrieve(subscriptionId, { expand: DISCOUNT_EXPAND });
         return discountView(sub.discounts);
       },
+      async credit(customerId, cents, idempotencyKey, description) {
+        // A negative balance is a credit: Stripe takes it off the customer's next invoices.
+        await stripeClient().customers.createBalanceTransaction(customerId, { amount: -cents, currency: "usd", description }, { idempotencyKey });
+      },
       async redeem(subscriptionId, code) {
         const stripe = stripeClient();
         const { data } = await stripe.promotionCodes.list({ code, active: true, limit: 1 });
@@ -123,6 +127,41 @@ Deno.serve((req) =>
           .from("library_items")
           .upsert(books.map((volume_id) => ({ user_id: userId, volume_id, status: "want_to_read" })), { onConflict: "user_id,volume_id", ignoreDuplicates: true });
         if (error) throw error;
+      },
+    },
+    retention: {
+      async record(userId, answer, outcome, sub) {
+        const { error } = await serviceClient().from("cancellation_feedback").insert({
+          account_id: userId,
+          reason: answer.reason,
+          comment: answer.comment,
+          offer: answer.offer,
+          outcome,
+          plan_id: sub.plan_id,
+          billing_interval: sub.billing_interval,
+        });
+        if (error) throw error;
+      },
+      async creditUsed(userId) {
+        const { data, error } = await serviceClient().from("save_offer_credits").select("account_id").eq("account_id", userId).maybeSingle();
+        if (error) throw error;
+        return data !== null;
+      },
+      async claimCredit(userId, cents) {
+        // The account is the primary key, so a second claim (or two at once) fails here.
+        const { error } = await serviceClient().from("save_offer_credits").insert({ account_id: userId, credited_cents: cents });
+        if (error?.code === "23505") return false;
+        if (error) throw error;
+        return true;
+      },
+      async releaseCredit(userId) {
+        const { error } = await serviceClient().from("save_offer_credits").delete().eq("account_id", userId);
+        if (error) throw error;
+      },
+      async monthCents(planId) {
+        const { data, error } = await serviceClient().from("plans").select("price_cents").eq("id", planId).single();
+        if (error) throw error;
+        return data.price_cents as number;
       },
     },
     siteOrigin(req) {

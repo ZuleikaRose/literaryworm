@@ -1,3 +1,4 @@
+import type { CancelReason, SaveOffer } from "./cancelSurvey";
 import { tr } from "./i18n";
 import { AccountError, signedInUserId } from "./accountApi";
 import type { StaffMember, StaffRole } from "./staff";
@@ -102,6 +103,26 @@ interface DashboardRow {
   reading: { active_readers_7_days: number; minutes_30_days: number; listening_minutes_30_days: number; books_finished_30_days: number };
   clubs: { running: number; posts_30_days: number };
   stripe_events_to_review: number;
+}
+
+/** How many cancelling members gave each reason, and how many stayed (and for which offer). */
+export interface CancelReasonCount {
+  reason: CancelReason;
+  answers: number;
+  kept: number;
+  keptBy: Partial<Record<SaveOffer, number>>;
+}
+
+/** Counts by reason over the last `days` days (cancellation_reasons(): billing staff and admins; counts only). */
+export async function loadCancelReasons(days = 90): Promise<CancelReasonCount[]> {
+  const { data, error } = await client().rpc("cancellation_reasons", { p_days: days });
+  if (error) throw new AccountError(tr("We couldn't load why members cancel. Try again."));
+  return ((data ?? []) as { reason: CancelReason; answers: number; kept: number; kept_by: Partial<Record<SaveOffer, number>> }[]).map((r) => ({
+    reason: r.reason,
+    answers: r.answers,
+    kept: r.kept,
+    keptBy: r.kept_by ?? {},
+  }));
 }
 
 export async function loadDashboard(): Promise<StaffDashboard> {

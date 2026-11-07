@@ -27,6 +27,7 @@ import {
   choosePlan,
   finishTwoStep,
   listPasskeys,
+  type CancelAnswer,
   type MembershipAction,
   PasskeyCodeError,
   passkeyAddNeedsCode,
@@ -52,6 +53,7 @@ import { useTitle } from "../lib/useTitle";
 import { validateNewPassword } from "../lib/validation";
 import { useActiveProfile, useStore } from "../store/context";
 import type { Account as AccountDetails } from "../types";
+import { CancelDialog } from "../components/CancelDialog";
 import { rich, tk, tr } from "../lib/i18n";
 import { useT } from "../lib/useT";
 
@@ -255,7 +257,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
   const cancelLate = Boolean(cancelling?.late);
   const cancelEnds = cancelling ? longDate(cancelling.ends) : nextCharge;
 
-  const run = async (action: MembershipAction) => {
+  const run = async (action: MembershipAction, answer?: CancelAnswer | null) => {
     setConfirming(null);
     const messages: Record<MembershipAction, string> = {
       pause: t("Your membership is paused. Nothing is charged until you resume."),
@@ -265,7 +267,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
         : t("Your membership is cancelled. You can keep reading until {date}.", { date: nextCharge ?? "" }),
       restart: t("Your membership will carry on as before."),
     };
-    await attempt(() => changeMembership(action), messages[action]);
+    await attempt(() => changeMembership(action, answer), messages[action]);
   };
 
   if (!plan) {
@@ -483,36 +485,41 @@ function PlanSection({ account }: { account: AccountDetails }) {
       <PlanUsage planId={plan.id} />
       {billed && account.stripeLinked && <BillingHistory canRedeem={account.status !== "cancelled"} monthlyPrice={price} interval={account.billingInterval} />}
 
+      {confirming === "cancel" && (
+        <CancelDialog
+          account={account}
+          confirmText={
+            cancelLate
+              ? t(
+                  "It's less than {hours} hours until your next billing date, so the charge on {date} still goes through. You can keep reading and listening until {ends}, with no charges after that. No refunds. You can change your mind any time before then.",
+                  { hours: CANCEL_NOTICE_HOURS, date: nextCharge ?? "", ends: cancelEnds ?? "" },
+                )
+              : t("You can keep reading and listening until {date}, and you won't be charged again. No refunds. You can change your mind any time before then.", {
+                  date: nextCharge ?? "",
+                })
+          }
+          onClose={() => setConfirming(null)}
+          onCancel={(answer) => run("cancel", answer)}
+          onPause={() => run("pause")}
+          onKept={(message) => {
+            setConfirming(null);
+            void attempt(async () => {}, message);
+          }}
+        />
+      )}
       <Dialog
-        open={confirming !== null}
+        open={confirming === "pause"}
         onClose={() => setConfirming(null)}
         size="sm"
-        title={confirming === "cancel" ? t("Cancel your membership?") : t("Pause your membership?")}
-        description={
-          <p>
-            {confirming === "cancel"
-              ? cancelLate
-                ? t(
-                    "It's less than {hours} hours until your next billing date, so the charge on {date} still goes through. You can keep reading and listening until {ends}, with no charges after that. No refunds. You can change your mind any time before then.",
-                    { hours: CANCEL_NOTICE_HOURS, date: nextCharge ?? "", ends: cancelEnds ?? "" },
-                  )
-                : t("You can keep reading and listening until {date}, and you won't be charged again. No refunds. You can change your mind any time before then.", {
-                    date: nextCharge ?? "",
-                  })
-              : t("Reading and listening stop, and nothing is charged until you resume. Your library, profiles and progress stay as they are.")}
-          </p>
-        }
+        title={t("Pause your membership?")}
+        description={<p>{t("Reading and listening stop, and nothing is charged until you resume. Your library, profiles and progress stay as they are.")}</p>}
       >
         <div className="modal-actions">
-          <button
-            type="button"
-            className={confirming === "cancel" ? "danger-button" : "primary-button"}
-            onClick={() => confirming && run(confirming)}
-          >
-            {confirming === "cancel" ? t("Cancel membership") : t("Pause membership")}
+          <button type="button" className="primary-button" onClick={() => run("pause")}>
+            {t("Pause membership")}
           </button>
           <button type="button" className="secondary-button" onClick={() => setConfirming(null)}>
-            {confirming === "cancel" ? t("Keep membership") : t("Not now")}
+            {t("Not now")}
           </button>
         </div>
       </Dialog>

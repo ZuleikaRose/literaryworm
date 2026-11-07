@@ -1,3 +1,4 @@
+import type { CancelReason, SaveOffer } from "./cancelSurvey";
 import { isUiLanguage, tr, type UiLanguage } from "./i18n";
 import type { AccountReading } from "../store/state";
 import type { Collections } from "./collections";
@@ -542,10 +543,45 @@ export async function choosePlan(
 
 export type MembershipAction = "pause" | "resume" | "cancel" | "restart";
 
+/** Why a member cancelled (optional), sent with the cancel. */
+export interface CancelAnswer {
+  reason: CancelReason;
+  comment: string;
+  offer: SaveOffer | null;
+}
+
+const answerBody = (answer: CancelAnswer | null | undefined) =>
+  answer ? { reason: answer.reason, ...(answer.comment.trim() ? { comment: answer.comment.trim() } : {}), ...(answer.offer ? { offer: answer.offer } : {}) } : {};
+
 /** Pauses, resumes, cancels or restarts the membership; returns the account's new plan fields. */
-export async function changeMembership(action: MembershipAction) {
-  const row = await callFunction<SubscriptionRow>("manage-account", { action }, "We couldn't change your membership. Try again.");
+export async function changeMembership(action: MembershipAction, answer?: CancelAnswer | null) {
+  const row = await callFunction<SubscriptionRow>(
+    "manage-account",
+    { action, ...(action === "cancel" ? answerBody(answer) : {}) },
+    "We couldn't change your membership. Try again.",
+  );
   return fromSubscription(row);
+}
+
+/** The once-per-account month's credit on offer instead of cancelling (cents), or null. */
+export async function saveOfferCredit(): Promise<number | null> {
+  const { creditCents } = await callFunction<{ creditCents: number | null }>("manage-account", { action: "save_offer_check" }, "We couldn't check your offers. Try again.");
+  return creditCents;
+}
+
+/** Takes the month's credit and stays; returns the credit in cents. */
+export async function takeSaveOffer(answer: CancelAnswer): Promise<number> {
+  const { creditCents } = await callFunction<{ creditCents: number }>(
+    "manage-account",
+    { action: "save_offer", ...answerBody({ ...answer, offer: null }) },
+    "We couldn't add your credit. Try again.",
+  );
+  return creditCents;
+}
+
+/** Notes that the member chose another offer instead of cancelling (best effort). */
+export async function keptByOffer(answer: CancelAnswer): Promise<void> {
+  await callFunction("manage-account", { action: "cancel_feedback", ...answerBody(answer) }, "We couldn't send your answer.");
 }
 
 /** Moves the billing day (1–28); the days until the new date are free. Returns the new plan fields. */

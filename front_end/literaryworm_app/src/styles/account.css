@@ -1273,3 +1273,49 @@
   min-width: 0;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Cancel dialog: why, and an offer that fits ---------- */
+
+.cancel-reasons {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.cancel-reasons legend {
+  padding: 0 6px;
+  font-weight: 700;
+}
+
+.cancel-offer {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.cancel-offer h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.cancel-offer p,
+.cancel-confirm {
+  margin: 0;
+}
+
+.cancel-confirm {
+  margin-bottom: 12px;
+  color: var(--muted);
+}
+
+.dashboard-note {
+  color: var(--muted);
+}

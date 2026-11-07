@@ -12422,3 +12422,142 @@ update public.plans set price_cents = 6000, yearly_price_cents = 60000 where id 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'update', $lw$A new price for Premium$lw$, $lw$From today, Premium is $60.00 a month ($600.00 a year; paying yearly still gets two months free). It keeps up to 12 profiles, unlimited audiobooks, 24 offline devices and up to 12 hours a month of Google's Chirp 3 HD voices for your uploads. Basic ($30.00) and Standard ($40.00) are unchanged. If you're already a member, your price stays as it is.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$A new price for Premium$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006715_cancellation_feedback.sql
+-- =============================================================================
+-- Why members cancel, and the offers made before they go (lib/cancelSurvey.ts, _shared/cancelReasons.ts).
+--
+-- cancellation_feedback: the optional answer from Account's cancel dialog, written only by the
+-- manage-account function (service role): the reason, an optional note (500 characters), the offer
+-- shown and whether the member cancelled or stayed. Kept a year (pg_cron), and removed with the account.
+-- save_offer_credits: the once-per-account month's credit offered instead of cancelling, claimed
+-- before Stripe credits it (and handed back if Stripe fails).
+-- cancellation_reasons(): counts by reason for billing staff and admins, never who or what they wrote.
+
+create table public.cancellation_feedback (
+  id uuid primary key default gen_random_uuid(),
+  account_id uuid not null references auth.users (id) on delete cascade,
+  reason text not null check (reason in ('too_expensive', 'not_enough_time', 'missing_books', 'technical_problems', 'found_another', 'taking_a_break', 'other')),
+  comment text check (comment is null or char_length(comment) <= 500),
+  offer text check (offer is null or offer in ('pause', 'downgrade', 'credit', 'upload', 'help')),
+  outcome text not null check (outcome in ('cancelled', 'kept')),
+  plan_id text,
+  billing_interval text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.cancellation_feedback enable row level security;
+revoke all on public.cancellation_feedback from anon, authenticated;
+grant all on public.cancellation_feedback to service_role;
+
+create table public.save_offer_credits (
+  account_id uuid primary key references auth.users (id) on delete cascade,
+  credited_cents integer not null check (credited_cents > 0),
+  claimed_at timestamptz not null default now()
+);
+
+alter table public.save_offer_credits enable row level security;
+revoke all on public.save_offer_credits from anon, authenticated;
+grant all on public.save_offer_credits to service_role;
+
+-- Counts by reason over the last p_days days (1-365), with how many stayed and the offers that
+-- kept them. Billing staff and admins, after the second step.
+create or replace function public.cancellation_reasons(p_days integer default 90)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.second_step_done() or not public.has_staff_role('billing') then
+    raise exception 'Only billing staff and admins can see why members cancel' using errcode = 'insufficient_privilege';
+  end if;
+  if p_days is null or p_days < 1 or p_days > 365 then
+    raise exception 'Choose from 1 to 365 days' using errcode = 'invalid_parameter_value';
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'reason', r.reason,
+             'answers', r.answers,
+             'kept', r.kept,
+             -- The offers that kept members: {"pause": 3, "credit": 1}.
+             'kept_by', coalesce((
+               select jsonb_object_agg(k.offer, k.n)
+                 from (select c.offer, count(*) as n
+                         from public.cancellation_feedback c
+                        where c.reason = r.reason and c.outcome = 'kept' and c.offer is not null
+                          and c.created_at >= now() - make_interval(days => p_days)
+                        group by c.offer) k
+             ), '{}'::jsonb)
+           ) order by r.answers desc, r.reason)
+      from (
+        select c.reason, count(*) as answers, count(*) filter (where c.outcome = 'kept') as kept
+          from public.cancellation_feedback c
+         where c.created_at >= now() - make_interval(days => p_days)
+         group by c.reason
+      ) r
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function public.cancellation_reasons(integer) from public, anon;
+grant execute on function public.cancellation_reasons(integer) to authenticated, service_role;
+
+select cron.schedule('cancellation-feedback-cleanup', '50 3 * * *',
+  $job$delete from public.cancellation_feedback where created_at < now() - interval '1 year'$job$);
+
+-- =============================================================================
+-- 20261107006716_index_cancellation_feedback_account_id.sql
+-- =============================================================================
+-- Index the foreign key on cancellation_feedback (its own migration: CREATE INDEX CONCURRENTLY).
+create index concurrently if not exists cancellation_feedback_account_id_idx on public.cancellation_feedback (account_id);
+
+-- =============================================================================
+-- 20261107006717_cancel_survey_policies.sql
+-- =============================================================================
+-- Why members cancel and the offers made instead (migration 6715): the Privacy Policy (what's kept, and for
+-- how long), the Terms (30. Membership: the once-per-account month's credit), the Return Policy (Cancelling)
+-- and Help. Same text as src/data/legalPages.json, matched as stored. Each change is made once; a paragraph
+-- an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address."$lw$, $lw$"Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address.", "Why you cancelled. When you cancel, Account asks why, if you'd like to say: a reason from a short list and, if you like, a note. We keep your answer with your account, the offer we showed you and whether you stayed. Billing staff and admins see only how many members gave each reason and how many stayed, never who or what they wrote."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Our support team. To help with a question, LiteraryWorm staff with the customer service role (and admins) can look up an account by its email address."$lw$) > 0
+  and strpos(sections::text, $lw$Why you cancelled. When you cancel, Account asks why, if you'd like to say: a reason from a short list and, if you like, a note. We keep your answer with your account, the offer we showed you and whether you stayed. Billing staff and admins see only how many members gave each reason and how many stayed, never who or what they wrote.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The record of each support lookup: a year. Your cookie choice, kept in your browser by Termly: up to 12 months."$lw$, $lw$"The record of each support lookup: a year. Your cookie choice, kept in your browser by Termly: up to 12 months.", "Why you cancelled (your reason and note), if you told us: a year, or until you delete your account. That you've had the one-time month's credit offered instead of cancelling: while your account is open."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"The record of each support lookup: a year. Your cookie choice, kept in your browser by Termly: up to 12 months."$lw$) > 0
+  and strpos(sections::text, $lw$Why you cancelled (your reason and note), if you told us: a year, or until you delete your account. That you've had the one-time month's credit offered instead of cancelling: while your account is open.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Invitations are for people you know. We may withhold or remove credits earned by signing up yourself again, by using made-up accounts, or by posting your link where it reaches people who didn't ask for it, and we may change or end the offer with notice in What's new; credits already added stay."$lw$, $lw$"Invitations are for people you know. We may withhold or remove credits earned by signing up yourself again, by using made-up accounts, or by posting your link where it reaches people who didn't ask for it, and we may change or end the offer with notice in What's new; credits already added stay.", "Staying instead of cancelling. When you cancel, we may offer something that fits your reason: pausing, a smaller plan, or once per account a credit of one month of your plan, added to your account and taken off your next charges. The credit is for memberships paid through Stripe, not during a free week or a gift's free months, has no cash value and can't be moved or refunded."$lw$)::jsonb
+where slug = $lw$terms$lw$
+  and strpos(sections::text, $lw$"Invitations are for people you know. We may withhold or remove credits earned by signing up yourself again, by using made-up accounts, or by posting your link where it reaches people who didn't ask for it, and we may change or end the offer with notice in What's new; credits already added stay."$lw$) > 0
+  and strpos(sections::text, $lw$Staying instead of cancelling. When you cancel, we may offer something that fits your reason: pausing, a smaller plan, or once per account a credit of one month of your plan, added to your account and taken off your next charges. The credit is for memberships paid through Stripe, not during a free week or a gift's free months, has no cash value and can't be moved or refunded.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Cancel at least 48 hours before your next billing date, and your plan stays active until the end of the period you've paid for, with no further charge."$lw$, $lw$"Cancel at least 48 hours before your next billing date, and your plan stays active until the end of the period you've paid for, with no further charge.", "When you cancel, Account asks why (you don't have to say) and may offer something that fits: pausing, a smaller plan, or once per account a month's credit taken off your next charges. Taking an offer is up to you, and it never changes the 48-hour rule or our no-refunds policy."$lw$)::jsonb
+where slug = $lw$returns$lw$
+  and strpos(sections::text, $lw$"Cancel at least 48 hours before your next billing date, and your plan stays active until the end of the period you've paid for, with no further charge."$lw$) > 0
+  and strpos(sections::text, $lw$When you cancel, Account asks why (you don't have to say) and may offer something that fits: pausing, a smaller plan, or once per account a month's credit taken off your next charges. Taking an offer is up to you, and it never changes the 48-hour rule or our no-refunds policy.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one."$lw$, $lw$"Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one.", "Thinking of cancelling? Cancel membership in Account → Plan and billing asks why, if you'd like to say, and may suggest something that helps: pausing (on monthly billing), a smaller plan, your own uploads, Help, or once per account a month's credit if you stay. You can always cancel anyway."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Your plan includes some hours of audiobooks a month for the household (Premium has no limit) and a number of devices that can keep books offline. Account → Plan and billing shows how much you've used this month and which devices hold offline places, and lets you free one."$lw$) > 0
+  and strpos(sections::text, $lw$Thinking of cancelling? Cancel membership in Account → Plan and billing asks why, if you'd like to say, and may suggest something that helps: pausing (on monthly billing), a smaller plan, your own uploads, Help, or once per account a month's credit if you stay. You can always cancel anyway.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006718_whats_new_cancel_offers.sql
+-- =============================================================================
+-- What's new: Before you cancel. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Before you cancel$lw$, $lw$Cancelling in Account → Plan and billing now asks why you're leaving, if you'd like to say, and suggests something that might help instead: pausing on monthly billing, a smaller plan, your own uploads, the Help Center, or once per account a month's credit if you stay. You can always cancel anyway, and the 48-hour rule and no-refunds policy don't change.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Before you cancel$lw$ and c.released_on = '2026-11-07');

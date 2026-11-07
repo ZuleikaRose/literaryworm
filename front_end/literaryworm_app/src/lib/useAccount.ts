@@ -7,6 +7,7 @@ import { listChallenges } from "./challengesApi";
 import { AccountError, type MembershipAction } from "./accountApi";
 import { cancellationEnd, nextBillingDate } from "./billing";
 import { tr } from "./i18n";
+import { planById } from "../data/plans";
 
 /**
  * The Account page's changes. Real accounts save to Supabase (membership and deleting go
@@ -19,10 +20,10 @@ export function useAccount() {
   const account = state.account;
   const userId = account?.userId;
 
-  async function changeMembership(action: MembershipAction) {
+  async function changeMembership(action: MembershipAction, answer?: accountApi.CancelAnswer | null) {
     if (!account) return;
     if (userId) {
-      dispatch({ type: "updateAccount", patch: await accountApi.changeMembership(action) });
+      dispatch({ type: "updateAccount", patch: await accountApi.changeMembership(action, answer) });
       return;
     }
     const day = account.billingDay ?? 1;
@@ -33,6 +34,18 @@ export function useAccount() {
       restart: { endsAt: null },
     }[action];
     dispatch({ type: "updateAccount", patch });
+  }
+
+  /** Takes the credit and stays (members only: the demo credits nothing). */
+  async function takeSaveOffer(answer: accountApi.CancelAnswer): Promise<number> {
+    if (userId) return accountApi.takeSaveOffer(answer);
+    return Math.round((account?.planId ? (planById.get(account.planId)?.price ?? 0) : 0) * 100);
+  }
+
+  /** Notes that another offer kept the member; a failure only means the answer wasn't kept. */
+  function keptByOffer(answer: accountApi.CancelAnswer) {
+    if (!userId) return;
+    accountApi.keptByOffer(answer).catch((err: Error) => console.error("cancel answer:", err.message));
   }
 
   async function setDisplayName(name: string) {
@@ -183,5 +196,5 @@ export function useAccount() {
     URL.revokeObjectURL(url);
   }
 
-  return { account, remote: Boolean(userId), changeMembership, setDisplayName, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
+  return { account, remote: Boolean(userId), changeMembership, takeSaveOffer, keptByOffer, setDisplayName, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
 }

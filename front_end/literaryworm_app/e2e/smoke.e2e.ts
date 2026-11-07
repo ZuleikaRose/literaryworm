@@ -763,11 +763,43 @@ describe("the demo household", () => {
     const plan = page.locator("#plan");
     await plan.getByText(/Cancel at least 48 hours before your next billing date/).waitFor();
     await plan.getByRole("button", { name: "Cancel membership" }).click();
+    // The reason is optional: Continue without one goes straight to the confirmation.
+    await page.getByRole("dialog", { name: "Before you go" }).getByRole("button", { name: "Continue" }).click();
     const dialog = page.getByRole("dialog", { name: "Cancel your membership?" });
     await dialog.getByText(/No refunds/).waitFor();
     await dialog.getByRole("button", { name: "Cancel membership" }).click();
     await plan.getByText(/^Cancelled: ends /).waitFor();
     await plan.getByRole("button", { name: "Keep my membership" }).click();
+    await plan.getByText("Active", { exact: true }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("is asked why when cancelling, and offered what fits: a smaller plan, or a month's credit the demo never adds", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#plan");
+    const plan = page.locator("#plan");
+    await plan.getByRole("button", { name: "Cancel membership" }).click();
+    let ask = page.getByRole("dialog", { name: "Before you go" });
+    // A note needs a reason.
+    await ask.getByLabel("Anything else? (optional)").fill("Too much for us now.");
+    await ask.getByRole("button", { name: "Continue" }).click();
+    await ask.getByText("Choose a reason to send a note with it.").waitFor();
+    await ask.getByLabel("It costs too much").check();
+    await ask.getByRole("button", { name: "Continue" }).click();
+    let offer = page.getByRole("dialog", { name: "Cancel your membership?" });
+    await offer.getByRole("heading", { name: "Try Standard instead" }).waitFor();
+    await expect(offer.getByRole("link", { name: "See Standard" }).getAttribute("href")).resolves.toBe("/plans?plan=standard");
+    await offer.getByRole("button", { name: "Keep membership" }).click();
+
+    await plan.getByRole("button", { name: "Cancel membership" }).click();
+    ask = page.getByRole("dialog", { name: "Before you go" });
+    await ask.getByLabel("Something else").check();
+    await ask.getByRole("button", { name: "Continue" }).click();
+    offer = page.getByRole("dialog", { name: "Cancel your membership?" });
+    await offer.getByRole("heading", { name: "Stay, and have a month on us" }).waitFor();
+    await offer.getByRole("button", { name: "Take the credit and stay" }).click();
+    await plan.getByText(/In the demo nothing is credited\. A member would get \$60\.00 off/).waitFor();
     await plan.getByText("Active", { exact: true }).waitFor();
     expect(errors()).toEqual([]);
   });
