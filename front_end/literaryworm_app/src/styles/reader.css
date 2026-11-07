@@ -1494,3 +1494,17 @@
     color: HighlightText;
   }
 }
+
+/* Voice previews (components/VoicePreviewButton.tsx) beside the voice menus. */
+.cast-choices-list li {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.cast-choices-list li .player-select {
+  flex: 1;
+}
+.voice-preview {
+  flex: none;
+  align-self: flex-end;
+}

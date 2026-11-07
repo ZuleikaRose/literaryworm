@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Hear a voice before you choose it",
+    "body": "Every natural voice, and every character voice under Who reads whom, now has a short sample to play first. Samples are free and don't count towards your month's reading.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Save your upload as an audiobook",
     "body": "After Voice the whole book, choose Download the audiobook to save every part as one MP3, made on your device, to play in any audio app.",
     "major": false

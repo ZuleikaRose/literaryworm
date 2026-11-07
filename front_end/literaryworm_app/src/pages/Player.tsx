@@ -5,6 +5,7 @@ import { CarMode } from "../components/CarMode";
 import { nearBedtime } from "../lib/bedtimeListening";
 import { RecapDialog } from "../components/RecapDialog";
 import { ClipDialog } from "../components/ClipDialog";
+import { VoicePreviewButton } from "../components/VoicePreviewButton";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { UploadRecordingLink } from "../components/UploadRecordingLink";
@@ -391,6 +392,8 @@ function PlayerView({ book }: { book: Book }) {
                     {!book.recording && <option value={SILENT_VOICE}>{book.upload ? t("No voice") : t("No voice (silent sample)")}</option>}
                   </select>
                 </label>
+                {/* A few seconds of the chosen natural voice, recorded ahead (lib/voicePreview.ts). */}
+                {narration.kind === "natural" && <VoicePreviewButton voiceId={narration.voice.id} name={narration.voice.name} />}
               </div>
 
               <p className="player-status" role="status">

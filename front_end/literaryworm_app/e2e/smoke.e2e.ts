@@ -1809,6 +1809,25 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("plays a short sample of a natural voice and of a character's voice", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    const sample = page.waitForResponse((r) => r.url().endsWith("/voices/preview/en-GB-Chirp3-HD-Aoede.mp3"));
+    await page.getByRole("button", { name: "Hear Aoede" }).click();
+    expect((await sample).ok()).toBe(true);
+    // Who reads whom has one beside each speaker.
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const dialog = page.getByRole("dialog", { name: "Player settings" });
+    await dialog.getByRole("switch", { name: /Character voices/ }).check();
+    const who = dialog.getByRole("region", { name: "Who reads whom" });
+    await who.getByLabel("Ezra").selectOption("Puck");
+    const puck = page.waitForResponse((r) => r.url().endsWith("/voices/preview/en-GB-Chirp3-HD-Puck.mp3"));
+    await who.getByRole("button", { name: "Hear Ezra" }).click();
+    expect((await puck).ok()).toBe(true);
+    expect(errors()).toEqual([]);
+  });
+
   it("shows each profile's listening this month in Account → Family", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

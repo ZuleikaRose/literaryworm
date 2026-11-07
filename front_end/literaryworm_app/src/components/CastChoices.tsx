@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import { withCastChoice } from "../lib/castChoices";
 import { bookText, resolveNarration } from "../lib/narration";
-import { bookSpeakers, castNamesFor, defaultNaturalVoice } from "../lib/naturalVoice";
+import { bookSpeakers, castNamesFor, defaultNaturalVoice, speakerVoice } from "../lib/naturalVoice";
+import { VoicePreviewButton } from "./VoicePreviewButton";
 import { useProfileData } from "../store/context";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
@@ -17,7 +18,8 @@ export function CastChoices({ book }: { book: Book }) {
   const { player, update } = usePlayerSettings(book.id);
   // The voices on offer are the narrator's language's own.
   const narration = resolveNarration(book, useProfileData().narrationVoice, [], true);
-  const names = castNamesFor((narration.kind === "natural" ? narration.voice : defaultNaturalVoice(book.language)).languageCode);
+  const narrator = narration.kind === "natural" ? narration.voice : defaultNaturalVoice(book.language);
+  const names = castNamesFor(narrator.languageCode);
   const [speakers, setSpeakers] = useState<{ speaker: string; speeches: number }[] | null>(null);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export function CastChoices({ book }: { book: Book }) {
                   ))}
                 </select>
               </label>
+              <VoicePreviewButton voiceId={speakerVoice(narrator, speaker, chosen)} name={speaker} />
             </li>
           ))}
         </ul>
