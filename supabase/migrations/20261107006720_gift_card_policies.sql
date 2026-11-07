@@ -1,0 +1,22 @@
+-- Gift cards (migration 6719): the Return Policy (Gift memberships), the Terms (30. Membership: Gifts) and
+-- Help. Same text as src/data/legalPages.json, matched as stored. Each change is made once; a paragraph an
+-- editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Gift memberships are paid once and are final too."$lw$, $lw$"Gift memberships are paid once and are final too.", "Gift cards ($25, $50 or $100) are paid once and final too. Redeeming one adds its amount as credit on the account that redeems it, taken off that account's next charges on any plan. The credit has no cash value, can't be moved to another account and isn't refunded."$lw$)::jsonb
+where slug = $lw$returns$lw$
+  and strpos(sections::text, $lw$"Gift memberships are paid once and are final too."$lw$) > 0
+  and strpos(sections::text, $lw$Gift cards ($25, $50 or $100) are paid once and final too. Redeeming one adds its amount as credit on the account that redeems it, taken off that account's next charges on any plan. The credit has no cash value, can't be moved to another account and isn't refunded.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Staying instead of cancelling. When you cancel, we may offer something that fits your reason: pausing, a smaller plan, or once per account a credit of one month of your plan, added to your account and taken off your next charges. The credit is for memberships paid through Stripe, not during a free week or a gift's free months, has no cash value and can't be moved or refunded."$lw$, $lw$"Staying instead of cancelling. When you cancel, we may offer something that fits your reason: pausing, a smaller plan, or once per account a credit of one month of your plan, added to your account and taken off your next charges. The credit is for memberships paid through Stripe, not during a free week or a gift's free months, has no cash value and can't be moved or refunded.", "Gifts. You can buy months of a plan or a gift card ($25, $50 or $100) for someone else, paid once and final. A gift card's code adds its amount as credit to the account that redeems it, taken off its membership charges; the credit has no cash value and can't be moved or refunded. Gift codes don't expire and work once."$lw$)::jsonb
+where slug = $lw$terms$lw$
+  and strpos(sections::text, $lw$"Staying instead of cancelling. When you cancel, we may offer something that fits your reason: pausing, a smaller plan, or once per account a credit of one month of your plan, added to your account and taken off your next charges. The credit is for memberships paid through Stripe, not during a free week or a gift's free months, has no cash value and can't be moved or refunded."$lw$) > 0
+  and strpos(sections::text, $lw$Gifts. You can buy months of a plan or a gift card ($25, $50 or $100) for someone else, paid once and final. A gift card's code adds its amount as credit to the account that redeems it, taken off its membership charges; the credit has no cash value and can't be moved or refunded. Gift codes don't expire and work once.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it."$lw$, $lw$"When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it.", "You can also give a gift card: $25, $50 or $100 of credit for any plan. It's redeemed in Account like a gift membership, and the credit comes off the person's next charges, whichever plan they choose. It can start on a later day or be emailed to them, like any gift."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"When you buy a gift on Gifts, you can add up to 10 LiteraryWorm books to it (find a title, or add one of your lists); they're waiting in the recipient's library when they redeem it."$lw$) > 0
+  and strpos(sections::text, $lw$You can also give a gift card: $25, $50 or $100 of credit for any plan. It's redeemed in Account like a gift membership, and the credit comes off the person's next charges, whichever plan they choose. It can start on a later day or be emailed to them, like any gift.$lw$) = 0;
+

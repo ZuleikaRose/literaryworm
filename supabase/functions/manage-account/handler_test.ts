@@ -664,3 +664,24 @@ Deno.test("taking another offer instead of cancelling is kept as kept", async ()
   assertEquals((await call(deps, { action: "cancel_feedback", reason: "other" })).status, 400);
   assertEquals(state.sub!.cancel_at_period_end, false);
 });
+
+Deno.test("a gift card adds its credit to the account's balance, with or without a membership", async () => {
+  for (const sub of [paid(), null]) {
+    const { state, deps } = setup(sub);
+    state.gift = { ...state.gift, kind: "credit", plan_id: null, months: null, credit_cents: 5000 };
+    const res = await call(deps, { action: "gift", code: GIFT_CODE });
+    assertEquals(res.status, 200);
+    assertEquals(res.body, { gift: { kind: "credit", creditCents: 5000 } });
+    assertEquals(state.stripe, ["credit cus_9 5000 gift-card-gift_1"]);
+    assertEquals(state.redeemedBy, USER.id);
+    assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 400);
+  }
+});
+
+Deno.test("when Stripe can't add a gift card's credit, the code still works", async () => {
+  const { state, deps } = setup(paid());
+  state.gift = { ...state.gift, kind: "credit", plan_id: null, months: null, credit_cents: 2500 };
+  deps.billing = { ...deps.billing, credit: () => Promise.reject(new HttpError("upstream_error", "Stripe is down")) };
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 502);
+  assertEquals(state.gift.redeemed_at, null);
+});

@@ -103,7 +103,7 @@ Deno.serve((req) =>
     customerFor,
     gifts: {
       async find(code) {
-        const { data, error } = await serviceClient().from("gift_codes").select("id, plan_id, months, redeemed_at, starts_on, books").eq("code", code).maybeSingle();
+        const { data, error } = await serviceClient().from("gift_codes").select("id, kind, plan_id, months, credit_cents, redeemed_at, starts_on, books").eq("code", code).maybeSingle();
         if (error) throw error;
         return data as Gift | null;
       },

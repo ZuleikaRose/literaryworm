@@ -7,10 +7,11 @@ import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, plans } from "../data/plans";
 import { getBook } from "../data/books";
 import { GiftBooksPicker } from "../components/GiftBooksPicker";
-import { AccountError, type BoughtGift, buyGift, myGifts } from "../lib/accountApi";
+import { AccountError, type BoughtGift, buyGift, buyGiftCard, myGifts } from "../lib/accountApi";
 import { endDate, formatMoney } from "../lib/billing";
 import {
   formatGiftCode,
+  GIFT_CARD_CENTS,
   GIFT_MESSAGE_MAX,
   GIFT_MONTHS,
   GIFT_YEAR_MONTHS,
@@ -57,7 +58,7 @@ export default function Gifts() {
         <p className="eyebrow">{t("Gifts")}</p>
         <h1>{t("Give LiteraryWorm")}</h1>
         <p className="account-sub">
-          {t("Months of any plan, paid once. You get a code to pass on, or we email it to them; they redeem it in Account. Codes don't expire and nothing renews on your card.")}
+          {t("Months of any plan, or a gift card for any plan, paid once. You get a code to pass on, or we email it to them; they redeem it in Account. Codes don't expire and nothing renews on your card.")}
         </p>
       </header>
 
@@ -99,6 +100,9 @@ export default function Gifts() {
 function BuyGift({ demo = false }: { demo?: boolean }) {
   const t = useT();
   const id = useId();
+  // A gift membership (a plan for some months), or a gift card (credit for any plan).
+  const [kind, setKind] = useState<"membership" | "card">("membership");
+  const [credit, setCredit] = useState<number>(5000);
   const [planId, setPlanId] = useState<PlanId>("standard");
   const [months, setMonths] = useState<number>(3);
   // Straight away, or a later day (a birthday, say): the code works from then.
@@ -119,7 +123,8 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const bounds = giftStartBounds();
   const plan = planById.get(planId)!;
-  const total = giftPriceCents(plan, months);
+  const card = kind === "card";
+  const total = card ? credit : giftPriceCents(plan, months);
   const yearSaving = Math.round(plan.price * 100) * GIFT_YEAR_MONTHS - giftPriceCents(plan, GIFT_YEAR_MONTHS);
 
   async function submit(e: FormEvent) {
@@ -139,7 +144,9 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
     setBusy(true);
     setError(null);
     try {
-      window.location.assign(await buyGift(planId, months, later ? startsOn : null, byEmail ? { email: recipient, message } : null, books));
+      const startDay = later ? startsOn : null;
+      const to = byEmail ? { email: recipient, message } : null;
+      window.location.assign(card ? await buyGiftCard(credit, startDay, to) : await buyGift(planId, months, startDay, to, books));
     } catch (err) {
       setError(err instanceof AccountError ? err.message : t("We couldn't start the payment. Try again."));
       setBusy(false);
@@ -151,32 +158,67 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
       <h2 id={`${id}-title`}>{t("Buy a gift")}</h2>
       <form className="gift-form" onSubmit={submit}>
         <fieldset className="gift-choice">
-          <legend className="field-label">{t("Plan")}</legend>
-          <div className="gift-plans">
-            {plans.map((p) => (
-              <label key={p.id} className={`gift-plan${p.id === planId ? " is-on" : ""}`}>
-                <input type="radio" name={`${id}-plan`} value={p.id} checked={p.id === planId} onChange={() => setPlanId(p.id)} />
-                <span className="gift-plan-text">
-                  <strong>{p.name}</strong>
-                  <span>
-                    {t("{price} a month", { price: formatPrice(p.price) })} · {p.profiles === 1 ? t("1 profile") : t("up to {n} profiles", { n: p.profiles })}
-                  </span>
-                </span>
-              </label>
-            ))}
+          <legend className="field-label">{t("What to give")}</legend>
+          <div className="chip-group chip-group-lg">
+            <label className="chip">
+              <input type="radio" name={`${id}-kind`} checked={!card} onChange={() => setKind("membership")} />
+              <span>{t("A membership")}</span>
+            </label>
+            <label className="chip">
+              <input type="radio" name={`${id}-kind`} checked={card} onChange={() => setKind("card")} />
+              <span>{t("A gift card")}</span>
+            </label>
           </div>
+          <p className="field-hint">
+            {card
+              ? t("Credit for any plan: it comes off their charges, whichever plan they choose. No cash value.")
+              : t("A plan for a number of months, free to them, with books to start them off if you like.")}
+          </p>
         </fieldset>
-        <fieldset className="gift-choice">
-          <legend className="field-label">{t("How long")}</legend>
-          <div className="chip-group chip-group-lg gift-months">
-            {GIFT_MONTHS.map((m) => (
-              <label key={m} className="chip">
-                <input type="radio" name={`${id}-months`} value={m} checked={m === months} onChange={() => setMonths(m)} />
-                <span>{m === GIFT_YEAR_MONTHS ? t("A year: 2 months free") : monthsLabel(m)}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        {card && (
+          <fieldset className="gift-choice">
+            <legend className="field-label">{t("Amount")}</legend>
+            <div className="chip-group chip-group-lg gift-months">
+              {GIFT_CARD_CENTS.map((c) => (
+                <label key={c} className="chip">
+                  <input type="radio" name={`${id}-credit`} value={c} checked={c === credit} onChange={() => setCredit(c)} />
+                  <span>{formatMoney(c, "usd")}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        {!card && (
+          <>
+            <fieldset className="gift-choice">
+              <legend className="field-label">{t("Plan")}</legend>
+              <div className="gift-plans">
+                {plans.map((p) => (
+                  <label key={p.id} className={`gift-plan${p.id === planId ? " is-on" : ""}`}>
+                    <input type="radio" name={`${id}-plan`} value={p.id} checked={p.id === planId} onChange={() => setPlanId(p.id)} />
+                    <span className="gift-plan-text">
+                      <strong>{p.name}</strong>
+                      <span>
+                        {t("{price} a month", { price: formatPrice(p.price) })} · {p.profiles === 1 ? t("1 profile") : t("up to {n} profiles", { n: p.profiles })}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="gift-choice">
+              <legend className="field-label">{t("How long")}</legend>
+              <div className="chip-group chip-group-lg gift-months">
+                {GIFT_MONTHS.map((m) => (
+                  <label key={m} className="chip">
+                    <input type="radio" name={`${id}-months`} value={m} checked={m === months} onChange={() => setMonths(m)} />
+                    <span>{m === GIFT_YEAR_MONTHS ? t("A year: 2 months free") : monthsLabel(m)}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </>
+        )}
         <fieldset className="gift-choice">
           <legend className="field-label">{t("When it starts")}</legend>
           <div className="chip-group chip-group-lg">
@@ -284,23 +326,24 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
             </div>
           )}
         </fieldset>
-        {wish.forName && (
+        {!card && wish.forName && (
           <p className="form-success wishlist-note">
             <Icon name="gift" size={16} />
             {t.plural(wish.books.length, { one: "From {name}'s wishlist: {count} book is picked. Change it below if you like.", other: "From {name}'s wishlist: {count} books are picked. Change them below if you like." }, { name: wish.forName })}
           </p>
         )}
-        <GiftBooksPicker books={books} onChange={setBooks} />
+        {!card && <GiftBooksPicker books={books} onChange={setBooks} />}
         <div className="gift-total">
           <p>
-            {rich(t("{price} for {period} of {plan}, paid once."), {
+            {card && rich(t("A {price} gift card, paid once."), { price: <strong>{formatMoney(total, "usd")}</strong> })}
+            {!card && rich(t("{price} for {period} of {plan}, paid once."), {
               price: <strong>{formatMoney(total, "usd")}</strong>,
               period: months === GIFT_YEAR_MONTHS ? t("a year") : monthsLabel(months),
               plan: plan.name,
             })}
-            {months === GIFT_YEAR_MONTHS && " " + t("That's the yearly price: {saving} less than 12 months.", { saving: formatMoney(yearSaving, "usd") })}
+            {!card && months === GIFT_YEAR_MONTHS && " " + t("That's the yearly price: {saving} less than 12 months.", { saving: formatMoney(yearSaving, "usd") })}
             {later && startsOn && !giftStartError(startsOn) && " " + t("It can be redeemed from {date}.", { date: endDate(startsOn) })}
-            {books.length > 0 && " " + t.plural(books.length, { one: "With {count} book to start them off.", other: "With {count} books to start them off." })}
+            {!card && books.length > 0 && " " + t.plural(books.length, { one: "With {count} book to start them off.", other: "With {count} books to start them off." })}
           </p>
           <p className="field-hint">
             {t("Paid on Stripe's secure page. Your code appears below once payment goes through. All sales are final.")}
@@ -395,12 +438,18 @@ function YourGifts({ justPaid }: { justPaid: boolean }) {
               <div>
                 <p className="gift-code">{formatGiftCode(g.code)}</p>
                 <p className="gift-meta">
-                  {t("{period} of {plan} · {price} · bought {date}", {
-                    period: monthsLabel(g.months),
-                    plan: planById.get(g.planId)?.name ?? g.planId,
-                    price: formatMoney(g.amountCents, g.currency),
-                    date: endDate(g.createdAt),
-                  })}
+                  {g.kind === "credit"
+                    ? t("{credit} gift card · {price} · bought {date}", {
+                        credit: formatMoney(g.creditCents ?? 0, "usd"),
+                        price: formatMoney(g.amountCents, g.currency),
+                        date: endDate(g.createdAt),
+                      })
+                    : t("{period} of {plan} · {price} · bought {date}", {
+                        period: monthsLabel(g.months ?? 1),
+                        plan: (g.planId && planById.get(g.planId)?.name) ?? g.planId ?? "",
+                        price: formatMoney(g.amountCents, g.currency),
+                        date: endDate(g.createdAt),
+                      })}
                   {!g.redeemedAt && giftNotStarted(g.startsOn) && t(" · starts {date}", { date: endDate(g.startsOn!) })}
                 </p>
                 {g.books.length > 0 && (

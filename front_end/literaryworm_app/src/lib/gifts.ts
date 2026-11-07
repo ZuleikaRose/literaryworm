@@ -1,4 +1,4 @@
-/** Gift memberships: what can be bought, and how codes are typed and shown. */
+/** Gift memberships and gift cards: what can be bought, and how codes are typed and shown. */
 
 import { tr } from "./i18n";
 import { today } from "./reading";
@@ -7,6 +7,9 @@ import { today } from "./reading";
 export const GIFT_MONTHS = [1, 3, 6, 12] as const;
 
 export const monthsLabel = (n: number) => tr.plural(n, { one: "{count} month", other: "{count} months" });
+
+/** Gift cards: credit for a membership, in cents (the same as the checkout function's GIFT_CARD_CENTS). */
+export const GIFT_CARD_CENTS = [2500, 5000, 10000] as const;
 
 /** A whole year is sold at the yearly price (two months free); shorter gifts at the monthly price. */
 export const GIFT_YEAR_MONTHS = 12;

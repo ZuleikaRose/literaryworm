@@ -232,7 +232,7 @@ const giftPaid = (overrides: Record<string, unknown> = {}) =>
 Deno.test("a paid gift Checkout makes the gift for the buyer, and starts no membership", async () => {
   const { state, deps } = setup(giftPaid());
   assertEquals((await handle(post(), deps)).status, 200);
-  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, amountCents: 3897, currency: "USD", startsOn: null, recipientEmail: null, message: null, books: [] }]);
+  assertEquals(state.gifts, [{ sessionId: "cs_gift_1", buyerId: USER, planId: "standard", months: 3, creditCents: null, amountCents: 3897, currency: "USD", startsOn: null, recipientEmail: null, message: null, books: [] }]);
   assertEquals(state.started.length, 0);
 });
 
@@ -390,4 +390,13 @@ Deno.test("a first membership's free week is kept as trial_until while it lasts,
   // A gift's free months are not a free trial, and an ended trial isn't shown.
   assertEquals(subscriptionRow(subscription({ status: "trialing", trial_end: trialEnd, metadata: { gift_until: String(trialEnd) } })).trial_until, null);
   assertEquals(subscriptionRow(subscription({ status: "active", trial_end: trialEnd, metadata: { free_trial: "1" } })).trial_until, null);
+});
+
+Deno.test("a paid gift card makes a code for its credit, with no plan, months or books", async () => {
+  const { state, deps } = setup(giftPaid({ amount_total: 5000, metadata: { kind: "gift", gift_kind: "credit", credit_cents: "5000", books: "frankenstein" } }));
+  assertEquals((await handle(post(), deps)).status, 200);
+  assertEquals([state.gifts[0].planId, state.gifts[0].months, state.gifts[0].creditCents, state.gifts[0].books], [null, null, 5000, []]);
+  const bad = setup(giftPaid({ metadata: { kind: "gift", gift_kind: "credit", credit_cents: "4200" } }));
+  assertEquals((await handle(post(), bad.deps)).status, 500);
+  assertEquals(bad.state.gifts.length, 0);
 });

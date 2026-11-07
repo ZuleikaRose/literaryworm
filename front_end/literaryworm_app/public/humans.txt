@@ -20,7 +20,7 @@ Framework: React with TypeScript, built with Vite
 Hosting: Vercel
 Analytics: Ahrefs Web Analytics (no cookies, with consent, never for Kids profiles)
 Database and sign-in: Supabase (PostgreSQL, Auth, Storage, Edge Functions), managed with the Supabase CLI v3
-Payments: Stripe (memberships, gifts, invitation credits and affiliate credits)
+Payments: Stripe (memberships, gifts and gift cards, invitation credits, affiliate credits and the once-per-account credit offered instead of cancelling)
 Email: Mailgun
 AI summaries, content notes, recaps, quizzes, translations, club discussion questions and Ask the book: Claude by Anthropic
 Natural voices for members' uploads: Google Cloud Text-to-Speech (Chirp 3: HD), in English and 17 other languages (from French and Japanese to Hindi, Arabic and Tagalog), through our server only; parts played are kept on the device for offline listening

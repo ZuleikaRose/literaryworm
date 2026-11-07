@@ -25,7 +25,7 @@
 
 import { CATALOG } from "../_shared/catalog.ts";
 import type { Stripe } from "../_shared/stripe.ts";
-import { GIFT_MONTHS, type GiftMonths, giftBooksFromMetadata, parseGiftBooks, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
+import { GIFT_CARD_CENTS, type GiftCardCents, GIFT_MONTHS, type GiftMonths, giftBooksFromMetadata, parseGiftBooks, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
 
 export type SubscriptionFields = ReturnType<typeof subscriptionRow>;
 
@@ -77,8 +77,11 @@ export interface ReferralReward {
 export interface NewGift {
   sessionId: string;
   buyerId: string | null;
-  planId: PlanId;
-  months: GiftMonths;
+  /** A gift membership's plan and months; null for a gift card. */
+  planId: PlanId | null;
+  months: GiftMonths | null;
+  /** A gift card's credit in cents; null for a gift membership. */
+  creditCents: GiftCardCents | null;
   amountCents: number;
   currency: string;
   /** The first day the code can be redeemed ("YYYY-MM-DD"), when the buyer picked one. */
@@ -198,10 +201,13 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
       const session = event.data.object;
       if (session.mode === "payment" && session.metadata?.kind === "gift") {
         if (session.payment_status !== "paid") return;
-        const planId = session.metadata.plan_id as PlanId;
-        const months = Number(session.metadata.months) as GiftMonths;
+        const card = session.metadata.gift_kind === "credit";
+        const planId = card ? null : (session.metadata.plan_id as PlanId);
+        const months = card ? null : (Number(session.metadata.months) as GiftMonths);
+        const creditCents = card ? (Number(session.metadata.credit_cents) as GiftCardCents) : null;
         const startsOn = session.metadata.starts_on ?? null;
-        if (!PLANS.includes(planId) || !GIFT_MONTHS.includes(months) || !session.amount_total || (startsOn !== null && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn))) {
+        const shapeOk = card ? GIFT_CARD_CENTS.includes(creditCents!) : PLANS.includes(planId!) && GIFT_MONTHS.includes(months!);
+        if (!shapeOk || !session.amount_total || (startsOn !== null && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn))) {
           throw new Error(`gift checkout ${session.id} has bad metadata`);
         }
         const buyerId = session.customer ? await deps.userForCustomer(idOf(session.customer)!) : null;
@@ -211,11 +217,13 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
           buyerId,
           planId,
           months,
+          creditCents,
           amountCents: session.amount_total,
           currency: (session.currency ?? "usd").toUpperCase(),
           startsOn,
           ...giftRecipient(session.metadata, session.id),
-          books: giftBooks(session.metadata, session.id),
+          // A gift card comes without books.
+          books: card ? [] : giftBooks(session.metadata, session.id),
         });
         return;
       }

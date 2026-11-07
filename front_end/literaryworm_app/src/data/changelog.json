@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Gift cards",
+    "body": "On Gifts you can now give a gift card as well as a membership: $25, $50 or $100 of credit for any plan, paid once. Pass the code on or have us email it, now or on a later day; when it's redeemed in Account, the credit comes off the person's next charges, whichever plan they choose.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Before you cancel",
     "body": "Cancelling in Account → Plan and billing now asks why you're leaving, if you'd like to say, and suggests something that might help instead: pausing on monthly billing, a smaller plan, your own uploads, the Help Center, or once per account a month's credit if you stay. You can always cancel anyway, and the 48-hour rule and no-refunds policy don't change.",
     "major": true

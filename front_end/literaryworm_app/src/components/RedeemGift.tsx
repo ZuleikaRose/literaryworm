@@ -1,7 +1,7 @@
 import { type FormEvent, useId, useState } from "react";
 import { planById } from "../data/plans";
 import { AccountError, loadAccount, loadLibrary, planFields, redeemGift } from "../lib/accountApi";
-import { endDate } from "../lib/billing";
+import { endDate, formatMoney } from "../lib/billing";
 import { giftCodeError, monthsLabel } from "../lib/gifts";
 import { useStore } from "../store/context";
 import type { Account } from "../types";
@@ -11,8 +11,12 @@ import { Icon } from "./Icon";
 
 const message = (err: unknown) => (err instanceof AccountError ? err.message : tr("We couldn't redeem that gift. Try again."));
 
+/** The server's answer when a gift membership needs the member's agreement (manage-account). */
+const AGREE_FIRST = "Agree to what happens when the gift ends to continue.";
+
 /**
- * Redeem a gift code (Account, Plans and Gifts). On a membership on the gift's plan, the next
+ * Redeem a gift code (Account, Plans and Gifts). A gift card adds its credit to the account, taken
+ * off the next charges. For a gift membership: on a membership on the gift's plan, the next
  * charge moves back by the gift's months. Without one, the member first agrees to what happens
  * when the gift ends; Stripe then starts a membership free for the months and the webhook writes
  * it, so this waits for it before saying it's ready.
@@ -51,11 +55,16 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
     setDone(null);
     const problem = giftCodeError(code);
     if (problem) return setError({ field: "code", text: problem });
-    if (!hasMembership && !agreed) return setError({ field: "agree", text: t("Tick the box to agree to what happens when the gift ends.") });
     setBusy(true);
     setError(null);
     try {
-      const gift = await redeemGift(code, !hasMembership);
+      // Only a gift membership needs the agreement; the server says so (a gift card doesn't).
+      const gift = await redeemGift(code, !hasMembership && agreed);
+      if (gift.kind === "credit") {
+        setCode("");
+        setDone(t("Gift card redeemed: {amount} is on your account and comes off your next charges.", { amount: formatMoney(gift.creditCents, "usd") }));
+        return;
+      }
       const what = t("{months} of {plan}", { months: monthsLabel(gift.months), plan: planById.get(gift.planId)?.name ?? gift.planId });
       // Books that came with it are in the library on the server now; show them here too.
       const withBooks = gift.books.length
@@ -84,6 +93,10 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
       );
       if (ready) onStarted?.();
     } catch (err) {
+      if (err instanceof AccountError && err.message === AGREE_FIRST) {
+        setError({ field: "agree", text: t("Tick the box to agree to what happens when the gift ends.") });
+        return;
+      }
       setError({ field: "form", text: message(err) });
     } finally {
       setBusy(false);
@@ -124,8 +137,8 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
             ) : (
               <p className="field-hint" id={`${id}-hint`}>
                 {hasMembership
-                  ? t("The gift must be for your plan. Its months are added before your next charge.")
-                  : t("Your membership starts today, free for the gift's months. No card needed.")}
+                  ? t("A gift membership must be for your plan: its months are added before your next charge. A gift card's credit comes off your next charges.")
+                  : t("A gift membership starts today, free for its months, with no card needed. A gift card's credit comes off your first charges.")}
               </p>
             )}
           </div>
@@ -147,6 +160,7 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
                 aria-describedby={error?.field === "agree" ? `${id}-agree-error` : undefined}
               />
               <span>
+                {t("For a gift membership: ")}
                 {t(
                   "I understand that when the gift ends, my membership ends too, unless I add a card in Account. With a card, it renews automatically each month at the plan's price until I cancel.",
                 )}

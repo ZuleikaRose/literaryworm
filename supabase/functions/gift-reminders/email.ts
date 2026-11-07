@@ -5,8 +5,11 @@
 
 export interface Gift {
   id: string;
-  planId: "basic" | "standard" | "premium";
-  months: 1 | 3 | 6 | 12;
+  /** A gift membership's plan and months; null for a gift card. */
+  planId: "basic" | "standard" | "premium" | null;
+  months: 1 | 3 | 6 | 12 | null;
+  /** A gift card's credit in cents; null (or left out) for a gift membership. */
+  creditCents?: number | null;
   /** "YYYY-MM-DD": the first day it can be redeemed. */
   startsOn: string;
 }
@@ -39,16 +42,22 @@ export function giftDay(startsOn: string): string {
 
 const length = (months: number) => (months === 12 ? "a year" : months === 1 ? "1 month" : `${months} months`);
 
+/** "3 months of Standard", or "a $50.00 gift card". */
+export function giftWhat(gift: Pick<Gift, "planId" | "months" | "creditCents">): string {
+  if (gift.creditCents) return `a $${(gift.creditCents / 100).toFixed(2)} gift card`;
+  return `${length(gift.months ?? 1)} of ${PLAN_NAMES[gift.planId ?? "basic"]}`;
+}
+
 export function giftStartEmail(input: { to: string; name: string | null; gift: Gift; site: string }): Email {
   const { gift } = input;
   const day = giftDay(gift.startsOn);
-  const what = `${length(gift.months)} of ${PLAN_NAMES[gift.planId]}`;
+  const what = giftWhat(gift);
   const subject = `Your LiteraryWorm gift starts on ${day}`;
   const hello = input.name ? `Hi ${input.name},` : "Hi,";
   const lead = `The gift you bought, ${what}, can be redeemed from ${day}. If you haven't passed the code on yet, now's a good time.`;
   const page = `${input.site}/gifts`;
   const hint = "Your gifts and their codes are on the Gifts page when you're signed in";
-  const why = "You're getting this because you bought a gift membership set to start on a later day. It's the only reminder we send about it.";
+  const why = "You're getting this because you bought a LiteraryWorm gift set to start on a later day. It's the only reminder we send about it.";
   const text = [hello, "", lead, "", `${hint}: ${page}`, "", why, "LiteraryWorm · https://www.literaryworm.com"].join("\n");
 
   const html = `<!doctype html>
@@ -125,13 +134,13 @@ export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): 
   const { gift, message, from } = input.delivery;
   const books = input.delivery.books ?? [];
   const booksLead = books.length === 1 ? "It comes with a book, waiting in your library when you redeem it:" : "It comes with these books, waiting in your library when you redeem it:";
-  const what = `${length(gift.months)} of ${PLAN_NAMES[gift.planId]}`;
+  const what = giftWhat(gift);
   const subject = from ? `A LiteraryWorm gift from ${from}` : "You've been sent a LiteraryWorm gift";
   const lead = `${from ?? "Someone"} sent you ${what} on LiteraryWorm: ebooks and audiobooks, with a profile for everyone at home.`;
   const code = formatGiftCode(gift.code);
   const page = `${input.site}/gifts?code=${gift.code}`;
   const hint = "Sign in or create an account, then enter the code on the Gifts page or in Account. It doesn't expire";
-  const why = `You're getting this because ${from ?? "someone"} bought you a gift membership and asked us to email it to you. We don't keep your address once this is sent, and we won't email you again unless you sign up.`;
+  const why = `You're getting this because ${from ?? "someone"} bought you a LiteraryWorm gift and asked us to email it to you. We don't keep your address once this is sent, and we won't email you again unless you sign up.`;
   const text = [
     "Hi,",
     "",

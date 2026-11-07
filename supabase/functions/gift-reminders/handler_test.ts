@@ -125,3 +125,9 @@ Deno.test("an emailed gift names the books it comes with, escaped in the HTML; n
   assertStringIncludes(sam.html, "Tom &amp; Jerry &lt;Tales&gt;");
   assertFalse(kit.text.includes("It comes with"));
 });
+
+Deno.test("a gift card is named by its amount in both emails", () => {
+  const card = { id: "g1", planId: null, months: null, creditCents: 5000, startsOn: "2027-03-14" };
+  assertStringIncludes(giftStartEmail({ to: "ann@example.com", name: "Ann", gift: card, site: "https://www.literaryworm.com" }).text, "a $50.00 gift card");
+  assertFalse(giftStartEmail({ to: "ann@example.com", name: "Ann", gift: card, site: "https://www.literaryworm.com" }).text.includes("undefined"));
+});

@@ -877,6 +877,21 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("offers a gift card beside gift memberships, with its amount and no plan or books", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/gifts");
+    await page.getByLabel("A gift card").check();
+    await expect(page.getByRole("group", { name: "Plan" }).count()).resolves.toBe(0);
+    await page.getByLabel("$100.00").check();
+    await page.getByText("A $100.00 gift card, paid once.").waitFor();
+    await page.getByRole("button", { name: "Continue to payment" }).click();
+    await page.getByRole("alert").filter({ hasText: "The demo account can't make payments. Create an account to give a gift." }).waitFor();
+    await page.getByLabel("A membership").check();
+    await page.getByRole("group", { name: "Plan" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("starts a household reading sprint and counts the pages turned in the reader", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

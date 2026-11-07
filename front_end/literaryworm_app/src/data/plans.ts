@@ -128,7 +128,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I give LiteraryWorm as a gift?"),
-    a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, paid once. Add up to 10 LiteraryWorm books to start them off, from a title, one of your lists or the wishlist someone shared with you. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library."),
+    a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, or a gift card of $25, $50 or $100 for any plan, paid once. With months, add up to 10 LiteraryWorm books to start them off, from a title, one of your lists or the wishlist someone shared with you. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library."),
   },
   {
     q: tk("Is LiteraryWorm safe for my kids?"),

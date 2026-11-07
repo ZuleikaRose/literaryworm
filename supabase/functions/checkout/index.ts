@@ -1,6 +1,6 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { type BillingInterval, giftBooksMetadata, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
+import { type BillingInterval, GIFT_CARD_PRODUCT, giftBooksMetadata, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice, planPrice } from "../_shared/stripeCustomers.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
@@ -88,9 +88,15 @@ Deno.serve((req) =>
       return session.url;
     },
     async createGiftCheckout(input: GiftCheckoutInput) {
-      // A whole year at the yearly price (two months free), once; shorter gifts at the monthly price per month.
+      // A gift card is its amount on the gift card product; a gift membership is a whole year at the
+      // yearly price (two months free), once, or shorter gifts at the monthly price per month.
       const year = input.months === 12;
-      const price = year ? await planPrice(input.planId, "year") : await monthlyPrice(input.planId);
+      const line = input.creditCents !== null
+        ? { quantity: 1, price_data: { currency: "usd", unit_amount: input.creditCents, product: GIFT_CARD_PRODUCT } }
+        : await (async () => {
+          const price = year ? await planPrice(input.planId!, "year") : await monthlyPrice(input.planId!);
+          return { quantity: year ? 1 : input.months!, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } };
+        })();
       const session = await stripeClient().checkout.sessions.create({
         mode: "payment",
         customer: input.customerId,
@@ -98,14 +104,13 @@ Deno.serve((req) =>
         // The plan's own product and price: so the page reads "LiteraryWorm Standard × 3", and a
         // gift is taxed exactly like the membership it buys.
         // No custom_text: accounts with Stripe Managed Payments refuse it (the Gifts page has the terms).
-        line_items: [
-          { quantity: year ? 1 : input.months, price_data: { currency: price.currency, unit_amount: price.amount, product: price.product } },
-        ],
+        line_items: [line],
         // Read by stripe-webhook to make the gift code.
         metadata: {
           kind: "gift",
-          plan_id: input.planId,
-          months: String(input.months),
+          ...(input.creditCents !== null
+            ? { gift_kind: "credit", credit_cents: String(input.creditCents) }
+            : { plan_id: input.planId!, months: String(input.months) }),
           ...(input.startsOn ? { starts_on: input.startsOn } : {}),
           // Who to email the code to (Stripe keeps metadata values up to 500 characters).
           ...(input.recipientEmail ? { recipient_email: input.recipientEmail } : {}),

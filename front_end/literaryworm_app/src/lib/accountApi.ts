@@ -649,6 +649,18 @@ export interface GiftRecipient {
   message: string;
 }
 
+/** Starts paying for a gift card ($25, $50 or $100 of credit) on Stripe Checkout; returns the page to go to. */
+export async function buyGiftCard(creditCents: number, startsOn: string | null = null, recipient: GiftRecipient | null = null): Promise<string> {
+  const body = {
+    gift: true,
+    credit: creditCents,
+    ...(startsOn ? { startsOn } : {}),
+    ...(recipient ? { recipientEmail: recipient.email.trim(), ...(recipient.message.trim() ? { message: recipient.message.trim() } : {}) } : {}),
+  };
+  const { url } = await callFunction<{ url: string }>("checkout", body, "We couldn't start the payment. Try again.");
+  return url;
+}
+
 /** Starts paying for a gift on Stripe Checkout; returns the page to send the member to. */
 export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null, recipient: GiftRecipient | null = null, books: string[] = []): Promise<string> {
   const body = {
@@ -667,8 +679,11 @@ export async function buyGift(planId: PlanId, months: number, startsOn: string |
 export interface BoughtGift {
   id: string;
   code: string;
-  planId: PlanId;
-  months: number;
+  /** A gift membership's plan and months, or a gift card's credit (creditCents). */
+  kind: "membership" | "credit";
+  planId: PlanId | null;
+  months: number | null;
+  creditCents: number | null;
   amountCents: number;
   currency: string;
   redeemedAt: string | null;
@@ -686,14 +701,16 @@ export interface BoughtGift {
 export async function myGifts(): Promise<BoughtGift[]> {
   const { data, error } = await client()
     .from("gift_codes")
-    .select("id, code, plan_id, months, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at, books")
+    .select("id, code, kind, plan_id, months, credit_cents, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at, books")
     .order("created_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load your gifts. Try again.");
-  return (data as { id: string; code: string; plan_id: PlanId; months: number; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null; books: string[] | null }[]).map((g) => ({
+  return (data as { id: string; code: string; kind: "membership" | "credit" | null; plan_id: PlanId | null; months: number | null; credit_cents: number | null; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null; books: string[] | null }[]).map((g) => ({
     id: g.id,
     code: g.code,
+    kind: g.kind ?? "membership",
     planId: g.plan_id,
     months: g.months,
+    creditCents: g.credit_cents,
     amountCents: g.amount_cents,
     currency: g.currency,
     redeemedAt: g.redeemed_at,
@@ -705,7 +722,14 @@ export async function myGifts(): Promise<BoughtGift[]> {
   }));
 }
 
+/** A redeemed gift card: its credit is on the account's Stripe balance. */
+export interface RedeemedGiftCard {
+  kind: "credit";
+  creditCents: number;
+}
+
 export interface RedeemedGift {
+  kind: "membership";
   planId: PlanId;
   months: number;
   /** When the free months end. */
@@ -721,13 +745,14 @@ export interface RedeemedGift {
  * a membership free for the months (`renewalTermsAccepted`: the member agreed to what happens
  * after), which the webhook writes a moment later (`plan` is null then).
  */
-export async function redeemGift(code: string, renewalTermsAccepted: boolean): Promise<RedeemedGift> {
-  const res = await callFunction<{ gift: { planId: PlanId; months: number; until: string; books?: string[] }; subscription?: SubscriptionRow }>(
+export async function redeemGift(code: string, renewalTermsAccepted: boolean): Promise<RedeemedGift | RedeemedGiftCard> {
+  const res = await callFunction<{ gift: { kind?: "credit"; creditCents?: number; planId: PlanId; months: number; until: string; books?: string[] }; subscription?: SubscriptionRow }>(
     "manage-account",
     { action: "gift", code, ...(renewalTermsAccepted ? { renewalTermsAccepted: true } : {}) },
     "We couldn't redeem that gift. Try again.",
   );
-  return { ...res.gift, books: res.gift.books ?? [], plan: res.subscription ? fromSubscription(res.subscription) : null };
+  if (res.gift.kind === "credit") return { kind: "credit", creditCents: res.gift.creditCents ?? 0 };
+  return { ...res.gift, kind: "membership", books: res.gift.books ?? [], plan: res.subscription ? fromSubscription(res.subscription) : null };
 }
 
 /** Deletes the account and everything it owns, after the function re-checks the password. */

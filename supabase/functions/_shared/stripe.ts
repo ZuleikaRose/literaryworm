@@ -31,6 +31,10 @@ export const PRICE_LOOKUP_KEY: Record<BillingInterval, Record<PlanId, string>> =
 
 /** How many months a gift can be bought for. */
 export const GIFT_MONTHS = [1, 3, 6, 12] as const;
+/** Gift cards: credit for a membership, in cents ($25, $50 or $100), on the literaryworm_gift_card product. */
+export const GIFT_CARD_CENTS = [2500, 5000, 10000] as const;
+export type GiftCardCents = (typeof GIFT_CARD_CENTS)[number];
+export const GIFT_CARD_PRODUCT = "literaryworm_gift_card";
 export type GiftMonths = (typeof GIFT_MONTHS)[number];
 
 /** Plan names as members see them. */

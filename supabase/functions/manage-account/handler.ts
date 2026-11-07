@@ -34,7 +34,9 @@
 //   { action: "promo_code", code }           applies a Stripe promotion code to the membership
 //                                            (replacing any it has); returns { discount }
 //   { action: "gift", code, renewalTermsAccepted? }
-//                                            redeems a gift code (once). A membership on the
+//                                            redeems a gift code (once). A gift card adds its credit
+//                                            to the account's Stripe balance (taken off the next
+//                                            charges, a membership or not). Otherwise: A membership on the
 //                                            gift's plan gets the months free (its next charge
 //                                            moves back); without a membership, Stripe starts one
 //                                            free for the months, which ends then unless a card
@@ -93,8 +95,11 @@ export type SubscriptionPatch = Partial<
 
 export interface Gift {
   id: string;
-  plan_id: PlanId;
-  months: number;
+  /** A gift membership (plan and months) or a gift card (credit_cents). */
+  kind?: "membership" | "credit";
+  plan_id: PlanId | null;
+  months: number | null;
+  credit_cents?: number | null;
   redeemed_at: string | null;
   /** The first day it can be redeemed ("YYYY-MM-DD"); null from the day it was bought. */
   starts_on: string | null;
@@ -402,6 +407,23 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         if (!giftStarted(gift.starts_on, now)) {
           throw new HttpError("bad_request", `This gift starts on ${longDate(gift.starts_on!)}. Redeem it from then.`);
         }
+        if (gift.kind === "credit") {
+          const cents = gift.credit_cents ?? 0;
+          if (cents <= 0) throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+          if (!(await deps.gifts.claim(gift.id, user.id))) {
+            throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+          }
+          // Only a failure before Stripe has the credit gives the code back.
+          try {
+            const customerId = await deps.customerFor(user.id, user.email);
+            await deps.billing.credit(customerId, cents, `gift-card-${gift.id}`, "LiteraryWorm gift card");
+          } catch (err) {
+            await deps.gifts.release(gift.id);
+            throw err;
+          }
+          return json(req, METHODS, { gift: { kind: "credit", creditCents: cents } });
+        }
+        if (!gift.plan_id || !gift.months) throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
         const giftPlan = PLAN_NAMES[gift.plan_id];
         // A membership billed through Stripe that hasn't ended gets the months added.
         const live = sub && sub.stripe_subscription_id && sub.status !== "cancelled" ? sub : null;

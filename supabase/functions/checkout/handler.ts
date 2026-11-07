@@ -7,6 +7,9 @@
 // interval is "month" unless given. Yearly costs ten times the monthly price and starts the day it's
 // bought (billingDay isn't needed); it renews on that date each year.
 //   { gift: true, planId, months: 1 | 3 | 6 | 12, startsOn?: "YYYY-MM-DD", recipientEmail?, message?, books?: [catalog ids, up to 10] }
+//   { gift: true, credit: 2500 | 5000 | 10000, startsOn?, recipientEmail?, message? }
+//                                            a gift card: that much credit for a membership, added
+//                                            to the redeemer's Stripe balance (no books)
 //
 // A gift is a one-off payment on Stripe Checkout (months × the plan's monthly price, or the
 // yearly price for 12 months, nothing recurring): this returns { url }, and once Stripe confirms payment the stripe-webhook function
@@ -40,7 +43,7 @@
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { CATALOG } from "../_shared/catalog.ts";
-import { type BillingInterval, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftBooks, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
+import { type BillingInterval, GIFT_CARD_CENTS, type GiftCardCents, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftBooks, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -77,8 +80,11 @@ export const FREE_TRIAL_DAYS = 7;
 export interface GiftCheckoutInput {
   customerId: string;
   userId: string;
-  planId: PlanId;
-  months: GiftMonths;
+  /** A gift membership: the plan and months (null for a gift card). */
+  planId: PlanId | null;
+  months: GiftMonths | null;
+  /** A gift card: the credit in cents (null for a gift membership). */
+  creditCents: GiftCardCents | null;
   /** The first day the code can be redeemed ("YYYY-MM-DD"); null for straight away. */
   startsOn: string | null;
   /** Who to email the code to, and what the buyer wrote; null when the buyer passes it on. */
@@ -125,14 +131,23 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     }
     const body = await readJsonBody(req);
     if (body.gift !== undefined) {
-      onlyKeys(body, ["gift", "planId", "months", "startsOn", "recipientEmail", "message", "books"]);
+      onlyKeys(body, ["gift", "planId", "months", "credit", "startsOn", "recipientEmail", "message", "books"]);
       if (body.gift !== true) throw new HttpError("bad_request", "gift is true when buying a gift.");
-      if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {
-        throw new HttpError("bad_request", "Pick Basic, Standard or Premium.");
-      }
-      const months = body.months;
-      if (typeof months !== "number" || !GIFT_MONTHS.includes(months as GiftMonths)) {
-        throw new HttpError("bad_request", "Pick 1, 3, 6 or 12 months.");
+      const card = body.credit !== undefined;
+      if (card) {
+        if (body.planId !== undefined || body.months !== undefined || body.books !== undefined) {
+          throw new HttpError("bad_request", "A gift card is an amount of credit: no plan, months or books.");
+        }
+        if (typeof body.credit !== "number" || !GIFT_CARD_CENTS.includes(body.credit as GiftCardCents)) {
+          throw new HttpError("bad_request", "Pick a $25, $50 or $100 gift card.");
+        }
+      } else {
+        if (typeof body.planId !== "string" || !PLANS.includes(body.planId as PlanId)) {
+          throw new HttpError("bad_request", "Pick Basic, Standard or Premium.");
+        }
+        if (typeof body.months !== "number" || !GIFT_MONTHS.includes(body.months as GiftMonths)) {
+          throw new HttpError("bad_request", "Pick 1, 3, 6 or 12 months.");
+        }
       }
       let startsOn: string | null;
       let recipientEmail: string | null;
@@ -151,8 +166,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       const url = await deps.createGiftCheckout({
         customerId,
         userId: user.id,
-        planId: body.planId as PlanId,
-        months: months as GiftMonths,
+        planId: card ? null : (body.planId as PlanId),
+        months: card ? null : (body.months as GiftMonths),
+        creditCents: card ? (body.credit as GiftCardCents) : null,
         startsOn,
         recipientEmail,
         message,
