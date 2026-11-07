@@ -4,7 +4,7 @@ Contact: hello [at] literaryworm.com
 Location: Global
 
 /* SITE */
-Last update: November 4, 2026
+Last update: November 6, 2026
 Language: English, Spanish, French, German, Portuguese, Italian and Dutch (policies and Help in English)
 Doctype: HTML5
 IDE: Visual Studio Code
@@ -23,8 +23,9 @@ Database and sign-in: Supabase (PostgreSQL, Auth, Storage, Edge Functions), mana
 Payments: Stripe (memberships, gifts, invitation credits and affiliate credits)
 Email: Mailgun
 AI summaries, content notes, recaps, quizzes, translations, club discussion questions and Ask the book: Claude by Anthropic
+Natural voices for members' uploads: Google Cloud Text-to-Speech (Chirp 3: HD), through our server only
 Structured data: schema.org (WebSite, Organization, Product, FAQPage, Book)
-Read-along: three LibriVox recordings lined up with their text once, ahead of time, with whisper.cpp (run on our machine, not part of the app)
+Read-along: eight LibriVox recordings lined up with their text once, ahead of time, with whisper.cpp (run on our machine, not part of the app)
 Standards: HTML5, CSS3, WCAG 2.2 Level AA (partially conformant: see the Accessibility Policy), installable web app (PWA)
 
 /* RECOGNITION */

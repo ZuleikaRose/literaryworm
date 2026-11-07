@@ -25,6 +25,7 @@ export const plans: Plan[] = [
       tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, reading sprints, shared highlights, listening along and where everyone is in the book"),
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
       tk("Upload your own DRM-free EPUBs, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
+      tk("Natural voices from Google to read your uploads aloud: 2 hours of new voicing a month, and listening again is free"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
       tk("Keep discovering on Home that runs on through every genre for as long as you scroll"),
@@ -50,6 +51,7 @@ export const plans: Plan[] = [
       tk("Each profile keeps its own favourites, lists, goals and stats"),
       tk("Household reading challenges and reading sprints to take on together"),
       tk("A family shelf of books grown-ups put out for everyone at home"),
+      tk("6 hours a month of natural voices from Google for your uploads"),
     ],
   },
   {
@@ -67,6 +69,7 @@ export const plans: Plan[] = [
       tk("Everything in Standard"),
       tk("Nine more profiles than Standard, for bigger households"),
       tk("$2.50 a profile each month with all 12 in use"),
+      tk("12 hours a month of natural voices from Google for your uploads"),
     ],
   },
 ];
@@ -90,7 +93,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I try it before I pay?"),
-    a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs, challenges and a reading sprint, plus reading lists, highlights, a reader to follow, a release reminder, an invite link and a wishlist to try. Nothing you do there is saved, and it can't take payments."),
+    a: tk("Yes. Choose Try the demo on the log-in page to look around a sample household with three profiles, books, clubs, challenges and a reading sprint, plus reading lists, highlights, a reader to follow, a release reminder, an invite link, a wishlist and an uploaded book read by Google's natural voices to try. Nothing you do there is saved, and it can't take payments."),
   },
   {
     q: tk("Can I look at books without an account?"),
@@ -151,6 +154,10 @@ export const planFaqs = [
   {
     q: tk("Can my book club read a book I bought?"),
     a: tk("Yes, if it's a DRM-free EPUB. Upload it in My Library → Uploads, then start a club and choose My uploads under Book from; find it by title, author, ISBN or keywords, and sort the list by title, author, numbers or series. Your file stays private: the club sees only the title and author, and each member uploads their own copy and chooses it on the club's page, so the discussion follows their place and never spoils what's ahead."),
+  },
+  {
+    q: tk("Can LiteraryWorm read my own books aloud?"),
+    a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. Natural voices aren't offered on Kids profiles.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
   },
   {
     q: tk("Can I bring my reading history from Goodreads or StoryGraph?"),

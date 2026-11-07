@@ -182,6 +182,11 @@ The same day, a fix from a reader's report: Search's Filters scroll on their own
 
 Then every Google Books genre: 64 to browse and filter by on Home and Search (every top-level BISAC subject, none repeated), with Kids profiles offered only the genres the sample catalog has. Those genres then keep only books filed under their own subject heading, thin pages top up from the next one, every photo cover has alt text, and the FAQ says which genres there are. Logged-in members get Search in the header menu too, and every page gets a canonical address for search engines. The demo household gets samples for every My Library view but Reminders, then a sample upcoming book with a reminder for that one too. Five more classics get the true read-along (Through the Looking-Glass, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild), eight in all.
 
+Then, on 6 November 2026, voices for uploads:
+
+- Listen to an uploaded book: a device voice reads it in the player, and an upload the catalog has with a LibriVox recording offers that recording, read by a person.
+- Natural voices from Google Cloud Text-to-Speech (Chirp 3: HD, six voices) for members' uploads, voiced a part at a time as they listen and kept with the upload, within a monthly allowance by plan (Basic 2 hours, Standard 6, Premium 12); never on Kids profiles. The demo's Frankenstein sample is voiced ahead of time in all six, so visitors hear them without any call to Google.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.
