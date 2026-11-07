@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Hear character voices in the demo",
+    "body": "The demo's sample upload The Tide Clock is now read by natural voices, with Juno and Ezra in voices of their own when Character voices is on. Choose who reads whom and hear the change straight away.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Choose who reads each character",
     "body": "With Character voices on, Player settings now lists your upload's named speakers under Who reads whom: pick a voice for anyone, and the rest keep the voices chosen for them.",

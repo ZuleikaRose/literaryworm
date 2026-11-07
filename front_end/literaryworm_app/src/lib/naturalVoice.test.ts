@@ -18,8 +18,8 @@ import {
   voicesFor,
   voiceSegments,
 } from "./naturalVoice";
-import { DEMO_NATURAL_SAMPLE, DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
-import { demoVoicePath } from "./demoVoices";
+import { DEMO_CAST_SAMPLE, DEMO_NATURAL_SAMPLE, DEMO_NATURAL_SAMPLES, DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
+import { demoPieceFiles, demoVoicePath } from "./demoVoices";
 
 const UTF8 = new TextEncoder();
 
@@ -90,13 +90,17 @@ describe("natural voices for uploads", () => {
     expect(voiceFile("user", "u-1", DEFAULT_NATURAL_VOICE, 2, 7)).toBe(`user/u-1/${DEFAULT_NATURAL_VOICE}-2-7.mp3`);
   });
 
-  it("has the demo's Frankenstein sample recorded in every natural voice (scripts/voice-demo-sample.mjs)", () => {
-    const chapters = DEMO_UPLOAD_TEXTS.get(DEMO_NATURAL_SAMPLE)!;
-    // The sample is in English, so it's offered the English voices.
-    const missing = voicesFor("en").flatMap((v) =>
-      chapters.flatMap((text, c) => voiceSegments(text).map((_, s) => demoVoicePath(v.id, c, s))),
-    ).filter((path) => !existsSync(join(__dirname, "../../public", path)));
-    expect(missing).toEqual([]);
+  it("has the demo's natural-voice samples recorded in every English voice, with character voices too (scripts/voice-demo-sample.mjs)", () => {
+    for (const id of DEMO_NATURAL_SAMPLES) {
+      const missing = demoPieceFiles(id, DEMO_UPLOAD_TEXTS.get(id)!)
+        .map((f) => f.path)
+        .filter((path) => !existsSync(join(__dirname, "../../public", path)));
+      expect(missing).toEqual([]);
+    }
+    // Frankenstein plays exactly the plain pieces; The Tide Clock has speech in other voices.
+    const plain = voicesFor("en").flatMap((v) => DEMO_UPLOAD_TEXTS.get(DEMO_NATURAL_SAMPLE)!.flatMap((text, c) => voiceSegments(text).map((_, s) => demoVoicePath(DEMO_NATURAL_SAMPLE, v.id, c, s))));
+    expect(demoPieceFiles(DEMO_NATURAL_SAMPLE, DEMO_UPLOAD_TEXTS.get(DEMO_NATURAL_SAMPLE)!).map((f) => f.path).sort()).toEqual(plain.sort());
+    expect(demoPieceFiles(DEMO_CAST_SAMPLE, DEMO_UPLOAD_TEXTS.get(DEMO_CAST_SAMPLE)!).some((f) => /-c\d+\.mp3$/.test(f.path))).toBe(true);
   });
 
   it("offers a book its own language's voices first, then the English ones, and starts with its own", () => {

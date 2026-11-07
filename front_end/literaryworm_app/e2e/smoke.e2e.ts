@@ -1183,13 +1183,13 @@ describe("the demo household", () => {
     // The demo's Frankenstein sample has natural voices (Google), recorded ahead of time, and starts with the first.
     expect(await page.locator('optgroup[label="Natural voices (Google)"] option').count()).toBe(6);
     await page.getByText(/Read aloud by Aoede, a natural voice from Google\. In the demo/).waitFor();
-    const piece = await page.request.get(`${BASE_URL}/voices/demo/en-GB-Chirp3-HD-Aoede-0-0.mp3`);
+    const piece = await page.request.get(`${BASE_URL}/voices/demo/a4/en-GB-Chirp3-HD-Aoede-0-0.mp3`);
     expect(piece.ok()).toBe(true);
     expect(piece.headers()["content-type"]).toMatch(/audio\/mpeg/);
     expect(await scrollsSideways(page)).toBe(false);
     expect(errors()).toEqual([]);
     // The demo's other uploads keep the device voices, and say members have natural voices.
-    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a2");
     await page.getByText("Members can choose a natural voice from Google for their uploads.").waitFor();
     expect(await page.locator('optgroup[label="Natural voices (Google)"]').count()).toBe(0);
   });
@@ -1702,6 +1702,12 @@ describe("the demo household", () => {
     await dialog.getByRole("button", { name: "Close" }).click();
     await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
     await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel("Ezra").inputValue()).resolves.toBe("Puck");
+    await page.keyboard.press("Escape");
+    // The demo plays it: The Tide Clock is recorded in natural voices, each speech in every character voice.
+    await page.getByText(/Read aloud by Aoede, a natural voice from Google\. In the demo/).waitFor();
+    const speech = await page.request.get(`${BASE_URL}/voices/demo/a1/en-GB-Chirp3-HD-Puck-1-c1.mp3`);
+    expect(speech.ok()).toBe(true);
+    expect(speech.headers()["content-type"]).toMatch(/audio\/mpeg/);
     expect(errors()).toEqual([]);
   });
 

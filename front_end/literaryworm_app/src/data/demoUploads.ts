@@ -173,7 +173,11 @@ export const DEMO_UPLOAD_READING = DEMO_UPLOADS[0].id;
 
 /**
  * The demo upload whose natural voices are recorded: the opening of Frankenstein, voiced once with
- * every natural voice by scripts/voice-demo-sample.mjs into public/voices/demo, so the demo plays
+ * every natural voice by scripts/voice-demo-sample.mjs into public/voices/demo/a4, so the demo plays
  * natural voices without calling Google (lib/demoVoices.ts).
  */
 export const DEMO_NATURAL_SAMPLE = "u-d3e0a1000000000000000000000000a4";
+/** The Tide Clock: its chapter 2 has Juno and Ezra talking, so the demo can play character voices. */
+export const DEMO_CAST_SAMPLE = "u-d3e0a1000000000000000000000000a1";
+/** The demo uploads with recorded natural voices (lib/demoVoices.ts). */
+export const DEMO_NATURAL_SAMPLES: readonly string[] = [DEMO_NATURAL_SAMPLE, DEMO_CAST_SAMPLE];

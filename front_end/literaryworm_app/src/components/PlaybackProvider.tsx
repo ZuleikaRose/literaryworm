@@ -10,7 +10,7 @@ import { useListeningAllowance } from "../lib/useListeningAllowance";
 import { tr } from "../lib/i18n";
 import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
-import { demoVoiceUrl } from "../lib/demoVoices";
+import { demoVoicePart } from "../lib/demoVoices";
 import { memberVoicePart, voiceAhead } from "../lib/naturalVoiceOffline";
 import { naturalVoice } from "../lib/naturalVoice";
 import { speedFor } from "../lib/bookSpeed";
@@ -340,8 +340,11 @@ function Engine({
         : natural && text
           ? naturalSourceRef.current === "demo"
             ? // The demo plays its recorded sample.
-              // (Its letters have no speech, so character voices change nothing there.)
-              naturalNarrator(text, starts, lengths, (chapter, segment) => demoVoiceUrl(natural.id, chapter, segment), events)
+              (() => {
+                // The demo plays its recorded samples, with character voices and Who reads whom too.
+                const part = demoVoicePart(book.id, natural, text, characterVoices, choicesRef.current);
+                return naturalNarrator(text, starts, lengths, part.url, events, undefined, part.pieces);
+              })()
             : (() => {
                 // Members' parts are voiced as they listen and kept on this device, so they play
                 // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
