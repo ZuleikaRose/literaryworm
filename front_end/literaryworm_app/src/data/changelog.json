@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Character voices know who's talking",
+    "body": "Character voices now follow two people talking in turn, even where only \"he said\" is written, and find speakers named in French, German and Spanish books as well as English ones.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Character voices for your uploads",
     "body": "Turn on Character voices in Player settings and a natural voice reading your upload hands what the characters say to other voices. Anyone named beside their words, as in \"said Elizabeth\", keeps the same voice all book long. Chapters with no speech are read as before.",

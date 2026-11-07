@@ -69,4 +69,27 @@ describe("character voices", () => {
     expect(voiceFile("me", "u-1", narrator.id, 2, 3, true)).toBe("me/u-1/en-GB-Chirp3-HD-Aoede-2-c3.mp3");
     expect(voiceFile("me", "u-1", narrator.id, 2, 3)).toBe("me/u-1/en-GB-Chirp3-HD-Aoede-2-3.mp3");
   });
+
+  it("follows two people talking in turn, through unnamed and pronoun-only speech", () => {
+    const chapter = [
+      "“Where are you going?” said Anne.",
+      "“To the river,” replied Gilbert.",
+      "“May I come?”",
+      "“If you like,” he said.",
+      "They walked on in silence.",
+      "“Look!”",
+    ].join("\n");
+    const speakers = castSegments(chapter)!.filter((p) => p.speech).map((p) => p.speaker);
+    // A narration-only paragraph ends the run, so the last speech has no speaker.
+    expect(speakers).toEqual(["Anne", "Gilbert", "Anne", "Gilbert", null]);
+  });
+
+  it("finds speakers named in French, German and Spanish", () => {
+    const fr = castSegments("« Bonjour », dit Jean. « Il fait beau », répondit Marie.")!.filter((p) => p.speech);
+    expect(fr.map((p) => p.speaker)).toEqual(["Jean", "Marie"]);
+    const de = castSegments("„Guten Tag“, sagte Hans. „Wie geht's?“, fragte Greta.")!.filter((p) => p.speech);
+    expect(de.map((p) => p.speaker)).toEqual(["Hans", "Greta"]);
+    const es = castSegments("“¿Vienes?”, preguntó Lucía. “Sí”, dijo él.")!.filter((p) => p.speech);
+    expect(es.map((p) => p.speaker)).toEqual(["Lucía", "Lucía"]);
+  });
 });

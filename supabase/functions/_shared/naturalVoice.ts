@@ -197,9 +197,10 @@ export function voiceFile(userId: string, uploadId: string, voiceId: string, cha
  * Character voices: when the listener turns them on, what the characters say (the text inside
  * double quotes, “…”, "…", «…» or „…“) is read by other voices than the narration. A speaker named
  * beside the words ("said Elizabeth", "Mr. Darcy replied") keeps the same voice all book long;
- * words with no named speaker take the speaker named elsewhere in the same paragraph, else one
- * voice kept for speech. Voices are dealt out, not matched to the character. Names are found in
- * English books; in other languages speech still gets its own voice. Chapters with no speech are
+ * words with no named speaker take the speaker named elsewhere in the same paragraph, else, when
+ * two people are talking in turn, the one who spoke the paragraph before last, else one voice kept
+ * for speech. Voices are dealt out, not matched to the character. Names are found in English,
+ * French, German and Spanish books; in other languages speech still gets its own voice. Chapters with no speech are
  * read exactly as without character voices (the same pieces, the same files).
  */
 export const CAST_NAMES: readonly string[] = ["Charon", "Kore", "Puck", "Leda", "Fenrir", "Zephyr", "Orus", "Despina"];
@@ -217,12 +218,19 @@ export interface CastSegment extends VoiceSegment {
   speaker: string | null;
 }
 
+// English, then French, German and Spanish verbs of saying.
 const SAID =
-  "said|says|asked|asks|cried|replied|answered|shouted|whispered|exclaimed|continued|added|returned|called|muttered|murmured|began|remarked|observed|declared|repeated|insisted|demanded|inquired|enquired|sighed|laughed|growled|snapped";
+  "said|says|asked|asks|cried|replied|answered|shouted|whispered|exclaimed|continued|added|returned|called|muttered|murmured|began|remarked|observed|declared|repeated|insisted|demanded|inquired|enquired|sighed|laughed|growled|snapped|" +
+  "dit|demanda|répondit|s'écria|reprit|ajouta|murmura|cria|répliqua|" +
+  "sagte|fragte|antwortete|rief|flüsterte|meinte|erwiderte|" +
+  "dijo|preguntó|respondió|exclamó|contestó|gritó|añadió";
 const NAME = "(?:(?:Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur)\\.?\\s+)?[A-Z][a-zà-ÿ'’-]+";
-const AFTER = new RegExp(`^[,.!?;:—–-]?\\s*(?:(${NAME})\\s+(?:${SAID})\\b|(?:${SAID})\\s+(${NAME}))`);
-const BEFORE = new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+(${NAME}))\\s*[,:]?\\s*$`);
-const NOT_NAMES = new Set(["he", "she", "i", "they", "it", "we", "you", "one", "the", "this", "that", "then", "there", "her", "his", "him", "someone", "everyone", "nobody", "somebody"]);
+const AFTER = new RegExp(`^[,.!?;:—–-]?\\s*(?:(${NAME})\\s+(?:${SAID})(?!\\p{L})|(?:${SAID})\\s+(${NAME}))`, "u");
+const BEFORE = new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+(${NAME}))\\s*[,:]?\\s*$`, "u");
+const NOT_NAMES = new Set([
+  "he", "she", "i", "they", "it", "we", "you", "one", "the", "this", "that", "then", "there", "her", "his", "him", "someone", "everyone", "nobody", "somebody",
+  "il", "elle", "ils", "elles", "on", "je", "er", "sie", "es", "ich", "man", "él", "ella", "yo", "ellos",
+]);
 // Words inside double quotes, to the end of the paragraph when the closing quote is left off (as
 // novels do when a speech runs on into the next paragraph).
 const QUOTED = /“[^”\n]*(?:”|(?=\n)|$)|"[^"\n]*(?:"|(?=\n)|$)|«[^»\n]*(?:»|(?=\n)|$)|„[^“”\n]*(?:[“”]|(?=\n)|$)/g;
@@ -265,6 +273,31 @@ export function castSegments(chapter: string): CastSegment[] | null {
       }
     }
   });
+  // Two people talking in turn: in a run of paragraphs of speech, a paragraph whose speaker isn't
+  // named ("he said", or nothing) is the one who spoke the paragraph before last, when the last two
+  // were different people. A paragraph of narration alone ends the run.
+  let last: string | null = null;
+  let beforeLast: string | null = null;
+  let paragraph = -2;
+  let paragraphSpeaker: string | null = null;
+  for (const q of quotes) {
+    const p = paragraphOf(q.start);
+    if (p !== paragraph) {
+      const between = chapter.slice(paragraph + 1, p + 1);
+      // A narration-only paragraph sits between this one and the last that had speech.
+      if (paragraph >= -1 && between.split("\n").slice(1, -1).some((line) => /[\p{L}\p{N}]/u.test(line))) {
+        last = beforeLast = null;
+      }
+      if (paragraphSpeaker && paragraphSpeaker !== last) {
+        beforeLast = last;
+        last = paragraphSpeaker;
+      }
+      paragraph = p;
+      paragraphSpeaker = null;
+    }
+    if (!q.speaker && beforeLast && last && beforeLast !== last) q.speaker = beforeLast;
+    paragraphSpeaker ??= q.speaker;
+  }
 
   const parts: CastSegment[] = [];
   const add = (start: number, end: number, speech: boolean, speaker: string | null) => {
