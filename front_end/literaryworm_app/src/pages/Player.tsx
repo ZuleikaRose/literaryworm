@@ -27,6 +27,7 @@ import { useAlignment } from "../lib/useAlignment";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
+import { VoiceWholeBook } from "../components/VoiceWholeBook";
 
 type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | "clip" | null;
 
@@ -458,6 +459,7 @@ function PlayerView({ book }: { book: Book }) {
             <p className="reader-sample-note">{t("Members can choose a natural voice from Google for their uploads.")}</p>
           )}
           {book.upload && <UploadRecordingLink upload={book} className="reader-sample-note" />}
+          {book.upload && narration.kind === "natural" && <VoiceWholeBook book={book} />}
         </div>
 
         {/* A real recording shows the transcript only where it has been lined up with the text (the pilot,

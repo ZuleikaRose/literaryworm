@@ -275,3 +275,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Theme challenges: `THEME_PROMPTS`, `themesCovered()` (+ tests), `lib/themeBooks.ts`, the theme list in `ChallengesView`; migrations 6736–6737 |
 | — | Notes as a PDF: `lib/notesPdf.ts` (+ test), PDF button in `ExportButtons`; migrations 6738–6739 |
 | — | Club reading schedules: `lib/clubSchedule.ts` (+ test), `components/ClubSchedule.tsx`, `setClubSchedule()`; migrations 6740–6742 |
+| — | Voice the whole book: `lib/voiceWholeBook.ts` (+ test), `components/VoiceWholeBook.tsx` (player, upload page); migrations 6743–6744 |

@@ -1647,6 +1647,16 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("explains Voice the whole book on the demo's natural-voice sample upload", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    // In the player, under the natural voice it reads with.
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a4");
+    const section = page.getByRole("region", { name: "Voice the whole book" });
+    await section.getByText(/The demo's sample is already voiced/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("exports Avery's notes as a PDF", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -16,6 +16,7 @@ import { Dialog } from "../components/Dialog";
 import { GooglePreview } from "../components/GooglePreview";
 import { Icon } from "../components/Icon";
 import { UploadRecordingLink } from "../components/UploadRecordingLink";
+import { VoiceWholeBook } from "../components/VoiceWholeBook";
 import { AskGrownUp } from "../components/AskGrownUp";
 import { BookStatsSection } from "../components/BookStatsSection";
 import { ReadingPlanSection } from "../components/ReadingPlanSection";
@@ -440,6 +441,7 @@ function DetailPage({ view }: { view: DetailView }) {
             </div>
           )}
           {view.local?.upload && profile && <UploadRecordingLink upload={view.local} />}
+          {view.local?.upload && profile && <VoiceWholeBook book={view.local} />}
 
           <div className="detail-actions">
             {entry ? (

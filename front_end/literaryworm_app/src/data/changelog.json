@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Voice a whole upload for offline listening",
+    "body": "In the player, Voice the whole book (under the natural voice reading your upload) has your natural voice read every part now, on Wi-Fi, and keeps it on your device, so the whole book plays offline. Parts already voiced don't count towards the month's natural-voice reading.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Reading schedules for book clubs",
     "body": "A club's owner can now set how many chapters a week the club reads. Everyone sees this week's chapters on the club's page, and whether they're on track, ahead or behind.",
     "major": false

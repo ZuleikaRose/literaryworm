@@ -12818,3 +12818,274 @@ where slug = $lw$privacy$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Character voices for your uploads$lw$, $lw$Turn on Character voices in Player settings and a natural voice reading your upload hands what the characters say to other voices. Anyone named beside their words, as in "said Elizabeth", keeps the same voice all book long. Chapters with no speech are read as before.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Character voices for your uploads$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006729_character_voices_speakers_help.sql
+-- =============================================================================
+-- Character voices follow two people talking in turn and find speakers in French, German and
+-- Spanish books: Help says so. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long; the voices are dealt out, not matched to the character, and names are found in English books. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Names are found in English, French, German and Spanish books; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long; the voices are dealt out, not matched to the character, and names are found in English books. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$) > 0
+  and strpos(sections::text, $lw$Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Names are found in English, French, German and Spanish books; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006730_whats_new_character_voices_speakers.sql
+-- =============================================================================
+-- What's new: Character voices know who's talking. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$Character voices know who's talking$lw$, $lw$Character voices now follow two people talking in turn, even where only "he said" is written, and find speakers named in French, German and Spanish books as well as English ones.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Character voices know who's talking$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006731_book_speeds.sql
+-- =============================================================================
+-- A listening speed per book (lib/bookSpeed.ts, Player settings → Keep this speed for this book):
+-- kept with the profile's other player settings as {book id: speed}, up to 200 books (the browser
+-- keeps the newest), each 0.5–3. The profile's own account reads and changes it.
+
+alter table public.reader_profiles
+  add column if not exists book_speeds jsonb not null default '{}'::jsonb;
+
+alter table public.reader_profiles
+  drop constraint if exists reader_profiles_book_speeds_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_book_speeds_check
+  check (jsonb_typeof(book_speeds) = 'object' and pg_column_size(book_speeds) <= 16384);
+
+grant select (book_speeds) on public.reader_profiles to authenticated;
+grant update (book_speeds) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261107006732_whats_new_book_speeds.sql
+-- =============================================================================
+-- What's new: A speed for each book. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$A speed for each book$lw$, $lw$In Player settings, Keep this speed for this book remembers how fast you like one audiobook, on every device, while your other books keep your usual speed.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A speed for each book$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006733_kids_bedtime_report.sql
+-- =============================================================================
+-- Bedtime in the Kids reading report (lib/kidsReport.ts bedtimeWeek(), kids-report email
+-- bedtimeLine()): per Kids profile and day, minutes in Bedtime listening and minutes read or
+-- listened after bedtime (only possible when a grown-up allowed more). Added through
+-- record_bedtime() like record_reading(); kids_report_week() returns them with whether the
+-- profile has a bedtime.
+
+alter table public.reading_days
+  add column if not exists bedtime_minutes smallint not null default 0 check (bedtime_minutes between 0 and 1440),
+  add column if not exists late_minutes smallint not null default 0 check (late_minutes between 0 and 1440);
+
+grant select (bedtime_minutes, late_minutes) on public.reading_days to authenticated;
+grant insert (bedtime_minutes, late_minutes) on public.reading_days to authenticated;
+grant update (bedtime_minutes, late_minutes) on public.reading_days to authenticated;
+
+create or replace function public.record_bedtime(
+  p_profile_id uuid,
+  p_day date,
+  p_bedtime_minutes integer,
+  p_late_minutes integer
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if p_bedtime_minutes is null or p_bedtime_minutes not between 0 and 60
+     or p_late_minutes is null or p_late_minutes not between 0 and 60 then
+    raise exception 'minutes must be 0 to 60' using errcode = 'check_violation';
+  end if;
+  if p_day is null or p_day not between current_date - 2 and current_date + 2 then
+    raise exception 'day must be within two days of today' using errcode = 'check_violation';
+  end if;
+  insert into public.reading_days as d (profile_id, user_id, day, minutes, books_finished, bedtime_minutes, late_minutes)
+  values (p_profile_id, (select auth.uid()), p_day, 0, 0, p_bedtime_minutes, p_late_minutes)
+  on conflict (profile_id, user_id, day) do update
+    set bedtime_minutes = least(1440, d.bedtime_minutes + excluded.bedtime_minutes),
+        late_minutes = least(1440, d.late_minutes + excluded.late_minutes);
+end;
+$$;
+
+revoke execute on function public.record_bedtime(uuid, date, integer, integer) from public, anon;
+grant execute on function public.record_bedtime(uuid, date, integer, integer) to authenticated;
+
+drop function if exists public.kids_report_week(uuid, date, date);
+create function public.kids_report_week(p_user uuid, p_from date, p_to date)
+returns table (
+  profile_name text, minutes integer, listening_minutes integer, days_read integer, books_finished integer,
+  finished_books text[], weekly_goal_minutes integer, has_bedtime boolean, bedtime_minutes integer, late_nights integer
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.name::text,
+         coalesce(sum(d.minutes), 0)::integer,
+         coalesce(sum(d.listening_minutes), 0)::integer,
+         count(d.day) filter (where d.minutes >= 1)::integer,
+         coalesce(sum(d.books_finished), 0)::integer,
+         coalesce((select array_agg(f.volume_id order by f.finished_on)
+                     from public.finished_books f
+                    where f.profile_id = p.id and f.user_id = p_user and f.finished_on between p_from and p_to), '{}'),
+         p.weekly_goal_minutes::integer,
+         p.bedtime is not null,
+         coalesce(sum(d.bedtime_minutes), 0)::integer,
+         count(d.day) filter (where d.late_minutes >= 1)::integer
+  from public.reader_profiles p
+  left join public.reading_days d on d.profile_id = p.id and d.user_id = p_user and d.day between p_from and p_to
+  where p.account_id = p_user and p.age_rating = 'kids'
+  group by p.id, p.name, p.weekly_goal_minutes, p.bedtime
+  order by p.name;
+$$;
+revoke execute on function public.kids_report_week(uuid, date, date) from public, anon, authenticated;
+grant execute on function public.kids_report_week(uuid, date, date) to service_role;
+
+-- =============================================================================
+-- 20261107006734_kids_bedtime_report_policies.sql
+-- =============================================================================
+-- Bedtime in the Kids reading report: the Privacy Policy and the Children's Privacy Notice say what's
+-- kept (minutes in Bedtime listening and after bedtime) and who sees it. Same text as
+-- src/data/legalPages.json, matched as stored; each change made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started)."$lw$, $lw$"Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), how much of that was in Bedtime listening or after its bedtime, the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started)."$lw$)::jsonb
+where slug = $lw$childrens-privacy$lw$
+  and strpos(sections::text, $lw$"Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started)."$lw$) > 0
+  and strpos(sections::text, $lw$Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), how much of that was in Bedtime listening or after its bedtime, the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started).$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, its book requests and its quiz scores."$lw$, $lw$"You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests and its quiz scores."$lw$)::jsonb
+where slug = $lw$childrens-privacy$lw$
+  and strpos(sections::text, $lw$"You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, its book requests and its quiz scores."$lw$) > 0
+  and strpos(sections::text, $lw$You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests and its quiz scores.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished and any weekly goal."$lw$, $lw$"If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished, any weekly goal, and, for a profile with a bedtime, how many nights it was kept and its time in Bedtime listening."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished and any weekly goal."$lw$) > 0
+  and strpos(sections::text, $lw$If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished, any weekly goal, and, for a profile with a bedtime, how many nights it was kept and its time in Bedtime listening.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006735_whats_new_kids_bedtime_report.sql
+-- =============================================================================
+-- What's new: Bedtime in the Kids reading report. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Bedtime in the Kids reading report$lw$, $lw$Account → Family and the Monday email now show, for each Kids profile with a bedtime, how many nights of the last week it was kept, and how long it spent in Bedtime listening.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Bedtime in the Kids reading report$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006736_theme_challenges.sql
+-- =============================================================================
+-- Themes covered challenges (lib/challenges.ts THEME_PROMPTS): a fourth kind of household
+-- challenge whose target is how many of the nine themes to cover. Progress is still worked out in
+-- the browser from finished books, never stored.
+
+alter table public.household_challenges drop constraint if exists household_challenges_kind_check;
+alter table public.household_challenges
+  add constraint household_challenges_kind_check check (kind in ('books', 'hours', 'days', 'themes'));
+alter table public.household_challenges drop constraint if exists household_challenges_themes_target_check;
+alter table public.household_challenges
+  add constraint household_challenges_themes_target_check check (kind <> 'themes' or target <= 9);
+
+-- =============================================================================
+-- 20261107006737_whats_new_theme_challenges.sql
+-- =============================================================================
+-- What's new: Theme challenges for the household. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Theme challenges for the household$lw$, $lw$Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Theme challenges for the household$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006738_notes_pdf_help.sql
+-- =============================================================================
+-- Notes as a PDF: Help says what the three export formats are and that the PDF shows letters
+-- outside Western European alphabets as ?. Same text as src/data/legalPages.json; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"To read or listen without a connection, choose Read offline on a public-domain book's page. Each book's page has My journal for private, dated notes only you see; they're exported with your highlights from My Library → Notes. Words you keep from the dictionary come back for review in My words, after 1, 3, 7, 14, 30 and 60 days while you know them. Your reading streak has two rest days a month, used automatically when you miss a day."$lw$, $lw$"To read or listen without a connection, choose Read offline on a public-domain book's page. Each book's page has My journal for private, dated notes only you see; they're exported with your highlights from My Library → Notes. Words you keep from the dictionary come back for review in My words, after 1, 3, 7, 14, 30 and 60 days while you know them. Your reading streak has two rest days a month, used automatically when you miss a day.", "My Library → Notes saves your highlights, notes and journal as Markdown, plain text or a PDF, made on your device. The PDF uses standard fonts, so letters outside Western European alphabets (Greek, Cyrillic, Chinese and others) show as \"?\"; the Markdown file keeps them."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"To read or listen without a connection, choose Read offline on a public-domain book's page. Each book's page has My journal for private, dated notes only you see; they're exported with your highlights from My Library → Notes. Words you keep from the dictionary come back for review in My words, after 1, 3, 7, 14, 30 and 60 days while you know them. Your reading streak has two rest days a month, used automatically when you miss a day."$lw$) > 0
+  and strpos(sections::text, $lw$My Library → Notes saves your highlights, notes and journal as Markdown, plain text or a PDF, made on your device. The PDF uses standard fonts, so letters outside Western European alphabets (Greek, Cyrillic, Chinese and others) show as \"?\"; the Markdown file keeps them.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006739_whats_new_notes_pdf.sql
+-- =============================================================================
+-- What's new: Export your notes as a PDF. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Export your notes as a PDF$lw$, $lw$My Library → Notes now saves a book's highlights, notes and journal, or all of them, as a tidy PDF as well as Markdown and plain text: chapters in order, each quote marked, with its page and your note. It's made on your device.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Export your notes as a PDF$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006740_club_schedules.sql
+-- =============================================================================
+-- Club reading schedules (lib/clubSchedule.ts, components/ClubSchedule.tsx): the owner sets how
+-- many chapters a week, counted from the club's start date; null for no schedule. Members read it
+-- with the club; only the owner changes it (the existing "Owners change their clubs" policy).
+
+alter table public.book_clubs
+  add column if not exists chapters_per_week smallint check (chapters_per_week between 1 and 100);
+
+grant update (chapters_per_week) on public.book_clubs to authenticated;
+
+-- =============================================================================
+-- 20261107006741_club_schedules_help.sql
+-- =============================================================================
+-- Club reading schedules: Help says what they show and that nobody sees another member's place.
+-- Same text as src/data/legalPages.json; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it.", "A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$) > 0
+  and strpos(sections::text, $lw$A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006742_whats_new_club_schedules.sql
+-- =============================================================================
+-- What's new: Reading schedules for book clubs. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Reading schedules for book clubs$lw$, $lw$A club's owner can now set how many chapters a week the club reads. Everyone sees this week's chapters on the club's page, and whether they're on track, ahead or behind.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Reading schedules for book clubs$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006743_voice_whole_book_policies.sql
+-- =============================================================================
+-- Voice the whole book: Help says how, and the Privacy Policy that every part can be sent to
+-- Google Cloud Text-to-Speech at once when chosen. Same text as src/data/legalPages.json; once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$) > 0
+  and strpos(sections::text, $lw$Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.", "To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$) > 0
+  and strpos(sections::text, $lw$To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006744_whats_new_voice_whole_book.sql
+-- =============================================================================
+-- What's new: Voice a whole upload for offline listening. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Voice a whole upload for offline listening$lw$, $lw$In the player, Voice the whole book (under the natural voice reading your upload) has your natural voice read every part now, on Wi-Fi, and keeps it on your device, so the whole book plays offline. Parts already voiced don't count towards the month's natural-voice reading.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Voice a whole upload for offline listening$lw$ and c.released_on = '2026-11-07');

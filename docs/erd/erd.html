@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6725, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6744, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -355,6 +355,7 @@
             ["", "auto_skip_intro", "boolean"],
             ["", "auto_skip_outro", "boolean"],
             ["", "character_voices", "boolean"],
+            ["", "book_speeds", "jsonb {book: speed}"],
             ["", "reading_wpm", "smallint 60–1000", true],
             ["", "up_next", "text[] ≤ 50"],
             ["", "ui_language", "text: en, es, fr, de, pt, it, nl", true],
@@ -418,8 +419,10 @@
             ["", "minutes", "smallint 0–1440"],
             ["", "books_finished", "smallint 0–100"],
             ["", "listening_minutes", "smallint ≤ minutes"],
+            ["", "bedtime_minutes", "smallint 0–1440"],
+            ["", "late_minutes", "smallint 0–1440"],
           ],
-          note: "Time read or listened (and how much of it was listening) and books finished per day. FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today), which also records which book. RLS: owner only.",
+          note: "Time read or listened (and how much of it was listening) and books finished per day; Kids profiles' minutes in Bedtime listening and after bedtime through record_bedtime(). FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today), which also records which book. RLS: owner only.",
         },
         {
           id: "book_clubs", color: colors.reading, x: 840, y: 2170, sub: "members only",
@@ -434,6 +437,7 @@
             ["", "finishes_on", "date (≤ 366 days on)"],
             ["", "invite_code", "text (10, unique)"],
             ["", "buddy", "boolean"],
+            ["", "chapters_per_week", "smallint 1–100, null"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
@@ -479,7 +483,7 @@
             ["fk", "user_id", "uuid"],
             ["fk", "created_by", "uuid", true],
             ["", "title", "text 1–80"],
-            ["", "kind", "text books | hours | days"],
+            ["", "kind", "text books | hours | days | themes"],
             ["", "target", "smallint 1–1000"],
             ["", "starts_on", "date"],
             ["", "ends_on", "date (≤ a year on)"],
