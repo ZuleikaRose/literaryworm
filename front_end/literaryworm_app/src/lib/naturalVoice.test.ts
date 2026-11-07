@@ -84,7 +84,8 @@ describe("natural voices for uploads", () => {
   it("names real voices, the default among them, and keeps pieces in the upload's folder", () => {
     expect(naturalVoice(DEFAULT_NATURAL_VOICE)?.accent).toBe("British");
     expect(new Set(NATURAL_VOICES.map((v) => v.id)).size).toBe(NATURAL_VOICES.length);
-    for (const v of NATURAL_VOICES) expect(v.id.startsWith(`${v.languageCode}-Chirp3-HD-`)).toBe(true);
+    // Chirp 3: HD everywhere Google has it; Filipino has none, so Tagalog uses its Neural2 voices.
+    for (const v of NATURAL_VOICES) expect(v.id.startsWith(v.language === "tl" ? "fil-ph-Neural2-" : `${v.languageCode}-Chirp3-HD-`)).toBe(true);
     expect(naturalVoice("en-GB-Wavenet-A")).toBeNull();
     expect(voiceFile("user", "u-1", DEFAULT_NATURAL_VOICE, 2, 7)).toBe(`user/u-1/${DEFAULT_NATURAL_VOICE}-2-7.mp3`);
   });
@@ -117,7 +118,8 @@ describe("natural voices for uploads", () => {
   it("names Google's voices for languages whose codes aren't the book's two letters", () => {
     expect(defaultNaturalVoice("zh").id).toBe("cmn-CN-Chirp3-HD-Aoede");
     expect(defaultNaturalVoice("ar").languageCode).toBe("ar-XA");
-    expect(defaultNaturalVoice("tl").id).toBe("fil-PH-Chirp3-HD-Aoede");
+    expect(defaultNaturalVoice("tl").id).toBe("fil-ph-Neural2-A");
+    expect(defaultNaturalVoice("tl").languageCode).toBe("fil-PH");
     // Filipino's code starts "fi", but it isn't offered for Finnish.
     expect(voicesFor("fi").every((v) => v.language === "en")).toBe(true);
   });

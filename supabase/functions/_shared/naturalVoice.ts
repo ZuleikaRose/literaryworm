@@ -19,8 +19,8 @@ export interface NaturalVoice {
   languageCode: string;
 }
 
-const voice = (languageCode: string, name: string, accent: NaturalVoiceAccent | null = null, language = languageCode.slice(0, 2)): NaturalVoice => ({
-  id: `${languageCode}-Chirp3-HD-${name}`,
+const voice = (languageCode: string, name: string, accent: NaturalVoiceAccent | null = null, language = languageCode.slice(0, 2), id?: string): NaturalVoice => ({
+  id: id ?? `${languageCode}-Chirp3-HD-${name}`,
   name,
   language,
   accent,
@@ -71,8 +71,9 @@ export const NATURAL_VOICES: readonly NaturalVoice[] = [
   voice("sv-SE", "Charon"),
   voice("uk-UA", "Aoede"),
   voice("uk-UA", "Charon"),
-  voice("fil-PH", "Aoede", null, "tl"),
-  voice("fil-PH", "Charon", null, "tl"),
+  // Google has no Chirp 3: HD voices for Filipino: its Neural2 voices read Tagalog books instead.
+  voice("fil-PH", "Neural2 A", null, "tl", "fil-ph-Neural2-A"),
+  voice("fil-PH", "Neural2 D", null, "tl", "fil-ph-Neural2-D"),
   voice("bg-BG", "Aoede"),
   voice("bg-BG", "Charon"),
   voice("ro-RO", "Aoede"),
@@ -432,7 +433,7 @@ export function parseCastChoices(value: unknown): CastChoices {
   for (const [speaker, name] of Object.entries(value as Record<string, unknown>)) {
     if (Object.keys(out).length >= CAST_CHOICES_MAX) break;
     const key = speaker.trim().toLowerCase();
-    if (key && key.length <= CAST_SPEAKER_MAX && typeof name === "string" && CAST_NAMES.includes(name)) out[key] = name;
+    if (key && key.length <= CAST_SPEAKER_MAX && typeof name === "string" && ALL_CAST_NAMES.has(name)) out[key] = name;
   }
   return out;
 }
@@ -442,18 +443,38 @@ export function parseCastChoices(value: unknown): CastChoices {
  * another voice than the narrator's, the same one for a speaker every time.
  */
 export function speakerVoice(narrator: NaturalVoice, speaker: string | null, choices: CastChoices = {}): string {
+  const names = castNamesFor(narrator.languageCode);
   const chosen = speaker ? choices[speaker.toLowerCase()] : undefined;
-  if (chosen && CAST_NAMES.includes(chosen)) return `${narrator.languageCode}-Chirp3-HD-${chosen}`;
-  const own = narrator.id.slice(narrator.id.lastIndexOf("-") + 1);
-  const pool = CAST_NAMES.filter((n) => n !== own);
+  if (chosen && names.includes(chosen)) return castVoiceId(narrator.languageCode, chosen);
+  const pool = names.filter((n) => castVoiceId(narrator.languageCode, n) !== narrator.id);
   let pick = pool[0];
-  if (speaker) {
+  if (speaker && pool.length > 1) {
     let hash = 0;
     for (const ch of speaker.toLowerCase()) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
     pick = pool[1 + (hash % (pool.length - 1))];
   }
-  return `${narrator.languageCode}-Chirp3-HD-${pick}`;
+  return castVoiceId(narrator.languageCode, pick);
 }
+
+/**
+ * Character voices Google lacks in a language (scripts/check-natural-voices.mjs checks every one),
+ * and languages with no Chirp 3: HD voices at all, which use these of their own instead.
+ */
+const CAST_MISSING: Record<string, string[]> = { "ru-RU": ["Despina"] };
+const OTHER_CAST: Record<string, string[]> = { "fil-PH": ["Wavenet A", "Wavenet B", "Wavenet C", "Wavenet D"] };
+
+/** The character voices a language offers, by the names the player shows. */
+export function castNamesFor(languageCode: string): string[] {
+  return OTHER_CAST[languageCode] ?? CAST_NAMES.filter((n) => !CAST_MISSING[languageCode]?.includes(n));
+}
+
+/** Google's name for a character voice in a language: "en-GB-Chirp3-HD-Kore", "fil-PH-Wavenet-A". */
+export function castVoiceId(languageCode: string, name: string): string {
+  return OTHER_CAST[languageCode] ? `${languageCode}-${name.replace(" ", "-")}` : `${languageCode}-Chirp3-HD-${name}`;
+}
+
+/** Every character voice name in any language (what a saved choice may name). */
+const ALL_CAST_NAMES = new Set([...CAST_NAMES, ...Object.values(OTHER_CAST).flat()]);
 
 /** The named speakers in a book, most speeches first (for choosing their voices), at most `max`. */
 export function bookSpeakers(chapters: string[], max = 20): { speaker: string; speeches: number }[] {

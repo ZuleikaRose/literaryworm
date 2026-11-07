@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import { withCastChoice } from "../lib/castChoices";
-import { bookText } from "../lib/narration";
-import { bookSpeakers, CAST_NAMES } from "../lib/naturalVoice";
+import { bookText, resolveNarration } from "../lib/narration";
+import { bookSpeakers, castNamesFor, defaultNaturalVoice } from "../lib/naturalVoice";
+import { useProfileData } from "../store/context";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
 import type { Book } from "../types";
@@ -14,6 +15,9 @@ export function CastChoices({ book }: { book: Book }) {
   const t = useT();
   const id = useId();
   const { player, update } = usePlayerSettings(book.id);
+  // The voices on offer are the narrator's language's own.
+  const narration = resolveNarration(book, useProfileData().narrationVoice, [], true);
+  const names = castNamesFor((narration.kind === "natural" ? narration.voice : defaultNaturalVoice(book.language)).languageCode);
   const [speakers, setSpeakers] = useState<{ speaker: string; speeches: number }[] | null>(null);
 
   useEffect(() => {
@@ -48,7 +52,7 @@ export function CastChoices({ book }: { book: Book }) {
                   onChange={(e) => update({ castChoices: withCastChoice(player.castChoices, book.id, speaker, e.target.value || null) })}
                 >
                   <option value="">{t("Chosen for you")}</option>
-                  {CAST_NAMES.map((name) => (
+                  {names.map((name) => (
                     <option key={name} value={name}>
                       {name}
                     </option>

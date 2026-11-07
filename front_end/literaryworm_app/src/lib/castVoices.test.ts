@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { CAST_NAMES, castSegments, chapterPieces, naturalVoice, SEGMENT_CHARS, speakerVoice, voiceFile, voiceSegments } from "./naturalVoice";
+import { CAST_NAMES, castNamesFor, castSegments, castVoiceId, chapterPieces, naturalVoice, SEGMENT_CHARS, speakerVoice, voiceFile, voiceSegments } from "./naturalVoice";
 import { DEMO_NATURAL_SAMPLE, DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
 
 const narrator = naturalVoice("en-GB-Chirp3-HD-Aoede")!;
@@ -139,5 +139,17 @@ describe("character voices", () => {
     expect(speakers("“Oui”, dit-il. «Да», — сказал он.").map(([, who]) => who)).toEqual([null, null]);
     expect(castSegments("— ")).toBeNull();
     expect(castSegments("「」")).toBeNull();
+  });
+
+  it("uses each language's own character voices where Google lacks some", () => {
+    // Russian has no Despina; Filipino has no Chirp 3: HD voices, so its Wavenet voices act.
+    expect(castNamesFor("ru-RU")).not.toContain("Despina");
+    const tl = naturalVoice("fil-ph-Neural2-A")!;
+    for (const name of ["Ana", "Juan", "Maria", "Jose", "Rosa"]) expect(speakerVoice(tl, name)).toMatch(/^fil-PH-Wavenet-[ABCD]$/);
+    expect(speakerVoice(tl, "Ana", { ana: "Wavenet C" })).toBe("fil-PH-Wavenet-C");
+    // A choice that isn't this language's voice is ignored.
+    expect(speakerVoice(tl, "Ana", { ana: "Kore" })).toMatch(/^fil-PH-Wavenet-/);
+    expect(castVoiceId("en-GB", "Kore")).toBe("en-GB-Chirp3-HD-Kore");
+    for (const name of ["Ivan", "Anna", "Oleg", "Vera", "Pavel", "Nina"]) expect(speakerVoice(naturalVoice("ru-RU-Chirp3-HD-Aoede")!, name)).not.toMatch(/Despina/);
   });
 });

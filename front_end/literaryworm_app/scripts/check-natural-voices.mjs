@@ -9,7 +9,7 @@
 //   node scripts/check-natural-voices.mjs
 
 import { existsSync, readFileSync } from "node:fs";
-import { CAST_NAMES, NATURAL_VOICES } from "../src/lib/naturalVoice.ts";
+import { castNamesFor, castVoiceId, NATURAL_VOICES } from "../src/lib/naturalVoice.ts";
 
 function apiKey() {
   if (process.env.GOOGLE_TTS_API_KEY) return process.env.GOOGLE_TTS_API_KEY.trim();
@@ -31,7 +31,7 @@ for (const code of codes) {
     process.exit(1);
   }
   const names = new Set(((await res.json()).voices ?? []).map((v) => v.name));
-  const ids = new Set([...NATURAL_VOICES.filter((x) => x.languageCode === code).map((v) => v.id), ...CAST_NAMES.map((n) => `${code}-Chirp3-HD-${n}`)]);
+  const ids = new Set([...NATURAL_VOICES.filter((x) => x.languageCode === code).map((v) => v.id), ...castNamesFor(code).map((n) => castVoiceId(code, n))]);
   for (const id of ids) {
     const ok = names.has(id);
     if (!ok) missing.push(id);
