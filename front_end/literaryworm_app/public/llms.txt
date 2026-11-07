@@ -19,9 +19,9 @@ LiteraryWorm's full-text and audio library is public-domain classics: texts from
 ## Pricing Information
 
 - **[LiteraryWorm - Plans](https://www.literaryworm.com/plans)**: prices in US dollars, plus any applicable tax. A year costs ten months.
-  - Basic: $15.00/month or $150.00/year (1 profile, 5 hours of audiobooks a month, offline on 1 device)
-  - Standard: $20.00/month or $200.00/year (up to 3 profiles, 30 hours a month, offline on 10 devices)
-  - Premium: $30.00/month or $300.00/year (up to 12 profiles, unlimited audiobooks, offline on 24 devices)
+  - Basic: $30.00/month or $300.00/year (1 profile, 5 hours of audiobooks a month, offline on 1 device)
+  - Standard: $40.00/month or $400.00/year (up to 3 profiles, 30 hours a month, offline on 10 devices)
+  - Premium: $50.00/month or $500.00/year (up to 12 profiles, unlimited audiobooks, offline on 24 devices)
 - Gift memberships of 1, 3, 6 or 12 months, with up to 10 books to start with.
 - **Affiliate program** (/affiliates): approved members earn 20% of a referred member's first payment as account credit (no cash payouts), must disclose the commission and never market to children.
 - **Try the demo** on the log-in page: a sample household kept in memory (books, clubs, a reading sprint, reading lists, highlights, a sample reader to follow, a reminder for a sample upcoming book, an invite link and a wishlist to give), which can't take payments.

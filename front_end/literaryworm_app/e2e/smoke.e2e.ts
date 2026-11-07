@@ -48,10 +48,10 @@ describe("a visitor", () => {
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/plans`);
-    await page.getByText("$15.00").first().waitFor();
+    await page.getByText("$30.00").first().waitFor();
     await page.getByRole("radio", { name: /Yearly/ }).check({ force: true });
-    await page.getByText("$150.00").first().waitFor();
-    await page.getByText(/\$12\.50 a month, instead of \$15\.00/).waitFor();
+    await page.getByText("$300.00").first().waitFor();
+    await page.getByText(/\$25\.00 a month, instead of \$30\.00/).waitFor();
     // ?billing=yearly opens on yearly prices.
     await page.goto(`${BASE_URL}/plans?billing=yearly`);
     expect(await page.getByRole("radio", { name: /Yearly/ }).isChecked()).toBe(true);
@@ -1135,7 +1135,7 @@ describe("the demo household", () => {
     await panel.getByText(/In the demo the link and counts are a sample/).waitFor();
     expect(await panel.getByRole("textbox", { name: "Your link" }).inputValue()).toMatch(/\/signup\?aff=AVERYREAD2$/);
     await panel.getByText("Credit earned").waitFor();
-    await panel.getByText("$16.00").waitFor();
+    await panel.getByText("$32.00").waitFor();
     expect(errors()).toEqual([]);
   });
 

@@ -132,7 +132,7 @@ describe("the yearly billing offer", () => {
   const day = 86_400_000;
 
   it("saves two months' price", () => {
-    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([30, 40, 60]);
+    expect([yearlySaving("basic"), yearlySaving("standard"), yearlySaving("premium")]).toEqual([60, 80, 100]);
   });
 
   it("counts months like Stripe, keeping the day or the month's last", () => {
@@ -142,7 +142,7 @@ describe("the yearly billing offer", () => {
 
   it("shows for 30 days from 11 months in", () => {
     expect(yearlyOffer(member, starts - 1)).toBeNull();
-    expect(yearlyOffer(member, starts)).toEqual({ at: starts, planId: "standard", saving: 40 });
+    expect(yearlyOffer(member, starts)).toEqual({ at: starts, planId: "standard", saving: 80 });
     expect(yearlyOffer(member, starts + 29 * day)).not.toBeNull();
     expect(yearlyOffer(member, starts + 30 * day)).toBeNull();
   });

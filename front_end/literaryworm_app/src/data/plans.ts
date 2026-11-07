@@ -5,8 +5,8 @@ export const plans: Plan[] = [
   {
     id: "basic",
     name: "Basic",
-    price: 15,
-    yearlyPrice: 150,
+    price: 30,
+    yearlyPrice: 300,
     summary: tk("Ebooks for one reader."),
     profiles: 1,
     audioHours: tk("5 hours of audiobooks a month"),
@@ -35,8 +35,8 @@ export const plans: Plan[] = [
   {
     id: "standard",
     name: "Standard",
-    price: 20,
-    yearlyPrice: 200,
+    price: 40,
+    yearlyPrice: 400,
     summary: tk("Reading and listening for a small household."),
     profiles: 3,
     audioHours: tk("30 hours of audiobooks a month"),
@@ -57,8 +57,8 @@ export const plans: Plan[] = [
   {
     id: "premium",
     name: "Premium",
-    price: 30,
-    yearlyPrice: 300,
+    price: 50,
+    yearlyPrice: 500,
     summary: tk("Unlimited listening for the whole family."),
     profiles: 12,
     audioHours: tk("Unlimited audiobooks"),
@@ -68,8 +68,8 @@ export const plans: Plan[] = [
     features: [
       tk("Everything in Standard"),
       tk("Nine more profiles than Standard, for bigger households"),
-      tk("$2.50 a profile each month with all 12 in use"),
-      tk("12 hours a month of natural voices from Google for your uploads"),
+      tk("$4.17 a profile each month with all 12 in use"),
+      tk("Up to 12 hours a month of Google Text-to-Speech Chirp 3 HD natural voices for your uploads"),
     ],
   },
 ];
@@ -81,7 +81,7 @@ export const planFaqs = [
   },
   {
     q: tk("What does each plan cost and include?"),
-    a: tk("Basic is $15.00 a month ($150.00 a year): 1 profile, 5 hours of audiobooks a month and Read offline on 1 device. Standard is $20.00 a month ($200.00 a year): up to 3 profiles, 30 hours of audiobooks a month and 10 offline devices. Premium is $30.00 a month ($300.00 a year): up to 12 profiles, unlimited audiobooks and 24 offline devices.\n\nEvery plan has the whole catalog, the reader and player, book clubs, goals and stats, AI summaries, uploads and imports. Prices are in US dollars, plus any applicable tax."),
+    a: tk("Basic is $30.00 a month ($300.00 a year): 1 profile, 5 hours of audiobooks a month and Read offline on 1 device. Standard is $40.00 a month ($400.00 a year): up to 3 profiles, 30 hours of audiobooks a month and 10 offline devices. Premium is $50.00 a month ($500.00 a year): up to 12 profiles, unlimited audiobooks and 24 offline devices.\n\nEvery plan has the whole catalog, the reader and player, book clubs, goals and stats, AI summaries, uploads and imports. Prices are in US dollars, plus any applicable tax."),
   },
   {
     q: tk("What's the difference between the plans?"),

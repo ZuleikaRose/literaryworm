@@ -12233,3 +12233,27 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-06'::date, '2026.11', 'feature', $lw$Natural voices for your uploads$lw$, $lw$Members can now have their uploaded books read aloud by a natural-sounding voice from Google: in the player, open Voice and choose one of six natural voices, British, American or Australian. Each part of the book is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes some new natural-voice reading a month (Basic 2 hours, Standard 6, Premium 12). Not on Kids profiles.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices for your uploads$lw$ and c.version = '2026.11');
+
+-- =============================================================================
+-- 20261106006706_plan_prices_2026_11_b.sql
+-- =============================================================================
+-- New prices: Basic $30.00 a month ($300.00 a year), Standard $40.00 ($400.00), Premium $50.00
+-- ($500.00); a year is still ten months. Profiles, listening, offline devices and natural-voice hours
+-- are unchanged. src/data/plans.ts, PRICES in checkout/index.ts and index.html say the same.
+--
+-- In Stripe each plan's new price takes over its lookup key (literaryworm_<plan>_monthly / _yearly,
+-- transfer_lookup_key) and the old prices are archived: memberships already running keep the price
+-- they started on. Referral credits (a month of the member's own plan) read price_cents from here.
+
+update public.plans set price_cents = 3000, yearly_price_cents = 30000 where id = 'basic';
+update public.plans set price_cents = 4000, yearly_price_cents = 40000 where id = 'standard';
+update public.plans set price_cents = 5000, yearly_price_cents = 50000 where id = 'premium';
+
+-- =============================================================================
+-- 20261106006707_whats_new_new_prices.sql
+-- =============================================================================
+-- What's new: the prices from migration 6706. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-06'::date, '2026.11', 'update', $lw$New prices$lw$, $lw$From today, Basic is $30.00 a month ($300.00 a year), Standard $40.00 ($400.00) and Premium $50.00 ($500.00); paying yearly still gets two months free. Every plan keeps its profiles, listening hours, offline devices and natural-voice hours for your uploads, and Premium has up to 12 hours a month of Google's Chirp 3 HD voices. If you're already a member, your price stays as it is.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$New prices$lw$ and c.released_on = '2026-11-06');

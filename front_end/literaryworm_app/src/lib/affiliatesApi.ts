@@ -37,7 +37,7 @@ export const DEMO_AFFILIATE: MyAffiliate = {
   channels: "A monthly reading newsletter and short book videos.",
   code: "AVERYREAD2",
   appliedAt: "2026-10-01T09:00:00Z",
-  stats: { clicks30Days: 48, clicksTotal: 131, signedUp: 6, paid: 4, earnedCents: 1600 },
+  stats: { clicks30Days: 48, clicksTotal: 131, signedUp: 6, paid: 4, earnedCents: 3200 },
 };
 
 /** The member's application and, once approved, their link's counts; null when they haven't applied. */
