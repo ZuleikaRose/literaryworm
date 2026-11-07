@@ -339,6 +339,7 @@ export function demoHousehold(): Household {
       stripeLinked: false,
       pastDue: false,
       giftUntil: null,
+      trialUntil: null,
       switchToMonthly: null,
       memberSince: null,
     },

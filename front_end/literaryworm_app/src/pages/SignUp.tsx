@@ -126,6 +126,7 @@ export default function SignUp() {
         stripeLinked: false,
         pastDue: false,
         giftUntil: null,
+        trialUntil: null,
         switchToMonthly: null,
         memberSince: null,
       },

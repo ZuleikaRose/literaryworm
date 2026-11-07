@@ -27,7 +27,7 @@ function meetingText(t: T, club: string, iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, polls, listening, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, polls, listening, natural, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const t = useT();
   const planId = useStore().state.account?.planId ?? null;
@@ -44,7 +44,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && requests.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && natural === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && requests.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
   const offerPlan = offer ? planById.get(offer.planId) : undefined;
@@ -152,7 +152,7 @@ export function NotificationBell() {
                   </ul>
                 </>
               )}
-              {(listening || renewal || offerPlan) && (
+              {(listening || natural || renewal || offerPlan) && (
                 <>
                   <p className="popover-label">{t("Your plan")}</p>
                   <ul className="bell-list" role="list">
@@ -190,6 +190,25 @@ export function NotificationBell() {
                                 plan: offerPlan.name,
                                 yearly: formatPrice(offerPlan.yearlyPrice),
                                 monthly: formatPrice(offerPlan.price),
+                              })}
+                            </small>
+                          </span>
+                        </Link>
+                      </li>
+                    )}
+                    {natural && (
+                      <li>
+                        <Link className="bell-item" to="/account#plan" onClick={() => close(false)}>
+                          <Icon name="headphones" size={18} />
+                          <span>
+                            <strong>
+                              {natural.used >= natural.limit ? t("This month's natural-voice reading is used up") : t("Most of this month's natural-voice reading is used")}
+                              {isNewAlert(natural.at, seenBefore) && <span className="bell-new">{t("New")}</span>}
+                            </strong>
+                            <small>
+                              {t("{used} of {hours} hours of new natural-voice reading for your uploads. Parts already voiced still play.", {
+                                used: hoursAndMinutes(natural.used),
+                                hours: Math.round(natural.limit / 3600),
                               })}
                             </small>
                           </span>

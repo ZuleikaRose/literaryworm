@@ -1,5 +1,5 @@
 /**
- * Uploaded books' text kept on this device once opened, so they also open offline. A cache of
+ * Uploaded books' text (and natural-voice parts) kept on this device once opened, so they also open offline. A cache of
  * its own ("lw-uploads", same-origin keys like /uploads/<id>.json), filled by the app, not the
  * service worker (which never caches Supabase calls). Cleared when a book is deleted and, so a
  * shared device keeps nothing private, at sign-out.
@@ -28,6 +28,47 @@ export async function forgetUploadOffline(id: string): Promise<void> {
   if (!available()) return;
   const cache = await caches.open(CACHE);
   await cache.delete(key(id));
+  // And any natural-voice parts kept for it.
+  const prefix = `/uploads/${id}/voices/`;
+  for (const request of await cache.keys()) {
+    if (new URL(request.url).pathname.startsWith(prefix)) await cache.delete(request);
+  }
+}
+
+/**
+ * Natural-voice parts of an upload kept on this device, so a member can listen without a
+ * connection: every part played, and the ones voiced ahead on Wi-Fi. Same cache, same clearing.
+ */
+const voiceKey = (uploadId: string, voiceId: string, chapter: number, segment: number) =>
+  `/uploads/${uploadId}/voices/${voiceId}-${chapter}-${segment}.mp3`;
+
+/** Keeps a voiced part (from its signed link) on this device; false when it couldn't. */
+export async function keepVoiceOffline(uploadId: string, voiceId: string, chapter: number, segment: number, url: string): Promise<boolean> {
+  if (!available()) return false;
+  const res = await fetch(url);
+  if (!res.ok) return false;
+  const cache = await caches.open(CACHE);
+  await cache.put(voiceKey(uploadId, voiceId, chapter, segment), new Response(await res.blob(), { headers: { "Content-Type": "audio/mpeg" } }));
+  return true;
+}
+
+export async function hasVoiceOffline(uploadId: string, voiceId: string, chapter: number, segment: number): Promise<boolean> {
+  if (!available()) return false;
+  return Boolean(await caches.match(voiceKey(uploadId, voiceId, chapter, segment), { cacheName: CACHE }));
+}
+
+// Links made for kept parts; the oldest are let go so a long listen doesn't hold every part in memory.
+const madeLinks: string[] = [];
+
+/** A playable link to a kept part, or null when it isn't on this device. */
+export async function offlineVoiceUrl(uploadId: string, voiceId: string, chapter: number, segment: number): Promise<string | null> {
+  if (!available()) return null;
+  const hit = await caches.match(voiceKey(uploadId, voiceId, chapter, segment), { cacheName: CACHE });
+  if (!hit) return null;
+  const link = URL.createObjectURL(await hit.blob());
+  madeLinks.push(link);
+  while (madeLinks.length > 6) URL.revokeObjectURL(madeLinks.shift()!);
+  return link;
 }
 
 /** Removes every upload kept on this device (at sign-out). */

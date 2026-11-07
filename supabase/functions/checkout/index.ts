@@ -17,6 +17,11 @@ const priceId = async (planId: PlanId, interval: BillingInterval) => (await plan
 /** The renewal terms shown under Stripe's pay button. */
 function renewalMessage(input: CheckoutInput): string {
   const price = PRICES[input.interval][input.planId];
+  if (input.trialDays > 0) {
+    const ends = new Date(Date.now() + input.trialDays * 86_400_000);
+    const when = `${MONTHS[ends.getUTCMonth()]} ${ordinal(ends.getUTCDate())}`;
+    return `Your first ${input.trialDays} days are free: cancel in Account before ${when} and you won't be charged. After that your membership renews automatically every ${input.interval} from ${when} at ${price} until you cancel. All sales are final.`;
+  }
   if (input.interval === "year") {
     const today = new Date();
     return `Your membership renews automatically every year on ${MONTHS[today.getUTCMonth()]} ${ordinal(today.getUTCDate())} at ${price} until you cancel, which you can do at any time in Account. All sales are final.`;
@@ -70,7 +75,9 @@ Deno.serve((req) =>
         allow_promotion_codes: true,
         subscription_data: {
           ...(input.billingCycleAnchor ? { billing_cycle_anchor: input.billingCycleAnchor, proration_behavior: "create_prorations" as const } : {}),
-          metadata: { plan_id: input.planId, interval: input.interval },
+          // A first membership's free week (a card is still taken, for the first charge after it).
+          ...(input.trialDays > 0 ? { trial_period_days: input.trialDays } : {}),
+          metadata: { plan_id: input.planId, interval: input.interval, ...(input.trialDays > 0 ? { free_trial: "1" } : {}) },
         },
         custom_text: { submit: { message: renewalMessage(input) } },
         success_url: `${input.origin}/plans?checkout=success${input.setup ? "&setup=1" : ""}`,

@@ -2,6 +2,22 @@
   {
     "releasedOn": "2026-11-06",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Try LiteraryWorm free for 7 days",
+    "body": "Your first membership now starts with 7 days free, on any plan. You add a card at checkout, but nothing is charged until the week ends, and if you cancel in Account before then you won't be charged at all. Account shows when your free week ends.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-06",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Natural voices: more languages, offline and in step",
+    "body": "Natural voices for your uploads now read French, German, Spanish, Italian, Portuguese and Dutch books in their own language. Account → This month shows how much of your natural-voice reading is left, and the bell tells you when most is used. Parts you've played stay on your device to listen offline, the next chapter is voiced ahead on Wi-Fi, and the read-along follows each sentence.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-06",
+    "version": "2026.11",
     "kind": "update",
     "title": "New prices",
     "body": "From today, Basic is $30.00 a month ($300.00 a year), Standard $40.00 ($400.00) and Premium $50.00 ($500.00); paying yearly still gets two months free. Every plan keeps its profiles, listening hours, offline devices and natural-voice hours for your uploads, and Premium has up to 12 hours a month of Google's Chirp 3 HD voices. If you're already a member, your price stays as it is.",

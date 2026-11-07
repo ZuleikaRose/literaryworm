@@ -1,7 +1,7 @@
 // deno test --allow-env supabase/functions/checkout — runs offline with stubbed auth, database and Stripe.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { type CheckoutInput, type Deps, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
+import { type CheckoutInput, type Deps, FREE_TRIAL_DAYS, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
 const USER = { id: "00000000-0000-0000-0000-00000000000a", email: "ann@example.com" };
@@ -89,7 +89,7 @@ Deno.test("staff (any role) are refused before anything touches Stripe", async (
   assertEquals(state.customers + state.checkouts.length, 0);
 });
 
-Deno.test("a new member gets a Stripe Checkout link, billed from their next billing day", async () => {
+Deno.test("a first membership gets a Stripe Checkout link with a free week, charged first when it ends", async () => {
   const { state, deps } = setup(null);
   const res = await call(deps, choice());
   assertEquals(res.status, 200);
@@ -97,11 +97,20 @@ Deno.test("a new member gets a Stripe Checkout link, billed from their next bill
   const input = state.checkouts[0];
   assertEquals(input.planId, "standard");
   assertEquals(input.customerId, "cus_1");
+  assertEquals(input.trialDays, FREE_TRIAL_DAYS);
+  assertEquals(input.billingCycleAnchor, null);
+});
+
+Deno.test("a returning member has no free week, and is billed from their next billing day", async () => {
+  const { state, deps } = setup(linked({ status: "cancelled", stripe_subscription_id: "sub_old" }));
+  await call(deps, choice());
+  const input = state.checkouts[0];
+  assertEquals(input.trialDays, 0);
   assertEquals(new Date(input.billingCycleAnchor! * 1000).toISOString(), "2026-11-05T00:00:00.000Z");
 });
 
 Deno.test("choosing today's date bills from today, with no partial first charge", async () => {
-  const { state, deps } = setup(null);
+  const { state, deps } = setup(linked({ status: "cancelled", stripe_subscription_id: "sub_old" }));
   await call(deps, choice({ billingDay: 24 }));
   assertEquals(state.checkouts[0].billingCycleAnchor, null);
 });

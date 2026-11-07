@@ -146,6 +146,8 @@ export interface Account {
   pastDue: boolean;
   /** While a gift's free months last: when they end (ISO). Nothing is charged before then. */
   giftUntil: string | null;
+  /** While a first membership's free week lasts: when it ends (ISO), the day of the first charge. */
+  trialUntil: string | null;
   /** A yearly membership moving to monthly billing at renewal: the plan it moves to. */
   switchToMonthly: PlanId | null;
   /** When the membership began (ISO; real accounts only): monthly members near a year in are offered yearly billing. */
@@ -333,6 +335,8 @@ export interface UploadedBook {
   createdAt: number;
   /** The year in the EPUB's date (dc:date), for sorting by when it was published; null or missing when unknown. */
   publishedYear?: number | null;
+  /** The language the EPUB says it's in (dc:language: "fr", "de"…); null or missing when it doesn't say. */
+  language?: string | null;
 }
 
 /** An author or narrator a profile follows, by the name shown on their books. */

@@ -4,6 +4,10 @@ import { join } from "node:path";
 import {
   CHARACTERS_PER_HOUR,
   DEFAULT_NATURAL_VOICE,
+  defaultNaturalVoice,
+  NATURAL_LANGUAGES,
+  naturalVoiceMonth,
+  naturalVoiceTime,
   NATURAL_VOICE_HOURS,
   NATURAL_VOICES,
   naturalVoice,
@@ -11,6 +15,7 @@ import {
   naturalVoiceOffered,
   SEGMENT_CHARS,
   voiceFile,
+  voicesFor,
   voiceSegments,
 } from "./naturalVoice";
 import { DEMO_NATURAL_SAMPLE, DEMO_UPLOAD_TEXTS } from "../data/demoUploads";
@@ -86,9 +91,26 @@ describe("natural voices for uploads", () => {
 
   it("has the demo's Frankenstein sample recorded in every natural voice (scripts/voice-demo-sample.mjs)", () => {
     const chapters = DEMO_UPLOAD_TEXTS.get(DEMO_NATURAL_SAMPLE)!;
-    const missing = NATURAL_VOICES.flatMap((v) =>
+    // The sample is in English, so it's offered the English voices.
+    const missing = voicesFor("en").flatMap((v) =>
       chapters.flatMap((text, c) => voiceSegments(text).map((_, s) => demoVoicePath(v.id, c, s))),
     ).filter((path) => !existsSync(join(__dirname, "../../public", path)));
     expect(missing).toEqual([]);
+  });
+
+  it("offers a book its own language's voices first, then the English ones, and starts with its own", () => {
+    expect(voicesFor(null).every((v) => v.language === "en")).toBe(true);
+    expect(voicesFor("fr").map((v) => v.language)).toEqual(["fr", "fr", "en", "en", "en", "en", "en", "en"]);
+    expect(voicesFor("ja").every((v) => v.language === "en")).toBe(true);
+    expect(defaultNaturalVoice("de").id).toBe("de-DE-Chirp3-HD-Aoede");
+    expect(defaultNaturalVoice(null).id).toBe(DEFAULT_NATURAL_VOICE);
+    for (const lang of NATURAL_LANGUAGES) expect(voicesFor(lang)[0].language).toBe(lang);
+  });
+
+  it("counts natural-voice time in hours of reading, by the UTC month", () => {
+    const { used, left, limit } = naturalVoiceTime("standard", CHARACTERS_PER_HOUR * 4.5);
+    expect([used / 3600, left / 3600, limit / 3600]).toEqual([4.5, 1.5, 6]);
+    expect(naturalVoiceTime("basic", CHARACTERS_PER_HOUR * 9).left).toBe(0);
+    expect(naturalVoiceMonth(new Date("2026-12-31T23:30:00Z"))).toBe("2026-12-01");
   });
 });

@@ -12,6 +12,8 @@ export interface ParsedBook {
   author: string;
   /** The year in the EPUB's publication date, when it gives one. */
   year: number | null;
+  /** The language it's written in (dc:language), when it says. */
+  language: string | null;
   chapters: { title: string; text: string }[];
 }
 
@@ -164,9 +166,27 @@ async function parse(file: File): Promise<ParsedBook> {
     title: (meta("title") || file.name.replace(/\.epub$/i, "")).slice(0, 200),
     author: meta("creator").slice(0, 200),
     year: epubYear(opf),
+    language: epubLanguage(opf),
     chapters,
   };
 }
+
+/**
+ * The language the EPUB says it's written in (dc:language, "fr-FR" or "fre"), as the two or three
+ * lowercase letters before any region, or null when it doesn't say.
+ */
+export function epubLanguage(opf: Document): string | null {
+  return languageIn(opf.getElementsByTagName("dc:language")[0]?.textContent);
+}
+
+/** A dc:language value as the database keeps it: "fr-FR" → "fr", "ger" → "de", "Klingon" → null. */
+export function languageIn(raw: string | null | undefined): string | null {
+  const code = (raw ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  return /^[a-z]{2,3}$/.test(code) ? (BIBLIOGRAPHIC[code] ?? code) : null;
+}
+
+// Three-letter codes some EPUBs use, for the languages natural voices read.
+const BIBLIOGRAPHIC: Record<string, string> = { eng: "en", fre: "fr", fra: "fr", ger: "de", deu: "de", spa: "es", ita: "it", por: "pt", dut: "nl", nld: "nl" };
 
 export const countWords = words;
 

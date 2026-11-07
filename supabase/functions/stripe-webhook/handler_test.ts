@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/stripe-webhook — runs offline with stubbed Stripe and database.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
-import type { Stripe } from "../_shared/stripe.ts";
+import { type Stripe, subscriptionRow } from "../_shared/stripe.ts";
 import { type AffiliateCommission, type Deps, handle, type NewGift, type ReferralReward, type SubscriptionFields } from "./handler.ts";
 
 const USER = "00000000-0000-0000-0000-00000000000a";
@@ -379,4 +379,15 @@ Deno.test("if Stripe fails, the commission is handed back and the event retried"
   assertEquals(state.affiliateReleased, ["aff_1"]);
   assertEquals(state.affiliateCredits, []);
   assertEquals(state.handled.size, 0);
+});
+
+Deno.test("a first membership's free week is kept as trial_until while it lasts, and the member counts as active", () => {
+  const trialEnd = PERIOD_END;
+  const row = subscriptionRow(subscription({ status: "trialing", trial_end: trialEnd, metadata: { plan_id: "standard", interval: "month", free_trial: "1" } }));
+  assertEquals(row.trial_until, new Date(trialEnd * 1000).toISOString());
+  assertEquals(row.status, "active");
+  assertEquals(row.gift_until, null);
+  // A gift's free months are not a free trial, and an ended trial isn't shown.
+  assertEquals(subscriptionRow(subscription({ status: "trialing", trial_end: trialEnd, metadata: { gift_until: String(trialEnd) } })).trial_until, null);
+  assertEquals(subscriptionRow(subscription({ status: "active", trial_end: trialEnd, metadata: { free_trial: "1" } })).trial_until, null);
 });

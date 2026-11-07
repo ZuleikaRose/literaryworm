@@ -13,7 +13,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEMO_NATURAL_SAMPLE, DEMO_UPLOAD_TEXTS } from "../src/data/demoUploads.ts";
-import { NATURAL_VOICES, voiceSegments } from "../src/lib/naturalVoice.ts";
+import { voicesFor, voiceSegments } from "../src/lib/naturalVoice.ts";
 import { demoVoicePath } from "../src/lib/demoVoices.ts";
 
 function apiKey() {
@@ -32,7 +32,8 @@ if (!chapters) throw new Error("The demo's natural-voice sample isn't one of the
 
 let made = 0;
 let kept = 0;
-for (const voice of NATURAL_VOICES) {
+// The sample is in English, so it has the English voices.
+for (const voice of voicesFor("en")) {
   for (const [chapter, text] of chapters.entries()) {
     for (const [segment, piece] of voiceSegments(text).entries()) {
       const file = join("public", demoVoicePath(voice.id, chapter, segment));

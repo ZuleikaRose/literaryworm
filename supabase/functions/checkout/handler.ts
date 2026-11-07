@@ -67,7 +67,12 @@ export interface CheckoutInput {
   origin: string;
   /** True during sign-up, so the member continues to setting up profiles afterwards. */
   setup: boolean;
+  /** Free days before the first charge: FREE_TRIAL_DAYS for a first membership, else 0. */
+  trialDays: number;
 }
+
+/** A first membership starts with this many free days; cancelling before they end costs nothing. */
+export const FREE_TRIAL_DAYS = 7;
 
 export interface GiftCheckoutInput {
   customerId: string;
@@ -205,7 +210,10 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       return json(req, METHODS, { planId, interval });
     }
 
-    const anchor = interval === "year" || now.getUTCDate() === billingDay
+    // A first membership (no membership before, ever) starts with a free week; its first charge, and
+    // its billing day after that, is the day the week ends.
+    const trialDays = membership === null ? FREE_TRIAL_DAYS : 0;
+    const anchor = trialDays > 0 || interval === "year" || now.getUTCDate() === billingDay
       ? null
       : Math.floor(nextBillingDay(billingDay, now).getTime() / 1000);
     const customerId = await deps.customerFor(user.id, user.email);
@@ -218,6 +226,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       billingDay,
       origin: deps.siteOrigin(req),
       setup: body.setup === true,
+      trialDays,
     });
     return json(req, METHODS, { url });
   } catch (err) {

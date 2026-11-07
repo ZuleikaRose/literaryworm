@@ -33,6 +33,7 @@ export function useUploads() {
       chapterWords,
       words: chapterWords.reduce((a, b) => a + b, 0),
       publishedYear: parsed.year,
+      language: parsed.language,
     };
     const upload = remote ? await saveUpload(profile.id, book, texts) : { ...book, path: null, createdAt: Date.now() };
     if (!remote) tabTexts.set(upload.id, texts);

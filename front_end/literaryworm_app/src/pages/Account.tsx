@@ -233,15 +233,17 @@ function PlanSection({ account }: { account: AccountDetails }) {
   };
   const yearly = account.billingInterval === "year";
   // During a gift's free months, the first charge is when they end; a year renews on its own date.
-  const nextChargeDate = account.giftUntil
-    ? new Date(account.giftUntil)
+  // A free week, like a gift's free months, ends with the first charge.
+  const freeUntil = account.giftUntil ?? account.trialUntil;
+  const nextChargeDate = freeUntil
+    ? new Date(freeUntil)
     : yearly && account.renewsAt
       ? new Date(account.renewsAt)
       : account.billingDay
         ? nextBillingDate(account.billingDay)
         : null;
-  const nextCharge = account.giftUntil || (yearly && account.renewsAt)
-    ? endDate(account.giftUntil ?? account.renewsAt!)
+  const nextCharge = freeUntil || (yearly && account.renewsAt)
+    ? endDate(freeUntil ?? account.renewsAt!)
     : nextChargeDate
       ? longDate(nextChargeDate)
       : null;
@@ -341,6 +343,8 @@ function PlanSection({ account }: { account: AccountDetails }) {
                   : t("None: the plan ends instead")
                 : account.giftUntil
                   ? t("None until {date}: a gift. Then {price} if a card is on file; without one, the membership ends that day.", { date: nextCharge ?? "", price })
+                  : account.trialUntil
+                    ? t("None until {date}: your free week. Then {price}, unless you cancel before.", { date: nextCharge ?? "", price })
                   : switchPlan
                     ? t("{price} on {date}, the first monthly charge", { price: formatPrice(switchPlan.price), date: nextCharge ?? "" })
                     : t("{price} on {date}", { price, date: nextCharge ?? "" })}
@@ -413,7 +417,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
         </div>
       )}
 
-      {billed && account.stripeLinked && account.status === "active" && !endsOn && !account.giftUntil && !yearly && (
+      {billed && account.stripeLinked && account.status === "active" && !endsOn && !account.giftUntil && !account.trialUntil && !yearly && (
         <form className="billing-day-form" onSubmit={saveBillingDay}>
           <div className="field">
             <label className="field-label" htmlFor="new-billing-day">

@@ -12,19 +12,59 @@ export interface NaturalVoice {
   id: string;
   /** The name shown in the player. */
   name: string;
-  accent: NaturalVoiceAccent;
+  /** The book language it reads ("en", "fr", …). */
+  language: string;
+  /** English voices only: the accent the player groups it under. */
+  accent: NaturalVoiceAccent | null;
   languageCode: string;
 }
 
-/** The voices offered: a woman's and a man's in each accent the player offers. */
+const voice = (languageCode: string, name: string, accent: NaturalVoiceAccent | null = null): NaturalVoice => ({
+  id: `${languageCode}-Chirp3-HD-${name}`,
+  name,
+  language: languageCode.slice(0, 2),
+  accent,
+  languageCode,
+});
+
+/**
+ * The voices offered: a woman's and a man's in each English accent the player offers, and in
+ * each of the app's other languages, for books written in them.
+ */
 export const NATURAL_VOICES: readonly NaturalVoice[] = [
-  { id: "en-GB-Chirp3-HD-Aoede", name: "Aoede", accent: "British", languageCode: "en-GB" },
-  { id: "en-GB-Chirp3-HD-Charon", name: "Charon", accent: "British", languageCode: "en-GB" },
-  { id: "en-US-Chirp3-HD-Kore", name: "Kore", accent: "American", languageCode: "en-US" },
-  { id: "en-US-Chirp3-HD-Puck", name: "Puck", accent: "American", languageCode: "en-US" },
-  { id: "en-AU-Chirp3-HD-Leda", name: "Leda", accent: "Australian", languageCode: "en-AU" },
-  { id: "en-AU-Chirp3-HD-Fenrir", name: "Fenrir", accent: "Australian", languageCode: "en-AU" },
+  voice("en-GB", "Aoede", "British"),
+  voice("en-GB", "Charon", "British"),
+  voice("en-US", "Kore", "American"),
+  voice("en-US", "Puck", "American"),
+  voice("en-AU", "Leda", "Australian"),
+  voice("en-AU", "Fenrir", "Australian"),
+  voice("fr-FR", "Aoede"),
+  voice("fr-FR", "Charon"),
+  voice("de-DE", "Aoede"),
+  voice("de-DE", "Charon"),
+  voice("es-ES", "Aoede"),
+  voice("es-ES", "Charon"),
+  voice("it-IT", "Aoede"),
+  voice("it-IT", "Charon"),
+  voice("pt-BR", "Aoede"),
+  voice("pt-BR", "Charon"),
+  voice("nl-NL", "Aoede"),
+  voice("nl-NL", "Charon"),
 ];
+
+/** The languages natural voices read, besides English. */
+export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl"] as const;
+
+/** The voices offered for a book: its own language's first (when there are some), then English. */
+export function voicesFor(language: string | null): NaturalVoice[] {
+  const own = language && language !== "en" ? NATURAL_VOICES.filter((v) => v.language === language) : [];
+  return [...own, ...NATURAL_VOICES.filter((v) => v.language === "en")];
+}
+
+/** The voice a book starts with: its language's first, else a British woman's. */
+export function defaultNaturalVoice(language: string | null): NaturalVoice {
+  return voicesFor(language)[0];
+}
 
 /** A British woman's voice, like the device voice the player picks first. */
 export const DEFAULT_NATURAL_VOICE = "en-GB-Chirp3-HD-Aoede";
@@ -44,6 +84,22 @@ export const CHARACTERS_PER_HOUR = 50400;
  * already voiced play again free; listening still counts towards the plan's audiobook hours.
  */
 export const NATURAL_VOICE_HOURS: Record<string, number> = { basic: 2, standard: 6, premium: 12 };
+
+/** The share of the month's natural-voice reading at which the bell gives a heads-up. */
+export const NATURAL_VOICE_ALERT_SHARE = 0.8;
+
+/** The month natural_voice_usage counts in: its first day, in UTC ("2026-11-01"). */
+export function naturalVoiceMonth(now: Date): string {
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
+/** Seconds of new natural-voice reading used and left this month, from characters used. */
+export function naturalVoiceTime(planId: string, characters: number): { used: number; left: number; limit: number } {
+  const perSecond = CHARACTERS_PER_HOUR / 3600;
+  const limit = naturalVoiceLimit(planId) / perSecond;
+  const used = Math.min(limit, characters / perSecond);
+  return { used, left: limit - used, limit };
+}
 
 /** This month's limit for a plan, in characters sent to Google (0 for anything else). */
 export function naturalVoiceLimit(planId: string): number {

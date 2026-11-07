@@ -12257,3 +12257,119 @@ update public.plans set price_cents = 5000, yearly_price_cents = 50000 where id 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-06'::date, '2026.11', 'update', $lw$New prices$lw$, $lw$From today, Basic is $30.00 a month ($300.00 a year), Standard $40.00 ($400.00) and Premium $50.00 ($500.00); paying yearly still gets two months free. Every plan keeps its profiles, listening hours, offline devices and natural-voice hours for your uploads, and Premium has up to 12 hours a month of Google's Chirp 3 HD voices. If you're already a member, your price stays as it is.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$New prices$lw$ and c.released_on = '2026-11-06');
+
+-- =============================================================================
+-- 20261106006708_free_week_voices_language.sql
+-- =============================================================================
+-- Three small additions:
+-- 1. A first membership's free week (FREE_TRIAL_DAYS, 7): checkout asks Stripe for a trial on a
+--    first membership only, and stripe-webhook keeps its end in subscriptions.trial_until while it
+--    lasts (subscriptionRow() in _shared/stripe.ts). Account shows it as the first charge.
+-- 2. natural_voice_usage.mostly_used_at: when this month's new natural-voice reading passed 80% of
+--    the plan's allowance, set once by claim_natural_voice(), so the bell can say so once.
+-- 3. uploaded_books.language: the EPUB's dc:language (two or three letters, e.g. "fr"), read in the
+--    browser when it's uploaded, so natural voices can read it in its own language. Null for
+--    earlier uploads and EPUBs that don't say.
+
+alter table public.subscriptions add column if not exists trial_until timestamptz;
+comment on column public.subscriptions.trial_until is
+  'While a first membership''s free week lasts: when it ends and the first charge is made. Written by stripe-webhook from Stripe.';
+grant select (trial_until) on public.subscriptions to authenticated;
+
+alter table public.natural_voice_usage add column if not exists mostly_used_at timestamptz;
+grant select (mostly_used_at) on public.natural_voice_usage to authenticated;
+
+create or replace function public.claim_natural_voice(p_account uuid, p_characters integer, p_limit integer)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_month date := date_trunc('month', now() at time zone 'utc')::date;
+begin
+  if p_account is null or p_characters is null or p_characters < 1 or p_characters > 5000 or p_limit is null or p_limit < 0 then
+    raise exception 'claim_natural_voice: bad arguments';
+  end if;
+  insert into public.natural_voice_usage (account_id, month) values (p_account, v_month)
+  on conflict (account_id, month) do nothing;
+  update public.natural_voice_usage
+     set characters = characters + p_characters,
+         -- The first time this month's use passes 80% of the allowance.
+         mostly_used_at = coalesce(mostly_used_at, case when characters + p_characters >= p_limit * 0.8 then now() end)
+   where account_id = p_account and month = v_month and characters + p_characters <= p_limit;
+  return found;
+end;
+$$;
+
+revoke execute on function public.claim_natural_voice(uuid, integer, integer) from public, anon, authenticated;
+grant execute on function public.claim_natural_voice(uuid, integer, integer) to service_role;
+
+alter table public.uploaded_books add column if not exists language text check (language ~ '^[a-z]{2,3}$');
+comment on column public.uploaded_books.language is
+  'The EPUB''s dc:language, two or three lowercase letters, or null when it doesn''t say. Natural voices read the book in it.';
+grant insert (language) on public.uploaded_books to authenticated;
+
+-- =============================================================================
+-- 20261106006709_free_week_voices_policies.sql
+-- =============================================================================
+-- A first membership's free week (7 days; checkout and stripe-webhook, migration 6708) in the Terms (section 5)
+-- and the Return Policy; natural voices in a book's own language, hours left in Account and the bell, parts kept
+-- on the device for offline listening and the sentence-timed read-along in Help, the Cookie Policy (lw-uploads)
+-- and the Privacy Policy. Same text as src/data/legalPages.json, matched as stored. Each change is made once; a
+-- paragraph an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"LiteraryWorm is a live service: when you choose a plan, you're billed monthly or yearly (as you choose) through Stripe until you cancel. Add a payment method in Account → Plan and billing to continue your membership."$lw$, $lw$"LiteraryWorm is a live service: when you choose a plan, you're billed monthly or yearly (as you choose) through Stripe until you cancel. Add a payment method in Account → Plan and billing to continue your membership.", "Free week. A first membership starts with 7 days free. You add a card at checkout, but nothing is charged during those days: cancel in Account before they end and you're never charged. Otherwise the first charge is made the day they end, and billing continues from that day. The free week is once per account; returning members and gifts don't get one."$lw$)::jsonb, updated_at = now()
+where slug = $lw$terms$lw$
+  and strpos(sections::text, $lw$"LiteraryWorm is a live service: when you choose a plan, you're billed monthly or yearly (as you choose) through Stripe until you cancel. Add a payment method in Account → Plan and billing to continue your membership."$lw$) > 0
+  and strpos(sections::text, $lw$Free week. A first membership starts with 7 days free. You add a card at checkout, but nothing is charged during those days: cancel in Account before they end and you're never charged. Otherwise the first charge is made the day they end, and billing continues from that day. The free week is once per account; returning members and gifts don't get one.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Memberships renew monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge."$lw$, $lw$"A first membership starts with 7 days free, then renews monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge."$lw$)::jsonb, updated_at = now()
+where slug = $lw$returns$lw$
+  and strpos(sections::text, $lw$"Memberships renew monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge."$lw$) > 0
+  and strpos(sections::text, $lw$A first membership starts with 7 days free, then renews monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"On monthly billing you can choose any billing day from the 1st to the 28th, and pause or cancel at any time. A yearly membership can be cancelled at any time, but not paused."$lw$, $lw$"On monthly billing you can choose any billing day from the 1st to the 28th, and pause or cancel at any time. A yearly membership can be cancelled at any time, but not paused.", "Free week: a first membership starts with 7 days free. Nothing is charged during them; cancel in Account before they end and you won't be charged at all. Otherwise the first charge is made the day they end, that becomes your billing date, and the rules below apply. The free week is once per account, and isn't offered to returning members or with gifts."$lw$)::jsonb, updated_at = now()
+where slug = $lw$returns$lw$
+  and strpos(sections::text, $lw$"On monthly billing you can choose any billing day from the 1st to the 28th, and pause or cancel at any time. A yearly membership can be cancelled at any time, but not paused."$lw$) > 0
+  and strpos(sections::text, $lw$Free week: a first membership starts with 7 days free. Nothing is charged during them; cancel in Account before they end and you won't be charged at all. Otherwise the first charge is made the day they end, that becomes your billing date, and the rules below apply. The free week is once per account, and isn't offered to returning members or with gifts.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Books you uploaded and opened, or searched by keywords (the lw-uploads cache): stay until you delete the book or log out."$lw$, $lw$"Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out."$lw$)::jsonb, updated_at = now()
+where slug = $lw$cookies$lw$
+  and strpos(sections::text, $lw$"Books you uploaded and opened, or searched by keywords (the lw-uploads cache): stay until you delete the book or log out."$lw$) > 0
+  and strpos(sections::text, $lw$Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles). Each part of your book is voiced the first time you play it and kept with your upload, so listening again is free. Each month your plan includes new natural-voice reading: Basic 2 hours, Standard 6, Premium 12. Listening counts towards your plan's audiobook hours as usual."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles). Each part of your book is voiced the first time you play it and kept with your upload, so listening again is free. Each month your plan includes new natural-voice reading: Basic 2 hours, Standard 6, Premium 12. Listening counts towards your plan's audiobook hours as usual."$lw$) > 0
+  and strpos(sections::text, $lw$Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.", "Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual."$lw$)::jsonb, updated_at = now()
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$) > 0
+  and strpos(sections::text, $lw$Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.", "Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your EPUB says it's written in, to offer voices in it."$lw$)::jsonb, updated_at = now()
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$) > 0
+  and strpos(sections::text, $lw$Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your EPUB says it's written in, to offer voices in it.$lw$) = 0;
+
+-- =============================================================================
+-- 20261106006710_whats_new_free_week_voices.sql
+-- =============================================================================
+-- What's new: the free week (6708) and natural voices in more languages, offline and in step. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-06'::date, '2026.11', 'feature', $lw$Try LiteraryWorm free for 7 days$lw$, $lw$Your first membership now starts with 7 days free, on any plan. You add a card at checkout, but nothing is charged until the week ends, and if you cancel in Account before then you won't be charged at all. Account shows when your free week ends.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Try LiteraryWorm free for 7 days$lw$ and c.version = '2026.11');
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-06'::date, '2026.11', 'feature', $lw$Natural voices: more languages, offline and in step$lw$, $lw$Natural voices for your uploads now read French, German, Spanish, Italian, Portuguese and Dutch books in their own language. Account → This month shows how much of your natural-voice reading is left, and the bell tells you when most is used. Parts you've played stay on your device to listen offline, the next chapter is voiced ahead on Wi-Fi, and the read-along follows each sentence.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices: more languages, offline and in step$lw$ and c.version = '2026.11');

@@ -9,7 +9,8 @@ import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
 import { tr } from "./i18n";
 import { speakingParts } from "./speaking";
-import { DEFAULT_NATURAL_VOICE, NATURAL_PREFIX, type NaturalVoice, naturalVoice, type VoiceSegment, voiceSegments } from "./naturalVoice";
+import { type Anchor, charactersAt, findPauses, pauseAnchors, secondsAt } from "./pauseTiming";
+import { defaultNaturalVoice, NATURAL_PREFIX, type NaturalVoice, type VoiceSegment, voicesFor, voiceSegments } from "./naturalVoice";
 
 /**
  * Who reads an audiobook aloud. The playback engine (components/PlaybackProvider.tsx) keeps the
@@ -61,12 +62,15 @@ export type Narration =
  */
 export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[], natural = false): Narration {
   if (choice === SILENT_VOICE && !book.recording) return { kind: "silent" };
-  const naturalChoice = natural && choice?.startsWith(NATURAL_PREFIX) ? naturalVoice(choice.slice(NATURAL_PREFIX.length)) : null;
+  // A natural voice chosen for this book's language (or English); another language's voice falls back to the default.
+  const naturalChoice = natural && choice?.startsWith(NATURAL_PREFIX)
+    ? voicesFor(book.language).find((v) => v.id === choice.slice(NATURAL_PREFIX.length)) ?? null
+    : null;
   if (naturalChoice) return { kind: "natural", voice: naturalChoice };
   const chosen = choice ? voices.find((v) => v.voiceURI === choice) : undefined;
   if (chosen) return { kind: "speech", voice: chosen };
   if (book.recording) return { kind: "recording" };
-  if (natural) return { kind: "natural", voice: naturalVoice(DEFAULT_NATURAL_VOICE)! };
+  if (natural) return { kind: "natural", voice: defaultNaturalVoice(book.language) };
   const fallback = defaultVoice(voices);
   return fallback ? { kind: "speech", voice: fallback } : { kind: "silent" };
 }
@@ -301,6 +305,8 @@ export function naturalNarrator(
   lengths: number[],
   pieceUrl: (chapter: number, segment: number) => Promise<string>,
   events: NarratorEvents,
+  /** Told the chapter that's playing, each time a part starts (to keep parts ahead for offline). */
+  playingChapter?: (chapter: number) => void,
 ): Narrator {
   const audio = new Audio();
   audio.preload = "auto";
@@ -320,6 +326,28 @@ export function naturalNarrator(
       links.set(key, link);
     }
     return link;
+  };
+
+  // Each part's sentence starts, timed from its pauses (lib/pauseTiming.ts) once it has loaded.
+  const timings = new Map<string, Anchor[] | null>();
+  const measure = (key: string, url: string, piece: VoiceSegment) => {
+    if (timings.has(key) || typeof OfflineAudioContext === "undefined") return;
+    timings.set(key, null);
+    fetch(url)
+      .then((res) => res.arrayBuffer())
+      .then((data) => new OfflineAudioContext(1, 1, 44100).decodeAudioData(data))
+      .then((audioData) => {
+        const breaks = speakingParts(piece.text).map((p) => p.offset).filter((o) => o > 0);
+        timings.set(key, pauseAnchors(breaks, piece.text.length, audioData.duration, findPauses(audioData.getChannelData(0), audioData.sampleRate)));
+      })
+      // Without it the part is timed evenly by characters, as before.
+      .catch(() => undefined);
+  };
+  /** Seconds into the loaded part for a share of its text (0–1). */
+  const secondsFor = (share: number) => {
+    const anchors = timings.get(here());
+    const piece = piecesOf(chapter)[segment];
+    return anchors && piece ? secondsAt(anchors, share * piece.text.length) : share * audio.duration;
   };
 
   let chapter = 0;
@@ -359,10 +387,11 @@ export function naturalNarrator(
         if (mine !== generation) return;
         loaded = here();
         audio.src = url;
+        measure(here(), url, piecesOf(chapter)[segment]);
         const startAt = within;
         if (startAt > 0) {
           audio.addEventListener("loadedmetadata", () => {
-            if (loaded === here() && Number.isFinite(audio.duration)) audio.currentTime = startAt * audio.duration;
+            if (loaded === here() && Number.isFinite(audio.duration)) audio.currentTime = secondsFor(startAt);
           }, { once: true });
         }
         if (playing) audio.play().catch(onPlayError);
@@ -398,6 +427,7 @@ export function naturalNarrator(
   const onPlaying = () => {
     retried = false;
     events.onPlaying();
+    playingChapter?.(chapter);
     // Ask for the next piece now, so it's voiced before this one ends.
     const next = segment + 1 < piecesOf(chapter).length ? [chapter, segment + 1] : chapter + 1 < chapters.length ? [chapter + 1, 0] : null;
     if (next) linkFor(next[0], next[1]).catch(() => undefined);
@@ -432,7 +462,7 @@ export function naturalNarrator(
       const piece = list[segment];
       within = piece ? Math.min(1, Math.max(0, (target - piece.offset) / piece.text.length)) : 0;
       if (loaded === here() && Number.isFinite(audio.duration)) {
-        audio.currentTime = within * audio.duration;
+        audio.currentTime = secondsFor(within);
         if (playing) audio.play().catch(onPlayError);
         return;
       }
@@ -455,8 +485,11 @@ export function naturalNarrator(
       if (!cued) return null;
       const piece = piecesOf(chapter)[segment];
       if (!piece) return starts[chapter] + lengths[chapter];
-      const fraction = loaded === here() && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.currentTime / audio.duration : within;
-      return starts[chapter] + ((piece.offset + fraction * piece.text.length) / sizeOf(chapter)) * lengths[chapter];
+      const playing = loaded === here() && Number.isFinite(audio.duration) && audio.duration > 0;
+      const anchors = playing ? timings.get(here()) : null;
+      // Timed by the part's pauses when measured, else evenly by characters.
+      const into = anchors ? charactersAt(anchors, audio.currentTime) : (playing ? audio.currentTime / audio.duration : within) * piece.text.length;
+      return starts[chapter] + ((piece.offset + into) / sizeOf(chapter)) * lengths[chapter];
     },
     setRate: (rate) => {
       audio.defaultPlaybackRate = rate;

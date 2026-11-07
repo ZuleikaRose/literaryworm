@@ -14,6 +14,7 @@ import { goalAlerts } from "./goals";
 import { badgeAlerts, badges } from "./achievements";
 import { today } from "./reading";
 import { listeningAlert } from "./planLimits";
+import { useNaturalVoiceUsage } from "./useNaturalVoice";
 import { useClubs } from "./useClubs";
 import { requestAlerts, waitingRequests } from "./bookRequests";
 import { tr } from "./i18n";
@@ -119,7 +120,14 @@ export function useNotifications() {
     () => (withClubs ? requestAlerts(waitingRequests(state.profiles, state.profileData)) : []),
     [withClubs, state.profiles, state.profileData],
   );
+  // Most of this month's natural-voice reading used (a member's grown-up and teen profiles; the hook skips Kids).
+  const naturalUsage = useNaturalVoiceUsage();
+  const natural = useMemo(
+    () => (withClubs && naturalUsage?.mostlyUsedAt ? { at: naturalUsage.mostlyUsedAt, used: naturalUsage.used, limit: naturalUsage.limit } : null),
+    [withClubs, naturalUsage],
+  );
   const count = bellCount(data.reminders, seenAt, shownNews, data.authorNews, undefined, listening, [
+    ...(natural ? [natural] : []),
     ...goals,
     ...newBadges,
     ...(renewal ? [renewal] : []),
@@ -140,5 +148,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, polls: shownPolls, listening, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, polls: shownPolls, listening, natural, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
 }

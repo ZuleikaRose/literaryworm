@@ -60,3 +60,11 @@ export async function removeUploadVoices(userId: string, uploadId: string): Prom
     if (error) throw error;
   }
 }
+
+/** This month's natural-voice use for the account: characters voiced, and when 80% was passed (ISO). */
+export async function naturalVoiceUsage(month: string): Promise<{ characters: number; mostlyUsedAt: string | null }> {
+  if (!supabase) return { characters: 0, mostlyUsedAt: null };
+  const { data, error } = await supabase.from("natural_voice_usage").select("characters, mostly_used_at").eq("month", month).maybeSingle();
+  if (error) throw new Error(error.message);
+  return { characters: (data?.characters as number | undefined) ?? 0, mostlyUsedAt: (data?.mostly_used_at as string | null | undefined) ?? null };
+}

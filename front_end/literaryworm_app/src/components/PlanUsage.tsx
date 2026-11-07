@@ -8,6 +8,7 @@ import { useStore } from "../store/context";
 import type { PlanId } from "../types";
 import { dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
+import { useNaturalVoiceUsage } from "../lib/useNaturalVoice";
 
 /**
  * Account → Plan: how much of the plan's limits is used. This month's listening for the whole
@@ -25,6 +26,7 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
     day,
   );
 
+  const natural = useNaturalVoiceUsage();
   const [server, setServer] = useState(0);
   const [devices, setDevices] = useState<OfflineDevice[] | null>(null);
   const [thisDevice, setThisDevice] = useState<string | null>(null);
@@ -88,6 +90,19 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
                 }`}
           </dd>
         </div>
+        {natural && natural.limit > 0 && (
+          <div>
+            <dt>{t("Natural voices")}</dt>
+            <dd>
+              {t("{time} of {hours} hours of new natural-voice reading used for your uploads; {left} left. Listening again to parts already voiced is free. Resets on {date}.", {
+                time: hoursAndMinutes(natural.used),
+                hours: Math.round(natural.limit / 3600),
+                left: hoursAndMinutes(natural.left),
+                date: nextMonthLabel(day),
+              })}
+            </dd>
+          </div>
+        )}
         {member && (
           <div>
             <dt>{t("Offline devices")}</dt>

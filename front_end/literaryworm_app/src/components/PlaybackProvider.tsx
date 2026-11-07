@@ -9,9 +9,9 @@ import { useDailyLimit } from "../lib/useDailyLimit";
 import { useListeningAllowance } from "../lib/useListeningAllowance";
 import { tr } from "../lib/i18n";
 import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
-import { naturalVoiceUrl } from "../lib/naturalVoiceApi";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { demoVoiceUrl } from "../lib/demoVoices";
+import { memberVoicePart, voiceAhead } from "../lib/naturalVoiceOffline";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
 import { emailKey } from "../store/state";
@@ -323,14 +323,16 @@ function Engine({
       narrationKey === "recording" && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
         : natural && text
-          ? naturalNarrator(
-              text,
-              starts,
-              lengths,
-              // The demo plays its recorded sample; members' pieces are voiced as they listen.
-              (chapter, segment) => (naturalSourceRef.current === "demo" ? demoVoiceUrl(natural, chapter, segment) : naturalVoiceUrl(book.id, chapter, segment, natural)),
-              events,
-            )
+          ? naturalSourceRef.current === "demo"
+            ? // The demo plays its recorded sample.
+              naturalNarrator(text, starts, lengths, (chapter, segment) => demoVoiceUrl(natural, chapter, segment), events)
+            : (() => {
+                // Members' parts are voiced as they listen and kept on this device, so they play
+                // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
+                const part = memberVoicePart(book.id, natural);
+                const ahead = voiceAhead(text, part.keep);
+                return naturalNarrator(text, starts, lengths, part.url, events, ahead);
+              })()
           : v && text
             ? speechNarrator(text, starts, lengths, v, events)
             : null;

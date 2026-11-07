@@ -10,7 +10,7 @@ import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettings
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
 import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
-import { NATURAL_PREFIX, NATURAL_VOICE_HOURS, NATURAL_VOICES, type NaturalVoiceAccent } from "../lib/naturalVoice";
+import { NATURAL_PREFIX, NATURAL_VOICE_HOURS, type NaturalVoice, voicesFor } from "../lib/naturalVoice";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
@@ -20,7 +20,7 @@ import { canRecap } from "../lib/recap";
 import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
-import { rich } from "../lib/i18n";
+import { dateLocale, rich } from "../lib/i18n";
 import { useAlignment } from "../lib/useAlignment";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
@@ -45,7 +45,15 @@ function PlayerView({ book }: { book: Book }) {
   // The pilot's books have their recording lined up with the text, for a true read-along.
   const alignment = useAlignment(book, narration.kind === "recording" && state.a11y.transcript);
   const voiceValue = narrationValue(narration);
-  const accentName = (accent: NaturalVoiceAccent) => (accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English"));
+  // An English voice by its accent; another language's by the language's name, in the reader's language.
+  const voiceKind = (v: NaturalVoice) =>
+    v.accent === "British"
+      ? t("British English")
+      : v.accent === "American"
+        ? t("American English")
+        : v.accent === "Australian"
+          ? t("Australian English")
+          : (new Intl.DisplayNames([dateLocale()], { type: "language" }).of(v.language) ?? v.language);
   const naturalHours = NATURAL_VOICE_HOURS[state.account?.planId ?? "basic"] ?? 0;
   const accents = (["British", "American", "Australian"] as const)
     .map((accent) => [accent, voices.filter((v) => accentOf(v) === accent)] as const)
@@ -346,9 +354,9 @@ function PlayerView({ book }: { book: Book }) {
                     {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
                     {naturalOffered && (
                       <optgroup label={t("Natural voices (Google)")}>
-                        {NATURAL_VOICES.map((v) => (
+                        {voicesFor(book.language).map((v) => (
                           <option key={v.id} value={NATURAL_PREFIX + v.id}>
-                            {t("{name}, {accent}", { name: v.name, accent: accentName(v.accent) })}
+                            {t("{name}, {accent}", { name: v.name, accent: voiceKind(v) })}
                           </option>
                         ))}
                       </optgroup>

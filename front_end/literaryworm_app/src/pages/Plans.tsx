@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { RedeemGift } from "../components/RedeemGift";
 import { WhatsNewLink } from "../components/WhatsNewLink";
-import { formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
+import { FREE_TRIAL_DAYS, formatPrice, perPeriod, planById, planFaqs, plans, priceFor } from "../data/plans";
 import { StructuredData } from "../components/StructuredData";
 import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
@@ -156,6 +156,9 @@ export default function Plans() {
   const changingPaid = Boolean(account?.userId && account.stripeLinked && account.status !== "cancelled");
   const billsToday = billingDay === today;
   const yearly = interval === "year";
+  // A first membership (never a member before, not on staff) starts with a free week; checkout decides the same.
+  const freeWeek = !changingPaid && (!account || (!account.planId && !account.memberSince && !account.complimentary));
+  const freeWeekEnds = longDate(new Date(Date.now() + FREE_TRIAL_DAYS * 86_400_000));
   const price = plan ? priceFor(plan, interval) : 0;
   const per = perPeriod(interval);
   // Moving a paid membership: monthly to yearly starts the year today; a yearly one moves up today
@@ -284,6 +287,7 @@ export default function Plans() {
                 <strong>{formatPrice(priceFor(p, interval))}</strong>
                 <span>{yearly ? t("/year") : t("/month")}</span>
                 {yearly && <small>{t("{price} a month, instead of {full}", { price: formatPrice(p.yearlyPrice / 12), full: formatPrice(p.price) })}</small>}
+                {freeWeek && <small className="plan-trial">{t("First {n} days free", { n: FREE_TRIAL_DAYS })}</small>}
               </p>
               <ul className="plan-features">
                 <li>
@@ -389,18 +393,32 @@ export default function Plans() {
                   <>
                     <div>
                       <dt>{t("First charge")}</dt>
-                      <dd>{yearly ? t("Today, for the year") : billsToday ? t("Today") : t("Today, for the days until your billing day")}</dd>
+                      <dd>
+                        {freeWeek
+                          ? t("{date}, when your free week ends", { date: freeWeekEnds })
+                          : yearly
+                            ? t("Today, for the year")
+                            : billsToday
+                              ? t("Today")
+                              : t("Today, for the days until your billing day")}
+                      </dd>
                     </div>
                     <div>
                       <dt>{t("Next charge")}</dt>
-                      <dd>{longDate(yearly ? oneYearAfter(startsOn) : nextBillingDate(billingDay))}</dd>
+                      <dd>
+                        {freeWeek
+                          ? yearly
+                            ? t("A year after the first")
+                            : t("A month after the first, then monthly on that day")
+                          : longDate(yearly ? oneYearAfter(startsOn) : nextBillingDate(billingDay))}
+                      </dd>
                     </div>
                   </>
                 )}
               </dl>
 
               <div className="checkout-fields">
-                {!changingPaid && !yearly && (
+                {!changingPaid && !yearly && !freeWeek && (
                 <div className="field">
                   <label className="field-label" htmlFor="billing-day">
                     {t("Billing day")}
@@ -431,7 +449,16 @@ export default function Plans() {
                 )}
 
                 <p className="renewal-terms">
-                  {yearly
+                  {freeWeek && (
+                    <>
+                      {t("Your first {n} days are free: cancel in Account before {date} and you won't be charged.", { n: FREE_TRIAL_DAYS, date: freeWeekEnds })}{" "}
+                    </>
+                  )}
+                  {freeWeek
+                    ? yearly
+                      ? t("Then your membership renews automatically every year from {date} at {price} until you cancel. We'll remind you 30 days before.", { date: freeWeekEnds, price: formatPrice(price) })
+                      : t("Then your membership renews automatically every month from {date} at {price} until you cancel.", { date: freeWeekEnds, price: formatPrice(price) })
+                    : yearly
                     ? changingPaid && fromYearly && account?.renewsAt
                       ? t("Your membership renews automatically every year on your renewal date at {price} until you cancel. We'll remind you 30 days before.", { price: formatPrice(price) })
                       : t("Your membership renews automatically every year on the date your year starts at {price} until you cancel. We'll remind you 30 days before.", { price: formatPrice(price) })

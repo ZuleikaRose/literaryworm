@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6707, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6710, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -172,12 +172,13 @@
             ["", "stripe_subscription_id", "text", true],
             ["", "complimentary", "boolean (staff)"],
             ["", "gift_until", "timestamptz", true],
+            ["", "trial_until", "timestamptz", true],
             ["fk", "switch_to_monthly", "text", true],
             ["", "stripe_linked", "boolean (generated)"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "RLS: read own (Stripe ids not granted). Paid rows are written only by the stripe-webhook function from Stripe; stripe_linked says a card is on file. complimentary: set by a trigger from staff_roles, never billed. gift_until: a gift's free months. cancel_at: when an ending membership ends. billing_interval: monthly, or yearly at plans.yearly_price_cents. switch_to_monthly: plan at renewal. Indexed FKs.",
+          note: "RLS: read own (Stripe ids not granted). Paid rows are written only by the stripe-webhook function from Stripe; stripe_linked says a card is on file. complimentary: set by a trigger from staff_roles, never billed. gift_until: a gift's free months. trial_until: a first membership's free week, while it lasts. cancel_at: when an ending membership ends. billing_interval: monthly, or yearly at plans.yearly_price_cents. switch_to_monthly: plan at renewal. Indexed FKs.",
         },
         {
           id: "logs", color: colors.reading, x: 420, y: 1080, sub: "public",
@@ -798,6 +799,7 @@
             ["pk fk", "account_id", "uuid"],
             ["pk", "month", "date (1st)"],
             ["", "characters", "integer ≥ 0"],
+            ["", "mostly_used_at", "timestamptz", true],
           ],
           note: "Characters of each account's uploads sent to Google Text-to-Speech a month, against the plan's natural-voice allowance. Written only by claim_natural_voice() / release_natural_voice() from the natural-voice function; members read their own row. The voiced MP3s are kept in the private upload-voices bucket beside each upload.",
         },
@@ -1054,6 +1056,7 @@
             ["", "storage_path", "text (unique)"],
             ["", "created_at", "timestamptz"],
             ["", "published_year", "smallint 1–9999", true],
+            ["", "language", "text (dc:language)", true],
           ],
           note: "The text is JSON in the private user-books bucket, at <user_id>/<id>.json (Storage RLS: own folder only, 15 MB). The id is a valid volume id, so the library, progress and highlights work. FK (profile_id, user_id) → reader_profiles, on delete cascade; indexed, and user_id. Not on Kids profiles; up to 50. RLS: owner only.",
         },

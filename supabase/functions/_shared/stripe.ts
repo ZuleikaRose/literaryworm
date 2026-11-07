@@ -394,6 +394,8 @@ export function subscriptionRow(sub: Stripe.Subscription) {
     billing_interval: price.interval,
     status: statusFor(sub),
     gift_until: sub.status === "trialing" && giftUntil > 0 ? new Date(giftUntil * 1000).toISOString() : null,
+    // A first membership's free week, while it lasts (the first charge is at its end).
+    trial_until: sub.status === "trialing" && sub.metadata?.free_trial === "1" && sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
     // Days run 1–28; a yearly membership that started on the 29th to 31st keeps its renewal date
     // (current_period_end), and its billing day is only a label, as it can't be moved.
     billing_day: Math.min(new Date(sub.billing_cycle_anchor * 1000).getUTCDate(), 28),

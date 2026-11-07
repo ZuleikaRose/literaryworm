@@ -697,6 +697,12 @@ select.field-input {
   font-size: 0.8125rem;
 }
 
+/* A first membership's free week. */
+.plan-price small.plan-trial {
+  color: var(--success);
+  font-weight: 600;
+}
+
 /* Moving down a plan: what has to go first. */
 .plan-too-big p {
   margin: 0 0 6px;

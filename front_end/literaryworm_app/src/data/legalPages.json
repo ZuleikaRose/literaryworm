@@ -410,7 +410,8 @@
           "LiteraryWorm never asks for access to your local network (the other devices on your home Wi-Fi) and doesn't need it for anything, including Listen on another device and playing on a speaker or TV. If your browser asks, choose Block.",
           "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing.",
           "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.",
-          "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."
+          "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen, and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.",
+          "Natural-voice parts you've played, and those voiced ahead on Wi-Fi, are also kept in your browser's storage on that device so you can listen offline; they're removed when you delete the book or log out. We keep the language your EPUB says it's written in, to offer voices in it."
         ]
       },
       {
@@ -439,7 +440,7 @@
     "slug": "cookies",
     "title": "Cookie Policy",
     "summary": "What LiteraryWorm keeps in your browser, the few cookies set when you use it, and how to control them. We use no advertising or analytics cookies.",
-    "updated": "2026-11-04",
+    "updated": "2026-11-06",
     "sections": [
       {
         "heading": "In short",
@@ -476,7 +477,7 @@
           "TERMLY_API_CACHE (local storage, kept by Termly): your cookie choice. Stays up to 12 months.",
           "The app's files (the lw-shell cache): so the app opens quickly and offline. Replaced when the app updates.",
           "Books saved for offline (the lw-books cache): stay until you remove them, with a small note of your offline place and any listening schedule.",
-          "Books you uploaded and opened, or searched by keywords (the lw-uploads cache): stay until you delete the book or log out.",
+          "Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out.",
           "A push subscription, only if you turn on notifications on this device: stays until you turn them off or log out."
         ]
       },
@@ -757,7 +758,7 @@
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-11-04",
+    "updated": "2026-11-06",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
@@ -836,6 +837,7 @@
         "heading": "5. Purchases and payment",
         "paragraphs": [
           "LiteraryWorm is a live service: when you choose a plan, you're billed monthly or yearly (as you choose) through Stripe until you cancel. Add a payment method in Account → Plan and billing to continue your membership.",
+          "Free week. A first membership starts with 7 days free. You add a card at checkout, but nothing is charged during those days: cancel in Account before they end and you're never charged. Otherwise the first charge is made the day they end, and billing continues from that day. The free week is once per account; returning members and gifts don't get one.",
           "We accept the following forms of payment: Visa, Mastercard, American Express and Discover.",
           "You agree to provide current, complete, and accurate purchase and account information for all purchases made via the Services. You further agree to promptly update account and payment information, including email address, payment method, and payment card expiration date, so that we can complete your transactions and contact you as needed. Sales tax will be added to the price of purchases as deemed required by us. We may change prices at any time. All payments shall be in US dollars.",
           "You agree to pay all charges at the prices then in effect for your purchases, and you authorize us to charge your chosen payment provider for any such amounts upon placing your order. We reserve the right to correct any errors or mistakes in pricing, even if we have already requested or received payment.",
@@ -1517,12 +1519,12 @@
     "slug": "returns",
     "title": "Return Policy",
     "summary": "How billing, cancelling and refunds work for LiteraryWorm memberships and gift memberships, and who to contact with questions.",
-    "updated": "2026-10-30",
+    "updated": "2026-11-06",
     "sections": [
       {
         "heading": "In short",
         "paragraphs": [
-          "Memberships renew monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge.",
+          "A first membership starts with 7 days free, then renews monthly or yearly until you cancel. Cancel at least 48 hours before your billing date to stop the next charge.",
           "Payments, including gift memberships, are final and aren't refunded, except where the law where you live says otherwise."
         ]
       },
@@ -1530,7 +1532,8 @@
         "heading": "How billing works",
         "paragraphs": [
           "Your LiteraryWorm membership is billed through Stripe, monthly or yearly, until you cancel. Manage it in Account → Plan and billing, where you can also add or change your payment method.",
-          "On monthly billing you can choose any billing day from the 1st to the 28th, and pause or cancel at any time. A yearly membership can be cancelled at any time, but not paused."
+          "On monthly billing you can choose any billing day from the 1st to the 28th, and pause or cancel at any time. A yearly membership can be cancelled at any time, but not paused.",
+          "Free week: a first membership starts with 7 days free. Nothing is charged during them; cancel in Account before they end and you won't be charged at all. Otherwise the first charge is made the day they end, that becomes your billing date, and the rules below apply. The free week is once per account, and isn't offered to returning members or with gifts."
         ]
       },
       {
@@ -1693,7 +1696,8 @@
           "Yes. In My Library → Uploads, add EPUBs you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book that the publisher sells DRM-free on Google Play Books, download its EPUB from your Google Play Books library, then upload it to LiteraryWorm. Many publishers and stores sell DRM-free books, and public-domain EPUBs are free from Project Gutenberg and Standard Ebooks.",
           "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
           "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
-          "Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles). Each part of your book is voiced the first time you play it and kept with your upload, so listening again is free. Each month your plan includes new natural-voice reading: Basic 2 hours, Standard 6, Premium 12. Listening counts towards your plan's audiobook hours as usual.",
+          "Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language when it's French, German, Spanish, Italian, Portuguese or Dutch. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
+          "Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.",
           "To find one of your uploads, search them in My Library → Uploads by title, author, keywords or ISBN. Keywords also looks through the books' text and shows where the words are, each place a link to that page, on your device. An ISBN is looked up on Google Books and matched to your uploads by title and author."
         ]
       },

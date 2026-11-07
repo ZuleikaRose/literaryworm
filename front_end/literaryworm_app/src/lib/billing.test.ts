@@ -85,6 +85,7 @@ describe("the yearly renewal reminder", () => {
     status: "active" as const,
     complimentary: false,
     giftUntil: null,
+    trialUntil: null,
     switchToMonthly: null,
   };
   const day = 86_400_000;
@@ -125,6 +126,7 @@ describe("the yearly billing offer", () => {
     status: "active" as const,
     complimentary: false,
     giftUntil: null,
+    trialUntil: null,
     stripeLinked: true,
     pastDue: false,
   };

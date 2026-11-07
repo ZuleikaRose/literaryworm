@@ -30,7 +30,7 @@ export const planPrices = () =>
     .replace(/, ([^,]+)$/, " or $1")} a month`;
 
 export const siteDescription = () =>
-  `Read ebooks and listen to audiobooks in one place, with a profile for everyone at home. ${planPrices()}, or pay yearly and get two months free.`;
+  `Read ebooks and listen to audiobooks in one place, with a profile for everyone at home. ${planPrices()}, or pay yearly and get two months free. First 7 days free.`;
 
 export const plansDescription = () =>
   `LiteraryWorm plans: ${planPrices()}. Yearly: ${plans.map((p) => `${p.name} ${formatPrice(p.yearlyPrice)}`).join(", ")}. Cancel online any time.`;

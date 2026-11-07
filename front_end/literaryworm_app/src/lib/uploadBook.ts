@@ -31,7 +31,8 @@ export function uploadToBook(upload: UploadedBook): Book {
     pages: Math.max(1, Math.round(words / 280)),
     formats: ["ebook", "audiobook"],
     ageRating: "all",
-    language: "en",
+    // The EPUB's own language where it says (natural voices read it in that language).
+    language: upload.language ?? "en",
     synopsis: "",
     cover: fallbackCover(upload.id),
     source: "upload",

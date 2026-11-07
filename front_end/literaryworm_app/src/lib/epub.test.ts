@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { yearIn } from "./epub";
+import { languageIn, yearIn } from "./epub";
 
 describe("the year an EPUB was published", () => {
   it("takes the four-digit year a date starts with", () => {
@@ -14,5 +14,18 @@ describe("the year an EPUB was published", () => {
     expect(yearIn(null)).toBeNull();
     expect(yearIn(undefined)).toBeNull();
     expect(yearIn("0000")).toBeNull();
+  });
+});
+
+describe("an EPUB's language", () => {
+  it("keeps the language before any region, in the two letters natural voices go by", () => {
+    expect(languageIn("fr-FR")).toBe("fr");
+    expect(languageIn(" EN_gb ")).toBe("en");
+    expect(languageIn("ger")).toBe("de");
+    expect(languageIn("nld")).toBe("nl");
+    expect(languageIn("fre")).toBe("fr");
+    expect(languageIn("Klingon")).toBeNull();
+    expect(languageIn("")).toBeNull();
+    expect(languageIn(undefined)).toBeNull();
   });
 });

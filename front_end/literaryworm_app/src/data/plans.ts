@@ -1,6 +1,9 @@
 import { tk, tr } from "../lib/i18n";
 import type { BillingInterval, Plan } from "../types";
 
+/** A first membership starts with this many free days (FREE_TRIAL_DAYS in checkout/handler.ts is the same). */
+export const FREE_TRIAL_DAYS = 7;
+
 export const plans: Plan[] = [
   {
     id: "basic",
@@ -106,6 +109,10 @@ export const planFaqs = [
   {
     q: tk("How does yearly billing work?"),
     a: tk("A year costs ten times the monthly price, so two months are free. It starts the day you pay and renews on that date each year until you cancel; the bell reminds you 30 days before.\n\nMoving from monthly to yearly starts your year straight away, with the unused part of the month taken off. A yearly membership can move to a bigger plan at any time (you pay the difference for the rest of the year), can't be paused, and moves to monthly billing only when the year ends."),
+  },
+  {
+    q: tk("Is there a free trial?"),
+    a: tk("Yes. A first membership starts with 7 days free on any plan. You add a card on Stripe's payment page, but nothing is charged during those days: cancel in Account before they end and you won't be charged at all.\n\nOtherwise the first charge is made the day they end, and your membership renews from that day. The free week is once per account; returning members and gifts don't get one."),
   },
   {
     q: tk("Can I pause instead of cancelling?"),
