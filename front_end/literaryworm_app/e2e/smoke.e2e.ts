@@ -1635,6 +1635,20 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("exports Avery's notes as a PDF", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=notes");
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "PDF" }).first().click()]);
+    expect(download.suggestedFilename()).toMatch(/-notes\.pdf$/);
+    const path = await download.path();
+    const { readFileSync } = await import("node:fs");
+    const bytes = readFileSync(path!);
+    expect(bytes.subarray(0, 8).toString("latin1")).toBe("%PDF-1.4");
+    expect(bytes.toString("latin1")).toContain("Pride and Prejudice");
+    expect(errors()).toEqual([]);
+  });
+
   it("reviews highlights that are due, from Home's nudge to Notes", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -273,3 +273,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | A speed for each book: `lib/bookSpeed.ts` (+ test), `usePlayerSettings(bookId)`, switch in `PlayerSettingsDialog`; migrations 6731–6732 |
 | — | Bedtime in the Kids report: `bedtimeWeek()` (+ tests), `lib/useBedtimeTime.ts`, `addBedtimeSeconds()`, late minutes in `useDailyLimit`, Family line; migrations 6733–6735 |
 | — | Theme challenges: `THEME_PROMPTS`, `themesCovered()` (+ tests), `lib/themeBooks.ts`, the theme list in `ChallengesView`; migrations 6736–6737 |
+| — | Notes as a PDF: `lib/notesPdf.ts` (+ test), PDF button in `ExportButtons`; migrations 6738–6739 |

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Export your notes as a PDF",
+    "body": "My Library → Notes now saves a book's highlights, notes and journal, or all of them, as a tidy PDF as well as Markdown and plain text: chapters in order, each quote marked, with its page and your note. It's made on your device.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Theme challenges for the household",
     "body": "Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which.",
     "major": false

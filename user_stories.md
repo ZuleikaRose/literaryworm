@@ -460,3 +460,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | A speed for each book (new request) | — | Done | Player settings → *Keep this speed for this book*; other books keep the profile's speed. `reader_profiles.book_speeds` (6731), What's new 6732. |
 | Bedtime in the Kids reading report (new request) | — | Done | Family and the weekly email show nights bedtime was kept and Bedtime listening time. `reading_days.bedtime_minutes`/`late_minutes`, `record_bedtime()` (6733), policies 6734, What's new 6735. |
 | Theme challenges (new request) | — | Done | Household challenges can count *Themes covered*: nine prompts ticked by finished catalog books, with who covered each. Kind check 6736, What's new 6737. |
+| Notes as a PDF (new request) | — | Done | My Library → Notes exports a formatted PDF beside Markdown and text, made in the browser. Help 6738, What's new 6739. |

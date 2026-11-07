@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { type BookNotes, downloadText, exportFileName, exportNotes, type ExportFormat } from "../lib/exportNotes";
+import { downloadNotesPdf } from "../lib/notesPdf";
 import { useNotesBooks } from "../lib/useNotesBooks";
 import { HighlightReviewButton } from "./HighlightReview";
 import { Icon } from "./Icon";
 import { useT } from "../lib/useT";
 
-/** Markdown and Text buttons that save the notes as a file. */
+/** Markdown, Text and PDF buttons that save the notes as a file. */
 export function ExportButtons({ books, name, label }: { books: BookNotes[]; name: string; label: string }) {
   const t = useT();
   const save = (format: ExportFormat) => downloadText(exportNotes(books, format), exportFileName(name, format), format);
@@ -16,6 +17,13 @@ export function ExportButtons({ books, name, label }: { books: BookNotes[]; name
       </button>
       <button type="button" className="secondary-button small-button" onClick={() => save("text")}>
         <Icon name="download" size={16} /> {t("Text")}
+      </button>
+      <button
+        type="button"
+        className="secondary-button small-button"
+        onClick={() => downloadNotesPdf(books, exportFileName(name, "text").replace(/\.txt$/, ".pdf"), `${name}: notes and highlights`)}
+      >
+        <Icon name="download" size={16} /> PDF
       </button>
     </div>
   );
