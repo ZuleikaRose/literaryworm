@@ -20,6 +20,7 @@ import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar }
 import { samplePage } from "../data/sampleText";
 import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
 import { usePlayback } from "../lib/playback";
+import { useReaderReadAloud } from "../lib/useReaderReadAloud";
 import { chapterStarts, linkedPage, pageForFraction, pageFraction, READER_SIZES, type ReaderPage } from "../lib/reading";
 import { useBookPages } from "../lib/useBookPages";
 import { useControlsVisibility } from "../lib/useControlsVisibility";
@@ -231,6 +232,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
     reading.save({ format: "ebook", fraction: pageFraction(clamped, total), chapterIndex: target.chapterIndex });
   };
 
+  // Read aloud (uploads with a natural voice): the voice reads on from this page, turning the pages.
+  const readAloud = useReaderReadAloud(book, pages, index, goTo, articleRef);
   const next = () => (index === total - 1 ? setAsking(true) : goTo(index + 1));
   const previous = () => goTo(index - 1);
 
@@ -357,6 +360,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             <Icon name="highlighter" size={20} />
             <span className="visually-hidden">{t("Notes and highlights ({n})", { n: study.highlights.length })}</span>
           </button>
+          {readAloud.offered && (
+            <button type="button" className="icon-button" aria-pressed={readAloud.on} onClick={readAloud.on ? readAloud.stop : readAloud.start}>
+              <Icon name={readAloud.on ? "pause" : "headphones"} size={20} />
+              <span className="visually-hidden">{readAloud.on ? t("Stop reading aloud") : t("Read aloud, marking each word")}</span>
+            </button>
+          )}
           <button type="button" className="icon-button" onClick={() => setPanel("bookmarks")}>
             <Icon name="bookmark" size={20} filled={isHereMarked} />
             <span className="visually-hidden">{isHereMarked ? t("Bookmarks (this page is bookmarked)") : t("Bookmarks")}</span>

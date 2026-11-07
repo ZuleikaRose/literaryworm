@@ -1479,3 +1479,18 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Read aloud in the reader (lib/useReaderReadAloud.ts): the word being spoken, drawn with the CSS
+   Custom Highlight API so the page's own markup is untouched. */
+::highlight(lw-spoken) {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--rust-bright);
+  background-color: var(--rust-wash);
+}
+@media (forced-colors: active) {
+  ::highlight(lw-spoken) {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+}

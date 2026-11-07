@@ -1784,6 +1784,25 @@ describe("the demo household", () => {
     expect(await visitor.page.locator("audio").count()).toBe(0);
   });
 
+  it("reads an upload aloud in the reader, marking the word being spoken on the page", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/u-d3e0a1000000000000000000000000a4");
+    const button = page.getByRole("button", { name: "Read aloud, marking each word" });
+    await button.click();
+    // The voice plays, and the word it's on is marked on this page with a CSS highlight.
+    await page.getByRole("button", { name: "Stop reading aloud" }).waitFor({ timeout: 15_000 });
+    await page.waitForFunction(() => {
+      const spoken = CSS.highlights?.get("lw-spoken");
+      const range = spoken ? [...spoken][0] : undefined;
+      return Boolean(range && range.toString().trim().length > 0 && document.querySelector(".reader-text")?.contains(range.startContainer));
+    }, undefined, { timeout: 15_000 });
+    await page.getByRole("button", { name: "Stop reading aloud" }).click();
+    await page.getByRole("button", { name: "Read aloud, marking each word" }).waitFor();
+    expect(await page.evaluate(() => CSS.highlights?.has("lw-spoken") ?? false)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("prints Mia a certificate for her first finished book", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

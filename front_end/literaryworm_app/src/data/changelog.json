@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Read along on the page",
+    "body": "In the reader, books you uploaded can now be read aloud by their natural voice right on the page: the pages turn with the voice, and the word being spoken is marked as you go.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "update",
     "title": "Theme ideas picked for you",
     "body": "The book ideas on Discover for a themes challenge now come in your order: books like the ones you loved and finished, by authors and narrators you follow, and in the moods you tag most come first.",
