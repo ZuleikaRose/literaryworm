@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "A speed for each book",
+    "body": "In Player settings, Keep this speed for this book remembers how fast you like one audiobook, on every device, while your other books keep your usual speed.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "update",
     "title": "Character voices know who's talking",
     "body": "Character voices now follow two people talking in turn, even where only \"he said\" is written, and find speakers named in French, German and Spanish books as well as English ones.",

@@ -45,6 +45,7 @@ import { useT } from "../lib/useT";
 import { activeReading } from "../store/reducer";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
+import { speedFor } from "../lib/bookSpeed";
 
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
 
@@ -982,7 +983,7 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
   const clubs = useClubs();
   const playback = usePlayback();
   const { state } = useStore();
-  const playbackSpeed = useProfileData().player.speed;
+  const playbackSpeed = speedFor(useProfileData().player, book.id);
   const joined = useListenAlong();
   const [session, setSession] = useState<ListenSession | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);

@@ -9,6 +9,7 @@ import { useT } from "../lib/useT";
 import { useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
 import { Icon } from "./Icon";
+import { speedFor } from "../lib/bookSpeed";
 
 /** The host says where it is at least this often, so members know the session is still going. */
 const HEARTBEAT_MS = 30_000;
@@ -62,7 +63,7 @@ function Bar({ session, trouble, onLeave }: { session: ListenAlongState; trouble
 
 function Host({ session, book }: { session: ListenAlongState; book: Book }) {
   const playback = usePlayback();
-  const playbackSpeed = useProfileData().player.speed;
+  const playbackSpeed = speedFor(useProfileData().player, book.id);
   const live = playback.book?.id === book.id ? playback.snapshot : null;
   const sent = useRef<{ position: number; playing: boolean; rate: number; at: number } | null>(null);
   const opened = useRef(false);
@@ -146,7 +147,7 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
 function Follower({ session, book }: { session: ListenAlongState; book: Book }) {
   const playback = usePlayback();
   const { dispatch } = useStore();
-  const playbackSpeed = useProfileData().player.speed;
+  const playbackSpeed = speedFor(useProfileData().player, book.id);
   const [host, setHost] = useState<ListenSession | null | undefined>(undefined);
   const [trouble, setTrouble] = useState(false);
   const opened = useRef(false);

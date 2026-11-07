@@ -13,6 +13,7 @@ import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { demoVoiceUrl } from "../lib/demoVoices";
 import { memberVoicePart, voiceAhead } from "../lib/naturalVoiceOffline";
 import { naturalVoice } from "../lib/naturalVoice";
+import { speedFor } from "../lib/bookSpeed";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
 import { emailKey } from "../store/state";
@@ -190,7 +191,7 @@ function Engine({
   onSnapshot: (snapshot: PlaybackSnapshot) => void;
 }) {
   const { narrationVoice, player } = useProfileData();
-  const speed = player.speed;
+  const speed = speedFor(player, book.id);
   const volume = player.muted ? 0 : player.volume / 100;
   const { autoSkipIntro, autoSkipOutro } = player;
   const reading = useReading(book, profileId);

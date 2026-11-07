@@ -279,6 +279,8 @@ export interface PlayerSettings {
   autoSkipOutro: boolean;
   /** Natural voices on uploads: what characters say is read by other voices (lib/naturalVoice.ts chapterPieces()). */
   characterVoices: boolean;
+  /** Books played at their own speed (lib/bookSpeed.ts), by book id. */
+  bookSpeeds: Record<string, number>;
 }
 
 /** One day of a profile's reading and listening, for goals and streaks. */

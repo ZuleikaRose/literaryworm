@@ -775,6 +775,23 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("keeps a speed for one book while other books keep the usual speed", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/dune");
+    await page.getByLabel("Voice").selectOption({ label: "No voice (silent sample)" });
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const dialog = page.getByRole("dialog", { name: "Player settings" });
+    await dialog.getByRole("switch", { name: /Keep this speed for this book/ }).check();
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.getByLabel("Speed").selectOption("2");
+    await goInApp(page, "/listen/emma");
+    await expect(page.getByLabel("Speed").inputValue()).resolves.toBe("1");
+    await goInApp(page, "/listen/dune");
+    await expect(page.getByLabel("Speed").inputValue()).resolves.toBe("2");
+    expect(errors()).toEqual([]);
+  });
+
   it("turns on character voices in player settings, and the profile keeps the choice", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

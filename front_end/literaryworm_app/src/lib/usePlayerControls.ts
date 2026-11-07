@@ -13,7 +13,7 @@ import { activeReading } from "../store/reducer";
  */
 export function usePlayerControls(book: Book) {
   const playback = usePlayback();
-  const settings = usePlayerSettings();
+  const settings = usePlayerSettings(book.id);
   const { player } = settings;
   const { starts, total } = chapterTimes(book);
   const live = playback.snapshot?.bookId === book.id ? playback.snapshot : null;

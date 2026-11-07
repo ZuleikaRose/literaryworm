@@ -4,6 +4,7 @@ import { usePlayback } from "../lib/playback";
 import { type PlayerControls, usePlayerControls } from "../lib/usePlayerControls";
 import { useProfileData } from "../store/context";
 import type { Book } from "../types";
+import { speedFor } from "../lib/bookSpeed";
 
 /** The actions the lock screen, headphones and car can ask for. */
 const ACTIONS: MediaSessionAction[] = ["play", "pause", "stop", "seekbackward", "seekforward", "seekto", "previoustrack", "nexttrack"];
@@ -23,7 +24,7 @@ export function MediaSession() {
 function MediaSessionView({ book }: { book: Book }) {
   const playback = usePlayback();
   const controls = usePlayerControls(book);
-  const playbackSpeed = useProfileData().player.speed;
+  const playbackSpeed = speedFor(useProfileData().player, book.id);
   const { live, places, total, position } = controls;
   const chapter = book.chapters[places.chapterIndex];
 

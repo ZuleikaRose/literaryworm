@@ -319,8 +319,8 @@ function GoToTime({ total, onGo }: { total: number; onGo: (seconds: number) => v
  * too (the mini-player has no room for them).
  */
 export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { open: boolean; onClose: () => void; withPlayback?: boolean }) {
-  const { player, update } = usePlayerSettings();
   const playback = usePlayback();
+  const { player, update, ownSpeed, setOwnSpeed } = usePlayerSettings(playback.book?.id ?? null);
   const sleep = playback.snapshot?.sleep ?? null;
   const sleepValue = sleep === null ? "off" : sleep.kind === "chapter" ? "chapter" : String(sleep.minutes);
   const t = useT();
@@ -376,6 +376,17 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
         </label>
       </div>
       <ul className="switch-list">
+        {playback.book && (
+          <li>
+            <label className="switch-row">
+              <span>
+                <strong>{t("Keep this speed for this book")}</strong>
+                <small>{t("This book plays at {speed}× from now on; other books keep your usual speed.", { speed: player.speed })}</small>
+              </span>
+              <input type="checkbox" role="switch" className="switch" checked={ownSpeed} onChange={(e) => setOwnSpeed(e.target.checked)} />
+            </label>
+          </li>
+        )}
         <li>
           <label className="switch-row">
             <span>
