@@ -18,6 +18,7 @@ import { Field } from "./Field";
 import { Icon } from "./Icon";
 import { rich, tk } from "../lib/i18n";
 import { useT } from "../lib/useT";
+import { CastChoices } from "./CastChoices";
 
 /**
  * Controls the player page and the mini-player share: volume, Go to (contents, index,
@@ -432,6 +433,11 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
             />
           </label>
         </li>
+        {player.characterVoices && playback.book?.upload && (
+          <li>
+            <CastChoices book={playback.book} />
+          </li>
+        )}
       </ul>
     </Dialog>
   );

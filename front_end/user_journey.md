@@ -850,6 +850,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 270. **Voice the whole book.** Under a natural voice in the player (and on a member's upload page), *Voice the whole book* says how much new natural-voice reading the book could take and how much is left this month, then voices every part on Wi-Fi with a progress bar and *Stop*; *Voice the rest* carries on later. In the demo it explains the feature.
 
+271. **Who reads whom, schedule reminders, theme ideas and word marking.** Player settings with Character voices on lists an upload's named speakers under *Who reads whom*, each with a voice or *Chosen for you*. The bell's Book clubs group adds *This week in Sunday Classics: chapters 13 to 18* until they're read. Discover shows *For your challenge: …* rows for themes not yet covered. The read-along underlines the word being spoken in the sentence being read.
+
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 
 224. **Google Books cookies, said plainly.** Because we use the Google Books API, covers of Google Books titles and the Google Books preview load from books.google.com, and Google sets third-party cookies there. The Cookie Policy lists them, and the Privacy Policy, Help, the FAQ, the Children's Privacy Notice and the preview's note say so (migration 6618).

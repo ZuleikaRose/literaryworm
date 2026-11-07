@@ -1688,6 +1688,23 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lists an upload's named speakers under Who reads whom, and keeps a chosen voice", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    // The Tide Clock: Juno and Ezra talk in chapter 2.
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const dialog = page.getByRole("dialog", { name: "Player settings" });
+    await dialog.getByRole("switch", { name: /Character voices/ }).check();
+    const who = dialog.getByRole("region", { name: "Who reads whom" });
+    await who.getByLabel("Ezra").selectOption("Puck");
+    await who.getByLabel("Juno").waitFor();
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel("Ezra").inputValue()).resolves.toBe("Puck");
+    expect(errors()).toEqual([]);
+  });
+
   it("exports Avery's notes as a PDF", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

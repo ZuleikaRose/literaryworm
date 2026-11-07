@@ -159,3 +159,16 @@ Deno.test("character voices: each piece in its own voice, kept apart from the na
   const plain = await handle(post({ uploadId: UPLOAD, chapter: 0, segment: 0, voice: VOICE, cast: true }), d);
   assertEquals(await plain.json(), { url: `https://signed/${USER}/${UPLOAD}/${VOICE}-0-0.mp3` });
 });
+
+Deno.test("character voices: the listener's choice of voice for a speaker, checked", async () => {
+  const { d, calls } = deps();
+  const res = await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, cast: true, castChoices: { elizabeth: "Leda" } }), d);
+  assertEquals(res.status, 200);
+  assertEquals(calls.stored, [`${USER}/${UPLOAD}/en-GB-Chirp3-HD-Leda-2-c1.mp3`]);
+  for (const castChoices of [{ elizabeth: "Nobody" }, ["Leda"], { elizabeth: "Leda" }]) {
+    const body = Array.isArray(castChoices) || "elizabeth" in castChoices && castChoices.elizabeth === "Nobody"
+      ? { uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, cast: true, castChoices }
+      : { uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, castChoices };
+    assertEquals((await handle(post(body), d)).status, 400, JSON.stringify(body));
+  }
+});

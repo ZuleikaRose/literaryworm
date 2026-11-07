@@ -415,7 +415,35 @@ export function castSegments(chapter: string): CastSegment[] | null {
 }
 
 /** The character voice for a speech: another voice than the narrator's, the same one for a speaker every time. */
-export function speakerVoice(narrator: NaturalVoice, speaker: string | null): string {
+/**
+ * The listener's choice of voice for named speakers in one book: speaker (lower case) to one of
+ * CAST_NAMES. Kept per profile and book; checked by parseCastChoices() on both sides.
+ */
+export type CastChoices = Record<string, string>;
+
+/** The most speakers a book keeps a choice for, and the longest name. */
+export const CAST_CHOICES_MAX = 50;
+export const CAST_SPEAKER_MAX = 60;
+
+/** Choices as they arrive from anywhere: only speakers with a known voice, at most CAST_CHOICES_MAX. */
+export function parseCastChoices(value: unknown): CastChoices {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const out: CastChoices = {};
+  for (const [speaker, name] of Object.entries(value as Record<string, unknown>)) {
+    if (Object.keys(out).length >= CAST_CHOICES_MAX) break;
+    const key = speaker.trim().toLowerCase();
+    if (key && key.length <= CAST_SPEAKER_MAX && typeof name === "string" && CAST_NAMES.includes(name)) out[key] = name;
+  }
+  return out;
+}
+
+/**
+ * The character voice for a speech: the listener's choice for that speaker if there is one, else
+ * another voice than the narrator's, the same one for a speaker every time.
+ */
+export function speakerVoice(narrator: NaturalVoice, speaker: string | null, choices: CastChoices = {}): string {
+  const chosen = speaker ? choices[speaker.toLowerCase()] : undefined;
+  if (chosen && CAST_NAMES.includes(chosen)) return `${narrator.languageCode}-Chirp3-HD-${chosen}`;
   const own = narrator.id.slice(narrator.id.lastIndexOf("-") + 1);
   const pool = CAST_NAMES.filter((n) => n !== own);
   let pick = pool[0];
@@ -427,9 +455,24 @@ export function speakerVoice(narrator: NaturalVoice, speaker: string | null): st
   return `${narrator.languageCode}-Chirp3-HD-${pick}`;
 }
 
+/** The named speakers in a book, most speeches first (for choosing their voices), at most `max`. */
+export function bookSpeakers(chapters: string[], max = 20): { speaker: string; speeches: number }[] {
+  const counts = new Map<string, { speaker: string; speeches: number }>();
+  for (const chapter of chapters) {
+    for (const part of castSegments(chapter) ?? []) {
+      if (!part.speech || !part.speaker) continue;
+      const key = part.speaker.toLowerCase();
+      const seen = counts.get(key);
+      if (seen) seen.speeches += 1;
+      else counts.set(key, { speaker: part.speaker, speeches: 1 });
+    }
+  }
+  return [...counts.values()].sort((a, b) => b.speeches - a.speeches || a.speaker.localeCompare(b.speaker)).slice(0, max);
+}
+
 /** A chapter's pieces as the narrator reads them, with character voices or without. */
-export function chapterPieces(chapter: string, narrator: NaturalVoice, characterVoices: boolean): VoicePiece[] {
+export function chapterPieces(chapter: string, narrator: NaturalVoice, characterVoices: boolean, choices: CastChoices = {}): VoicePiece[] {
   const cast = characterVoices ? castSegments(chapter) : null;
   if (!cast) return voiceSegments(chapter).map((p) => ({ ...p, voice: narrator.id, cast: false }));
-  return cast.map((p) => ({ offset: p.offset, text: p.text, voice: p.speech ? speakerVoice(narrator, p.speaker) : narrator.id, cast: true }));
+  return cast.map((p) => ({ offset: p.offset, text: p.text, voice: p.speech ? speakerVoice(narrator, p.speaker, choices) : narrator.id, cast: true }));
 }

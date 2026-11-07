@@ -1,6 +1,6 @@
 import { naturalVoiceUrl } from "./naturalVoiceApi";
 import { connectionAllows, type ConnectionInfo } from "./offlineSchedule";
-import { chapterPieces, type NaturalVoice, type VoicePiece, voiceSegments } from "./naturalVoice";
+import { type CastChoices, chapterPieces, type NaturalVoice, type VoicePiece, voiceSegments } from "./naturalVoice";
 import { hasVoiceOffline, keepVoiceOffline, offlineVoiceUrl } from "./uploadCache";
 
 /**
@@ -17,9 +17,9 @@ const log = (what: string) => (err: unknown) => console.error(`natural voices of
  * `chapters`, with character voices or without (chapterPieces()). Each part is kept under the voice
  * that reads it, and character-voice parts under their own numbers ("c3"), as the function keeps them.
  */
-export function memberVoicePart(uploadId: string, narrator: NaturalVoice, chapters: string[], characterVoices = false) {
+export function memberVoicePart(uploadId: string, narrator: NaturalVoice, chapters: string[], characterVoices = false, choices: CastChoices = {}) {
   const cut: VoicePiece[][] = [];
-  const pieces = (text: string) => chapterPieces(text, narrator, characterVoices);
+  const pieces = (text: string) => chapterPieces(text, narrator, characterVoices, choices);
   const piecesOf = (chapter: number) => (cut[chapter] ??= pieces(chapters[chapter] ?? ""));
   const where = (chapter: number, segment: number) => {
     const piece = piecesOf(chapter)[segment];
@@ -28,14 +28,14 @@ export function memberVoicePart(uploadId: string, narrator: NaturalVoice, chapte
   const keep = async (chapter: number, segment: number): Promise<void> => {
     const { voice, key, cast } = where(chapter, segment);
     if (await hasVoiceOffline(uploadId, voice, chapter, key)) return;
-    const url = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast);
+    const url = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast, cast ? choices : {});
     await keepVoiceOffline(uploadId, voice, chapter, key, url);
   };
   const url = async (chapter: number, segment: number): Promise<string> => {
     const { voice, key, cast } = where(chapter, segment);
     const kept = await offlineVoiceUrl(uploadId, voice, chapter, key).catch(() => null);
     if (kept) return kept;
-    const link = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast);
+    const link = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast, cast ? choices : {});
     // Kept in the background; a failure only means no offline copy.
     keepVoiceOffline(uploadId, voice, chapter, key, link).catch(log("keep a part"));
     return link;

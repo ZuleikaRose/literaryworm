@@ -12,7 +12,7 @@
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { chapterPieces, naturalVoice, naturalVoiceLimit, voiceFile } from "../_shared/naturalVoice.ts";
+import { CAST_CHOICES_MAX, chapterPieces, naturalVoice, naturalVoiceLimit, parseCastChoices, voiceFile } from "../_shared/naturalVoice.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 const METHODS = "POST";
@@ -53,7 +53,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     requireMethod(req, ["POST"]);
     const userId = await deps.user(req);
     const body = await readJsonBody(req);
-    onlyKeys(body, ["uploadId", "chapter", "segment", "voice", "cast"]);
+    onlyKeys(body, ["uploadId", "chapter", "segment", "voice", "cast", "castChoices"]);
     if (typeof body.uploadId !== "string" || !UPLOAD_ID.test(body.uploadId)) {
       throw new HttpError("bad_request", "uploadId must be an uploaded book's id.");
     }
@@ -64,6 +64,16 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     if (!voice) throw new HttpError("bad_request", "voice must be one of the natural voices.");
     if (body.cast !== undefined && typeof body.cast !== "boolean") throw new HttpError("bad_request", "cast must be true or false.");
     const cast = body.cast === true;
+    // The listener's voices for named speakers (only with cast): every entry must be a known voice.
+    let choices = {};
+    if (body.castChoices !== undefined) {
+      const raw = body.castChoices;
+      if (!cast || !raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).length > CAST_CHOICES_MAX) {
+        throw new HttpError("bad_request", "castChoices must be speakers and voices, with cast.");
+      }
+      choices = parseCastChoices(raw);
+      if (Object.keys(choices).length !== Object.keys(raw).length) throw new HttpError("bad_request", "castChoices has a voice that isn't offered.");
+    }
 
     const upload = await deps.upload(userId, uploadId);
     if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
@@ -80,7 +90,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     const chapters = await deps.chapters(upload.storagePath);
     if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
-    const pieces = chapterPieces(chapters[chapter], voice, cast);
+    const pieces = chapterPieces(chapters[chapter], voice, cast, choices);
     if (segment >= pieces.length) throw new HttpError("bad_request", `segment must be below ${pieces.length}.`);
     const piece = pieces[segment];
     const path = voiceFile(userId, uploadId, piece.voice, chapter, segment, piece.cast);

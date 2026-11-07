@@ -42,6 +42,7 @@ import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 import { parseBookSpeeds } from "./bookSpeed";
+import { parseAllCastChoices } from "./castChoices";
 
 /**
  * Real accounts, through Supabase Auth and the tables' RLS. Every message here is shown to
@@ -1360,13 +1361,14 @@ type PlayerRow = {
   auto_skip_outro: boolean;
   character_voices: boolean;
   book_speeds: unknown;
+  cast_choices: unknown;
 };
 
 /** Every profile's player settings. Like goals, an extra: if they can't load, the player uses its defaults. */
 async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
   const { data, error } = await client()
     .from("reader_profiles")
-    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices, book_speeds");
+    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices, book_speeds, cast_choices");
   if (error) {
     console.error("player settings: couldn't load", error.message);
     return {};
@@ -1384,6 +1386,7 @@ async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
         autoSkipOutro: r.auto_skip_outro,
         characterVoices: r.character_voices,
         bookSpeeds: parseBookSpeeds(r.book_speeds),
+        castChoices: parseAllCastChoices(r.cast_choices),
       },
     ]),
   );
@@ -1403,6 +1406,7 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
       auto_skip_outro: player.autoSkipOutro,
       character_voices: player.characterVoices,
       book_speeds: player.bookSpeeds,
+      cast_choices: player.castChoices,
     })
     .eq("id", profileId);
   if (error) throw new AccountError("We couldn't save your player settings.");

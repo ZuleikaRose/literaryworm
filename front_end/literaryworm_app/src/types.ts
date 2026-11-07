@@ -281,6 +281,8 @@ export interface PlayerSettings {
   characterVoices: boolean;
   /** Books played at their own speed (lib/bookSpeed.ts), by book id. */
   bookSpeeds: Record<string, number>;
+  /** Voices chosen for named speakers, by book (lib/castChoices.ts): speaker (lower case) to voice. */
+  castChoices: Record<string, Record<string, string>>;
 }
 
 /** One day of a profile's reading and listening, for goals and streaks. */

@@ -278,3 +278,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Voice the whole book: `lib/voiceWholeBook.ts` (+ test), `components/VoiceWholeBook.tsx` (player, upload page); migrations 6743–6744 |
 | — | Character voices in every language: `SAID_BY_LANGUAGE`, `speechSpans()`, `AFTER`/`BEFORE` lists in `lib/naturalVoice.ts` (+ tests per language); migrations 6745–6746 |
 | — | Bulgarian and Romanian natural voices: `NATURAL_VOICES`, `NATURAL_LANGUAGES`, `languageIn()`, `SAID_BY_LANGUAGE`, `INLINE_SAID` (+ tests); migrations 6747–6748 |
+| — | `components/CastChoices.tsx`, `lib/castChoices.ts` (+ test), `scheduleAlerts()`, `lib/themeIdeas.ts` + `components/ThemeIdeas.tsx` (+ test), `wordAt()` (+ test); migrations 6749–6753 |

@@ -14,6 +14,7 @@ import { demoVoiceUrl } from "../lib/demoVoices";
 import { memberVoicePart, voiceAhead } from "../lib/naturalVoiceOffline";
 import { naturalVoice } from "../lib/naturalVoice";
 import { speedFor } from "../lib/bookSpeed";
+import { castChoicesKey } from "../lib/castChoices";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
 import { emailKey } from "../store/state";
@@ -294,7 +295,16 @@ function Engine({
     naturalSourceRef.current = naturalSource;
   });
   // Character voices change how a natural voice cuts the chapters, so they're part of the key.
-  const narrationKey = voice ? voice.voiceURI : naturalId ? `natural:${naturalId}${player.characterVoices ? "+cast" : ""}` : narration.kind;
+  const choices = player.castChoices?.[book.id] ?? {};
+  const choicesRef = useRef(choices);
+  useEffect(() => {
+    choicesRef.current = choices;
+  });
+  const narrationKey = voice
+    ? voice.voiceURI
+    : naturalId
+      ? `natural:${naturalId}${player.characterVoices ? `+cast${castChoicesKey(choices) ? `|${castChoicesKey(choices)}` : ""}` : ""}`
+      : narration.kind;
   const readsText = narration.kind === "speech" || narration.kind === "natural";
   const [text, setText] = useState<string[] | null>(null);
   useEffect(() => {
@@ -322,8 +332,8 @@ function Engine({
     };
     const v = voiceRef.current;
     const naturalKey = narrationKey.startsWith("natural:") ? narrationKey.slice("natural:".length) : null;
-    const natural = naturalKey ? naturalVoice(naturalKey.replace(/\+cast$/, "")) : null;
-    const characterVoices = Boolean(naturalKey?.endsWith("+cast"));
+    const natural = naturalKey ? naturalVoice(naturalKey.replace(/\+cast.*$/, "")) : null;
+    const characterVoices = Boolean(naturalKey?.includes("+cast"));
     const n =
       narrationKey === "recording" && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
@@ -335,7 +345,7 @@ function Engine({
             : (() => {
                 // Members' parts are voiced as they listen and kept on this device, so they play
                 // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
-                const part = memberVoicePart(book.id, natural, text, characterVoices);
+                const part = memberVoicePart(book.id, natural, text, characterVoices, choicesRef.current);
                 const ahead = voiceAhead(text, part.keep, part.count);
                 return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces);
               })()

@@ -42,6 +42,10 @@ const DEMO_UPLOADS: DemoUpload[] = [
           "The letter was waiting under the door when she came down. No stamp, no postmark, only her name in careful copperplate and a smear of green wax where a seal had once been.",
           "Inside was a single line: The clock is running fast. Ask the archivist why.",
           "Juno read it three times. There was no archivist in Saltmarsh, and there had not been one since the reading room flooded, years before she was born.",
+          // A short exchange with named speakers, so Who reads whom has someone to list in the demo.
+          "“Where did you find that?” asked Ezra, the harbourmaster's boy, leaning in the doorway.",
+          "“Under my door,” said Juno. “Have you ever heard of an archivist?”",
+          "“Only in my grandfather's stories,” said Ezra. “He said she kept the tide tables, before the flood.”",
         ].join("\n\n"),
       },
       {

@@ -13003,7 +13003,7 @@ alter table public.household_challenges
 -- What's new: Theme challenges for the household. src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
-select '2026-11-07'::date, '2026.11', 'feature', $lw$Theme challenges for the household$lw$, $lw$Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which.$lw$, false
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Theme challenges for the household$lw$, $lw$Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which. Discover suggests books for the themes you haven't covered yet.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Theme challenges for the household$lw$ and c.released_on = '2026-11-07');
 
 -- =============================================================================
@@ -13047,10 +13047,10 @@ grant update (chapters_per_week) on public.book_clubs to authenticated;
 -- Same text as src/data/legalPages.json; made once.
 
 update public.legal_pages
-set sections = replace(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it.", "A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's."$lw$)::jsonb
+set sections = replace(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it.", "A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's. Until you've read the week's chapters, the bell reminds you (in clubs with alerts on)."$lw$)::jsonb
 where slug = $lw$help$lw$
   and strpos(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$) > 0
-  and strpos(sections::text, $lw$A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's.$lw$) = 0;
+  and strpos(sections::text, $lw$A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's. Until you've read the week's chapters, the bell reminds you (in clubs with alerts on).$lw$) = 0;
 
 
 -- =============================================================================
@@ -13059,7 +13059,7 @@ where slug = $lw$help$lw$
 -- What's new: Reading schedules for book clubs. src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
-select '2026-11-07'::date, '2026.11', 'feature', $lw$Reading schedules for book clubs$lw$, $lw$A club's owner can now set how many chapters a week the club reads. Everyone sees this week's chapters on the club's page, and whether they're on track, ahead or behind.$lw$, false
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Reading schedules for book clubs$lw$, $lw$A club's owner can now set how many chapters a week the club reads. Everyone sees this week's chapters on the club's page, and whether they're on track, ahead or behind, and the bell reminds them until they've read it.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Reading schedules for book clubs$lw$ and c.released_on = '2026-11-07');
 
 -- =============================================================================
@@ -13089,3 +13089,115 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Voice a whole upload for offline listening$lw$, $lw$In the player, Voice the whole book (under the natural voice reading your upload) has your natural voice read every part now, on Wi-Fi, and keeps it on your device, so the whole book plays offline. Parts already voiced don't count towards the month's natural-voice reading.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Voice a whole upload for offline listening$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006745_character_voices_all_languages_help.sql
+-- =============================================================================
+-- Character voices find speech and speakers in every language natural voices read: Help says so.
+-- Same text as src/data/legalPages.json, matched as stored (after 6729); made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Names are found in English, French, German and Spanish books; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Names are found in English, French, German and Spanish books; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$) > 0
+  and strpos(sections::text, $lw$Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006746_whats_new_character_voices_all_languages.sql
+-- =============================================================================
+-- What's new: Character voices in every language. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$Character voices in every language$lw$, $lw$Character voices now find who's talking in all 20 languages natural voices read your uploads in, from Italian, Polish and Russian to Chinese, Japanese, Korean, Hindi and Arabic: each language's quotation marks, dialogue that starts with a dash, and the words that name the speaker.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Character voices in every language$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006747_natural_voices_bulgarian_romanian_help.sql
+-- =============================================================================
+-- Natural voices read Bulgarian and Romanian too (bg-BG, ro-RO): Help's language count and list.
+-- Same text as src/data/legalPages.json; each change made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 19 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Bulgarian and Romanian. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$) > 0
+  and strpos(sections::text, $lw$Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 19 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Bulgarian and Romanian. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian and Romanian. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$) > 0
+  and strpos(sections::text, $lw$Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian and Romanian. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006748_whats_new_bulgarian_romanian.sql
+-- =============================================================================
+-- What's new: Natural voices in Bulgarian and Romanian. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Natural voices in Bulgarian and Romanian$lw$, $lw$Natural voices now read your Bulgarian and Romanian uploads in their own language, with Character voices that find who's talking there too. That makes 20 languages in all.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices in Bulgarian and Romanian$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006749_read_along_words_accessibility.sql
+-- =============================================================================
+-- The read-along marks the word being spoken: the Accessibility Policy says so. Same text as
+-- src/data/legalPages.json; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration."$lw$, $lw$"In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration, marking the sentence being read and, where it shows the book's own text, the word being spoken (underlined and bold, so it doesn't rely on colour)."$lw$)::jsonb
+where slug = $lw$accessibility$lw$
+  and strpos(sections::text, $lw$"In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration."$lw$) > 0
+  and strpos(sections::text, $lw$In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration, marking the sentence being read and, where it shows the book's own text, the word being spoken (underlined and bold, so it doesn't rely on colour).$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006750_whats_new_read_along_words.sql
+-- =============================================================================
+-- What's new: The read-along marks each word. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$The read-along marks each word$lw$, $lw$Where the read-along shows the book's own text, including your uploads read by a natural voice, it now underlines the word being spoken inside the sentence being read.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$The read-along marks each word$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006751_cast_choices.sql
+-- =============================================================================
+-- Who reads whom (lib/castChoices.ts, components/CastChoices.tsx): the voices a profile chose for
+-- named speakers, per book, kept with its player settings as {book id: {speaker: voice}} (up to 100
+-- books and 50 speakers each, checked in the browser and by the natural-voice function).
+
+alter table public.reader_profiles
+  add column if not exists cast_choices jsonb not null default '{}'::jsonb;
+
+alter table public.reader_profiles drop constraint if exists reader_profiles_cast_choices_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_cast_choices_check
+  check (jsonb_typeof(cast_choices) = 'object' and pg_column_size(cast_choices) <= 65536);
+
+grant select (cast_choices) on public.reader_profiles to authenticated;
+grant update (cast_choices) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261107006752_cast_choices_help.sql
+-- =============================================================================
+-- Who reads whom: Help says a speaker's voice can be chosen. Same text as src/data/legalPages.json,
+-- matched as stored (after 6745); made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$) > 0
+  and strpos(sections::text, $lw$Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006753_whats_new_cast_choices.sql
+-- =============================================================================
+-- What's new: Choose who reads each character. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Choose who reads each character$lw$, $lw$With Character voices on, Player settings now lists your upload's named speakers under Who reads whom: pick a voice for anyone, and the rest keep the voices chosen for them.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Choose who reads each character$lw$ and c.released_on = '2026-11-07');

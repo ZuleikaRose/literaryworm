@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Choose who reads each character",
+    "body": "With Character voices on, Player settings now lists your upload's named speakers under Who reads whom: pick a voice for anyone, and the rest keep the voices chosen for them.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "The read-along marks each word",
     "body": "Where the read-along shows the book's own text, including your uploads read by a natural voice, it now underlines the word being spoken inside the sentence being read.",
     "major": false
