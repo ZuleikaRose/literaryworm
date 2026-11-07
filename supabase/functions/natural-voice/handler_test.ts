@@ -2,7 +2,7 @@
 // Google are all stand-ins.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { chapterPieces, naturalVoice, naturalVoiceLimit, voiceSegments } from "../_shared/naturalVoice.ts";
+import { chapterPieces, naturalVoice, naturalVoiceLimit, piecePronunciations, pronunciationKey, sayAs, voiceSegments } from "../_shared/naturalVoice.ts";
 import { type Deps, handle } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
@@ -170,5 +170,31 @@ Deno.test("character voices: the listener's choice of voice for a speaker, check
       ? { uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, cast: true, castChoices }
       : { uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, castChoices };
     assertEquals((await handle(post(body), d)).status, 400, JSON.stringify(body));
+  }
+});
+
+Deno.test("pronunciations: a piece with the name is sent respelled and kept apart; others keep their files", async () => {
+  const { d, calls } = deps();
+  const pronunciations = { Elizabeth: "ih-LIZ-uh-beth", Darcy: "DAR-see" };
+  const res = await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 0, voice: VOICE, pronunciations }), d);
+  assertEquals(res.status, 200);
+  const says = piecePronunciations(TALK, pronunciations);
+  const path = `${USER}/${UPLOAD}/${VOICE}-2-0-p${pronunciationKey(says)}.mp3`;
+  assertEquals(await res.json(), { url: `https://signed/${path}` });
+  assertEquals(calls.synthesize, [sayAs(TALK, pronunciations)]);
+  assertEquals(calls.synthesize[0].includes("ih-LIZ-uh-beth") && calls.synthesize[0].includes("DAR-see"), true);
+  // Asked again, the kept copy plays.
+  await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 0, voice: VOICE, pronunciations }), d);
+  assertEquals(calls.synthesize.length, 1);
+  // A chapter without the names is the ordinary file.
+  const plain = await handle(post({ uploadId: UPLOAD, chapter: 0, segment: 0, voice: VOICE, pronunciations }), d);
+  assertEquals(await plain.json(), { url: `https://signed/${USER}/${UPLOAD}/${VOICE}-0-0.mp3` });
+});
+
+Deno.test("pronunciations: checked", async () => {
+  const { d } = deps();
+  for (const pronunciations of [["x"], { Elizabeth: "" }, { Elizabeth: "<break/>" }, { "": "x" }, { Elizabeth: 3 }]) {
+    const res = await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 0, voice: VOICE, pronunciations }), d);
+    assertEquals(res.status, 400, JSON.stringify(pronunciations));
   }
 });

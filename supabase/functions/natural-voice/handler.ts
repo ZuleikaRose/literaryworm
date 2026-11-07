@@ -8,11 +8,13 @@
 // account's monthly allowance (NATURAL_VOICE_HOURS by plan). Only the piece's text goes to
 // Google, nothing about the member. With "cast" (character voices), the chapter is cut by
 // chapterPieces() into narration and speech and the piece is read by the voice it gives (the
-// narrator's, or a character voice in the same language), kept under its own name.
+// narrator's, or a character voice in the same language), kept under its own name. With
+// "pronunciations" (the listener's respellings of names), a piece with one of the words is sent with
+// its respelling and kept under a name of its own (pronunciationKey()); the others are untouched.
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { CAST_CHOICES_MAX, chapterPieces, naturalVoice, naturalVoiceLimit, parseCastChoices, voiceFile } from "../_shared/naturalVoice.ts";
+import { CAST_CHOICES_MAX, chapterPieces, naturalVoice, naturalVoiceLimit, parseCastChoices, parsePronunciations, piecePronunciations, PRONUNCIATIONS_MAX, pronunciationKey, sayAs, voiceFile } from "../_shared/naturalVoice.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 const METHODS = "POST";
@@ -53,7 +55,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     requireMethod(req, ["POST"]);
     const userId = await deps.user(req);
     const body = await readJsonBody(req);
-    onlyKeys(body, ["uploadId", "chapter", "segment", "voice", "cast", "castChoices"]);
+    onlyKeys(body, ["uploadId", "chapter", "segment", "voice", "cast", "castChoices", "pronunciations"]);
     if (typeof body.uploadId !== "string" || !UPLOAD_ID.test(body.uploadId)) {
       throw new HttpError("bad_request", "uploadId must be an uploaded book's id.");
     }
@@ -74,6 +76,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       choices = parseCastChoices(raw);
       if (Object.keys(choices).length !== Object.keys(raw).length) throw new HttpError("bad_request", "castChoices has a voice that isn't offered.");
     }
+    // The listener's respellings of names in this book: every entry must be one that can be kept.
+    let pronunciations = {};
+    if (body.pronunciations !== undefined) {
+      const raw = body.pronunciations;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).length > PRONUNCIATIONS_MAX) {
+        throw new HttpError("bad_request", "pronunciations must be words and how to say them.");
+      }
+      pronunciations = parsePronunciations(raw);
+      if (Object.keys(pronunciations).length !== Object.keys(raw).length) throw new HttpError("bad_request", "pronunciations has an entry that can't be used.");
+    }
+    const respelled = Object.keys(pronunciations).length > 0;
 
     const upload = await deps.upload(userId, uploadId);
     if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
@@ -82,8 +95,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const plan = await deps.plan(userId);
     if (!plan) throw new HttpError("forbidden", "Natural voices come with a membership.");
 
-    // Without character voices the piece's file is known at once, so a kept one costs no text read.
-    if (!cast) {
+    // Without character voices or respellings the piece's file is known at once, so a kept one costs no text read.
+    if (!cast && !respelled) {
       const kept = await deps.signedUrl(voiceFile(userId, uploadId, voice.id, chapter, segment));
       if (kept) return json(req, METHODS, { url: kept });
     }
@@ -93,14 +106,16 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const pieces = chapterPieces(chapters[chapter], voice, cast, choices);
     if (segment >= pieces.length) throw new HttpError("bad_request", `segment must be below ${pieces.length}.`);
     const piece = pieces[segment];
-    const path = voiceFile(userId, uploadId, piece.voice, chapter, segment, piece.cast);
-    if (cast) {
+    // Only the respellings of words in this piece count, so pieces without them keep their files.
+    const says = piecePronunciations(piece.text, pronunciations);
+    const path = voiceFile(userId, uploadId, piece.voice, chapter, segment, piece.cast, pronunciationKey(says));
+    if (cast || respelled) {
       const kept = await deps.signedUrl(path);
       if (kept) return json(req, METHODS, { url: kept });
     }
 
     await deps.rateLimit?.(userId);
-    const text = piece.text;
+    const text = sayAs(piece.text, says);
 
     if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan)))) {
       throw new HttpError("limit_reached", "This month's natural-voice reading is used up.");

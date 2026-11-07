@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Fix how a name is said",
+    "body": "If a natural voice says a name wrong in one of your uploads, spell how it sounds under Pronunciations in Player settings. Only the parts with that name are read again, and the page keeps the book's spelling.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "update",
     "title": "Hear character voices in the demo",
     "body": "The demo's sample upload The Tide Clock is now read by natural voices, with Juno and Ezra in voices of their own when Character voices is on. Choose who reads whom and hear the change straight away.",

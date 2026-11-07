@@ -194,8 +194,94 @@ export const VOICE_BUCKET = "upload-voices";
  * Where one voiced piece is kept: the account's folder, then the upload's, so both delete as a
  * folder. Pieces cut for character voices (chapterPieces()) are numbered apart, with a "c".
  */
-export function voiceFile(userId: string, uploadId: string, voiceId: string, chapter: number, segment: number, cast = false): string {
-  return `${userId}/${uploadId}/${voiceId}-${chapter}-${cast ? "c" : ""}${segment}.mp3`;
+export function voiceFile(userId: string, uploadId: string, voiceId: string, chapter: number, segment: number, cast = false, sayKey = ""): string {
+  return `${userId}/${uploadId}/${voiceId}-${chapter}-${cast ? "c" : ""}${segment}${sayKey ? `-p${sayKey}` : ""}.mp3`;
+}
+
+/**
+ * Pronunciations: a listener's respellings of names (or words) a natural voice says wrongly, per
+ * book: the word as the book writes it, to how it sounds ("Hermione" to "her-MY-oh-nee"). Only the
+ * text sent to Google changes (sayAs()), never what the reader or the read-along shows, and a piece
+ * gets a file of its own (pronunciationKey()) only when it has one of the words, so the rest of
+ * the book is never voiced again.
+ */
+export type Pronunciations = Record<string, string>;
+
+/** The most words a book can have respelled. */
+export const PRONUNCIATIONS_MAX = 50;
+export const PRONOUNCE_WORD_MAX = 40;
+export const PRONOUNCE_SAY_MAX = 60;
+// Letters (any script) with spaces, hyphens and apostrophes between them.
+const PRONOUNCEABLE = /^[\p{L}\p{M}]+(?:[ '’-][\p{L}\p{M}]+)*-?$/u;
+
+/** Whether a word and its respelling can be kept (both tidied first: trimmed, single spaces). */
+export function validPronunciation(word: string, say: string): boolean {
+  return (
+    word.length > 0 &&
+    word.length <= PRONOUNCE_WORD_MAX &&
+    say.length > 0 &&
+    say.length <= PRONOUNCE_SAY_MAX &&
+    PRONOUNCEABLE.test(word) &&
+    PRONOUNCEABLE.test(say) &&
+    word.toLowerCase() !== say.toLowerCase()
+  );
+}
+
+const tidy = (s: string) => s.trim().replace(/\s+/g, " ");
+
+/** A book's pronunciations from anywhere (the database, a request): valid ones only, one per word. */
+export function parsePronunciations(value: unknown): Pronunciations {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const out: Pronunciations = {};
+  const seen = new Set<string>();
+  for (const [rawWord, rawSay] of Object.entries(value as Record<string, unknown>)) {
+    if (Object.keys(out).length >= PRONUNCIATIONS_MAX) break;
+    if (typeof rawSay !== "string") continue;
+    const word = tidy(rawWord);
+    const say = tidy(rawSay);
+    if (!validPronunciation(word, say) || seen.has(word.toLowerCase())) continue;
+    seen.add(word.toLowerCase());
+    out[word] = say;
+  }
+  return out;
+}
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// The word on its own (not inside a longer one), in any case, spaces matching any run of spaces.
+const wordPattern = (word: string) =>
+  new RegExp(`(?<![\\p{L}\\p{M}])${word.split(" ").map(escapeRegExp).join("\\s+")}(?![\\p{L}\\p{M}])`, "giu");
+// Longest first, so "Mary Anne" is respelled before "Mary".
+const byLength = (pron: Pronunciations) => Object.keys(pron).sort((a, b) => b.length - a.length || (a < b ? -1 : 1));
+
+/** The pronunciations whose words are in `text`. */
+export function piecePronunciations(text: string, pron: Pronunciations): Pronunciations {
+  const out: Pronunciations = {};
+  for (const word of byLength(pron)) if (wordPattern(word).test(text)) out[word] = pron[word];
+  return out;
+}
+
+/** `text` as it's sent to Google: each word replaced by its respelling. */
+export function sayAs(text: string, pron: Pronunciations): string {
+  let out = text;
+  for (const word of byLength(pron)) out = out.replace(wordPattern(word), pron[word]);
+  return out;
+}
+
+/** A short key for a set of pronunciations ("" for none), the same in the browser and the function. */
+export function pronunciationKey(pron: Pronunciations): string {
+  const entries = Object.keys(pron)
+    .map((w) => `${w.toLowerCase()}=${pron[w]}`)
+    .sort();
+  if (!entries.length) return "";
+  // FNV-1a over the UTF-16 code units, 32 bits.
+  let hash = 0x811c9dc5;
+  for (const ch of entries.join("\n")) {
+    for (let i = 0; i < ch.length; i++) {
+      hash ^= ch.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+  }
+  return hash.toString(16).padStart(8, "0");
 }
 
 /**

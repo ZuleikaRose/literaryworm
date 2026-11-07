@@ -13201,3 +13201,55 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Choose who reads each character$lw$, $lw$With Character voices on, Player settings now lists your upload's named speakers under Who reads whom: pick a voice for anyone, and the rest keep the voices chosen for them.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Choose who reads each character$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006754_whats_new_demo_character_voices.sql
+-- =============================================================================
+-- What's new: Hear character voices in the demo. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$Hear character voices in the demo$lw$, $lw$The demo's sample upload The Tide Clock is now read by natural voices, with Juno and Ezra in voices of their own when Character voices is on. Choose who reads whom and hear the change straight away.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Hear character voices in the demo$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006755_pronunciations.sql
+-- =============================================================================
+-- Pronunciations (lib/pronunciations.ts, components/Pronunciations.tsx): a profile's respellings of
+-- names a natural voice says wrongly, per book, kept with its player settings as
+-- {book id: {word: how it sounds}} (up to 100 books and 50 words each, checked in the browser and
+-- by the natural-voice function).
+
+alter table public.reader_profiles
+  add column if not exists pronunciations jsonb not null default '{}'::jsonb;
+
+alter table public.reader_profiles drop constraint if exists reader_profiles_pronunciations_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_pronunciations_check
+  check (jsonb_typeof(pronunciations) = 'object' and pg_column_size(pronunciations) <= 131072);
+
+grant select (pronunciations) on public.reader_profiles to authenticated;
+grant update (pronunciations) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261107006756_pronunciations_policies.sql
+-- =============================================================================
+-- Pronunciations: Help explains them; the Privacy Policy says they're kept and sent. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.", "Pronunciations (in Player settings, for an upload a natural voice reads): if a name comes out wrong, type it as the book writes it and spell how it sounds, like her-MY-oh-nee for Hermione. The respelling is sent to Google in place of the name, and only the parts with that name are voiced again, which counts towards the month's natural-voice reading. The page and the read-along keep the book's own spelling. Up to 50 a book, kept with your player settings on every device."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Pronunciations (in Player settings, for an upload a natural voice reads): if a name comes out wrong, type it as the book writes it and spell how it sounds, like her-MY-oh-nee for Hermione. The respelling is sent to Google in place of the name, and only the parts with that name are voiced again, which counts towards the month's natural-voice reading. The page and the read-along keep the book's own spelling. Up to 50 a book, kept with your player settings on every device.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.", "Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006757_whats_new_pronunciations.sql
+-- =============================================================================
+-- What's new: Fix how a name is said. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Fix how a name is said$lw$, $lw$If a natural voice says a name wrong in one of your uploads, spell how it sounds under Pronunciations in Player settings. Only the parts with that name are read again, and the page keeps the book's spelling.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Fix how a name is said$lw$ and c.released_on = '2026-11-07');

@@ -283,6 +283,8 @@ export interface PlayerSettings {
   bookSpeeds: Record<string, number>;
   /** Voices chosen for named speakers, by book (lib/castChoices.ts): speaker (lower case) to voice. */
   castChoices: Record<string, Record<string, string>>;
+  /** Respellings of names a natural voice says wrongly, by book (lib/pronunciations.ts): word to how it sounds. */
+  pronunciations: Record<string, Record<string, string>>;
 }
 
 /** One day of a profile's reading and listening, for goals and streaks. */

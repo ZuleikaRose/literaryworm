@@ -12,7 +12,7 @@ import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordin
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { demoVoicePart } from "../lib/demoVoices";
 import { memberVoicePart, voiceAhead } from "../lib/naturalVoiceOffline";
-import { naturalVoice } from "../lib/naturalVoice";
+import { naturalVoice, pronunciationKey } from "../lib/naturalVoice";
 import { speedFor } from "../lib/bookSpeed";
 import { castChoicesKey } from "../lib/castChoices";
 import { useReading } from "../lib/useReading";
@@ -300,10 +300,17 @@ function Engine({
   useEffect(() => {
     choicesRef.current = choices;
   });
+  // So do respellings of names (pronunciations), which change what's sent to Google.
+  const pronunciations = player.pronunciations?.[book.id] ?? {};
+  const pronunciationsRef = useRef(pronunciations);
+  useEffect(() => {
+    pronunciationsRef.current = pronunciations;
+  });
+  const sayKey = pronunciationKey(pronunciations);
   const narrationKey = voice
     ? voice.voiceURI
     : naturalId
-      ? `natural:${naturalId}${player.characterVoices ? `+cast${castChoicesKey(choices) ? `|${castChoicesKey(choices)}` : ""}` : ""}`
+      ? `natural:${naturalId}${sayKey ? `+say|${sayKey}` : ""}${player.characterVoices ? `+cast${castChoicesKey(choices) ? `|${castChoicesKey(choices)}` : ""}` : ""}`
       : narration.kind;
   const readsText = narration.kind === "speech" || narration.kind === "natural";
   const [text, setText] = useState<string[] | null>(null);
@@ -332,7 +339,7 @@ function Engine({
     };
     const v = voiceRef.current;
     const naturalKey = narrationKey.startsWith("natural:") ? narrationKey.slice("natural:".length) : null;
-    const natural = naturalKey ? naturalVoice(naturalKey.replace(/\+cast.*$/, "")) : null;
+    const natural = naturalKey ? naturalVoice(naturalKey.replace(/\+.*$/, "")) : null;
     const characterVoices = Boolean(naturalKey?.includes("+cast"));
     const n =
       narrationKey === "recording" && book.recording
@@ -348,7 +355,7 @@ function Engine({
             : (() => {
                 // Members' parts are voiced as they listen and kept on this device, so they play
                 // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
-                const part = memberVoicePart(book.id, natural, text, characterVoices, choicesRef.current);
+                const part = memberVoicePart(book.id, natural, text, characterVoices, choicesRef.current, pronunciationsRef.current);
                 const ahead = voiceAhead(text, part.keep, part.count);
                 return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces);
               })()

@@ -64,7 +64,7 @@ export function VoiceWholeBook({ book }: { book: Book }) {
       return;
     }
     stop.current = false;
-    const part = memberVoicePart(book.id, narrator, chapters, player.characterVoices, player.castChoices?.[book.id] ?? {});
+    const part = memberVoicePart(book.id, narrator, chapters, player.characterVoices, player.castChoices?.[book.id] ?? {}, player.pronunciations?.[book.id] ?? {});
     let done = 0;
     setRun({ kind: "running", done });
     for (const [c, s] of plan.parts) {

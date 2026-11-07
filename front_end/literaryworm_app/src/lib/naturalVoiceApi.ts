@@ -25,7 +25,15 @@ const friendly = (code: string) => tr(Object.hasOwn(FRIENDLY, code) ? FRIENDLY[c
 
 /** A link (good for an hour) to one voiced piece of an upload, voicing it first if it's new. */
 /** `voice` is the narrator; with `cast`, the piece is one of chapterPieces() with character voices, read in its own voice. */
-export async function naturalVoiceUrl(uploadId: string, chapter: number, segment: number, voice: string, cast = false, castChoices: Record<string, string> = {}): Promise<string> {
+export async function naturalVoiceUrl(
+  uploadId: string,
+  chapter: number,
+  segment: number,
+  voice: string,
+  cast = false,
+  castChoices: Record<string, string> = {},
+  pronunciations: Record<string, string> = {},
+): Promise<string> {
   const token = supabase ? (await supabase.auth.getSession()).data.session?.access_token : undefined;
   if (!token) throw new NaturalVoiceError(friendly("unauthorized"));
   let res: Response;
@@ -33,7 +41,15 @@ export async function naturalVoiceUrl(uploadId: string, chapter: number, segment
     res = await fetch(`${SUPABASE_URL}/functions/v1/natural-voice`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(cast ? { uploadId, chapter, segment, voice, cast, ...(Object.keys(castChoices).length ? { castChoices } : {}) } : { uploadId, chapter, segment, voice }),
+      body: JSON.stringify({
+        uploadId,
+        chapter,
+        segment,
+        voice,
+        ...(cast ? { cast, ...(Object.keys(castChoices).length ? { castChoices } : {}) } : {}),
+        // Only the respellings of words in this part are sent.
+        ...(Object.keys(pronunciations).length ? { pronunciations } : {}),
+      }),
     });
   } catch {
     throw new NaturalVoiceError(friendly("network"));

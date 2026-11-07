@@ -142,6 +142,7 @@ export const defaultPlayerSettings: PlayerSettings = {
   characterVoices: false,
   bookSpeeds: {},
   castChoices: {},
+  pronunciations: {},
 };
 /** Opening and closing credits in the sample audiobooks. */
 export const CREDITS_SECONDS = 30;

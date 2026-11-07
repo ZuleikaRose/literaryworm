@@ -1711,6 +1711,27 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("keeps a pronunciation for a name in an upload, checks it, and removes it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const dialog = page.getByRole("dialog", { name: "Player settings" });
+    const section = dialog.getByRole("region", { name: "Pronunciations" });
+    await section.getByLabel("Name or word").fill("Ezra");
+    await section.getByRole("button", { name: "Add" }).click();
+    await section.getByRole("alert").filter({ hasText: "Type how it sounds." }).waitFor();
+    await section.getByLabel("Sounds like").fill("EZ-ruh");
+    await section.getByRole("button", { name: "Add" }).click();
+    await section.locator(".pronunciations-list li").waitFor();
+    await expect(section.locator(".pronunciations-list li").innerText()).resolves.toMatch(/Ezra\s+sounds like\s+EZ-ruh/);
+    expect(await section.getByRole("alert").count()).toBe(0);
+    await section.getByRole("button", { name: "Remove the pronunciation of Ezra" }).click();
+    expect(await section.locator(".pronunciations-list").count()).toBe(0);
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("exports Avery's notes as a PDF", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
