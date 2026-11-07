@@ -272,3 +272,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Character voices: `castSegments()` / `speakerVoice()` / `chapterPieces()` in `lib/naturalVoice.ts` (+ `castVoices.test.ts`), `naturalNarrator(..., piecesFor)`, `memberVoicePart(upload, narrator, chapters, cast)`, the switch in `PlayerSettingsDialog`; migrations 6726–6728 |
 | — | A speed for each book: `lib/bookSpeed.ts` (+ test), `usePlayerSettings(bookId)`, switch in `PlayerSettingsDialog`; migrations 6731–6732 |
 | — | Bedtime in the Kids report: `bedtimeWeek()` (+ tests), `lib/useBedtimeTime.ts`, `addBedtimeSeconds()`, late minutes in `useDailyLimit`, Family line; migrations 6733–6735 |
+| — | Theme challenges: `THEME_PROMPTS`, `themesCovered()` (+ tests), `lib/themeBooks.ts`, the theme list in `ChallengesView`; migrations 6736–6737 |

@@ -897,6 +897,8 @@ describe("the demo household", () => {
     await goInApp(page, "/library?view=goals");
     const section = page.locator(".challenges");
     await section.getByRole("list", { name: /Progress in/ }).first().waitFor();
+    // The demo's themes challenge lists its nine themes.
+    await expect(section.getByRole("list", { name: "Themes in Reading around: 6 themes" }).getByRole("listitem").count()).resolves.toBe(9);
     await section.getByRole("button", { name: "Start a challenge" }).click();
     await section.getByLabel("Count").selectOption("days");
     await section.getByLabel("Target").fill("10");

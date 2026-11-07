@@ -2332,3 +2332,22 @@ body:has(.mini-player) .listen-along-bar {
 .wishlist-note {
   margin: 0 0 12px;
 }
+
+/* A themes challenge's prompts, each ticked with who covered it. */
+.challenge-themes {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.challenge-themes li {
+  color: var(--muted);
+}
+.challenge-theme-done {
+  color: var(--ink);
+}
+.challenge-theme-done svg {
+  color: var(--success);
+  vertical-align: -2px;
+}

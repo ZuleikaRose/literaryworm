@@ -19,6 +19,8 @@ import {
 } from "../lib/challenges";
 import { today } from "../lib/reading";
 import { useChallenges } from "../lib/useChallenges";
+import { THEME_PROMPTS, themesCovered } from "../lib/challenges";
+import { themeBookOf } from "../lib/themeBooks";
 import { useStore } from "../store/context";
 import type { Profile } from "../types";
 import { Avatar } from "./Avatar";
@@ -157,7 +159,10 @@ function ChallengeCard({
   const status = challengeStatus(c, now);
   const joined = c.participants.includes(profile.id);
   const daysByProfile = Object.fromEntries(state.profiles.map((p) => [p.id, state.profileData[p.id]?.readingDays]));
-  const rows = standings(c, daysByProfile);
+  const rows = standings(c, daysByProfile, themeBookOf);
+  // A themes challenge lists its prompts, each with who has covered it.
+  const coveredBy = (themeId: string) =>
+    c.participants.filter((p) => themesCovered(daysByProfile[p] ?? {}, c.startsOn, c.endsOn, themeBookOf).includes(themeId));
   const nameOf = (id: string) => state.profiles.find((p) => p.id === id);
   const left = daysLeft(c, now);
   const when =
@@ -221,6 +226,20 @@ function ChallengeCard({
             );
           })}
         </ol>
+      )}
+
+      {c.kind === "themes" && (
+        <ul className="challenge-themes" aria-label={t("Themes in {title}", { title: c.title })}>
+          {THEME_PROMPTS.map((p) => {
+            const who = coveredBy(p.id).map((id) => nameOf(id)?.name).filter(Boolean);
+            return (
+              <li key={p.id} className={who.length ? "challenge-theme-done" : undefined}>
+                {who.length > 0 && <Icon name="check" size={15} />} {t(p.label)}
+                {who.length > 0 && <span className="goal-hint"> · {who.join(", ")}</span>}
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       {error && (
@@ -321,7 +340,7 @@ function StartChallenge({ profile, onCancel, onStarted }: { profile: Profile; on
             type="number"
             inputMode="numeric"
             min={1}
-            max={CHALLENGE_TARGET_MAX}
+            max={kind === "themes" ? THEME_PROMPTS.length : CHALLENGE_TARGET_MAX}
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             aria-describedby={error ? errorId : undefined}

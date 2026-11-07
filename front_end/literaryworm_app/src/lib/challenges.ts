@@ -8,7 +8,7 @@ import { activeLanguage, dateLocale, tk, tr } from "./i18n";
  * date, YYYY-MM-DD), the same records as goals and stats. The limits match the database.
  */
 
-export type ChallengeKind = "books" | "hours" | "days";
+export type ChallengeKind = "books" | "hours" | "days" | "themes";
 
 export interface Challenge {
   id: string;
@@ -28,7 +28,49 @@ export const CHALLENGE_KINDS: { value: ChallengeKind; label: string }[] = [
   { value: "books", label: tk("Books finished") },
   { value: "hours", label: tk("Hours reading and listening") },
   { value: "days", label: tk("Days with reading") },
+  { value: "themes", label: tk("Themes covered") },
 ];
+
+/** What a theme prompt needs to know about a finished book (catalog books; others can't be told). */
+export interface ThemeBook {
+  year: number;
+  genres: string[];
+  pages: number;
+  language: string;
+  inSeries: boolean;
+}
+
+const hasGenre = (b: ThemeBook, ...genres: string[]) => b.genres.some((g) => genres.includes(g));
+
+/**
+ * The prompts of a *Themes covered* challenge: finishing one book that fits covers a theme, and
+ * the target is how many to cover (up to all nine). Worked out from the catalog's details of the
+ * books finished in the challenge's dates.
+ */
+export const THEME_PROMPTS: { id: string; label: string; fits: (b: ThemeBook) => boolean }[] = [
+  { id: "old", label: tk("A book from before 1900"), fits: (b) => b.year > 0 && b.year < 1900 },
+  { id: "language", label: tk("A book in another language than English"), fits: (b) => b.language !== "en" },
+  { id: "mystery", label: tk("A mystery, thriller or ghost story"), fits: (b) => hasGenre(b, "Mystery", "Thriller", "Horror") },
+  { id: "worlds", label: tk("Science fiction, fantasy or myth"), fits: (b) => hasGenre(b, "Science fiction", "Fantasy", "Mythology") },
+  { id: "true", label: tk("A true story"), fits: (b) => hasGenre(b, "History", "Biography", "Memoir", "Science", "Self-development") },
+  { id: "poetry", label: tk("Poetry"), fits: (b) => hasGenre(b, "Poetry") },
+  { id: "long", label: tk("A book of 400 pages or more"), fits: (b) => b.pages >= 400 },
+  { id: "series", label: tk("A book in a series"), fits: (b) => b.inSeries },
+  { id: "young", label: tk("A book for young readers"), fits: (b) => hasGenre(b, "Children's", "Young adult") },
+];
+
+/** Books finished in the dates (ids, as each day lists them). */
+function finishedIn(days: Record<string, ReadingDay>, startsOn: string, endsOn: string): string[] {
+  const ids: string[] = [];
+  for (const [day, d] of Object.entries(days)) if (day >= startsOn && day <= endsOn) ids.push(...(d.books ?? []));
+  return ids;
+}
+
+/** The theme ids a profile's finished books cover in the dates. */
+export function themesCovered(days: Record<string, ReadingDay>, startsOn: string, endsOn: string, bookOf: (id: string) => ThemeBook | undefined): string[] {
+  const books = finishedIn(days, startsOn, endsOn).map(bookOf).filter((b): b is ThemeBook => Boolean(b));
+  return THEME_PROMPTS.filter((p) => books.some(p.fits)).map((p) => p.id);
+}
 
 export const CHALLENGES_MAX = 20;
 export const CHALLENGE_TITLE_MAX = 80;
@@ -45,6 +87,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 export function unit(kind: ChallengeKind, n: number): string {
   if (kind === "books") return tr.plural(n, { one: "book", other: "books" });
   if (kind === "hours") return tr.plural(n, { one: "hour", other: "hours" });
+  if (kind === "themes") return tr.plural(n, { one: "theme", other: "themes" });
   return tr.plural(n, { one: "day", other: "days" });
 }
 
@@ -52,6 +95,7 @@ export function unit(kind: ChallengeKind, n: number): string {
 function amount(kind: ChallengeKind, n: number): string {
   if (kind === "books") return tr.plural(n, { one: "{count} book", other: "{count} books" });
   if (kind === "hours") return tr.plural(n, { one: "{count} hour", other: "{count} hours" });
+  if (kind === "themes") return tr.plural(n, { one: "{count} theme", other: "{count} themes" });
   return tr.plural(n, { one: "{count} day", other: "{count} days" });
 }
 
@@ -59,7 +103,14 @@ function amount(kind: ChallengeKind, n: number): string {
 export const challengeLength = (startsOn: string, endsOn: string) => Math.round((toTime(endsOn) - toTime(startsOn)) / DAY_MS) + 1;
 
 /** How far a profile has got: books finished, whole hours, or days with a minute's reading, in the range. */
-export function challengeValue(kind: ChallengeKind, days: Record<string, ReadingDay>, startsOn: string, endsOn: string): number {
+export function challengeValue(
+  kind: ChallengeKind,
+  days: Record<string, ReadingDay>,
+  startsOn: string,
+  endsOn: string,
+  bookOf: (id: string) => ThemeBook | undefined = () => undefined,
+): number {
+  if (kind === "themes") return themesCovered(days, startsOn, endsOn, bookOf).length;
   let books = 0;
   let seconds = 0;
   let daysRead = 0;
@@ -89,10 +140,14 @@ export interface Standing {
 }
 
 /** Everyone who joined, furthest along first (ties keep the order they joined). */
-export function standings(c: Challenge, daysByProfile: Record<string, Record<string, ReadingDay> | undefined>): Standing[] {
+export function standings(
+  c: Challenge,
+  daysByProfile: Record<string, Record<string, ReadingDay> | undefined>,
+  bookOf?: (id: string) => ThemeBook | undefined,
+): Standing[] {
   return c.participants
     .map((profileId) => {
-      const value = challengeValue(c.kind, daysByProfile[profileId] ?? {}, c.startsOn, c.endsOn);
+      const value = challengeValue(c.kind, daysByProfile[profileId] ?? {}, c.startsOn, c.endsOn, bookOf);
       return { profileId, value, done: value >= c.target };
     })
     .sort((a, b) => b.value - a.value);
@@ -157,5 +212,6 @@ export function challengeError(input: ChallengeInput, today: string): string | n
   const length = challengeLength(input.startsOn, input.endsOn);
   if (length > CHALLENGE_DAYS_MAX) return tr("A challenge can run for a year at most.");
   if (input.kind === "days" && input.target > length) return tr("There are only {n} days in that range.", { n: length });
+  if (input.kind === "themes" && input.target > THEME_PROMPTS.length) return tr("There are {n} themes to cover.", { n: THEME_PROMPTS.length });
   return null;
 }

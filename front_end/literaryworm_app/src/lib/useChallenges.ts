@@ -4,6 +4,7 @@ import { AccountError } from "./accountApi";
 import { type Challenge, type ChallengeInput, CHALLENGES_MAX, defaultTitle, presetRange } from "./challenges";
 import * as challengesApi from "./challengesApi";
 import { today } from "./reading";
+import { tr } from "./i18n";
 
 /**
  * The household's challenges: Supabase for members, an in-memory sample for the demo (one
@@ -24,6 +25,17 @@ function seedDemo(profileIds: string[]): Challenge[] {
       ...range,
       createdBy: profileIds[0] ?? null,
       participants: profileIds.slice(0, 2),
+    },
+    {
+      // Themes covered, over the last two months and the next: Avery's finished books tick some.
+      id: "demo-themes",
+      title: tr("Reading around: 6 themes"),
+      kind: "themes",
+      target: 6,
+      startsOn: today(new Date(Date.now() - 59 * 86_400_000)),
+      endsOn: today(new Date(Date.now() + 30 * 86_400_000)),
+      createdBy: profileIds[0] ?? null,
+      participants: profileIds.slice(0, 1),
     },
   ];
 }

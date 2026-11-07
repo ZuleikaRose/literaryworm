@@ -1,6 +1,9 @@
 import { describe, expect, it } from "@jest/globals";
 import type { ReadingDay } from "../types";
 import {
+  THEME_PROMPTS,
+  type ThemeBook,
+  themesCovered,
   type Challenge,
   challengeError,
   challengeLength,
@@ -125,5 +128,34 @@ describe("challengeError", () => {
     expect(challengeError({ ...ok, startsOn: "2026-09-01", endsOn: "2026-09-30" }, today)).toMatch(/haven't passed/);
     expect(challengeError({ ...ok, endsOn: "2027-11-30" }, today)).toMatch(/a year at most/);
     expect(challengeError({ ...ok, kind: "days", target: 31 }, today)).toMatch(/only 30 days/);
+  });
+});
+
+describe("themes covered", () => {
+  const books: Record<string, ThemeBook> = {
+    old: { year: 1818, genres: ["Classics", "Horror"], pages: 280, language: "en", inSeries: false },
+    french: { year: 1950, genres: ["Literary fiction"], pages: 500, language: "fr", inSeries: true },
+    poems: { year: 1950, genres: ["Poetry"], pages: 90, language: "en", inSeries: false },
+  };
+  const bookOf = (id: string) => books[id];
+  const days: Record<string, ReadingDay> = {
+    "2026-11-02": { seconds: 600, finished: 1, books: ["old"] },
+    "2026-11-05": { seconds: 600, finished: 2, books: ["french", "unknown"] },
+    "2026-10-01": { seconds: 600, finished: 1, books: ["poems"] },
+  };
+
+  it("counts each theme a book finished in the dates fits, once", () => {
+    // old: before 1900 + a ghost story; french: another language + 400 pages + a series. Poems were before the start.
+    expect(themesCovered(days, "2026-11-01", "2026-11-30", bookOf).sort()).toEqual(["language", "long", "mystery", "old", "series"]);
+    expect(challengeValue("themes", days, "2026-11-01", "2026-11-30", bookOf)).toBe(5);
+    expect(challengeValue("themes", days, "2026-11-01", "2026-11-30")).toBe(0);
+  });
+
+  it("keeps the target to the nine themes, and handles empty input", () => {
+    const input = { title: "Around", kind: "themes" as const, target: 10, startsOn: "2026-11-01", endsOn: "2026-11-30" };
+    expect(challengeError(input, "2026-11-01")).toMatch(/9 themes/);
+    expect(challengeError({ ...input, target: 9 }, "2026-11-01")).toBeNull();
+    expect(themesCovered({}, "2026-11-01", "2026-11-30", bookOf)).toEqual([]);
+    expect(THEME_PROMPTS).toHaveLength(9);
   });
 });

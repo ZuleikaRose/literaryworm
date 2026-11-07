@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Theme challenges for the household",
+    "body": "Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Bedtime in the Kids reading report",
     "body": "Account → Family and the Monday email now show, for each Kids profile with a bedtime, how many nights of the last week it was kept, and how long it spent in Bedtime listening.",
     "major": false
