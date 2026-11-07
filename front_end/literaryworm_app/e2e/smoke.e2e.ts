@@ -629,6 +629,8 @@ describe("the demo household", () => {
     await bell.click();
     const panel = page.getByRole("region", { name: "Notifications" });
     await panel.getByText("Sunday Classics", { exact: true }).waitFor();
+    // The club's reading schedule: this week's chapters, not yet read.
+    await panel.getByText(/^This week in Sunday Classics: chapters \d+ to \d+/).waitFor();
     await page.keyboard.press("Escape");
     await expect(panel.count()).resolves.toBe(0);
     await expect(bell.evaluate((b) => b === document.activeElement)).resolves.toBe(true);

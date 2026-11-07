@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { perWeekError, scheduleStanding, scheduleWeek, scheduleWeeks } from "./clubSchedule";
+import { perWeekError, scheduleAlerts, scheduleStanding, scheduleWeek, scheduleWeeks } from "./clubSchedule";
 
 describe("a club's reading schedule", () => {
   it("counts weeks from the start, with that week's chapters", () => {
@@ -30,5 +30,28 @@ describe("a club's reading schedule", () => {
     expect(perWeekError(0)).not.toBeNull();
     expect(perWeekError(2.5)).not.toBeNull();
     expect(scheduleWeek("2026-11-01", 3, "2026-11-01", 0)).toMatchObject({ from: 0, to: 0, finished: true });
+  });
+});
+
+describe("schedule alerts in the bell", () => {
+  const clubs = [
+    { id: "a", name: "Sunday Classics", startsOn: "2026-11-01", chaptersPerWeek: 5 },
+    { id: "b", name: "No schedule", startsOn: "2026-11-01", chaptersPerWeek: null },
+    { id: "c", name: "Quiet", startsOn: "2026-11-01", chaptersPerWeek: 5 },
+    { id: "d", name: "Done this week", startsOn: "2026-11-01", chaptersPerWeek: 5 },
+  ];
+  const places: Record<string, number> = { a: 11, c: 0, d: 14 };
+  const book = (id: string) => (id in places ? { place: places[id], chapters: 61 } : null);
+
+  it("reminds about this week's chapters until they're read, in clubs with alerts on", () => {
+    const alerts = scheduleAlerts(clubs, (id) => id === "c", book, "2026-11-16");
+    expect(alerts.map((a) => [a.clubId, a.week.week, a.week.from, a.week.to])).toEqual([["a", 3, 10, 14]]);
+    expect(alerts[0].at).toBe(Date.UTC(2026, 10, 15));
+  });
+
+  it("says nothing before a club starts, past the end, or with no clubs", () => {
+    expect(scheduleAlerts(clubs, () => false, book, "2026-10-30")).toEqual([]);
+    expect(scheduleAlerts(clubs, () => false, book, "2027-06-01")).toEqual([]);
+    expect(scheduleAlerts([], () => false, book, "2026-11-16")).toEqual([]);
   });
 });

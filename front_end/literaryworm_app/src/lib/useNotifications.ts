@@ -8,6 +8,9 @@ import { bellCount, type ClubNews, clubNews, releasedReminders } from "./notific
 import { renewalReminder, yearlyOffer } from "./billing";
 import { type MeetingAlert, meetingAlerts } from "./clubCalendar";
 import { type PollAlert, pollAlerts } from "./clubPolls";
+import { type ScheduleAlert, scheduleAlerts } from "./clubSchedule";
+import { clubBook } from "./clubs";
+import { getBook } from "../data/books";
 import * as clubsApi from "./clubsApi";
 import { demoPollsFor } from "./useClubPolls";
 import { goalAlerts } from "./goals";
@@ -39,6 +42,8 @@ export function useNotifications() {
   const [meetings, setMeetings] = useState<MeetingAlert[]>([]);
   // Open club polls this member hasn't voted in (clubs with alerts on; not ones they started).
   const [polls, setPolls] = useState<PollAlert[]>([]);
+  // This week's chapters in clubs with a reading schedule, until they're read.
+  const [schedules, setSchedules] = useState<ScheduleAlert[]>([]);
   // The time goals and the renewal are judged at: when the bell mounts, and again when the tab comes back.
   const [now, setNow] = useState(() => Date.now());
 
@@ -55,6 +60,20 @@ export function useNotifications() {
       const [list, memberships, soon, me] = await Promise.all([clubs.list(), clubs.memberships(), clubs.soonMeetings(), clubs.myId()]);
       setNews(clubNews(list, memberships, latest.current, uploadsRef.current));
       setMeetings(meetingAlerts(soon, (clubId) => memberships[clubId]?.notify === false, me));
+      setSchedules(
+        scheduleAlerts(
+          list,
+          (clubId) => memberships[clubId]?.notify === false,
+          (clubId) => {
+            const club = list.find((c) => c.id === clubId);
+            const book = club ? clubBook(club, uploadsRef.current, getBook) : undefined;
+            if (!book) return null;
+            const p = latest.current[book.id];
+            return { place: p ? (p.finished ? book.chapters.length - 1 : p.chapterIndex) : -1, chapters: book.chapters.length };
+          },
+          today(),
+        ),
+      );
       const open = remote
         ? await clubsApi.loadOpenPolls()
         : list.flatMap((c) => demoPollsFor(c.id).filter((p) => p.closedAt === null).map((poll) => ({ poll, clubName: c.name })));
@@ -93,6 +112,7 @@ export function useNotifications() {
   const shownNews = withClubs ? news : [];
   const shownMeetings = withClubs ? meetings : [];
   const shownPolls = withClubs ? polls : [];
+  const shownSchedules = withClubs ? schedules : [];
   // Most of the month's listening used (Basic and Standard); a grown-up's concern, so not on Kids profiles.
   const planId = state.account?.planId ?? null;
   const listening = useMemo(
@@ -134,6 +154,7 @@ export function useNotifications() {
     ...(offer ? [offer] : []),
     ...shownMeetings,
     ...shownPolls,
+    ...shownSchedules,
     ...requests,
   ]);
 
@@ -148,5 +169,5 @@ export function useNotifications() {
     }
   }, [profile, remote, dispatch]);
 
-  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, polls: shownPolls, listening, natural, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
+  return { released, authorNews: data.authorNews, news: shownNews, meetings: shownMeetings, polls: shownPolls, schedules: shownSchedules, listening, natural, renewal, offer, goals, badges: newBadges, requests, count, seenAt, withClubs, markSeen, refresh };
 }

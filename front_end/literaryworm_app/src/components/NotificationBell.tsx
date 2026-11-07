@@ -27,7 +27,7 @@ function meetingText(t: T, club: string, iso: string): string {
  * club posts stop counting once the club is opened.
  */
 export function NotificationBell() {
-  const { released, authorNews, news, meetings, polls, listening, natural, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
+  const { released, authorNews, news, meetings, polls, schedules, listening, natural, renewal, offer, goals, badges, requests, count, seenAt, withClubs, markSeen, refresh } = useNotifications();
   const { open, setOpen, close, wrapRef, triggerRef } = usePopover();
   const t = useT();
   const planId = useStore().state.account?.planId ?? null;
@@ -44,7 +44,7 @@ export function NotificationBell() {
     setOpen(!open);
   };
   const listeningNext = listening ? nextPlanUp(planId) : null;
-  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && natural === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && requests.length === 0;
+  const empty = released.length === 0 && news.length === 0 && authorNews.length === 0 && listening === null && natural === null && renewal === null && offer === null && goals.length === 0 && badges.length === 0 && meetings.length === 0 && polls.length === 0 && schedules.length === 0 && requests.length === 0;
   const plan = planId ? planById.get(planId) : undefined;
   const switchPlan = renewal?.switchToMonthly ? planById.get(renewal.switchToMonthly) : undefined;
   const offerPlan = offer ? planById.get(offer.planId) : undefined;
@@ -241,7 +241,7 @@ export function NotificationBell() {
                   </ul>
                 </>
               )}
-              {(news.length > 0 || meetings.length > 0 || polls.length > 0) && (
+              {(news.length > 0 || meetings.length > 0 || polls.length > 0 || schedules.length > 0) && (
                 <>
                   <p className="popover-label">{t("Book clubs")}</p>
                   <ul className="bell-list" role="list">
@@ -269,6 +269,22 @@ export function NotificationBell() {
                               {isNewAlert(at, seenBefore) && <span className="bell-new">{t("New")}</span>}
                             </strong>
                             <small>{t("Vote on what to read next")}</small>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                    {schedules.map((s) => (
+                      <li key={`schedule-${s.clubId}`}>
+                        <Link className="bell-item" to={`/clubs/${s.clubId}`} onClick={() => close(false)}>
+                          <Icon name="library" size={18} />
+                          <span>
+                            <strong>
+                              {s.week.from === s.week.to
+                                ? t("This week in {club}: chapter {from}", { club: s.clubName, from: s.week.from + 1 })
+                                : t("This week in {club}: chapters {from} to {to}", { club: s.clubName, from: s.week.from + 1, to: s.week.to + 1 })}
+                              {isNewAlert(s.at, seenBefore) && <span className="bell-new">{t("New")}</span>}
+                            </strong>
+                            <small>{t("Reading schedule · week {n}", { n: s.week.week })}</small>
                           </span>
                         </Link>
                       </li>

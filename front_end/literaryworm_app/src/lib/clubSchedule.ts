@@ -63,3 +63,34 @@ export function perWeekError(value: number | null): string | null {
   if (value === null) return null;
   return Number.isInteger(value) && value >= 1 && value <= CHAPTERS_PER_WEEK_MAX ? null : tk("Choose how many chapters a week.");
 }
+
+export interface ScheduleAlert {
+  clubId: string;
+  clubName: string;
+  week: ScheduleWeek;
+  /** When the week began (ms): new in the bell until it's opened after that. */
+  at: number;
+}
+
+/**
+ * A bell alert for each club with a schedule whose chapters this week the member hasn't finished
+ * (their chapter is before the week's last), in clubs with alerts on. `place` is the member's
+ * chapter index in the club's book (-1 before starting), `chapters` the book's chapter count.
+ */
+export function scheduleAlerts(
+  clubs: { id: string; name: string; startsOn: string; chaptersPerWeek?: number | null }[],
+  notifyOff: (clubId: string) => boolean,
+  book: (clubId: string) => { place: number; chapters: number } | null,
+  today: string,
+): ScheduleAlert[] {
+  const alerts: ScheduleAlert[] = [];
+  for (const club of clubs) {
+    if (!club.chaptersPerWeek || notifyOff(club.id) || today < club.startsOn) continue;
+    const b = book(club.id);
+    if (!b || b.chapters === 0) continue;
+    const week = scheduleWeek(club.startsOn, club.chaptersPerWeek, today, b.chapters);
+    if (week.finished || b.place >= week.to) continue;
+    alerts.push({ clubId: club.id, clubName: club.name, week, at: toTime(week.startsOn) });
+  }
+  return alerts;
+}
