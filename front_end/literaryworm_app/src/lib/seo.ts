@@ -37,7 +37,7 @@ export const plansDescription = () =>
 
 /** What the membership includes, for the Product's description (keep it true to the app). */
 export const MEMBERSHIP_DESCRIPTION =
-  "Ebooks and audiobooks with a profile for everyone at home: 877 public-domain classics to read in full and hear on LibriVox recordings, your own DRM-free EPUBs read aloud by device or natural voices, book clubs and buddy reads, goals, moods and stats, Kids profiles with daily limits and bedtimes, and AI summaries, content notes and translations. Billed monthly or yearly.";
+  "Ebooks and audiobooks with a profile for everyone at home: 877 public-domain classics to read in full and hear on LibriVox recordings, your own DRM-free EPUBs read aloud by device or natural voices, book clubs and buddy reads, goals, moods and stats, Kids profiles with daily limits and bedtimes, and AI summaries, content notes and translations. Billed monthly or yearly, with the first 7 days free.";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 
