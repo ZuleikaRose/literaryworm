@@ -6,6 +6,7 @@ import { usePlayerControls } from "../lib/usePlayerControls";
 import { canRecap } from "../lib/recap";
 import { RecapDialog } from "./RecapDialog";
 import { ClipDialog } from "./ClipDialog";
+import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { usePopover } from "../lib/usePopover";
 import type { Book } from "../types";
 import { Cover } from "./Cover";
@@ -31,6 +32,7 @@ function MiniPlayerView({ book }: { book: Book }) {
   const playback = usePlayback();
   const controls = usePlayerControls(book);
   const { live, places, player, total, position } = controls;
+  const naturalSource = useNaturalVoice(book);
   const { open: menuOpen, toggle: toggleMenu, close: closeMenu, wrapRef, triggerRef } = usePopover();
   const menuId = useId();
   const [panel, setPanel] = useState<Panel>(null);
@@ -146,7 +148,7 @@ function MiniPlayerView({ book }: { book: Book }) {
                 <li>
                   <CastButton className="menu-item" recording />
                 </li>
-                {book.recording && (
+                {(book.recording || (book.upload && naturalSource !== null)) && (
                   <li>
                     <button type="button" className="menu-item" onClick={choose(() => setPanel("clip"))}>
                       <Icon name="share" size={16} /> {t("Share a clip")}
@@ -256,7 +258,7 @@ function MiniPlayerView({ book }: { book: Book }) {
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} withPlayback />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
       <RecapDialog open={panel === "recap"} book={book} chapterIndex={places.chapterIndex} onClose={() => setPanel(null)} />
-      {panel === "clip" && <ClipDialog open book={book} chapterIndex={places.chapterIndex} offset={position - places.chapterStart} onClose={() => setPanel(null)} />}
+      {panel === "clip" && <ClipDialog open book={book} chapterIndex={places.chapterIndex} offset={position - places.chapterStart} chapterSeconds={places.chapterEnd - places.chapterStart} onClose={() => setPanel(null)} />}
     </section>
   );
 }

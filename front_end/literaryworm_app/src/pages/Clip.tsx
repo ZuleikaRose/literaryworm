@@ -8,6 +8,8 @@ import { ESSENTIAL } from "../lib/consent";
 import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
 import { rich } from "../lib/i18n";
+import { isUploadId } from "../lib/uploads";
+import { UploadClip } from "../components/UploadClip";
 
 /**
  * A shared audio clip (lib/clips.ts), public: a short stretch of a LibriVox recording, streamed
@@ -15,6 +17,12 @@ import { rich } from "../lib/i18n";
  */
 export default function ClipPage() {
   const { bookId = "" } = useParams();
+  const [params] = useSearchParams();
+  // Clips from uploads play only for the household they belong to. Each clip's address starts afresh.
+  return isUploadId(bookId) ? <UploadClip key={params.toString()} uploadId={bookId} /> : <RecordingClip bookId={bookId} />;
+}
+
+function RecordingClip({ bookId }: { bookId: string }) {
   const [params] = useSearchParams();
   const book = getBook(bookId);
   const tracks = book?.recording?.tracks ?? [];

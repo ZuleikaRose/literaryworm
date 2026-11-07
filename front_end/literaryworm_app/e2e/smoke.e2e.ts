@@ -1751,6 +1751,39 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shares a clip of an upload's natural voice that only the household can play", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    await page.getByRole("button", { name: "Share a clip" }).click();
+    const dialog = page.getByRole("dialog", { name: "Share a clip" });
+    await dialog.getByText(/the part you're listening to/).waitFor();
+    const link = await dialog.getByRole("textbox", { name: "Clip link" }).inputValue();
+    // Avery is partway through The Tide Clock, so the clip is from the part playing there.
+    const match = link.match(/\/clips\/u-d3e0a1000000000000000000000000a1\?c=(\d+)&p=(\d+)&a=\d+&l=30&v=en-GB-Chirp3-HD-Aoede&x=0$/);
+    expect(match).not.toBeNull();
+    const [, chapter, part] = match!;
+    const path = new URL(link).pathname + new URL(link).search;
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await goInApp(page, path);
+    await page.getByRole("heading", { level: 1, name: "The Tide Clock" }).waitFor();
+    await page.locator("button:enabled", { hasText: "Play clip" }).waitFor();
+    expect(await page.locator("audio").getAttribute("src")).toMatch(new RegExp(`/voices/demo/a1/en-GB-Chirp3-HD-Aoede-${chapter}-${part}\\.mp3$`));
+    // A link with a length that isn't offered, or a part past the chapter's end, plays nothing.
+    for (const bad of [path.replace("&l=30", "&l=0"), path.replace(/&p=\d+/, "&p=9999"), path.replace("&x=0", "")]) {
+      await goInApp(page, bad);
+      await page.getByRole("heading", { level: 1, name: /Clip not found|The Tide Clock/ }).waitFor();
+      await page.getByText(/link is incomplete/).waitFor();
+      expect(await page.locator("audio").count()).toBe(0);
+    }
+    expect(errors()).toEqual([]);
+    // Someone outside the household is asked to log in to the account it belongs to.
+    const visitor = await newPage();
+    await visitor.page.goto(`${BASE_URL}${path}`);
+    await visitor.page.getByText(/only their household can play it/).waitFor();
+    expect(await visitor.page.locator("audio").count()).toBe(0);
+  });
+
   it("prints Mia a certificate for her first finished book", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -336,7 +336,7 @@ function PlayerView({ book }: { book: Book }) {
                   <Icon name="moon" size={16} /> {t("Bedtime listening")}
                 </Link>
                 <CastButton recording={narration.kind === "recording"} />
-                {book.recording && (
+                {(book.recording || (book.upload && naturalOffered)) && (
                   <button type="button" className="text-button" onClick={() => setPanel("clip")}>
                     <Icon name="share" size={16} /> {t("Share a clip")}
                   </button>
@@ -480,7 +480,7 @@ function PlayerView({ book }: { book: Book }) {
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
       <RecapDialog open={panel === "recap"} book={book} chapterIndex={chapterIndex} onClose={() => setPanel(null)} />
-      {panel === "clip" && <ClipDialog open book={book} chapterIndex={chapterIndex} offset={position - chapterStart} onClose={() => setPanel(null)} />}
+      {panel === "clip" && <ClipDialog open book={book} chapterIndex={chapterIndex} offset={position - chapterStart} chapterSeconds={places.chapterEnd - chapterStart} onClose={() => setPanel(null)} />}
       <BookmarksDialog
         open={panel === "bookmarks"}
         onClose={() => setPanel(null)}

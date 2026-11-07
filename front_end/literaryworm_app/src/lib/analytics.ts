@@ -17,6 +17,8 @@ const PRIVATE_PATHS = [
   /^\/unsubscribe\b/,
   /^\/clubs\/join\//,
   /^\/lists\//,
+  // Clips from uploads name the upload.
+  /^\/clips\/u-/,
   /^\/support\b/,
   /^\/dashboard\b/,
   /^\/maintenance\b/,

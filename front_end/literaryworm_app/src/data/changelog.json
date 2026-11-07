@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Clips from your own books",
+    "body": "Share a clip now works for books you uploaded and hear in a natural voice: a link to the part you're listening to, which plays only for your household.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Certificates for young readers",
     "body": "Kids profiles can now print a certificate with their name for every badge they earn and for reading 7, 14, 30, 100 or 365 days in a row. Find them in My Library → Badges.",
     "major": false
