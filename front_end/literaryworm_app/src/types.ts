@@ -277,6 +277,8 @@ export interface PlayerSettings {
   /** Skip each chapter's spoken introduction and closing announcement as they come. */
   autoSkipIntro: boolean;
   autoSkipOutro: boolean;
+  /** Natural voices on uploads: what characters say is read by other voices (lib/naturalVoice.ts chapterPieces()). */
+  characterVoices: boolean;
 }
 
 /** One day of a profile's reading and listening, for goals and streaks. */

@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-// Checks that every natural voice the app offers (NATURAL_VOICES in src/lib/naturalVoice.ts) is one
-// Google Text-to-Speech has, by asking Google's voice list for each language. Run it after adding a
-// language. Free: listing voices voices nothing.
+// Checks that every natural voice the app offers (NATURAL_VOICES in src/lib/naturalVoice.ts), and
+// every character voice in each of their languages (CAST_NAMES), is one Google Text-to-Speech has,
+// by asking Google's voice list for each language. Run it after adding a language or a character
+// voice. Free: listing voices voices nothing.
 //
 // The key is read from GOOGLE_TTS_API_KEY in the environment or in .env.local (which git ignores);
 // it's never printed. Run from front_end/literaryworm_app (Node 23.6 or later):
 //   node scripts/check-natural-voices.mjs
 
 import { existsSync, readFileSync } from "node:fs";
-import { NATURAL_VOICES } from "../src/lib/naturalVoice.ts";
+import { CAST_NAMES, NATURAL_VOICES } from "../src/lib/naturalVoice.ts";
 
 function apiKey() {
   if (process.env.GOOGLE_TTS_API_KEY) return process.env.GOOGLE_TTS_API_KEY.trim();
@@ -30,11 +31,12 @@ for (const code of codes) {
     process.exit(1);
   }
   const names = new Set(((await res.json()).voices ?? []).map((v) => v.name));
-  for (const v of NATURAL_VOICES.filter((x) => x.languageCode === code)) {
-    const ok = names.has(v.id);
-    if (!ok) missing.push(v.id);
-    console.log(`${ok ? "ok     " : "MISSING"} ${v.id}`);
+  const ids = new Set([...NATURAL_VOICES.filter((x) => x.languageCode === code).map((v) => v.id), ...CAST_NAMES.map((n) => `${code}-Chirp3-HD-${n}`)]);
+  for (const id of ids) {
+    const ok = names.has(id);
+    if (!ok) missing.push(id);
+    console.log(`${ok ? "ok     " : "MISSING"} ${id}`);
   }
 }
-console.log(missing.length ? `\n${missing.length} voice(s) Google doesn't have: ${missing.join(", ")}` : "\nEvery natural voice exists.");
+console.log(missing.length ? `\n${missing.length} voice(s) Google doesn't have: ${missing.join(", ")}` : "\nEvery natural voice and character voice exists.");
 process.exit(missing.length ? 1 : 0);

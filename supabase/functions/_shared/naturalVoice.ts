@@ -185,7 +185,120 @@ export function voiceSegments(chapter: string): VoiceSegment[] {
 /** The private bucket the voiced pieces are kept in. */
 export const VOICE_BUCKET = "upload-voices";
 
-/** Where one voiced piece is kept: the account's folder, then the upload's, so both delete as a folder. */
-export function voiceFile(userId: string, uploadId: string, voiceId: string, chapter: number, segment: number): string {
-  return `${userId}/${uploadId}/${voiceId}-${chapter}-${segment}.mp3`;
+/**
+ * Where one voiced piece is kept: the account's folder, then the upload's, so both delete as a
+ * folder. Pieces cut for character voices (chapterPieces()) are numbered apart, with a "c".
+ */
+export function voiceFile(userId: string, uploadId: string, voiceId: string, chapter: number, segment: number, cast = false): string {
+  return `${userId}/${uploadId}/${voiceId}-${chapter}-${cast ? "c" : ""}${segment}.mp3`;
+}
+
+/**
+ * Character voices: when the listener turns them on, what the characters say (the text inside
+ * double quotes, “…”, "…", «…» or „…“) is read by other voices than the narration. A speaker named
+ * beside the words ("said Elizabeth", "Mr. Darcy replied") keeps the same voice all book long;
+ * words with no named speaker take the speaker named elsewhere in the same paragraph, else one
+ * voice kept for speech. Voices are dealt out, not matched to the character. Names are found in
+ * English books; in other languages speech still gets its own voice. Chapters with no speech are
+ * read exactly as without character voices (the same pieces, the same files).
+ */
+export const CAST_NAMES: readonly string[] = ["Charon", "Kore", "Puck", "Leda", "Fenrir", "Zephyr", "Orus", "Despina"];
+
+export interface VoicePiece extends VoiceSegment {
+  /** The voice that reads it (Google's name). */
+  voice: string;
+  /** Cut for character voices (numbered apart in voiceFile()). */
+  cast: boolean;
+}
+
+export interface CastSegment extends VoiceSegment {
+  speech: boolean;
+  /** The speaker named for it, when there is one. */
+  speaker: string | null;
+}
+
+const SAID =
+  "said|says|asked|asks|cried|replied|answered|shouted|whispered|exclaimed|continued|added|returned|called|muttered|murmured|began|remarked|observed|declared|repeated|insisted|demanded|inquired|enquired|sighed|laughed|growled|snapped";
+const NAME = "(?:(?:Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur)\\.?\\s+)?[A-Z][a-zà-ÿ'’-]+";
+const AFTER = new RegExp(`^[,.!?;:—–-]?\\s*(?:(${NAME})\\s+(?:${SAID})\\b|(?:${SAID})\\s+(${NAME}))`);
+const BEFORE = new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+(${NAME}))\\s*[,:]?\\s*$`);
+const NOT_NAMES = new Set(["he", "she", "i", "they", "it", "we", "you", "one", "the", "this", "that", "then", "there", "her", "his", "him", "someone", "everyone", "nobody", "somebody"]);
+// Words inside double quotes, to the end of the paragraph when the closing quote is left off (as
+// novels do when a speech runs on into the next paragraph).
+const QUOTED = /“[^”\n]*(?:”|(?=\n)|$)|"[^"\n]*(?:"|(?=\n)|$)|«[^»\n]*(?:»|(?=\n)|$)|„[^“”\n]*(?:[“”]|(?=\n)|$)/g;
+
+function speakerIn(match: RegExpExecArray | null): string | null {
+  const name = match ? (match[1] ?? match[2] ?? null) : null;
+  return name && !NOT_NAMES.has(name.toLowerCase()) ? name.replace(/\s+/g, " ") : null;
+}
+
+/**
+ * A chapter cut into narration and speech, each part as long as voiceSegments() allows, with the
+ * speaker named for each speech; null when the chapter has no speech (read as voiceSegments()).
+ */
+export function castSegments(chapter: string): CastSegment[] | null {
+  const quotes: { start: number; end: number; speaker: string | null }[] = [];
+  for (const m of chapter.matchAll(QUOTED)) {
+    const start = m.index ?? 0;
+    const end = start + m[0].length;
+    // Something to say: a letter or digit inside the quotes.
+    if (!/[\p{L}\p{N}]/u.test(m[0])) continue;
+    const lineStart = chapter.lastIndexOf("\n", start - 1) + 1;
+    const nextQuote = chapter.slice(end).search(/[“"«„\n]/);
+    const after = chapter.slice(end, nextQuote < 0 ? chapter.length : end + nextQuote);
+    const before = chapter.slice(Math.max(lineStart, start - 60), start);
+    quotes.push({ start, end, speaker: speakerIn(AFTER.exec(after)) ?? speakerIn(BEFORE.exec(before)) });
+  }
+  if (!quotes.length) return null;
+  // Unnamed speech takes the speaker named nearest it in the same paragraph.
+  const paragraphOf = (at: number) => chapter.lastIndexOf("\n", at - 1);
+  quotes.forEach((q, i) => {
+    if (q.speaker) return;
+    const p = paragraphOf(q.start);
+    for (let d = 1; d < quotes.length; d++) {
+      for (const j of [i - d, i + d]) {
+        const other = quotes[j];
+        if (other && other.speaker && paragraphOf(other.start) === p) {
+          q.speaker = other.speaker;
+          return;
+        }
+      }
+    }
+  });
+
+  const parts: CastSegment[] = [];
+  const add = (start: number, end: number, speech: boolean, speaker: string | null) => {
+    const text = chapter.slice(start, end);
+    // Narration between speeches that's only spaces and punctuation isn't read.
+    if (!/[\p{L}\p{N}]/u.test(text)) return;
+    for (const piece of voiceSegments(text)) parts.push({ offset: start + piece.offset, text: piece.text, speech, speaker });
+  };
+  let at = 0;
+  for (const q of quotes) {
+    add(at, q.start, false, null);
+    add(q.start, q.end, true, q.speaker);
+    at = q.end;
+  }
+  add(at, chapter.length, false, null);
+  return parts;
+}
+
+/** The character voice for a speech: another voice than the narrator's, the same one for a speaker every time. */
+export function speakerVoice(narrator: NaturalVoice, speaker: string | null): string {
+  const own = narrator.id.slice(narrator.id.lastIndexOf("-") + 1);
+  const pool = CAST_NAMES.filter((n) => n !== own);
+  let pick = pool[0];
+  if (speaker) {
+    let hash = 0;
+    for (const ch of speaker.toLowerCase()) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    pick = pool[1 + (hash % (pool.length - 1))];
+  }
+  return `${narrator.languageCode}-Chirp3-HD-${pick}`;
+}
+
+/** A chapter's pieces as the narrator reads them, with character voices or without. */
+export function chapterPieces(chapter: string, narrator: NaturalVoice, characterVoices: boolean): VoicePiece[] {
+  const cast = characterVoices ? castSegments(chapter) : null;
+  if (!cast) return voiceSegments(chapter).map((p) => ({ ...p, voice: narrator.id, cast: false }));
+  return cast.map((p) => ({ offset: p.offset, text: p.text, voice: p.speech ? speakerVoice(narrator, p.speaker) : narrator.id, cast: true }));
 }

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Character voices for your uploads",
+    "body": "Turn on Character voices in Player settings and a natural voice reading your upload hands what the characters say to other voices. Anyone named beside their words, as in \"said Elizabeth\", keeps the same voice all book long. Chapters with no speech are read as before.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Upload PDFs and Kindle books",
     "body": "My Library → Uploads now takes PDFs and DRM-free Kindle books (MOBI and AZW3) as well as EPUBs. They're read on your device and kept as text, like EPUBs, so you can search them, read them anywhere, listen with any voice and read them in a club. A PDF is split into parts at its bookmarks, or every 20 pages; scanned pages have no text to read.",
     "major": true

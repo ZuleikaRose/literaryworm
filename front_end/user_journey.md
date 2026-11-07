@@ -836,6 +836,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 263. **PDF and Kindle uploads.** Uploads' button is now *Choose books*, and the hint names EPUB, PDF and Kindle MOBI and AZW3. A PDF's text is rebuilt into paragraphs and split at its bookmarks (or *Pages 1–20*, *Pages 21–40*…); a Kindle book is split at its page breaks and headings. Both then behave exactly like an EPUB upload: search, reader, offline, voices, clubs. A password-locked PDF, a scanned one, a Kindle book with DRM or with Amazon's own compression each get a plain message saying why (and, for the last, to convert it with Calibre).
 
+264. **Character voices.** Player settings (in the player and the mini-player) has *Character voices*, under the intro and outro switches. With a natural voice reading an upload, what the characters say is read by other voices of the same language: a speaker named beside the words keeps one voice, unnamed speech has one voice of its own. Turning it on carries on from the same place; chapters without speech sound the same as before.
+
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 
 224. **Google Books cookies, said plainly.** Because we use the Google Books API, covers of Google Books titles and the Google Books preview load from books.google.com, and Google sets third-party cookies there. The Cookie Policy lists them, and the Privacy Policy, Help, the FAQ, the Children's Privacy Notice and the preview's note say so (migration 6618).

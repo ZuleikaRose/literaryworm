@@ -307,11 +307,13 @@ export function naturalNarrator(
   events: NarratorEvents,
   /** Told the chapter that's playing, each time a part starts (to keep parts ahead for offline). */
   playingChapter?: (chapter: number) => void,
+  /** How a chapter is cut into pieces (chapterPieces() with character voices; the same cut as `pieceUrl` uses). */
+  piecesFor: (text: string) => VoiceSegment[] = voiceSegments,
 ): Narrator {
   const audio = new Audio();
   audio.preload = "auto";
   const pieces: (VoiceSegment[] | undefined)[] = [];
-  const piecesOf = (c: number) => (pieces[c] ??= voiceSegments(chapters[c] ?? ""));
+  const piecesOf = (c: number) => (pieces[c] ??= piecesFor(chapters[c] ?? ""));
   const sizeOf = (c: number) => {
     const last = piecesOf(c).at(-1);
     return last ? last.offset + last.text.length : 1;

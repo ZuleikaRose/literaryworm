@@ -1351,13 +1351,14 @@ type PlayerRow = {
   skip_forward_seconds: number;
   auto_skip_intro: boolean;
   auto_skip_outro: boolean;
+  character_voices: boolean;
 };
 
 /** Every profile's player settings. Like goals, an extra: if they can't load, the player uses its defaults. */
 async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
   const { data, error } = await client()
     .from("reader_profiles")
-    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro");
+    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices");
   if (error) {
     console.error("player settings: couldn't load", error.message);
     return {};
@@ -1373,6 +1374,7 @@ async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
         skipForward: r.skip_forward_seconds,
         autoSkipIntro: r.auto_skip_intro,
         autoSkipOutro: r.auto_skip_outro,
+        characterVoices: r.character_voices,
       },
     ]),
   );
@@ -1390,6 +1392,7 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
       skip_forward_seconds: player.skipForward,
       auto_skip_intro: player.autoSkipIntro,
       auto_skip_outro: player.autoSkipOutro,
+      character_voices: player.characterVoices,
     })
     .eq("id", profileId);
   if (error) throw new AccountError("We couldn't save your player settings.");

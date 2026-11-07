@@ -39,11 +39,11 @@ export async function forgetUploadOffline(id: string): Promise<void> {
  * Natural-voice parts of an upload kept on this device, so a member can listen without a
  * connection: every part played, and the ones voiced ahead on Wi-Fi. Same cache, same clearing.
  */
-const voiceKey = (uploadId: string, voiceId: string, chapter: number, segment: number) =>
+const voiceKey = (uploadId: string, voiceId: string, chapter: number, segment: number | string) =>
   `/uploads/${uploadId}/voices/${voiceId}-${chapter}-${segment}.mp3`;
 
 /** Keeps a voiced part (from its signed link) on this device; false when it couldn't. */
-export async function keepVoiceOffline(uploadId: string, voiceId: string, chapter: number, segment: number, url: string): Promise<boolean> {
+export async function keepVoiceOffline(uploadId: string, voiceId: string, chapter: number, segment: number | string, url: string): Promise<boolean> {
   if (!available()) return false;
   const res = await fetch(url);
   if (!res.ok) return false;
@@ -52,7 +52,7 @@ export async function keepVoiceOffline(uploadId: string, voiceId: string, chapte
   return true;
 }
 
-export async function hasVoiceOffline(uploadId: string, voiceId: string, chapter: number, segment: number): Promise<boolean> {
+export async function hasVoiceOffline(uploadId: string, voiceId: string, chapter: number, segment: number | string): Promise<boolean> {
   if (!available()) return false;
   return Boolean(await caches.match(voiceKey(uploadId, voiceId, chapter, segment), { cacheName: CACHE }));
 }
@@ -61,7 +61,7 @@ export async function hasVoiceOffline(uploadId: string, voiceId: string, chapter
 const madeLinks: string[] = [];
 
 /** A playable link to a kept part, or null when it isn't on this device. */
-export async function offlineVoiceUrl(uploadId: string, voiceId: string, chapter: number, segment: number): Promise<string | null> {
+export async function offlineVoiceUrl(uploadId: string, voiceId: string, chapter: number, segment: number | string): Promise<string | null> {
   if (!available()) return null;
   const hit = await caches.match(voiceKey(uploadId, voiceId, chapter, segment), { cacheName: CACHE });
   if (!hit) return null;

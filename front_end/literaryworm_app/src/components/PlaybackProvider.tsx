@@ -12,6 +12,7 @@ import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordin
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { demoVoiceUrl } from "../lib/demoVoices";
 import { memberVoicePart, voiceAhead } from "../lib/naturalVoiceOffline";
+import { naturalVoice } from "../lib/naturalVoice";
 import { useReading } from "../lib/useReading";
 import { useProfileData, useStore } from "../store/context";
 import { emailKey } from "../store/state";
@@ -291,7 +292,8 @@ function Engine({
   useEffect(() => {
     naturalSourceRef.current = naturalSource;
   });
-  const narrationKey = voice ? voice.voiceURI : naturalId ? `natural:${naturalId}` : narration.kind;
+  // Character voices change how a natural voice cuts the chapters, so they're part of the key.
+  const narrationKey = voice ? voice.voiceURI : naturalId ? `natural:${naturalId}${player.characterVoices ? "+cast" : ""}` : narration.kind;
   const readsText = narration.kind === "speech" || narration.kind === "natural";
   const [text, setText] = useState<string[] | null>(null);
   useEffect(() => {
@@ -318,20 +320,23 @@ function Engine({
       },
     };
     const v = voiceRef.current;
-    const natural = narrationKey.startsWith("natural:") ? narrationKey.slice("natural:".length) : null;
+    const naturalKey = narrationKey.startsWith("natural:") ? narrationKey.slice("natural:".length) : null;
+    const natural = naturalKey ? naturalVoice(naturalKey.replace(/\+cast$/, "")) : null;
+    const characterVoices = Boolean(naturalKey?.endsWith("+cast"));
     const n =
       narrationKey === "recording" && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
         : natural && text
           ? naturalSourceRef.current === "demo"
             ? // The demo plays its recorded sample.
-              naturalNarrator(text, starts, lengths, (chapter, segment) => demoVoiceUrl(natural, chapter, segment), events)
+              // (Its letters have no speech, so character voices change nothing there.)
+              naturalNarrator(text, starts, lengths, (chapter, segment) => demoVoiceUrl(natural.id, chapter, segment), events)
             : (() => {
                 // Members' parts are voiced as they listen and kept on this device, so they play
                 // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
-                const part = memberVoicePart(book.id, natural);
-                const ahead = voiceAhead(text, part.keep);
-                return naturalNarrator(text, starts, lengths, part.url, events, ahead);
+                const part = memberVoicePart(book.id, natural, text, characterVoices);
+                const ahead = voiceAhead(text, part.keep, part.count);
+                return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces);
               })()
           : v && text
             ? speechNarrator(text, starts, lengths, v, events)

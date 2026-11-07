@@ -2,7 +2,7 @@
 // Google are all stand-ins.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { naturalVoiceLimit, voiceSegments } from "../_shared/naturalVoice.ts";
+import { chapterPieces, naturalVoice, naturalVoiceLimit, voiceSegments } from "../_shared/naturalVoice.ts";
 import { type Deps, handle } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
@@ -18,7 +18,8 @@ const post = (body: unknown, method = "POST") =>
   });
 
 const LONG = Array.from({ length: 40 }, (_, i) => `Sentence number ${i} goes on for a little while, as sentences do.`).join(" ");
-const CHAPTERS = ["Letter one. It was cold.", LONG];
+const TALK = "It was late. “Are you coming?” said Elizabeth. Mr. Darcy replied, “Not yet.”";
+const CHAPTERS = ["Letter one. It was cold.", LONG, TALK];
 
 function deps(overrides: Partial<Deps> = {}) {
   const calls = { synthesize: [] as string[], stored: [] as string[], claimed: [] as number[], released: 0, limited: 0 };
@@ -117,7 +118,9 @@ Deno.test("checks every field", async () => {
       { uploadId: UPLOAD, chapter: -1, segment: 0, voice: VOICE },
       { uploadId: UPLOAD, chapter: 0, segment: 0, voice: "en-GB-Wavenet-A" },
       { uploadId: UPLOAD, chapter: 0, segment: 0, voice: VOICE, text: "anything" },
-      { uploadId: UPLOAD, chapter: 2, segment: 0, voice: VOICE },
+      { uploadId: UPLOAD, chapter: 3, segment: 0, voice: VOICE },
+      { uploadId: UPLOAD, chapter: 0, segment: 0, voice: VOICE, cast: "yes" },
+      { uploadId: UPLOAD, chapter: 2, segment: 9, voice: VOICE, cast: true },
       { uploadId: UPLOAD, chapter: 0, segment: 5, voice: VOICE },
     ]
   ) {
@@ -135,4 +138,24 @@ Deno.test("each plan has an allowance; nothing else does", () => {
   assertEquals(naturalVoiceLimit("basic") > 0, true);
   assertEquals(naturalVoiceLimit("premium") > naturalVoiceLimit("standard"), true);
   assertEquals(naturalVoiceLimit("toString"), 0);
+});
+
+Deno.test("character voices: each piece in its own voice, kept apart from the narrator's pieces", async () => {
+  const { d, calls } = deps();
+  const pieces = chapterPieces(TALK, naturalVoice(VOICE)!, true);
+  const speech = pieces[1];
+  assertEquals(speech.cast, true);
+  const res = await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, cast: true }), d);
+  assertEquals(res.status, 200);
+  const path = `${USER}/${UPLOAD}/${speech.voice}-2-c1.mp3`;
+  assertEquals(await res.json(), { url: `https://signed/${path}` });
+  assertEquals(calls.synthesize, [speech.text]);
+  assertEquals(calls.stored, [path]);
+  // Asked again, the kept copy plays.
+  await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 1, voice: VOICE, cast: true }), d);
+  assertEquals(calls.synthesize.length, 1);
+
+  // A chapter with no speech is voiced as without character voices: the same file.
+  const plain = await handle(post({ uploadId: UPLOAD, chapter: 0, segment: 0, voice: VOICE, cast: true }), d);
+  assertEquals(await plain.json(), { url: `https://signed/${USER}/${UPLOAD}/${VOICE}-0-0.mp3` });
 });

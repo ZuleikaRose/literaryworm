@@ -775,6 +775,22 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("turns on character voices in player settings, and the profile keeps the choice", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    // The demo's Frankenstein sample: an upload with natural voices.
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a4");
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const dialog = page.getByRole("dialog", { name: "Player settings" });
+    const cast = dialog.getByRole("switch", { name: /Character voices/ });
+    await expect(cast.isChecked()).resolves.toBe(false);
+    await cast.check();
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    await expect(page.getByRole("dialog", { name: "Player settings" }).getByRole("switch", { name: /Character voices/ }).isChecked()).resolves.toBe(true);
+    expect(errors()).toEqual([]);
+  });
+
   it("is told about the 48-hour rule before cancelling, and sees the charge still to come after", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

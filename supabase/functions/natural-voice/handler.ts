@@ -1,4 +1,4 @@
-// POST /functions/v1/natural-voice  { "uploadId": "u-…", "chapter": 0, "segment": 0, "voice": "en-GB-Chirp3-HD-Aoede" }
+// POST /functions/v1/natural-voice  { "uploadId": "u-…", "chapter": 0, "segment": 0, "voice": "en-GB-Chirp3-HD-Aoede", "cast": false }
 // → { "url": "<a signed link to the MP3, good for an hour>" }
 //
 // A natural voice reading a member's own uploaded book: one piece of one chapter (voiceSegments()
@@ -6,11 +6,13 @@
 // Text-to-Speech the first time it's asked for and kept in the private upload-voices bucket, so
 // every later play is free. Members only, never on Kids profiles; new voicing counts against the
 // account's monthly allowance (NATURAL_VOICE_HOURS by plan). Only the piece's text goes to
-// Google, nothing about the member.
+// Google, nothing about the member. With "cast" (character voices), the chapter is cut by
+// chapterPieces() into narration and speech and the piece is read by the voice it gives (the
+// narrator's, or a character voice in the same language), kept under its own name.
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
-import { naturalVoice, naturalVoiceLimit, voiceFile, voiceSegments } from "../_shared/naturalVoice.ts";
+import { chapterPieces, naturalVoice, naturalVoiceLimit, voiceFile } from "../_shared/naturalVoice.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 const METHODS = "POST";
@@ -51,7 +53,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     requireMethod(req, ["POST"]);
     const userId = await deps.user(req);
     const body = await readJsonBody(req);
-    onlyKeys(body, ["uploadId", "chapter", "segment", "voice"]);
+    onlyKeys(body, ["uploadId", "chapter", "segment", "voice", "cast"]);
     if (typeof body.uploadId !== "string" || !UPLOAD_ID.test(body.uploadId)) {
       throw new HttpError("bad_request", "uploadId must be an uploaded book's id.");
     }
@@ -60,6 +62,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const segment = parseInt(body.segment, "segment", 0, 9999);
     const voice = typeof body.voice === "string" ? naturalVoice(body.voice) : null;
     if (!voice) throw new HttpError("bad_request", "voice must be one of the natural voices.");
+    if (body.cast !== undefined && typeof body.cast !== "boolean") throw new HttpError("bad_request", "cast must be true or false.");
+    const cast = body.cast === true;
 
     const upload = await deps.upload(userId, uploadId);
     if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
@@ -68,23 +72,32 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const plan = await deps.plan(userId);
     if (!plan) throw new HttpError("forbidden", "Natural voices come with a membership.");
 
-    const path = voiceFile(userId, uploadId, voice.id, chapter, segment);
-    const kept = await deps.signedUrl(path);
-    if (kept) return json(req, METHODS, { url: kept });
+    // Without character voices the piece's file is known at once, so a kept one costs no text read.
+    if (!cast) {
+      const kept = await deps.signedUrl(voiceFile(userId, uploadId, voice.id, chapter, segment));
+      if (kept) return json(req, METHODS, { url: kept });
+    }
 
-    await deps.rateLimit?.(userId);
     const chapters = await deps.chapters(upload.storagePath);
     if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
-    const pieces = voiceSegments(chapters[chapter]);
+    const pieces = chapterPieces(chapters[chapter], voice, cast);
     if (segment >= pieces.length) throw new HttpError("bad_request", `segment must be below ${pieces.length}.`);
-    const text = pieces[segment].text;
+    const piece = pieces[segment];
+    const path = voiceFile(userId, uploadId, piece.voice, chapter, segment, piece.cast);
+    if (cast) {
+      const kept = await deps.signedUrl(path);
+      if (kept) return json(req, METHODS, { url: kept });
+    }
+
+    await deps.rateLimit?.(userId);
+    const text = piece.text;
 
     if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan)))) {
       throw new HttpError("limit_reached", "This month's natural-voice reading is used up.");
     }
     let audio: Uint8Array;
     try {
-      audio = await deps.synthesize(text, voice.id, voice.languageCode);
+      audio = await deps.synthesize(text, piece.voice, voice.languageCode);
     } catch (err) {
       await deps.release(userId, text.length).catch((e: unknown) => console.error("natural-voice: couldn't hand back a claim", e));
       throw err;

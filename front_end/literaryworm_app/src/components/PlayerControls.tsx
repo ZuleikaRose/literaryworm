@@ -406,6 +406,21 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
             />
           </label>
         </li>
+        <li>
+          <label className="switch-row">
+            <span>
+              <strong>{t("Character voices")}</strong>
+              <small>{t("With a natural voice on your uploads, what the characters say is read by other voices. Each named speaker keeps one voice.")}</small>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              className="switch"
+              checked={player.characterVoices}
+              onChange={(e) => update({ characterVoices: e.target.checked })}
+            />
+          </label>
+        </li>
       </ul>
     </Dialog>
   );

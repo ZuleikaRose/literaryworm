@@ -12776,3 +12776,45 @@ where slug = $lw$help$lw$
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Upload PDFs and Kindle books$lw$, $lw$My Library → Uploads now takes PDFs and DRM-free Kindle books (MOBI and AZW3) as well as EPUBs. They're read on your device and kept as text, like EPUBs, so you can search them, read them anywhere, listen with any voice and read them in a club. A PDF is split into parts at its bookmarks, or every 20 pages; scanned pages have no text to read.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Upload PDFs and Kindle books$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006726_character_voices.sql
+-- =============================================================================
+-- Character voices (lib/naturalVoice.ts chapterPieces(), Player settings): a player setting per
+-- profile, like skipping intros. Natural voices on uploads read what the characters say in other
+-- voices. Kept with the other player settings; the profile's own account reads and changes it.
+
+alter table public.reader_profiles
+  add column if not exists character_voices boolean not null default false;
+
+grant select (character_voices) on public.reader_profiles to authenticated;
+grant update (character_voices) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261107006727_character_voices_policies.sql
+-- =============================================================================
+-- Character voices: Help says what they do and that they're counted; the Privacy Policy that parts
+-- sent to Google can be shorter with them on. Same text as src/data/legalPages.json, matched as
+-- stored. Each change is made once; a paragraph an editor has reworded is left as it is.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.", "Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long; the voices are dealt out, not matched to the character, and names are found in English books. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$)::jsonb
+where slug = $lw$help$lw$
+  and strpos(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 17 languages besides English, from French, Japanese and Chinese to Hindi, Arabic and Tagalog. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$) > 0
+  and strpos(sections::text, $lw$Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long; the voices are dealt out, not matched to the character, and names are found in English books. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, about a minute and a half at a time, nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account."$lw$, $lw$"Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, up to about a minute and a half at a time (shorter with Character voices on, which voice each speech apart), nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account."$lw$)::jsonb
+where slug = $lw$privacy$lw$
+  and strpos(sections::text, $lw$"Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, about a minute and a half at a time, nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account."$lw$) > 0
+  and strpos(sections::text, $lw$Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, up to about a minute and a half at a time (shorter with Character voices on, which voice each speech apart), nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account.$lw$) = 0;
+
+
+-- =============================================================================
+-- 20261107006728_whats_new_character_voices.sql
+-- =============================================================================
+-- What's new: Character voices for your uploads. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Character voices for your uploads$lw$, $lw$Turn on Character voices in Player settings and a natural voice reading your upload hands what the characters say to other voices. Anyone named beside their words, as in "said Elizabeth", keeps the same voice all book long. Chapters with no speech are read as before.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Character voices for your uploads$lw$ and c.released_on = '2026-11-07');
