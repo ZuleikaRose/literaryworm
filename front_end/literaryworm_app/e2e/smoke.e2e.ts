@@ -804,9 +804,12 @@ describe("the demo household", () => {
     await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
     await expect(page.getByRole("dialog", { name: "Player settings" }).getByRole("switch", { name: /Keep this speed for this book/ }).isChecked()).resolves.toBe(true);
     await page.getByRole("dialog", { name: "Player settings" }).getByRole("button", { name: "Close" }).click();
+    // Wait for each player to show its book before reading its speed (goInApp changes the page in place).
     await goInApp(page, "/listen/emma");
+    await page.getByRole("heading", { level: 1, name: "Emma" }).waitFor();
     await expect(page.getByLabel("Speed").inputValue()).resolves.toBe("1");
     await goInApp(page, "/listen/dune");
+    await page.getByRole("heading", { level: 1, name: "Dune" }).waitFor();
     await expect(page.getByLabel("Speed").inputValue()).resolves.toBe("2");
     expect(errors()).toEqual([]);
   });
