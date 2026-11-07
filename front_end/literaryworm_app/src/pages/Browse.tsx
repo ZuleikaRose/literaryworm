@@ -9,6 +9,7 @@ import { ReadingPlansCard } from "../components/ReadingPlansCard";
 import { Icon } from "../components/Icon";
 import { Shelf } from "../components/Shelf";
 import { KeywordIdeas } from "../components/KeywordIdeas";
+import { ThemeIdeas } from "../components/ThemeIdeas";
 import { WhatsNewLink } from "../components/WhatsNewLink";
 import { books, getBook, isAllowed } from "../data/books";
 import { type BrowseGenre, browseGenres, favouriteGenreId, genreHref, genreLabel, isBrowseGenre } from "../data/genres";
@@ -265,6 +266,7 @@ export default function Browse() {
         {newReleases.length > 0 && (
           <Shelf id="new" eyebrow={t("Just added")} title={t("New releases")} items={newReleases.map(fromLocal)} />
         )}
+        <ThemeIdeas inLibrary={inLibrary} />
         {feelGood.length > 0 && <Shelf id="feel-good" eyebrow={t("Books you tagged funny, hopeful and more")} title={t("Feel-good picks")} items={feelGood.map(fromLocal)} />}
         {otherLanguages.length > 0 && (
           <Shelf

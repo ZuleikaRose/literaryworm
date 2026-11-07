@@ -44,7 +44,7 @@
     "version": "2026.11",
     "kind": "feature",
     "title": "Theme challenges for the household",
-    "body": "Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which.",
+    "body": "Goals → Start a challenge can now count Themes covered: nine prompts such as a book from before 1900, a book in another language, poetry or a true story. Each finished book ticks the themes it fits, and the challenge shows who covered which. Discover suggests books for the themes you haven't covered yet.",
     "major": false
   },
   {

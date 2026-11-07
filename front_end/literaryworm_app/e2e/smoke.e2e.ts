@@ -396,6 +396,8 @@ describe("the demo household", () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     await page.getByRole("button", { name: /^Notifications/ }).waitFor();
+    // Avery's themes challenge suggests books for themes not covered yet.
+    await page.getByText("For your challenge: Reading around: 6 themes").first().waitFor();
     expect(errors()).toEqual([]);
   });
 
