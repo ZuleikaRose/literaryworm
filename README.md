@@ -521,5 +521,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Character voices in every language: speaker detection for all 18 natural-voice languages. Migrations 6745–6746 (text only); natural-voice redeploy. |
 | —    | Natural voices in Bulgarian and Romanian (20 languages), with speaker detection. Migrations 6747–6748 (text only); natural-voice redeploy. |
 | —    | Who reads whom (cast_choices), club schedule reminders in the bell, theme ideas on Discover, word marking in the read-along. Migrations 6749–6753; natural-voice redeploy. |
+| —    | Demo character voices, pronunciations, club pace votes, Kids certificates, clips from uploads, ranked theme ideas, read-along in the reader. Migrations 6754–6768; natural-voice redeploy. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

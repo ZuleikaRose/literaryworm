@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6753, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6768, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -357,6 +357,7 @@
             ["", "character_voices", "boolean"],
             ["", "book_speeds", "jsonb {book: speed}"],
             ["", "cast_choices", "jsonb {book: {speaker: voice}}"],
+            ["", "pronunciations", "jsonb {book: {word: sounds like}}"],
             ["", "reading_wpm", "smallint 60–1000", true],
             ["", "up_next", "text[] ≤ 50"],
             ["", "ui_language", "text: en, es, fr, de, pt, it, nl", true],
@@ -707,6 +708,16 @@
             ["", "voted_at", "timestamptz"],
           ],
           note: "Each member's vote in a poll. FK poll_id → club_polls, user_id → profiles, on delete cascade; index on user_id. RLS: the club's members read every vote; written only through vote_club_poll(), which checks membership, an open poll and the choice.",
+        },
+        {
+          id: "club_pace_votes", color: colors.household, x: 840, y: 8880, sub: "one per member",
+          cols: [
+            ["pk fk", "club_id", "uuid"],
+            ["pk fk", "user_id", "uuid"],
+            ["", "chapters_per_week", "smallint 1–100"],
+            ["", "voted_at", "timestamptz"],
+          ],
+          note: "Each member's vote on the club's pace. FK club_id → book_clubs, user_id → profiles, on delete cascade; index on user_id. RLS: the club's members read; written only through vote_club_pace(). The owner choosing a pace (book_clubs.chapters_per_week) clears them, and leaving the club removes the member's (triggers).",
         },
         {
           id: "reading_sprints", color: colors.household, x: 0, y: 9260, sub: "a household's or a club's",
@@ -1275,6 +1286,7 @@
         ["uploaded_books", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["club_polls", "club_id", "book_clubs", "id", "N : 1"],
         ["club_poll_votes", "poll_id", "club_polls", "id", "N : 1"],
+        ["club_pace_votes", "club_id", "book_clubs", "id", "N : 1"],
         ["reading_sprints", "club_id", "book_clubs", "id", "N : 1 (optional)"],
         ["referral_codes", "account_id", "auth.users", "id", "1 : 1"],
         ["referrals", "referrer_id", "auth.users", "id", "N : 1"],

@@ -13373,3 +13373,84 @@ where slug = 'privacy'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Vote on your club's pace$lw$, $lw$Members can now vote for how many chapters a week their book club reads, on the schedule card. The owner sees the votes and can use a pace with one tap.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Vote on your club's pace$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006762_kids_certificates_help.sql
+-- =============================================================================
+-- Kids certificates: Help explains them; the Children's Privacy Notice says they're made on the device. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you."$lw$, $lw$"Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you.", "On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Badges are worked out on the device from this reading and are never stored. Books saved for offline reading stay on that device."$lw$, $lw$"Badges are worked out on the device from this reading and are never stored; so are the certificates a child can print for them, made on the device. Books saved for offline reading stay on that device."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$Badges are worked out on the device from this reading and are never stored; so are the certificates a child can print for them, made on the device. Books saved for offline reading stay on that device.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006763_whats_new_kids_certificates.sql
+-- =============================================================================
+-- What's new: Certificates for young readers. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Certificates for young readers$lw$, $lw$Kids profiles can now print a certificate with their name for every badge they earn and for reading 7, 14, 30, 100 or 365 days in a row. Find them in My Library → Badges.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Certificates for young readers$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006764_upload_clips_policies.sql
+-- =============================================================================
+-- Clips from uploads: Help explains them; the Privacy Policy says what the link holds. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch."$lw$, $lw$"In the player, or the mini-player's More menu, Share a clip makes a link to the last 15, 30 or 60 seconds you heard of a LibriVox recording. Anyone with the link can play that stretch.", "For a book you uploaded and hear in a natural voice, Share a clip makes a link to the part you're listening to. It plays only for your household, logged in to your account; anyone else is asked to log in. Nothing is cut or kept: the link asks for that part the way the player does."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$For a book you uploaded and hear in a natural voice, Share a clip makes a link to the part you're listening to. It plays only for your household, logged in to your account; anyone else is asked to log in. Nothing is cut or kept: the link asks for that part the way the player does.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive; we don't record or keep them, or who shared them."$lw$, $lw$"So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive; we don't record or keep them, or who shared them.", "Clips from books you uploaded are links too, naming the upload, the part and the voice. They play only when someone logged in to your account opens them, from the natural-voice audio already kept with the upload; we keep nothing more."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Clips from books you uploaded are links too, naming the upload, the part and the voice. They play only when someone logged in to your account opens them, from the natural-voice audio already kept with the upload; we keep nothing more.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006765_whats_new_upload_clips.sql
+-- =============================================================================
+-- What's new: Clips from your own books. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Clips from your own books$lw$, $lw$Share a clip now works for books you uploaded and hear in a natural voice: a link to the part you're listening to, which plays only for your household.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Clips from your own books$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006766_whats_new_theme_ideas_ranked.sql
+-- =============================================================================
+-- What's new: Theme ideas picked for you. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'update', $lw$Theme ideas picked for you$lw$, $lw$The book ideas on Discover for a themes challenge now come in your order: books like the ones you loved and finished, by authors and narrators you follow, and in the moods you tag most come first.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Theme ideas picked for you$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006767_reader_read_aloud_policies.sql
+-- =============================================================================
+-- Read aloud in the reader: the Accessibility Policy and Help describe it. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration, marking the sentence being read and, where it shows the book's own text, the word being spoken (underlined and bold, so it doesn't rely on colour)."$lw$, $lw$"In the reader you can choose the font, size, spacing, margins and theme. Fonts include Lexend and OpenDyslexic, a typeface made for readers with dyslexia, and a reading guide can show a ruler on one line or dim everything but a few lines (line focus); it follows your pointer or a tap, and J and K move it a line. Audiobooks have speed control, a sleep timer, skip lengths you choose, and controls on your lock screen and headphones. The player's read-along transcript follows the narration, marking the sentence being read and, where it shows the book's own text, the word being spoken (underlined and bold, so it doesn't rely on colour).", "For a book you uploaded and hear in a natural voice, Read aloud in the reader's top bar reads on from the page you're on, turns the pages with the voice and marks the word being spoken on the page itself, underlined on a tint (in a Windows contrast theme, the system's highlight colours)."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$For a book you uploaded and hear in a natural voice, Read aloud in the reader's top bar reads on from the page you're on, turns the pages with the voice and marks the word being spoken on the page itself, underlined on a tint (in a Windows contrast theme, the system's highlight colours).$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before."$lw$, $lw$"Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before.", "In the reader, an upload with a natural voice has Read aloud in the top bar (the headphones). It reads on from the page you're on, turns the pages as it goes and marks the word being spoken. Choose it again to stop; the book keeps playing from the mini-player if you leave the reader."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$In the reader, an upload with a natural voice has Read aloud in the top bar (the headphones). It reads on from the page you're on, turns the pages as it goes and marks the word being spoken. Choose it again to stop; the book keeps playing from the mini-player if you leave the reader.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006768_whats_new_reader_read_aloud.sql
+-- =============================================================================
+-- What's new: Read along on the page. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Read along on the page$lw$, $lw$In the reader, books you uploaded can now be read aloud by their natural voice right on the page: the pages turn with the voice, and the word being spoken is marked as you go.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Read along on the page$lw$ and c.released_on = '2026-11-07');
