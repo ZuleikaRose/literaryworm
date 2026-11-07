@@ -1680,13 +1680,19 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("explains Voice the whole book on the demo's natural-voice sample upload", async () => {
+  it("explains Voice the whole book on the demo's sample upload, and saves its audiobook", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
     // In the player, under the natural voice it reads with.
     await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a4");
     const section = page.getByRole("region", { name: "Voice the whole book" });
     await section.getByText(/The demo's sample is already voiced/).waitFor();
+    // Its recorded parts join into one MP3 to save.
+    const [download] = await Promise.all([page.waitForEvent("download"), section.getByRole("button", { name: "Download the audiobook (MP3)" }).click()]);
+    expect(download.suggestedFilename()).toBe("frankenstein-or-the-modern-prometheus-audiobook.mp3");
+    const { statSync } = await import("node:fs");
+    expect(statSync((await download.path())!).size).toBeGreaterThan(100_000);
+    await section.getByText("Saved. It plays in any audio app, from the start of the book.").waitFor();
     expect(errors()).toEqual([]);
   });
 

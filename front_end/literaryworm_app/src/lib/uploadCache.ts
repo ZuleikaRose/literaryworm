@@ -71,6 +71,13 @@ export async function offlineVoiceUrl(uploadId: string, voiceId: string, chapter
   return link;
 }
 
+/** A kept part's audio, or null when it isn't on this device (for downloading the audiobook). */
+export async function offlineVoiceBlob(uploadId: string, voiceId: string, chapter: number, segment: number | string): Promise<Blob | null> {
+  if (!available()) return null;
+  const hit = await caches.match(voiceKey(uploadId, voiceId, chapter, segment), { cacheName: CACHE });
+  return hit ? hit.blob() : null;
+}
+
 /** Removes every upload kept on this device (at sign-out). */
 export async function forgetAllUploadsOffline(): Promise<void> {
   if (!available()) return;

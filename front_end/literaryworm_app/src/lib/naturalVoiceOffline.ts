@@ -1,7 +1,7 @@
 import { naturalVoiceUrl } from "./naturalVoiceApi";
 import { connectionAllows, type ConnectionInfo } from "./offlineSchedule";
 import { type CastChoices, chapterPieces, type NaturalVoice, piecePronunciations, type Pronunciations, pronunciationKey, type VoicePiece, voiceSegments } from "./naturalVoice";
-import { hasVoiceOffline, keepVoiceOffline, offlineVoiceUrl } from "./uploadCache";
+import { hasVoiceOffline, keepVoiceOffline, offlineVoiceBlob, offlineVoiceUrl } from "./uploadCache";
 
 /**
  * Natural voices offline, for members' uploads: every part played is kept on this device (the
@@ -51,7 +51,12 @@ export function memberVoicePart(
     keepVoiceOffline(uploadId, voice, chapter, key, link).catch(log("keep a part"));
     return link;
   };
-  return { url, keep, pieces, count: (chapter: number) => piecesOf(chapter).length };
+  /** A kept part's audio on this device, or null (for downloading the audiobook). */
+  const keptBlob = (chapter: number, segment: number): Promise<Blob | null> => {
+    const { voice, key } = where(chapter, segment);
+    return offlineVoiceBlob(uploadId, voice, chapter, key).catch(() => null);
+  };
+  return { url, keep, keptBlob, pieces, count: (chapter: number) => piecesOf(chapter).length };
 }
 
 /** The chapters to keep ahead while `chapter` plays: it and the next (when there is one). */

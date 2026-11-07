@@ -3,6 +3,8 @@ import { readingTime } from "../lib/goals";
 import { bookText, resolveNarration } from "../lib/narration";
 import { defaultNaturalVoice, type NaturalVoice } from "../lib/naturalVoice";
 import { memberVoicePart } from "../lib/naturalVoiceOffline";
+import { audiobookFileName, collectAudiobook, saveFile } from "../lib/audiobookExport";
+import { demoVoicePart } from "../lib/demoVoices";
 import { connectionAllows, type ConnectionInfo } from "../lib/offlineSchedule";
 import { useNaturalVoice, useNaturalVoiceUsage } from "../lib/useNaturalVoice";
 import { useT } from "../lib/useT";
@@ -29,9 +31,10 @@ export function VoiceWholeBook({ book }: { book: Book }) {
   const [chapters, setChapters] = useState<string[] | null>(null);
   const [run, setRun] = useState<Run>({ kind: "idle" });
   const stop = useRef(false);
+  const [download, setDownload] = useState<{ busy: boolean; message: string | null }>({ busy: false, message: null });
 
   useEffect(() => {
-    if (source !== "member") return;
+    if (source === null) return;
     let live = true;
     bookText(book).then(
       (text) => live && setChapters(text),
@@ -44,17 +47,57 @@ export function VoiceWholeBook({ book }: { book: Book }) {
   }, [book, source]);
 
   if (source === null) return null;
+  const plan: WholeBookPlan | null = chapters ? wholeBookPlan(chapters, narrator, player.characterVoices) : null;
+  const choices = player.castChoices?.[book.id] ?? {};
+
+  /** Download the audiobook: every part joined into one MP3 (lib/audiobookExport.ts). */
+  const saveAudiobook = async () => {
+    if (!chapters || !plan) return;
+    setDownload({ busy: true, message: null });
+    try {
+      const blobOf =
+        source === "demo"
+          ? (() => {
+              // The demo's parts are recordings served with the site.
+              const part = demoVoicePart(book.id, narrator, chapters, player.characterVoices, choices);
+              return async (c: number, s: number) => {
+                const res = await fetch(await part.url(c, s));
+                return res.ok ? res.blob() : null;
+              };
+            })()
+          : memberVoicePart(book.id, narrator, chapters, player.characterVoices, choices, player.pronunciations?.[book.id] ?? {}).keptBlob;
+      const { blob, missing } = await collectAudiobook(plan.parts, blobOf);
+      if (!blob) {
+        setDownload({ busy: false, message: t.plural(missing, { one: "Voice the whole book first: {count} part isn't on this device yet.", other: "Voice the whole book first: {count} parts aren't on this device yet." }) });
+        return;
+      }
+      saveFile(blob, audiobookFileName(book.title));
+      setDownload({ busy: false, message: t("Saved. It plays in any audio app, from the start of the book.") });
+    } catch {
+      setDownload({ busy: false, message: t("We couldn't make the file. Try again.") });
+    }
+  };
+  const downloadButton = plan && plan.parts.length > 0 && (
+    <>
+      <button type="button" className="secondary-button" onClick={() => void saveAudiobook()} disabled={download.busy}>
+        <Icon name="download" size={18} /> {download.busy ? t("Making the file…") : t("Download the audiobook (MP3)")}
+      </button>
+      {download.message && <p role="status">{download.message}</p>}
+    </>
+  );
+
   if (source === "demo") {
     return (
       <section className="goal-card voice-whole-book" aria-labelledby={`${id}-title`}>
         <h2 id={`${id}-title`}>{t("Voice the whole book")}</h2>
         <p className="field-hint">{t("Members can have a natural voice read a whole upload ahead and keep it on their device for listening offline. The demo's sample is already voiced.")}</p>
+        <p className="field-hint">{t("Once every part is voiced, you can save the whole audiobook as one MP3 to play in any audio app.")}</p>
+        {downloadButton}
       </section>
     );
   }
-  if (!chapters) return null;
+  if (!chapters || !plan) return null;
 
-  const plan: WholeBookPlan = wholeBookPlan(chapters, narrator, player.characterVoices);
   const fits = fitsAllowance(plan, usage ? usage.left : null);
 
   const start = async () => {
@@ -115,6 +158,8 @@ export function VoiceWholeBook({ book }: { book: Book }) {
           </button>
         </>
       )}
+      <p className="field-hint">{t("Once every part is voiced, you can save the whole audiobook as one MP3 to play in any audio app.")}</p>
+      {downloadButton}
     </section>
   );
 }
