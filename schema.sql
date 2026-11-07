@@ -13253,3 +13253,123 @@ where slug = 'privacy'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$Fix how a name is said$lw$, $lw$If a natural voice says a name wrong in one of your uploads, spell how it sounds under Pronunciations in Player settings. Only the parts with that name are read again, and the page keeps the book's spelling.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Fix how a name is said$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006758_club_pace_votes.sql
+-- =============================================================================
+-- Voting on a club's pace (lib/clubPace.ts, components/ClubSchedule.tsx): each member votes for how
+-- many chapters a week the club should read; the owner chooses one (book_clubs.chapters_per_week,
+-- the owner's own policy), which clears the votes for a new round. Members read their clubs' votes;
+-- votes are written only through vote_club_pace(). A member's vote goes when they leave the club.
+
+create table if not exists public.club_pace_votes (
+  club_id           uuid not null references public.book_clubs (id) on delete cascade,
+  user_id           uuid not null references public.profiles (id) on delete cascade,
+  chapters_per_week smallint not null check (chapters_per_week between 1 and 100),
+  voted_at          timestamptz not null default now(),
+  primary key (club_id, user_id)
+);
+
+alter table public.club_pace_votes enable row level security;
+
+drop policy if exists "Members see their clubs' pace votes" on public.club_pace_votes;
+create policy "Members see their clubs' pace votes" on public.club_pace_votes for select to authenticated
+  using (public.is_club_member(club_id));
+drop policy if exists "Two-step sign-in when turned on" on public.club_pace_votes;
+create policy "Two-step sign-in when turned on" on public.club_pace_votes as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+revoke all on public.club_pace_votes from anon, authenticated;
+grant select (club_id, user_id, chapters_per_week, voted_at) on public.club_pace_votes to authenticated;
+grant select, insert, update, delete on public.club_pace_votes to service_role;
+
+-- A member's vote (null takes it back).
+create or replace function public.vote_club_pace(p_club uuid, p_chapters_per_week smallint)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user uuid := (select auth.uid());
+begin
+  if v_user is null or not public.second_step_done() then
+    raise exception 'Sign in to vote' using errcode = 'insufficient_privilege';
+  end if;
+  if not exists (select 1 from public.club_members cm where cm.club_id = p_club and cm.user_id = v_user) then
+    raise exception 'Only the club''s members can vote' using errcode = 'insufficient_privilege';
+  end if;
+  if p_chapters_per_week is null then
+    delete from public.club_pace_votes where club_id = p_club and user_id = v_user;
+  elsif p_chapters_per_week < 1 or p_chapters_per_week > 100 then
+    raise exception 'Choose 1 to 100 chapters a week' using errcode = 'check_violation';
+  else
+    insert into public.club_pace_votes (club_id, user_id, chapters_per_week)
+    values (p_club, v_user, p_chapters_per_week)
+    on conflict (club_id, user_id) do update set chapters_per_week = excluded.chapters_per_week, voted_at = now();
+  end if;
+end;
+$$;
+revoke execute on function public.vote_club_pace(uuid, smallint) from public, anon;
+grant execute on function public.vote_club_pace(uuid, smallint) to authenticated, service_role;
+
+-- The owner choosing a pace starts a new round.
+create or replace function private.clear_club_pace_votes()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_table_name = 'book_clubs' then
+    if new.chapters_per_week is distinct from old.chapters_per_week then
+      delete from public.club_pace_votes where club_id = new.id;
+    end if;
+    return new;
+  end if;
+  -- club_members: leaving the club takes the vote with it.
+  delete from public.club_pace_votes where club_id = old.club_id and user_id = old.user_id;
+  return old;
+end;
+$$;
+revoke execute on function private.clear_club_pace_votes() from public, anon, authenticated;
+
+drop trigger if exists book_clubs_clear_pace_votes on public.book_clubs;
+create trigger book_clubs_clear_pace_votes
+  after update of chapters_per_week on public.book_clubs
+  for each row execute function private.clear_club_pace_votes();
+
+drop trigger if exists club_members_clear_pace_vote on public.club_members;
+create trigger club_members_clear_pace_vote
+  after delete on public.club_members
+  for each row execute function private.clear_club_pace_votes();
+
+-- =============================================================================
+-- 20261107006759_index_club_pace_votes_user_id.sql
+-- =============================================================================
+-- The foreign key club_pace_votes.user_id (club_id leads the primary key).
+create index concurrently if not exists club_pace_votes_user_id_idx on public.club_pace_votes (user_id);
+
+-- =============================================================================
+-- 20261107006760_club_pace_votes_policies.sql
+-- =============================================================================
+-- Voting on a club's pace: Help explains it; the Privacy Policy lists the votes. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's. Until you've read the week's chapters, the bell reminds you (in clubs with alerts on)."$lw$, $lw$"A club's owner can set a Reading schedule on the club's page: how many chapters a week, counted from the club's start date. Each member sees this week's chapters and whether they're on track, ahead or behind, from their own place in the book; nobody sees anyone else's. Until you've read the week's chapters, the bell reminds you (in clubs with alerts on).", "Any member can vote for a pace under Vote on the pace on the schedule card. Members see how many votes each pace has; the owner can use one, which starts a new round. Leaving a club takes your vote with it."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Any member can vote for a pace under Vote on the pace on the schedule card. Members see how many votes each pace has; the owner can use one, which starts a new round. Leaving a club takes your vote with it.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Things you share or add: reading logs (public, with your display name), book club posts, whether you're coming to a club's meetings and your votes in its polls (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text, title, author and the year the file says it was published, never the file itself; if you start a book club around one, the club's members see its title and author, never its text)."$lw$, $lw$"Things you share or add: reading logs (public, with your display name), book club posts, whether you're coming to a club's meetings and your votes in its polls and on its reading pace (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text, title, author and the year the file says it was published, never the file itself; if you start a book club around one, the club's members see its title and author, never its text)."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Things you share or add: reading logs (public, with your display name), book club posts, whether you're coming to a club's meetings and your votes in its polls and on its reading pace (seen by the club's members), lists you choose to share by link, and books you upload (private to the profile that added them; we keep their text, title, author and the year the file says it was published, never the file itself; if you start a book club around one, the club's members see its title and author, never its text).$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006761_whats_new_club_pace_votes.sql
+-- =============================================================================
+-- What's new: Vote on your club's pace. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Vote on your club's pace$lw$, $lw$Members can now vote for how many chapters a week their book club reads, on the schedule card. The owner sees the votes and can use a pace with one tap.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Vote on your club's pace$lw$ and c.released_on = '2026-11-07');

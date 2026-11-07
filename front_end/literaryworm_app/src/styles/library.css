@@ -2366,3 +2366,28 @@ body:has(.mini-player) .listen-along-bar {
 .club-schedule-behind {
   color: var(--rust-ink);
 }
+
+/* Voting on a club's pace (components/ClubSchedule.tsx). */
+.club-pace {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.club-pace h3 {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+}
+.club-pace-tally {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.club-pace-tally li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

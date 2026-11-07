@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Vote on your club's pace",
+    "body": "Members can now vote for how many chapters a week their book club reads, on the schedule card. The owner sees the votes and can use a pace with one tap.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Fix how a name is said",
     "body": "If a natural voice says a name wrong in one of your uploads, spell how it sounds under Pronunciations in Player settings. Only the parts with that name are read again, and the page keeps the book's spelling.",
     "major": false

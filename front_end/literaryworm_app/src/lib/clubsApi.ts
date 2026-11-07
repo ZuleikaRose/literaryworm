@@ -502,3 +502,19 @@ export async function deleteClubPoll(pollId: string): Promise<void> {
   const { error } = await client().from("club_polls").delete().eq("id", pollId);
   if (error) throw new AccountError(tr("We couldn't delete the poll. Try again."));
 }
+
+// Voting on the pace (club_pace_votes): members read their clubs' votes; votes go through
+// vote_club_pace(), and the owner's choice of pace clears them (a trigger).
+
+/** A club's pace votes, member id to chapters a week. */
+export async function loadPaceVotes(clubId: string): Promise<Record<string, number>> {
+  const { data, error } = await client().from("club_pace_votes").select("user_id, chapters_per_week").eq("club_id", clubId).limit(500);
+  if (error) throw new AccountError(tr("We couldn't load the pace votes. Try again."));
+  return Object.fromEntries((data as { user_id: string; chapters_per_week: number }[]).map((r) => [r.user_id, r.chapters_per_week]));
+}
+
+/** Votes for a pace (null takes the vote back). */
+export async function votePace(clubId: string, chaptersPerWeek: number | null): Promise<void> {
+  const { error } = await client().rpc("vote_club_pace", { p_club: clubId, p_chapters_per_week: chaptersPerWeek });
+  if (error) throw new AccountError(tr("We couldn't save your vote. Try again."));
+}

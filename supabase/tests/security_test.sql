@@ -337,6 +337,14 @@ select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by
 select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', array['dune', 'dune'])$$, 'a poll offering the same book twice');
 select pg_temp.expect_error($$update public.club_polls set winner = 'emma', closed_at = now() where club_id = '00000000-0000-0000-0000-0000000000c1'$$, 'closing a poll by changing the table');
 select public.vote_club_poll((select id from public.club_polls where club_id = '00000000-0000-0000-0000-0000000000c1' and closed_at is null), 1::smallint);
+-- Pace votes: only through vote_club_pace(), and the owner's choice of pace clears them.
+select public.vote_club_pace('00000000-0000-0000-0000-0000000000c1', 4::smallint);
+select pg_temp.check((select chapters_per_week = 4 from public.club_pace_votes where club_id = '00000000-0000-0000-0000-0000000000c1'), 'a member votes for a pace');
+select pg_temp.expect_error($$insert into public.club_pace_votes (club_id, user_id, chapters_per_week) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 9)$$, 'writing a pace vote to the table');
+select pg_temp.expect_error($$select public.vote_club_pace('00000000-0000-0000-0000-0000000000c1', 0::smallint)$$, 'a pace of no chapters');
+update public.book_clubs set chapters_per_week = 4 where id = '00000000-0000-0000-0000-0000000000c1';
+select pg_temp.check((select count(*) from public.club_pace_votes) = 0, 'choosing a pace starts a new round of votes');
+select public.vote_club_pace('00000000-0000-0000-0000-0000000000c1', 6::smallint);
 reset role;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
@@ -344,12 +352,15 @@ select pg_temp.check((select count(*) from public.book_clubs) + (select count(*)
 select pg_temp.check((select count(*) from public.club_meetings) = 0, 'Ben cannot see the meetings of a club he isn''t in');
 select pg_temp.check((select count(*) from public.club_polls) + (select count(*) from public.club_poll_votes) = 0, 'Ben cannot see the polls or votes of a club he isn''t in');
 select pg_temp.expect_error($$select public.vote_club_poll((select id from public.club_polls limit 1), 0::smallint)$$, 'voting in a club you aren''t in');
+select pg_temp.check((select count(*) from public.club_pace_votes) = 0, 'Ben cannot see the pace votes of a club he isn''t in');
+select pg_temp.expect_error($$select public.vote_club_pace('00000000-0000-0000-0000-0000000000c1', 3::smallint)$$, 'voting on the pace of a club you aren''t in');
 select pg_temp.expect_error($$insert into public.club_polls (club_id, created_by, options) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', array['dune', 'emma'])$$, 'starting a poll in a club you aren''t in');
 select pg_temp.expect_error($$insert into public.club_posts (club_id, user_id, chapter_index, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000b', 0, 'Hi')$$, 'posting in a club you aren''t in');
 select pg_temp.check(public.join_club('WrongCode1') is null, 'a wrong code joins nothing');
 select pg_temp.check(public.join_club('AnnClub123') = '00000000-0000-0000-0000-0000000000c1', 'the right code joins the club');
 select pg_temp.check((select count(*) from public.club_posts) = 1 and (select count(*) from public.club_members) = 2, 'a member sees the posts and members');
 select pg_temp.check((select count(*) from public.club_meetings) = 1, 'a member sees the club''s meetings');
+select pg_temp.check((select count(*) from public.club_pace_votes) = 1, 'a member sees the club''s pace votes');
 select pg_temp.expect_error($$insert into public.club_meetings (club_id, starts_at, title, created_by) values ('00000000-0000-0000-0000-0000000000c1', now() + interval '3 days', 'Mine', '00000000-0000-0000-0000-00000000000b')$$, 'a member who isn''t the owner scheduling a meeting');
 delete from public.club_meetings where club_id = '00000000-0000-0000-0000-0000000000c1';
 select pg_temp.check((select count(*) from public.club_meetings) = 1, 'a member who isn''t the owner cannot cancel a meeting');
@@ -1009,10 +1020,10 @@ insert into public.stripe_customers (user_id, customer_id) values ('00000000-000
 insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at) values ('00000000-0000-0000-0000-00000000000b', 'standard', 1, now())
   on conflict (user_id) do update set status = 'active';
 set role service_role;
-select pg_temp.check((select count(*) = 1 and bool_and(friend_cents = 1500 and referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter a month each');
+select pg_temp.check((select count(*) = 1 and bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter a month each');
 select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')) = 0, 'a referral is rewarded once');
 select pg_temp.check((select bool_and(referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2')), 'the inviter''s second month');
-select pg_temp.check((select bool_and(friend_cents = 1500 and referrer_cents is null) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'no more than 2 free months for inviting, while the friend still gets theirs');
+select pg_temp.check((select bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents is null) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'no more than 2 free months for inviting, while the friend still gets theirs');
 select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'limit_reached', 'the third is noted as past the limit');
 reset role;
 set role authenticated;
@@ -1020,7 +1031,7 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 2 from public.my_referrals()), 'the inviter sees their counts');
 select pg_temp.check((select count(*) from public.referrals) = 0, 'the inviter can''t read who they invited');
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
-select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = 1500) from public.referrals), 'an invited member sees their own month');
+select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select price_cents from public.plans where id = 'basic')) from public.referrals), 'an invited member sees their own month');
 select pg_temp.expect_error($$select friend_credit_id from public.referrals$$, 'reading Stripe''s credit ids');
 reset role;
 reset request.jwt.claim.sub;

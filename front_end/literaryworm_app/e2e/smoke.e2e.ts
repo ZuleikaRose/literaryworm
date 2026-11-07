@@ -510,6 +510,25 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("votes on the club's pace and sees the count change", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    const schedule = page.getByRole("region", { name: "Reading schedule" });
+    const tally = schedule.getByRole("list", { name: "Vote on the pace" });
+    // Jordan voted for 4 chapters a week and Priya for 8.
+    await tally.getByText("4 chapters a week").waitFor();
+    await expect(tally.getByRole("listitem").count()).resolves.toBe(2);
+    await schedule.getByLabel("Your vote").selectOption("4");
+    await tally.getByRole("listitem").filter({ hasText: "4 chapters a week" }).getByText("2 votes").waitFor();
+    // Only the owner (Jordan) can use a pace.
+    expect(await schedule.getByRole("button", { name: "Use this pace" }).count()).toBe(0);
+    await schedule.getByLabel("Your vote").selectOption("");
+    await tally.getByRole("listitem").filter({ hasText: "4 chapters a week" }).getByText("1 vote").waitFor();
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("answers the sample club's meeting and shows who's coming", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -739,7 +739,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         </section>
 
         <aside className="club-side">
-          <ClubSchedule club={club} book={book} isOwner={isOwner} mine={mine} />
+          <ClubSchedule club={club} book={book} isOwner={isOwner} mine={mine} me={me} />
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ClubPolls clubId={club.id} isOwner={isOwner} me={me} members={members} ageRating={profile?.ageRating ?? "all"} />
           <ReadingSprint scope={{ kind: "club", clubId: club.id }} readPath={`/read/${book.id}`} />
