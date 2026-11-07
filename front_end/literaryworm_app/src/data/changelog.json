@@ -2,9 +2,17 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Natural voices in Bulgarian and Romanian",
+    "body": "Natural voices now read your Bulgarian and Romanian uploads in their own language, with Character voices that find who's talking there too. That makes 20 languages in all.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "update",
     "title": "Character voices in every language",
-    "body": "Character voices now find who's talking in all 18 languages natural voices read your uploads in, from Italian, Polish and Russian to Chinese, Japanese, Korean, Hindi and Arabic: each language's quotation marks, dialogue that starts with a dash, and the words that name the speaker.",
+    "body": "Character voices now find who's talking in all 20 languages natural voices read your uploads in, from Italian, Polish and Russian to Chinese, Japanese, Korean, Hindi and Arabic: each language's quotation marks, dialogue that starts with a dash, and the words that name the speaker.",
     "major": false
   },
   {

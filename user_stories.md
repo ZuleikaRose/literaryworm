@@ -464,3 +464,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Club reading schedules (new request) | — | Done | A club's owner sets chapters a week; members see this week's chapters and whether they're on track. `book_clubs.chapters_per_week` (6740), Help 6741, What's new 6742. |
 | Voice a whole upload for offline listening (new request) | — | Done | *Voice the whole book* in the player voices and keeps every part on the device, on Wi-Fi, within the month's allowance. Policies 6743, What's new 6744. |
 | Character voices in every language (new request) | — | Done | Speech and speakers found in all 18 natural-voice languages: quotation marks, dash dialogue, verbs of saying, CJK/Hindi/Arabic patterns. Help 6745, What's new 6746. |
+| Natural voices in Bulgarian and Romanian (new request) | — | Done | `bg-BG` and `ro-RO` voices, EPUB codes, speaker detection; 20 languages. Help 6747, What's new 6748. |

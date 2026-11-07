@@ -28,6 +28,9 @@ describe("an EPUB's language", () => {
     expect(languageIn("jpn")).toBe("ja");
     expect(languageIn("fil")).toBe("tl");
     expect(languageIn("tl-PH")).toBe("tl");
+    expect(languageIn("bul")).toBe("bg");
+    expect(languageIn("ro-RO")).toBe("ro");
+    expect(languageIn("rum")).toBe("ro");
     expect(languageIn("ukr")).toBe("uk");
     expect(languageIn("Klingon")).toBeNull();
     expect(languageIn("")).toBeNull();

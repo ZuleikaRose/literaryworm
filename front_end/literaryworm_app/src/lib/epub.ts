@@ -203,7 +203,7 @@ export function languageIn(raw: string | null | undefined): string | null {
 const BIBLIOGRAPHIC: Record<string, string> = {
   eng: "en", fre: "fr", fra: "fr", ger: "de", deu: "de", spa: "es", ita: "it", por: "pt", dut: "nl", nld: "nl",
   jpn: "ja", chi: "zh", zho: "zh", cmn: "zh", kor: "ko", hin: "hi", ara: "ar", pol: "pl", rus: "ru", tur: "tr",
-  swe: "sv", ukr: "uk", tgl: "tl", fil: "tl",
+  swe: "sv", ukr: "uk", tgl: "tl", fil: "tl", bul: "bg", rum: "ro", ron: "ro", mol: "ro",
 };
 
 export const countWords = words;

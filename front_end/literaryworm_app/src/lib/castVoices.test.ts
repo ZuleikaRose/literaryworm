@@ -110,6 +110,8 @@ describe("character voices", () => {
     ["Korean", "“갈래?”라고 민수가 물었다. “응”이라고 했다.", ["민수", "민수"]],
     ["Hindi", "राम ने कहा, “चलो।” सीता ने पूछा, “कहाँ?”", ["राम", "सीता"]],
     ["Arabic", "قال أحمد: «هل تأتي؟» أجابت ليلى: «نعم».", ["أحمد", "ليلى"]],
+    ["Bulgarian", "„Идваш ли?“ – попита Мария. „Да“ – отговори Иван.", ["Мария", "Иван"]],
+    ["Romanian", "„Vii?” întrebă Ana. „Da”, spuse Mihai.", ["Ana", "Mihai"]],
   ])("finds speakers in %s", (_language, chapter, names) => {
     expect(speakers(chapter).map(([, who]) => who)).toEqual(names);
   });
@@ -124,6 +126,11 @@ describe("character voices", () => {
     // The narration between is the narrator's.
     expect(parts.some((p) => !p.speech && p.text.includes("dijo Juan"))).toBe(true);
     // Russian dash dialogue, with a pronoun: turn-taking gives the speaker.
+    // Bulgarian and Romanian write dialogue with dashes too.
+    const bg = castSegments("– Добро утро – каза Петър.\n– Здравей – отговори Елена.")!.filter((p) => p.speech);
+    expect(bg.map((p) => [p.text, p.speaker])).toEqual([["Добро утро", "Петър"], ["Здравей", "Елена"]]);
+    const ro = castSegments("— Bună ziua, zise Ion.")!.filter((p) => p.speech);
+    expect(ro.map((p) => p.speaker)).toEqual(["Ion"]);
     const ru = castSegments("— Привет, — сказал Иван.\n— Здравствуй, — ответила Анна.\n— Как дела? — спросил он.")!.filter((p) => p.speech);
     expect(ru.map((p) => p.speaker)).toEqual(["Иван", "Анна", "Иван"]);
   });

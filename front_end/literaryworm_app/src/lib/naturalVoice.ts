@@ -73,10 +73,14 @@ export const NATURAL_VOICES: readonly NaturalVoice[] = [
   voice("uk-UA", "Charon"),
   voice("fil-PH", "Aoede", null, "tl"),
   voice("fil-PH", "Charon", null, "tl"),
+  voice("bg-BG", "Aoede"),
+  voice("bg-BG", "Charon"),
+  voice("ro-RO", "Aoede"),
+  voice("ro-RO", "Charon"),
 ];
 
 /** The languages natural voices read, besides English (two letters, as uploaded_books.language keeps them). */
-export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl"] as const;
+export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl", "bg", "ro"] as const;
 
 /** The voices offered for a book: its own language's first (when there are some), then English. */
 export function voicesFor(language: string | null): NaturalVoice[] {
@@ -235,6 +239,8 @@ const SAID_BY_LANGUAGE: Record<string, string[]> = {
   tr: ["dedi", "sordu", "diye sordu", "cevap verdi", "yanıtladı", "bağırdı", "fısıldadı"],
   tl: ["sabi ni", "tanong ni", "sagot ni", "sigaw ni", "bulong ni", "wika ni"],
   ru: ["сказал", "сказала", "спросил", "спросила", "ответил", "ответила", "крикнул", "крикнула", "прошептал", "прошептала", "воскликнул", "воскликнула", "произнёс", "произнесла"],
+  bg: ["каза", "попита", "отговори", "извика", "прошепна", "възкликна", "рече"],
+  ro: ["spuse", "zise", "întrebă", "răspunse", "strigă", "șopti", "exclamă", "a spus", "a întrebat", "a răspuns"],
   uk: ["сказав", "сказала", "запитав", "запитала", "спитав", "спитала", "відповів", "відповіла", "крикнув", "крикнула", "прошепотів", "прошепотіла", "вигукнув", "вигукнула"],
 };
 // Longest first, so "sade" is tried before "sa".
@@ -243,7 +249,7 @@ const SAID = Object.values(SAID_BY_LANGUAGE)
   .sort((a, b) => b.length - a.length)
   .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+"))
   .join("|");
-const TITLES = "Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur|Mademoiselle|Herr|Frau|Señor|Señora|Don|Doña|Dom|Dona|Signor|Signora|Pan|Pani|Fru|Bay|Bayan|Gospodin";
+const TITLES = "Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur|Mademoiselle|Herr|Frau|Señor|Señora|Don|Doña|Dom|Dona|Signor|Signora|Pan|Pani|Fru|Bay|Bayan|Gospodin|Domnul|Doamna|Domnișoara|Господин|Госпожа";
 const NAME = `(?:(?:${TITLES})\\.?\\s+)?\\p{Lu}[\\p{Ll}\\p{M}'’-]+`;
 // Scripts without capital letters name speakers with words around the verb.
 const HAN_SAID = "说道|问道|答道|喊道|叫道|回答|说|问|道|喊";
@@ -275,7 +281,7 @@ const NOT_NAMES = new Set([
   "il", "elle", "ils", "elles", "on", "je", "er", "sie", "es", "ich", "man", "él", "ella", "yo", "ellos", "ellas", "usted",
   "ele", "ela", "eles", "eu", "você", "lui", "lei", "egli", "ella", "io", "hij", "zij", "ze", "ik", "jij",
   "ona", "oni", "ja", "ty", "han", "hon", "jag", "de", "o", "ben", "sen", "siya", "ako", "ikaw",
-  "он", "она", "они", "я", "ты", "він", "вона", "вони",
+  "он", "она", "они", "я", "ты", "він", "вона", "вони", "той", "тя", "те", "аз", "ти", "el", "ea", "ei", "ele", "eu", "tu", "dumneavoastră",
   "他", "她", "我", "你", "他们", "她们", "彼", "彼女", "私", "僕", "俺", "그", "그녀", "나", "너", "वह", "मैं", "उस", "هو", "هي", "أنا",
 ]);
 // Words inside quotation marks, to the end of the paragraph when the closing mark is left off (as
@@ -286,6 +292,9 @@ const QUOTED =
 // A paragraph that opens with a dash is dialogue (Spanish, Portuguese, Italian, Polish, Russian,
 // Ukrainian, Swedish, Turkish…): "—Hola —dijo Juan—. ¿Vienes?" is speech, narration, speech.
 const DASH = /[—–―]/g;
+// Inside dash dialogue with no closing dash ("— Bună ziua, zise Ion."), a comma before a verb of
+// saying and a name ends the speech; the rest is narration.
+const INLINE_SAID = new RegExp(`,\\s+(?=(?:${SAID})\\s+${NAME}|${NAME}\\s+(?:${SAID})(?!\\p{L}))`, "u");
 
 function speakerIn(text: string, patterns: RegExp[]): string | null {
   for (const pattern of patterns) {
@@ -311,6 +320,8 @@ function speechSpans(chapter: string): { start: number; end: number }[] {
         let end = i + 1 < dashes.length ? dashes[i + 1] : line.length;
         while (start < end && /\s/.test(line[start])) start++;
         while (end > start && /\s/.test(line[end - 1])) end--;
+        const inline = INLINE_SAID.exec(line.slice(start, end));
+        if (inline) end = start + inline.index + 1;
         if (end > start) spans.push({ start: lineStart + start, end: lineStart + end });
       }
     }
