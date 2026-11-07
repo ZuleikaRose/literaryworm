@@ -406,6 +406,15 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 
 **Gift wishlist card.** On a shared list's page, after the books: gift icon heading *Give this list as a gift*, one sentence naming the owner, a hint when more than 10 books are on it, and *Choose a gift*. Gifts then shows *From {name}'s wishlist* as a success note above the book picker. In the demo, Gifts' info note links to the sample wishlist, and *Continue to payment* shows an alert under the button that the demo can't pay.
 
+### Added 7 November 2026
+
+- **Word in the read-along** (`.transcript-word`): the word being spoken, inside the current sentence's rust wash, is underlined (2px, `--rust-bright`, offset 0.2em) and set in 600 weight, so it never relies on colour; forced colours use `Highlight` for the underline.
+- **Who reads whom** (`.cast-choices`): a small heading and a list of `player-select` rows (speaker, then the voice), scrolling inside at 16rem so Player settings stays short. The first option is *Chosen for you*.
+- **Reading schedule card** (`.goal-card.club-schedule`, the club page's side column): *Week 3 of 11* in bold with its dates, *This week: …*, then the standing in 600 weight: `--success` for on track or ahead, `--rust-ink` for behind (the words say it too).
+- **Theme rows on Discover**: ordinary shelves, eyebrow *For your challenge: {title}*, the theme as the title.
+- **Theme list in a challenge** (`.challenge-themes`): nine lines in `--muted`; a covered theme turns `--ink` with a `--success` check and the names of who covered it.
+- **Voice the whole book** (`.goal-card.voice-whole-book`): a hint with the time it could take and what's left, then one secondary button; while running, a goal bar, *n of N parts voiced* as a live status, and *Stop*.
+
 ## Motion
 
 - Durations: 140ms (hover, press), 220ms (popovers, toggles), 420ms (panels appearing).

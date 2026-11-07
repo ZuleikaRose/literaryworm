@@ -25,7 +25,7 @@ export const plans: Plan[] = [
       tk("Didn't finish for books you put down, and Read again to count every reread"),
       tk("AI book summaries and content notes, and Ask the book, Translate and Previously… recaps on the classics"),
       tk("Reading goals, reading plans to finish a book by a date, streaks with two rest days a month, stats for each book, and a Year in Review to share as a picture or a story"),
-      tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, reading sprints, shared highlights, listening along and where everyone is in the book"),
+      tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, a weekly reading schedule with reminders, reading sprints, shared highlights, listening along and where everyone is in the book"),
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
       tk("Upload your own DRM-free EPUB, PDF and Kindle books, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
       tk("Natural voices from Google to read your uploads aloud: 2 hours of new voicing a month, and listening again is free"),
@@ -52,7 +52,7 @@ export const plans: Plan[] = [
       tk("Kids can ask a grown-up for any other book, and a grown-up says yes or no"),
       tk("PIN locks and daily reading limits for any profile, and bedtimes for Kids profiles"),
       tk("Each profile keeps its own favourites, lists, goals and stats"),
-      tk("Household reading challenges and reading sprints to take on together"),
+      tk("Household reading challenges (books, hours, days or nine reading themes, with book ideas on Discover) and reading sprints to take on together"),
       tk("A family shelf of books grown-ups put out for everyone at home"),
       tk("6 hours a month of natural voices from Google for your uploads"),
     ],
@@ -164,7 +164,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can LiteraryWorm read my own books aloud?"),
-    a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. Natural voices aren't offered on Kids profiles.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
+    a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. Natural voices aren't offered on Kids profiles.\n\nNatural voices read 20 languages. With Character voices on, what the characters say is read by other voices, and you can choose who reads whom; Voice the whole book keeps every part on your device for listening offline.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
   },
   {
     q: tk("Can I bring my reading history from Goodreads or StoryGraph?"),
@@ -176,7 +176,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read in other languages?"),
-    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in English, Spanish, French, German, Portuguese, Italian and Dutch: choose one in the accessibility menu, and your profile keeps it on every device. Policies and Help stay in English.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
+    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in English, Spanish, French, German, Portuguese, Italian and Dutch: choose one in the accessibility menu, and your profile keeps it on every device. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 20 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
   },
   {
     q: tk("Who can see what I read?"),
