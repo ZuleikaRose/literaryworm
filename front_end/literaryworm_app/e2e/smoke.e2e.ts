@@ -1751,6 +1751,23 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("prints Mia a certificate for her first finished book", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /^Mia/ }).click();
+    await goInApp(page, "/library?view=badges");
+    const certificates = page.getByRole("region", { name: "Certificates to print" });
+    const [download] = await Promise.all([page.waitForEvent("download"), certificates.getByRole("button", { name: "Download the certificate for Finish a book" }).click()]);
+    expect(download.suggestedFilename()).toBe("mia-certificate-badge-first-book.pdf");
+    const { readFileSync } = await import("node:fs");
+    const bytes = readFileSync((await download.path())!).toString("latin1");
+    expect(bytes.startsWith("%PDF-1.4")).toBe(true);
+    expect(bytes).toContain("(Mia) Tj");
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
   it("exports Avery's notes as a PDF", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

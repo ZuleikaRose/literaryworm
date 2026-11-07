@@ -1,0 +1,11 @@
+-- Kids certificates: Help explains them; the Children's Privacy Notice says they're made on the device. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you."$lw$, $lw$"Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you.", "On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Badges are worked out on the device from this reading and are never stored. Books saved for offline reading stay on that device."$lw$, $lw$"Badges are worked out on the device from this reading and are never stored; so are the certificates a child can print for them, made on the device. Books saved for offline reading stay on that device."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$Badges are worked out on the device from this reading and are never stored; so are the certificates a child can print for them, made on the device. Books saved for offline reading stay on that device.$lw$) = 0;

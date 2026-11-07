@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Certificates for young readers",
+    "body": "Kids profiles can now print a certificate with their name for every badge they earn and for reading 7, 14, 30, 100 or 365 days in a row. Find them in My Library → Badges.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Vote on your club's pace",
     "body": "Members can now vote for how many chapters a week their book club reads, on the schedule card. The owner sees the votes and can use a pace with one tap.",
     "major": false

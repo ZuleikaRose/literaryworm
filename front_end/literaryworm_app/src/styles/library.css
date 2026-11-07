@@ -2391,3 +2391,25 @@ body:has(.mini-player) .listen-along-bar {
   justify-content: space-between;
   gap: 8px;
 }
+
+/* Certificates to print (components/BadgesView.tsx, Kids profiles). */
+.certificates {
+  margin-bottom: 20px;
+}
+.certificates h3 {
+  margin: 0 0 8px;
+}
+.certificate-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.certificate-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

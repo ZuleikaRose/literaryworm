@@ -13,7 +13,7 @@ const PAGE_H = 842;
 const MARGIN = 56;
 const TEXT_W = PAGE_W - MARGIN * 2;
 
-type Font = "F1" | "F2" | "F3" | "F4"; // Helvetica, Helvetica-Bold, Helvetica-Oblique, Times-Italic
+export type Font = "F1" | "F2" | "F3" | "F4"; // Helvetica, Helvetica-Bold, Helvetica-Oblique, Times-Italic
 const FONT_NAMES: Record<Font, string> = { F1: "Helvetica", F2: "Helvetica-Bold", F3: "Helvetica-Oblique", F4: "Times-Italic" };
 
 // Helvetica's widths for ASCII 32–126, in thousandths of the font size (from the standard metrics).
@@ -82,8 +82,8 @@ export function pdfString(text: string): string {
 
 type Block = { font: Font; size: number; text: string; indent?: number; before: number; color?: string; bar?: boolean };
 
-const RUST = "0.635 0.306 0.184";
-const MUTED = "0.357 0.341 0.314";
+export const RUST = "0.635 0.306 0.184";
+export const MUTED = "0.357 0.341 0.314";
 
 const colourLabel = (value: string) => HIGHLIGHT_COLORS.find((c) => c.value === value)?.label ?? value;
 const chapterTitle = (book: BookNotes, index: number) => book.chapterTitles[index] ?? `Chapter ${index + 1}`;
@@ -148,7 +148,12 @@ export function layoutPages(blocks: Block[]): string[] {
 
 /** Saves the notes as a PDF on this device: "pride-and-prejudice-notes.pdf". */
 export function downloadNotesPdf(books: BookNotes[], fileName: string, title: string): void {
-  const blob = new Blob([notesPdf(books, title) as BlobPart], { type: "application/pdf" });
+  downloadPdf(notesPdf(books, title), fileName);
+}
+
+/** Saves PDF bytes on this device under `fileName`. */
+export function downloadPdf(bytes: Uint8Array, fileName: string): void {
+  const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -161,7 +166,11 @@ export function downloadNotesPdf(books: BookNotes[], fileName: string, title: st
 
 /** The whole PDF file. Everything written is ASCII, so string lengths are byte offsets. */
 export function notesPdf(books: BookNotes[], title: string, now = new Date()): Uint8Array {
-  const pages = layoutPages(notesBlocks(books, now));
+  return pdfDocument(layoutPages(notesBlocks(books, now)), title);
+}
+
+/** A PDF file from page contents (drawing operators), with the standard fonts F1–F4; A4 upright unless sized. */
+export function pdfDocument(pages: string[], title: string, width = PAGE_W, height = PAGE_H): Uint8Array {
   const objects: string[] = [];
   const add = (body: string) => objects.push(body);
   add("<< /Type /Catalog /Pages 2 0 R >>");
@@ -174,7 +183,7 @@ export function notesPdf(books: BookNotes[], title: string, now = new Date()): U
   for (const content of pages) {
     add(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
     const contentId = objects.length;
-    add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Resources << /Font << ${fonts.join(" ")} >> >> /Contents ${contentId} 0 R >>`);
+    add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << ${fonts.join(" ")} >> >> /Contents ${contentId} 0 R >>`);
     pageIds.push(objects.length);
   }
   objects[1] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;

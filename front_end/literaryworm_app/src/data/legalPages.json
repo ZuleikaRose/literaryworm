@@ -619,7 +619,7 @@
           "Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), how much of that was in Bedtime listening or after its bedtime, the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started).",
           "Its learning: the words it saves from the dictionary and when they're next due for review, its private reading journal, and its chapter quiz scores.",
           "Its family activity: the books it asks a grown-up for and your answers, the household challenges it starts or joins, and the reading sprints it joins at home with the pages it turned (kept 90 days), which the other profiles on your account can see. Kids profiles can't join a book club's sprints.",
-          "Badges are worked out on the device from this reading and are never stored. Books saved for offline reading stay on that device."
+          "Badges are worked out on the device from this reading and are never stored; so are the certificates a child can print for them, made on the device. Books saved for offline reading stay on that device."
         ]
       },
       {
@@ -1753,7 +1753,8 @@
           "A Kids profile can ask for a book that isn't on its shelf; a grown-up says yes or no in Account → Family with the account password, and a yes opens that one book for that profile.",
           "A grown-up can give a Kids profile a bedtime in its profile editor, with the account password: from 7pm to 10pm, and when reading starts again in the morning. Between them, on that device's clock, books and audiobooks show Time for bed and the place is saved; the password allows 15 more minutes.",
           "Grown-up and teen profiles can put a book on the family shelf from its page; it shows on Home for everyone at home, and Kids profiles see only the books their rating already allows.",
-          "Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you."
+          "Each LiteraryWorm title's page has Content notes, written by AI: how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, without spoilers. Grown-ups see them under a Kids profile's book requests too. They can miss things, so check anything that matters to you.",
+          "On a Kids profile, My Library → Badges has Certificates to print: one for each badge earned and for reading 7, 14, 30, 100 or 365 days in a row, with the child's name and the day. Each is a one-page PDF made on the device and downloaded, never uploaded."
         ]
       },
       {
