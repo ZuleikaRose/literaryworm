@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "update",
+    "title": "The sleep timer finishes the paragraph",
+    "body": "When a voice reads the book's text, the sleep timer now runs on to the end of the paragraph, up to two minutes more, so you drift off at a break rather than mid-sentence.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "update",
     "title": "A heads-up when a payment fails",
     "body": "If a membership payment doesn't go through, we now email you once and the bell reminds you each day, with a link to update your payment method, so your membership carries on without a gap.",
     "major": false

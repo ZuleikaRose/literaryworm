@@ -3,6 +3,7 @@ import { getBook, isAllowed } from "../data/books";
 import { loadDevices, sendHandoff } from "../lib/devicesApi";
 import { type DeviceLink, type Playback, PlaybackContext, type PlaybackEngine, type PlaybackSnapshot, type StartAt } from "../lib/playback";
 import { bookStart, chapterIntro, chapterOutro } from "../lib/playerNav";
+import { sleepSecondsToParagraphEnd } from "../lib/sleepParagraph";
 import { chapterAt, chapterTimes, resumeAfterSleep, SLEEP_FADE_SECONDS, SLEEP_REWIND_SECONDS, sleepVolume, type SleepTimer } from "../lib/reading";
 import { useDeviceLink } from "../lib/useDeviceLink";
 import { useDailyLimit } from "../lib/useDailyLimit";
@@ -314,6 +315,10 @@ function Engine({
       : narration.kind;
   const readsText = narration.kind === "speech" || narration.kind === "natural";
   const [text, setText] = useState<string[] | null>(null);
+  const textRef = useRef(text);
+  useEffect(() => {
+    textRef.current = readsText ? text : null;
+  });
   useEffect(() => {
     if (!readsText) return;
     let live = true;
@@ -534,8 +539,13 @@ function Engine({
         if (value === "off") setSleep(null);
         else if (value === "chapter") setSleep({ kind: "chapter" });
         else {
-          setSleep({ kind: "minutes", minutes: Number(value) });
-          setSleepLeft(Number(value) * 60);
+          const minutes = Number(value);
+          setSleep({ kind: "minutes", minutes });
+          // Read text (natural and device voices): run on to the end of the paragraph, so the fade lands on a break.
+          const texts = textRef.current;
+          setSleepLeft(
+            texts ? sleepSecondsToParagraphEnd({ position: clock.current.position, minutes, speed: clock.current.speed, starts, lengths, texts }) : minutes * 60,
+          );
         }
       },
       finish: () => {
