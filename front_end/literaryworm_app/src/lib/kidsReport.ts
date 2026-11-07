@@ -13,6 +13,10 @@ export interface KidWeek {
   finished: number;
   /** The books finished, where known (newest day first). */
   books: string[];
+  /** Seconds listened in Bedtime listening. */
+  bedtimeListened: number;
+  /** Nights with a minute or more read or listened after bedtime (a grown-up allowed more). */
+  lateNights: number;
 }
 
 /** The 7 days up to and including `today` (YYYY-MM-DD, local), newest first. */
@@ -26,7 +30,7 @@ export function lastSevenDays(today: string): string[] {
 
 /** A profile's reading over the last 7 days, today included. */
 export function kidWeek(days: Record<string, ReadingDay>, today: string): KidWeek {
-  const week: KidWeek = { seconds: 0, listened: 0, daysRead: 0, finished: 0, books: [] };
+  const week: KidWeek = { seconds: 0, listened: 0, daysRead: 0, finished: 0, books: [], bedtimeListened: 0, lateNights: 0 };
   for (const day of lastSevenDays(today)) {
     const d = days[day];
     if (!d) continue;
@@ -34,6 +38,8 @@ export function kidWeek(days: Record<string, ReadingDay>, today: string): KidWee
     week.listened += d.listened ?? 0;
     week.finished += d.finished;
     if (d.seconds >= STREAK_SECONDS) week.daysRead += 1;
+    week.bedtimeListened += d.bedtimeListened ?? 0;
+    if ((d.late ?? 0) >= 60) week.lateNights += 1;
     for (const id of d.books ?? []) if (!week.books.includes(id)) week.books.push(id);
   }
   return week;
@@ -90,4 +96,13 @@ export function quizWeek(results: QuizResult[], today: string): { taken: number;
   const week = results.filter((r) => days.has(local(r.takenAt)));
   if (week.length === 0) return null;
   return { taken: week.length, right: week.reduce((n, r) => n + r.score, 0), of: week.reduce((n, r) => n + r.outOf, 0) };
+}
+
+/**
+ * The bedtime line: nights bedtime was kept out of 7 (for a profile with a bedtime) and seconds of
+ * Bedtime listening; null when there's neither.
+ */
+export function bedtimeWeek(week: KidWeek, hasBedtime: boolean): { kept: number | null; listened: number } | null {
+  if (!hasBedtime && week.bedtimeListened < 60) return null;
+  return { kept: hasBedtime ? Math.max(0, 7 - week.lateNights) : null, listened: week.bedtimeListened };
 }

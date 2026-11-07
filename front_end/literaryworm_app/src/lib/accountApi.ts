@@ -1320,7 +1320,13 @@ export async function loadCollections(): Promise<Record<string, Collections>> {
   const { goals, days, finished } = await loadGoals();
   for (const g of goals) of(g.profile_id).readingGoals[g.year] = g.books;
   for (const d of days) {
-    of(d.profile_id).readingDays[d.day] = { seconds: d.minutes * 60, finished: d.books_finished, listened: d.listening_minutes * 60 };
+    of(d.profile_id).readingDays[d.day] = {
+      seconds: d.minutes * 60,
+      finished: d.books_finished,
+      listened: d.listening_minutes * 60,
+      ...(d.bedtime_minutes ? { bedtimeListened: d.bedtime_minutes * 60 } : {}),
+      ...(d.late_minutes ? { late: d.late_minutes * 60 } : {}),
+    };
   }
   for (const f of finished) {
     const day = of(f.profile_id).readingDays[f.finished_on] ?? { seconds: 0, finished: 0 };
@@ -1403,7 +1409,7 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
 }
 
 type GoalRow = { profile_id: string; year: number; books: number };
-type DayRow = { profile_id: string; day: string; minutes: number; books_finished: number; listening_minutes: number };
+type DayRow = { profile_id: string; day: string; minutes: number; books_finished: number; listening_minutes: number; bedtime_minutes: number | null; late_minutes: number | null };
 type FinishedRow = { profile_id: string; volume_id: string; finished_on: string };
 
 /** How far back reading days load: this year and all of last year, for goals, streaks and Year in Review. */
@@ -1418,7 +1424,7 @@ async function loadGoals(): Promise<{ goals: GoalRow[]; days: DayRow[]; finished
   const from = loadFrom();
   const [goals, days, finished] = await Promise.all([
     db.from("reading_goals").select("profile_id, year, books"),
-    db.from("reading_days").select("profile_id, day, minutes, books_finished, listening_minutes").gte("day", from),
+    db.from("reading_days").select("profile_id, day, minutes, books_finished, listening_minutes, bedtime_minutes, late_minutes").gte("day", from),
     db.from("finished_books").select("profile_id, volume_id, finished_on").gte("finished_on", from),
   ]);
   if (goals.error || days.error) {
@@ -1450,6 +1456,12 @@ export async function setReadingGoal(profileId: string, year: number, books: num
  * book (0 or 1, which book if known) to a profile's day. With a book and minutes, they count
  * towards that book's statistics too, with where in the book the reader is (`fraction`, 0–1).
  */
+/** Kids profiles' minutes in Bedtime listening and after bedtime, added to the day (record_bedtime). */
+export async function recordBedtime(profileId: string, day: string, bedtimeMinutes: number, lateMinutes: number): Promise<void> {
+  const { error } = await client().rpc("record_bedtime", { p_profile_id: profileId, p_day: day, p_bedtime_minutes: bedtimeMinutes, p_late_minutes: lateMinutes });
+  if (error) throw new AccountError("We couldn't save the bedtime time.");
+}
+
 export async function recordReading(
   profileId: string,
   day: string,

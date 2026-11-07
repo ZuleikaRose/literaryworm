@@ -513,5 +513,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | PDF and Kindle uploads: pdf.js (pinned 6.4.299) and a small MOBI/AZW3 reader turn PDFs and DRM-free Kindle books into text in the browser, like EPUBs. Migrations 6724–6725 (text only). |
 | —    | Character voices: natural voices on uploads read what the characters say in other voices (speakers found in the text, one voice each). Migrations 6726–6728; natural-voice function takes `cast`. |
 | —    | A speed for each book: `reader_profiles.book_speeds`, Player settings switch. Migrations 6731–6732. |
+| —    | Bedtime in the Kids report: `record_bedtime()`, `reading_days.bedtime_minutes`/`late_minutes`, `kids_report_week()` returns them. Migrations 6733–6735; kids-report redeploy. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

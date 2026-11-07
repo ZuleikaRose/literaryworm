@@ -1326,6 +1326,7 @@ describe("the demo household", () => {
     await report.getByText("1 h 15 min on 3 days (45 min of it listening)").waitFor();
     await report.getByText("Finished 1 book: Peter Pan").waitFor();
     await report.getByText("Weekly goal 2 h: 45 min to go").waitFor();
+    await report.getByText("22 min of bedtime listening").waitFor();
     const toggle = report.getByRole("switch", { name: /Email me this every week/ });
     await expect(toggle.isChecked()).resolves.toBe(false);
     await toggle.click();

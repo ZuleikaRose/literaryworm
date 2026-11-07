@@ -297,8 +297,9 @@ export function demoHousehold(): Household {
     ...emptyProfileData(),
     // A little reading this week, for the grown-ups' Kids report in Account → Family.
     readingDays: {
-      [today(new Date(now - 86_400_000))]: { seconds: 25 * 60, listened: 15 * 60, finished: 0 },
-      [today(new Date(now - 2 * 86_400_000))]: { seconds: 30 * 60, listened: 30 * 60, finished: 0 },
+      // Some of it in Bedtime listening, for the report's bedtime line.
+      [today(new Date(now - 86_400_000))]: { seconds: 25 * 60, listened: 15 * 60, finished: 0, bedtimeListened: 10 * 60 },
+      [today(new Date(now - 2 * 86_400_000))]: { seconds: 30 * 60, listened: 30 * 60, finished: 0, bedtimeListened: 12 * 60 },
       [today(new Date(now - 4 * 86_400_000))]: { seconds: 20 * 60, listened: 0, finished: 1, books: ["peter-pan"] },
     },
     library: Object.fromEntries([catalogEntry("the-wild-robot", "reading", now - 2 * 86_400_000)]),

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { BEDTIME_EXTRA_MINUTES, bedtimeNow, nextCheckMs } from "./bedtime";
+import { BEDTIME_EXTRA_MINUTES, bedtimeNow, inBedtime, nextCheckMs } from "./bedtime";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
-import { addReadingSeconds } from "./readingActivity";
+import { addBedtimeSeconds, addReadingSeconds } from "./readingActivity";
 import { today } from "./reading";
 
 /** Time is added to the store in steps this long, so the whole app doesn't re-render every second. */
@@ -50,6 +50,11 @@ export function useDailyLimit(counting: boolean, profileId?: string, listening =
   const reached = remainingSeconds <= 0 || asleep;
   const unsaved = useRef(0);
   const tracked = useRef(track);
+  const isLate = () => Boolean(profile?.ageRating === "kids" && profile.bedtime && profile.wakeTime && inBedtime(new Date(), profile.bedtime, profile.wakeTime));
+  const lateRef = useRef(isLate);
+  useEffect(() => {
+    lateRef.current = isLate;
+  });
   useEffect(() => {
     tracked.current = track;
   });
@@ -59,8 +64,13 @@ export function useDailyLimit(counting: boolean, profileId?: string, listening =
     const add = (seconds: number) => {
       const day = today();
       const book = tracked.current?.() ?? null;
-      dispatch({ type: "addTimeUsed", day, seconds, profileId, listening, bookId: book?.bookId, fraction: book?.fraction ?? null });
-      if (remote && countedProfile) addReadingSeconds(countedProfile, day, seconds, listening, book);
+      // A Kids profile reading on past bedtime (a grown-up allowed more) counts as a late night.
+      const late = lateRef.current();
+      dispatch({ type: "addTimeUsed", day, seconds, profileId, listening, bookId: book?.bookId, fraction: book?.fraction ?? null, late });
+      if (remote && countedProfile) {
+        addReadingSeconds(countedProfile, day, seconds, listening, book);
+        if (late) addBedtimeSeconds(countedProfile, day, seconds, "late");
+      }
     };
     // Counted by the clock rather than by ticks: browsers slow timers in background tabs, and
     // listening carries on there (reading doesn't count while the tab is hidden).

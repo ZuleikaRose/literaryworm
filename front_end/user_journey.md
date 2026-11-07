@@ -840,6 +840,8 @@ The front end lives in `front_end/literaryworm_app` (React + TypeScript + Vite, 
 
 265. **A speed for each book.** Player settings has *Keep this speed for this book*. Turned on, the book keeps the speed it's playing at, changing the speed changes only that book, and every other book plays at the profile's usual speed, on every device.
 
+266. **Bedtime in the Kids reading report.** Account → Family adds a line per Kids profile: *Bedtime kept 6 of 7 nights. 20 min of bedtime listening* (the first part only for a profile with a bedtime). The Monday email has the same line.
+
 225. **Clearer policies and Help.** Your Privacy Choices lists every email and notification switch, Global Privacy Control and how to download or delete your data. The Return Policy, Terms, EULA, Acceptable Use Policy and Copyright/DMCA start with *In short*; the Disclaimer has its own AI section; Help is grouped by topic (migration 6619).
 
 224. **Google Books cookies, said plainly.** Because we use the Google Books API, covers of Google Books titles and the Google Books preview load from books.google.com, and Google sets third-party cookies there. The Cookie Policy lists them, and the Privacy Policy, Help, the FAQ, the Children's Privacy Notice and the preview's note say so (migration 6618).

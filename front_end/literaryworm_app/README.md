@@ -271,3 +271,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | PDF and Kindle uploads: `lib/bookFile.ts`, `lib/pdf.ts` + `lib/pdfText.ts` (+ test), `lib/mobi.ts` (+ test), shared `pageText()` / `assembleChapters()` in `lib/epub.ts`, `UploadsView` accepts them, `e2e/bookFixtures.ts`; `pdfjs-dist` 6.4.299; migrations 6724–6725 |
 | — | Character voices: `castSegments()` / `speakerVoice()` / `chapterPieces()` in `lib/naturalVoice.ts` (+ `castVoices.test.ts`), `naturalNarrator(..., piecesFor)`, `memberVoicePart(upload, narrator, chapters, cast)`, the switch in `PlayerSettingsDialog`; migrations 6726–6728 |
 | — | A speed for each book: `lib/bookSpeed.ts` (+ test), `usePlayerSettings(bookId)`, switch in `PlayerSettingsDialog`; migrations 6731–6732 |
+| — | Bedtime in the Kids report: `bedtimeWeek()` (+ tests), `lib/useBedtimeTime.ts`, `addBedtimeSeconds()`, late minutes in `useDailyLimit`, Family line; migrations 6733–6735 |

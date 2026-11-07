@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Bedtime in the Kids reading report",
+    "body": "Account → Family and the Monday email now show, for each Kids profile with a bedtime, how many nights of the last week it was kept, and how long it spent in Bedtime listening.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "A speed for each book",
     "body": "In Player settings, Keep this speed for this book remembers how fast you like one audiobook, on every device, while your other books keep your usual speed.",
     "major": false

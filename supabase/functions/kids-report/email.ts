@@ -15,6 +15,12 @@ export interface KidWeek {
   finishedBooks: string[];
   /** The weekly goal a grown-up set, in minutes; none when not set. */
   goalMinutes?: number | null;
+  /** Whether the profile has a bedtime set (the bedtime line shows only then). */
+  hasBedtime?: boolean;
+  /** Minutes in Bedtime listening. */
+  bedtimeMinutes?: number;
+  /** Nights with reading or listening after bedtime. */
+  lateNights?: number;
 }
 
 export interface Email {
@@ -59,6 +65,14 @@ export function goalLine(k: KidWeek): string | null {
   if (!k.goalMinutes) return null;
   const goal = `Weekly goal: ${timeRead(k.goalMinutes)}`;
   return k.minutes >= k.goalMinutes ? `${goal}. Reached!` : `${goal}. ${timeRead(k.goalMinutes - k.minutes)} short.`;
+}
+
+/** Bedtime kept, out of 7 nights, and Bedtime listening, for a profile with a bedtime; else null. */
+export function bedtimeLine(k: KidWeek): string | null {
+  if (!k.hasBedtime) return null;
+  const kept = Math.max(0, 7 - (k.lateNights ?? 0));
+  const listening = (k.bedtimeMinutes ?? 0) > 0 ? ` ${timeRead(k.bedtimeMinutes!)} of bedtime listening.` : "";
+  return `Bedtime kept ${kept} of 7 nights.${listening}`;
 }
 
 /** The finished books' titles where we know them (our own catalog); others are counted. */
@@ -116,7 +130,14 @@ export function kidsReportEmail(input: {
   // One group needs no headings.
   const groups = groupKids(input.kids);
   const headed = groups.length > 1;
-  const kidText = (k: KidWeek) => [k.name, kidLine(k), ...(goalLine(k) ? [goalLine(k)!] : []), ...(finishedLine(k) ? [finishedLine(k)!] : []), ""];
+  const kidText = (k: KidWeek) => [
+    k.name,
+    kidLine(k),
+    ...(goalLine(k) ? [goalLine(k)!] : []),
+    ...(bedtimeLine(k) ? [bedtimeLine(k)!] : []),
+    ...(finishedLine(k) ? [finishedLine(k)!] : []),
+    "",
+  ];
 
   const text = [
     hello,
@@ -137,11 +158,13 @@ export function kidsReportEmail(input: {
   const kidRow = (k: KidWeek) => {
     const finished = finishedLine(k);
     const goal = goalLine(k);
+    const bedtime = bedtimeLine(k);
     return `<tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <div style="font-size:17px;font-weight:700;color:#1d1c1a;">${escapeHtml(k.name)}</div>
                       <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(kidLine(k))}</div>
                       ${goal ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(goal)}</div>` : ""}
+                      ${bedtime ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(bedtime)}</div>` : ""}
                       ${finished ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(finished)}</div>` : ""}
                     </td>
                   </tr>`;

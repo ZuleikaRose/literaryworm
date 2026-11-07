@@ -109,7 +109,8 @@ export type Action =
   | { type: "updateReaderSettings"; patch: Partial<ReaderSettings> }
   | { type: "setNarrationVoice"; voice: string | null }
   | { type: "updatePlayerSettings"; patch: Partial<PlayerSettings> }
-  | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean; bookId?: string; fraction?: number | null }
+  | { type: "addTimeUsed"; day: string; seconds: number; profileId?: string; listening?: boolean; bookId?: string; fraction?: number | null; late?: boolean }
+  | { type: "addBedtimeListening"; day: string; seconds: number; profileId: string }
   | { type: "allowExtraTime"; day: string; minutes: number }
   | { type: "allowPastBedtime"; until: number }
   /** The active profile's goal for a year; null clears it. */
@@ -589,9 +590,20 @@ export function reducer(state: AppState, action: Action): AppState {
                 ...day,
                 seconds: day.seconds + action.seconds,
                 listened: (day.listened ?? 0) + (action.listening ? action.seconds : 0),
+                ...(action.late ? { late: (day.late ?? 0) + action.seconds } : {}),
               },
             },
           };
+        },
+        action.profileId,
+      );
+
+    case "addBedtimeListening":
+      return withProfileData(
+        state,
+        (data) => {
+          const day = data.readingDays[action.day] ?? { seconds: 0, finished: 0 };
+          return { ...data, readingDays: { ...data.readingDays, [action.day]: { ...day, bedtimeListened: (day.bedtimeListened ?? 0) + action.seconds } } };
         },
         action.profileId,
       );

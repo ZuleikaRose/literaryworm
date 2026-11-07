@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { groupKids, kidGroup, kidWeek, lastSevenDays, weeklyGoal, quizWeek } from "./kidsReport";
+import { bedtimeWeek, groupKids, kidGroup, kidWeek, lastSevenDays, weeklyGoal, quizWeek } from "./kidsReport";
 
 describe("a Kids profile's week", () => {
   it("covers the 7 days up to today, across a month's end", () => {
@@ -17,11 +17,11 @@ describe("a Kids profile's week", () => {
       "2026-11-02",
     );
     // Half a minute isn't a day read; the 26th is older than a week.
-    expect(week).toEqual({ seconds: 2130, listened: 600, daysRead: 2, finished: 2, books: ["frankenstein", "dracula"] });
+    expect(week).toEqual({ seconds: 2130, listened: 600, daysRead: 2, finished: 2, books: ["frankenstein", "dracula"], bedtimeListened: 0, lateNights: 0 });
   });
 
   it("is empty for a profile that hasn't read", () => {
-    expect(kidWeek({}, "2026-11-02")).toEqual({ seconds: 0, listened: 0, daysRead: 0, finished: 0, books: [] });
+    expect(kidWeek({}, "2026-11-02")).toEqual({ seconds: 0, listened: 0, daysRead: 0, finished: 0, books: [], bedtimeListened: 0, lateNights: 0 });
   });
 });
 
@@ -81,5 +81,25 @@ describe("quizWeek", () => {
   it("is null with no quizzes this week", () => {
     expect(quizWeek([], "2026-10-31")).toBeNull();
     expect(quizWeek([result(at(2026, 9, 1), 2)], "2026-10-31")).toBeNull();
+  });
+});
+
+describe("bedtime in the Kids report", () => {
+  it("counts bedtime listening and late nights over the week, and kept nights only with a bedtime", () => {
+    const days = {
+      "2026-11-07": { seconds: 1200, finished: 0, bedtimeListened: 600, late: 120 },
+      "2026-11-05": { seconds: 900, finished: 0, bedtimeListened: 300, late: 30 },
+      "2026-10-20": { seconds: 900, finished: 0, late: 600 },
+    };
+    const week = kidWeek(days, "2026-11-07");
+    expect([week.bedtimeListened, week.lateNights]).toEqual([900, 1]);
+    expect(bedtimeWeek(week, true)).toEqual({ kept: 6, listened: 900 });
+    expect(bedtimeWeek(week, false)).toEqual({ kept: null, listened: 900 });
+  });
+
+  it("has nothing to say without a bedtime or bedtime listening, and on empty input", () => {
+    const week = kidWeek({}, "2026-11-07");
+    expect(bedtimeWeek(week, false)).toBeNull();
+    expect(bedtimeWeek(week, true)).toEqual({ kept: 7, listened: 0 });
   });
 });

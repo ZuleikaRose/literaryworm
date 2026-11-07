@@ -170,7 +170,7 @@
           "Service providers. Supabase stores the data above and runs our server functions. Vercel hosts the website.",
           "Mailgun sends our emails and the book club invitations members send, so it receives the address each email goes to and the email's contents.",
           "The emails confirm your email address, reset your password, and tell you when a book you set Remind me on is out. There's a weekly list of new books from authors you follow, and a monthly round-up of what's new in LiteraryWorm if you turn it on.",
-          "If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished and any weekly goal.",
+          "If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished, any weekly goal, and, for a profile with a bedtime, how many nights it was kept and its time in Bedtime listening.",
           "A reminder the day before a book club you're in meets, and a note when one of its meetings moves or is cancelled: the club's name and book and the meeting's name, times and note, with the meeting as a calendar file.",
           "If you turn it on, a daily email of new posts in your book clubs: each club's name and book, the chapters you've reached that have new posts, how many and the display names of who wrote them; never what they wrote.",
           "A reminder three days before a gift membership you bought for a later day starts (its plan, months and start day; never the code), and a gift membership a member asked us to email to you (its code, plan and months, the buyer's display name and any message they wrote).",
@@ -615,7 +615,7 @@
         "paragraphs": [
           "The profile: its first name or nickname, its avatar, its age rating, and any daily reading limit, weekly reading goal and bedtime you set.",
           "Its reading: the books in its library, where it is in each book, its bookmarks, highlights and notes, its Up next queue, ratings, the moods and pace it tags books with, favourites and lists, the authors and narrators it follows, and its release reminders.",
-          "Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started).",
+          "Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), how much of that was in Bedtime listening or after its bedtime, the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started).",
           "Its learning: the words it saves from the dictionary and when they're next due for review, its private reading journal, and its chapter quiz scores.",
           "Its family activity: the books it asks a grown-up for and your answers, the household challenges it starts or joins, and the reading sprints it joins at home with the pages it turned (kept 90 days), which the other profiles on your account can see. Kids profiles can't join a book club's sprints.",
           "Badges are worked out on the device from this reading and are never stored. Books saved for offline reading stay on that device."
@@ -649,7 +649,7 @@
       {
         "heading": "Who sees it",
         "paragraphs": [
-          "You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, its book requests and its quiz scores.",
+          "You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests and its quiz scores.",
           "If you turn on the weekly Kids reading report, we email last week's reading to your account's email address. Mailgun sends it for us. It's off until you turn it on.",
           "Our hosting providers, Supabase and Vercel, store and serve it only to run LiteraryWorm for you.",
           "Our support team can see how many profiles an account has, but not a profile's name, library, reading, notes or journal."
@@ -691,7 +691,7 @@
         ]
       }
     ],
-    "updated": "2026-11-03"
+    "updated": "2026-11-07"
   },
   {
     "slug": "privacy-choices",

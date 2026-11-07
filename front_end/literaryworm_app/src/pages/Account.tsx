@@ -41,7 +41,7 @@ import {
 import { CANCEL_NOTICE_HOURS, cancellationEnd, endDate, longDate, nextBillingDate, ordinal } from "../lib/billing";
 import { readingTime } from "../lib/goals";
 import { type Passkey, PASSKEY_NAME_MAX, passkeyNameError, passkeysSupported, sortPasskeys } from "../lib/passkeys";
-import { groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal, quizWeek } from "../lib/kidsReport";
+import { bedtimeWeek, groupKids, kidGroup, type KidWeek, kidWeek, type WeeklyGoal, weeklyGoal, quizWeek } from "../lib/kidsReport";
 import { ageRatingDetails, dailyLimitOptions } from "../lib/profiles";
 import { today } from "../lib/reading";
 import { useAccount } from "../lib/useAccount";
@@ -1601,6 +1601,7 @@ function KidsReport() {
   const groups = groupKids(weeks, (k) => k.group);
   const row = (p: (typeof kids)[number], week: KidWeek, goal: WeeklyGoal | null) => {
     const titles = week.books.map((id) => getBook(id)?.title).filter((t): t is string => Boolean(t));
+    const bedtime = bedtimeWeek(week, Boolean(p.bedtime));
     return (
       <li key={p.id}>
         <Avatar name={p.name} avatar={p.avatar} size={36} />
@@ -1624,6 +1625,16 @@ function KidsReport() {
             <p>
               {t.plural(week.finished, { one: "Finished {count} book", other: "Finished {count} books" })}
               {titles.length > 0 && `: ${titles.join(", ")}`}
+            </p>
+          )}
+          {bedtime && (
+            <p>
+              {[
+                bedtime.kept !== null ? t("Bedtime kept {kept} of 7 nights", { kept: bedtime.kept }) : null,
+                bedtime.listened >= 60 ? t("{time} of bedtime listening", { time: readingTime(bedtime.listened) }) : null,
+              ]
+                .filter(Boolean)
+                .join(". ")}
             </p>
           )}
           {quizzesOf(p.id) && (

@@ -293,6 +293,10 @@ export interface ReadingDay {
   listened?: number;
   /** The books finished that day, when known (Year in Review lists them). */
   books?: string[];
+  /** Kids profiles: seconds listened in Bedtime listening (lib/kidsReport.ts bedtimeWeek()). */
+  bedtimeListened?: number;
+  /** Kids profiles: seconds read or listened after bedtime (a grown-up allowed more). */
+  late?: number;
 }
 
 /** One day of a profile's time with one book (reading statistics by book). */

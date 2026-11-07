@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/kids-report — runs offline with a stand-in database and Mailgun.
 import { assert, assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
-import { type Email, finishedLine, goalLine, groupKids, kidGroup, kidLine, type KidWeek, kidsReportEmail, timeRead, weekLabel } from "./email.ts";
+import { bedtimeLine, type Email, finishedLine, goalLine, groupKids, kidGroup, kidLine, type KidWeek, kidsReportEmail, timeRead, weekLabel } from "./email.ts";
 import { type Deps, handle, lastWeek, type Recipient } from "./handler.ts";
 
 const KEY = "cron-key-value";
@@ -123,4 +123,22 @@ Deno.test("a household's report reads in groups, the same as Account → Family"
   // One group needs no headings.
   const single = kidsReportEmail({ to: "x@example.com", name: null, weekFrom: "2026-10-26", weekTo: "2026-11-01", kids: [AVA], site: SITE, unsubscribe: `${SITE}/u` });
   assertFalse(single.text.includes("GOAL REACHED"));
+});
+
+Deno.test("the bedtime line: nights kept out of 7 and bedtime listening, only with a bedtime", () => {
+  const base: KidWeek = { name: "Mia", minutes: 90, listeningMinutes: 30, daysRead: 4, booksFinished: 0, finishedBooks: [] };
+  assertEquals(bedtimeLine(base), null);
+  assertEquals(bedtimeLine({ ...base, hasBedtime: true }), "Bedtime kept 7 of 7 nights.");
+  assertEquals(bedtimeLine({ ...base, hasBedtime: true, lateNights: 2, bedtimeMinutes: 75 }), "Bedtime kept 5 of 7 nights. 1 h 15 min of bedtime listening.");
+  const email = kidsReportEmail({
+    to: "a@example.com",
+    name: null,
+    weekFrom: "2026-11-02",
+    weekTo: "2026-11-08",
+    kids: [{ ...base, hasBedtime: true, lateNights: 1, bedtimeMinutes: 20 }],
+    site: "https://www.literaryworm.com",
+    unsubscribe: "https://www.literaryworm.com/unsubscribe?x",
+  });
+  assertStringIncludes(email.text, "Bedtime kept 6 of 7 nights. 20 min of bedtime listening.");
+  assertStringIncludes(email.html, "Bedtime kept 6 of 7 nights.");
 });

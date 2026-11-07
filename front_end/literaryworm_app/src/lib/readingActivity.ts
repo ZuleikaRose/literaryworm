@@ -1,4 +1,4 @@
-import { recordReading } from "./accountApi";
+import { recordBedtime, recordReading } from "./accountApi";
 
 /**
  * Sends a member's reading time to Supabase (record_reading) in whole minutes. Seconds build up
@@ -53,5 +53,38 @@ async function send(key: string): Promise<void> {
     buffered.set(key, { ...later, seconds: total, listened: Math.min(total, later.listened + listenedMinutes * 60) });
   } finally {
     sending.delete(key);
+  }
+}
+
+/**
+ * Kids profiles' bedtime time, sent like reading time (record_bedtime) in whole minutes: minutes
+ * in Bedtime listening, and minutes read or listened after bedtime. For the Kids reading report.
+ */
+const bedtimeBuffered = new Map<string, { profileId: string; day: string; bedtime: number; late: number }>();
+const bedtimeSending = new Set<string>();
+
+export function addBedtimeSeconds(profileId: string, day: string, seconds: number, kind: "bedtime" | "late"): void {
+  const key = `${profileId}|${day}`;
+  const now = bedtimeBuffered.get(key) ?? { profileId, day, bedtime: 0, late: 0 };
+  bedtimeBuffered.set(key, { ...now, [kind]: Math.min(CAP, now[kind] + seconds) });
+  void sendBedtime(key);
+}
+
+async function sendBedtime(key: string): Promise<void> {
+  const now = bedtimeBuffered.get(key);
+  if (!now || bedtimeSending.has(key)) return;
+  const bedtime = Math.min(60, Math.floor(now.bedtime / 60));
+  const late = Math.min(60, Math.floor(now.late / 60));
+  if (bedtime === 0 && late === 0) return;
+  bedtimeSending.add(key);
+  bedtimeBuffered.set(key, { ...now, bedtime: now.bedtime - bedtime * 60, late: now.late - late * 60 });
+  try {
+    await recordBedtime(now.profileId, now.day, bedtime, late);
+  } catch (err) {
+    console.error("kids report: couldn't save bedtime time", (err as Error).message);
+    const later = bedtimeBuffered.get(key) ?? now;
+    bedtimeBuffered.set(key, { ...later, bedtime: Math.min(CAP, later.bedtime + bedtime * 60), late: Math.min(CAP, later.late + late * 60) });
+  } finally {
+    bedtimeSending.delete(key);
   }
 }

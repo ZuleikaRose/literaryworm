@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { bedtimeTimer } from "../lib/bedtimeListening";
 import { usePlayback } from "../lib/playback";
+import { useBedtimeTime } from "../lib/useBedtimeTime";
 import { formatTime, SLEEP_MINUTES } from "../lib/reading";
 import type { PlayerControls } from "../lib/usePlayerControls";
 import { useT } from "../lib/useT";
@@ -23,6 +24,8 @@ export function BedtimeView({ book, controls }: { book: Book; controls: PlayerCo
   const playing = live?.playing ?? false;
   const sleep = live?.sleep ?? null;
   const chapter = book.chapters[places.chapterIndex];
+  // Kids profiles' time here goes in the Kids reading report.
+  useBedtimeTime(playing);
 
   // Start the timer once, when the view opens, if the listener hasn't set one.
   const latest = useRef({ sleep, setSleep: playback.setSleep, timer: bedtimeTimer(places.chapterEnd - position, player.speed) });
