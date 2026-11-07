@@ -589,6 +589,23 @@
   box-shadow: -3px 0 0 var(--rust-bright);
 }
 
+/* The word being spoken, inside the sentence being read. */
+.transcript-word {
+  color: inherit;
+  background: transparent;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--rust-bright);
+  text-underline-offset: 0.2em;
+  font-weight: 600;
+}
+
+@media (forced-colors: active) {
+  .transcript-word {
+    text-decoration-color: Highlight;
+  }
+}
+
 .transcript-note {
   margin: 0;
   color: var(--muted);

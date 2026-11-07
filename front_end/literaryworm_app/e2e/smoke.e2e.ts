@@ -1671,6 +1671,23 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("marks the word being spoken in the read-along of an upload read by a natural voice", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    // The read-along is an accessibility setting, turned on from the menu in the header.
+    await page.getByRole("button", { name: "Accessibility menu" }).click();
+    await page.getByRole("region", { name: "Accessibility settings" }).getByRole("switch", { name: /Read-along transcript/ }).check();
+    await page.keyboard.press("Escape");
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a4");
+    const current = page.locator('.transcript-line[aria-current="true"]');
+    await current.waitFor();
+    // One word of the current sentence is marked, and it's a word of that sentence.
+    const word = (await current.locator("mark.transcript-word").innerText()).trim();
+    expect(word.length).toBeGreaterThan(0);
+    expect(await current.innerText()).toContain(word);
+    expect(errors()).toEqual([]);
+  });
+
   it("exports Avery's notes as a PDF", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

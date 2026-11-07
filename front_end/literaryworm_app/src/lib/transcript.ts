@@ -93,3 +93,15 @@ export function lineAt(lines: TranscriptLine[], seconds: number): number {
   }
   return found;
 }
+
+/**
+ * The word being spoken in a sentence, `share` (0–1) of the way through its time: the word
+ * covering that share of the sentence's letters (spaces and punctuation between words count
+ * towards the word after them). Character offsets into `text`, or null for no word.
+ */
+export function wordAt(text: string, share: number): { start: number; end: number } | null {
+  const words = [...text.matchAll(/\S+/g)].map((m) => ({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
+  if (!words.length) return null;
+  const at = Math.min(1, Math.max(0, share)) * text.length;
+  return words.find((w) => at < w.end) ?? words[words.length - 1];
+}

@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { bookText } from "../lib/narration";
-import { chapterTranscript, lineAt, textTranscript, TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES } from "../lib/transcript";
+import { chapterTranscript, lineAt, textTranscript, TRANSCRIPT_LANGUAGES, TRANSCRIPT_SIZES, wordAt } from "../lib/transcript";
 import { type Alignment, alignedTranscript } from "../lib/alignment";
 import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
@@ -74,6 +74,10 @@ export function Transcript({
     [book, chapterIndex, language, realText, chapterText, alignment],
   );
   const current = lineAt(lines, position);
+  // With the book's own text, the word being spoken is marked too, from how far through its sentence the voice is.
+  const currentLine = current >= 0 ? lines[current] : null;
+  const word =
+    realText && currentLine && currentLine.end > currentLine.start ? wordAt(currentLine.text, (position - currentLine.start) / (currentLine.end - currentLine.start)) : null;
 
   // Keep the sentence being read in the middle of the box.
   useEffect(() => {
@@ -154,7 +158,15 @@ export function Transcript({
                 onClick={() => onSeek(lines[i].start)}
                 onKeyDown={(e) => onKeyDown(e, i)}
               >
-                {lines[i].text}{" "}
+                {i === current && word ? (
+                  <>
+                    {lines[i].text.slice(0, word.start)}
+                    <mark className="transcript-word">{lines[i].text.slice(word.start, word.end)}</mark>
+                    {lines[i].text.slice(word.end)}
+                  </>
+                ) : (
+                  lines[i].text
+                )}{" "}
               </span>
             ))}
           </p>
