@@ -4,7 +4,8 @@ import { type Challenge, challengeStatus, THEME_PROMPTS, type ThemeBook, themesC
 /**
  * Book ideas for a household *Themes covered* challenge (Discover): for the first themes this
  * profile hasn't covered yet in a running challenge it joined, catalog books that fit, which it
- * may see and hasn't got in its library. Worked out in the browser.
+ * may see and hasn't got in its library, best for this profile first (`rank`, lib/themeRanking.ts;
+ * catalog order breaks ties). Worked out in the browser.
  */
 export interface ThemeIdea {
   challenge: Challenge;
@@ -28,16 +29,20 @@ export function themeIdeas(input: {
   catalog: Book[];
   bookOf: (id: string) => ThemeBook | undefined;
   skip: (id: string) => boolean;
+  /** How well a book suits the profile (higher first); catalog order without it. */
+  rank?: (book: Book) => number;
   themes?: number;
   perTheme?: number;
 }): ThemeIdea[] {
-  const { challenge, days, catalog, bookOf, skip, themes = 2, perTheme = 12 } = input;
+  const { challenge, days, catalog, bookOf, skip, rank, themes = 2, perTheme = 12 } = input;
   const covered = new Set(themesCovered(days, challenge.startsOn, challenge.endsOn, bookOf));
   const ideas: ThemeIdea[] = [];
   for (const prompt of THEME_PROMPTS) {
     if (ideas.length >= themes || covered.has(prompt.id)) continue;
     const fitting = catalog.filter((b) => !skip(b.id) && prompt.fits(bookOf(b.id) ?? { year: 0, genres: [], pages: 0, language: "en", inSeries: false }));
-    if (fitting.length) ideas.push({ challenge, themeId: prompt.id, label: prompt.label, books: fitting.slice(0, perTheme) });
+    // Array sort is stable, so books that score the same keep the catalog's order.
+    const ordered = rank ? fitting.map((book) => ({ book, score: rank(book) })).sort((a, b) => b.score - a.score).map(({ book }) => book) : fitting;
+    if (ordered.length) ideas.push({ challenge, themeId: prompt.id, label: prompt.label, books: ordered.slice(0, perTheme) });
   }
   return ideas;
 }

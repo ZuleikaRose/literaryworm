@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Theme ideas picked for you",
+    "body": "The book ideas on Discover for a themes challenge now come in your order: books like the ones you loved and finished, by authors and narrators you follow, and in the moods you tag most come first.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
     "kind": "feature",
     "title": "Clips from your own books",
     "body": "Share a clip now works for books you uploaded and hear in a natural voice: a link to the part you're listening to, which plays only for your household.",

@@ -50,4 +50,12 @@ describe("theme challenge ideas", () => {
   it("has nothing to suggest with an empty catalog", () => {
     expect(themeIdeas({ challenge: challenge({}), days: {}, catalog: [], bookOf: () => undefined, skip: () => false })).toEqual([]);
   });
+
+  it("orders a theme's books by the profile's rank, keeping the catalog's order for ties", () => {
+    const old2 = { year: 1820, genres: ["Classics"], pages: 300, language: "en", inSeries: false };
+    const all = { ...details, old2, old3: old2 };
+    const books = Object.keys(all).map((id) => ({ id }) as Book);
+    const ideas = themeIdeas({ challenge: challenge({}), days: {}, catalog: books, bookOf: (id) => all[id as keyof typeof all], skip: () => false, rank: (b) => (b.id === "old3" ? 2 : 0), themes: 1 });
+    expect(ideas[0].books.map((b) => b.id)).toEqual(["old3", "old", "owned", "old2"]);
+  });
 });
