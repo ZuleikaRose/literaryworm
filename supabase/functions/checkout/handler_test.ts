@@ -241,7 +241,7 @@ Deno.test("a gift is a one-off Checkout for the plan and months, whatever the bu
   const res = await call(deps, { gift: true, planId: "premium", months: 6 });
   assertEquals(res.status, 200);
   assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_gift");
-  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, creditCents: null, startsOn: null, recipientEmail: null, message: null, books: [], origin: ORIGIN }]);
+  assertEquals(state.gifts, [{ customerId: "cus_1", userId: USER.id, planId: "premium", months: 6, creditCents: null, voiceHours: null, startsOn: null, recipientEmail: null, message: null, books: [], origin: ORIGIN }]);
   assertEquals(state.checkouts.length + state.planChanges.length, 0);
 });
 
