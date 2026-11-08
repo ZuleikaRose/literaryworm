@@ -29,7 +29,9 @@ export const plans: Plan[] = [
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
       tk("Upload your own DRM-free EPUB, PDF and Kindle books, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
       tk("Natural voices from Google to read your uploads aloud: 2 hours of new voicing a month, and listening again is free"),
+      tk("More natural-voice hours when you need them: 5 for $14.99 or 10 for $24.99, paid once"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
+      tk("The app in 20 languages, and a Year in reading email each January if you'd like one"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
       tk("Keep discovering on Home that runs on through every genre for as long as you scroll"),
       tk("Share a clip of any LibriVox recording as a link"),
@@ -167,6 +169,14 @@ export const planFaqs = [
     a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. Natural voices aren't offered on Kids profiles.\n\nNatural voices read 20 languages. With Character voices on, what the characters say is read by other voices, and you can choose who reads whom; Voice the whole book keeps every part on your device for listening offline.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
   },
   {
+    q: tk("Can I get more natural-voice hours?"),
+    a: tk("Yes. In Account → Plan and billing, buy 5 more hours for $14.99 or 10 for $24.99. It's paid once, not a subscription. Bought hours are used only when the month's plan hours run out, carry over from month to month and last 12 months. They're for paid, active memberships, not the free week."),
+  },
+  {
+    q: tk("Can I get a summary of our reading year?"),
+    a: tk("Yes. Turn on Email me our year in reading each January in Account → Preferences. On 1 January we email every profile's time, days read, books finished and busiest month for the year just ended. My Library → Stats has it all year round, and you can share it as a picture or a story."),
+  },
+  {
     q: tk("Can I bring my reading history from Goodreads or StoryGraph?"),
     a: tk("Yes. Export your library from either site, then choose Import from Goodreads or StoryGraph in My Library. The file is read on your device; we find each book, show you what we found, and add the ones you tick with your shelf and star rating. Books you'd already read don't count towards this year's goal."),
   },
@@ -176,7 +186,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read in other languages?"),
-    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in English, Spanish, French, German, Portuguese, Italian and Dutch: choose one in the accessibility menu, and your profile keeps it on every device. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 20 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
+    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in 20 languages, the same ones natural voices read: choose one in the accessibility menu, and your profile keeps it on every device. Arabic reads right to left. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 20 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
   },
   {
     q: tk("Who can see what I read?"),

@@ -188,6 +188,8 @@ Then, on 6 November 2026, voices for uploads:
 - Natural voices from Google Cloud Text-to-Speech (Chirp 3: HD, six voices) for members' uploads, voiced a part at a time as they listen and kept with the upload, within a monthly allowance by plan (Basic 2 hours, Standard 6, Premium 12); never on Kids profiles. The demo's Frankenstein sample is voiced ahead of time in all six, so visitors hear them without any call to Google.
 - Then: natural voices in six more languages (later 17: adding Japanese, Chinese, Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian and Tagalog), hours left in Account and the bell, played parts kept for offline listening, and a read-along timed by the voice's pauses.
 
+Then, on 7 November 2026, after promoting to main: payment recovery nudges, a sleep timer that finishes the paragraph, each profile's listening in Account → Family, downloading an upload's voiced audiobook as one MP3, voice previews, listening together on uploaded books (a portable place: chapter and share of it), an opt-in Year in reading email each January, more natural-voice hours (5 h $14.99, 10 h $24.99, paid once on Stripe, 12 months), and the interface in the 20 natural-voice languages (Arabic right to left). Migrations 6772–6795.
+
 ## Code
 
 - Follow `CLAUDE.md` conventions and the style guide.

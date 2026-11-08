@@ -413,6 +413,8 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 - **Reading schedule card** (`.goal-card.club-schedule`, the club page's side column): *Week 3 of 11* in bold with its dates, *This week: …*, then the standing in 600 weight: `--success` for on track or ahead, `--rust-ink` for behind (the words say it too).
 - **Theme rows on Discover**: ordinary shelves, eyebrow *For your challenge: {title}*, the theme as the title.
 - **Theme list in a challenge** (`.challenge-themes`): nine lines in `--muted`; a covered theme turns `--ink` with a `--success` check and the names of who covered it.
+- **More natural-voice hours** (`.voice-packs`, under Natural voices in Account → This month): a hint with the hours left in packs and when the first ends, then two secondary buttons in a wrapping row (*Buy 5 more hours for $14.99*, *Buy 10…*), 44px tall, then one plain line of terms (paid once, 12 months, no refunds). Disabled with the reason in words in the free week or while a payment is owed; staff see none of it.
+- **Right to left** (`<html dir="rtl">` for Arabic, `RTL_LANGUAGES`): text, flex rows and grids mirror on their own. Write new CSS with logical properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`) so it mirrors too; about a hundred older rules still say left or right and are changed as they're touched. Only icons that point (back, next, chevrons) should flip. Book text keeps the book's own direction.
 - **Voice the whole book** (`.goal-card.voice-whole-book`): a hint with the time it could take and what's left, then one secondary button; while running, a goal bar, *n of N parts voiced* as a live status, and *Stop*.
 
 ## Motion
