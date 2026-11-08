@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
-import { NATURAL_PREFIX, type NaturalVoice, voicesFor } from "../lib/naturalVoice";
+import { NATURAL_PREFIX, type NaturalVoice, voiceGender, voicesFor } from "../lib/naturalVoice";
+import { deviceVoiceGender } from "../lib/deviceVoiceGender";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
@@ -36,28 +37,43 @@ export function VoiceSelect({ book }: { book: Book }) {
         : v.accent === "Australian"
           ? t("Australian English")
           : (new Intl.DisplayNames([dateLocale()], { type: "language" }).of(v.language) ?? v.language);
-  const accents = (["British", "American", "Australian"] as const)
-    .map((accent) => [accent, voices.filter((v) => accentOf(v) === accent)] as const)
-    .filter(([, list]) => list.length > 0);
+  const accentName = (accent: "British" | "American" | "Australian") =>
+    accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English");
+  // Device voices by accent, then women's, men's and voices whose name doesn't say (lib/deviceVoiceGender.ts).
+  const deviceGroups = (["British", "American", "Australian"] as const).flatMap((accent) => {
+    const inAccent = voices.filter((v) => accentOf(v) === accent);
+    return [
+      { key: `${accent}-woman`, label: t("{accent}: women's voices", { accent: accentName(accent) }), list: inAccent.filter((v) => deviceVoiceGender(v) === "woman") },
+      { key: `${accent}-man`, label: t("{accent}: men's voices", { accent: accentName(accent) }), list: inAccent.filter((v) => deviceVoiceGender(v) === "man") },
+      { key: `${accent}-other`, label: t("{accent}: other voices", { accent: accentName(accent) }), list: inAccent.filter((v) => deviceVoiceGender(v) === null) },
+    ].filter((g) => g.list.length > 0);
+  });
+  // Natural voices, women's then men's, each in the book's language first (voicesFor()).
+  const naturalGroups = (["woman", "man"] as const).map((gender) => ({
+    gender,
+    label: gender === "woman" ? t("Natural voices (Google): women's") : t("Natural voices (Google): men's"),
+    list: voicesFor(book.language).filter((v) => voiceGender(v.name) === gender),
+  }));
   return (
     <>
       <label className="player-select player-voice">
         <span>{t("Voice")}</span>
         <select value={narrationValue(narration)} onChange={(e) => dispatch({ type: "setNarrationVoice", voice: e.target.value })}>
           {/* Natural voices first where they're offered (members' uploads and the classics). */}
-          {naturalOffered && (
-            <optgroup label={t("Natural voices (Google)")}>
-              {voicesFor(book.language).map((v) => (
-                <option key={v.id} value={NATURAL_PREFIX + v.id}>
-                  {t("{name}, {accent}", { name: v.name, accent: voiceKind(v) })}
-                </option>
-              ))}
-            </optgroup>
-          )}
+          {naturalOffered &&
+            naturalGroups.map((g) => (
+              <optgroup key={g.gender} label={g.label}>
+                {g.list.map((v) => (
+                  <option key={v.id} value={NATURAL_PREFIX + v.id}>
+                    {t("{name}, {accent}", { name: v.name, accent: voiceKind(v) })}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
           {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
-          {accents.map(([accent, list]) => (
-            <optgroup key={accent} label={accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English")}>
-              {list.map((v) => (
+          {deviceGroups.map((g) => (
+            <optgroup key={g.key} label={g.label}>
+              {g.list.map((v) => (
                 <option key={v.voiceURI} value={v.voiceURI}>
                   {voiceLabel(v)}
                 </option>

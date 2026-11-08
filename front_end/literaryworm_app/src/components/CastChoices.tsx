@@ -6,7 +6,8 @@ import { castVoiceFor } from "../lib/deviceCast";
 import { withDeviceCastChoice } from "../lib/deviceCastChoices";
 import { PREVIEW_TEXTS } from "../lib/voicePreview";
 import { Icon } from "./Icon";
-import { bookSpeakers, castNamesFor, defaultNaturalVoice, speakerVoice } from "../lib/naturalVoice";
+import { bookSpeakers, castNamesFor, defaultNaturalVoice, speakerVoice, voiceGender } from "../lib/naturalVoice";
+import { deviceVoiceGender } from "../lib/deviceVoiceGender";
 import { VoicePreviewButton } from "./VoicePreviewButton";
 import { useProfileData } from "../store/context";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
@@ -85,9 +86,10 @@ function NaturalCastChoices({ book }: { book: Book }) {
                   onChange={(e) => update({ castChoices: withCastChoice(player.castChoices, book.id, speaker, e.target.value || null) })}
                 >
                   <option value="">{t("Chosen for you")}</option>
+                  {/* Each voice says whose it is, so a man or a woman can be given a man's or a woman's voice. */}
                   {names.map((name) => (
                     <option key={name} value={name}>
-                      {name}
+                      {voiceGender(name) === "man" ? t("{name}, a man's voice", { name }) : t("{name}, a woman's voice", { name })}
                     </option>
                   ))}
                 </select>
@@ -178,7 +180,11 @@ function DeviceCastChoices({ book, narrator }: { book: Book; narrator: SpeechSyn
                     <option value="">{t("Chosen for you")}</option>
                     {voices.map((v) => (
                       <option key={v.voiceURI} value={v.name}>
-                        {voiceLabel(v)}
+                        {deviceVoiceGender(v) === "man"
+                          ? t("{name}, a man's voice", { name: voiceLabel(v) })
+                          : deviceVoiceGender(v) === "woman"
+                            ? t("{name}, a woman's voice", { name: voiceLabel(v) })
+                            : voiceLabel(v)}
                       </option>
                     ))}
                   </select>

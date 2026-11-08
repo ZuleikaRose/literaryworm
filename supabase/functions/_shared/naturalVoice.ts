@@ -82,6 +82,17 @@ export const NATURAL_VOICES: readonly NaturalVoice[] = [
   voice("el-GR", "Charon"),
 ];
 
+/** Whose a voice is, as Google lists it, so the menus can offer a woman's or a man's. */
+export type VoiceGender = "woman" | "man";
+
+/** The men's voices among the narrators and character voices (by the names the player shows); the rest are women's. */
+const MEN_VOICES = new Set(["Charon", "Puck", "Fenrir", "Orus", "Neural2 D", "Wavenet C", "Wavenet D"]);
+
+/** A natural voice's gender, by its name ("Charon" a man's, "Aoede" a woman's). */
+export function voiceGender(name: string): VoiceGender {
+  return MEN_VOICES.has(name) ? "man" : "woman";
+}
+
 /** The languages natural voices read, besides English (two letters, as uploaded_books.language keeps them). */
 export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl", "bg", "ro", "el"] as const;
 

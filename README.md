@@ -541,5 +541,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Uploads list every DRM-free file type they take (EPUB, PDF, Kindle .mobi/.azw3/.azw), also on club pages, the FAQ and Help. |
 | —    | Voice the whole book, Download the audiobook (MP3) and natural-voice clips now work for the public-domain classics. |
 | —    | True read-along for fourteen classics (six more, aligned on GitHub's machines by `.github/workflows/align.yml`). |
+| —    | Men's and women's voices side by side: the Voice menu groups natural and device voices by gender, and Who reads whom labels them. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.
