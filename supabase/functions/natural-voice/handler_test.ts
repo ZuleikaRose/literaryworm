@@ -314,9 +314,10 @@ Deno.test("voices a classic's part from its own text, kept for everyone, counted
 
 Deno.test("a classic's character voices follow the listener's choices", async () => {
   const { d, calls } = classicDeps();
-  const pieces = chapterPieces(TALK, naturalVoice(VOICE)!, true, { elizabeth: "en-GB-Chirp3-HD-Charon" });
+  // Choices name a character voice (CAST_NAMES), as the player sends them.
+  const pieces = chapterPieces(TALK, naturalVoice(VOICE)!, true, { elizabeth: "Charon" });
   const speech = pieces.findIndex((p) => p.cast);
-  const res = await handle(askClassic({ chapter: 2, segment: speech, cast: true, castChoices: { elizabeth: "en-GB-Chirp3-HD-Charon" } }), d);
+  const res = await handle(askClassic({ chapter: 2, segment: speech, cast: true, castChoices: { elizabeth: "Charon" } }), d);
   assertEquals(res.status, 200);
   assertEquals(calls.stored, [`catalog/frankenstein/${pieces[speech].voice}-2-c${speech}.mp3`]);
 });
