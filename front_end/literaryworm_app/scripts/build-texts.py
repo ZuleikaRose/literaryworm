@@ -935,6 +935,16 @@ BOOKS = {
     "marianela": {"ebook": 17340, "heading": rf"-{ROMAN}-", "trim": True},
     # The prologue and first tratado are one track, then the fourth and fifth, and the sixth and seventh.
     "lazarillo-de-tormes": {"ebook": 320, "heading": r"(?:Prólogo|Tratado \S+)", "groups": [2, 1, 1, 2, 2], "trim": True},
+    # Classics in Greek (November 2026). Delta's chapters are numbered in Greek numerals, a few
+    # typed with Latin capitals (A', IB', IE'); the contents list is at the end.
+    "paramythi-horis-onoma": {"ebook": 42962, "heading": r"[Α-ΩA-Z]{1,3}'\. [^a-zα-ωά-ώ\n]+", "end": r"^ΠΕΡΙΕΧΟΜΕΝΑ$", "trim": True},
+    # Eight stories, one track each, headed by their titles; the book ends at "Τ Ε Λ Ο Σ".
+    "christougenniatika-diigimata": {
+        "ebook": 36845,
+        "heading": r"(?:Η ΣΤΑΧΟΜΑΖΩΧΤΡΑ|ΤΗΣ ΚΟΚΚΟΝΑΣ ΤΟ ΣΠΙΤΙ|ΥΠΗΡΕΤΡΑ|Η ΓΛΥΚΟΦΙΛΟΥΣΑ|Η ΤΥΧΗ ΑΠ' ΤΗΝ ΑΜΕΡΙΚΑ|ΟΙ ΝΑΥΑΓΟΣΩΣΤΑΙ|Ο ΠΑΝΤΑΡΩΤΑΣ|Η ΠΕΠΟΙΚΙΛΜΕΝΗ)",
+        "end": r"^Τ Ε Λ Ο Σ",
+        "trim": True,
+    },
 }
 
 # Shorter than this after a heading means a table-of-contents line, not a chapter.

@@ -21,6 +21,12 @@ export interface KidWeek {
   bedtimeMinutes?: number;
   /** Nights with reading or listening after bedtime. */
   lateNights?: number;
+  /** Whether a grown-up turned natural voices on for this profile. */
+  naturalVoices?: boolean;
+  /** Minutes of new natural-voice reading this month (the month the week ends in). */
+  voiceMinutes?: number;
+  /** The profile's own monthly share of natural-voice reading, in minutes; none when not set. */
+  voiceShareMinutes?: number | null;
 }
 
 export interface Email {
@@ -73,6 +79,15 @@ export function bedtimeLine(k: KidWeek): string | null {
   const kept = Math.max(0, 7 - (k.lateNights ?? 0));
   const listening = (k.bedtimeMinutes ?? 0) > 0 ? ` ${timeRead(k.bedtimeMinutes!)} of bedtime listening.` : "";
   return `Bedtime kept ${kept} of 7 nights.${listening}`;
+}
+
+/** This month's natural-voice reading, for a profile with natural voices on (or that used some); else null. */
+export function voiceLine(k: KidWeek): string | null {
+  const used = k.voiceMinutes ?? 0;
+  if (!k.naturalVoices && used <= 0) return null;
+  if (used <= 0) return "Natural voices are on; none used this month yet.";
+  const share = k.voiceShareMinutes ? ` of a ${timeRead(k.voiceShareMinutes)} share` : "";
+  return `Natural voices this month: ${timeRead(used)}${share}.`;
 }
 
 /** The finished books' titles where we know them (our own catalog); others are counted. */
@@ -135,6 +150,7 @@ export function kidsReportEmail(input: {
     kidLine(k),
     ...(goalLine(k) ? [goalLine(k)!] : []),
     ...(bedtimeLine(k) ? [bedtimeLine(k)!] : []),
+    ...(voiceLine(k) ? [voiceLine(k)!] : []),
     ...(finishedLine(k) ? [finishedLine(k)!] : []),
     "",
   ];
@@ -159,12 +175,14 @@ export function kidsReportEmail(input: {
     const finished = finishedLine(k);
     const goal = goalLine(k);
     const bedtime = bedtimeLine(k);
+    const voices = voiceLine(k);
     return `<tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <div style="font-size:17px;font-weight:700;color:#1d1c1a;">${escapeHtml(k.name)}</div>
                       <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(kidLine(k))}</div>
                       ${goal ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(goal)}</div>` : ""}
                       ${bedtime ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(bedtime)}</div>` : ""}
+                      ${voices ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(voices)}</div>` : ""}
                       ${finished ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(finished)}</div>` : ""}
                     </td>
                   </tr>`;

@@ -477,3 +477,9 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | A speed for each character (new request) | — | Done | Player settings → Who reads whom: a pace per speaker, 0.8×–1.2× of the narration. `reader_profiles.cast_speeds` (6802); Help 6804, What's new 6805. |
 | Club polls can offer uploads; a club's year together (new request) | — | Done | *What to read next* offers the owner's uploads (`club_polls.upload_labels`, 6803); the club page's year card in December and January. Help 6804, What's new 6805. |
 | Continue on your phone, text spacing, Read aloud speed, right to left (new request) | — | Done | QR code in the reader, player and mini-player; Text spacing in the accessibility menu; a speed select for Read aloud; CSS in logical properties so Arabic mirrors. Help and Accessibility 6804, What's new 6805. |
+| Character voices for the classics (new request) | — | Done | Device voices read what characters say in the device's other voices (or another pitch): `lib/deviceCast.ts`. Help 6809, What's new 6810. |
+| Natural voices in the Kids report (new request) | — | Done | Monday email line and Family card; `kids_report_week()` (6806). |
+| Club natural-voice hours (new request) | — | Done | Owner gives members up to 3 h a month for their copy, from the owner's month. `book_clubs.voice_minutes_per_member`, `club_voice_usage` (6807–6808). |
+| Try the demo on your phone (new request) | — | Done | QR code on home and log-in; `/signin?demo=1` puts Try the demo first. |
+| Offline voice packs for a trip (new request) | — | Done | Voice the whole book already downloads with progress; On this device adds parts kept, space and removing them. |
+| Greek classics (new request) | — | Done | Two titles with full text and LibriVox recordings; texts to upload to `book-texts`. |

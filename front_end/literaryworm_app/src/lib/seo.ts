@@ -37,7 +37,7 @@ export const plansDescription = () =>
 
 /** What the membership includes, for the Product's description (keep it true to the app). */
 export const MEMBERSHIP_DESCRIPTION =
-  "Ebooks and audiobooks with a profile for everyone at home: 877 public-domain classics to read in full and hear on LibriVox recordings, your own DRM-free EPUBs read aloud by device or natural voices, book clubs and buddy reads, goals, moods and stats, Kids profiles with daily limits and bedtimes, AI summaries, content notes and translations, and the app in 21 languages. Billed monthly or yearly, with the first 7 days free.";
+  "Ebooks and audiobooks with a profile for everyone at home: 879 public-domain classics to read in full and hear on LibriVox recordings, your own DRM-free EPUBs read aloud by device or natural voices, book clubs and buddy reads, goals, moods and stats, Kids profiles with daily limits and bedtimes, AI summaries, content notes and translations, and the app in 21 languages. Billed monthly or yearly, with the first 7 days free.";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 
@@ -123,7 +123,7 @@ export const faqData = (faqs: readonly { q: string; a: string }[]) => ({
   })),
 });
 
-const LANGUAGE_CODES: Record<string, string> = { English: "en", French: "fr", German: "de", Spanish: "es", Italian: "it" };
+const LANGUAGE_CODES: Record<string, string> = { English: "en", French: "fr", German: "de", Spanish: "es", Italian: "it", Greek: "el" };
 
 /** A catalog book's page: the book, as an ebook and, with a recording, an audiobook. */
 export function bookData(book: Pick<Book, "id" | "title" | "author" | "year" | "language" | "synopsis" | "pages" | "genres" | "recording" | "formats">) {

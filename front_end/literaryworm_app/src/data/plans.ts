@@ -17,7 +17,7 @@ export const plans: Plan[] = [
     offlineDevices: 1,
     downloads: tk("Read offline on 1 device"),
     features: [
-      tk("Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics, six of them in French, German or Spanish"),
+      tk("Every LiteraryWorm title, with full texts and LibriVox recordings of the public-domain classics, eight of them in French, German, Greek or Spanish"),
       tk("Search almost any book on Google Books by title, author, keywords or ISBN, and keep it in your library"),
       tk("Highlights in twelve colours, notes, bookmarks and a dictionary in the reader"),
       tk("A private reading journal on every book, and spaced review for My words and your highlights"),
@@ -186,7 +186,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read in other languages?"),
-    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in 21 languages, the same ones natural voices read: choose one in the accessibility menu, and your profile keeps it on every device. Arabic reads right to left. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 21 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
+    a: tk("Yes. Eight classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, Penelope Delta's fairy tale Παραμύθι χωρίς όνομα and Papadiamantis's Christmas stories in Greek, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in 21 languages, the same ones natural voices read: choose one in the accessibility menu, and your profile keeps it on every device. Arabic reads right to left. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 21 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
   },
   {
     q: tk("Who can see what I read?"),

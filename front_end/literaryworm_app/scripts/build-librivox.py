@@ -902,6 +902,9 @@ PROJECTS = {
     "max-und-moritz": 538,  # Mikki Starzmann-Kassi
     "marianela": 16285,  # Maritza Mateo
     "lazarillo-de-tormes": 3579,  # Tux
+    # Classics in Greek (November 2026)
+    "paramythi-horis-onoma": 7208,  # Delta, Παραμύθι χωρίς όνομα
+    "christougenniatika-diigimata": 16012,  # Papadiamantis, Χριστουγεννιάτικα διηγήματα
 }
 
 API = "https://librivox.org/api/feed/audiobooks/?id={}&format=json&extended=1"

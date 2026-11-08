@@ -34,6 +34,9 @@ interface WeekRow {
   has_bedtime: boolean | null;
   bedtime_minutes: number | null;
   late_nights: number | null;
+  natural_voices: boolean | null;
+  voice_minutes: number | null;
+  voice_share_minutes: number | null;
 }
 
 Deno.serve((req) =>
@@ -63,6 +66,9 @@ Deno.serve((req) =>
           hasBedtime: Boolean(r.has_bedtime),
           bedtimeMinutes: r.bedtime_minutes ?? 0,
           lateNights: r.late_nights ?? 0,
+          naturalVoices: Boolean(r.natural_voices),
+          voiceMinutes: r.voice_minutes ?? 0,
+          voiceShareMinutes: r.voice_share_minutes,
         }),
       );
     },

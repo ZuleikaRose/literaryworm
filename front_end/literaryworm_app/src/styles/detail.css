@@ -1135,3 +1135,19 @@
 .content-level {
   font-weight: 700;
 }
+
+/* Voice the whole book → On this device (VoiceWholeBook.tsx): what's kept here, and removing it. */
+.voices-on-device {
+  margin-block-start: 16px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--line);
+}
+.voices-on-device h3 {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+}
+.voices-on-device p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}

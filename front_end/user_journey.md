@@ -971,3 +971,15 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 278. **Club polls with uploads, and the club's year together.** A club's owner can put their own uploads in What to read next (members see the title and author and read their own copy). In December and January the club page sums up the year: posts, meetings, shared highlights and the chapter everyone talked about most, counted only up to each reader's chapter.
 
 279. **Continue on your phone, and spacing, speed and direction.** The reader and the player show a QR code that opens the same book at the same place on a phone. The accessibility menu has Text spacing (Wide or Wider); Read aloud in the reader has its own speed; and in Arabic the whole layout mirrors.
+
+280. **Character voices for the classics.** With Character voices on, a device voice reading a classic's own text (or an upload) gives the characters' speech to the device's other voices in that language, each named speaker keeping one; with only one voice, each speaker gets a pitch of their own.
+
+281. **Natural voices in the Kids report.** The weekly Kids report and Account → Family say when natural voices are on for a Kids profile, with this month's natural-voice reading against any share a grown-up set.
+
+282. **Club natural-voice hours.** The owner of a club reading an uploaded book can give every member up to three hours a month of natural-voice reading for their own copy, taken from the owner's month only once a member's own hours run out; members see the gift and what they've used.
+
+283. **Try the demo on your phone.** Visitors can scan a code on the home or log-in page to open the demo on their phone, where Try the demo comes first.
+
+284. **On this device.** Under Voice the whole book, a member sees how many voiced parts of the book are on the device and how much space they take, and can remove them after a trip.
+
+285. **Two Greek classics.** Penelope Delta's fairy tale and Papadiamantis's Christmas stories join the classics in their own language, with full text and LibriVox recordings; the fairy tale is on Kids shelves.

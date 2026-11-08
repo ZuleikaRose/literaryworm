@@ -57,7 +57,7 @@ export function TranslateDialog({ book, chapterIndex, text, onClose }: { book: B
           ))}
         </select>
       </div>
-      <blockquote className="translate-original" lang={book.language === "French" ? "fr" : book.language === "German" ? "de" : book.language === "Spanish" ? "es" : "en"}>
+      <blockquote className="translate-original" lang={book.language === "French" ? "fr" : book.language === "German" ? "de" : book.language === "Spanish" ? "es" : book.language === "Greek" ? "el" : "en"}>
         {passage}
       </blockquote>
       <div className="translate-result" aria-live="polite" aria-busy={!current}>

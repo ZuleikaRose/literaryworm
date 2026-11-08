@@ -29,6 +29,8 @@ export interface Club {
   buddy?: boolean;
   /** The reading schedule's chapters a week (lib/clubSchedule.ts); null or missing when there's none. */
   chaptersPerWeek?: number | null;
+  /** Natural-voice minutes a month the owner gives each member for an uploaded book (lib/clubVoice.ts); null for none. */
+  voiceMinutesPerMember?: number | null;
 }
 
 /** How many readers a buddy read takes (join_club() checks the same). */

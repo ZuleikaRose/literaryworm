@@ -530,5 +530,11 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | A speed for each character in Who reads whom. Migration 6802. |
 | —    | Club polls with uploads; a club's year together card. Migration 6803. |
 | —    | Continue on your phone (QR), Text spacing, Read aloud speed, layouts mirrored for right to left. |
+| —    | Character voices with device voices, for the classics' own text. |
+| —    | Natural voices in the Kids report. Migration 6806. |
+| —    | Club natural-voice hours from the owner's month. Migrations 6807–6808. |
+| —    | Try the demo on your phone (QR). |
+| —    | On this device: an upload's kept voices, their size, and removing them. |
+| —    | Two Greek classics: Delta's fairy tale and Papadiamantis's Christmas stories. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

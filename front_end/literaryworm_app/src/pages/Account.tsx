@@ -1665,6 +1665,13 @@ function KidsReport() {
                 .join(". ")}
             </p>
           )}
+          {p.kidsNaturalVoices && (
+            <p>
+              {p.monthlyVoiceMinutes
+                ? t("Natural voices on, with a {time} share a month (see This month's listening)", { time: readingTime(p.monthlyVoiceMinutes * 60) })
+                : t("Natural voices on (see This month's listening)")}
+            </p>
+          )}
           {quizzesOf(p.id) && (
             <p>
               {t.plural(

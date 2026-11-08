@@ -443,6 +443,15 @@ select.field-input {
   color: var(--success);
 }
 
+/* Opened from the demo's QR code: the message, then Try the demo, stacked. */
+.demo-code-start {
+  flex-direction: column;
+  align-items: stretch;
+}
+.demo-code-start p {
+  margin: 0;
+}
+
 .form-alert p,
 .form-success p {
   margin: 0;

@@ -31,6 +31,7 @@ type ClubRow = {
   book_author: string | null;
   buddy?: boolean;
   chapters_per_week?: number | null;
+  voice_minutes_per_member?: number | null;
   club_members?: { count: number }[];
 };
 type PostRow = { id: string; user_id: string; chapter_index: number; body: string; created_at: string; author: { display_name: string } | null };
@@ -57,7 +58,7 @@ const toMeeting = (row: MeetingRow): ClubMeeting => ({
   rsvps: Object.fromEntries((row.club_meeting_rsvps ?? []).map((r) => [r.user_id, r.answer])),
 });
 
-const CLUB_COLUMNS = "id, name, volume_id, book_title, book_author, starts_on, finishes_on, invite_code, owner_id, buddy, chapters_per_week, club_members(count)";
+const CLUB_COLUMNS = "id, name, volume_id, book_title, book_author, starts_on, finishes_on, invite_code, owner_id, buddy, chapters_per_week, voice_minutes_per_member, club_members(count)";
 const POST_COLUMNS = "id, user_id, chapter_index, body, created_at, author:profiles(display_name)";
 
 const toClub = (row: ClubRow, myCopy: string | null = null): Club => ({
@@ -74,12 +75,26 @@ const toClub = (row: ClubRow, myCopy: string | null = null): Club => ({
   memberCount: row.club_members?.[0]?.count ?? 1,
   buddy: Boolean(row.buddy),
   chaptersPerWeek: row.chapters_per_week ?? null,
+  voiceMinutesPerMember: row.voice_minutes_per_member ?? null,
 });
 
 /** The owner sets the club's chapters a week, or null for no schedule (RLS: owners only). */
 export async function setClubSchedule(id: string, chaptersPerWeek: number | null): Promise<void> {
   const { error } = await client().from("book_clubs").update({ chapters_per_week: chaptersPerWeek }).eq("id", id);
   if (error) throw new AccountError(tr("We couldn't save the schedule. Try again."));
+}
+
+/** The owner gives each member natural-voice minutes a month for the club's uploaded book, or none (RLS: owners only). */
+export async function setClubVoiceHours(id: string, minutes: number | null): Promise<void> {
+  const { error } = await client().from("book_clubs").update({ voice_minutes_per_member: minutes }).eq("id", id);
+  if (error) throw new AccountError(tr("We couldn't save the club's natural-voice hours. Try again."));
+}
+
+/** Characters of the club's gift this member used this month (their own row only). */
+export async function myClubVoiceUse(clubId: string, month: string): Promise<number> {
+  const { data, error } = await client().from("club_voice_usage").select("characters").eq("club_id", clubId).eq("month", month).maybeSingle();
+  if (error) throw new AccountError(tr("We couldn't load the club's natural-voice hours."));
+  return (data?.characters as number | undefined) ?? 0;
 }
 
 const toPost = (row: PostRow): ClubPost => ({

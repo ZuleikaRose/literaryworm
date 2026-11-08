@@ -6227,5 +6227,19 @@ export const CATALOG: Record<string, CatalogBook> = {
     "year": 1554,
     "synopsis": "The first picaresque novel, in Spanish: Lázaro tells how he grew up serving a blind man, a priest, a squire and others, living on his wits.",
     "publicDomain": true
+  },
+  "paramythi-horis-onoma": {
+    "title": "Παραμύθι χωρίς όνομα",
+    "author": "Penelope Delta",
+    "year": 1910,
+    "synopsis": "A fairy tale in Greek (A Tale Without a Name): in the kingdom of the Fatalists, ruined by a careless king and a flattering court, a young prince sets out to put things right.",
+    "publicDomain": true
+  },
+  "christougenniatika-diigimata": {
+    "title": "Χριστουγεννιάτικα διηγήματα",
+    "author": "Alexandros Papadiamantis",
+    "year": 1912,
+    "synopsis": "Eight Christmas stories in Greek from the island of Skiathos, by Greece's best-loved short-story writer: winter vigils, poor households and sailors at sea.",
+    "publicDomain": true
   }
 };

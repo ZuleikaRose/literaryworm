@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/kids-report — runs offline with a stand-in database and Mailgun.
 import { assert, assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
-import { bedtimeLine, type Email, finishedLine, goalLine, groupKids, kidGroup, kidLine, type KidWeek, kidsReportEmail, timeRead, weekLabel } from "./email.ts";
+import { bedtimeLine, voiceLine, type Email, finishedLine, goalLine, groupKids, kidGroup, kidLine, type KidWeek, kidsReportEmail, timeRead, weekLabel } from "./email.ts";
 import { type Deps, handle, lastWeek, type Recipient } from "./handler.ts";
 
 const KEY = "cron-key-value";
@@ -130,6 +130,10 @@ Deno.test("the bedtime line: nights kept out of 7 and bedtime listening, only wi
   assertEquals(bedtimeLine(base), null);
   assertEquals(bedtimeLine({ ...base, hasBedtime: true }), "Bedtime kept 7 of 7 nights.");
   assertEquals(bedtimeLine({ ...base, hasBedtime: true, lateNights: 2, bedtimeMinutes: 75 }), "Bedtime kept 5 of 7 nights. 1 h 15 min of bedtime listening.");
+  assertEquals(voiceLine(base), null);
+  assertEquals(voiceLine({ ...base, naturalVoices: true }), "Natural voices are on; none used this month yet.");
+  assertEquals(voiceLine({ ...base, naturalVoices: true, voiceMinutes: 40, voiceShareMinutes: 120 }), "Natural voices this month: 40 min of a 2 h share.");
+  assertEquals(voiceLine({ ...base, voiceMinutes: 15 }), "Natural voices this month: 15 min.");
   const email = kidsReportEmail({
     to: "a@example.com",
     name: null,

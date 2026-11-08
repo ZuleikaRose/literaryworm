@@ -1051,6 +1051,30 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows the demo's QR code on the home page, and puts Try the demo first when opened from it", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    await page.getByRole("button", { name: "Try the demo on your phone" }).click();
+    const dialog = page.getByRole("dialog", { name: "Try the demo on your phone" });
+    await dialog.getByRole("img", { name: "QR code that opens the LiteraryWorm demo" }).waitFor();
+    await dialog.getByText(/\/signin\?demo=1$/).waitFor();
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.goto(`${BASE_URL}/signin?demo=1`);
+    const start = page.locator(".demo-code-start");
+    await start.getByText(/Opened from a demo code\?/).waitFor();
+    await start.getByRole("button", { name: "Try the demo" }).click();
+    await page.waitForURL(/\/profiles/);
+    expect(errors()).toEqual([]);
+  });
+
+  it("opens a Greek classic's page, in Greek, among the books in their own language", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/books/paramythi-horis-onoma`);
+    await page.getByRole("heading", { level: 1, name: "Παραμύθι χωρίς όνομα" }).waitFor();
+    await page.getByText("Penelope Delta").first().waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("sets wider text spacing from the accessibility menu without sideways scroll", async () => {
     const { page, errors } = await newPage();
     await page.setViewportSize({ width: 390, height: 844 });
@@ -1446,6 +1470,7 @@ describe("the demo household", () => {
     await report.getByText("Finished 1 book: Peter Pan").waitFor();
     await report.getByText("Weekly goal 2 h: 45 min to go").waitFor();
     await report.getByText("22 min of bedtime listening").waitFor();
+    await report.getByText("Natural voices on, with a 1 h share a month (see This month's listening)").waitFor();
     const toggle = report.getByRole("switch", { name: /Email me this every week/ });
     await expect(toggle.isChecked()).resolves.toBe(false);
     await toggle.click();

@@ -49,6 +49,7 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
 import { speedFor } from "../lib/bookSpeed";
 import { ClubSchedule } from "../components/ClubSchedule";
+import { ClubVoiceHours } from "../components/ClubVoiceHours";
 
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
 
@@ -748,6 +749,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
           <ReadingSprint scope={{ kind: "club", clubId: club.id }} readPath={`/read/${book.id}`} />
           {/* On an uploaded book each member hears their own copy, kept at the same chapter and share of it. */}
           <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
+          <ClubVoiceHours club={club} isOwner={isOwner} ownerName={members.find((m) => m.userId === club.ownerId)?.name ?? t("The owner")} />
           <ClubPlaces clubId={club.id} members={members} me={me} />
           {(!club.buddy || buddyOpen(club)) && (
           <section className="goal-card" aria-labelledby="invite-title">

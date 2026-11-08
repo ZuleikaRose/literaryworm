@@ -880,6 +880,11 @@ select pg_temp.expect_error($$update public.reader_profiles set monthly_listenin
 select pg_temp.expect_error($$update public.reader_profiles set monthly_voice_minutes = 600$$, 'changing a profile''s natural-voice share without the account password');
 select pg_temp.expect_error($$select public.add_gift_voice_pack('00000000-0000-0000-0000-00000000000b', gen_random_uuid())$$, 'redeeming gifted voice hours from the browser');
 select pg_temp.expect_error($$update public.club_polls set upload_labels = '{}'::jsonb$$, 'writing a poll''s upload labels from the browser');
+-- Club natural-voice hours (6807): only the natural-voice function finds a club's gift or counts it.
+select pg_temp.expect_error($$select * from public.club_voice_source('00000000-0000-0000-0000-00000000000b', 'u-00000000000000000000000000000000', 100)$$, 'finding a club''s natural-voice hours from the browser');
+select pg_temp.expect_error($$select public.record_club_voice(gen_random_uuid(), '00000000-0000-0000-0000-00000000000b', -100000)$$, 'resetting club natural-voice use from the browser');
+select pg_temp.expect_error($$insert into public.club_voice_usage (club_id, user_id, month, characters) values (gen_random_uuid(), '00000000-0000-0000-0000-00000000000b', date_trunc('month', now())::date, 0)$$, 'writing club natural-voice use from the browser');
+select pg_temp.check((select count(*) from public.club_voice_usage where user_id <> '00000000-0000-0000-0000-00000000000b') = 0, 'a member reads only their own club natural-voice use');
 update public.reader_profiles set cast_speeds = '{}'::jsonb;
 select pg_temp.check(true, 'a member saves their own character speeds');
 reset role;

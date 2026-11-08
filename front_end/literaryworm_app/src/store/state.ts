@@ -204,7 +204,7 @@ function demoHighlight(id: string, quote: string, start: number, color: Highligh
 export function demoHousehold(): Household {
   const avery = makeProfile({ name: "Avery", ageRating: "all", avatar: 0, favoriteGenres: ["Fiction", "Science fiction"] });
   const sam = makeProfile({ name: "Sam", ageRating: "teen", avatar: 2, favoriteGenres: ["Young adult", "Fantasy"] });
-  const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60, weeklyGoalMinutes: 120 });
+  const mia = makeProfile({ name: "Mia", ageRating: "kids", avatar: 4, favoriteGenres: ["Children's"], dailyLimitMinutes: 60, weeklyGoalMinutes: 120, kidsNaturalVoices: true, monthlyVoiceMinutes: 60 });
   const now = Date.now();
   const day = 86_400_000;
   // Four sample EPUBs (data/demoUploads.ts): two in a series, one being read, one with a LibriVox recording.

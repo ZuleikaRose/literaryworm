@@ -8,6 +8,8 @@ import { demoVoicePart } from "../lib/demoVoices";
 import { connectionAllows, type ConnectionInfo } from "../lib/offlineSchedule";
 import { useNaturalVoice, useNaturalVoiceUsage } from "../lib/useNaturalVoice";
 import { useT } from "../lib/useT";
+import { storageSize } from "../lib/offlineVoices";
+import { forgetVoicesOffline, voicesOnDevice } from "../lib/uploadCache";
 import { fitsAllowance, wholeBookPlan, type WholeBookPlan } from "../lib/voiceWholeBook";
 import { useProfileData } from "../store/context";
 import type { Book } from "../types";
@@ -160,6 +162,64 @@ export function VoiceWholeBook({ book }: { book: Book }) {
       )}
       <p className="field-hint">{t("Once every part is voiced, you can save the whole audiobook as one MP3 to play in any audio app.")}</p>
       {downloadButton}
+      <OnThisDevice uploadId={book.id} refresh={run.kind === "running" ? -1 : run.kind === "idle" ? 0 : 1} />
     </section>
+  );
+}
+
+/**
+ * *On this device*: how many of the upload's voiced parts are kept here and how much space they
+ * take (lib/offlineVoices.ts), so it's clear a book is ready before a trip, and *Remove the voices
+ * from this device* after. The text stays; parts can be voiced or played again online.
+ */
+function OnThisDevice({ uploadId, refresh }: { uploadId: string; refresh: number }) {
+  const t = useT();
+  const [kept, setKept] = useState<{ parts: number; bytes: number } | null>(null);
+  const [status, setStatus] = useState("");
+  const [removing, setRemoving] = useState(false);
+
+  useEffect(() => {
+    if (refresh < 0) return;
+    let live = true;
+    voicesOnDevice(uploadId).then(
+      (found) => live && setKept(found),
+      () => live && setKept(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [uploadId, refresh]);
+
+  const remove = async () => {
+    setRemoving(true);
+    try {
+      await forgetVoicesOffline(uploadId);
+      setKept({ parts: 0, bytes: 0 });
+      setStatus(t("Removed from this device. The book's text stays, and the voices play again online."));
+    } catch {
+      setStatus(t("We couldn't remove them. Try again."));
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  if (!kept) return null;
+  return (
+    <div className="voices-on-device">
+      <h3>{t("On this device")}</h3>
+      <p>
+        {kept.parts === 0
+          ? t("No voiced parts are kept here yet.")
+          : t.plural(kept.parts, { one: "{count} voiced part, {size}", other: "{count} voiced parts, {size}" }, { size: storageSize(kept.bytes) })}
+      </p>
+      {kept.parts > 0 && (
+        <button type="button" className="ghost-button small-button" onClick={() => void remove()} disabled={removing}>
+          <Icon name="trash" size={15} /> {t("Remove the voices from this device")}
+        </button>
+      )}
+      <p className="visually-hidden" role="status">
+        {status}
+      </p>
+    </div>
   );
 }

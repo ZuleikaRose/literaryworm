@@ -53,6 +53,14 @@ export type Deps = {
    * characters, and what it has used this month; null when it has no share of its own.
    */
   profileShare?: (userId: string, profileId: string) => Promise<{ limit: number; used: number } | null>;
+  /**
+   * A club whose owner gives members natural-voice minutes for their own copy of the club's
+   * uploaded book (book_clubs.voice_minutes_per_member), where this upload is the caller's copy and
+   * has room this month for the characters; null when none (club_voice_source()).
+   */
+  clubVoice?: (userId: string, uploadId: string, characters: number) => Promise<{ clubId: string; ownerId: string } | null>;
+  /** Counts (or, negative, hands back) a member's use of a club's gift this month. */
+  recordClubVoice?: (clubId: string, userId: string, characters: number) => Promise<void>;
   rateLimit?: (userId: string) => Promise<void>;
 };
 
@@ -139,17 +147,31 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     if (share && share.used + text.length > share.limit) {
       throw new HttpError("profile_limit_reached", "This profile's share of this month's natural-voice reading is used up.");
     }
+    // Who pays for this piece: the caller, or, once their month is used, the owner of a club reading
+    // this book who gives members hours (from the owner's own month).
+    let payer = userId;
+    let club: { clubId: string; ownerId: string } | null = null;
     if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan, trial)))) {
-      // In the free week the limit is its hour; the plan's own hours start with the first payment.
-      throw trial
-        ? new HttpError("trial_limit_reached", "The free week's hour of natural-voice reading is used up.")
-        : new HttpError("limit_reached", "This month's natural-voice reading is used up.");
+      club = (await deps.clubVoice?.(userId, uploadId, text.length)) ?? null;
+      const owner = club ? await deps.membership(club.ownerId) : null;
+      const ownerPays = Boolean(
+        club && owner && !owner.pastDue && (await deps.claim(club.ownerId, text.length, naturalVoiceLimit(owner.plan, owner.trial))),
+      );
+      if (!ownerPays) {
+        // In the free week the limit is its hour; the plan's own hours start with the first payment.
+        throw trial
+          ? new HttpError("trial_limit_reached", "The free week's hour of natural-voice reading is used up.")
+          : new HttpError("limit_reached", "This month's natural-voice reading is used up.");
+      }
+      payer = club!.ownerId;
+      await deps.recordClubVoice?.(club!.clubId, userId, text.length);
     }
     let audio: Uint8Array;
     try {
       audio = await deps.synthesize(text, piece.voice, voice.languageCode);
     } catch (err) {
-      await deps.release(userId, text.length).catch((e: unknown) => console.error("natural-voice: couldn't hand back a claim", e));
+      await deps.release(payer, text.length).catch((e: unknown) => console.error("natural-voice: couldn't hand back a claim", e));
+      if (club) await deps.recordClubVoice?.(club.clubId, userId, -text.length).catch((e: unknown) => console.error("natural-voice: couldn't hand back a club claim", e));
       throw err;
     }
     await deps.store(path, audio);

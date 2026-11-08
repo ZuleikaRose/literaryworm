@@ -1,3 +1,5 @@
+import { DemoOnPhoneButton } from "../components/ContinueOnPhone";
+import { demoLink } from "../lib/continueLink";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Avatar } from "../components/Avatar";
 import { BookCard } from "../components/BookCard";
@@ -89,6 +91,11 @@ export default function Landing() {
             )}
           </div>
           <p className="hero-fine">{t("Plans from {price} a month. Cancel online any time.", { price: formatPrice(plans[0].price) })}</p>
+          {!state.account && (
+            <p className="hero-phone">
+              <DemoOnPhoneButton url={demoLink()} />
+            </p>
+          )}
         </div>
         <div className="hero-books" aria-hidden="true">
           <div className="hero-book back">

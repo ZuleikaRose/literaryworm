@@ -3,6 +3,54 @@
     "releasedOn": "2026-11-08",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Character voices for the classics",
+    "body": "Character voices now work with your device's voices too: when your device reads a classic's own text aloud, what the characters say is read by its other voices, each named speaker keeping one.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Two Greek classics",
+    "body": "Penelope Delta's fairy tale Παραμύθι χωρίς όνομα and Papadiamantis's Christmas stories, in Greek, with their full text and LibriVox recordings. Find them in Discover's In their own language row.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Natural voices in the Kids report",
+    "body": "The weekly Kids reading report and Account → Family now say when natural voices are on for a Kids profile, with this month's natural-voice reading and any share.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Club natural-voice hours",
+    "body": "The owner of a club reading an uploaded book can give each member up to 3 hours a month of natural-voice reading for their copy, from the owner's own month, used only after a member's own hours run out.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Try the demo on your phone",
+    "body": "The home and log-in pages have Try the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "On this device, for an upload's voices",
+    "body": "Under Voice the whole book, On this device shows how many voiced parts are kept and how much space they take, so you know a book is ready before a trip, and Remove the voices from this device frees the space after.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Natural voices for Kids profiles",
     "body": "A grown-up can now turn on natural voices for a Kids profile in its profile editor, with the account password, so children can hear their uploaded books read by a natural voice.",
     "major": true

@@ -2,7 +2,7 @@
 
 > LiteraryWorm is a reading and listening app: ebooks and audiobooks in one library, with a profile for each person at home (Kids and Teen profiles see only titles rated for them). It runs in any modern browser and installs as an app. Members pay monthly or yearly through Stripe and can cancel online at any time.
 
-LiteraryWorm's full-text and audio library is public-domain classics: texts from Project Gutenberg and LibriVox recordings, including titles in French, German and Spanish. Members can also find almost any book through Google Books, keep it in their library, and upload their own DRM-free EPUBs (up to 20 at a time, each up to 50 MB), such as books they bought elsewhere, to read with their place, highlights and notes.
+LiteraryWorm's full-text and audio library is public-domain classics: texts from Project Gutenberg and LibriVox recordings, including titles in French, German, Greek and Spanish. Members can also find almost any book through Google Books, keep it in their library, and upload their own DRM-free EPUBs (up to 20 at a time, each up to 50 MB), such as books they bought elsewhere, to read with their place, highlights and notes.
 
 ## Main Features
 

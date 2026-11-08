@@ -14527,3 +14527,225 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$A
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-08'::date, '2026.11', 'feature', $lw$Natural voices for Kids profiles$lw$, $lw$A grown-up can now turn on natural voices for a Kids profile in its profile editor, with the account password, so children can hear their uploaded books read by a natural voice.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices for Kids profiles$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006806_kids_report_voices.sql
+-- =============================================================================
+-- The weekly Kids reading report names each Kids profile's natural-voice reading this month: whether
+-- a grown-up turned natural voices on for it (reader_profiles.kids_natural_voices, 6799), the minutes
+-- voiced in the month the week ends in (natural_voice_profile_usage, 6776; 840 characters a minute,
+-- as CHARACTERS_PER_HOUR 50400), and its own monthly share if set (monthly_voice_minutes, 6800).
+-- Kept per month, so it's the month so far, not the week. Same rights as before: service role only.
+
+drop function if exists public.kids_report_week(uuid, date, date);
+create function public.kids_report_week(p_user uuid, p_from date, p_to date)
+returns table (
+  profile_name text, minutes integer, listening_minutes integer, days_read integer, books_finished integer,
+  finished_books text[], weekly_goal_minutes integer, has_bedtime boolean, bedtime_minutes integer, late_nights integer,
+  natural_voices boolean, voice_minutes integer, voice_share_minutes integer
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.name::text,
+         coalesce(sum(d.minutes), 0)::integer,
+         coalesce(sum(d.listening_minutes), 0)::integer,
+         count(d.day) filter (where d.minutes >= 1)::integer,
+         coalesce(sum(d.books_finished), 0)::integer,
+         coalesce((select array_agg(f.volume_id order by f.finished_on)
+                     from public.finished_books f
+                    where f.profile_id = p.id and f.user_id = p_user and f.finished_on between p_from and p_to), '{}'),
+         p.weekly_goal_minutes::integer,
+         p.bedtime is not null,
+         coalesce(sum(d.bedtime_minutes), 0)::integer,
+         count(d.day) filter (where d.late_minutes >= 1)::integer,
+         p.kids_natural_voices,
+         coalesce((select round(u.characters / 840.0)::integer
+                     from public.natural_voice_profile_usage u
+                    where u.account_id = p_user and u.profile_id = p.id
+                      and u.month = date_trunc('month', p_to)::date), 0),
+         p.monthly_voice_minutes::integer
+  from public.reader_profiles p
+  left join public.reading_days d on d.profile_id = p.id and d.user_id = p_user and d.day between p_from and p_to
+  where p.account_id = p_user and p.age_rating = 'kids'
+  group by p.id, p.name, p.weekly_goal_minutes, p.bedtime, p.kids_natural_voices, p.monthly_voice_minutes
+  order by p.name;
+$$;
+
+revoke execute on function public.kids_report_week(uuid, date, date) from public, anon, authenticated;
+grant execute on function public.kids_report_week(uuid, date, date) to service_role;
+
+-- =============================================================================
+-- 20261108006807_club_voice_hours.sql
+-- =============================================================================
+-- Club listening hours: the owner of a club reading an uploaded book can give each member up to
+-- 30, 60, 120 or 180 minutes a month of natural-voice reading for their own copy of it, taken
+-- from the owner's own month (book_clubs.voice_minutes_per_member, changed under the existing
+-- "Owners change their clubs" policy). The natural-voice function uses it only when the member's
+-- own hours are used up: club_voice_source() finds a club with room, the owner's allowance is
+-- claimed with claim_natural_voice(), and record_club_voice() counts it per member and month
+-- (club_voice_usage). Members read their own row; the function writes.
+
+alter table public.book_clubs
+  add column if not exists voice_minutes_per_member smallint check (voice_minutes_per_member in (30, 60, 120, 180));
+grant update (voice_minutes_per_member) on public.book_clubs to authenticated;
+comment on column public.book_clubs.voice_minutes_per_member is
+  'Natural-voice minutes a month the owner gives each member for their own copy of the club''s uploaded book; null for none.';
+
+create table if not exists public.club_voice_usage (
+  club_id    uuid not null references public.book_clubs (id) on delete cascade,
+  user_id    uuid not null references public.profiles (id) on delete cascade,
+  month      date not null check (extract(day from month) = 1),
+  characters integer not null default 0 check (characters >= 0),
+  primary key (club_id, user_id, month)
+);
+comment on table public.club_voice_usage is
+  'Natural-voice reading a member used from their club owner''s gift, per month. Written only by the natural-voice function.';
+alter table public.club_voice_usage enable row level security;
+revoke all on public.club_voice_usage from anon, authenticated;
+grant select on public.club_voice_usage to authenticated;
+grant select, insert, update, delete on public.club_voice_usage to service_role;
+create policy "Members read their own club voice use" on public.club_voice_usage
+  for select to authenticated using (user_id = (select auth.uid()));
+create policy "Two-step sign-in for club voice use" on public.club_voice_usage
+  as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+
+-- A club, its owner and its gift where p_member (not the owner) reads p_upload as their own copy
+-- of the club's uploaded book and has room this month for p_characters; null when none.
+create or replace function public.club_voice_source(p_member uuid, p_upload text, p_characters integer)
+returns table (club_id uuid, owner_id uuid)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.id, c.owner_id
+  from public.book_clubs c
+  join public.club_members m on m.club_id = c.id and m.user_id = p_member
+  left join public.club_voice_usage u
+    on u.club_id = c.id and u.user_id = p_member and u.month = date_trunc('month', now() at time zone 'utc')::date
+  where c.volume_id ~ '^u-[0-9a-f]{32}$'
+    and c.owner_id <> p_member
+    and m.own_copy = p_upload
+    and c.voice_minutes_per_member is not null
+    and coalesce(u.characters, 0) + p_characters <= c.voice_minutes_per_member * 840
+  order by c.voice_minutes_per_member desc, c.id
+  limit 1;
+$$;
+
+-- Adds (or, after Google failed, takes back) a member's use of a club's gift this month.
+create or replace function public.record_club_voice(p_club uuid, p_member uuid, p_characters integer)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.club_voice_usage (club_id, user_id, month, characters)
+  values (p_club, p_member, date_trunc('month', now() at time zone 'utc')::date, greatest(0, p_characters))
+  on conflict (club_id, user_id, month) do update
+    set characters = greatest(0, public.club_voice_usage.characters + p_characters);
+$$;
+
+revoke execute on function public.club_voice_source(uuid, text, integer) from public, anon, authenticated;
+revoke execute on function public.record_club_voice(uuid, uuid, integer) from public, anon, authenticated;
+grant execute on function public.club_voice_source(uuid, text, integer) to service_role;
+grant execute on function public.record_club_voice(uuid, uuid, integer) to service_role;
+
+-- Kept a year, like the other monthly usage.
+select cron.schedule(
+  'club-voice-usage-cleanup',
+  '17 4 2 * *',
+  $cron$delete from public.club_voice_usage where month < (date_trunc('month', now()) - interval '12 months')::date$cron$
+);
+
+-- =============================================================================
+-- 20261108006808_club_voice_usage_user_index.sql
+-- =============================================================================
+create index concurrently if not exists club_voice_usage_user_id_idx on public.club_voice_usage (user_id);
+
+-- =============================================================================
+-- 20261108006809_six_features_policies.sql
+-- =============================================================================
+-- Club natural-voice hours, natural voices in the Kids report, device character voices, On this device, the demo on your phone and Greek classics in Privacy, Children's Privacy Notice, Terms and Help. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished, any weekly goal, and, for a profile with a bedtime, how many nights it was kept and its time in Bedtime listening."$lw$, $lw$"If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished, any weekly goal, and, for a profile with a bedtime, how many nights it was kept and its time in Bedtime listening, and, for a profile with natural voices on, its minutes of natural-voice reading this month."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$If you turn it on, a weekly report of how your Kids profiles read: their names, reading and listening time, days read, books finished, any weekly goal, and, for a profile with a bedtime, how many nights it was kept and its time in Bedtime listening, and, for a profile with natural voices on, its minutes of natural-voice reading this month.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests and its quiz scores."$lw$, $lw$"You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests, its quiz scores, and whether natural voices are on for it, with this month's natural-voice reading."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests, its quiz scores, and whether natural voices are on for it, with this month's natural-voice reading.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In a book club, if you turn on Show my place to this club, its members see the chapter you've reached in the club's book, how far through it you are and when you last read; turning it off hides it again."$lw$, $lw$"In a book club, if you turn on Show my place to this club, its members see the chapter you've reached in the club's book, how far through it you are and when you last read; turning it off hides it again.", "Club natural-voice hours: when a club reading an uploaded book has its owner give members natural-voice hours, we count how much of that gift each member uses each month (kept a year). Members see their own use; the owner's month is counted as usual."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Club natural-voice hours: when a club reading an uploaded book has its owner give members natural-voice hours, we count how much of that gift each member uses each month (kept a year). Members see their own use; the owner's month is counted as usual.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"More natural-voice hours. A member whose membership is active and paid for (not during the free week, while a payment is owed, or a complimentary staff membership) can buy 5 hours for $14.99 or 10 hours for $24.99 of new natural-voice reading for their uploads, paid once on Stripe Checkout and final. Bought hours belong to the account, are used only after the month's plan hours run out, carry over from month to month and end 12 months after purchase; hours left then, or when the account is deleted, aren't refunded and have no cash value."$lw$, $lw$"More natural-voice hours. A member whose membership is active and paid for (not during the free week, while a payment is owed, or a complimentary staff membership) can buy 5 hours for $14.99 or 10 hours for $24.99 of new natural-voice reading for their uploads, paid once on Stripe Checkout and final. Bought hours belong to the account, are used only after the month's plan hours run out, carry over from month to month and end 12 months after purchase; hours left then, or when the account is deleted, aren't refunded and have no cash value.", "Club natural-voice hours. The owner of a book club reading an uploaded book can give each member 30 minutes to 3 hours a month of natural-voice reading for their own copy of it. It's taken from the owner's own month (plan hours, then bought hours), only after the member's own hours run out, and stops when the owner's month is used up."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$Club natural-voice hours. The owner of a book club reading an uploaded book can give each member 30 minutes to 3 hours a month of natural-voice reading for their own copy of it. It's taken from the owner's own month (plan hours, then bought hours), only after the member's own hours run out, and stops when the owner's month is used up.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. Listen together works on an uploaded book too: each member hears their own copy, in the voice they chose, kept at the same chapter and the same share of the way through it."$lw$, $lw$"Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. Listen together works on an uploaded book too: each member hears their own copy, in the voice they chose, kept at the same chapter and the same share of the way through it.", "The owner of a club reading an uploaded book can give each member some natural-voice hours a month for their copy (30 minutes to 3 hours), under Natural-voice hours on the club's page. They come from the owner's own month and are used only after a member's own hours run out."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$The owner of a club reading an uploaded book can give each member some natural-voice hours a month for their copy (30 minutes to 3 hours), under Natural-voice hours on the club's page. They come from the owner's own month and are used only after a member's own hours run out.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration: natural voices on your uploads, or your device's other voices when it reads a book aloud, such as a classic's own text (with only one voice in the book's language, each speaker gets a pitch of their own). A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration: natural voices on your uploads, or your device's other voices when it reads a book aloud, such as a classic's own text (with only one voice in the book's language, each speaker gets a pitch of their own). A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up."$lw$, $lw$"To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.", "Under Voice the whole book, On this device shows how many voiced parts of the book are kept here and how much space they take, so you can check a book is ready before a trip. Remove the voices from this device frees the space afterwards; the book stays, and the voices play again online."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Under Voice the whole book, On this device shows how many voiced parts of the book are kept here and how much space they take, so you can check a book is ready before a trip. Remove the voices from this device frees the space afterwards; the book stays, and the voices play again online.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$, $lw$"On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Try the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Try the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles."$lw$, $lw$"In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.", "Eight classics are in their own language, with their LibriVox recording: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, Παραμύθι χωρίς όνομα by Penelope Delta and Papadiamantis's Christmas stories in Greek, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover's In their own language row."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Eight classics are in their own language, with their LibriVox recording: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, Παραμύθι χωρίς όνομα by Penelope Delta and Papadiamantis's Christmas stories in Greek, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover's In their own language row.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006810_whats_new_six.sql
+-- =============================================================================
+-- What's new: On this device, for an upload's voices. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$On this device, for an upload's voices$lw$, $lw$Under Voice the whole book, On this device shows how many voiced parts are kept and how much space they take, so you know a book is ready before a trip, and Remove the voices from this device frees the space after.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$On this device, for an upload's voices$lw$ and c.released_on = '2026-11-08');
+-- What's new: Try the demo on your phone. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Try the demo on your phone$lw$, $lw$The home and log-in pages have Try the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Try the demo on your phone$lw$ and c.released_on = '2026-11-08');
+-- What's new: Club natural-voice hours. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Club natural-voice hours$lw$, $lw$The owner of a club reading an uploaded book can give each member up to 3 hours a month of natural-voice reading for their copy, from the owner's own month, used only after a member's own hours run out.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Club natural-voice hours$lw$ and c.released_on = '2026-11-08');
+-- What's new: Natural voices in the Kids report. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$Natural voices in the Kids report$lw$, $lw$The weekly Kids reading report and Account → Family now say when natural voices are on for a Kids profile, with this month's natural-voice reading and any share.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices in the Kids report$lw$ and c.released_on = '2026-11-08');
+-- What's new: Two Greek classics. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Two Greek classics$lw$, $lw$Penelope Delta's fairy tale Παραμύθι χωρίς όνομα and Papadiamantis's Christmas stories, in Greek, with their full text and LibriVox recordings. Find them in Discover's In their own language row.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Two Greek classics$lw$ and c.released_on = '2026-11-08');
+-- What's new: Character voices for the classics. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Character voices for the classics$lw$, $lw$Character voices now work with your device's voices too: when your device reads a classic's own text aloud, what the characters say is read by its other voices, each named speaker keeping one.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Character voices for the classics$lw$ and c.released_on = '2026-11-08');

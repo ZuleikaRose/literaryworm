@@ -139010,5 +139010,157 @@ export const recordings: Record<string, Recording> = {
         "seconds": 443
       }
     ]
+  },
+  "paramythi-horis-onoma": {
+    "narrator": "Rapunzelina",
+    "page": "https://librivox.org/paramythi-horis-onoma-by-penelope-delta/",
+    "tracks": [
+      {
+        "title": "01 - Το Δάσος",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_01_delta_64kb.mp3",
+        "seconds": 517
+      },
+      {
+        "title": "02 - Παλάτι και Παλατιανοί",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_02_delta_64kb.mp3",
+        "seconds": 663
+      },
+      {
+        "title": "03 - Στο φτωχικό της κυρα-Φρόνησης",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_03_delta_64kb.mp3",
+        "seconds": 912
+      },
+      {
+        "title": "04 - Στο Γυρισμό",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_04_delta_64kb.mp3",
+        "seconds": 1283
+      },
+      {
+        "title": "05 - Το Δώρο του θείου Βασιλιά",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_05_delta_64kb.mp3",
+        "seconds": 949
+      },
+      {
+        "title": "06 - Στρατός και Στόλος, παρών!",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_06_delta_64kb.mp3",
+        "seconds": 1526
+      },
+      {
+        "title": "07 - Καινούριες Αποκαλύψεις",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_07_delta_64kb.mp3",
+        "seconds": 1435
+      },
+      {
+        "title": "08 - Η Κορώνα του Βασιλιά",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_08_delta_64kb.mp3",
+        "seconds": 533
+      },
+      {
+        "title": "09 - \"Στη θέση όπου μας έβαλε η μοίρα\"",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_09_delta_64kb.mp3",
+        "seconds": 527
+      },
+      {
+        "title": "10 - Στην Ταβέρνα",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_10_delta_64kb.mp3",
+        "seconds": 692
+      },
+      {
+        "title": "11 - \"Χωροφύλακας, ή Ξυλοκόπος;\"",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_11_delta_64kb.mp3",
+        "seconds": 743
+      },
+      {
+        "title": "12 - Πανικός",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_12_delta_64kb.mp3",
+        "seconds": 463
+      },
+      {
+        "title": "13 - Πολύδωρος και Μονοχέρης",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_13_delta_64kb.mp3",
+        "seconds": 682
+      },
+      {
+        "title": "14 - Η Μάχη",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_14_delta_64kb.mp3",
+        "seconds": 762
+      },
+      {
+        "title": "15 - Δικαιοσύνη",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_15_delta_64kb.mp3",
+        "seconds": 373
+      },
+      {
+        "title": "16 - Η Ζώνη του Πολύδωρου",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_16_delta_64kb.mp3",
+        "seconds": 557
+      },
+      {
+        "title": "17 - Δουλειά",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_17_delta_64kb.mp3",
+        "seconds": 938
+      },
+      {
+        "title": "18 - Ο εξάδελφος Βασιλιάς",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_18_delta_64kb.mp3",
+        "seconds": 740
+      },
+      {
+        "title": "19 - Ο θείος Βασιλιάς",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_19_delta_64kb.mp3",
+        "seconds": 458
+      },
+      {
+        "title": "20 - Συνετός Β'",
+        "url": "https://archive.org/download/Paramythi_horis_onoma_1303_librivox/paramythihorisonoma_20_delta_64kb.mp3",
+        "seconds": 412
+      }
+    ]
+  },
+  "christougenniatika-diigimata": {
+    "narrator": "Penelope",
+    "page": "https://librivox.org/christmas-short-stories-by-alexandros-papadiamantis/",
+    "tracks": [
+      {
+        "title": "Η ΣΤΑΧΟΜΑΖΩΧΤΡΑ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_01_papadiamantis_64kb.mp3",
+        "seconds": 1811
+      },
+      {
+        "title": "ΤΗΣ ΚΟΚΚΟΝΑΣ ΤΟ ΣΠΙΤΙ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_02_papadiamantis_64kb.mp3",
+        "seconds": 1480
+      },
+      {
+        "title": "ΥΠΗΡΕΤΡΑ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_03_papadiamantis_64kb.mp3",
+        "seconds": 1091
+      },
+      {
+        "title": "Η ΓΛΥΚΟΦΙΛΟΥΣΑ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_04_papadiamantis_64kb.mp3",
+        "seconds": 2905
+      },
+      {
+        "title": "Η ΤΥΧΗ ΑΠ' ΤΗΝ ΑΜΕΡΙΚΑ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_05_papadiamantis_64kb.mp3",
+        "seconds": 3485
+      },
+      {
+        "title": "ΟΙ ΝΑΥΑΓΟΣΩΣΤΑΙ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_06_papadiamantis_64kb.mp3",
+        "seconds": 1015
+      },
+      {
+        "title": "Ο ΠΑΝΤΑΡΩΤΑΣ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_07_papadiamantis_64kb.mp3",
+        "seconds": 1379
+      },
+      {
+        "title": "Η ΠΕΠΟΙΚΙΛΜΕΝΗ",
+        "url": "https://archive.org/download/christmasstories_2102_librivox/christmasstories_08_papadiamantis_64kb.mp3",
+        "seconds": 1259
+      }
+    ]
   }
 };

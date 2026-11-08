@@ -423,7 +423,7 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
           <label className="switch-row">
             <span>
               <strong>{t("Character voices")}</strong>
-              <small>{t("With a natural voice on your uploads, what the characters say is read by other voices. Each named speaker keeps one voice.")}</small>
+              <small>{t("What the characters say is read by other voices: natural voices on your uploads, or your device's other voices when it reads a book aloud. Each named speaker keeps one voice.")}</small>
             </span>
             <input
               type="checkbox"

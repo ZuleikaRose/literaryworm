@@ -288,3 +288,9 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Per-character speed: `lib/castSpeeds.ts` (+ test), CastChoices, `naturalNarrator(rateFor)`; migration 6802 |
 | — | Club polls with uploads (`pollOptionLabel()`), `lib/clubYear.ts` (+ test) and `components/ClubYear.tsx`; migration 6803 |
 | — | `lib/continueLink.ts` (+ test), `ContinueOnPhone.tsx`, text spacing in `a11ySync` (+ test), reader speed, logical CSS for RTL |
+| — | Device character voices: `lib/deviceCast.ts` (+ test), `speechNarrator(…, cast)` |
+| — | Kids report natural-voice line: `kids_report_week()` 6806, `voiceLine()` in kids-report |
+| — | Club natural-voice hours: `lib/clubVoice.ts` (+ test), `ClubVoiceHours.tsx`, natural-voice `clubVoice` / `recordClubVoice`; 6807–6808 |
+| — | `DemoOnPhoneButton`, `demoLink()` (+ test), `?demo=1` on Sign in |
+| — | `lib/offlineVoices.ts` (+ test), On this device in `VoiceWholeBook` |
+| — | Greek classics: `build-librivox.py` / `build-texts.py` entries, `books.ts`, `_shared/catalog.ts` |

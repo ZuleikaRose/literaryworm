@@ -1,3 +1,5 @@
+import { DemoOnPhoneButton } from "../components/ContinueOnPhone";
+import { demoLink } from "../lib/continueLink";
 import { useRef, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCard } from "../components/AuthCard";
@@ -34,6 +36,8 @@ export default function SignIn() {
   const emailRef = useRef<HTMLInputElement>(null);
   const [params] = useSearchParams();
   const justConfirmed = params.get("confirmed") === "1";
+  // Opened from the demo's QR code (lib/continueLink.ts demoLink()): Try the demo comes first.
+  const fromDemoCode = params.get("demo") === "1";
   const t = useT();
   useTitle(mode === "signin" ? t("Log in") : t("Reset your password"));
 
@@ -190,6 +194,14 @@ export default function SignIn() {
           <p>{state.authError}</p>
         </div>
       )}
+      {fromDemoCode && (
+        <div className="form-success demo-code-start" role="status">
+          <p>{t("Opened from a demo code? Try the demo to look around a sample household. Nothing is saved, and no account is needed.")}</p>
+          <button type="button" className="primary-button auth-submit" onClick={tryDemo}>
+            {t("Try the demo")}
+          </button>
+        </div>
+      )}
       {justConfirmed && !formError && (
         <div className="form-success" role="status">
           <Icon name="check" size={17} />
@@ -240,6 +252,9 @@ export default function SignIn() {
       <button type="button" className="secondary-button auth-submit" onClick={tryDemo}>
         {t("Try the demo")}
       </button>
+      <p className="auth-note">
+        <DemoOnPhoneButton url={demoLink()} />
+      </p>
       <p className="auth-note">
         {rich(t("Opens a sample household with three profiles. You can also log in with {email} and {password}. The demo can't make payments."), {
           email: <strong>{DEMO_EMAIL}</strong>,

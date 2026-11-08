@@ -2,16 +2,25 @@ import { describe, expect, it } from "@jest/globals";
 import { otherLanguageBooks } from "./languages";
 
 describe("otherLanguageBooks", () => {
-  it("lists the six classics in French, German and Spanish, grouped by language", () => {
+  it("lists the eight classics in French, German, Greek and Spanish, grouped by language", () => {
     const found = otherLanguageBooks("all");
     expect(found.map((b) => b.id).sort()).toEqual(
-      ["candide-fr", "effi-briest", "lazarillo-de-tormes", "madame-bovary-fr", "marianela", "max-und-moritz"].sort(),
+      [
+        "candide-fr",
+        "christougenniatika-diigimata",
+        "effi-briest",
+        "lazarillo-de-tormes",
+        "madame-bovary-fr",
+        "marianela",
+        "max-und-moritz",
+        "paramythi-horis-onoma",
+      ].sort(),
     );
-    expect(found.map((b) => b.language)).toEqual(["French", "French", "German", "German", "Spanish", "Spanish"]);
+    expect(found.map((b) => b.language)).toEqual(["French", "French", "German", "German", "Greek", "Greek", "Spanish", "Spanish"]);
   });
 
   it("keeps a Kids profile to the titles rated for it", () => {
-    expect(otherLanguageBooks("kids").map((b) => b.id)).toEqual(["max-und-moritz"]);
+    expect(otherLanguageBooks("kids").map((b) => b.id)).toEqual(["max-und-moritz", "paramythi-horis-onoma"]);
   });
 
   it("gives a Teen profile every one, since none is rated above teen", () => {

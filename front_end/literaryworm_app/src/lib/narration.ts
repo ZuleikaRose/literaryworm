@@ -8,6 +8,7 @@ import { keepUploadOffline, offlineUploadText } from "./uploadCache";
 import type { Book, RecordingTrack } from "../types";
 import { readerPages } from "./reading";
 import { tr } from "./i18n";
+import { castParts, castVoiceFor } from "./deviceCast";
 import { speakingParts } from "./speaking";
 import { type Anchor, charactersAt, findPauses, pauseAnchors, secondsAt } from "./pauseTiming";
 import { defaultNaturalVoice, NATURAL_PREFIX, type NaturalVoice, type VoiceSegment, voicesFor, voiceSegments } from "./naturalVoice";
@@ -182,9 +183,13 @@ export function speechNarrator(
   lengths: number[],
   voice: SpeechSynthesisVoice,
   events: NarratorEvents,
+  /** Character voices (lib/deviceCast.ts): speech read by the device's other voices, or at another pitch. */
+  cast?: { voices: SpeechSynthesisVoice[]; rateFor?: (part: { speaker?: string | null }) => number },
 ): Narrator {
   const synth = window.speechSynthesis;
-  const parts = chapters.map(speakingParts);
+  const parts: { offset: number; text: string; speaker?: string | null }[][] = chapters.map((c) =>
+    cast ? castParts(c, speakingParts(c)) : speakingParts(c),
+  );
   const sizes = chapters.map((_, i) => {
     const last = parts[i][parts[i].length - 1];
     return last ? last.offset + last.text.length : 1;
@@ -214,9 +219,11 @@ export function speechNarrator(
       return;
     }
     const utterance = new SpeechSynthesisUtterance(current.text);
-    utterance.voice = voice;
+    const chosen = cast ? castVoiceFor(cast.voices, voice, current.speaker) : null;
+    utterance.voice = (chosen && cast!.voices.find((v) => v.voiceURI === chosen.voiceURI)) || voice;
     utterance.lang = voice.lang;
-    utterance.rate = rate;
+    if (chosen) utterance.pitch = chosen.pitch;
+    utterance.rate = rate * (cast?.rateFor?.(current) ?? 1);
     utterance.volume = volume;
     utterance.onstart = () => {
       if (mine !== generation) return;

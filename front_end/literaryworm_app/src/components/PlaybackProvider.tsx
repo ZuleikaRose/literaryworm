@@ -322,8 +322,9 @@ function Engine({
     pronunciationsRef.current = pronunciations;
   });
   const sayKey = pronunciationKey(pronunciations);
+  // A device voice with Character voices on reads speech in the device's other voices (lib/deviceCast.ts).
   const narrationKey = voice
-    ? voice.voiceURI
+    ? `${voice.voiceURI}${player.characterVoices ? "+cast" : ""}`
     : naturalId
       ? `natural:${naturalId}${sayKey ? `+say|${sayKey}` : ""}${player.characterVoices ? `+cast${castChoicesKey(choices) ? `|${castChoicesKey(choices)}` : ""}` : ""}`
       : narration.kind;
@@ -379,7 +380,14 @@ function Engine({
                 return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces, rateFor);
               })()
           : v && text
-            ? speechNarrator(text, starts, lengths, v, events)
+            ? speechNarrator(
+                text,
+                starts,
+                lengths,
+                v,
+                events,
+                narrationKey.endsWith("+cast") ? { voices: window.speechSynthesis.getVoices(), rateFor } : undefined,
+              )
             : null;
     if (!n) return;
     const c = clock.current;

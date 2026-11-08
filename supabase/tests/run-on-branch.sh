@@ -35,14 +35,14 @@ query "$BRANCH" "$WORK/grants.sql" >/dev/null
 
 echo "2. production's EXECUTE rights on public functions"
 cat > "$WORK/acl.sql" <<'SQL'
--- With an empty search path, function names and types come out schema-qualified.
-set local search_path = '';
+-- The CLI's --read-only allows only SELECT-like statements (no SET), so the signature is built
+-- schema-qualified by hand; argument types read the same on the branch.
 select string_agg(
   format('revoke execute on function %s from public, anon, authenticated, service_role;', f.sig)
   || coalesce(format(' grant execute on function %s to %s;', f.sig, f.roles), ''),
   E'\n' order by f.sig) as sql
 from (
-  select p.oid::regprocedure::text as sig,
+  select format('%I.%I(%s)', n.nspname, p.proname, oidvectortypes(p.proargtypes)) as sig,
          (select string_agg(distinct r.rolname, ', ')
           from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
           join pg_roles r on r.oid = a.grantee

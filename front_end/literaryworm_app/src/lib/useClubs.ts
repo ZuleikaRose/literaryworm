@@ -282,6 +282,15 @@ export function useClubs() {
     [remote, demo],
   );
 
+  const setVoiceHours = useCallback(
+    async (id: string, minutes: number | null) => {
+      if (remote) return clubsApi.setClubVoiceHours(id, minutes);
+      const found = demo().find((c) => c.club.id === id);
+      if (found) found.club.voiceMinutesPerMember = minutes;
+    },
+    [remote, demo],
+  );
+
   const setNotify = useCallback(
     async (id: string, notify: boolean) => {
       if (remote) return clubsApi.setClubNotify(id, notify);
@@ -291,7 +300,7 @@ export function useClubs() {
   );
 
   return useMemo(
-    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy, setSchedule }),
-    [setSchedule, remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy],
+    () => ({ remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy, setSchedule, setVoiceHours }),
+    [setSchedule, setVoiceHours, remote, myId, list, load, create, join, invite, leave, remove, addPost, deletePost, addMeeting, updateMeeting, deleteMeeting, answerMeeting, soonMeetings, memberships, markRead, setNotify, linkCopy],
   );
 }

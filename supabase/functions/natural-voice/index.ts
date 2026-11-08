@@ -39,6 +39,16 @@ Deno.serve((req) => {
       if (usageError) dbError("read the profile's use", usageError);
       return { limit: Math.round((minutes / 60) * CHARACTERS_PER_HOUR), used: (usage?.characters as number | undefined) ?? 0 };
     },
+    clubVoice: async (userId, uploadId, characters) => {
+      const { data, error } = await db.rpc("club_voice_source", { p_member: userId, p_upload: uploadId, p_characters: characters });
+      if (error) dbError("find a club's natural-voice hours", error);
+      const row = (data as { club_id: string; owner_id: string }[] | null)?.[0];
+      return row ? { clubId: row.club_id, ownerId: row.owner_id } : null;
+    },
+    recordClubVoice: async (clubId, userId, characters) => {
+      const { error } = await db.rpc("record_club_voice", { p_club: clubId, p_member: userId, p_characters: characters });
+      if (error) dbError("count a club's natural-voice hours", error);
+    },
     kidsVoices: async (profileId) => {
       const { data, error } = await db.from("reader_profiles").select("kids_natural_voices").eq("id", profileId).maybeSingle();
       if (error) dbError("read the profile", error);

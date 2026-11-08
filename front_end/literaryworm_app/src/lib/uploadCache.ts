@@ -4,6 +4,8 @@
  * service worker (which never caches Supabase calls). Cleared when a book is deleted and, so a
  * shared device keeps nothing private, at sign-out.
  */
+import { voicePartsIn, voicesPrefix } from "./offlineVoices";
+
 const CACHE = "lw-uploads";
 const key = (id: string) => `/uploads/${id}.json`;
 const available = () => typeof caches !== "undefined";
@@ -76,6 +78,29 @@ export async function offlineVoiceBlob(uploadId: string, voiceId: string, chapte
   if (!available()) return null;
   const hit = await caches.match(voiceKey(uploadId, voiceId, chapter, segment), { cacheName: CACHE });
   return hit ? hit.blob() : null;
+}
+
+/** How many of an upload's voiced parts are on this device, and their size (lib/offlineVoices.ts). */
+export async function voicesOnDevice(uploadId: string): Promise<{ parts: number; bytes: number }> {
+  if (!available()) return { parts: 0, bytes: 0 };
+  const cache = await caches.open(CACHE);
+  const entries: { path: string; bytes: number }[] = [];
+  for (const request of await cache.keys()) {
+    const path = new URL(request.url).pathname;
+    if (!path.startsWith(voicesPrefix(uploadId))) continue;
+    const hit = await cache.match(request);
+    entries.push({ path, bytes: hit ? (await hit.blob()).size : 0 });
+  }
+  return voicePartsIn(entries, uploadId);
+}
+
+/** Removes an upload's voiced parts from this device, keeping its text (it can be voiced or played again online). */
+export async function forgetVoicesOffline(uploadId: string): Promise<void> {
+  if (!available()) return;
+  const cache = await caches.open(CACHE);
+  for (const request of await cache.keys()) {
+    if (new URL(request.url).pathname.startsWith(voicesPrefix(uploadId))) await cache.delete(request);
+  }
 }
 
 /** Removes every upload kept on this device (at sign-out). */

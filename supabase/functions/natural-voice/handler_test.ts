@@ -243,3 +243,45 @@ Deno.test("a profile's own monthly share comes first, before the household's hou
   const room = deps({ profileShare: () => Promise.resolve({ limit: 1_000_000, used: 0 }) });
   assertEquals((await handle(ask(), room.d)).status, 200);
 });
+
+Deno.test("once a member's month is used, a club owner's gift pays, from the owner's month", async () => {
+  const OWNER = "00000000-0000-0000-0000-0000000000c1";
+  const claims: string[] = [];
+  const counted: number[] = [];
+  const club = deps({
+    claim: (user) => (claims.push(user), Promise.resolve(user === OWNER)),
+    clubVoice: () => Promise.resolve({ clubId: "club-1", ownerId: OWNER }),
+    recordClubVoice: (_club, _user, characters) => (counted.push(characters), Promise.resolve()),
+  });
+  assertEquals((await handle(ask(), club.d)).status, 200);
+  assertEquals(claims, [USER, OWNER]);
+  assertEquals(counted.length, 1);
+  assertEquals(counted[0] > 0, true);
+});
+
+Deno.test("a club's gift isn't used when the owner's own month is used up or no club has room", async () => {
+  const OWNER = "00000000-0000-0000-0000-0000000000c1";
+  const empty = deps({ claim: () => Promise.resolve(false), clubVoice: () => Promise.resolve({ clubId: "club-1", ownerId: OWNER }) });
+  const res = await handle(ask(), empty.d);
+  assertEquals((await res.json()).error.code, "limit_reached");
+  const none = deps({ claim: () => Promise.resolve(false), clubVoice: () => Promise.resolve(null) });
+  assertEquals((await (await handle(ask(), none.d)).json()).error.code, "limit_reached");
+  assertEquals(none.calls.synthesize.length, 0);
+});
+
+Deno.test("when Google fails, a club claim goes back to the owner and off the member's count", async () => {
+  const OWNER = "00000000-0000-0000-0000-0000000000c1";
+  const released: string[] = [];
+  const counted: number[] = [];
+  const failing = deps({
+    claim: (user) => Promise.resolve(user === OWNER),
+    release: (user) => (released.push(user), Promise.resolve()),
+    clubVoice: () => Promise.resolve({ clubId: "club-1", ownerId: OWNER }),
+    recordClubVoice: (_club, _user, characters) => (counted.push(characters), Promise.resolve()),
+    synthesize: () => Promise.reject(new Error("Google is down")),
+  });
+  assertEquals((await handle(ask(), failing.d)).status >= 500, true);
+  assertEquals(released, [OWNER]);
+  assertEquals(counted.length, 2);
+  assertEquals(counted[0] + counted[1], 0);
+});

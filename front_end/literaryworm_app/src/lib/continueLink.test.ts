@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { playerContinueUrl, readAt, readerContinueUrl } from "./continueLink";
+import { demoLink, playerContinueUrl, readAt, readerContinueUrl } from "./continueLink";
 
 describe("continue on another device", () => {
   it("links the reader's chapter and page, and the player's seconds", () => {
@@ -14,5 +14,9 @@ describe("continue on another device", () => {
     expect(readAt("-3", 600)).toBeNull();
     expect(readAt("1e9", 600)).toBeNull();
     expect(readAt(null, 600)).toBeNull();
+  });
+
+  it("links the demo to the log-in page with Try the demo first", () => {
+    expect(demoLink()).toBe("https://www.literaryworm.com/signin?demo=1");
   });
 });
