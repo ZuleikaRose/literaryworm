@@ -5,7 +5,8 @@
 # the logs, then adds the books that came out well (most chapters 85% matched or more) to
 # ALIGNED_BOOKS in src/lib/alignment.ts.
 #
-# Runs on a push to the `align` branch (git push origin dev:align), or by hand with chosen ids.
+# Runs on a push to the `align` branch (git push origin dev:align), or by hand with chosen ids. A
+# push whose commit message has a line "align-ids: id id …" does only those books.
 name: align
 
 on:
@@ -23,6 +24,9 @@ permissions:
 
 env:
   WHISPER_VERSION: v1.7.6
+  # Built for any x86-64 CPU (GGML_NATIVE off): a build cached on one runner crashed with an
+  # illegal instruction on another runner's older CPU.
+  WHISPER_BUILD: portable-1
   WHISPER_MODEL: base.en
 
 jobs:
@@ -37,7 +41,10 @@ jobs:
         working-directory: front_end/literaryworm_app
         env:
           IDS: ${{ github.event.inputs.ids }}
+          MESSAGE: ${{ github.event.head_commit.message }}
         run: |
+          from_message=$(printf '%s\n' "${MESSAGE:-}" | sed -n 's/^align-ids: *//p' | head -1)
+          [ -n "${IDS:-}" ] || IDS="$from_message"
           if [ -n "${IDS:-}" ]; then list="$IDS"; else
             list=$(sed -n '/^NEXT_BOOKS=(/,/^)/p' scripts/align-batch.sh | grep -v '[()]' | tr -s ' \n' ' ')
           fi
@@ -66,13 +73,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/whisper
-          key: whisper-${{ env.WHISPER_VERSION }}-${{ env.WHISPER_MODEL }}-${{ runner.os }}
+          key: whisper-${{ env.WHISPER_VERSION }}-${{ env.WHISPER_MODEL }}-${{ env.WHISPER_BUILD }}-${{ runner.os }}
       - name: Build whisper.cpp
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.temp }}
         run: |
           git clone --depth 1 --branch "$WHISPER_VERSION" https://github.com/ggml-org/whisper.cpp.git src
-          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGGML_NATIVE=OFF
           cmake --build src/build -j --config Release --target whisper-cli
           mkdir -p ~/whisper
           cp src/build/bin/whisper-cli ~/whisper/
