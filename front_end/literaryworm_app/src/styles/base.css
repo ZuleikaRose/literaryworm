@@ -79,6 +79,13 @@ a {
   margin-block-end: 2em;
 }
 
+/* With more spacing, button labels may need two lines rather than run off a phone's screen. */
+:root[data-text-spacing="wide"] :is(.primary-button, .secondary-button, .ghost-button, .danger-button),
+:root[data-text-spacing="wider"] :is(.primary-button, .secondary-button, .ghost-button, .danger-button) {
+  white-space: normal;
+  text-align: center;
+}
+
 img,
 svg {
   display: block;

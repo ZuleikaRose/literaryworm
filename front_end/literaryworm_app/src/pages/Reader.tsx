@@ -1,3 +1,4 @@
+import { bookLangTag } from "../lib/languages";
 import { type CSSProperties, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -492,7 +493,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
             <article
               ref={articleRef}
               className="reader-text"
-              lang="en"
+              lang={bookLangTag(book.language)}
               // The book's own direction, whatever the app's language (Arabic sets the page right to left).
               dir="auto"
               aria-label={t("{chapter}, page {page} of {pages}", { chapter: chapter.title, page: page.page + 1, pages: pagesInChapter })}

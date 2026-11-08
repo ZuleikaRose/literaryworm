@@ -533,7 +533,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Character voices with device voices, for the classics' own text. |
 | —    | Natural voices in the Kids report. Migration 6806. |
 | —    | Club natural-voice hours from the owner's month. Migrations 6807–6808. |
-| —    | Try the demo on your phone (QR). |
+| —    | Open the demo on your phone (QR). |
 | —    | On this device: an upload's kept voices, their size, and removing them. |
 | —    | Two Greek classics: Delta's fairy tale and Papadiamantis's Christmas stories. |
 

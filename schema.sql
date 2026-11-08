@@ -14707,9 +14707,9 @@ where slug = 'help'
   and strpos(sections::text, $lw$Under Voice the whole book, On this device shows how many voiced parts of the book are kept here and how much space they take, so you can check a book is ready before a trip. Remove the voices from this device frees the space afterwards; the book stays, and the voices play again online.$lw$) = 0;
 
 update public.legal_pages
-set sections = replace(sections::text, $lw$"On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$, $lw$"On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Try the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$)::jsonb
+set sections = replace(sections::text, $lw$"On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$, $lw$"On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Open the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next."$lw$)::jsonb
 where slug = 'help'
-  and strpos(sections::text, $lw$On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Try the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next.$lw$) = 0;
+  and strpos(sections::text, $lw$On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Open the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next.$lw$) = 0;
 
 update public.legal_pages
 set sections = replace(sections::text, $lw$"In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles."$lw$, $lw$"In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.", "Eight classics are in their own language, with their LibriVox recording: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, Παραμύθι χωρίς όνομα by Penelope Delta and Papadiamantis's Christmas stories in Greek, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover's In their own language row."$lw$)::jsonb
@@ -14724,11 +14724,11 @@ where slug = 'help'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-08'::date, '2026.11', 'update', $lw$On this device, for an upload's voices$lw$, $lw$Under Voice the whole book, On this device shows how many voiced parts are kept and how much space they take, so you know a book is ready before a trip, and Remove the voices from this device frees the space after.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$On this device, for an upload's voices$lw$ and c.released_on = '2026-11-08');
--- What's new: Try the demo on your phone. src/data/changelog.json has the same.
+-- What's new: Open the demo on your phone. src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
-select '2026-11-08'::date, '2026.11', 'feature', $lw$Try the demo on your phone$lw$, $lw$The home and log-in pages have Try the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.$lw$, false
-where not exists (select 1 from public.changelog_entries c where c.title = $lw$Try the demo on your phone$lw$ and c.released_on = '2026-11-08');
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Open the demo on your phone$lw$, $lw$The home and log-in pages have Open the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Open the demo on your phone$lw$ and c.released_on = '2026-11-08');
 -- What's new: Club natural-voice hours. src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)

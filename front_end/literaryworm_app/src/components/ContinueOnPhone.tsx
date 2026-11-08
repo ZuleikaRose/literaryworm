@@ -45,7 +45,7 @@ export function ContinueDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title={demo ? t("Try the demo on your phone") : t("Continue on your phone")} size="sm">
+    <Dialog open={open} onClose={onClose} title={demo ? t("Open the demo on your phone") : t("Continue on your phone")} size="sm">
       <p className="goal-hint">
         {demo ? t("Scan this with your phone's camera to open the demo there.") : t("Scan this with your phone's camera to open {title} at this place.", { title })}
       </p>
@@ -70,14 +70,14 @@ export function ContinueDialog({
   );
 }
 
-/** *Try the demo on your phone*: a text button that shows the demo's link as a QR code (log-in page, public home). */
+/** *Open the demo on your phone*: a text button that shows the demo's link as a QR code (log-in page, public home). */
 export function DemoOnPhoneButton({ url }: { url: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" className="text-button" onClick={() => setOpen(true)}>
-        <Icon name="qr" size={15} /> {t("Try the demo on your phone")}
+        <Icon name="qr" size={15} /> {t("Open the demo on your phone")}
       </button>
       {open && <ContinueDialog open onClose={() => setOpen(false)} url={url} title="LiteraryWorm" demo />}
     </>

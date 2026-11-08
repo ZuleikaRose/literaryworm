@@ -1,3 +1,4 @@
+import { bookLangTag } from "../lib/languages";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
@@ -359,7 +360,10 @@ function DetailPage({ view }: { view: DetailView }) {
         </div>
         <div className="book-info">
           {view.kicker && <p className="eyebrow">{view.kicker}</p>}
-          <h1 id="book-title">{view.title}</h1>
+          {/* A classic in another language is read out in that language (Google's titles keep the page's). */}
+          <h1 id="book-title" lang={view.local?.language ? bookLangTag(view.local.language) : undefined}>
+            {view.title}
+          </h1>
           {view.subtitle && <p className="book-subtitle">{view.subtitle}</p>}
           {view.local && <SeriesLine bookId={view.id} />}
           <p className="byline">

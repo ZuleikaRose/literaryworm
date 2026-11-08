@@ -35,8 +35,8 @@
     "releasedOn": "2026-11-08",
     "version": "2026.11",
     "kind": "feature",
-    "title": "Try the demo on your phone",
-    "body": "The home and log-in pages have Try the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.",
+    "title": "Open the demo on your phone",
+    "body": "The home and log-in pages have Open the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.",
     "major": false
   },
   {

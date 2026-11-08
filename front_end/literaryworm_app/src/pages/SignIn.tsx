@@ -252,9 +252,9 @@ export default function SignIn() {
       <button type="button" className="secondary-button auth-submit" onClick={tryDemo}>
         {t("Try the demo")}
       </button>
-      <p className="auth-note">
+      <div className="auth-note">
         <DemoOnPhoneButton url={demoLink()} />
-      </p>
+      </div>
       <p className="auth-note">
         {rich(t("Opens a sample household with three profiles. You can also log in with {email} and {password}. The demo can't make payments."), {
           email: <strong>{DEMO_EMAIL}</strong>,

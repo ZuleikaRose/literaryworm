@@ -978,7 +978,7 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 
 282. **Club natural-voice hours.** The owner of a club reading an uploaded book can give every member up to three hours a month of natural-voice reading for their own copy, taken from the owner's month only once a member's own hours run out; members see the gift and what they've used.
 
-283. **Try the demo on your phone.** Visitors can scan a code on the home or log-in page to open the demo on their phone, where Try the demo comes first.
+283. **Open the demo on your phone.** Visitors can scan a code on the home or log-in page to open the demo on their phone, where Try the demo comes first.
 
 284. **On this device.** Under Voice the whole book, a member sees how many voiced parts of the book are on the device and how much space they take, and can remove them after a trip.
 

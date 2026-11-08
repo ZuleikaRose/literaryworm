@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { otherLanguageBooks } from "./languages";
+import { bookLangTag, otherLanguageBooks } from "./languages";
 
 describe("otherLanguageBooks", () => {
   it("lists the eight classics in French, German, Greek and Spanish, grouped by language", () => {
@@ -44,5 +44,21 @@ describe("otherLanguageBooks", () => {
     const before = catalog.map((b) => b.id);
     otherLanguageBooks("all", catalog);
     expect(catalog.map((b) => b.id)).toEqual(before);
+  });
+});
+
+describe("bookLangTag", () => {
+  it("tags catalog languages by name and keeps an upload's code", () => {
+    expect(bookLangTag("Greek")).toBe("el");
+    expect(bookLangTag("French")).toBe("fr");
+    expect(bookLangTag("el")).toBe("el");
+    expect(bookLangTag("pt-BR")).toBe("pt-BR");
+  });
+
+  it("falls back to English when the language is missing or not a tag", () => {
+    expect(bookLangTag(undefined)).toBe("en");
+    expect(bookLangTag(null)).toBe("en");
+    expect(bookLangTag("")).toBe("en");
+    expect(bookLangTag("Klingon")).toBe("en");
   });
 });

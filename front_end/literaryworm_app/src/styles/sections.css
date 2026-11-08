@@ -60,7 +60,7 @@
   line-height: 0.98;
 }
 
-.hero-copy > p:not(.eyebrow, .hero-fine, .hero-phone) {
+.hero-copy > p:not(.eyebrow, .hero-fine) {
   max-width: 490px;
   margin: 0 0 28px;
   color: var(--muted);
@@ -80,8 +80,8 @@
   font-size: 0.8125rem;
 }
 
-/* "Try the demo on your phone" under the hero's fine print (ContinueOnPhone.tsx). */
-.hero-copy > .hero-phone {
+/* "Open the demo on your phone" under the hero's fine print (ContinueOnPhone.tsx). */
+.hero-phone {
   margin: 6px 0 0;
 }
 .hero-phone .text-button {

@@ -3,11 +3,11 @@
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-08'::date, '2026.11', 'update', $lw$On this device, for an upload's voices$lw$, $lw$Under Voice the whole book, On this device shows how many voiced parts are kept and how much space they take, so you know a book is ready before a trip, and Remove the voices from this device frees the space after.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$On this device, for an upload's voices$lw$ and c.released_on = '2026-11-08');
--- What's new: Try the demo on your phone. src/data/changelog.json has the same.
+-- What's new: Open the demo on your phone. src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
-select '2026-11-08'::date, '2026.11', 'feature', $lw$Try the demo on your phone$lw$, $lw$The home and log-in pages have Try the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.$lw$, false
-where not exists (select 1 from public.changelog_entries c where c.title = $lw$Try the demo on your phone$lw$ and c.released_on = '2026-11-08');
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Open the demo on your phone$lw$, $lw$The home and log-in pages have Open the demo on your phone: scan the code and the demo opens on your phone, a sample household of its own.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Open the demo on your phone$lw$ and c.released_on = '2026-11-08');
 -- What's new: Club natural-voice hours. src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)

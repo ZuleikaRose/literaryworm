@@ -1054,8 +1054,8 @@ describe("the demo household", () => {
   it("shows the demo's QR code on the home page, and puts Try the demo first when opened from it", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
-    await page.getByRole("button", { name: "Try the demo on your phone" }).click();
-    const dialog = page.getByRole("dialog", { name: "Try the demo on your phone" });
+    await page.getByRole("button", { name: "Open the demo on your phone" }).click();
+    const dialog = page.getByRole("dialog", { name: "Open the demo on your phone" });
     await dialog.getByRole("img", { name: "QR code that opens the LiteraryWorm demo" }).waitFor();
     await dialog.getByText(/\/signin\?demo=1$/).waitFor();
     await dialog.getByRole("button", { name: "Close" }).click();

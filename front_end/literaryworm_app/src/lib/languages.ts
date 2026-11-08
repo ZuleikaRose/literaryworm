@@ -13,3 +13,16 @@ export function otherLanguageBooks(ageRating: AgeRating, catalog: Book[] = books
     .filter((b) => !!b.language && b.language !== "English" && isAllowed(b.ageRating, ageRating))
     .sort((a, b) => a.language.localeCompare(b.language));
 }
+
+// A catalog book's language is a name ("Greek"); an upload's is the EPUB's code ("el", "pt-BR").
+const LANGUAGE_TAGS: Record<string, string> = { English: "en", French: "fr", German: "de", Spanish: "es", Italian: "it", Greek: "el" };
+
+/**
+ * The BCP 47 tag for a book's text, for `lang` on its title and the reader's page, so screen readers
+ * read a Greek or French classic in its own language; English when it isn't known.
+ */
+export function bookLangTag(language: string | null | undefined): string {
+  if (!language) return "en";
+  if (LANGUAGE_TAGS[language]) return LANGUAGE_TAGS[language];
+  return /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(language) ? language : "en";
+}
