@@ -360,9 +360,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
         {rating === "kids" && (
           <label className="switch-row">
             <span>
-              <strong>{t("Natural voices for their uploads")}</strong>
+              <strong>{t("Natural voices for their uploads and the classics")}</strong>
               <small id="kids-voices-hint">
-                {t("Books this profile uploads can be read aloud by Google's natural voices, using the household's hours. Off until a grown-up turns it on.")}
+                {t("Books this profile uploads, and the classics, can be read aloud by Google's natural voices, using the household's hours. Off until a grown-up turns it on.")}
               </small>
             </span>
             <input

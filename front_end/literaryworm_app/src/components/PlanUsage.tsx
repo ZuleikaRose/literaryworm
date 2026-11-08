@@ -102,7 +102,7 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
                       time: hoursAndMinutes(natural.used),
                       left: hoursAndMinutes(natural.left),
                     })
-                  : t("{time} of {hours} hours of new natural-voice reading used for your uploads; {left} left. Listening again to parts already voiced is free. Resets on {date}.", {
+                  : t("{time} of {hours} hours of new natural-voice reading used for your uploads and the classics; {left} left. Listening again to parts already voiced is free. Resets on {date}.", {
                       time: hoursAndMinutes(natural.used),
                       hours: Math.round(natural.limit / 3600),
                       // The plan's own hours; bought ones are shown under it.
@@ -117,7 +117,7 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
           <div>
             <dt>{t("Natural voices")}</dt>
             <dd>
-              {t("Members' uploads can be read by natural voices, with hours each month on every plan.")}
+              {t("Members' uploads and the classics can be read by natural voices, with hours each month on every plan.")}
               <VoicePacks packs={[]} extra={0} />
             </dd>
           </div>

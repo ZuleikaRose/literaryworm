@@ -28,7 +28,7 @@ export const plans: Plan[] = [
       tk("Book clubs and buddy reads around a LiteraryWorm title or a book you uploaded, with spoiler-free discussion, AI discussion questions on the classics, polls on what to read next, a weekly reading schedule with reminders, reading sprints, shared highlights, listening along and where everyone is in the book"),
       tk("Notifications on your devices for new releases, club meetings and posts, and your streak"),
       tk("Upload your own DRM-free EPUB, PDF and Kindle books, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
-      tk("Natural voices from Google to read your uploads aloud: 2 hours of new voicing a month, and listening again is free"),
+      tk("Natural voices from Google to read your uploads and the classics aloud, with a voice for each character: 2 hours of new voicing a month, and listening again is free"),
       tk("More natural-voice hours when you need them: 5 for $14.99 or 10 for $24.99, paid once"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
       tk("The app in 21 languages, and a Year in reading email each January if you'd like one"),
@@ -56,7 +56,7 @@ export const plans: Plan[] = [
       tk("Each profile keeps its own favourites, lists, goals and stats"),
       tk("Household reading challenges (books, hours, days or nine reading themes, with book ideas on Discover) and reading sprints to take on together"),
       tk("A family shelf of books grown-ups put out for everyone at home"),
-      tk("6 hours a month of natural voices from Google for your uploads"),
+      tk("6 hours a month of natural voices from Google for your uploads and the classics"),
     ],
   },
   {
@@ -74,7 +74,7 @@ export const plans: Plan[] = [
       tk("Everything in Standard"),
       tk("Nine more profiles than Standard, for bigger households"),
       tk("$5.00 a profile each month with all 12 in use"),
-      tk("Up to 12 hours a month of Google Text-to-Speech Chirp 3 HD natural voices for your uploads"),
+      tk("Up to 12 hours a month of Google Text-to-Speech Chirp 3 HD natural voices for your uploads and the classics"),
     ],
   },
 ];
@@ -167,6 +167,10 @@ export const planFaqs = [
   {
     q: tk("Can LiteraryWorm read my own books aloud?"),
     a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. On Kids profiles, a grown-up can turn them on in Account → Family.\n\nNatural voices read 21 languages. With Character voices on, what the characters say is read by other voices, and you can choose who reads whom; Voice the whole book keeps every part on your device for listening offline.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
+  },
+  {
+    q: tk("Can I hear the classics in a natural voice?"),
+    a: tk("Yes, as a member. Natural voices from Google come first in a classic's Voice menu and read its full text, and the LibriVox recording, read by a person, is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month.\n\nYou can change the voice, give the characters voices and speeds of their own, and preview every voice at any time: in the player, the mini-player's settings, the reader's Voices and characters button, or a book club's page. On Kids profiles, a grown-up turns natural voices on in Account → Family."),
   },
   {
     q: tk("Can I get more natural-voice hours?"),
