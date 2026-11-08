@@ -1319,3 +1319,18 @@
 .dashboard-note {
   color: var(--muted);
 }
+
+/* More natural-voice hours (components/VoicePacks.tsx). */
+.voice-packs {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.voice-pack-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.voice-pack-buttons button {
+  min-height: 44px;
+}

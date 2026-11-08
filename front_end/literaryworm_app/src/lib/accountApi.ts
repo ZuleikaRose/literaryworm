@@ -416,7 +416,7 @@ export async function loadAccount(): Promise<Account | null> {
   if (!user) return null;
   const [profile, details, subscription] = await Promise.all([
     db.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails, club_post_emails").eq("user_id", user.id).maybeSingle(),
+    db.from("account_private").select("date_of_birth, marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails, club_post_emails, year_emails").eq("user_id", user.id).maybeSingle(),
     db.from("subscriptions").select(SUBSCRIPTION_COLUMNS).eq("user_id", user.id).maybeSingle(),
   ]);
   if (profile.error || details.error || subscription.error) throw new AccountError(OFFLINE);
@@ -435,6 +435,7 @@ export async function loadAccount(): Promise<Account | null> {
     authorEmails: details.data?.author_emails ?? true,
     updateEmails: details.data?.update_emails ?? false,
     kidsReportEmails: details.data?.kids_report_emails ?? false,
+    yearEmails: details.data?.year_emails ?? false,
     clubMeetingEmails: details.data?.club_meeting_emails ?? true,
     clubPostEmails: details.data?.club_post_emails ?? false,
     isDemo: false,
@@ -679,6 +680,12 @@ export async function buyGift(planId: PlanId, months: number, startsOn: string |
   return url;
 }
 
+/** More natural-voice hours: a one-off Stripe Checkout for a pack (lib/voicePacks.ts). */
+export async function buyVoiceHours(hours: 5 | 10): Promise<string> {
+  const { url } = await callFunction<{ url: string }>("checkout", { voiceHours: hours }, "We couldn't start the payment. Try again.");
+  return url;
+}
+
 export interface BoughtGift {
   id: string;
   code: string;
@@ -789,6 +796,12 @@ export async function setAuthorEmails(userId: string, on: boolean): Promise<void
 /** The monthly What's new email (account_private.update_emails, sent by the whats-new function). */
 export async function setUpdateEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ update_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** The Year in reading email each January (account_private.year_emails, sent by the year-in-reading function). */
+export async function setYearEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ year_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
 }
 

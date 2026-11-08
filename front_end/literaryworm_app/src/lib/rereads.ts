@@ -33,7 +33,7 @@ export function ordinal(n: number): string {
   return `${n}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"}`;
 }
 
-/** An ordinal in the language chosen: 2nd in English, 2.º in Spanish and Portuguese, 2e in French and Dutch, 2. in German, 2º in Italian. */
+/** An ordinal in the language chosen: 2nd in English, 2.º in Spanish and Portuguese, 2e in French and Dutch, 2. in German, Polish and Turkish, 2º in Italian, 2:a in Swedish, 2-о in Bulgarian, ika-2 in Tagalog, 2वीं in Hindi, a bare 2 where the sentence numbers it. */
 function localOrdinal(n: number): string {
   switch (activeLanguage()) {
     case "es":
@@ -46,6 +46,26 @@ function localOrdinal(n: number): string {
       return `${n}.`;
     case "it":
       return `${n}º`;
+    // Written around a bare number in these dictionaries ("{ordinal} 回目", "№{ordinal}", "Lectura ta: {ordinal}").
+    case "ja":
+    case "zh":
+    case "ko":
+    case "ru":
+    case "uk":
+    case "ar":
+    case "ro":
+      return String(n);
+    case "pl":
+    case "tr":
+      return `${n}.`;
+    case "sv":
+      return `${n}:${n % 10 === 1 || n % 10 === 2 ? (n % 100 === 11 || n % 100 === 12 ? "e" : "a") : "e"}`;
+    case "bg":
+      return `${n}-о`;
+    case "hi":
+      return `${n}वीं`;
+    case "tl":
+      return `ika-${n}`;
     default:
       return ordinal(n);
   }

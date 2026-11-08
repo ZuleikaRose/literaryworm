@@ -13669,3 +13669,461 @@ where slug = 'help'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$See who's using the hours$lw$, $lw$Account → Family now shows each profile's audiobook listening and new natural-voice reading this month, so you can see where your plan's hours go.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$See who's using the hours$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006780_audiobook_download_policies.sql
+-- =============================================================================
+-- Download an upload's audiobook: Help and Privacy. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up."$lw$, $lw$"To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.", "Once every part is on your device, Download the audiobook (MP3) under Voice the whole book joins them, in order, into one file to play in any audio app. It's made on your device from the parts already there, so it costs nothing more; it's for your own listening, like the book you uploaded."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Once every part is on your device, Download the audiobook (MP3) under Voice the whole book joins them, in order, into one file to play in any audio app. It's made on your device from the parts already there, so it costs nothing more; it's for your own listening, like the book you uploaded.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account."$lw$, $lw$"For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account.", "Downloading an upload's audiobook joins the parts already kept on your device into one file there; nothing is sent to us or to Google for it."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Downloading an upload's audiobook joins the parts already kept on your device into one file there; nothing is sent to us or to Google for it.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006781_whats_new_audiobook_download.sql
+-- =============================================================================
+-- What's new: Save your upload as an audiobook. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Save your upload as an audiobook$lw$, $lw$After Voice the whole book, choose Download the audiobook to save every part as one MP3, made on your device, to play in any audio app.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Save your upload as an audiobook$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006782_voice_previews_help.sql
+-- =============================================================================
+-- Voice previews: Help explains them. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.", "To hear a natural voice before choosing it, press the play button beside the player's Voice menu, or beside each speaker under Who reads whom. The samples are recorded once and come with the site, so they don't count towards your month's natural-voice reading."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$To hear a natural voice before choosing it, press the play button beside the player's Voice menu, or beside each speaker under Who reads whom. The samples are recorded once and come with the site, so they don't count towards your month's natural-voice reading.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006783_whats_new_voice_previews.sql
+-- =============================================================================
+-- What's new: Hear a voice before you choose it. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Hear a voice before you choose it$lw$, $lw$Every natural voice, and every character voice under Who reads whom, now has a short sample to play first. Samples are free and don't count towards your month's reading.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Hear a voice before you choose it$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006784_ui_languages_twenty.sql
+-- =============================================================================
+-- The app in the 20 languages natural voices read: the 13 added to UI_LANGUAGES in
+-- src/lib/i18n.ts (Japanese, Chinese, Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish,
+-- Ukrainian, Tagalog, Bulgarian, Romanian) can be kept as a profile's language too.
+
+alter table public.reader_profiles drop constraint if exists reader_profiles_ui_language_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_ui_language_check
+  check (ui_language is null or ui_language in (
+    'en', 'es', 'fr', 'de', 'pt', 'it', 'nl',
+    'ja', 'zh', 'ko', 'hi', 'ar', 'pl', 'ru', 'tr', 'sv', 'uk', 'tl', 'bg', 'ro'
+  ));
+
+-- =============================================================================
+-- 20261107006785_listen_together_uploads_help.sql
+-- =============================================================================
+-- Help: Listen together on clubs reading an uploaded book. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. Listen together isn't offered for an uploaded book, because each member listens to their own copy."$lw$, $lw$"Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. Listen together works on an uploaded book too: each member hears their own copy, in the voice they chose, kept at the same chapter and the same share of the way through it."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Uploads stay private, so members don't get your file. The club shows the book's title and author, and each member uploads their own copy and chooses it on the club's page (Choose your copy). Posts, where everyone is and shared highlights then follow each member's place in their own copy, so nothing past their chapter is spoiled. Listen together works on an uploaded book too: each member hears their own copy, in the voice they chose, kept at the same chapter and the same share of the way through it.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006786_whats_new_listen_together_uploads.sql
+-- =============================================================================
+-- What's new: Listen together on uploaded books. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Listen together on uploaded books$lw$, $lw$Book clubs reading an uploaded book can listen together now. Each member hears their own copy, in the voice they chose, and the session keeps everyone at the same chapter and the same share of the way through it, as the leader plays, pauses and skips.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Listen together on uploaded books$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006787_year_in_reading_email.sql
+-- =============================================================================
+-- Year in reading: on 1 January (carrying on to the 3rd) members who turned it on get one email
+-- of the year just ended for every profile in the household: time read and listened, days read,
+-- books finished (catalog titles named), and the month they read most.
+--
+-- * account_private.year_emails: off until the member turns it on (opt-in, Account → Preferences).
+-- * year_in_reading_sends: which accounts have had which year's email, so each gets it once.
+--   Server only.
+-- * claim_year_in_reading_emails() marks accounts that asked for it and haven't had that year's;
+--   year_in_reading() returns each profile's year. Both for the service role only.
+-- * The year-in-reading function (pg_cron, 1st to 3rd January, with a key kept in Vault, like
+--   kids-report) sends them. Each email has a one-click unsubscribe link (the unsubscribe
+--   function, list "year-in-reading").
+
+alter table public.account_private add column year_emails boolean not null default false;
+grant select (year_emails), update (year_emails) on public.account_private to authenticated;
+
+create table public.year_in_reading_sends (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  year    integer not null check (year between 2020 and 2200),
+  sent_at timestamptz not null default now(),
+  primary key (user_id, year)
+);
+-- user_id leads the primary key, so the foreign key is indexed.
+alter table public.year_in_reading_sends enable row level security;
+revoke all on public.year_in_reading_sends from anon, authenticated;
+grant all on public.year_in_reading_sends to service_role;
+
+-- Marks up to max_count accounts that asked for it, read at all that year and haven't had
+-- p_year's yet, and returns them with the address; the function hands back any it couldn't send.
+create or replace function public.claim_year_in_reading_emails(p_year integer, max_count integer default 500)
+returns table (user_id uuid, email text, account_name text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return query
+  with due as (
+    select a.user_id
+    from public.account_private a
+    join auth.users u on u.id = a.user_id and u.email is not null and u.email_confirmed_at is not null
+    where a.year_emails
+      and exists (select 1 from public.reading_days d
+                   where d.user_id = a.user_id and d.minutes >= 1
+                     and d.day between make_date(p_year, 1, 1) and make_date(p_year, 12, 31))
+      and not exists (select 1 from public.year_in_reading_sends s where s.user_id = a.user_id and s.year = p_year)
+    order by a.user_id
+    limit least(greatest(coalesce(max_count, 500), 1), 1000)
+  ), claimed as (
+    insert into public.year_in_reading_sends (user_id, year)
+    select due.user_id, p_year from due
+    on conflict do nothing
+    returning year_in_reading_sends.user_id
+  )
+  select c.user_id, u.email::text, p.display_name
+  from claimed c
+  join auth.users u on u.id = c.user_id
+  left join public.profiles p on p.id = c.user_id;
+end;
+$$;
+revoke execute on function public.claim_year_in_reading_emails(integer, integer) from public, anon, authenticated;
+grant execute on function public.claim_year_in_reading_emails(integer, integer) to service_role;
+
+-- Each profile's year (profiles in use, set aside ones too), by name.
+create or replace function public.year_in_reading(p_user uuid, p_year integer)
+returns table (profile_name text, minutes integer, listening_minutes integer, days_read integer, books_finished integer, finished_books text[], best_month integer)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.name::text,
+         coalesce(sum(d.minutes), 0)::integer,
+         coalesce(sum(d.listening_minutes), 0)::integer,
+         count(d.day) filter (where d.minutes >= 1)::integer,
+         (select count(*)::integer from public.finished_books f
+           where f.profile_id = p.id and f.user_id = p_user
+             and f.finished_on between make_date(p_year, 1, 1) and make_date(p_year, 12, 31)),
+         coalesce((select array_agg(f.volume_id order by f.finished_on)
+                     from public.finished_books f
+                    where f.profile_id = p.id and f.user_id = p_user
+                      and f.finished_on between make_date(p_year, 1, 1) and make_date(p_year, 12, 31)), '{}'),
+         (select extract(month from m.day)::integer
+            from public.reading_days m
+           where m.profile_id = p.id and m.user_id = p_user
+             and m.day between make_date(p_year, 1, 1) and make_date(p_year, 12, 31)
+           group by extract(month from m.day)
+          having sum(m.minutes) > 0
+           order by sum(m.minutes) desc, extract(month from m.day)
+           limit 1)
+  from public.reader_profiles p
+  left join public.reading_days d on d.profile_id = p.id and d.user_id = p_user
+                                 and d.day between make_date(p_year, 1, 1) and make_date(p_year, 12, 31)
+  where p.account_id = p_user
+  group by p.id, p.name
+  order by p.name;
+$$;
+revoke execute on function public.year_in_reading(uuid, integer) from public, anon, authenticated;
+grant execute on function public.year_in_reading(uuid, integer) to service_role;
+
+-- The key the cron job sends and the function checks: 32 random bytes, made once.
+select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'year_in_reading_secret', 'Sent by the year-in-reading cron job; checked by the function')
+where not exists (select 1 from vault.secrets where name = 'year_in_reading_secret');
+
+create or replace function public.year_in_reading_secret()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'year_in_reading_secret';
+$$;
+revoke execute on function public.year_in_reading_secret() from public, anon, authenticated;
+grant execute on function public.year_in_reading_secret() to service_role;
+
+create or replace function private.call_year_in_reading()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  base text := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url');
+  key  text := (select decrypted_secret from vault.decrypted_secrets where name = 'year_in_reading_secret');
+begin
+  if base is null or key is null then
+    return;
+  end if;
+  perform net.http_post(
+    url := rtrim(base, '/') || '/functions/v1/year-in-reading',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || key),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+revoke execute on function private.call_year_in_reading() from public, anon, authenticated;
+
+-- 10:00 UTC on 1 January: last year's email. A run that's cut short carries on on the 2nd and 3rd
+-- (accounts already sent are skipped).
+select cron.schedule('year-in-reading-email', '0 10 1-3 1 *', $$select private.call_year_in_reading()$$);
+
+-- =============================================================================
+-- 20261107006788_year_in_reading_policies.sql
+-- =============================================================================
+-- Privacy, Children's Privacy Notice and Your Privacy Choices: the Year in reading email. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"We may still communicate with you, for example to send you service-related messages that are necessary for the administration and use of your account (each kind of email can be turned off in Account → Preferences, and the monthly What's new email, the weekly Kids reading report, book club meeting emails and club post emails also have a one-click unsubscribe link that works without signing in), to respond to service requests, or for other non-marketing purposes."$lw$, $lw$"We may still communicate with you, for example to send you service-related messages that are necessary for the administration and use of your account (each kind of email can be turned off in Account → Preferences, and the monthly What's new email, the weekly Kids reading report, the Year in reading email, book club meeting emails and club post emails also have a one-click unsubscribe link that works without signing in), to respond to service requests, or for other non-marketing purposes."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$We may still communicate with you, for example to send you service-related messages that are necessary for the administration and use of your account (each kind of email can be turned off in Account → Preferences, and the monthly What's new email, the weekly Kids reading report, the Year in reading email, book club meeting emails and club post emails also have a one-click unsubscribe link that works without signing in), to respond to service requests, or for other non-marketing purposes.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The monthly What's new email, the weekly Kids reading report and the daily email of new club posts are off until you turn them on."$lw$, $lw$"The monthly What's new email, the weekly Kids reading report, the daily email of new club posts and the Year in reading email are off until you turn them on."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$The monthly What's new email, the weekly Kids reading report, the daily email of new club posts and the Year in reading email are off until you turn them on.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The monthly What's new email, the weekly Kids reading report, the daily email of new club posts and the Year in reading email are off until you turn them on."$lw$, $lw$"The monthly What's new email, the weekly Kids reading report, the daily email of new club posts and the Year in reading email are off until you turn them on.", "If you turn on Year in reading, each January we email the year just ended to your account's email address: for every profile in the household, its name, the time it read and listened, the days it read, how many books it finished (naming books from our catalog) and the month it read most. Mailgun sends it for us. We keep only that the year's email was sent."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$If you turn on Year in reading, each January we email the year just ended to your account's email address: for every profile in the household, its name, the time it read and listened, the days it read, how many books it finished (naming books from our catalog) and the month it read most. Mailgun sends it for us. We keep only that the year's email was sent.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"If you turn on the weekly Kids reading report, we email last week's reading to your account's email address. Mailgun sends it for us. It's off until you turn it on."$lw$, $lw$"If you turn on the weekly Kids reading report, we email last week's reading to your account's email address. Mailgun sends it for us. It's off until you turn it on.", "The Year in reading email, if you turn it on, includes every profile in the household, Kids profiles too: each one's name, time read and listened, days read, books finished and busiest month, sent to your account's email address each January through Mailgun. It's off until you turn it on."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$The Year in reading email, if you turn it on, includes every profile in the household, Kids profiles too: each one's name, time read and listened, days read, books finished and busiest month, sent to your account's email address each January through Mailgun. It's off until you turn it on.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In Account → Preferences, turn each kind of email on or off: books you set Remind me on coming out, new books from authors you follow, club meeting reminders and changes, a daily email of new club posts, the weekly Kids reading report, the monthly What's new, and marketing emails. Several are off until you turn them on."$lw$, $lw$"In Account → Preferences, turn each kind of email on or off: books you set Remind me on coming out, new books from authors you follow, club meeting reminders and changes, a daily email of new club posts, the weekly Kids reading report, the monthly What's new, Year in reading each January, and marketing emails. Several are off until you turn them on."$lw$)::jsonb
+where slug = 'privacy-choices'
+  and strpos(sections::text, $lw$In Account → Preferences, turn each kind of email on or off: books you set Remind me on coming out, new books from authors you follow, club meeting reminders and changes, a daily email of new club posts, the weekly Kids reading report, the monthly What's new, Year in reading each January, and marketing emails. Several are off until you turn them on.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006789_whats_new_year_in_reading.sql
+-- =============================================================================
+-- What's new: Year in reading, by email. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Year in reading, by email$lw$, $lw$Turn on Year in reading in Account → Preferences and each January we'll email your household's year just ended: every profile's time read and listened, days read, books finished and the month it read most. It's off until you turn it on, and every email has a one-click unsubscribe.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Year in reading, by email$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006790_natural_voice_packs.sql
+-- =============================================================================
+-- More natural-voice hours: a member whose plan's monthly hours aren't enough buys a pack of 5 or
+-- 10 hours, paid once on Stripe Checkout (checkout { voiceHours }, product
+-- literaryworm_voice_hours). Only stripe-webhook writes a pack, once per Checkout Session. A pack
+-- is drawn on only after the month's plan allowance is used up, oldest first, and lasts 12 months
+-- from purchase; what's left of it carries over from month to month.
+--
+-- * natural_voice_packs: per account; members read their own (hours, what's left, when it ends),
+--   never the Stripe session.
+-- * natural_voice_usage.pack_characters: what this month took from packs (so a piece that failed
+--   to voice can be handed back to the right place).
+-- * claim_natural_voice(): the plan's allowance first, then a pack. release_natural_voice() gives
+--   back to a pack first when this month drew on one.
+-- * add_natural_voice_pack(): for the webhook only.
+
+create table public.natural_voice_packs (
+  id             uuid primary key default gen_random_uuid(),
+  account_id     uuid not null references auth.users (id) on delete cascade,
+  stripe_session text not null unique check (stripe_session ~ '^cs_[A-Za-z0-9_]{1,250}$'),
+  hours          integer not null check (hours in (5, 10)),
+  characters     integer not null check (characters > 0),
+  used           integer not null default 0,
+  amount_cents   integer not null check (amount_cents >= 0),
+  bought_at      timestamptz not null default now(),
+  expires_at     timestamptz not null,
+  check (used between 0 and characters),
+  check (expires_at > bought_at)
+);
+comment on table public.natural_voice_packs is
+  'Natural-voice hours bought on top of the plan (5 or 10 hours, a year to use them). Written only by stripe-webhook (add_natural_voice_pack) and the natural-voice function (claim/release).';
+
+alter table public.natural_voice_packs enable row level security;
+create policy "Members see their voice packs" on public.natural_voice_packs for select to authenticated
+  using (account_id = (select auth.uid()));
+create policy "Two-step sign-in when turned on" on public.natural_voice_packs as restrictive for all to authenticated
+  using ((select public.second_step_done())) with check ((select public.second_step_done()));
+revoke all on public.natural_voice_packs from anon, authenticated;
+grant select (id, account_id, hours, characters, used, bought_at, expires_at) on public.natural_voice_packs to authenticated;
+grant all on public.natural_voice_packs to service_role;
+
+alter table public.natural_voice_usage add column if not exists pack_characters integer not null default 0 check (pack_characters >= 0);
+grant select (pack_characters) on public.natural_voice_usage to authenticated;
+
+-- Counts p_characters against this month's p_limit; when it won't fit there, against the pack
+-- that ends soonest with room for it. False (and nothing counted) when neither has room.
+create or replace function public.claim_natural_voice(p_account uuid, p_characters integer, p_limit integer)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_month date := date_trunc('month', now() at time zone 'utc')::date;
+  v_pack uuid;
+begin
+  if p_account is null or p_characters is null or p_characters < 1 or p_characters > 5000 or p_limit is null or p_limit < 0 then
+    raise exception 'claim_natural_voice: bad arguments';
+  end if;
+  insert into public.natural_voice_usage (account_id, month) values (p_account, v_month)
+  on conflict (account_id, month) do nothing;
+  update public.natural_voice_usage
+     set characters = characters + p_characters,
+         -- The first time this month's use passes 80% of the allowance.
+         mostly_used_at = coalesce(mostly_used_at, case when characters + p_characters >= p_limit * 0.8 then now() end)
+   where account_id = p_account and month = v_month and characters + p_characters <= p_limit;
+  if found then
+    return true;
+  end if;
+  select id into v_pack
+    from public.natural_voice_packs
+   where account_id = p_account and expires_at > now() and characters - used >= p_characters
+   order by expires_at, id
+   limit 1
+   for update;
+  if v_pack is null then
+    return false;
+  end if;
+  update public.natural_voice_packs set used = used + p_characters where id = v_pack;
+  update public.natural_voice_usage set pack_characters = pack_characters + p_characters
+   where account_id = p_account and month = v_month;
+  return true;
+end;
+$$;
+
+-- Hands back a claim whose piece couldn't be voiced: to a pack when this month drew on one,
+-- else to the month's allowance.
+create or replace function public.release_natural_voice(p_account uuid, p_characters integer)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_month date := date_trunc('month', now() at time zone 'utc')::date;
+  v_pack uuid;
+begin
+  update public.natural_voice_usage
+     set pack_characters = pack_characters - p_characters
+   where account_id = p_account and month = v_month and pack_characters >= p_characters;
+  if found then
+    select id into v_pack
+      from public.natural_voice_packs
+     where account_id = p_account and used >= p_characters
+     order by expires_at, id
+     limit 1
+     for update;
+    if v_pack is not null then
+      update public.natural_voice_packs set used = used - p_characters where id = v_pack;
+    end if;
+    return;
+  end if;
+  update public.natural_voice_usage
+     set characters = greatest(0, characters - p_characters)
+   where account_id = p_account and month = v_month;
+end;
+$$;
+
+revoke execute on function public.claim_natural_voice(uuid, integer, integer) from public, anon, authenticated;
+revoke execute on function public.release_natural_voice(uuid, integer) from public, anon, authenticated;
+grant execute on function public.claim_natural_voice(uuid, integer, integer) to service_role;
+grant execute on function public.release_natural_voice(uuid, integer) to service_role;
+
+-- A paid pack, once per Checkout Session (a repeated event changes nothing).
+create or replace function public.add_natural_voice_pack(p_account uuid, p_session text, p_hours integer, p_characters integer, p_amount_cents integer)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.natural_voice_packs (account_id, stripe_session, hours, characters, amount_cents, expires_at)
+  values (p_account, p_session, p_hours, p_characters, p_amount_cents, now() + interval '12 months')
+  on conflict (stripe_session) do nothing;
+$$;
+revoke execute on function public.add_natural_voice_pack(uuid, text, integer, integer, integer) from public, anon, authenticated;
+grant execute on function public.add_natural_voice_pack(uuid, text, integer, integer, integer) to service_role;
+
+-- =============================================================================
+-- 20261107006791_index_natural_voice_packs_account.sql
+-- =============================================================================
+create index concurrently if not exists natural_voice_packs_account_id_idx on public.natural_voice_packs (account_id);
+
+-- =============================================================================
+-- 20261107006792_voice_packs_policies.sql
+-- =============================================================================
+-- Terms (30), Return Policy and Help: more natural-voice hours. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Gifts. You can buy months of a plan or a gift card ($25, $50 or $100) for someone else, paid once and final. A gift card's code adds its amount as credit to the account that redeems it, taken off its membership charges; the credit has no cash value and can't be moved or refunded. Gift codes don't expire and work once."$lw$, $lw$"Gifts. You can buy months of a plan or a gift card ($25, $50 or $100) for someone else, paid once and final. A gift card's code adds its amount as credit to the account that redeems it, taken off its membership charges; the credit has no cash value and can't be moved or refunded. Gift codes don't expire and work once.", "More natural-voice hours. A member whose membership is active and paid for (not during the free week, while a payment is owed, or a complimentary staff membership) can buy 5 hours for $14.99 or 10 hours for $24.99 of new natural-voice reading for their uploads, paid once on Stripe Checkout and final. Bought hours belong to the account, are used only after the month's plan hours run out, carry over from month to month and end 12 months after purchase; hours left then, or when the account is deleted, aren't refunded and have no cash value."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$More natural-voice hours. A member whose membership is active and paid for (not during the free week, while a payment is owed, or a complimentary staff membership) can buy 5 hours for $14.99 or 10 hours for $24.99 of new natural-voice reading for their uploads, paid once on Stripe Checkout and final. Bought hours belong to the account, are used only after the month's plan hours run out, carry over from month to month and end 12 months after purchase; hours left then, or when the account is deleted, aren't refunded and have no cash value.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Gift cards ($25, $50 or $100) are paid once and final too. Redeeming one adds its amount as credit on the account that redeems it, taken off that account's next charges on any plan. The credit has no cash value, can't be moved to another account and isn't refunded."$lw$, $lw$"Gift cards ($25, $50 or $100) are paid once and final too. Redeeming one adds its amount as credit on the account that redeems it, taken off that account's next charges on any plan. The credit has no cash value, can't be moved to another account and isn't refunded.", "More natural-voice hours (5 hours for $14.99, 10 for $24.99) are paid once and final too. They're used after the month's plan hours, last 12 months from purchase, and hours not used by then aren't refunded."$lw$)::jsonb
+where slug = 'returns'
+  and strpos(sections::text, $lw$More natural-voice hours (5 hours for $14.99, 10 for $24.99) are paid once and final too. They're used after the month's plan hours, last 12 months from purchase, and hours not used by then aren't refunded.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual."$lw$, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.", "Need more than your plan's hours? In Account → Plan and billing, under This month, buy 5 more hours for $14.99 or 10 for $24.99, paid once (not a subscription). They're used only when the month's plan hours run out, carry over from month to month and last 12 months. Not during the free week or while a payment is owed."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Need more than your plan's hours? In Account → Plan and billing, under This month, buy 5 more hours for $14.99 or 10 for $24.99, paid once (not a subscription). They're used only when the month's plan hours run out, carry over from month to month and last 12 months. Not during the free week or while a payment is owed.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006793_whats_new_voice_packs.sql
+-- =============================================================================
+-- What's new: Buy more natural-voice hours. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$Buy more natural-voice hours$lw$, $lw$When your plan's natural-voice hours aren't enough, buy 5 more hours for $14.99 or 10 for $24.99 in Account → Plan and billing. They're paid once, used only after the month's plan hours, carry over from month to month and last 12 months.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Buy more natural-voice hours$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261107006794_twenty_languages_policies.sql
+-- =============================================================================
+-- Accessibility Policy and Help: the app in 20 languages. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian or Dutch; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies."$lw$, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian or Romanian; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian or Romanian; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian or Dutch. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English."$lw$, $lw$"Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian or Romanian, the same 20 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian or Romanian, the same 20 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left.$lw$) = 0;
+
+-- =============================================================================
+-- 20261107006795_whats_new_twenty_languages.sql
+-- =============================================================================
+-- What's new: LiteraryWorm in 20 languages. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-07'::date, '2026.11', 'feature', $lw$LiteraryWorm in 20 languages$lw$, $lw$The app now speaks the same 20 languages as our natural voices. Besides English, Spanish, French, German, Portuguese, Italian and Dutch, choose 日本語, 中文（简体）, 한국어, हिन्दी, العربية, Polski, Русский, Türkçe, Svenska, Українська, Tagalog, Български or Română in the accessibility menu. Arabic reads right to left, and your profile keeps the language on every device. Book details, emails, the policies and Help stay in English.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$LiteraryWorm in 20 languages$lw$ and c.released_on = '2026-11-07');

@@ -1,7 +1,7 @@
 // deno test --allow-env supabase/functions/checkout — runs offline with stubbed auth, database and Stripe.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { type CheckoutInput, type Deps, FREE_TRIAL_DAYS, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
+import { type CheckoutInput, type Deps, FREE_TRIAL_DAYS, type GiftCheckoutInput, handle, type Membership, type VoiceCheckoutInput } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
 const USER = { id: "00000000-0000-0000-0000-00000000000a", email: "ann@example.com" };
@@ -23,6 +23,7 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
   const state = {
     checkouts: [] as CheckoutInput[],
     gifts: [] as GiftCheckoutInput[],
+    voices: [] as VoiceCheckoutInput[],
     planChanges: [] as string[][],
     scheduled: [] as string[][],
     kept: [] as string[],
@@ -42,6 +43,10 @@ function setup(membership: Membership | null, overrides: Partial<Deps> = {}) {
     createCheckout: (input) => {
       state.checkouts.push(input);
       return Promise.resolve("https://checkout.stripe.com/c/pay/cs_test_1");
+    },
+    createVoiceCheckout: (input) => {
+      state.voices.push(input);
+      return Promise.resolve("https://checkout.stripe.com/c/pay/cs_test_voices");
     },
     createGiftCheckout: (input) => {
       state.gifts.push(input);
@@ -301,4 +306,21 @@ Deno.test("a gift card is $25, $50 or $100 of credit, with no plan, months or bo
     assertEquals((await call(deps, { gift: true, ...body })).status, 400, JSON.stringify(body));
   }
   assertEquals(state.gifts.length, 1);
+});
+
+Deno.test("more natural-voice hours: 5 or 10, for a paid-up membership outside the free week", async () => {
+  const { state, deps } = setup(linked({}));
+  const res = await call(deps, { voiceHours: 10 });
+  assertEquals(res.status, 200);
+  assertEquals((await res.json()).url, "https://checkout.stripe.com/c/pay/cs_test_voices");
+  assertEquals([state.voices[0].hours, state.voices[0].customerId], [10, "cus_1"]);
+  for (const body of [{ voiceHours: 7 }, { voiceHours: "5" }, { voiceHours: 5, planId: "basic" }]) {
+    assertEquals((await call(deps, body)).status, 400, JSON.stringify(body));
+  }
+  for (const m of [null, linked({ status: "past_due" }), linked({ status: "paused" }), linked({ trial_until: "2026-10-30T00:00:00Z" })]) {
+    assertEquals((await call(setup(m).deps, { voiceHours: 5 })).status, 400, JSON.stringify(m));
+  }
+  // A free week that's over doesn't stand in the way.
+  assertEquals((await call(setup(linked({ trial_until: "2026-10-01T00:00:00Z" })).deps, { voiceHours: 5 })).status, 200);
+  assertEquals(state.voices.length, 1);
 });

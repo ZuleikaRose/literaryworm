@@ -3,6 +3,38 @@
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",
+    "title": "LiteraryWorm in 20 languages",
+    "body": "The app now speaks the same 20 languages as our natural voices. Besides English, Spanish, French, German, Portuguese, Italian and Dutch, choose 日本語, 中文（简体）, 한국어, हिन्दी, العربية, Polski, Русский, Türkçe, Svenska, Українська, Tagalog, Български or Română in the accessibility menu. Arabic reads right to left, and your profile keeps the language on every device. Book details, emails, the policies and Help stay in English.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Buy more natural-voice hours",
+    "body": "When your plan's natural-voice hours aren't enough, buy 5 more hours for $14.99 or 10 for $24.99 in Account → Plan and billing. They're paid once, used only after the month's plan hours, carry over from month to month and last 12 months.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Year in reading, by email",
+    "body": "Turn on Year in reading in Account → Preferences and each January we'll email your household's year just ended: every profile's time read and listened, days read, books finished and the month it read most. It's off until you turn it on, and every email has a one-click unsubscribe.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Listen together on uploaded books",
+    "body": "Book clubs reading an uploaded book can listen together now. Each member hears their own copy, in the voice they chose, and the session keeps everyone at the same chapter and the same share of the way through it, as the leader plays, pauses and skips.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-07",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Hear a voice before you choose it",
     "body": "Every natural voice, and every character voice under Who reads whom, now has a short sample to play first. Samples are free and don't count towards your month's reading.",
     "major": false

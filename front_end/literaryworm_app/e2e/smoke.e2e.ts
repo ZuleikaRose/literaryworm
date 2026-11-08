@@ -327,6 +327,25 @@ describe("languages", () => {
     await page.getByRole("heading", { level: 1, name: "Privacy Policy" }).waitFor();
     expect(errors()).toEqual([]);
   });
+
+  it("offers the natural voices' 20 languages, with Arabic right to left", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    await page.getByRole("button", { name: "Accessibility menu" }).click();
+    const language = page.getByLabel("Language");
+    expect(await language.locator("option").count()).toBe(20);
+    await language.selectOption("ar");
+    await page.waitForFunction(() => document.documentElement.lang === "ar" && document.documentElement.dir === "rtl");
+    await page.getByRole("button", { name: /إمكانية الوصول|Accessibility/ }).first().waitFor();
+    await page.getByLabel(/اللغة|Language/).selectOption("ja");
+    await page.waitForFunction(() => document.documentElement.lang === "ja" && document.documentElement.dir === "ltr");
+    // No sideways scroll in a right-to-left layout on a phone.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByLabel(/言語|Language/).selectOption("ar");
+    await page.waitForFunction(() => document.documentElement.dir === "rtl");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+    expect(errors()).toEqual([]);
+  });
 });
 
 describe("search engines", () => {
@@ -850,6 +869,21 @@ describe("the demo household", () => {
     await dialog.getByRole("button", { name: "Close" }).click();
     await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
     await expect(page.getByRole("dialog", { name: "Player settings" }).getByRole("switch", { name: /Character voices/ }).isChecked()).resolves.toBe(true);
+    expect(errors()).toEqual([]);
+  });
+
+  it("sees how to buy more natural-voice hours, which the demo can't pay for, and can turn on Year in reading", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#plan");
+    const plan = page.locator("#plan");
+    await plan.getByRole("button", { name: "Buy 5 more hours for $14.99" }).click();
+    await plan.getByText("The demo can't take payments. Members buy more hours here.").waitFor();
+    await plan.getByRole("button", { name: "Buy 10 more hours for $24.99" }).waitFor();
+    const year = page.locator("#preferences").getByRole("switch", { name: /year in reading each January/ });
+    expect(await year.isChecked()).toBe(false);
+    await year.click();
+    await expect(year.isChecked()).resolves.toBe(true);
     expect(errors()).toEqual([]);
   });
 

@@ -1,3 +1,4 @@
+import type { VoicePack } from "./voicePacks";
 import { SUPABASE_URL } from "./backend";
 import { tk, tr } from "./i18n";
 import { VOICE_BUCKET } from "./naturalVoice";
@@ -86,6 +87,19 @@ export async function naturalVoiceUsage(month: string): Promise<{ characters: nu
   const { data, error } = await supabase.from("natural_voice_usage").select("characters, mostly_used_at").eq("month", month).maybeSingle();
   if (error) throw new Error(error.message);
   return { characters: (data?.characters as number | undefined) ?? 0, mostlyUsedAt: (data?.mostly_used_at as string | null | undefined) ?? null };
+}
+
+/** The account's packs of natural-voice hours (natural_voice_packs), still running or not. */
+export async function naturalVoicePacks(): Promise<VoicePack[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from("natural_voice_packs").select("hours, characters, used, expires_at").order("expires_at");
+  if (error) throw new Error(error.message);
+  return (data as { hours: number; characters: number; used: number; expires_at: string }[]).map((r) => ({
+    hours: r.hours,
+    characters: r.characters,
+    used: r.used,
+    expiresAt: Date.parse(r.expires_at),
+  }));
 }
 
 /** This month's new natural-voice reading per profile, in characters (natural_voice_profile_usage), for the family report. */

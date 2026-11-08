@@ -1,3 +1,4 @@
+import { RTL_LANGUAGES } from "../lib/i18n";
 import { useSprintSaver } from "../lib/useSprintSaver";
 import { useA11ySync } from "../lib/useA11ySync";
 import { useLanguageSync } from "../lib/useLanguageSync";
@@ -31,6 +32,8 @@ export function AppEffects() {
     root.style.setProperty("--text-scale", String(a11y.textScale));
     root.dataset.theme = a11y.theme;
     root.lang = a11y.language;
+    // Arabic reads right to left.
+    root.dir = RTL_LANGUAGES.has(a11y.language) ? "rtl" : "ltr";
     root.toggleAttribute("data-readable-font", a11y.readableFont);
     root.toggleAttribute("data-dyslexic-font", a11y.dyslexicFont);
     root.toggleAttribute("data-high-contrast", a11y.highContrast);

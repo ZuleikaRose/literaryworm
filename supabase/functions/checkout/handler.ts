@@ -7,6 +7,8 @@
 // interval is "month" unless given. Yearly costs ten times the monthly price and starts the day it's
 // bought (billingDay isn't needed); it renews on that date each year.
 //   { gift: true, planId, months: 1 | 3 | 6 | 12, startsOn?: "YYYY-MM-DD", recipientEmail?, message?, books?: [catalog ids, up to 10] }
+//   { voiceHours: 5 | 10 }                  more natural-voice hours, paid once (a paid-up membership,
+//                                            not in the free week; stripe-webhook adds the pack)
 //   { gift: true, credit: 2500 | 5000 | 10000, startsOn?, recipientEmail?, message? }
 //                                            a gift card: that much credit for a membership, added
 //                                            to the redeemer's Stripe balance (no books)
@@ -43,7 +45,7 @@
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { CATALOG } from "../_shared/catalog.ts";
-import { type BillingInterval, GIFT_CARD_CENTS, type GiftCardCents, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftBooks, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
+import { isVoicePack, type VoicePackHours, type BillingInterval, GIFT_CARD_CENTS, type GiftCardCents, GIFT_MONTHS, type GiftMonths, INTERVALS, nextBillingDay, parseGiftBooks, parseGiftMessage, parseGiftRecipient, parseGiftStart, PLANS, type PlanId, tooBigFor } from "../_shared/stripe.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
 
 export const METHODS = "POST";
@@ -57,6 +59,15 @@ export interface Membership {
   current_period_end: string | null;
   /** The plan a yearly membership moves to, monthly, at renewal (from Stripe, by the webhook). */
   switch_to_monthly: string | null;
+  /** While a first membership's free week lasts: when it ends. */
+  trial_until?: string | null;
+}
+
+export interface VoiceCheckoutInput {
+  customerId: string;
+  userId: string;
+  hours: VoicePackHours;
+  origin: string;
 }
 
 export interface CheckoutInput {
@@ -107,6 +118,8 @@ export interface Deps {
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
   createCheckout: (input: CheckoutInput) => Promise<string>;
   createGiftCheckout: (input: GiftCheckoutInput) => Promise<string>;
+  /** A one-off Checkout for more natural-voice hours (VOICE_PACKS). */
+  createVoiceCheckout: (input: VoiceCheckoutInput) => Promise<string>;
   /** Moves a Stripe subscription to the plan's price for `interval`, from `from` (its interval now). */
   changePlan: (subscriptionId: string, planId: PlanId, interval: BillingInterval, from: BillingInterval) => Promise<void>;
   /** Schedules a yearly subscription to move to the plan's monthly price when the year ends. */
@@ -130,6 +143,22 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       throw new HttpError("bad_request", "Staff accounts have a complimentary membership and are never charged.");
     }
     const body = await readJsonBody(req);
+    if (body.voiceHours !== undefined) {
+      onlyKeys(body, ["voiceHours"]);
+      if (!isVoicePack(body.voiceHours)) throw new HttpError("bad_request", "Pick 5 or 10 hours.");
+      // More hours go with a membership that's paid up: not in the free week, nor while a payment is owed.
+      const membership = await deps.getMembership(user.id);
+      if (!membership || membership.status !== "active") {
+        throw new HttpError("bad_request", "More natural-voice hours go with an active membership.");
+      }
+      const now = deps.now?.() ?? new Date();
+      if (membership.trial_until && Date.parse(membership.trial_until) > now.getTime()) {
+        throw new HttpError("bad_request", "More hours can be bought once your free week ends and the membership is paid for.");
+      }
+      const customerId = await deps.customerFor(user.id, user.email);
+      const url = await deps.createVoiceCheckout({ customerId, userId: user.id, hours: body.voiceHours, origin: deps.siteOrigin(req) });
+      return json(req, METHODS, { url });
+    }
     if (body.gift !== undefined) {
       onlyKeys(body, ["gift", "planId", "months", "credit", "startsOn", "recipientEmail", "message", "books"]);
       if (body.gift !== true) throw new HttpError("bad_request", "gift is true when buying a gift.");

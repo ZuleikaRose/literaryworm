@@ -16,7 +16,27 @@ export const UI_LANGUAGES = [
   { code: "pt", name: "Português" },
   { code: "it", name: "Italiano" },
   { code: "nl", name: "Nederlands" },
+  // The other languages natural voices read (NATURAL_LANGUAGES in lib/naturalVoice.ts).
+  { code: "ja", name: "日本語" },
+  { code: "zh", name: "中文（简体）" },
+  { code: "ko", name: "한국어" },
+  { code: "hi", name: "हिन्दी" },
+  { code: "ar", name: "العربية" },
+  { code: "pl", name: "Polski" },
+  { code: "ru", name: "Русский" },
+  { code: "tr", name: "Türkçe" },
+  { code: "sv", name: "Svenska" },
+  { code: "uk", name: "Українська" },
+  { code: "tl", name: "Tagalog" },
+  { code: "bg", name: "Български" },
+  { code: "ro", name: "Română" },
 ] as const;
+
+/** Languages written right to left: the page's direction follows the language. */
+export const RTL_LANGUAGES: ReadonlySet<string> = new Set(["ar"]);
+
+/** The locale for Intl (dates, numbers, plural rules): Tagalog's is Filipino, "fil". */
+export const intlLocale = (lang: string) => (lang === "tl" ? "fil" : lang);
 
 export type UiLanguage = (typeof UI_LANGUAGES)[number]["code"];
 export type Messages = Record<string, string>;
@@ -29,6 +49,8 @@ export const isUiLanguage = (code: string): code is UiLanguage => CODES.has(code
 export function uiLanguageFor(preferred: readonly string[] | undefined): UiLanguage {
   for (const tag of preferred ?? []) {
     const base = tag.toLowerCase().split("-")[0];
+    // Filipino (fil) is Tagalog's standard form.
+    if (base === "fil" && isUiLanguage("tl")) return "tl";
     if (isUiLanguage(base)) return base;
   }
   return "en";
@@ -61,7 +83,7 @@ export interface PluralForms {
 
 /** The form for `count` by the language's rules, translated; `{count}` is filled in. */
 export function pluralize(messages: Messages | undefined, lang: UiLanguage, count: number, forms: PluralForms, vars?: Vars): string {
-  const rule = new Intl.PluralRules(lang).select(count);
+  const rule = new Intl.PluralRules(intlLocale(lang)).select(count);
   return translate(messages, rule === "one" ? forms.one : forms.other, { count, ...vars });
 }
 
@@ -81,7 +103,7 @@ tr.plural = (count, forms, vars) => pluralize(active.messages, active.lang, coun
 export const activeLanguage = (): UiLanguage => active.lang;
 
 /** The locale dates and numbers are written in: US English, or the language chosen. */
-export const dateLocale = (lang: UiLanguage = active.lang) => (lang === "en" ? "en-US" : lang);
+export const dateLocale = (lang: UiLanguage = active.lang) => (lang === "en" ? "en-US" : intlLocale(lang));
 
 /**
  * A translated sentence with parts that are elements (bold, a link): rich(t("Log in with {email}."),

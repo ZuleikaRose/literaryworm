@@ -37,6 +37,15 @@ export type GiftCardCents = (typeof GIFT_CARD_CENTS)[number];
 export const GIFT_CARD_PRODUCT = "literaryworm_gift_card";
 export type GiftMonths = (typeof GIFT_MONTHS)[number];
 
+/**
+ * More natural-voice hours, bought once on the literaryworm_voice_hours product: hours → price in
+ * cents (VOICE_PACKS in src/lib/voicePacks.ts, kept in step by its test). A pack lasts 12 months.
+ */
+export const VOICE_PACKS = { 5: 1499, 10: 2499 } as const;
+export type VoicePackHours = 5 | 10;
+export const VOICE_PACK_PRODUCT = "literaryworm_voice_hours";
+export const isVoicePack = (hours: unknown): hours is VoicePackHours => hours === 5 || hours === 10;
+
 /** Plan names as members see them. */
 export const PLAN_NAMES: Record<PlanId, string> = { basic: "Basic", standard: "Standard", premium: "Premium" };
 

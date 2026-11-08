@@ -44,6 +44,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     recorded: [] as [string, string, string | null][],
     released: [] as string[],
     notified: [] as string[],
+    packs: [] as { sessionId: string; userId: string; hours: number; characters: number; amountCents: number }[],
     failCredit: false,
     failAffiliate: false,
   };
@@ -114,6 +115,10 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     },
     notifyPaymentFailed: (userId) => {
       state.notified.push(userId);
+      return Promise.resolve();
+    },
+    addVoicePack: (pack) => {
+      state.packs.push(pack);
       return Promise.resolve();
     },
     ...overrides,
@@ -422,4 +427,34 @@ Deno.test("a paid gift card makes a code for its credit, with no plan, months or
   const bad = setup(giftPaid({ metadata: { kind: "gift", gift_kind: "credit", credit_cents: "4200" } }));
   assertEquals((await handle(post(), bad.deps)).status, 500);
   assertEquals(bad.state.gifts.length, 0);
+});
+
+const voicesPaid = (overrides: Record<string, unknown> = {}) =>
+  event("checkout.session.completed", {
+    id: "cs_voices_1",
+    mode: "payment",
+    customer: "cus_1",
+    payment_status: "paid",
+    amount_total: 1499,
+    currency: "usd",
+    metadata: { kind: "voice_hours", hours: "5" },
+    ...overrides,
+  });
+
+Deno.test("a paid voice-hours Checkout adds the pack to the buyer's account, and nothing else", async () => {
+  const { state, deps } = setup(voicesPaid());
+  assertEquals((await handle(post(), deps)).status, 200);
+  assertEquals(state.packs, [{ sessionId: "cs_voices_1", userId: USER, hours: 5, characters: 5 * 50400, amountCents: 1499 }]);
+  assertEquals(state.gifts.length, 0);
+  // Unpaid yet, or bought by a customer with no account: nothing added.
+  const unpaid = setup(voicesPaid({ payment_status: "unpaid" }));
+  await handle(post(), unpaid.deps);
+  assertEquals(unpaid.state.packs.length, 0);
+  const stranger = setup(voicesPaid({ customer: "cus_other" }));
+  await handle(post(), stranger.deps);
+  assertEquals(stranger.state.packs.length, 0);
+  // Hours that aren't a pack are an error for Stripe to retry (and the team to see).
+  const bad = setup(voicesPaid({ metadata: { kind: "voice_hours", hours: "7" } }));
+  assertEquals((await handle(post(), bad.deps)).status, 500);
+  assertEquals(bad.state.packs.length, 0);
 });

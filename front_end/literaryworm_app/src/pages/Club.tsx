@@ -33,7 +33,8 @@ import { DEMO_DISCUSSION } from "../data/demoDiscussion";
 import { canDiscuss } from "../lib/discussion";
 import { ClubCopyPicker } from "../components/ClubCopyPicker";
 import { setListenAlong, useListenAlong } from "../lib/listenAlong";
-import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
+import { endSession, isAbandoned, type ListenSession, loadSession, startSession, watchSession } from "../lib/listenAlongApi";
+import { bookTimes, sessionSeconds, toPortable } from "../lib/portablePlace";
 import { usePlayback } from "../lib/playback";
 import { BUDDY_READERS, buddyOpen, type Club, clubBook, CLUB_POST_MAX, clubChapterToday, clubDate, type ClubDetail, type ClubMember, type ClubPost, daysLeft, isUploadClub } from "../lib/clubs";
 import { chapterAt, chapterLabel, chapterTimes, today } from "../lib/reading";
@@ -743,8 +744,8 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
           <ClubPolls clubId={club.id} isOwner={isOwner} me={me} members={members} ageRating={profile?.ageRating ?? "all"} />
           <ReadingSprint scope={{ kind: "club", clubId: club.id }} readPath={`/read/${book.id}`} />
-          {/* Each member listens to their own copy of an upload, so there's no shared place to keep in step. */}
-          {!isUploadClub(club) && <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />}
+          {/* On an uploaded book each member hears their own copy, kept at the same chapter and share of it. */}
+          <ListenTogether club={club} book={book} members={members} me={me} mine={mine} />
           <ClubPlaces clubId={club.id} members={members} me={me} />
           {(!club.buddy || buddyOpen(club)) && (
           <section className="goal-card" aria-labelledby="invite-title">
@@ -1022,7 +1023,12 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
   const going = session && !isAbandoned(session, now) ? session : null;
   const hostName = going ? (going.hostId === me ? t("You") : (members.find((m) => m.userId === going.hostId)?.name ?? t("A member"))) : null;
   const { starts, total } = chapterTimes(book);
-  const hostChapter = going ? chapterAt(starts, Math.min(total, livePosition(going, now))) : 0;
+  // An uploaded book's session keeps a portable place (lib/portablePlace.ts): each member's own copy finds it.
+  const portable = isUploadClub(club);
+  const times = portable ? bookTimes(book) : null;
+  const hostChapter = going ? chapterAt(starts, Math.min(total, sessionSeconds(going, times, now))) : 0;
+  const along = (role: "host" | "follower") =>
+    setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role, ...(portable ? { portable, book } : {}) });
 
   const start = async () => {
     setBusy(true);
@@ -1032,8 +1038,8 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
       const at = progress && !progress.finished ? progress.fraction * total : 0;
       // Inside the click, so the browser lets it play.
       playback.open(book, { at, autoplay: true });
-      await startSession(club.id, { position: at, playing: true, rate: playbackSpeed });
-      setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role: "host" });
+      await startSession(club.id, { position: times ? toPortable(at, times.starts, times.lengths) : at, playing: true, rate: playbackSpeed });
+      along("host");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("We couldn't start the session. Try again."));
     } finally {
@@ -1044,8 +1050,8 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
   const join = () => {
     if (!going) return;
     // Open it here, inside the click, so the browser lets it play; ListenAlong keeps it in step.
-    playback.open(book, { at: livePosition(going), autoplay: going.playing });
-    setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role: "follower" });
+    playback.open(book, { at: sessionSeconds(going, times), autoplay: going.playing });
+    along("follower");
   };
 
   return (
@@ -1086,8 +1092,8 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
               type="button"
               className="ghost-button small-button"
               onClick={() => {
-                playback.open(book, { at: livePosition(going), autoplay: going.playing });
-                setListenAlong({ clubId: club.id, clubName: club.name, bookId: book.id, role: "host" });
+                playback.open(book, { at: sessionSeconds(going, times), autoplay: going.playing });
+                along("host");
               }}
             >
               {t("Carry on leading here")}
@@ -1104,10 +1110,11 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
       ) : (
         <>
           <p className="goal-hint">{t("Lead a session and everyone who joins hears {title} at your place, as you play, pause and skip.", { title: book.title })}</p>
-          <button type="button" className="primary-button small-button" disabled={busy || !book.recording} onClick={start}>
+          <button type="button" className="primary-button small-button" disabled={busy || (!portable && !book.recording)} onClick={start}>
             <Icon name="headphones" size={15} /> {t("Start listening together")}
           </button>
-          {!book.recording && <p className="goal-hint">{t("This book has no recording to listen to together.")}</p>}
+          {!portable && !book.recording && <p className="goal-hint">{t("This book has no recording to listen to together.")}</p>}
+          {portable && <p className="goal-hint">{t("Everyone hears their own copy, read by the voice they chose, kept at the same chapter.")}</p>}
         </>
       )}
       {error && (

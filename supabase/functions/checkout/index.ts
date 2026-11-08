@@ -1,9 +1,9 @@
 import { allowedOrigins } from "../_shared/cors.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
-import { type BillingInterval, GIFT_CARD_PRODUCT, giftBooksMetadata, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
+import { VOICE_PACK_PRODUCT, VOICE_PACKS, type BillingInterval, GIFT_CARD_PRODUCT, giftBooksMetadata, type PlanId, releaseSchedule, scheduleMonthly, stripeClient } from "../_shared/stripe.ts";
 import { customerFor, monthlyPrice, planPrice } from "../_shared/stripeCustomers.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
-import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership } from "./handler.ts";
+import { type CheckoutInput, type GiftCheckoutInput, handle, type Membership, type VoiceCheckoutInput } from "./handler.ts";
 
 const PRICES: Record<BillingInterval, Record<PlanId, string>> = {
   month: { basic: "$30.00", standard: "$40.00", premium: "$60.00" },
@@ -48,7 +48,7 @@ Deno.serve((req) =>
     async getMembership(userId) {
       const { data, error } = await serviceClient()
         .from("subscriptions")
-        .select("plan_id, status, billing_interval, stripe_subscription_id, cancel_at_period_end, current_period_end, switch_to_monthly")
+        .select("plan_id, status, billing_interval, stripe_subscription_id, cancel_at_period_end, current_period_end, switch_to_monthly, trial_until")
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
@@ -83,6 +83,22 @@ Deno.serve((req) =>
         success_url: `${input.origin}/plans?checkout=success${input.setup ? "&setup=1" : ""}`,
         cancel_url: `${input.origin}/plans?checkout=cancelled`,
         integration_identifier: `literaryworm_membership_${randomLetters()}`,
+      });
+      if (!session.url) throw new Error("Stripe returned no Checkout URL");
+      return session.url;
+    },
+    async createVoiceCheckout(input: VoiceCheckoutInput) {
+      const session = await stripeClient().checkout.sessions.create({
+        mode: "payment",
+        customer: input.customerId,
+        client_reference_id: input.userId,
+        // Its own product, so it's taxed like the membership and reads as natural-voice hours.
+        line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: VOICE_PACKS[input.hours], product: VOICE_PACK_PRODUCT } }],
+        // Read by stripe-webhook to add the pack.
+        metadata: { kind: "voice_hours", hours: String(input.hours) },
+        success_url: `${input.origin}/account?voices=bought#plan`,
+        cancel_url: `${input.origin}/account#plan`,
+        integration_identifier: `literaryworm_voices_${randomLetters()}`,
       });
       if (!session.url) throw new Error("Stripe returned no Checkout URL");
       return session.url;

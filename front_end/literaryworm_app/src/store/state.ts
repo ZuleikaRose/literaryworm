@@ -331,6 +331,7 @@ export function demoHousehold(): Household {
       authorEmails: true,
       updateEmails: false,
       kidsReportEmails: false,
+      yearEmails: false,
       clubMeetingEmails: true,
       clubPostEmails: false,
       isDemo: true,

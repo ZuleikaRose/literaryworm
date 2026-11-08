@@ -120,6 +120,11 @@ verify_jwt = false
 # checks the Authorization header against the kids_report_secret kept in Vault instead.
 verify_jwt = false
 
+[functions.year-in-reading]
+# Called by pg_cron on 1 to 3 January, which sends no Supabase token: the function checks the
+# Authorization header against the key kept in Vault (year_in_reading_secret) instead.
+verify_jwt = false
+
 [functions.gift-reminders]
 # Called by pg_cron every hour, which sends no Supabase token: the function checks the
 # Authorization header against the gift_reminders_secret kept in Vault instead.

@@ -134,6 +134,8 @@ export interface Account {
   clubMeetingEmails: boolean;
   /** A daily email of new book club posts about chapters reached (members only; off until they turn it on). */
   clubPostEmails: boolean;
+  /** Each January, an email of the household's year in reading (members only; off until they turn it on). */
+  yearEmails: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */

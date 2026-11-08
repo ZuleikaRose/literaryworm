@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { Book } from "../types";
 
 /**
  * The listen-along session this copy of the app is in, if any: leading it ("host") or
@@ -10,6 +11,12 @@ export interface ListenAlongState {
   clubName: string;
   bookId: string;
   role: "host" | "follower";
+  /**
+   * A club reading an uploaded book: each member plays their own copy (`book`), so the session's
+   * place is portable (chapter + share of it, lib/portablePlace.ts), never seconds.
+   */
+  portable?: boolean;
+  book?: Book;
 }
 
 let current: ListenAlongState | null = null;

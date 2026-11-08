@@ -11,6 +11,7 @@ const COLUMN: Record<List, string> = {
   "kids-report": "kids_report_emails",
   "club-meetings": "club_meeting_emails",
   "club-posts": "club_post_emails",
+  "year-in-reading": "year_emails",
 };
 
 Deno.serve((req) =>

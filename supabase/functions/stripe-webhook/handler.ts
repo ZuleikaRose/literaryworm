@@ -6,6 +6,9 @@
 // membership): a subscription that reaches a staff member's customer is cancelled at once, and a
 // renewal invoice drafted for one is deleted before it's paid.
 //
+// More natural-voice hours: a paid Checkout with metadata.kind "voice_hours" adds a pack
+// (add_natural_voice_pack(), once per session) to the buyer's account.
+//
 // Gifts: a paid gift Checkout (mode payment, metadata.kind "gift") makes a gift code for the buyer,
 // once per Checkout Session. A redeemed gift that starts a membership is a Stripe subscription
 // carrying metadata.gift_consent_at (the redeemer agreed to the terms for after the gift in
@@ -24,8 +27,9 @@
 // rewardAffiliate()). Credits only, never payouts.
 
 import { CATALOG } from "../_shared/catalog.ts";
+import { CHARACTERS_PER_HOUR } from "../_shared/naturalVoice.ts";
 import type { Stripe } from "../_shared/stripe.ts";
-import { GIFT_CARD_CENTS, type GiftCardCents, GIFT_MONTHS, type GiftMonths, giftBooksFromMetadata, parseGiftBooks, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
+import { isVoicePack, GIFT_CARD_CENTS, type GiftCardCents, GIFT_MONTHS, type GiftMonths, giftBooksFromMetadata, parseGiftBooks, parseGiftMessage, parseGiftRecipient, type PlanId, PLANS, subscriptionRow } from "../_shared/stripe.ts";
 
 export type SubscriptionFields = ReturnType<typeof subscriptionRow>;
 
@@ -57,6 +61,8 @@ export interface Deps {
   releaseAffiliate: (referralId: string) => Promise<void>;
   /** Emails the member that a payment failed (a failure is only logged). */
   notifyPaymentFailed: (userId: string) => Promise<void>;
+  /** Adds a paid pack of natural-voice hours, once per Checkout Session. */
+  addVoicePack: (pack: { sessionId: string; userId: string; hours: number; characters: number; amountCents: number }) => Promise<void>;
 }
 
 /** What claim_affiliate_commission() gives: 20% of the referred member's first payment, in cents. */
@@ -201,6 +207,21 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object;
+      if (session.mode === "payment" && session.metadata?.kind === "voice_hours") {
+        if (session.payment_status !== "paid") return;
+        const hours = Number(session.metadata.hours);
+        if (!isVoicePack(hours) || !session.customer || session.amount_total === null || session.amount_total === undefined) {
+          throw new Error(`voice hours checkout ${session.id} has bad metadata`);
+        }
+        const userId = await deps.userForCustomer(idOf(session.customer)!);
+        if (!userId) {
+          // Kept for the team to sort out by hand; nothing to add it to.
+          console.warn(`stripe-webhook: voice hours checkout ${session.id} has no LiteraryWorm account`);
+          return;
+        }
+        await deps.addVoicePack({ sessionId: session.id, userId, hours, characters: hours * CHARACTERS_PER_HOUR, amountCents: session.amount_total });
+        return;
+      }
       if (session.mode === "payment" && session.metadata?.kind === "gift") {
         if (session.payment_status !== "paid") return;
         const card = session.metadata.gift_kind === "credit";

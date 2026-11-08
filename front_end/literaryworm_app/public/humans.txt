@@ -5,7 +5,7 @@ Location: Global
 
 /* SITE */
 Last update: November 7, 2026
-Language: English, Spanish, French, German, Portuguese, Italian and Dutch (policies and Help in English)
+Language: English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian and Romanian (policies and Help in English)
 Doctype: HTML5
 IDE: Visual Studio Code
 

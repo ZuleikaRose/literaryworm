@@ -9,7 +9,7 @@ import { useNotifications } from "../lib/useNotifications";
 import { usePopover } from "../lib/usePopover";
 import { useStore } from "../store/context";
 import { Icon } from "./Icon";
-import { rich, type T } from "../lib/i18n";
+import { rich, type T, dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
 
 /** "Book club meets today at 7:00 PM" or "… tomorrow at 7:00 PM" (meetings in the bell are less than a day away). */
@@ -17,7 +17,7 @@ function meetingText(t: T, club: string, iso: string): string {
   const start = new Date(iso);
   const sameDay = start.toDateString() === new Date().toDateString();
   // The browser's own clock style in English; the chosen language's otherwise.
-  const time = new Intl.DateTimeFormat(t.lang === "en" ? undefined : t.lang, { hour: "numeric", minute: "2-digit" }).format(start);
+  const time = new Intl.DateTimeFormat(t.lang === "en" ? undefined : dateLocale(t.lang), { hour: "numeric", minute: "2-digit" }).format(start);
   return sameDay ? t("{club} meets today at {time}", { club, time }) : t("{club} meets tomorrow at {time}", { club, time });
 }
 

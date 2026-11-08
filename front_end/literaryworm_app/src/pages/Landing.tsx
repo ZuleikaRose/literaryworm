@@ -17,7 +17,7 @@ import { genreOrderAfter, genreQuery, genresAfter, VISITOR_SAMPLE } from "../lib
 import { useBookFeed } from "../lib/useBookFeed";
 import { faqData, membershipData, siteDescription, pageData } from "../lib/seo";
 import { useTitle } from "../lib/useTitle";
-import { rich, tk } from "../lib/i18n";
+import { rich, tk, dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
 import type { AgeRating } from "../types";
@@ -127,7 +127,7 @@ export default function Landing() {
               <p className="eyebrow">{t("No account needed")}</p>
               <h2 id="free-title">{t("Free to read today")}</h2>
             </div>
-            <p className="section-aside">{t("{n} public-domain classics, in full, to read and hear.", { n: classics.toLocaleString(t.lang) })}</p>
+            <p className="section-aside">{t("{n} public-domain classics, in full, to read and hear.", { n: classics.toLocaleString(dateLocale(t.lang)) })}</p>
           </div>
           <ul className="book-row" role="list">
             {freeTitles.map((b) => (

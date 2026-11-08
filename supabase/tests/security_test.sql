@@ -865,8 +865,18 @@ select pg_temp.expect_error('select * from public.kids_report_sends', 'a member 
 select pg_temp.expect_error('select * from public.claim_kids_report_emails(current_date, 10)', 'claiming Kids report emails from the browser');
 select pg_temp.expect_error($$select * from public.kids_report_week('00000000-0000-0000-0000-00000000000a', current_date - 6, current_date)$$, 'reading another account''s Kids week');
 select pg_temp.expect_error('select public.kids_report_secret()', 'reading the Kids report cron key from the browser');
+select pg_temp.check((select bool_and(not year_emails) from public.account_private), 'the Year in reading email starts off');
+select pg_temp.expect_error('select * from public.year_in_reading_sends', 'a member reading the Year in reading send list');
+select pg_temp.expect_error('select * from public.claim_year_in_reading_emails(2026, 10)', 'claiming Year in reading emails from the browser');
+select pg_temp.expect_error($$select * from public.year_in_reading('00000000-0000-0000-0000-00000000000a', 2026)$$, 'reading another account''s year');
+select pg_temp.expect_error('select public.year_in_reading_secret()', 'reading the Year in reading cron key from the browser');
+select pg_temp.expect_error($$insert into public.natural_voice_packs (account_id, stripe_session, hours, characters, amount_cents, expires_at) values ('00000000-0000-0000-0000-00000000000b', 'cs_free', 10, 504000, 0, now() + interval '1 year')$$, 'giving yourself natural-voice hours from the browser');
+select pg_temp.expect_error($$select public.add_natural_voice_pack('00000000-0000-0000-0000-00000000000b', 'cs_free', 10, 504000, 0)$$, 'adding a voice pack from the browser');
+select pg_temp.expect_error('select stripe_session from public.natural_voice_packs', 'reading Stripe session ids of voice packs');
+select pg_temp.expect_error('update public.natural_voice_packs set used = 0', 'resetting a voice pack from the browser');
 reset role;
 reset request.jwt.claims;
+select pg_temp.check(not has_function_privilege('authenticated', 'private.call_year_in_reading()', 'execute'), 'only the cron job calls the year-in-reading function');
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_kids_report()', 'execute'), 'only the cron job calls the kids-report function');
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_whats_new()', 'execute'), 'only the cron job calls the whats-new function');
 

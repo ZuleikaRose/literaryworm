@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBook } from "../data/books";
 import { type ListenAlongState, setListenAlong, useListenAlong } from "../lib/listenAlong";
-import { endSession, isAbandoned, type ListenSession, livePosition, loadSession, moveSession, watchSession } from "../lib/listenAlongApi";
+import { endSession, isAbandoned, type ListenSession, loadSession, moveSession, watchSession } from "../lib/listenAlongApi";
+import { bookTimes, sessionSeconds, toPortable } from "../lib/portablePlace";
 import { usePlayback } from "../lib/playback";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
@@ -38,7 +39,7 @@ export function ListenAlong() {
   }, [userId]);
 
   if (!session || !userId) return null;
-  const book = getBook(session.bookId);
+  const book = session.book ?? getBook(session.bookId);
   if (!book) return null;
   return session.role === "host" ? <Host key={session.clubId} session={session} book={book} /> : <Follower key={session.clubId} session={session} book={book} />;
 }
@@ -71,8 +72,11 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
 
   // The last few places sent: Realtime echoes each back, sometimes after a newer one went out.
   const recent = useRef<{ position: number; playing: boolean; rate: number }[]>([]);
-  const send = (position: number, playing: boolean) => {
-    sent.current = { position, playing, rate: playbackSpeed, at: Date.now() };
+  const times = session.portable ? bookTimes(book) : null;
+  const send = (seconds: number, playing: boolean) => {
+    sent.current = { position: seconds, playing, rate: playbackSpeed, at: Date.now() };
+    // An uploaded book's place goes out as chapter + share, so each member's own copy finds it.
+    const position = times ? toPortable(seconds, times.starts, times.lengths) : seconds;
     recent.current = [...recent.current.slice(-4), { position, playing, rate: playbackSpeed }];
     // A failed move is retried by the next change or the heartbeat; until one gets through, the bar says so.
     moveSession(session.clubId, { position, playing, rate: playbackSpeed }).then(
@@ -125,10 +129,10 @@ function Host({ session, book }: { session: ListenAlongState; book: Book }) {
     () =>
       watchSession(session.clubId, (s) => {
         if (!s) return setListenAlong(null);
-        const ours = recent.current.some((m) => m.playing === s.playing && m.rate === s.rate && Math.abs(m.position - s.position) < 0.5);
+        const ours = recent.current.some((m) => m.playing === s.playing && m.rate === s.rate && Math.abs(m.position - s.position) < (session.portable ? 0.001 : 0.5));
         if (recent.current.length && !ours) setListenAlong(null);
       }),
-    [session.clubId],
+    [session.clubId, session.portable],
   );
 
   // Closing the book (or opening another) ends the session.
@@ -188,7 +192,7 @@ function Follower({ session, book }: { session: ListenAlongState; book: Book }) 
         setListenAlong(null);
         return;
       }
-      const at = livePosition(h);
+      const at = sessionSeconds(h, session.portable ? bookTimes(book) : null);
       if (p.book?.id !== book.id) {
         // The member closed the book themselves: they've left.
         if (opened.current) return setListenAlong(null);
@@ -208,7 +212,7 @@ function Follower({ session, book }: { session: ListenAlongState; book: Book }) 
     follow();
     const id = window.setInterval(follow, CHECK_MS);
     return () => window.clearInterval(id);
-  }, [host, book, dispatch]);
+  }, [host, book, dispatch, session.portable]);
 
   return <Bar session={session} trouble={trouble} onLeave={() => setListenAlong(null)} />;
 }

@@ -52,7 +52,7 @@ export async function deleteEntry(id: string): Promise<void> {
 }
 
 /** The optional emails an unsubscribe link can turn off (the unsubscribe function's lists). */
-export type EmailList = "whats-new" | "kids-report" | "club-meetings" | "club-posts";
+export type EmailList = "whats-new" | "kids-report" | "club-meetings" | "club-posts" | "year-in-reading";
 
 /** Turns off one optional email for the account a signed link is for (the unsubscribe function). */
 export async function unsubscribe(token: string, list: EmailList = "whats-new"): Promise<void> {

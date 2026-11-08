@@ -1212,13 +1212,14 @@ function PushKinds() {
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
   const t = useT();
-  const { remote, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
+  const { remote, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setYearEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
   const readerHintId = useId();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
   const releaseHintId = useId();
   const authorHintId = useId();
   const updateHintId = useId();
+  const yearHintId = useId();
   const clubHintId = useId();
   const clubPostsHintId = useId();
   return (
@@ -1343,6 +1344,31 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             void attempt(
               () => setUpdateEmails(on),
               on ? t("We'll email you the biggest changes once a month.") : t("No more monthly round-ups."),
+            );
+          }}
+        />
+      </label>
+      <label className="switch-row">
+        <span>
+          <strong>{t("Email me our year in reading each January")}</strong>
+          <small id={yearHintId}>
+            {remote
+              ? t("Every profile's time, days read, books finished and busiest month, for the year just ended.")
+              : t("The demo doesn't send emails. Members can get the household's year in reading each January.")}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={yearHintId}
+          checked={account.yearEmails}
+          disabled={busy}
+          onChange={(e) => {
+            const on = e.target.checked;
+            void attempt(
+              () => setYearEmails(on),
+              on ? t("We'll email your year in reading each January.") : t("No more Year in reading emails."),
             );
           }}
         />

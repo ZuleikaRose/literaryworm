@@ -37,11 +37,18 @@ const LISTS: Record<EmailList, { name: string; ask: string; settings: string; pl
     place: tk("Account → Preferences"),
     instead: { to: "/library?view=clubs", label: tk("See your clubs instead") },
   },
+  "year-in-reading": {
+    name: tk("the Year in reading email"),
+    ask: tk("Stop getting an email of your household's year in reading each January?"),
+    settings: "/account#preferences",
+    place: tk("Account → Preferences"),
+    instead: { to: "/library?view=stats", label: tk("See your stats instead") },
+  },
 };
 
 /**
  * /unsubscribe?t=…&l=…: the link in the monthly What's new email (no `l`), the weekly Kids
- * reading report (`l=kids-report`) a book club meeting reminder (`l=club-meetings`) or the daily club posts email (`l=club-posts`). It asks before unsubscribing,
+ * reading report (`l=kids-report`) a book club meeting reminder (`l=club-meetings`) the daily club posts email (`l=club-posts`) or Year in reading (`l=year-in-reading`). It asks before unsubscribing,
  * so a link-checker opening the page changes nothing; mail apps' one-click button goes to the
  * unsubscribe function directly.
  */
@@ -51,7 +58,7 @@ export default function Unsubscribe() {
   const [params] = useSearchParams();
   const token = params.get("t") ?? "";
   const given = params.get("l");
-  const list: EmailList = given === "kids-report" || given === "club-meetings" || given === "club-posts" ? given : "whats-new";
+  const list: EmailList = given === "kids-report" || given === "club-meetings" || given === "club-posts" || given === "year-in-reading" ? given : "whats-new";
   const about = LISTS[list];
   const [status, setStatus] = useState<"ready" | "busy" | "done">("ready");
   const [error, setError] = useState<string | null>(null);

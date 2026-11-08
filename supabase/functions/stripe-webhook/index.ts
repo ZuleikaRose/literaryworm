@@ -125,6 +125,16 @@ Deno.serve((req) =>
       const { error } = await serviceClient().rpc("release_referral_reward", { p_referral: referralId });
       if (error) console.error(`stripe-webhook: couldn't hand back referral ${referralId}`, error.message);
     },
+    async addVoicePack(pack) {
+      const { error } = await serviceClient().rpc("add_natural_voice_pack", {
+        p_account: pack.userId,
+        p_session: pack.sessionId,
+        p_hours: pack.hours,
+        p_characters: pack.characters,
+        p_amount_cents: pack.amountCents,
+      });
+      if (error) throw error;
+    },
     async notifyPaymentFailed(userId) {
       const db = serviceClient();
       const { data: user, error } = await db.auth.admin.getUserById(userId);

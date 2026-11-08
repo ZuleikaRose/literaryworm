@@ -9,6 +9,7 @@ import type { PlanId } from "../types";
 import { dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useNaturalVoiceUsage } from "../lib/useNaturalVoice";
+import { VoicePacks } from "./VoicePacks";
 
 /**
  * Account → Plan: how much of the plan's limits is used. This month's listening for the whole
@@ -104,9 +105,20 @@ export function PlanUsage({ planId }: { planId: PlanId }) {
                   : t("{time} of {hours} hours of new natural-voice reading used for your uploads; {left} left. Listening again to parts already voiced is free. Resets on {date}.", {
                       time: hoursAndMinutes(natural.used),
                       hours: Math.round(natural.limit / 3600),
-                      left: hoursAndMinutes(natural.left),
+                      // The plan's own hours; bought ones are shown under it.
+                      left: hoursAndMinutes(Math.max(0, natural.left - natural.extra)),
                       date: nextMonthLabel(day),
                     })}
+              {!natural.trial && !natural.paused && <VoicePacks packs={natural.packs} extra={natural.extra} />}
+            </dd>
+          </div>
+        )}
+        {!member && (
+          <div>
+            <dt>{t("Natural voices")}</dt>
+            <dd>
+              {t("Members' uploads can be read by natural voices, with hours each month on every plan.")}
+              <VoicePacks packs={[]} extra={0} />
             </dd>
           </div>
         )}
