@@ -75,6 +75,8 @@ export function castParts(chapter: string, parts: { offset: number; text: string
 export interface DeviceVoiceLike {
   voiceURI: string;
   lang: string;
+  /** The voice's name, which a listener's choice (lib/deviceCastChoices.ts) is kept by. */
+  name?: string;
 }
 
 /** Pitches that tell speakers apart when the device has only one voice in the book's language. */
@@ -92,13 +94,18 @@ const language = (lang: string) => lang.toLowerCase().split(/[-_]/)[0];
  * The voice and pitch for a part: narration keeps the narrator's voice; a named speaker always gets
  * the same other voice in the narrator's language (by their name), unnamed speech the first other
  * one; with no other voice in that language, the narrator's voice at a pitch of the speaker's own.
+ * A listener's choice for a named speaker comes first, when this device has that voice.
  */
 export function castVoiceFor(
   voices: DeviceVoiceLike[],
   narrator: DeviceVoiceLike,
   speaker: string | null | undefined,
+  choices: Record<string, string> = {},
 ): { voiceURI: string; pitch: number } {
   if (speaker === undefined) return { voiceURI: narrator.voiceURI, pitch: 1 };
+  const picked = speaker ? choices[speaker.trim().toLowerCase()] : undefined;
+  const chosen = picked ? voices.find((v) => v.name === picked) : undefined;
+  if (chosen) return { voiceURI: chosen.voiceURI, pitch: 1 };
   const others = voices
     .filter((v) => v.voiceURI !== narrator.voiceURI && language(v.lang) === language(narrator.lang))
     .sort((a, b) => a.voiceURI.localeCompare(b.voiceURI));

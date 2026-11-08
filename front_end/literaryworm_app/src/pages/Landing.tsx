@@ -121,6 +121,7 @@ export default function Landing() {
           // A sample for visitors; members (and the demo) can keep going.
           onLoadMore={state.account ? technology.loadMore : undefined}
           onRetry={technology.retry}
+          keepSpace
           action={
             <a className="view-all" href="#discover">
               {t("Browse by genre")} <Icon name="chevronRight" size={16} />

@@ -434,7 +434,7 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
             />
           </label>
         </li>
-        {player.characterVoices && playback.book?.upload && (
+        {player.characterVoices && (playback.book?.upload || playback.book?.publicDomain) && (
           <li>
             <CastChoices book={playback.book} />
           </li>

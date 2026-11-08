@@ -22,6 +22,11 @@ interface ShelfProps {
   /** Links per book id that replace the book page (Continue reading resumes the book). */
   links?: Record<string, string>;
   action?: ReactNode;
+  /**
+   * Keep the row's loading height when it ends empty or can't load (the public home page), so the
+   * sections below never jump up once the page has shown (layout shift).
+   */
+  keepSpace?: boolean;
 }
 
 /**
@@ -29,7 +34,7 @@ interface ShelfProps {
  * through the books (each card scrolls into view as it takes focus). Rows that come from the
  * books service end with a Load more card.
  */
-export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, onRetry, ranked, progress, links, action }: ShelfProps) {
+export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, onRetry, ranked, progress, links, action, keepSpace = false }: ShelfProps) {
   const track = useRef<HTMLUListElement>(null);
   const headingId = `${id}-title`;
 
@@ -42,7 +47,8 @@ export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, on
 
   const t = useT();
   const firstLoad = status === "loading" && items.length === 0;
-  if (status === "end" && items.length === 0) return null;
+  const holdSpace = keepSpace && items.length === 0 && (status === "end" || status === "error");
+  if (status === "end" && items.length === 0 && !holdSpace) return null;
 
   return (
     <section className="shelf" aria-labelledby={headingId}>
@@ -64,7 +70,32 @@ export function Shelf({ id, title, eyebrow, items, status, error, onLoadMore, on
         </div>
       </div>
 
-      {status === "error" && items.length === 0 ? (
+      {holdSpace ? (
+        <div className="shelf-hold">
+          {/* Invisible placeholders hold the row's height; the message sits over them. */}
+          <ul className="shelf-track" aria-hidden="true">
+            {Array.from({ length: 6 }, (_, i) => (
+              <li key={`h${i}`}>
+                <BookTileSkeleton />
+              </li>
+            ))}
+          </ul>
+          {status === "error" ? (
+            <div className="feed-error shelf-hold-message" role="alert">
+              <Icon name="alert" size={24} />
+              <div>
+                <h3>{t("We couldn't load {title}", { title })}</h3>
+                <p>{error}</p>
+              </div>
+              <button type="button" className="secondary-button" onClick={onRetry}>
+                {t("Try again")}
+              </button>
+            </div>
+          ) : (
+            <p className="shelf-hold-message shelf-hold-empty">{t("No books to show here right now.")}</p>
+          )}
+        </div>
+      ) : status === "error" && items.length === 0 ? (
         <div className="feed-error" role="alert">
           <Icon name="alert" size={24} />
           <div>

@@ -536,3 +536,23 @@
 .keyword-ideas .field-hint {
   margin: 0 0 14px;
 }
+
+/* A row that keeps its space when it ends empty or can't load (Shelf keepSpace, the public home). */
+.shelf-hold {
+  position: relative;
+}
+.shelf-hold > .shelf-track {
+  visibility: hidden;
+  overflow: hidden;
+}
+.shelf-hold-message {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline: 0;
+  margin: 0;
+  transform: translateY(-50%);
+}
+.shelf-hold-empty {
+  color: var(--muted);
+  text-align: center;
+}

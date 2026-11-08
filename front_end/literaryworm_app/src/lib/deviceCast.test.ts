@@ -60,4 +60,18 @@ describe("device character voices", () => {
     expect(castVoiceFor([], narrator, "Elizabeth").voiceURI).toBe("Daniel");
     expect(castVoiceFor([], narrator, undefined)).toEqual({ voiceURI: "Daniel", pitch: 1 });
   });
+
+  it("uses the listener's choice for a speaker when the device has that voice, else deals one out", () => {
+    const named = [
+      { voiceURI: "Daniel", lang: "en-GB", name: "Daniel" },
+      { voiceURI: "uri-kate", lang: "en-GB", name: "Kate" },
+      { voiceURI: "uri-moira", lang: "en-IE", name: "Moira" },
+    ];
+    const daniel = named[0];
+    expect(castVoiceFor(named, daniel, "Elizabeth", { elizabeth: "Moira" })).toEqual({ voiceURI: "uri-moira", pitch: 1 });
+    expect(castVoiceFor(named, daniel, "Elizabeth", { elizabeth: "Not on this device" })).toEqual(castVoiceFor(named, daniel, "Elizabeth"));
+    // Narration and unnamed speech aren't chosen per speaker.
+    expect(castVoiceFor(named, daniel, undefined, { elizabeth: "Moira" }).voiceURI).toBe("Daniel");
+    expect(castVoiceFor(named, daniel, null, { elizabeth: "Moira" })).toEqual(castVoiceFor(named, daniel, null));
+  });
 });

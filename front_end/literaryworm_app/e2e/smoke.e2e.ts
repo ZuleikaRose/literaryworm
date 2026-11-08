@@ -792,6 +792,53 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lets a classic read by a device voice give its characters their own voices and speeds", async () => {
+    const { page, errors } = await newPage();
+    // Two English device voices, so speech has another voice to go to (headless Chrome has none).
+    await page.addInitScript(() => {
+      const voices = [
+        { voiceURI: "fake-daniel", name: "Daniel", lang: "en-GB", localService: true, default: true },
+        { voiceURI: "fake-kate", name: "Kate", lang: "en-GB", localService: true, default: false },
+      ];
+      const synth = {
+        getVoices: () => voices,
+        speak: (u: { onend?: () => void }) => setTimeout(() => u.onend?.(), 10),
+        cancel() {},
+        pause() {},
+        resume() {},
+        addEventListener() {},
+        removeEventListener() {},
+        speaking: false,
+        paused: false,
+        pending: false,
+      };
+      Object.defineProperty(window, "speechSynthesis", { value: synth, configurable: true });
+      (window as unknown as { SpeechSynthesisUtterance: unknown }).SpeechSynthesisUtterance = class {
+        text: string;
+        constructor(text: string) {
+          this.text = text;
+        }
+      };
+    });
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein");
+    await page.getByLabel("Voice").selectOption("fake-daniel");
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const dialog = page.getByRole("dialog", { name: "Player settings" });
+    await dialog.getByRole("switch", { name: /Character voices/ }).check();
+    const who = dialog.getByRole("region", { name: "Who reads whom" });
+    const first = who.locator(".cast-choices-list > li").first();
+    await first.locator("select").first().waitFor();
+    await first.locator("select").first().selectOption("Kate");
+    await first.locator(".cast-speed select").selectOption("1.2");
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    const again = page.getByRole("dialog", { name: "Player settings" }).getByRole("region", { name: "Who reads whom" }).locator(".cast-choices-list > li").first();
+    await expect(again.locator("select").first().inputValue()).resolves.toBe("Kate");
+    await expect(again.locator(".cast-speed select").inputValue()).resolves.toBe("1.2");
+    expect(errors()).toEqual([]);
+  });
+
   it("pauses on the sleep timer, then offers 15 more minutes from a little earlier", async () => {
     const { page, errors } = await newPage();
     // The page's clock, so five minutes of listening pass in a moment.

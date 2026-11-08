@@ -424,6 +424,8 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 - **Read aloud speed** (`.reader-speed`): a compact select in the reader's top bar while Read aloud is on, 44px tall, the speeds the player offers.
 - **Your year together** (`.club-year-facts`): a `goal-card` on the club page in December and January: a heading (*2026 together*), a short list of counts (posts, members who posted, meetings held, highlights shared), the most talked-about chapter, and a muted line saying only chapters you've reached are counted.
 - **Per-character speed** (Who reads whom): a small select after each speaker's voice, *Usual speed* first, then 0.8× to 1.2×, labelled for screen readers as *{name}'s speed*.
+- **Who reads whom with device voices**: the same rows as for natural voices (speaker, voice select, speed select, a play button), the voices listed by their short names (`voiceLabel()`), *Chosen for you* first. With one device voice in the language the voice selects are disabled under a hint that each character gets a pitch of their own. With the LibriVox recording, one hint line instead of the list.
+- **A row that keeps its space** (`Shelf keepSpace`, the public home): when it ends empty or can't load, invisible placeholder tiles hold its height and the message (muted, centred) or the error box sits over them, so nothing below moves once the page has shown.
 
 ## Motion
 

@@ -43,6 +43,7 @@ import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 import { parseBookSpeeds } from "./bookSpeed";
 import { parseAllCastSpeeds } from "./castSpeeds";
+import { parseAllDeviceCastChoices } from "./deviceCastChoices";
 import { parseAllCastChoices } from "./castChoices";
 import { parseAllPronunciations } from "./pronunciations";
 
@@ -1408,6 +1409,7 @@ type PlayerRow = {
   book_speeds: unknown;
   cast_choices: unknown;
   cast_speeds?: unknown;
+  device_cast_choices?: unknown;
   pronunciations: unknown;
 };
 
@@ -1415,7 +1417,7 @@ type PlayerRow = {
 async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
   const { data, error } = await client()
     .from("reader_profiles")
-    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices, book_speeds, cast_choices, cast_speeds, pronunciations");
+    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices, book_speeds, cast_choices, cast_speeds, device_cast_choices, pronunciations");
   if (error) {
     console.error("player settings: couldn't load", error.message);
     return {};
@@ -1435,6 +1437,7 @@ async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
         bookSpeeds: parseBookSpeeds(r.book_speeds),
         castChoices: parseAllCastChoices(r.cast_choices),
         castSpeeds: parseAllCastSpeeds(r.cast_speeds),
+        deviceCastChoices: parseAllDeviceCastChoices(r.device_cast_choices),
         pronunciations: parseAllPronunciations(r.pronunciations),
       },
     ]),
@@ -1457,6 +1460,7 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
       book_speeds: player.bookSpeeds,
       cast_choices: player.castChoices,
       cast_speeds: player.castSpeeds ?? {},
+      device_cast_choices: player.deviceCastChoices ?? {},
       pronunciations: player.pronunciations,
     })
     .eq("id", profileId);

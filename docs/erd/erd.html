@@ -194,7 +194,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "library_items", color: colors.reading, x: 840, y: 1592, sub: "private",
+          id: "library_items", color: colors.reading, x: 840, y: 1650, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -219,7 +219,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
         },
         {
-          id: "bookmarks", color: colors.reading, x: 840, y: 1910, sub: "private",
+          id: "bookmarks", color: colors.reading, x: 840, y: 1968, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -296,7 +296,7 @@
           note: "Unique (profile_id, user_id, name_key), also the FK's index. Up to 50 a profile; Kids profiles can't share. Anyone with the link reads it only through shared_list(slug): name, description, profile name, titles.",
         },
         {
-          id: "custom_list_items", color: colors.household, x: 840, y: 2288, sub: "books in a list",
+          id: "custom_list_items", color: colors.household, x: 840, y: 2346, sub: "books in a list",
           cols: [
             ["pk fk", "list_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -361,6 +361,7 @@
             ["", "book_speeds", "jsonb {book: speed}"],
             ["", "cast_choices", "jsonb {book: {speaker: voice}}"],
             ["", "cast_speeds", "jsonb {book: {speaker: 0.8–1.2}}"],
+            ["", "device_cast_choices", "jsonb {book: {speaker: voice name}}"],
             ["", "pronunciations", "jsonb {book: {word: sounds like}}"],
             ["", "reading_wpm", "smallint 60–1000", true],
             ["", "up_next", "text[] ≤ 50"],
@@ -431,7 +432,7 @@
           note: "Time read or listened (and how much of it was listening) and books finished per day; Kids profiles' minutes in Bedtime listening and after bedtime through record_bedtime(). FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today), which also records which book. RLS: owner only.",
         },
         {
-          id: "book_clubs", color: colors.reading, x: 840, y: 2580, sub: "members only",
+          id: "book_clubs", color: colors.reading, x: 840, y: 2589, sub: "members only",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "owner_id", "uuid"],

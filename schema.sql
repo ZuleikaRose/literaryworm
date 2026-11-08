@@ -14749,3 +14749,52 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$T
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-08'::date, '2026.11', 'feature', $lw$Character voices for the classics$lw$, $lw$Character voices now work with your device's voices too: when your device reads a classic's own text aloud, what the characters say is read by its other voices, each named speaker keeping one.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Character voices for the classics$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006811_book_language_accessibility.sql
+-- =============================================================================
+-- Books marked with their language in the Accessibility Policy. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left: the layout mirrors, and text in the reader and the read-along follows its own direction."$lw$, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left: the layout mirrors, and text in the reader and the read-along follows its own direction.", "Books in another language, such as the classics in French, German, Greek and Spanish and uploads that say their language, are marked with it on their page and in the reader, so screen readers read them in that language."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$Books in another language, such as the classics in French, German, Greek and Spanish and uploads that say their language, are marked with it on their page and in the reader, so screen readers read them in that language.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006812_device_cast_choices.sql
+-- =============================================================================
+-- Who reads whom with a device voice (lib/deviceCastChoices.ts): for the classics' own text (and
+-- uploads read by the device), per profile and book, speaker (lower case) to the name of one of the
+-- device's voices. Saved with the other player settings; voices are the browser's own, so nothing
+-- is sent anywhere. A voice another device doesn't have is dealt out there instead.
+
+alter table public.reader_profiles
+  add column if not exists device_cast_choices jsonb not null default '{}'::jsonb;
+
+alter table public.reader_profiles drop constraint if exists reader_profiles_device_cast_choices_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_device_cast_choices_check
+  check (jsonb_typeof(device_cast_choices) = 'object' and pg_column_size(device_cast_choices) <= 65536);
+
+grant select (device_cast_choices) on public.reader_profiles to authenticated;
+grant update (device_cast_choices) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261108006813_device_who_reads_whom_policies.sql
+-- =============================================================================
+-- Who reads whom with device voices for the classics in Help and Privacy. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Under Who reads whom you can also set a speaker's own speed, a little slower or faster than the narration (0.8× to 1.2× of it), for a character who should speak slowly or quickly."$lw$, $lw$"Under Who reads whom you can also set a speaker's own speed, a little slower or faster than the narration (0.8× to 1.2× of it), for a character who should speak slowly or quickly.", "Who reads whom works for the classics too: with one of your device's voices chosen under Voice and Character voices on, pick a voice from your device for each speaker and a speed of their own, and press play beside a speaker to hear them. Your choices follow your profile; a voice another device doesn't have is chosen for you there. The LibriVox recordings are read by one person, so they keep their reader."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Who reads whom works for the classics too: with one of your device's voices chosen under Voice and Character voices on, pick a voice from your device for each speaker and a speed of their own, and press play beside a speaker to hear them. Your choices follow your profile; a voice another device doesn't have is chosen for you there. The LibriVox recordings are read by one person, so they keep their reader.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Your household: each profile's name, avatar, age rating, favourite genres, daily limit, monthly share of listening and natural-voice hours, whether a Kids profile may use natural voices, weekly goal, bedtime and wake-up time (Kids profiles) and player settings, the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer."$lw$, $lw$"Your household: each profile's name, avatar, age rating, favourite genres, daily limit, monthly share of listening and natural-voice hours, whether a Kids profile may use natural voices, weekly goal, bedtime and wake-up time (Kids profiles) and player settings (including the voices and speeds chosen for a book's characters, by the voice's name), the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Your household: each profile's name, avatar, age rating, favourite genres, daily limit, monthly share of listening and natural-voice hours, whether a Kids profile may use natural voices, weekly goal, bedtime and wake-up time (Kids profiles) and player settings (including the voices and speeds chosen for a book's characters, by the voice's name), the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer.$lw$) = 0;
+-- What's new: Who reads whom for the classics. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Who reads whom for the classics$lw$, $lw$Pick a voice from your device for each character in a classic, and a speed of their own, just like with uploads. Choose one of your device's voices under Voice and turn on Character voices; press play beside a character to hear them.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Who reads whom for the classics$lw$ and c.released_on = '2026-11-08');

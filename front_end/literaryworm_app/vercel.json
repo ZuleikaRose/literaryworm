@@ -5,7 +5,7 @@
       "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/storage/v1/object/public/book-texts/:file"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!\\.well-known/)(?!.*\\.(?:json|txt|xml|mp3|png|jpe?g|webp|gif|svg|ico|js|mjs|css|map|webmanifest|pdf|woff2?|ttf)$).*)",
       "destination": "/index.html"
     }
   ],

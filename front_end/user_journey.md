@@ -983,3 +983,5 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 284. **On this device.** Under Voice the whole book, a member sees how many voiced parts of the book are on the device and how much space they take, and can remove them after a trip.
 
 285. **Two Greek classics.** Penelope Delta's fairy tale and Papadiamantis's Christmas stories join the classics in their own language, with full text and LibriVox recordings; the fairy tale is on Kids shelves.
+
+286. **Who reads whom for the classics.** With a device voice reading a classic and Character voices on, Player settings lists the book's speakers: each can have one of the device's voices and a speed of their own, with a button to hear them, and the choices follow the profile.

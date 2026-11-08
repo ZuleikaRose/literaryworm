@@ -315,6 +315,11 @@ function Engine({
     castSpeedsRef.current = player.castSpeeds?.[book.id];
   });
   const rateFor = (piece: { speaker?: string | null }) => speakerRate(castSpeedsRef.current, piece.speaker);
+  // Device voices chosen per speaker (lib/deviceCastChoices.ts), also from the next part.
+  const deviceChoicesRef = useRef(player.deviceCastChoices?.[book.id]);
+  useEffect(() => {
+    deviceChoicesRef.current = player.deviceCastChoices?.[book.id];
+  });
   // So do respellings of names (pronunciations), which change what's sent to Google.
   const pronunciations = player.pronunciations?.[book.id] ?? {};
   const pronunciationsRef = useRef(pronunciations);
@@ -386,7 +391,7 @@ function Engine({
                 lengths,
                 v,
                 events,
-                narrationKey.endsWith("+cast") ? { voices: window.speechSynthesis.getVoices(), rateFor } : undefined,
+                narrationKey.endsWith("+cast") ? { voices: window.speechSynthesis.getVoices(), rateFor, choices: () => deviceChoicesRef.current ?? {} } : undefined,
               )
             : null;
     if (!n) return;

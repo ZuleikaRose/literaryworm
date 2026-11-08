@@ -536,5 +536,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Open the demo on your phone (QR). |
 | —    | On this device: an upload's kept voices, their size, and removing them. |
 | —    | Two Greek classics: Delta's fairy tale and Papadiamantis's Christmas stories. |
+| —    | Who reads whom for the classics: device voices and speeds per character. Migrations 6812–6813. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

@@ -292,6 +292,8 @@ export interface PlayerSettings {
   castChoices: Record<string, Record<string, string>>;
   /** A speed per named speaker, by book (lib/castSpeeds.ts): speaker (lower case) to 0.8–1.2. */
   castSpeeds?: Record<string, Record<string, number>>;
+  /** Device voices chosen for named speakers, by book (lib/deviceCastChoices.ts): speaker (lower case) to voice name. */
+  deviceCastChoices?: Record<string, Record<string, string>>;
   /** Respellings of names a natural voice says wrongly, by book (lib/pronunciations.ts): word to how it sounds. */
   pronunciations: Record<string, Record<string, string>>;
 }

@@ -184,7 +184,7 @@ export function speechNarrator(
   voice: SpeechSynthesisVoice,
   events: NarratorEvents,
   /** Character voices (lib/deviceCast.ts): speech read by the device's other voices, or at another pitch. */
-  cast?: { voices: SpeechSynthesisVoice[]; rateFor?: (part: { speaker?: string | null }) => number },
+  cast?: { voices: SpeechSynthesisVoice[]; rateFor?: (part: { speaker?: string | null }) => number; choices?: () => Record<string, string> },
 ): Narrator {
   const synth = window.speechSynthesis;
   const parts: { offset: number; text: string; speaker?: string | null }[][] = chapters.map((c) =>
@@ -219,7 +219,7 @@ export function speechNarrator(
       return;
     }
     const utterance = new SpeechSynthesisUtterance(current.text);
-    const chosen = cast ? castVoiceFor(cast.voices, voice, current.speaker) : null;
+    const chosen = cast ? castVoiceFor(cast.voices, voice, current.speaker, cast.choices?.() ?? {}) : null;
     utterance.voice = (chosen && cast!.voices.find((v) => v.voiceURI === chosen.voiceURI)) || voice;
     utterance.lang = voice.lang;
     if (chosen) utterance.pitch = chosen.pitch;

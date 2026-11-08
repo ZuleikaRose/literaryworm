@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-08",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Who reads whom for the classics",
+    "body": "Pick a voice from your device for each character in a classic, and a speed of their own, just like with uploads. Choose one of your device's voices under Voice and turn on Character voices; press play beside a character to hear them.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Character voices for the classics",
     "body": "Character voices now work with your device's voices too: when your device reads a classic's own text aloud, what the characters say is read by its other voices, each named speaker keeping one.",
     "major": true
