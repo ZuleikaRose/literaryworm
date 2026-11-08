@@ -111,7 +111,8 @@ describe("natural voices for uploads", () => {
   it("offers a book its own language's voices first, then the English ones, and starts with its own", () => {
     expect(voicesFor(null).every((v) => v.language === "en")).toBe(true);
     expect(voicesFor("fr").map((v) => v.language)).toEqual(["fr", "fr", "en", "en", "en", "en", "en", "en"]);
-    expect(voicesFor("el").every((v) => v.language === "en")).toBe(true);
+    expect(voicesFor("fi").every((v) => v.language === "en")).toBe(true);
+    expect(defaultNaturalVoice("el").id).toBe("el-GR-Chirp3-HD-Aoede");
     expect(defaultNaturalVoice("de").id).toBe("de-DE-Chirp3-HD-Aoede");
     expect(defaultNaturalVoice(null).id).toBe(DEFAULT_NATURAL_VOICE);
     for (const lang of NATURAL_LANGUAGES) expect(voicesFor(lang)[0].language).toBe(lang);

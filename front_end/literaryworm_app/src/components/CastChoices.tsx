@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { CAST_SPEEDS, withCastSpeed } from "../lib/castSpeeds";
 import { withCastChoice } from "../lib/castChoices";
 import { bookText, resolveNarration } from "../lib/narration";
 import { bookSpeakers, castNamesFor, defaultNaturalVoice, speakerVoice } from "../lib/naturalVoice";
@@ -34,6 +35,8 @@ export function CastChoices({ book }: { book: Book }) {
   }, [book]);
 
   const chosen = player.castChoices?.[book.id] ?? {};
+  // A speed of their own for each speaker (lib/castSpeeds.ts), times the player's.
+  const speeds = player.castSpeeds?.[book.id] ?? {};
   return (
     <section className="cast-choices" aria-labelledby={`${id}-title`}>
       <h3 id={`${id}-title`}>{t("Who reads whom")}</h3>
@@ -57,6 +60,20 @@ export function CastChoices({ book }: { book: Book }) {
                   {names.map((name) => (
                     <option key={name} value={name}>
                       {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="player-select cast-speed">
+                <span className="visually-hidden">{t("{name}'s speed", { name: speaker })}</span>
+                <select
+                  value={speeds[speaker.toLowerCase()] ?? ""}
+                  onChange={(e) => update({ castSpeeds: withCastSpeed(player.castSpeeds, book.id, speaker, e.target.value ? Number(e.target.value) : null) })}
+                >
+                  <option value="">{t("Usual speed")}</option>
+                  {CAST_SPEEDS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}×
                     </option>
                   ))}
                 </select>

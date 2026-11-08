@@ -194,7 +194,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade: a log needs the book in its author's library. Indexes: (volume_id, created_at desc), (user_id, volume_id). RLS: anyone reads; authors write, edit, delete their own.",
         },
         {
-          id: "library_items", color: colors.reading, x: 840, y: 1180, sub: "private",
+          id: "library_items", color: colors.reading, x: 840, y: 1590, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -219,7 +219,7 @@
           note: "FK (user_id, volume_id) → library_items, on delete cascade; the primary key is its index. Feeds Continue Reading. RLS: owner only; browser updates format, chapter, position, finished.",
         },
         {
-          id: "bookmarks", color: colors.reading, x: 840, y: 1480, sub: "private",
+          id: "bookmarks", color: colors.reading, x: 840, y: 1890, sub: "private",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -243,7 +243,7 @@
           note: "FK (profile_id, user_id) → reader_profiles (id, account_id), on delete cascade; the key is its index. RLS: owner only; added and removed.",
         },
         {
-          id: "follows", color: colors.household, x: 840, y: 2970, sub: "per profile · authors and narrators",
+          id: "follows", color: colors.household, x: 840, y: 3380, sub: "per profile · authors and narrators",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -254,7 +254,7 @@
           note: "FK as favorites; the key is its index. Up to 200 a profile (trigger). RLS: owner only; followed and unfollowed. follower_count(kind, name) gives pages a count, and follower_counts(kind, names) an author search its authors' counts, never who. Index: (kind, name).",
         },
         {
-          id: "release_reminders", color: colors.household, x: 840, y: 3910, sub: "per profile · Remind me",
+          id: "release_reminders", color: colors.household, x: 840, y: 4320, sub: "per profile · Remind me",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -296,7 +296,7 @@
           note: "Unique (profile_id, user_id, name_key), also the FK's index. Up to 50 a profile; Kids profiles can't share. Anyone with the link reads it only through shared_list(slug): name, description, profile name, titles.",
         },
         {
-          id: "custom_list_items", color: colors.household, x: 840, y: 1850, sub: "books in a list",
+          id: "custom_list_items", color: colors.household, x: 840, y: 2260, sub: "books in a list",
           cols: [
             ["pk fk", "list_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -340,6 +340,9 @@
             ["", "locked_until", "timestamptz", true],
             ["", "daily_limit_minutes", "smallint 30–240", true],
             ["", "weekly_goal_minutes", "smallint 60–300", true],
+            ["", "monthly_listening_minutes", "smallint 60–1800", true],
+            ["", "monthly_voice_minutes", "smallint 30–600", true],
+            ["", "kids_natural_voices", "boolean"],
             ["", "bedtime", "time? (19:00–22:00)", true],
             ["", "wake_time", "time? (06:00–08:00)", true],
             ["", "favorite_genres", "text[]"],
@@ -357,6 +360,7 @@
             ["", "character_voices", "boolean"],
             ["", "book_speeds", "jsonb {book: speed}"],
             ["", "cast_choices", "jsonb {book: {speaker: voice}}"],
+            ["", "cast_speeds", "jsonb {book: {speaker: 0.8–1.2}}"],
             ["", "pronunciations", "jsonb {book: {word: sounds like}}"],
             ["", "reading_wpm", "smallint 60–1000", true],
             ["", "up_next", "text[] ≤ 50"],
@@ -427,7 +431,7 @@
           note: "Time read or listened (and how much of it was listening) and books finished per day; Kids profiles' minutes in Bedtime listening and after bedtime through record_bedtime(). FK as reading_goals. Index: user_id. Added to through record_reading() (≤ 60 min and 1 book a call, within 2 days of today), which also records which book. RLS: owner only.",
         },
         {
-          id: "book_clubs", color: colors.reading, x: 840, y: 2170, sub: "members only",
+          id: "book_clubs", color: colors.reading, x: 840, y: 2580, sub: "members only",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "owner_id", "uuid"],
@@ -446,7 +450,7 @@
           note: "Index: owner_id. Up to 20 an account; the owner joins by trigger. RLS: owner and members read; owner edits name, finish date, code, and deletes. Others join only through join_club(code). An uploaded book (volume_id u-…): its title and author are copied from the owner's upload by a trigger (never the file). A buddy read (buddy) takes two members; join_club() refuses a third.",
         },
         {
-          id: "club_invites", color: colors.reading, x: 840, y: 4370, sub: "invite by email · server only",
+          id: "club_invites", color: colors.reading, x: 840, y: 4780, sub: "invite by email · server only",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "club_id", "uuid"],
@@ -535,7 +539,7 @@
           note: "The latest try at each chapter's quiz, shown to grown-ups in Account → Family. FK as favorites; the key is its index. RLS: owner only.",
         },
         {
-          id: "reader_follows", color: colors.household, x: 840, y: 6840, sub: "per profile · readers followed",
+          id: "reader_follows", color: colors.household, x: 840, y: 7250, sub: "per profile · readers followed",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -584,7 +588,7 @@
           note: "A Kids profile asking for a catalog book above its rating; a yes opens that one book for it. FK as favorites; the key is its index. Up to 50 a profile (trigger). RLS: owner only; the browser inserts (Kids profiles, pending) and deletes; status is set by manage-profile after the account password.",
         },
         {
-          id: "journal_entries", color: colors.household, x: 840, y: 7320, sub: "per profile · reading journal",
+          id: "journal_entries", color: colors.household, x: 840, y: 7730, sub: "per profile · reading journal",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "profile_id", "uuid"],
@@ -622,7 +626,7 @@
           note: "A browser's Web Push subscription, saved only through save_push_subscription() (moves an endpoint to whoever signed in on it last; up to 20 an account). FK user_id → auth.users, on delete cascade; index on user_id. RLS: owner reads (not the keys) and deletes; the release-emails function sends and forgets unsubscribed ones. The kinds sent are account_private.push_kinds.",
         },
         {
-          id: "club_meeting_pushes", color: colors.server, x: 840, y: 7800, sub: "meeting notifications sent",
+          id: "club_meeting_pushes", color: colors.server, x: 840, y: 8210, sub: "meeting notifications sent",
           cols: [
             ["pk fk", "meeting_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -673,7 +677,7 @@
           note: "A member's own highlight of the club's book, shared with the club; hidden past each reader's chapter like posts. The browser sends club, highlight and share_note; a trigger copies the passage, chapter, colour and (if asked) note, checks the book and caps 300 per member per club. FK (club_id, user_id) → club_members and highlight_id → highlights, both on delete cascade; both indexed. RLS: members read; insert and delete own.",
         },
         {
-          id: "reading_plans", color: colors.household, x: 840, y: 8280, sub: "per profile · finish by a date",
+          id: "reading_plans", color: colors.household, x: 840, y: 8690, sub: "per profile · finish by a date",
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -696,8 +700,9 @@
             ["", "created_at", "timestamptz"],
             ["", "closed_at", "timestamptz", true],
             ["", "winner", "text (book id)", true],
+            ["", "upload_labels", "jsonb {u-id: title, author}"],
           ],
-          note: "A club's poll on what to read next: the owner offers 2 to 5 distinct catalog titles (a trigger checks; one open poll a club, up to 50). FK club_id → book_clubs, created_by → profiles, on delete cascade; indexes on both. RLS: members read; the owner inserts and deletes; closed only through close_club_poll(), which sets the winner.",
+          note: "A club's poll on what to read next: the owner offers 2 to 5 distinct catalog titles or their own uploads (only title and author copied, by trigger, into upload_labels) (a trigger checks; one open poll a club, up to 50). FK club_id → book_clubs, created_by → profiles, on delete cascade; indexes on both. RLS: members read; the owner inserts and deletes; closed only through close_club_poll(), which sets the winner.",
         },
         {
           id: "club_poll_votes", color: colors.household, x: 1260, y: 9180, sub: "one per member",
@@ -710,7 +715,7 @@
           note: "Each member's vote in a poll. FK poll_id → club_polls, user_id → profiles, on delete cascade; index on user_id. RLS: the club's members read every vote; written only through vote_club_poll(), which checks membership, an open poll and the choice.",
         },
         {
-          id: "club_pace_votes", color: colors.household, x: 840, y: 8880, sub: "one per member",
+          id: "club_pace_votes", color: colors.household, x: 840, y: 9290, sub: "one per member",
           cols: [
             ["pk fk", "club_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -745,7 +750,7 @@
           note: "Each profile in a sprint and the pages it turned in the reader, saved when it ends. Written only through join_reading_sprint() and finish_reading_sprint(); readable by whoever can see the sprint (for Realtime). Names come from reading_sprint_names(): a club sees display names, never which profile.",
         },
         {
-          id: "referral_codes", color: colors.billing, x: 840, y: 9260, sub: "one per account",
+          id: "referral_codes", color: colors.billing, x: 840, y: 9670, sub: "one per account",
           cols: [
             ["pk fk", "account_id", "uuid"],
             ["", "code", "text 8 (unique)"],
@@ -796,7 +801,7 @@
           note: "Visits to an approved affiliate's link, counted by the affiliate-click function (one per visitor's IP, code and day; the IP is never stored). Kept two years. No browser access.",
         },
         {
-          id: "affiliate_referrals", color: colors.billing, x: 840, y: 10020, sub: "20% of a first payment",
+          id: "affiliate_referrals", color: colors.billing, x: 840, y: 10430, sub: "20% of a first payment",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "affiliate_id", "uuid"],
@@ -822,7 +827,7 @@
           note: "Characters of each account's uploads sent to Google Text-to-Speech a month, against the plan's natural-voice allowance. Written only by claim_natural_voice() / release_natural_voice() from the natural-voice function; members read their own row. The voiced MP3s are kept in the private upload-voices bucket beside each upload.",
         },
         {
-          id: "natural_voice_profile_usage", color: colors.server, x: 840, y: 10720, sub: "natural voices · per profile",
+          id: "natural_voice_profile_usage", color: colors.server, x: 840, y: 11130, sub: "natural voices · per profile",
           cols: [
             ["pk fk", "account_id", "uuid"],
             ["pk fk", "profile_id", "uuid"],
@@ -843,11 +848,12 @@
             ["", "amount_cents", "integer"],
             ["", "bought_at", "timestamptz"],
             ["", "expires_at", "timestamptz (+12 months)"],
+            ["fk", "gift_id", "uuid unique", true],
           ],
-          note: "Natural-voice hours bought on top of the plan. Only stripe-webhook adds one (add_natural_voice_pack(), once per Checkout Session); claim_natural_voice() draws on it after the month's allowance. Members read their own, never the Stripe session.",
+          note: "Natural-voice hours bought on top of the plan, or a redeemed gift of hours (gift_id → gift_codes, on delete set null; add_gift_voice_pack() from manage-account). Only stripe-webhook adds a bought one (add_natural_voice_pack(), once per Checkout Session); claim_natural_voice() draws on it after the month's allowance. Members read their own, never the Stripe session.",
         },
         {
-          id: "year_in_reading_sends", color: colors.server, x: 840, y: 11060, sub: "Year in reading email",
+          id: "year_in_reading_sends", color: colors.server, x: 840, y: 11470, sub: "Year in reading email",
           cols: [
             ["pk fk", "user_id", "uuid"],
             ["pk", "year", "integer"],
@@ -922,7 +928,7 @@
           note: "One list page from Google Books, kept on the same terms as volumes: Google's cache headers, at most 7 days, deleted hourly once expired. RLS on, no browser access.",
         },
         {
-          id: "book_characters", color: colors.server, x: 840, y: 4840, sub: "who's who · function only",
+          id: "book_characters", color: colors.server, x: 840, y: 5250, sub: "who's who · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
             ["pk", "chapter_index", "smallint 0–999"],
@@ -958,7 +964,7 @@
           note: "Which accounts have had which month's What's new email, so each gets it once (claim_whats_new_emails, monthly via pg_cron). RLS on, no browser access.",
         },
         {
-          id: "club_meetings", color: colors.reading, x: 840, y: 5520, sub: "club calendar",
+          id: "club_meetings", color: colors.reading, x: 840, y: 5930, sub: "club calendar",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "club_id", "uuid"],
@@ -974,7 +980,7 @@
           note: "Members read their clubs' meetings; only the club's owner schedules, changes or cancels them (RLS). Ahead and within a year, up to 20 upcoming (trigger). Reminders the day before by the club-meetings function (claim_club_meeting_reminders, every 10 minutes via pg_cron); moving or cancelling one notes it in club_meeting_changes (trigger). Indexes: (club_id, starts_at), created_by.",
         },
         {
-          id: "club_meeting_rsvps", color: colors.reading, x: 840, y: 6020, sub: "who's coming",
+          id: "club_meeting_rsvps", color: colors.reading, x: 840, y: 6430, sub: "who's coming",
           cols: [
             ["pk fk", "meeting_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
@@ -984,7 +990,7 @@
           note: "One answer per member per meeting; the club's members read them. Written only through answer_club_meeting() (member, meeting still to come). Members who said no aren't reminded. Index: user_id.",
         },
         {
-          id: "club_meeting_changes", color: colors.server, x: 840, y: 6290, sub: "server only",
+          id: "club_meeting_changes", color: colors.server, x: 840, y: 6700, sub: "server only",
           cols: [
             ["pk", "meeting_id", "uuid"],
             ["fk", "club_id", "uuid"],
@@ -1072,7 +1078,7 @@
           note: "Claimed by manage-account before Stripe credits the customer's balance (save-offer-<account> idempotency key); handed back if Stripe fails. Service role only.",
         },
         {
-          id: "support_lookups", color: colors.server, x: 840, y: 5200, sub: "member lookup record",
+          id: "support_lookups", color: colors.server, x: 840, y: 5610, sub: "member lookup record",
           cols: [
             ["pk", "id", "bigint identity"],
             ["fk", "staff_id", "uuid", true],
@@ -1169,7 +1175,7 @@
           note: "A role given to an email with no account yet; applied and cleared when that email signs up (trigger on auth.users). No browser access. Index: invited_by.",
         },
         {
-          id: "legal_pages", color: colors.server, x: 840, y: 3450, sub: "footer policies · editable",
+          id: "legal_pages", color: colors.server, x: 840, y: 3860, sub: "footer policies · editable",
           cols: [
             ["pk", "slug", "text"],
             ["", "position", "smallint"],
@@ -1220,10 +1226,11 @@
           cols: [
             ["pk", "id", "uuid"],
             ["", "code", "text (16, unique)"],
-            ["", "kind", "text (membership, credit)"],
+            ["", "kind", "text (membership, credit, voice_hours)"],
             ["fk", "plan_id", "text", true],
             ["", "months", "smallint 1/3/6/12", true],
             ["", "credit_cents", "integer 2500/5000/10000", true],
+            ["", "voice_hours", "smallint 5 | 10", true],
             ["", "amount_cents", "integer"],
             ["", "currency", "char(3)"],
             ["fk", "buyer_id", "uuid", true],

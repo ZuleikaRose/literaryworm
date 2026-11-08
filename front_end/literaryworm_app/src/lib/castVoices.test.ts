@@ -111,6 +111,7 @@ describe("character voices", () => {
     ["Hindi", "राम ने कहा, “चलो।” सीता ने पूछा, “कहाँ?”", ["राम", "सीता"]],
     ["Arabic", "قال أحمد: «هل تأتي؟» أجابت ليلى: «نعم».", ["أحمد", "ليلى"]],
     ["Bulgarian", "„Идваш ли?“ – попита Мария. „Да“ – отговори Иван.", ["Мария", "Иван"]],
+    ["Greek", "«Έρχεσαι;» ρώτησε η Ελένη. «Ναι» απάντησε ο Νίκος.", ["Ελένη", "Νίκος"]],
     ["Romanian", "„Vii?” întrebă Ana. „Da”, spuse Mihai.", ["Ana", "Mihai"]],
   ])("finds speakers in %s", (_language, chapter, names) => {
     expect(speakers(chapter).map(([, who]) => who)).toEqual(names);
@@ -129,6 +130,9 @@ describe("character voices", () => {
     // Bulgarian and Romanian write dialogue with dashes too.
     const bg = castSegments("– Добро утро – каза Петър.\n– Здравей – отговори Елена.")!.filter((p) => p.speech);
     expect(bg.map((p) => [p.text, p.speaker])).toEqual([["Добро утро", "Петър"], ["Здравей", "Елена"]]);
+    // Greek too, and a pronoun is never a name.
+    const el = castSegments("— Καλημέρα, είπε ο Γιώργος.\n— Γεια σου, απάντησε αυτή.")!.filter((p) => p.speech);
+    expect(el.map((p) => p.speaker)).toEqual(["Γιώργος", null]);
     const ro = castSegments("— Bună ziua, zise Ion.")!.filter((p) => p.speech);
     expect(ro.map((p) => p.speaker)).toEqual(["Ion"]);
     const ru = castSegments("— Привет, — сказал Иван.\n— Здравствуй, — ответила Анна.\n— Как дела? — спросил он.")!.filter((p) => p.speech);

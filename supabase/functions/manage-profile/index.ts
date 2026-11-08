@@ -7,6 +7,8 @@
 //   { action: "set_daily_limit", profileId, dailyLimitMinutes | null, password }
 //   { action: "set_weekly_goal", profileId, weeklyGoalMinutes | null, password }   (Kids profiles)
 //   { action: "set_bedtime", profileId, bedtime | null, wakeTime | null, password }   (Kids profiles; both or neither)
+//   { action: "set_kids_voices", profileId, on, password }   (Kids profiles: natural voices for their uploads)
+//   { action: "set_monthly_share", profileId, listeningMinutes | null, voiceMinutes | null, password }   (any profile)
 //   { action: "set_age_rating", profileId, ageRating, noticeVersion?, password }   (noticeVersion for Kids)
 //   { action: "delete", profileId, password }
 //   { action: "unlock", profileId, password }
@@ -28,6 +30,9 @@ import { removeUploadVoices } from "../_shared/uploadVoices.ts";
 const METHODS = "POST";
 const DAILY_LIMITS = [30, 60, 90, 120, 180, 240];
 const WEEKLY_GOALS = [60, 90, 120, 180, 240, 300];
+// A profile's monthly share of the household's hours (migration 6800 checks the same lists).
+const LISTENING_SHARES = [60, 120, 180, 300, 600, 900, 1200, 1800];
+const VOICE_SHARES = [30, 60, 120, 180, 300, 600];
 const AGE_RATINGS = ["kids", "teen", "all"];
 
 function parsePin(raw: unknown, allowNull: boolean): string | null {
@@ -149,6 +154,35 @@ Deno.serve(async (req) => {
         const { data, error } = await query.select("id");
         if (error) dbError(error);
         if (!data?.length) throw new HttpError("not_found", "Kids profile not found.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "set_kids_voices": {
+        onlyKeys(body, ["action", "profileId", "on", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        if (typeof body.on !== "boolean") throw new HttpError("bad_request", "on is true or false.");
+        await confirmPassword(user.email, password);
+        // Only Kids profiles need it (grown-up and teen profiles have natural voices anyway).
+        const { data, error } = await db.from("reader_profiles").update({ kids_natural_voices: body.on })
+          .eq("id", profileId).eq("account_id", user.id).eq("age_rating", "kids").select("id");
+        if (error) dbError(error);
+        if (!data?.length) throw new HttpError("not_found", "Kids profile not found.");
+        return json(req, METHODS, { ok: true });
+      }
+      case "set_monthly_share": {
+        onlyKeys(body, ["action", "profileId", "listeningMinutes", "voiceMinutes", "password"]);
+        const profileId = parseUuid(body.profileId, "profileId");
+        const share = (value: unknown, allowed: number[], what: string) => {
+          if (value === null) return null;
+          if (typeof value !== "number" || !allowed.includes(value)) throw new HttpError("bad_request", `Pick one of the ${what} shares offered.`);
+          return value;
+        };
+        const listening = share(body.listeningMinutes, LISTENING_SHARES, "listening");
+        const voice = share(body.voiceMinutes, VOICE_SHARES, "natural-voice");
+        await confirmPassword(user.email, password);
+        const { data, error } = await db.from("reader_profiles").update({ monthly_listening_minutes: listening, monthly_voice_minutes: voice })
+          .eq("id", profileId).eq("account_id", user.id).select("id");
+        if (error) dbError(error);
+        if (!data?.length) throw new HttpError("not_found", "Profile not found.");
         return json(req, METHODS, { ok: true });
       }
       case "set_age_rating": {

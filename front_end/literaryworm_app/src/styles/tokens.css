@@ -1,5 +1,8 @@
 /* Design tokens, taken from the Figma wireframe (front_end/BookWorm_web_app_wireframe). */
 :root {
+  /* QR codes stay black on white in every theme, so any camera reads them. */
+  --qr-paper: #ffffff;
+  --qr-ink: #000000;
   --font-body: "DM Sans", system-ui, sans-serif;
   --font-display: "Manrope", "DM Sans", system-ui, sans-serif;
   --font-reading: "Literata", Georgia, serif;

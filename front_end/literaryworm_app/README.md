@@ -282,3 +282,9 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | `components/CastChoices.tsx`, `lib/castChoices.ts` (+ test), `scheduleAlerts()`, `lib/themeIdeas.ts` + `components/ThemeIdeas.tsx` (+ test), `wordAt()` (+ test); migrations 6749–6753 |
 | — | `demoPieceFiles()` / `demoVoicePart()` (public/voices/demo/a1, a4), `lib/pronunciations.ts` + `components/Pronunciations.tsx`, `lib/clubPace.ts` + `lib/useClubPace.ts`, `lib/certificate.ts` (`pdfDocument()`), `lib/uploadClips.ts` + `components/UploadClip.tsx`, `lib/themeRanking.ts`, `lib/readAlong.ts` + `lib/useReaderReadAloud.ts` (all + tests); migrations 6754–6768 |
 | — | `lib/portablePlace.ts` (+ test) for listen-together on upload clubs; the `year-in-reading` function (+ test) and `year_emails`; `lib/voicePacks.ts` (+ test), `components/VoicePacks.tsx`, checkout `voiceHours` and the webhook's packs (`natural_voice_packs`); 13 more interface languages; migrations 6784–6795 |
+| — | Greek: the app's 21st language (`el.json`, 6796) and natural voices for Greek uploads (`el-GR`; Greek speakers and articles in `naturalVoice.ts`); 6797–6798 |
+| — | Kids natural voices and per-profile monthly shares: `lib/profileShares.ts` (+ test), ProfileEditor, manage-profile `set_kids_voices` / `set_monthly_share`, natural-voice `kidsVoices` / `profileShare`; migrations 6799–6800 |
+| — | Gift natural-voice hours: Gifts third option, `buyGiftVoiceHours()`, checkout / stripe-webhook / manage-account voice_hours gifts; migration 6801 |
+| — | Per-character speed: `lib/castSpeeds.ts` (+ test), CastChoices, `naturalNarrator(rateFor)`; migration 6802 |
+| — | Club polls with uploads (`pollOptionLabel()`), `lib/clubYear.ts` (+ test) and `components/ClubYear.tsx`; migration 6803 |
+| — | `lib/continueLink.ts` (+ test), `ContinueOnPhone.tsx`, text spacing in `a11ySync` (+ test), reader speed, logical CSS for RTL |

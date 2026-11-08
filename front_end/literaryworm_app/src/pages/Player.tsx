@@ -9,6 +9,8 @@ import { VoicePreviewButton } from "../components/VoicePreviewButton";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { UploadRecordingLink } from "../components/UploadRecordingLink";
+import { ContinueDialog } from "../components/ContinueOnPhone";
+import { playerContinueUrl, readAt } from "../lib/continueLink";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
@@ -17,7 +19,7 @@ import { NATURAL_PREFIX, NATURAL_VOICE_HOURS, type NaturalVoice, voicesFor } fro
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
-import { CREDITS_SECONDS, chapterLabel, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
+import { CREDITS_SECONDS, chapterLabel, chapterTimes, formatTime, PLAYBACK_SPEEDS, SLEEP_MINUTES, spokenTime } from "../lib/reading";
 import { usePlayerControls } from "../lib/usePlayerControls";
 import { canRecap } from "../lib/recap";
 import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
@@ -30,7 +32,7 @@ import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 import { VoiceWholeBook } from "../components/VoiceWholeBook";
 
-type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | "clip" | null;
+type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | "clip" | "continue" | null;
 
 export default function Player() {
   return <ReadingGate format="audiobook">{(book) => <PlayerView key={book.id} book={book} />}</ReadingGate>;
@@ -86,9 +88,12 @@ function PlayerView({ book }: { book: Book }) {
 
   // The book plays through the app-wide engine, so it keeps playing in the mini-player after
   // this page closes.
+  // A "Continue on your phone" link (?at=, lib/continueLink.ts) opens it at that place.
+  const atParam = params.get("at");
   useLayoutEffect(() => {
-    open(book);
-  }, [open, book]);
+    const at = readAt(atParam, chapterTimes(book).total);
+    open(book, at === null ? undefined : { at, autoplay: false });
+  }, [open, book, atParam]);
 
   const live = playback.snapshot?.bookId === book.id ? playback.snapshot : null;
   const position = live?.position ?? 0;
@@ -169,6 +174,10 @@ function PlayerView({ book }: { book: Book }) {
             <Icon name="devices" size={20} />
             <span className="visually-hidden">{t("Listen on another device")}</span>
           </button>
+          <button type="button" className="icon-button" onClick={() => setPanel("continue")}>
+            <Icon name="qr" size={20} />
+            <span className="visually-hidden">{t("Continue on your phone")}</span>
+          </button>
           <button type="button" className="icon-button" onClick={() => setPanel("settings")}>
             <Icon name="settings" size={20} />
             <span className="visually-hidden">{t("Skip lengths, intros and outros")}</span>
@@ -235,7 +244,7 @@ function PlayerView({ book }: { book: Book }) {
               <div className="progress-track player-progress">
                 <span className="chapter-marks" aria-hidden="true">
                   {starts.slice(1).map((start, i) => (
-                    <span key={i} style={{ left: `${(start / total) * 100}%` }} />
+                    <span key={i} style={{ insetInlineStart: `${(start / total) * 100}%` }} />
                   ))}
                 </span>
                 <input
@@ -482,6 +491,7 @@ function PlayerView({ book }: { book: Book }) {
       <JumpDialog open={panel === "jump"} onClose={() => setPanel(null)} book={book} controls={controls} section={section} onSection={setSection} />
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
+      {panel === "continue" && <ContinueDialog open onClose={() => setPanel(null)} url={playerContinueUrl(book.id, position)} title={book.title} />}
       <RecapDialog open={panel === "recap"} book={book} chapterIndex={chapterIndex} onClose={() => setPanel(null)} />
       {panel === "clip" && <ClipDialog open book={book} chapterIndex={chapterIndex} offset={position - chapterStart} chapterSeconds={places.chapterEnd - chapterStart} onClose={() => setPanel(null)} />}
       <BookmarksDialog

@@ -458,3 +458,12 @@ Deno.test("a paid voice-hours Checkout adds the pack to the buyer's account, and
   assertEquals((await handle(post(), bad.deps)).status, 500);
   assertEquals(bad.state.packs.length, 0);
 });
+
+Deno.test("a paid gift of natural-voice hours makes a code for the hours, with no plan or books", async () => {
+  const { state, deps } = setup(giftPaid({ amount_total: 2499, metadata: { kind: "gift", gift_kind: "voice_hours", voice_hours: "10", books: "frankenstein" } }));
+  assertEquals((await handle(post(), deps)).status, 200);
+  assertEquals([state.gifts[0].planId, state.gifts[0].months, state.gifts[0].creditCents, state.gifts[0].voiceHours, state.gifts[0].books], [null, null, null, 10, []]);
+  const bad = setup(giftPaid({ metadata: { kind: "gift", gift_kind: "voice_hours", voice_hours: "7" } }));
+  assertEquals((await handle(post(), bad.deps)).status, 500);
+  assertEquals(bad.state.gifts.length, 0);
+});

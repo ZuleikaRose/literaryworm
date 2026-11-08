@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useStore } from "../store/context";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useProfileData, useStore } from "../store/context";
 import type { ClubPoll } from "./clubPolls";
 import * as clubsApi from "./clubsApi";
 import { DEMO_USER } from "./useClubs";
@@ -39,6 +39,11 @@ export function demoPollsFor(clubId: string): ClubPoll[] {
 export function useClubPolls(clubId: string) {
   const { state } = useStore();
   const remote = Boolean(state.account?.userId);
+  const { uploads } = useProfileData();
+  const uploadsRef = useRef(uploads);
+  useEffect(() => {
+    uploadsRef.current = uploads;
+  });
   const [polls, setPolls] = useState<ClubPoll[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +82,21 @@ export function useClubPolls(clubId: string) {
     async (question: string, options: string[]) => {
       const poll: ClubPoll = remote
         ? await clubsApi.startClubPoll(clubId, question, options)
-        : { id: crypto.randomUUID(), clubId, createdBy: DEMO_USER, question: question.trim(), options, createdAt: Date.now(), closedAt: null, winner: null, votes: {} };
+        : {
+            id: crypto.randomUUID(),
+            clubId,
+            createdBy: DEMO_USER,
+            question: question.trim(),
+            options,
+            // As the database does: an upload is named by its title and author only.
+            uploadLabels: Object.fromEntries(
+              uploadsRef.current.filter((u) => options.includes(u.id)).map((u) => [u.id, { title: u.title, author: u.author }]),
+            ),
+            createdAt: Date.now(),
+            closedAt: null,
+            winner: null,
+            votes: {},
+          };
       if (!remote) demoPolls.set(clubId, [poll, ...demoPollsFor(clubId)]);
       setPolls((list) => [poll, ...(list ?? [])]);
     },

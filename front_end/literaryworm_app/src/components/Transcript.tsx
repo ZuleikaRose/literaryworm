@@ -139,7 +139,7 @@ export function Transcript({
           </select>
         </label>
       </div>
-      <div ref={scroller} className="transcript-box" lang={realText ? "en" : language}>
+      <div ref={scroller} className="transcript-box" lang={realText ? "en" : language} dir="auto">
         {realText && lines.length === 0 && (
           <p className="transcript-note" role={failed ? "alert" : "status"}>
             {failed ? t("We couldn't load this book's text. Leave the player and come back to try again.") : t("Loading the text…")}

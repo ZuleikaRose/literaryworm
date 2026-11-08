@@ -28,6 +28,7 @@ function deps(overrides: Partial<Deps> = {}) {
     user: () => Promise.resolve(USER),
     upload: (userId, id) => Promise.resolve(userId === USER && id === UPLOAD ? { profileId: "p1", storagePath: `${USER}/${UPLOAD}.json` } : null),
     ageRating: () => Promise.resolve("all"),
+    kidsVoices: () => Promise.resolve(false),
     membership: () => Promise.resolve({ plan: "standard", pastDue: false, trial: false }),
     signedUrl: (path) => Promise.resolve(kept.has(path) ? `https://signed/${path}` : null),
     chapters: () => Promise.resolve(CHAPTERS),
@@ -88,11 +89,13 @@ Deno.test("only the member's own uploads", async () => {
   assertEquals(calls.synthesize.length, 0);
 });
 
-Deno.test("never on Kids profiles", async () => {
+Deno.test("on Kids profiles only when a grown-up turned them on", async () => {
   const { d, calls } = deps({ ageRating: () => Promise.resolve("kids") });
   const res = await handle(ask(), d);
   assertEquals(res.status, 403);
   assertEquals(calls.synthesize.length, 0);
+  const allowed = deps({ ageRating: () => Promise.resolve("kids"), kidsVoices: () => Promise.resolve(true) });
+  assertEquals((await handle(ask(), allowed.d)).status, 200);
 });
 
 Deno.test("needs a running membership", async () => {
@@ -229,4 +232,14 @@ Deno.test("pronunciations: checked", async () => {
     const res = await handle(post({ uploadId: UPLOAD, chapter: 2, segment: 0, voice: VOICE, pronunciations }), d);
     assertEquals(res.status, 400, JSON.stringify(pronunciations));
   }
+});
+
+Deno.test("a profile's own monthly share comes first, before the household's hours", async () => {
+  const used = deps({ profileShare: () => Promise.resolve({ limit: 1000, used: 990 }) });
+  const res = await handle(ask(), used.d);
+  assertEquals(res.status, 403);
+  assertEquals((await res.json()).error.code, "profile_limit_reached");
+  assertEquals(used.calls.synthesize.length, 0);
+  const room = deps({ profileShare: () => Promise.resolve({ limit: 1_000_000, used: 0 }) });
+  assertEquals((await handle(ask(), room.d)).status, 200);
 });

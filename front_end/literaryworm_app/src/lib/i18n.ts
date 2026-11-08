@@ -30,6 +30,7 @@ export const UI_LANGUAGES = [
   { code: "tl", name: "Tagalog" },
   { code: "bg", name: "Български" },
   { code: "ro", name: "Română" },
+  { code: "el", name: "Ελληνικά" },
 ] as const;
 
 /** Languages written right to left: the page's direction follows the language. */

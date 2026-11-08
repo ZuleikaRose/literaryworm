@@ -30,6 +30,8 @@ export type Deps = {
   upload: (userId: string, uploadId: string) => Promise<Upload | null>;
   /** The profile's age rating ("kids", "teen" or "all"). */
   ageRating: (profileId: string) => Promise<string | null>;
+  /** Whether a grown-up turned natural voices on for this Kids profile (reader_profiles.kids_natural_voices). */
+  kidsVoices: (profileId: string) => Promise<boolean>;
   /** The account's membership: its plan, whether its last payment failed, and whether it's in its free week; null without one. */
   membership: (userId: string) => Promise<{ plan: string; pastDue: boolean; trial: boolean } | null>;
   /** A signed link to a kept piece, or null when it hasn't been voiced yet. */
@@ -46,6 +48,11 @@ export type Deps = {
   store: (path: string, audio: Uint8Array) => Promise<void>;
   /** Adds new voicing to the upload's profile's month, for the family report (a failure is only logged). */
   recordProfile?: (userId: string, profileId: string, characters: number) => Promise<void>;
+  /**
+   * The profile's monthly share of natural-voice reading a grown-up set (Account → Family), in
+   * characters, and what it has used this month; null when it has no share of its own.
+   */
+  profileShare?: (userId: string, profileId: string) => Promise<{ limit: number; used: number } | null>;
   rateLimit?: (userId: string) => Promise<void>;
 };
 
@@ -95,7 +102,10 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const upload = await deps.upload(userId, uploadId);
     if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
     const rating = await deps.ageRating(upload.profileId);
-    if (rating === null || rating === "kids") throw new HttpError("forbidden", "Natural voices aren't offered on Kids profiles.");
+    // A Kids profile only when a grown-up turned them on for it (Account → Family, with the password).
+    if (rating === null || (rating === "kids" && !(await deps.kidsVoices(upload.profileId)))) {
+      throw new HttpError("forbidden", "Natural voices on a Kids profile need a grown-up to turn them on in Account → Family.");
+    }
     const membership = await deps.membership(userId);
     if (!membership) throw new HttpError("forbidden", "Natural voices come with a membership.");
     // A failed payment pauses them until a payment goes through (the webhook marks it active again).
@@ -124,6 +134,11 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     await deps.rateLimit?.(userId);
     const text = sayAs(piece.text, says);
 
+    // A profile's own share, when a grown-up set one, comes before the household's hours.
+    const share = await deps.profileShare?.(userId, upload.profileId);
+    if (share && share.used + text.length > share.limit) {
+      throw new HttpError("profile_limit_reached", "This profile's share of this month's natural-voice reading is used up.");
+    }
     if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan, trial)))) {
       // In the free week the limit is its hour; the plan's own hours start with the first payment.
       throw trial

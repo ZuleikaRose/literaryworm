@@ -131,7 +131,9 @@ export function ListeningAllowanceUsed({
   hours,
   resumesOn,
   bookId,
+  share = null,
 }: {
+  share?: number | null;
   planId: PlanId | null;
   planName: string;
   hours: number;
@@ -141,6 +143,28 @@ export function ListeningAllowanceUsed({
   // One tap to the next plan's checkout (Plans opens it from ?plan=).
   const next = nextPlanUp(planId);
   const t = useT();
+  if (share !== null) {
+    return (
+      <ReadingMessage
+        title={t("That's this month's listening")}
+        icon="headphones"
+        action={
+          <div className="reading-message-actions">
+            <Link className="primary-button" to={`/read/${bookId}`}>
+              {t("Read it instead")}
+            </Link>
+          </div>
+        }
+      >
+        <p>
+          {t("This profile's share of the household's audiobooks is {hours} hours a month, and it's used up. Listening starts again on {date}, and your place is saved. A grown-up can change the share in Account → Family.", {
+            hours: share,
+            date: resumesOn,
+          })}
+        </p>
+      </ReadingMessage>
+    );
+  }
   return (
     <ReadingMessage
       title={t("That's this month's listening")}

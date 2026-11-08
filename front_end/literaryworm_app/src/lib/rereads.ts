@@ -33,7 +33,7 @@ export function ordinal(n: number): string {
   return `${n}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"}`;
 }
 
-/** An ordinal in the language chosen: 2nd in English, 2.º in Spanish and Portuguese, 2e in French and Dutch, 2. in German, Polish and Turkish, 2º in Italian, 2:a in Swedish, 2-о in Bulgarian, ika-2 in Tagalog, 2वीं in Hindi, a bare 2 where the sentence numbers it. */
+/** An ordinal in the language chosen: 2nd in English, 2.º in Spanish and Portuguese, 2e in French and Dutch, 2. in German, Polish and Turkish, 2º in Italian, 2:a in Swedish, 2-о in Bulgarian, ika-2 in Tagalog, 2η in Greek, 2वीं in Hindi, a bare 2 where the sentence numbers it. */
 function localOrdinal(n: number): string {
   switch (activeLanguage()) {
     case "es":
@@ -66,6 +66,9 @@ function localOrdinal(n: number): string {
       return `${n}वीं`;
     case "tl":
       return `ika-${n}`;
+    // "ανάγνωση" is feminine: 2η.
+    case "el":
+      return `${n}η`;
     default:
       return ordinal(n);
   }

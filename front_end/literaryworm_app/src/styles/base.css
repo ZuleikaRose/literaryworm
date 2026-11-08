@@ -60,6 +60,25 @@ a {
   text-underline-offset: 3px;
 }
 
+/* Text spacing (accessibility menu): "wider" is WCAG 1.4.12's letter, word, line and paragraph spacing. */
+:root[data-text-spacing="wide"] body {
+  letter-spacing: 0.04em;
+  word-spacing: 0.08em;
+}
+:root[data-text-spacing="wide"] :is(p, li, dd, .reader-text) {
+  line-height: 1.7;
+}
+:root[data-text-spacing="wider"] body {
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+:root[data-text-spacing="wider"] :is(p, li, dd, .reader-text) {
+  line-height: 1.8;
+}
+:root[data-text-spacing="wider"] p {
+  margin-block-end: 2em;
+}
+
 img,
 svg {
   display: block;
@@ -108,7 +127,7 @@ svg {
   position: absolute;
   z-index: 100;
   top: 8px;
-  left: 8px;
+  inset-inline-start: 8px;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   color: var(--on-accent);
@@ -394,7 +413,7 @@ textarea.field-input {
 .switch::after {
   position: absolute;
   top: 3px;
-  left: 3px;
+  inset-inline-start: 3px;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -468,7 +487,7 @@ textarea.field-input {
 
   .switch::after {
     top: 1px;
-    left: 1px;
+    inset-inline-start: 1px;
     background: ButtonText;
   }
 

@@ -14,6 +14,13 @@ const textSizes = [
   { value: 1.3, label: tk("Larger") },
 ];
 
+// Letter, word and line spacing; "Wider" is WCAG 1.4.12's, which many dyslexic readers find easier.
+const textSpacings = [
+  { value: "normal", label: tk("Normal") },
+  { value: "wide", label: tk("Wide") },
+  { value: "wider", label: tk("Wider") },
+] as const;
+
 type ToggleKey = "readableFont" | "dyslexicFont" | "highContrast" | "underlineLinks" | "reduceMotion";
 
 const toggles: { key: ToggleKey; label: string; hint: string }[] = [
@@ -107,6 +114,23 @@ export function AccessibilityMenu() {
                     name="text-size"
                     checked={a11y.textScale === s.value}
                     onChange={() => set({ textScale: s.value })}
+                  />
+                  <span>{t(s.label)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="segmented">
+            <legend>{t("Text spacing")}</legend>
+            <div>
+              {textSpacings.map((s) => (
+                <label key={s.value}>
+                  <input
+                    type="radio"
+                    name="text-spacing"
+                    checked={a11y.textSpacing === s.value}
+                    onChange={() => set({ textSpacing: s.value })}
                   />
                   <span>{t(s.label)}</span>
                 </label>

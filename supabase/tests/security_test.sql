@@ -874,6 +874,14 @@ select pg_temp.expect_error($$insert into public.natural_voice_packs (account_id
 select pg_temp.expect_error($$select public.add_natural_voice_pack('00000000-0000-0000-0000-00000000000b', 'cs_free', 10, 504000, 0)$$, 'adding a voice pack from the browser');
 select pg_temp.expect_error('select stripe_session from public.natural_voice_packs', 'reading Stripe session ids of voice packs');
 select pg_temp.expect_error('update public.natural_voice_packs set used = 0', 'resetting a voice pack from the browser');
+-- Kids natural voices and monthly shares are set by manage-profile with the password (6799, 6800); gift hours by manage-account (6801).
+select pg_temp.expect_error($$update public.reader_profiles set kids_natural_voices = true$$, 'turning on natural voices for a Kids profile without the account password');
+select pg_temp.expect_error($$update public.reader_profiles set monthly_listening_minutes = 1800$$, 'changing a profile''s listening share without the account password');
+select pg_temp.expect_error($$update public.reader_profiles set monthly_voice_minutes = 600$$, 'changing a profile''s natural-voice share without the account password');
+select pg_temp.expect_error($$select public.add_gift_voice_pack('00000000-0000-0000-0000-00000000000b', gen_random_uuid())$$, 'redeeming gifted voice hours from the browser');
+select pg_temp.expect_error($$update public.club_polls set upload_labels = '{}'::jsonb$$, 'writing a poll''s upload labels from the browser');
+update public.reader_profiles set cast_speeds = '{}'::jsonb;
+select pg_temp.check(true, 'a member saves their own character speeds');
 reset role;
 reset request.jwt.claims;
 select pg_temp.check(not has_function_privilege('authenticated', 'private.call_year_in_reading()', 'execute'), 'only the cron job calls the year-in-reading function');

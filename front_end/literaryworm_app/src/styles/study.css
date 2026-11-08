@@ -68,7 +68,7 @@
   display: inline-block;
   width: 0.7em;
   height: 0.7em;
-  margin-left: 0.15em;
+  margin-inline-start: 0.15em;
   background: var(--paper-accent);
   content: "";
   vertical-align: 0.35em;
@@ -249,7 +249,7 @@
 
 .highlight-quote,
 .highlight-item {
-  border-left: 4px solid var(--quote);
+  border-inline-start: 4px solid var(--quote);
 }
 
 .highlight-quote {
@@ -485,7 +485,7 @@
   display: grid;
   gap: 8px;
   margin: 0;
-  padding-left: 1.4em;
+  padding-inline-start: 1.4em;
   line-height: 1.5;
 }
 
@@ -570,7 +570,7 @@
   border-radius: 3px;
   color: var(--ink-soft);
   font: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
@@ -616,7 +616,7 @@
 
 .mini-player {
   position: fixed;
-  right: max(16px, calc((100vw - var(--content-max)) / 2));
+  inset-inline-end: max(16px, calc((100vw - var(--content-max)) / 2));
   bottom: 16px;
   /* Above the page, below the header (and its popovers) and the tab bar. */
   z-index: 25;
@@ -649,8 +649,8 @@
 .mini-progress {
   position: absolute;
   top: -1px;
-  right: var(--radius-lg);
-  left: var(--radius-lg);
+  inset-inline-end: var(--radius-lg);
+  inset-inline-start: var(--radius-lg);
   height: 2px;
   background: linear-gradient(to right, var(--rust-bright) var(--fill), var(--line) var(--fill));
 }
@@ -779,9 +779,9 @@
   .mini-player .mini-menu {
     position: absolute;
     top: auto;
-    right: 0;
+    inset-inline-end: 0;
     bottom: calc(100% + 8px);
-    left: 0;
+    inset-inline-start: 0;
     width: auto;
     max-height: calc(100dvh - var(--header-h) - var(--tab-h) - env(safe-area-inset-bottom) - 100px);
   }
@@ -874,7 +874,7 @@
   padding: 8px;
   border-radius: var(--radius-sm);
   color: var(--ink-soft);
-  text-align: left;
+  text-align: start;
 }
 
 .index-list button:hover {
@@ -992,9 +992,9 @@
   }
 
   .mini-player {
-    right: 8px;
+    inset-inline-end: 8px;
     bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 8px);
-    left: 8px;
+    inset-inline-start: 8px;
     width: auto;
   }
 
@@ -1202,7 +1202,7 @@ kbd {
   color: var(--ink);
   background: var(--surface-raised);
   font-size: 1rem;
-  text-align: left;
+  text-align: start;
 }
 
 .quiz-choice:hover:not(:disabled) {
@@ -1248,7 +1248,7 @@ kbd {
 /* After the sleep timer paused: "15 more minutes" sits just above the mini-player. */
 .mini-sleep-more {
   position: absolute;
-  right: 8px;
+  inset-inline-end: 8px;
   bottom: calc(100% + 8px);
   box-shadow: var(--shadow-float);
 }

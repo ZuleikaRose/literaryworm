@@ -120,7 +120,7 @@
   margin: 0;
   color: var(--muted);
   font-size: 0.8125rem;
-  text-align: right;
+  text-align: end;
 }
 
 .household-count strong {
@@ -351,7 +351,7 @@
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  text-align: right;
+  text-align: end;
 }
 
 .checkout-fields {
@@ -365,7 +365,7 @@
 
 select.field-input {
   appearance: none;
-  padding-right: 40px;
+  padding-inline-end: 40px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a3a7a9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-position: right 14px center;
   background-repeat: no-repeat;
@@ -600,14 +600,14 @@ select.field-input {
 }
 
 .field-with-trailing .field-input {
-  padding-right: 72px;
+  padding-inline-end: 72px;
 }
 
 .field-toggle {
   position: absolute;
   top: 50%;
   /* Fills the 46px field's inner height, so the target is 44px tall. */
-  right: 1px;
+  inset-inline-end: 1px;
   min-width: 56px;
   min-height: 44px;
   padding: 0 10px;
@@ -665,7 +665,7 @@ select.field-input {
 
   .household-count {
     grid-column: 2;
-    text-align: left;
+    text-align: start;
   }
 
   .household-count strong {

@@ -6,12 +6,14 @@ import type { A11ySettings, SavedA11y } from "../types";
 
 const SCALES = [1, 1.15, 1.3] as const;
 const SIZES = ["small", "medium", "large"] as const;
+export const TEXT_SPACINGS = ["normal", "wide", "wider"] as const;
 const TRANSCRIPT_LANGUAGES = ["en", "es"] as const;
 const SWITCHES = ["readableFont", "dyslexicFont", "highContrast", "reduceMotion", "underlineLinks", "transcript"] as const;
 
 /** The menu's defaults, as kept settings; store/state.ts builds defaultA11y from these. */
 export const DEFAULT_SAVED_A11Y: SavedA11y = {
   textScale: 1,
+  textSpacing: "normal",
   readableFont: false,
   dyslexicFont: false,
   highContrast: false,
@@ -27,6 +29,7 @@ export const DEFAULT_SAVED_A11Y: SavedA11y = {
 export function savedA11y(a: A11ySettings): SavedA11y {
   return {
     textScale: a.textScale,
+    textSpacing: a.textSpacing,
     readableFont: a.readableFont,
     dyslexicFont: a.dyslexicFont,
     highContrast: a.highContrast,
@@ -49,6 +52,7 @@ export function parseSavedA11y(raw: unknown, fallback: SavedA11y): SavedA11y | n
   const r = raw as Record<string, unknown>;
   const out: SavedA11y = { ...fallback };
   if (typeof r.textScale === "number" && (SCALES as readonly number[]).includes(r.textScale)) out.textScale = r.textScale;
+  if ((TEXT_SPACINGS as readonly unknown[]).includes(r.textSpacing)) out.textSpacing = r.textSpacing as SavedA11y["textSpacing"];
   for (const key of SWITCHES) if (typeof r[key] === "boolean") out[key] = r[key] as boolean;
   if (r.theme === "dark" || r.theme === "light") out.theme = r.theme;
   if ((SIZES as readonly unknown[]).includes(r.transcriptSize)) out.transcriptSize = r.transcriptSize as SavedA11y["transcriptSize"];

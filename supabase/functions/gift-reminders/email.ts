@@ -10,6 +10,7 @@ export interface Gift {
   months: 1 | 3 | 6 | 12 | null;
   /** A gift card's credit in cents; null (or left out) for a gift membership. */
   creditCents?: number | null;
+  voiceHours?: number | null;
   /** "YYYY-MM-DD": the first day it can be redeemed. */
   startsOn: string;
 }
@@ -43,7 +44,8 @@ export function giftDay(startsOn: string): string {
 const length = (months: number) => (months === 12 ? "a year" : months === 1 ? "1 month" : `${months} months`);
 
 /** "3 months of Standard", or "a $50.00 gift card". */
-export function giftWhat(gift: Pick<Gift, "planId" | "months" | "creditCents">): string {
+export function giftWhat(gift: Pick<Gift, "planId" | "months" | "creditCents" | "voiceHours">): string {
+  if (gift.voiceHours) return `${gift.voiceHours} hours of natural-voice reading`;
   if (gift.creditCents) return `a $${(gift.creditCents / 100).toFixed(2)} gift card`;
   return `${length(gift.months ?? 1)} of ${PLAN_NAMES[gift.planId ?? "basic"]}`;
 }

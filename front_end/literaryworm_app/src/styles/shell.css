@@ -98,7 +98,7 @@
   height: 30px;
   padding: 0 4px;
   border: 0;
-  border-right: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
   border-radius: 0;
   color: var(--muted);
   background: transparent;
@@ -136,7 +136,7 @@
   align-items: stretch;
   align-self: stretch;
   gap: 27px;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .desktop-nav a {
@@ -157,9 +157,9 @@
 
 .desktop-nav a::after {
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   bottom: 0;
-  left: 0;
+  inset-inline-start: 0;
   height: 2px;
   background: var(--rust-bright);
   content: "";
@@ -235,7 +235,7 @@
 .popover {
   position: absolute;
   top: calc(100% + 10px);
-  right: 0;
+  inset-inline-end: 0;
   z-index: 40;
   width: 300px;
   padding: 14px;
@@ -297,7 +297,7 @@
   color: var(--ink-soft);
   font-size: 0.875rem;
   font-weight: 600;
-  text-align: left;
+  text-align: start;
 }
 
 .menu-item:hover {
@@ -306,7 +306,7 @@
 }
 
 .menu-item-end {
-  margin-left: auto;
+  margin-inline-start: auto;
   color: var(--faint);
 }
 
@@ -329,7 +329,7 @@
 .bell-badge {
   position: absolute;
   top: 2px;
-  right: 0;
+  inset-inline-end: 0;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -402,7 +402,7 @@
 
 .bell-new {
   display: inline-block;
-  margin-left: 6px;
+  margin-inline-start: 6px;
   padding: 0 6px;
   border-radius: 999px;
   background: var(--rust-bright);
@@ -642,11 +642,11 @@
   }
 
   .header-actions {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   .search-box + .desktop-nav + .header-actions {
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 
   .profile-button-name {
@@ -669,9 +669,9 @@
 
   .tab-bar {
     position: fixed;
-    right: 0;
+    inset-inline-end: 0;
     bottom: 0;
-    left: 0;
+    inset-inline-start: 0;
     z-index: 30;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -709,8 +709,8 @@
   .popover {
     position: fixed;
     top: calc(var(--header-h) + 6px);
-    right: 12px;
-    left: 12px;
+    inset-inline-end: 12px;
+    inset-inline-start: 12px;
     width: auto;
     /* Long menus scroll inside the screen instead of running off it. */
     max-height: calc(100dvh - var(--header-h) - 18px);

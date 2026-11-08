@@ -309,8 +309,18 @@ export function naturalNarrator(
   playingChapter?: (chapter: number) => void,
   /** How a chapter is cut into pieces (chapterPieces() with character voices; the same cut as `pieceUrl` uses). */
   piecesFor: (text: string) => VoiceSegment[] = voiceSegments,
+  /** A part's speed as a share of the player's: its speaker's own (lib/castSpeeds.ts), else 1. */
+  rateFor: (piece: VoiceSegment & { speaker?: string | null }) => number = () => 1,
 ): Narrator {
   const audio = new Audio();
+  let baseRate = 1;
+  // A new src resets the rate to defaultPlaybackRate, so both are set for each part.
+  const applyRate = () => {
+    const piece = piecesOf(chapter)[segment];
+    const rate = baseRate * (piece ? rateFor(piece) : 1);
+    audio.defaultPlaybackRate = rate;
+    audio.playbackRate = rate;
+  };
   audio.preload = "auto";
   const pieces: (VoiceSegment[] | undefined)[] = [];
   const piecesOf = (c: number) => (pieces[c] ??= piecesFor(chapters[c] ?? ""));
@@ -389,6 +399,7 @@ export function naturalNarrator(
         if (mine !== generation) return;
         loaded = here();
         audio.src = url;
+        applyRate();
         measure(here(), url, piecesOf(chapter)[segment]);
         const startAt = within;
         if (startAt > 0) {
@@ -494,8 +505,8 @@ export function naturalNarrator(
       return starts[chapter] + ((piece.offset + into) / sizeOf(chapter)) * lengths[chapter];
     },
     setRate: (rate) => {
-      audio.defaultPlaybackRate = rate;
-      audio.playbackRate = rate;
+      baseRate = rate;
+      applyRate();
     },
     setVolume: (volume) => {
       audio.volume = volume;

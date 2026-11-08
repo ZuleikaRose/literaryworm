@@ -8,7 +8,7 @@ import { pinAttemptResult } from "./profiles";
 import { tr } from "./i18n";
 
 /** What the profile editor saves. `pin`: undefined keeps the current PIN, null removes it. */
-export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes" | "weeklyGoalMinutes" | "bedtime" | "wakeTime"> & {
+export type ProfileDraft = Pick<Profile, "name" | "avatar" | "ageRating" | "favoriteGenres" | "dailyLimitMinutes" | "weeklyGoalMinutes" | "kidsNaturalVoices" | "monthlyListeningMinutes" | "monthlyVoiceMinutes" | "bedtime" | "wakeTime"> & {
   pin: string | null | undefined;
 };
 
@@ -42,6 +42,9 @@ export function useProfiles() {
         kidsConsent: draft.ageRating === "kids" ? true : (existing?.kidsConsent ?? false),
         dailyLimitMinutes: draft.dailyLimitMinutes,
         weeklyGoalMinutes: draft.ageRating === "kids" ? draft.weeklyGoalMinutes : (existing?.weeklyGoalMinutes ?? null),
+        kidsNaturalVoices: draft.ageRating === "kids" && Boolean(draft.kidsNaturalVoices),
+        monthlyListeningMinutes: draft.monthlyListeningMinutes ?? null,
+        monthlyVoiceMinutes: draft.monthlyVoiceMinutes ?? null,
         bedtime: draft.ageRating === "kids" ? draft.bedtime : null,
         wakeTime: draft.ageRating === "kids" ? draft.wakeTime : null,
         ...(draft.pin !== undefined ? { pin: draft.pin } : {}),
@@ -93,6 +96,14 @@ export function useProfiles() {
       // A grown-up sets a Kids profile's weekly goal here; other profiles set their own in Goals.
       if (draft.ageRating === "kids" && draft.weeklyGoalMinutes !== (existing?.weeklyGoalMinutes ?? null)) {
         await change({ action: "set_weekly_goal", profileId: id, weeklyGoalMinutes: draft.weeklyGoalMinutes });
+      }
+      // A monthly share of the household's hours, a grown-up's setting for any profile.
+      if ((draft.monthlyListeningMinutes ?? null) !== (existing?.monthlyListeningMinutes ?? null) || (draft.monthlyVoiceMinutes ?? null) !== (existing?.monthlyVoiceMinutes ?? null)) {
+        await change({ action: "set_monthly_share", profileId: id, listeningMinutes: draft.monthlyListeningMinutes ?? null, voiceMinutes: draft.monthlyVoiceMinutes ?? null });
+      }
+      // Natural voices for a Kids profile's uploads, a grown-up's say-so like the goal and bedtime.
+      if (draft.ageRating === "kids" && Boolean(draft.kidsNaturalVoices) !== Boolean(existing?.kidsNaturalVoices)) {
+        await change({ action: "set_kids_voices", profileId: id, on: Boolean(draft.kidsNaturalVoices) });
       }
       // Bedtime, like the weekly goal, is a grown-up's setting for a Kids profile.
       if (draft.ageRating === "kids" && (draft.bedtime !== (existing?.bedtime ?? null) || draft.wakeTime !== (existing?.wakeTime ?? null))) {

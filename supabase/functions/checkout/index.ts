@@ -107,7 +107,9 @@ Deno.serve((req) =>
       // A gift card is its amount on the gift card product; a gift membership is a whole year at the
       // yearly price (two months free), once, or shorter gifts at the monthly price per month.
       const year = input.months === 12;
-      const line = input.creditCents !== null
+      const line = input.voiceHours
+        ? { quantity: 1, price_data: { currency: "usd", unit_amount: VOICE_PACKS[input.voiceHours], product: VOICE_PACK_PRODUCT } }
+        : input.creditCents !== null
         ? { quantity: 1, price_data: { currency: "usd", unit_amount: input.creditCents, product: GIFT_CARD_PRODUCT } }
         : await (async () => {
           const price = year ? await planPrice(input.planId!, "year") : await monthlyPrice(input.planId!);
@@ -124,7 +126,9 @@ Deno.serve((req) =>
         // Read by stripe-webhook to make the gift code.
         metadata: {
           kind: "gift",
-          ...(input.creditCents !== null
+          ...(input.voiceHours
+            ? { gift_kind: "voice_hours", voice_hours: String(input.voiceHours) }
+            : input.creditCents !== null
             ? { gift_kind: "credit", credit_cents: String(input.creditCents) }
             : { plan_id: input.planId!, months: String(input.months) }),
           ...(input.startsOn ? { starts_on: input.startsOn } : {}),

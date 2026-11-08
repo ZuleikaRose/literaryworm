@@ -30,6 +30,7 @@ export function AppEffects() {
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty("--text-scale", String(a11y.textScale));
+    root.dataset.textSpacing = a11y.textSpacing;
     root.dataset.theme = a11y.theme;
     root.lang = a11y.language;
     // Arabic reads right to left.

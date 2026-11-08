@@ -12,9 +12,11 @@ import type { Book } from "../types";
 import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 import { useT } from "../lib/useT";
+import { ContinueDialog } from "./ContinueOnPhone";
+import { playerContinueUrl } from "../lib/continueLink";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "./PlayerControls";
 
-type Panel = "jump" | "settings" | "devices" | "recap" | "clip" | null;
+type Panel = "jump" | "settings" | "devices" | "recap" | "clip" | "continue" | null;
 
 /**
  * The audiobook that's playing, at the bottom of every page (above the tab bar on phones), so
@@ -229,6 +231,11 @@ function MiniPlayerView({ book }: { book: Book }) {
                   </button>
                 </li>
                 <li>
+                  <button type="button" className="menu-item" onClick={choose(() => setPanel("continue"))}>
+                    <Icon name="qr" size={16} /> {t("Continue on your phone")}
+                  </button>
+                </li>
+                <li>
                   <Link className="menu-item" to={`/listen/${book.id}`} onClick={() => closeMenu(false)}>
                     <Icon name="headphones" size={16} /> {t("Open the full player")}
                   </Link>
@@ -257,6 +264,7 @@ function MiniPlayerView({ book }: { book: Book }) {
       />
       <PlayerSettingsDialog open={panel === "settings"} onClose={() => setPanel(null)} withPlayback />
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
+      {panel === "continue" && <ContinueDialog open onClose={() => setPanel(null)} url={playerContinueUrl(book.id, position)} title={book.title} />}
       <RecapDialog open={panel === "recap"} book={book} chapterIndex={places.chapterIndex} onClose={() => setPanel(null)} />
       {panel === "clip" && <ClipDialog open book={book} chapterIndex={places.chapterIndex} offset={position - places.chapterStart} chapterSeconds={places.chapterEnd - places.chapterStart} onClose={() => setPanel(null)} />}
     </section>

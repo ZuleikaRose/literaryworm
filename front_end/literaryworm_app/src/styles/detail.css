@@ -100,11 +100,11 @@
   align-items: center;
   gap: 5px;
   padding: 0 13px;
-  border-right: 1px solid var(--line-strong);
+  border-inline-end: 1px solid var(--line-strong);
 }
 
 .book-meta li:first-child {
-  padding-left: 0;
+  padding-inline-start: 0;
 }
 
 .book-meta li:last-child {
@@ -163,11 +163,11 @@
 }
 
 .status-field > .icon:first-of-type {
-  left: 16px;
+  inset-inline-start: 16px;
 }
 
 .status-field > .icon:last-of-type {
-  right: 14px;
+  inset-inline-end: 14px;
 }
 
 .status-select {
@@ -868,7 +868,7 @@
 
 .journal-entry {
   padding: 18px 23px;
-  border-left: 3px solid var(--rust-deep);
+  border-inline-start: 3px solid var(--rust-deep);
   border-radius: 0 var(--radius) var(--radius) 0;
   background: var(--surface);
 }
@@ -950,7 +950,7 @@
   justify-content: space-between;
   gap: 4px 16px;
   padding: 10px 16px;
-  border-left: 3px solid var(--rust-deep);
+  border-inline-start: 3px solid var(--rust-deep);
   border-radius: 0 var(--radius) var(--radius) 0;
   background: var(--surface);
 }
@@ -1072,7 +1072,7 @@
 .translate-original {
   margin: 16px 0 0;
   padding: 10px 14px;
-  border-left: 3px solid var(--line-strong);
+  border-inline-start: 3px solid var(--line-strong);
   color: var(--ink-soft);
   font-style: italic;
 }

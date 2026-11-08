@@ -58,10 +58,11 @@ Deno.serve((req) =>
       const { error } = await serviceClient().from("gift_codes").upsert(
         {
           code: giftCode(),
-          kind: gift.creditCents !== null ? "credit" : "membership",
+          kind: gift.voiceHours ? "voice_hours" : gift.creditCents !== null ? "credit" : "membership",
           plan_id: gift.planId,
           months: gift.months,
           credit_cents: gift.creditCents,
+          voice_hours: gift.voiceHours ?? null,
           amount_cents: gift.amountCents,
           currency: gift.currency,
           buyer_id: gift.buyerId,

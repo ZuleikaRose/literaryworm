@@ -12,6 +12,7 @@ interface DeliveryRow {
   plan_id: Gift["planId"];
   months: Gift["months"];
   credit_cents: number | null;
+  voice_hours: number | null;
   starts_on: string | null;
   recipient_email: string;
   message: string | null;
@@ -24,6 +25,7 @@ interface ReminderRow {
   plan_id: Gift["planId"];
   months: Gift["months"];
   credit_cents: number | null;
+  voice_hours: number | null;
   starts_on: string;
   email: string;
   buyer_name: string | null;
@@ -40,7 +42,7 @@ Deno.serve((req) =>
       const { data, error } = await serviceClient().rpc("claim_gift_start_reminders", { max_count: max });
       if (error) throw error;
       return (data as ReminderRow[]).map((r) => ({
-        gift: { id: r.gift_id, planId: r.plan_id, months: r.months, creditCents: r.credit_cents, startsOn: r.starts_on },
+        gift: { id: r.gift_id, planId: r.plan_id, months: r.months, creditCents: r.credit_cents, voiceHours: r.voice_hours, startsOn: r.starts_on },
         email: r.email,
         name: r.buyer_name,
       }));
@@ -53,7 +55,7 @@ Deno.serve((req) =>
       const { data, error } = await serviceClient().rpc("claim_gift_deliveries", { max_count: max });
       if (error) throw error;
       return (data as DeliveryRow[]).map((r) => ({
-        gift: { id: r.gift_id, code: r.code, planId: r.plan_id, months: r.months, creditCents: r.credit_cents, startsOn: r.starts_on },
+        gift: { id: r.gift_id, code: r.code, planId: r.plan_id, months: r.months, creditCents: r.credit_cents, voiceHours: r.voice_hours, startsOn: r.starts_on },
         to: r.recipient_email,
         message: r.message,
         from: r.buyer_name,

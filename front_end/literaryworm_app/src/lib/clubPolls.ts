@@ -1,5 +1,6 @@
 /**
- * Club polls: a club's owner offers 2 to 5 LiteraryWorm titles and members vote on what to read
+ * Club polls: a club's owner offers 2 to 5 LiteraryWorm titles or their own uploads (named by title
+ * and author only, migration 6803) and members vote on what to read
  * next (`club_polls`, `club_poll_votes`, migration 6637; the database checks the same rules).
  * Everyone in the club sees the votes. Closing keeps the winner: the most votes, a tie going to
  * the book offered first.
@@ -18,8 +19,10 @@ export interface ClubPoll {
   clubId: string;
   createdBy: string;
   question: string;
-  /** Catalog book ids, in the order offered. */
+  /** Catalog book ids or the owner's upload ids ("u-…"), in the order offered. */
   options: string[];
+  /** An upload option's title and author (copied by the database from the owner's upload). */
+  uploadLabels?: Record<string, { title: string; author: string }>;
   createdAt: number;
   closedAt: number | null;
   winner: string | null;
@@ -68,3 +71,11 @@ export function pollAlerts(polls: ClubPoll[], notifyOff: (clubId: string) => boo
 }
 
 export type PollAlert = ReturnType<typeof pollAlerts>[number];
+
+/** An option's title and author: a catalog book's, or an upload's as the poll keeps it. */
+export function pollOptionLabel(poll: Pick<ClubPoll, "uploadLabels">, id: string, catalog: (id: string) => { title: string; author: string } | undefined): { title: string; author: string } | null {
+  const upload = poll.uploadLabels?.[id];
+  if (upload) return upload;
+  const book = catalog(id);
+  return book ? { title: book.title, author: book.author } : null;
+}

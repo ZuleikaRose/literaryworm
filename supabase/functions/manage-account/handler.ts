@@ -96,10 +96,12 @@ export type SubscriptionPatch = Partial<
 export interface Gift {
   id: string;
   /** A gift membership (plan and months) or a gift card (credit_cents). */
-  kind?: "membership" | "credit";
+  kind?: "membership" | "credit" | "voice_hours";
   plan_id: PlanId | null;
   months: number | null;
   credit_cents?: number | null;
+  /** Natural-voice hours (5 or 10) for a gift of them. */
+  voice_hours?: number | null;
   redeemed_at: string | null;
   /** The first day it can be redeemed ("YYYY-MM-DD"); null from the day it was bought. */
   starts_on: string | null;
@@ -116,6 +118,8 @@ export interface Gifts {
   release: (giftId: string) => Promise<void>;
   /** Adds the gift's books to the account's library as Want to read, leaving any already there as they are. */
   addBooks: (userId: string, books: string[]) => Promise<void>;
+  /** Turns a claimed natural-voice-hours gift into a pack for the account (add_gift_voice_pack()). */
+  addVoicePack: (userId: string, giftId: string) => Promise<void>;
 }
 
 /** Changes to the member's Stripe subscription. */
@@ -397,6 +401,25 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         const code = parseGiftCode(body.code);
         if (body.renewalTermsAccepted !== undefined && typeof body.renewalTermsAccepted !== "boolean") {
           throw new HttpError("bad_request", "renewalTermsAccepted is true or false.");
+        }
+        // Natural-voice hours: a pack for the redeemer, whatever their membership (staff included).
+        const early = await deps.gifts.find(code);
+        if (early?.kind === "voice_hours" && !early.redeemed_at) {
+          if (!giftStarted(early.starts_on, now)) {
+            throw new HttpError("bad_request", `This gift starts on ${longDate(early.starts_on!)}. Redeem it from then.`);
+          }
+          const hours = early.voice_hours ?? 0;
+          if (hours !== 5 && hours !== 10) throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+          if (!(await deps.gifts.claim(early.id, user.id))) {
+            throw new HttpError("bad_request", "That gift code isn't valid or has already been used.");
+          }
+          try {
+            await deps.gifts.addVoicePack(user.id, early.id);
+          } catch (err) {
+            await deps.gifts.release(early.id);
+            throw err;
+          }
+          return json(req, METHODS, { gift: { kind: "voice_hours", voiceHours: hours } });
         }
         const sub = await deps.getSubscription(user.id);
         if (sub?.complimentary) {

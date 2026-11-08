@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { browseGenres, favouriteGenreLabel } from "../data/genres";
 import { avatarPalette } from "../lib/avatars";
 import { durationLabel } from "../lib/goals";
+import { LISTENING_SHARES, VOICE_SHARES } from "../lib/profileShares";
 import { BEDTIME_EXTRA_MINUTES, BEDTIME_OPTIONS, DEFAULT_WAKE, timeLabel, WAKE_OPTIONS } from "../lib/bedtime";
 import { ageRatingDetails, dailyLimitOptions, isValidPin, PIN_LENGTH, PROFILE_NAME_MAX, validateProfileName, weeklyGoalOptions } from "../lib/profiles";
 import { AccountError } from "../lib/accountApi";
@@ -74,6 +75,10 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   const [pin, setPin] = useState("");
   const [limit, setLimit] = useState<number | null>(profile?.dailyLimitMinutes ?? null);
   const [weeklyGoal, setWeeklyGoal] = useState<number | null>(profile?.weeklyGoalMinutes ?? null);
+  const [kidsVoices, setKidsVoices] = useState(Boolean(profile?.kidsNaturalVoices));
+  // A monthly share of the household's hours (lib/profileShares.ts); null is none of its own.
+  const [listenShare, setListenShare] = useState<number | null>(profile?.monthlyListeningMinutes ?? null);
+  const [voiceShare, setVoiceShare] = useState<number | null>(profile?.monthlyVoiceMinutes ?? null);
   // Only Kids profiles keep a weekly goal.
   // Grown-up and teen profiles set their own goal in Goals; the editor sets a Kids profile's.
   const goal = rating === "kids" ? weeklyGoal : (profile?.weeklyGoalMinutes ?? null);
@@ -95,7 +100,7 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
   // Changing who can see what, or locking a profile, is the account holder's call.
   const pinChanged = pinOn ? pin.length > 0 || !profile?.hasPin : Boolean(profile?.hasPin);
   const protectedChange =
-    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null) || goal !== (profile?.weeklyGoalMinutes ?? null) ||
+    (isNew ? rating === "kids" : rating !== profile.ageRating) || pinChanged || limit !== (profile?.dailyLimitMinutes ?? null) || goal !== (profile?.weeklyGoalMinutes ?? null) || (rating === "kids" && kidsVoices !== Boolean(profile?.kidsNaturalVoices)) || listenShare !== (profile?.monthlyListeningMinutes ?? null) || voiceShare !== (profile?.monthlyVoiceMinutes ?? null) ||
     (rating === "kids" && (bedtime !== (profile?.bedtime ?? null) || wakeTime !== (profile?.wakeTime ?? null)));
   const needsPassword = protectedChange || confirm !== null;
   const needsConsent = rating === "kids" && !(profile?.ageRating === "kids" && profile.kidsConsent);
@@ -133,6 +138,9 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           favoriteGenres: genres,
           dailyLimitMinutes: limit,
           weeklyGoalMinutes: goal,
+          kidsNaturalVoices: rating === "kids" && kidsVoices,
+          monthlyListeningMinutes: listenShare,
+          monthlyVoiceMinutes: voiceShare,
           bedtime,
           wakeTime,
           // undefined keeps the current PIN; null removes it.
@@ -320,6 +328,53 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
           </select>
           <p className="field-hint">{t("Reading and listening stop when the time is used up. The account password allows 30 more minutes.")}</p>
         </div>
+        <div className="field">
+          <label className="field-label" htmlFor="listen-share">
+            {t("Share of the household's audiobook hours")}
+          </label>
+          <select id="listen-share" className="field-input" value={listenShare ?? ""} aria-describedby="share-hint" onChange={(e) => setListenShare(e.target.value ? Number(e.target.value) : null)}>
+            <option value="">{t("No share of its own")}</option>
+            {LISTENING_SHARES.map((m) => (
+              <option key={m} value={m}>
+                {t("{duration} a month", { duration: durationLabel(m) })}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label className="field-label" htmlFor="voice-share">
+            {t("Share of the household's natural-voice reading")}
+          </label>
+          <select id="voice-share" className="field-input" value={voiceShare ?? ""} aria-describedby="share-hint" onChange={(e) => setVoiceShare(e.target.value ? Number(e.target.value) : null)}>
+            <option value="">{t("No share of its own")}</option>
+            {VOICE_SHARES.map((m) => (
+              <option key={m} value={m}>
+                {t("{duration} a month", { duration: durationLabel(m) })}
+              </option>
+            ))}
+          </select>
+          <p className="field-hint" id="share-hint">
+            {t("A profile with a share stops when it's used, even if the household has hours left. Account → Family shows what each profile has used.")}
+          </p>
+        </div>
+        {rating === "kids" && (
+          <label className="switch-row">
+            <span>
+              <strong>{t("Natural voices for their uploads")}</strong>
+              <small id="kids-voices-hint">
+                {t("Books this profile uploads can be read aloud by Google's natural voices, using the household's hours. Off until a grown-up turns it on.")}
+              </small>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              className="switch"
+              aria-describedby="kids-voices-hint"
+              checked={kidsVoices}
+              onChange={(e) => setKidsVoices(e.target.checked)}
+            />
+          </label>
+        )}
         {rating === "kids" && (
           <div className="field">
             <label className="field-label" htmlFor="weekly-goal">

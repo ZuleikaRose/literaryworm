@@ -90,6 +90,8 @@ export interface NewGift {
   months: GiftMonths | null;
   /** A gift card's credit in cents; null for a gift membership. */
   creditCents: GiftCardCents | null;
+  /** A gift of natural-voice hours (5 or 10); null for the other gifts. */
+  voiceHours?: number | null;
   amountCents: number;
   currency: string;
   /** The first day the code can be redeemed ("YYYY-MM-DD"), when the buyer picked one. */
@@ -224,12 +226,18 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
       }
       if (session.mode === "payment" && session.metadata?.kind === "gift") {
         if (session.payment_status !== "paid") return;
+        const voices = session.metadata.gift_kind === "voice_hours";
         const card = session.metadata.gift_kind === "credit";
-        const planId = card ? null : (session.metadata.plan_id as PlanId);
-        const months = card ? null : (Number(session.metadata.months) as GiftMonths);
+        const planId = card || voices ? null : (session.metadata.plan_id as PlanId);
+        const months = card || voices ? null : (Number(session.metadata.months) as GiftMonths);
         const creditCents = card ? (Number(session.metadata.credit_cents) as GiftCardCents) : null;
+        const voiceHours = voices ? Number(session.metadata.voice_hours) : null;
         const startsOn = session.metadata.starts_on ?? null;
-        const shapeOk = card ? GIFT_CARD_CENTS.includes(creditCents!) : PLANS.includes(planId!) && GIFT_MONTHS.includes(months!);
+        const shapeOk = voices
+          ? isVoicePack(voiceHours)
+          : card
+            ? GIFT_CARD_CENTS.includes(creditCents!)
+            : PLANS.includes(planId!) && GIFT_MONTHS.includes(months!);
         if (!shapeOk || !session.amount_total || (startsOn !== null && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn))) {
           throw new Error(`gift checkout ${session.id} has bad metadata`);
         }
@@ -241,12 +249,13 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
           planId,
           months,
           creditCents,
+          voiceHours,
           amountCents: session.amount_total,
           currency: (session.currency ?? "usd").toUpperCase(),
           startsOn,
           ...giftRecipient(session.metadata, session.id),
           // A gift card comes without books.
-          books: card ? [] : giftBooks(session.metadata, session.id),
+          books: card || voices ? [] : giftBooks(session.metadata, session.id),
         });
         return;
       }

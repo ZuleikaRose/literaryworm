@@ -60,6 +60,11 @@ export function RedeemGift({ account, onStarted, initialCode = "" }: { account: 
     try {
       // Only a gift membership needs the agreement; the server says so (a gift card doesn't).
       const gift = await redeemGift(code, !hasMembership && agreed);
+      if (gift.kind === "voice_hours") {
+        setCode("");
+        setDone(t("Gift redeemed: {hours} hours of natural-voice reading are on your account for the next 12 months, used after your plan's hours each month.", { hours: gift.voiceHours }));
+        return;
+      }
       if (gift.kind === "credit") {
         setCode("");
         setDone(t("Gift card redeemed: {amount} is on your account and comes off your next charges.", { amount: formatMoney(gift.creditCents, "usd") }));

@@ -13,7 +13,7 @@
 }
 
 .shelf-controls .view-all {
-  margin-right: 10px;
+  margin-inline-end: 10px;
 }
 
 .shelf-arrow {
@@ -49,13 +49,13 @@
 /* Top 10: a large outlined rank number beside each cover. */
 .shelf-track.ranked > li {
   flex-basis: clamp(178px, 20vw, 246px);
-  padding-left: clamp(46px, 5vw, 66px);
+  padding-inline-start: clamp(46px, 5vw, 66px);
 }
 
 .rank {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   color: var(--bg);
   font-family: var(--font-display);
   font-size: clamp(5rem, 9vw, 7.5rem);
@@ -278,7 +278,7 @@
 }
 
 .load-trigger small {
-  margin-left: 8px;
+  margin-inline-start: 8px;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.06em;

@@ -49,9 +49,12 @@ export function ClubsView({ profile }: { profile: Profile }) {
   const clubs = useClubs();
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
-  // ?start=<catalog id> (a club poll's winner) opens the start form with that book chosen.
-  const [startWith] = useState(() => getBook(new URLSearchParams(window.location.search).get("start") ?? undefined));
-  const [starting, setStarting] = useState(Boolean(startWith));
+  // ?start=<catalog id or one of your upload ids> (a club poll's winner) opens the start form with that book.
+  const [startParam] = useState(() => new URLSearchParams(window.location.search).get("start"));
+  const startWith = getBook(startParam ?? undefined);
+  const { uploads: myUploads } = useProfileData();
+  const startUpload = startParam?.startsWith("u-") ? myUploads.find((u) => u.id === startParam) : undefined;
+  const [starting, setStarting] = useState(Boolean(startWith || startParam?.startsWith("u-")));
   const [memberships, setMemberships] = useState<Record<string, ClubMembership>>({});
   const progress = activeReading(useStore().state).progress;
   const { uploads } = useProfileData();
@@ -146,7 +149,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
         <section className="goal-card" aria-labelledby="start-club-title">
           <h2 id="start-club-title">{t("Start a club")}</h2>
           {starting ? (
-            <StartClubForm profile={profile} initialBook={startWith} onCancel={() => setStarting(false)} />
+            <StartClubForm profile={profile} initialBook={startWith} initialUpload={startUpload} onCancel={() => setStarting(false)} />
           ) : (
             <>
               <p className="goal-hint">{t("Pick a book and a finish date; LiteraryWorm paces the chapters and gives you a code to share.")}</p>
@@ -167,7 +170,7 @@ export function ClubsView({ profile }: { profile: Profile }) {
 
 type BookSource = "catalog" | "uploads";
 
-function StartClubForm({ profile, initialBook, onCancel }: { profile: Profile; initialBook?: Book; onCancel: () => void }) {
+function StartClubForm({ profile, initialBook, initialUpload, onCancel }: { profile: Profile; initialBook?: Book; initialUpload?: { title: string }; onCancel: () => void }) {
   const t = useT();
   const clubs = useClubs();
   const navigate = useNavigate();
@@ -177,8 +180,8 @@ function StartClubForm({ profile, initialBook, onCancel }: { profile: Profile; i
   const progress = activeReading(state).progress;
   const now = today();
   const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, profile.ageRating)), [profile.ageRating]);
-  const [source, setSource] = useState<BookSource>("catalog");
-  const [query, setQuery] = useState(initialBook?.title ?? "");
+  const [source, setSource] = useState<BookSource>(initialUpload ? "uploads" : "catalog");
+  const [query, setQuery] = useState(initialUpload?.title ?? initialBook?.title ?? "");
   const [sort, setSort] = useState<ClubBookSort>("title");
   const [series, setSeries] = useState("");
   // Your uploads (DRM-free EPUBs, including ones bought elsewhere) or LiteraryWorm's titles, with their series.

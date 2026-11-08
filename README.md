@@ -524,5 +524,11 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Who reads whom (cast_choices), club schedule reminders in the bell, theme ideas on Discover, word marking in the read-along. Migrations 6749–6753; natural-voice redeploy. |
 | —    | Demo character voices, pronunciations, club pace votes, Kids certificates, clips from uploads, ranked theme ideas, read-along in the reader. Migrations 6754–6768; natural-voice redeploy. |
 | —    | Listen together on uploaded books, the Year in reading email, more natural-voice hours (5 h $14.99, 10 h $24.99) and the app in 20 languages. Migrations 6784–6795 | Done |
+| —    | Greek: the app in 21 languages and natural voices for Greek uploads. Migrations 6796–6798 | Done |
+| —    | Natural voices for Kids profiles with a grown-up's yes, and a monthly share of listening and natural-voice hours per profile. Migrations 6799–6800, 6804–6805. |
+| —    | Gift natural-voice hours (5 or 10) from Gifts, redeemed in Account. Migration 6801. |
+| —    | A speed for each character in Who reads whom. Migration 6802. |
+| —    | Club polls with uploads; a club's year together card. Migration 6803. |
+| —    | Continue on your phone (QR), Text spacing, Read aloud speed, layouts mirrored for right to left. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

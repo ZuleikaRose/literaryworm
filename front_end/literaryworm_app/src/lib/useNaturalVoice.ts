@@ -16,8 +16,8 @@ export function useNaturalVoice(book: Book): "member" | "demo" | null {
   const { state } = useStore();
   const profile = useActiveProfile();
   const ageRating = profile?.ageRating ?? null;
-  if (naturalVoiceOffered({ member: usesBackend && Boolean(state.account?.userId), ageRating, uploadPath: book.upload?.path ?? null })) return "member";
-  if (state.account?.isDemo && book.upload && DEMO_NATURAL_SAMPLES.includes(book.id) && ageRating !== null && ageRating !== "kids") return "demo";
+  if (naturalVoiceOffered({ member: usesBackend && Boolean(state.account?.userId), ageRating, uploadPath: book.upload?.path ?? null, kidsAllowed: profile?.kidsNaturalVoices })) return "member";
+  if (state.account?.isDemo && book.upload && DEMO_NATURAL_SAMPLES.includes(book.id) && ageRating !== null && (ageRating !== "kids" || Boolean(profile?.kidsNaturalVoices))) return "demo";
   return null;
 }
 
@@ -38,7 +38,7 @@ export function useNaturalVoiceUsage(): { used: number; left: number; limit: num
   const trialUntil = state.account?.trialUntil ?? null;
   const trial = trialUntil !== null && Date.parse(trialUntil) > Date.now();
   const paused = Boolean(state.account?.pastDue);
-  const member = usesBackend && Boolean(state.account?.userId) && profile?.ageRating !== "kids" && planId !== null;
+  const member = usesBackend && Boolean(state.account?.userId) && (profile?.ageRating !== "kids" || Boolean(profile?.kidsNaturalVoices)) && planId !== null;
   const [usage, setUsage] = useState<{ characters: number; mostlyUsedAt: string | null; packs: VoicePack[] } | null>(null);
   useEffect(() => {
     if (!member) return;

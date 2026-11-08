@@ -21,7 +21,10 @@ import { samplePage } from "../data/sampleText";
 import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
 import { usePlayback } from "../lib/playback";
 import { useReaderReadAloud } from "../lib/useReaderReadAloud";
-import { chapterStarts, linkedPage, pageForFraction, pageFraction, READER_SIZES, type ReaderPage } from "../lib/reading";
+import { ContinueDialog } from "../components/ContinueOnPhone";
+import { readerContinueUrl } from "../lib/continueLink";
+import { usePlayerSettings } from "../lib/usePlayerSettings";
+import { chapterStarts, linkedPage, pageForFraction, pageFraction, PLAYBACK_SPEEDS, READER_SIZES, type ReaderPage } from "../lib/reading";
 import { useBookPages } from "../lib/useBookPages";
 import { useControlsVisibility } from "../lib/useControlsVisibility";
 import { useDailyLimit } from "../lib/useDailyLimit";
@@ -41,7 +44,7 @@ import { countPage } from "../lib/sprintCounter";
 import { SprintChip } from "../components/SprintChip";
 import type { Book, Highlight, HighlightColor } from "../types";
 
-type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | "shortcuts" | "quiz" | null;
+type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | "shortcuts" | "quiz" | "continue" | null;
 
 export default function Reader() {
   return <ReadingGate format="ebook">{(book) => <ReaderPages key={book.id} book={book} />}</ReadingGate>;
@@ -234,6 +237,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
 
   // Read aloud (uploads with a natural voice): the voice reads on from this page, turning the pages.
   const readAloud = useReaderReadAloud(book, pages, index, goTo, articleRef);
+  const { player: readerPlayer, update: updatePlayer } = usePlayerSettings(book?.id ?? null);
   const next = () => (index === total - 1 ? setAsking(true) : goTo(index + 1));
   const previous = () => goTo(index - 1);
 
@@ -366,6 +370,23 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               <span className="visually-hidden">{readAloud.on ? t("Stop reading aloud") : t("Read aloud, marking each word")}</span>
             </button>
           )}
+          {readAloud.on && (
+            // The player's own speed (per book when it keeps one), so both stay the same.
+            <label className="reader-speed">
+              <span className="visually-hidden">{t("Reading aloud speed")}</span>
+              <select value={readerPlayer.speed} onChange={(e) => updatePlayer({ speed: Number(e.target.value) })}>
+                {PLAYBACK_SPEEDS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}×
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <button type="button" className="icon-button" onClick={() => setPanel("continue")}>
+            <Icon name="qr" size={20} />
+            <span className="visually-hidden">{t("Continue on your phone")}</span>
+          </button>
           <button type="button" className="icon-button" onClick={() => setPanel("bookmarks")}>
             <Icon name="bookmark" size={20} filled={isHereMarked} />
             <span className="visually-hidden">{isHereMarked ? t("Bookmarks (this page is bookmarked)") : t("Bookmarks")}</span>
@@ -472,6 +493,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               ref={articleRef}
               className="reader-text"
               lang="en"
+              // The book's own direction, whatever the app's language (Arabic sets the page right to left).
+              dir="auto"
               aria-label={t("{chapter}, page {page} of {pages}", { chapter: chapter.title, page: page.page + 1, pages: pagesInChapter })}
             >
               {page.page === 0 && (
@@ -516,7 +539,7 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
           <div className="progress-track">
             <span className="chapter-marks" aria-hidden="true">
               {starts.slice(1).map((start, i) => (
-                <span key={i} style={{ left: `${(start / (total - 1)) * 100}%` }} />
+                <span key={i} style={{ insetInlineStart: `${(start / (total - 1)) * 100}%` }} />
               ))}
             </span>
             <input
@@ -593,6 +616,9 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
       />
       <ReaderDisplayDialog open={panel === "display"} onClose={() => setPanel(null)} />
       <ShortcutsDialog open={panel === "shortcuts"} onClose={() => setPanel(null)} />
+      {panel === "continue" && page && (
+        <ContinueDialog open onClose={() => setPanel(null)} url={readerContinueUrl(book.id, page.chapterIndex, page.page)} title={book.title} />
+      )}
       {book.recording && <QuizDialog open={panel === "quiz"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
       <HighlightsDialog
         open={panel === "highlights"}

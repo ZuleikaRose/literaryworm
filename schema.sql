@@ -14127,3 +14127,403 @@ where slug = 'help'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-07'::date, '2026.11', 'feature', $lw$LiteraryWorm in 20 languages$lw$, $lw$The app now speaks the same 20 languages as our natural voices. Besides English, Spanish, French, German, Portuguese, Italian and Dutch, choose 日本語, 中文（简体）, 한국어, हिन्दी, العربية, Polski, Русский, Türkçe, Svenska, Українська, Tagalog, Български or Română in the accessibility menu. Arabic reads right to left, and your profile keeps the language on every device. Book details, emails, the policies and Help stay in English.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$LiteraryWorm in 20 languages$lw$ and c.released_on = '2026-11-07');
+
+-- =============================================================================
+-- 20261108006796_ui_language_greek.sql
+-- =============================================================================
+-- Greek joins the app's languages and the natural voices (el-GR, Chirp 3: HD): a profile can keep
+-- 'el' as its interface language too. src/lib/i18n.ts UI_LANGUAGES has the same 21.
+
+alter table public.reader_profiles drop constraint if exists reader_profiles_ui_language_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_ui_language_check
+  check (ui_language is null or ui_language in (
+    'en', 'es', 'fr', 'de', 'pt', 'it', 'nl',
+    'ja', 'zh', 'ko', 'hi', 'ar', 'pl', 'ru', 'tr', 'sv', 'uk', 'tl', 'bg', 'ro', 'el'
+  ));
+
+-- =============================================================================
+-- 20261108006797_greek_policies.sql
+-- =============================================================================
+-- Accessibility Policy and Help: Greek, the app's and the natural voices' 21st language. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian or Romanian; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left."$lw$, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 19 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Bulgarian and Romanian. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 20 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian and Romanian. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$, $lw$"Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian and Greek. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Natural voices read English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Mandarin), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian and Greek. The player reads the language from your book's details when you upload it; a book that doesn't say, or was uploaded before 7 November 2026, is read in English until you upload it again.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian or Romanian, the same 20 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left."$lw$, $lw$"Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek, the same 21 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek, the same 21 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006798_whats_new_greek.sql
+-- =============================================================================
+-- What's new: Greek, for the app and natural voices. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Greek, for the app and natural voices$lw$, $lw$Choose Ελληνικά in the accessibility menu to see LiteraryWorm in Greek, the 21st language. Natural voices now read Greek books you upload too, with two Greek voices and character voices that find who's speaking, articles and all.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Greek, for the app and natural voices$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006799_kids_natural_voices.sql
+-- =============================================================================
+-- Natural voices for a Kids profile, with a grown-up's say-so: off until a grown-up turns them on
+-- in Account → Family (the manage-profile function's set_kids_voices, which re-checks the account
+-- password). The browser can read it, never write it. The natural-voice function then voices that
+-- profile's uploads, counted against the household's hours like everyone else's.
+
+alter table public.reader_profiles add column if not exists kids_natural_voices boolean not null default false;
+comment on column public.reader_profiles.kids_natural_voices is
+  'Kids profiles only: a grown-up allowed natural voices for this profile''s uploads. Written only by manage-profile (set_kids_voices).';
+grant select (kids_natural_voices) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261108006800_profile_monthly_shares.sql
+-- =============================================================================
+-- Shared listening hours: a grown-up can give any profile its own monthly share of the household's
+-- audiobook hours and natural-voice reading (Account → Family, the profile editor). Written only by
+-- the manage-profile function (set_monthly_share, which re-checks the account password); the
+-- browser can read them. Null is no share of its own (the household's hours are the only limit).
+-- Audiobook listening is held to it in the player (lib/useListeningAllowance.ts, from the profile's
+-- reading_days); natural voices by the natural-voice function, from natural_voice_profile_usage.
+
+alter table public.reader_profiles
+  add column if not exists monthly_listening_minutes smallint
+    check (monthly_listening_minutes in (60, 120, 180, 300, 600, 900, 1200, 1800)),
+  add column if not exists monthly_voice_minutes smallint
+    check (monthly_voice_minutes in (30, 60, 120, 180, 300, 600));
+grant select (monthly_listening_minutes, monthly_voice_minutes) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261108006801_gift_voice_hours.sql
+-- =============================================================================
+-- Gift natural-voice hours: a gift_codes row of kind 'voice_hours' (5 or 10 hours, the same packs
+-- members buy for themselves), sold on the literaryworm_voice_hours Stripe product. stripe-webhook
+-- makes the code; manage-account redeems it into a natural_voice_packs row for the redeemer (12
+-- months from redeeming, used after the month's plan hours). Start days, emailing the code and the
+-- buyer's reminder work as for the other gifts, so both claim functions also return voice_hours.
+
+alter table public.gift_codes drop constraint if exists gift_codes_kind_check;
+alter table public.gift_codes add constraint gift_codes_kind_check check (kind in ('membership', 'credit', 'voice_hours'));
+alter table public.gift_codes add column if not exists voice_hours smallint check (voice_hours is null or voice_hours in (5, 10));
+
+alter table public.gift_codes drop constraint gift_codes_kind_shape;
+alter table public.gift_codes
+  add constraint gift_codes_kind_shape check (
+    (kind = 'membership' and plan_id is not null and months is not null and credit_cents is null and voice_hours is null)
+    or (kind = 'credit' and plan_id is null and months is null and credit_cents is not null and voice_hours is null and cardinality(books) = 0)
+    or (kind = 'voice_hours' and plan_id is null and months is null and credit_cents is null and voice_hours is not null and cardinality(books) = 0)
+  );
+
+grant select (voice_hours) on public.gift_codes to authenticated;
+
+-- A pack from a redeemed gift is keyed by the gift's Checkout Session, like a bought one.
+alter table public.natural_voice_packs add column if not exists gift_id uuid unique references public.gift_codes (id) on delete set null;
+
+drop function public.claim_gift_deliveries(integer);
+create function public.claim_gift_deliveries(max_count integer default 200)
+returns table (gift_id uuid, code text, plan_id text, months smallint, credit_cents integer, voice_hours smallint, starts_on date, recipient_email text, message text, buyer_name text, books text[])
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return query
+  with due as (
+    select g.id
+    from public.gift_codes g
+    where g.recipient_email is not null
+      and g.delivered_at is null
+      and g.redeemed_at is null
+      and (g.starts_on is null or now() >= (g.starts_on::timestamp + interval '8 hours') at time zone 'utc')
+    order by g.created_at
+    limit least(greatest(coalesce(max_count, 200), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.gift_codes g set delivered_at = now()
+    from due where g.id = due.id
+    returning g.id, g.code, g.plan_id, g.months, g.credit_cents, g.voice_hours, g.starts_on, g.recipient_email, g.message, g.buyer_id, g.books
+  )
+  select c.id, c.code, c.plan_id, c.months, c.credit_cents, c.voice_hours, c.starts_on, c.recipient_email, c.message, p.display_name, c.books
+  from claimed c
+  left join public.profiles p on p.id = c.buyer_id;
+end;
+$$;
+
+revoke execute on function public.claim_gift_deliveries(integer) from public, anon, authenticated;
+grant execute on function public.claim_gift_deliveries(integer) to service_role;
+
+drop function public.claim_gift_start_reminders(integer);
+create function public.claim_gift_start_reminders(max_count integer default 200)
+returns table (gift_id uuid, plan_id text, months smallint, credit_cents integer, voice_hours smallint, starts_on date, email text, buyer_name text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (now() at time zone 'utc')::time < time '15:00' then
+    return;
+  end if;
+  return query
+  with due as (
+    select g.id
+    from public.gift_codes g
+    where g.reminded_at is null
+      and g.redeemed_at is null
+      and g.recipient_email is null
+      and g.delivered_at is null
+      and g.buyer_id is not null
+      and g.starts_on is not null
+      and g.starts_on between (now() at time zone 'utc')::date and (now() at time zone 'utc')::date + 3
+      and g.starts_on >= (g.created_at at time zone 'utc')::date + 4
+    order by g.starts_on
+    limit least(greatest(coalesce(max_count, 200), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.gift_codes g set reminded_at = now()
+    from due where g.id = due.id
+    returning g.id, g.plan_id, g.months, g.credit_cents, g.voice_hours, g.starts_on, g.buyer_id
+  )
+  select c.id, c.plan_id, c.months, c.credit_cents, c.voice_hours, c.starts_on, u.email::text, p.display_name
+  from claimed c
+  join auth.users u on u.id = c.buyer_id and u.email is not null and u.email_confirmed_at is not null
+  left join public.profiles p on p.id = c.buyer_id;
+end;
+$$;
+
+revoke execute on function public.claim_gift_start_reminders(integer) from public, anon, authenticated;
+grant execute on function public.claim_gift_start_reminders(integer) to service_role;
+
+-- Redeeming a natural-voice-hours gift (manage-account, after it claims the code for the account):
+-- the pack starts the day it's redeemed and lasts 12 months, used after the month's plan hours.
+create or replace function public.add_gift_voice_pack(p_account uuid, p_gift uuid)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.natural_voice_packs (account_id, stripe_session, hours, characters, amount_cents, expires_at, gift_id)
+  select p_account, g.stripe_checkout_session_id, g.voice_hours, g.voice_hours * 50400, g.amount_cents, now() + interval '12 months', g.id
+  from public.gift_codes g
+  where g.id = p_gift and g.kind = 'voice_hours' and g.redeemed_by = p_account
+  on conflict (stripe_session) do nothing;
+$$;
+revoke execute on function public.add_gift_voice_pack(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.add_gift_voice_pack(uuid, uuid) to service_role;
+
+-- =============================================================================
+-- 20261108006802_cast_speeds.sql
+-- =============================================================================
+-- A speed per character (Who reads whom in Player settings, lib/castSpeeds.ts): per profile and
+-- book, speaker (lower case) to 0.8, 0.9, 1.1 or 1.2, times the player's speed. Saved with the
+-- other player settings; nothing is voiced again, so it never reaches Google.
+
+alter table public.reader_profiles
+  add column if not exists cast_speeds jsonb not null default '{}'::jsonb;
+
+alter table public.reader_profiles drop constraint if exists reader_profiles_cast_speeds_check;
+alter table public.reader_profiles
+  add constraint reader_profiles_cast_speeds_check
+  check (jsonb_typeof(cast_speeds) = 'object' and pg_column_size(cast_speeds) <= 65536);
+
+grant select (cast_speeds) on public.reader_profiles to authenticated;
+grant update (cast_speeds) on public.reader_profiles to authenticated;
+
+-- =============================================================================
+-- 20261108006803_club_polls_uploads.sql
+-- =============================================================================
+-- Polls can offer uploaded books: the club's owner can put up to 5 of their own uploads (by id) beside
+-- LiteraryWorm titles. Uploads stay private, so the poll keeps only each upload's title and author
+-- (club_polls.upload_labels, copied here from the owner's upload, never sent by the browser), and
+-- members who want to read the winner choose their own copy, as in a club on an uploaded book.
+
+alter table public.club_polls
+  add column if not exists upload_labels jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(upload_labels) = 'object' and pg_column_size(upload_labels) <= 8192);
+grant select (upload_labels) on public.club_polls to authenticated;
+
+create or replace function private.check_club_poll()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+declare
+  v_option text;
+  v_upload record;
+begin
+  new.created_by := (select auth.uid());
+  new.question := btrim(new.question);
+  if not exists (select 1 from public.book_clubs b where b.id = new.club_id and b.owner_id = new.created_by) then
+    raise exception 'Only the club''s owner can start a poll' using errcode = 'insufficient_privilege';
+  end if;
+  if exists (select 1 from unnest(new.options) o where o !~ '^[A-Za-z0-9_-]{1,40}$')
+     or (select count(distinct o) from unnest(new.options) o) <> cardinality(new.options) then
+    raise exception 'A poll offers 2 to 5 different books' using errcode = 'check_violation';
+  end if;
+  if (select count(*) from public.club_polls p where p.club_id = new.club_id) >= 50 then
+    raise exception 'A club can have up to 50 polls' using errcode = 'check_violation';
+  end if;
+  -- Uploads: only the owner's own, named by title and author, never by anything the browser sends.
+  new.upload_labels := '{}'::jsonb;
+  foreach v_option in array new.options loop
+    if v_option ~ '^u-[0-9a-f]{32}$' then
+      select u.title, u.author into v_upload from public.uploaded_books u where u.id = v_option and u.user_id = new.created_by;
+      if not found then
+        raise exception 'A poll can offer only your own uploads' using errcode = 'check_violation';
+      end if;
+      new.upload_labels := new.upload_labels || jsonb_build_object(v_option, jsonb_build_object('title', v_upload.title, 'author', v_upload.author));
+    end if;
+  end loop;
+  new.closed_at := null;
+  new.winner := null;
+  return new;
+end;
+$$;
+
+revoke execute on function private.check_club_poll() from public, anon, authenticated;
+
+-- =============================================================================
+-- 20261108006804_ten_features_policies.sql
+-- =============================================================================
+-- Kids natural voices, monthly shares, gift voice hours, character speeds, upload polls, club year, QR, text spacing and right to left in Privacy, Children's Privacy Notice, Terms, Return Policy, Help and Accessibility. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Ask the book, Translate, Who's who, natural voices and book clubs (with their discussion questions) aren't offered to Kids profiles; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player."$lw$, $lw$"Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (not on Kids profiles). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (not on Kids profiles), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Kids profiles aren't offered voice control in car mode, because what's said would go to the browser's speech service (Google's or Apple's). Car mode's buttons work as usual."$lw$, $lw$"Kids profiles aren't offered voice control in car mode, because what's said would go to the browser's speech service (Google's or Apple's). Car mode's buttons work as usual.", "Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Account → Family has This month's listening: each profile's audiobook listening and new natural-voice reading this month, so you can see where the plan's hours go."$lw$, $lw$"Account → Family has This month's listening: each profile's audiobook listening and new natural-voice reading this month, so you can see where the plan's hours go.", "A grown-up can also give a profile its own share of the month (in the profile editor, with the account password): up to so many hours of audiobook listening and of new natural-voice reading. When a profile's share is used it pauses for that profile, while the rest of the household keeps the plan's hours."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$A grown-up can also give a profile its own share of the month (in the profile editor, with the account password): up to so many hours of audiobook listening and of new natural-voice reading. When a profile's share is used it pauses for that profile, while the rest of the household keeps the plan's hours.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Your household: each profile's name, avatar, age rating, favourite genres, daily limit, weekly goal, bedtime and wake-up time (Kids profiles) and player settings, the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer."$lw$, $lw$"Your household: each profile's name, avatar, age rating, favourite genres, daily limit, monthly share of listening and natural-voice hours, whether a Kids profile may use natural voices, weekly goal, bedtime and wake-up time (Kids profiles) and player settings, the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Your household: each profile's name, avatar, age rating, favourite genres, daily limit, monthly share of listening and natural-voice hours, whether a Kids profile may use natural voices, weekly goal, bedtime and wake-up time (Kids profiles) and player settings, the app language and accessibility settings it chose, whether a grown-up profile has confirmed it's 18 or older to open books marked mature, and whether it's set aside. A profile PIN is kept only as a one-way hash. For Kids profiles, we keep a record of the parent's consent, and the books a Kids profile asks a grown-up for, with the answer.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"More natural-voice hours. A member whose membership is active and paid for (not during the free week, while a payment is owed, or a complimentary staff membership) can buy 5 hours for $14.99 or 10 hours for $24.99 of new natural-voice reading for their uploads, paid once on Stripe Checkout and final. Bought hours belong to the account, are used only after the month's plan hours run out, carry over from month to month and end 12 months after purchase; hours left then, or when the account is deleted, aren't refunded and have no cash value."$lw$, $lw$"More natural-voice hours. A member whose membership is active and paid for (not during the free week, while a payment is owed, or a complimentary staff membership) can buy 5 hours for $14.99 or 10 hours for $24.99 of new natural-voice reading for their uploads, paid once on Stripe Checkout and final. Bought hours belong to the account, are used only after the month's plan hours run out, carry over from month to month and end 12 months after purchase; hours left then, or when the account is deleted, aren't refunded and have no cash value.", "Natural-voice hours can also be given as a gift (5 or 10 hours, at the same prices), paid once and final. The code adds the hours to the account that redeems it, on the same terms as hours bought for yourself (natural voices need a membership to use): used after the month's plan hours and ending 12 months after redemption."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$Natural-voice hours can also be given as a gift (5 or 10 hours, at the same prices), paid once and final. The code adds the hours to the account that redeems it, on the same terms as hours bought for yourself (natural voices need a membership to use): used after the month's plan hours and ending 12 months after redemption.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"More natural-voice hours (5 hours for $14.99, 10 for $24.99) are paid once and final too. They're used after the month's plan hours, last 12 months from purchase, and hours not used by then aren't refunded."$lw$, $lw$"More natural-voice hours (5 hours for $14.99, 10 for $24.99) are paid once and final too. They're used after the month's plan hours, last 12 months from purchase, and hours not used by then aren't refunded.", "Gifted natural-voice hours are paid once and final in the same way, and aren't refunded once redeemed or if the code is never used."$lw$)::jsonb
+where slug = 'returns'
+  and strpos(sections::text, $lw$Gifted natural-voice hours are paid once and final in the same way, and aren't refunded once redeemed or if the code is never used.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"You can also give a gift card: $25, $50 or $100 of credit for any plan. It's redeemed in Account like a gift membership, and the credit comes off the person's next charges, whichever plan they choose. It can start on a later day or be emailed to them, like any gift."$lw$, $lw$"You can also give a gift card: $25, $50 or $100 of credit for any plan. It's redeemed in Account like a gift membership, and the credit comes off the person's next charges, whichever plan they choose. It can start on a later day or be emailed to them, like any gift.", "Or give natural-voice hours: 5 hours for $14.99 or 10 for $24.99 of natural-voice reading for the uploads of someone who's a member. They're redeemed in Account like any gift, used after their month's plan hours, and last 12 months."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Or give natural-voice hours: 5 hours for $14.99 or 10 for $24.99 of natural-voice reading for the uploads of someone who's a member. They're redeemed in Account like any gift, used after their month's plan hours, and last 12 months.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading."$lw$, $lw$"Character voices (in Player settings, in the player and the mini-player) give what the characters say other voices than the narration. A speaker named beside their words, as in \"said Elizabeth\", keeps one voice all book long, and two people talking in turn are followed even when only \"he said\" is written. Speech and names are found in all 21 languages natural voices read, including each language's quotation marks and dialogue that starts with a dash; the voices are dealt out, not matched to the character, unless you choose one for a speaker in Player settings under Who reads whom. Chapters with speech are voiced again in parts the first time, which counts towards the month's natural-voice reading.", "Under Who reads whom you can also set a speaker's own speed, a little slower or faster than the narration (0.8× to 1.2× of it), for a character who should speak slowly or quickly."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Under Who reads whom you can also set a speaker's own speed, a little slower or faster than the narration (0.8× to 1.2× of it), for a character who should speak slowly or quickly.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it.", "In December and January, a club's page shows its year together: posts, meetings held, highlights shared, how many members posted and the chapter talked about most. Only chapters you've reached are counted, like the posts you see."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$In December and January, a club's page shows its year together: posts, meetings held, highlights shared, how many members posted and the chapter talked about most. Only chapters you've reached are counted, like the posts you see.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books and members vote. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$, $lw$"A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books or their own uploads and members vote. An upload is only named in the poll; each member reads their own copy. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$A club's owner can ask What to read next on the club's page: offer two to five LiteraryWorm books or their own uploads and members vote. An upload is only named in the poll; each member reads their own copy. Everyone in the club sees the votes and can change theirs until the owner closes the poll. The book with the most votes wins (a tie goes to the one offered first), and Start a club with it begins a club for it.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek, the same 21 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left."$lw$, $lw$"Choose Language in the accessibility menu (the figure at the top of every page) to see the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek, the same 21 languages natural voices read. Your profile keeps the language you choose, so it opens the same way on your other devices. Book details, What's new and our emails, the policies and Help stay in English. Arabic reads right to left.", "To carry on on your phone, choose Continue on your phone in the reader, the player or the mini-player's More menu: scan the code with your phone's camera and the book opens at the same place. The code is made on your device and holds only the book's address and place; log in on the phone to keep your progress."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$To carry on on your phone, choose Continue on your phone in the reader, the player or the mini-player's More menu: scan the code with your phone's camera and the book opens at the same place. The code is made on your device and holds only the book's address and place; log in on the phone to keep your progress.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The accessibility menu at the top of every page changes text size, theme (dark or light), the font (Lexend, or OpenDyslexic, a typeface made for readers with dyslexia), high contrast, underlined links and reduced motion. It scrolls inside any window too short to show it all. A member's profile keeps your choices on every device; otherwise they last for the visit."$lw$, $lw$"The accessibility menu at the top of every page changes text size, theme (dark or light), the font (Lexend, or OpenDyslexic, a typeface made for readers with dyslexia), high contrast, underlined links and reduced motion. It scrolls inside any window too short to show it all. A member's profile keeps your choices on every device; otherwise they last for the visit.", "Text spacing in the accessibility menu adds space between letters, words and lines (Wide), or the spacing WCAG 1.4.12 asks pages to cope with (Wider), across the whole app. While Read aloud is on in the reader, its speed can be changed from the reader's top bar."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$Text spacing in the accessibility menu adds space between letters, words and lines (Wide), or the spacing WCAG 1.4.12 asks pages to cope with (Wider), across the whole app. While Read aloud is on in the reader, its speed can be changed from the reader's top bar.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left."$lw$, $lw$"Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left: the layout mirrors, and text in the reader and the read-along follows its own direction."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$Language in the accessibility menu shows the app in English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian or Greek; a visit starts in your browser's language when it's one of these, and a member's profile keeps the language it chooses on every device. Book details, What's new and our emails stay in English for now, and so do these policies and Help, where the English version is the one that applies. Arabic is shown right to left: the layout mirrors, and text in the reader and the read-along follows its own direction.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006805_whats_new_ten.sql
+-- =============================================================================
+-- What's new: Right to left, mirrored. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$Right to left, mirrored$lw$, $lw$With the app in Arabic, every page now mirrors properly, from the header and menus to the reader, the player and its chapter marks, and book text follows its own direction.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Right to left, mirrored$lw$ and c.released_on = '2026-11-08');
+-- What's new: Text spacing, and Read aloud speed in the reader. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$Text spacing, and Read aloud speed in the reader$lw$, $lw$The accessibility menu has Text spacing: Wide, or Wider, which adds the letter, word, line and paragraph spacing WCAG asks pages to cope with. While Read aloud is on, the reader's top bar has its speed.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Text spacing, and Read aloud speed in the reader$lw$ and c.released_on = '2026-11-08');
+-- What's new: Continue on your phone. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Continue on your phone$lw$, $lw$In the reader, the player or the mini-player's More menu, Continue on your phone shows a code: scan it with your phone's camera and the book opens at the same page or moment. The code is made on your device.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Continue on your phone$lw$ and c.released_on = '2026-11-08');
+-- What's new: Your club's year together. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Your club's year together$lw$, $lw$In December and January a club's page shows its year: posts, meetings held, highlights shared, how many members posted and the chapter talked about most, counted only up to your own chapter.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Your club's year together$lw$ and c.released_on = '2026-11-08');
+-- What's new: Club polls can offer uploads. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$Club polls can offer uploads$lw$, $lw$What to read next can offer the owner's own uploaded books beside LiteraryWorm titles. Only the title and author are shown; each member reads their own copy.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Club polls can offer uploads$lw$ and c.released_on = '2026-11-08');
+-- What's new: A speed for each character. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$A speed for each character$lw$, $lw$Under Who reads whom, give a speaker their own pace, from 0.8× to 1.2× of the narration, for a character who should talk slowly or quickly. It follows the profile to every device.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A speed for each character$lw$ and c.released_on = '2026-11-08');
+-- What's new: Give natural-voice hours. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Give natural-voice hours$lw$, $lw$Gifts has a third choice: 5 hours of natural-voice reading for $14.99 or 10 for $24.99, for a member's uploads. They're redeemed in Account, used after the month's plan hours, and last 12 months.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Give natural-voice hours$lw$ and c.released_on = '2026-11-08');
+-- What's new: A monthly share for each profile. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$A monthly share for each profile$lw$, $lw$In the profile editor a grown-up can give a profile its own share of the month's audiobook listening and natural-voice reading. When it's used, that profile pauses and the rest of the household carries on.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A monthly share for each profile$lw$ and c.released_on = '2026-11-08');
+-- What's new: Natural voices for Kids profiles. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Natural voices for Kids profiles$lw$, $lw$A grown-up can now turn on natural voices for a Kids profile in its profile editor, with the account password, so children can hear their uploaded books read by a natural voice.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices for Kids profiles$lw$ and c.released_on = '2026-11-08');

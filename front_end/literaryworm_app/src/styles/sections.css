@@ -36,7 +36,7 @@
 .hero-glow {
   position: absolute;
   top: -100px;
-  left: 31%;
+  inset-inline-start: 31%;
   width: 500px;
   height: 430px;
   border-radius: 50%;
@@ -82,7 +82,7 @@
 
 .hero-books {
   position: absolute;
-  right: clamp(-45px, 3vw, 55px);
+  inset-inline-end: clamp(-45px, 3vw, 55px);
   bottom: 13px;
   width: 48%;
   height: 450px;
@@ -96,20 +96,20 @@
 
 .hero-book.front {
   z-index: 3;
-  left: 32%;
+  inset-inline-start: 32%;
   transform: rotate(5deg) translateY(-2px);
 }
 
 .hero-book.back {
   z-index: 1;
-  left: 4%;
+  inset-inline-start: 4%;
   opacity: 0.75;
   transform: rotate(-12deg) scale(0.89);
 }
 
 .hero-book.edge {
   z-index: 2;
-  right: -5%;
+  inset-inline-end: -5%;
   opacity: 0.84;
   transform: rotate(14deg) scale(0.87);
 }
@@ -359,7 +359,7 @@
   }
 
   .hero-books {
-    right: -120px;
+    inset-inline-end: -120px;
     width: 55%;
     transform: scale(0.82);
   }
@@ -379,7 +379,7 @@
 
   .hero-books {
     position: relative;
-    right: auto;
+    inset-inline-end: auto;
     bottom: auto;
     width: 100%;
     height: 300px;
@@ -392,11 +392,11 @@
   }
 
   .hero-book.front {
-    left: 30%;
+    inset-inline-start: 30%;
   }
 
   .hero-book.edge {
-    right: 2%;
+    inset-inline-end: 2%;
   }
 }
 

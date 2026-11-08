@@ -32,14 +32,14 @@
 
 .search-input-wrap > .icon {
   position: absolute;
-  left: 16px;
+  inset-inline-start: 16px;
   color: var(--faint);
   pointer-events: none;
 }
 
 .search-input {
   min-height: 52px;
-  padding-left: 48px;
+  padding-inline-start: 48px;
   font-size: 1.0625rem;
 }
 
@@ -188,7 +188,7 @@
 .did-you-mean {
   margin: 18px 0 0;
   padding: 14px 18px;
-  border-left: 3px solid var(--rust-bright);
+  border-inline-start: 3px solid var(--rust-bright);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--ink-soft);
   background: var(--surface);

@@ -324,3 +324,12 @@ Deno.test("more natural-voice hours: 5 or 10, for a paid-up membership outside t
   assertEquals((await call(setup(linked({ trial_until: "2026-10-01T00:00:00Z" })).deps, { voiceHours: 5 })).status, 200);
   assertEquals(state.voices.length, 1);
 });
+
+Deno.test("natural-voice hours can be given as a gift: 5 or 10, nothing else with them", async () => {
+  const { state, deps } = setup(null);
+  assertEquals((await call(deps, { gift: true, voiceHours: 5, recipientEmail: "sam@example.com" })).status, 200);
+  assertEquals([state.gifts[0].voiceHours, state.gifts[0].planId, state.gifts[0].creditCents, state.gifts[0].books], [5, null, null, []]);
+  for (const body of [{ voiceHours: 7 }, { voiceHours: 5, credit: 2500 }, { voiceHours: 5, planId: "basic" }, { voiceHours: 5, books: ["frankenstein"] }]) {
+    assertEquals((await call(deps, { gift: true, ...body })).status, 400, JSON.stringify(body));
+  }
+});

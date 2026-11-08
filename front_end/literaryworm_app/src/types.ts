@@ -173,6 +173,11 @@ export interface Profile {
   dailyLimitMinutes: number | null;
   /** Kids profiles: how long a grown-up wants them to read or listen each week, in minutes. */
   weeklyGoalMinutes: number | null;
+  /** Kids profiles: a grown-up allowed natural voices for their uploads (manage-profile set_kids_voices). */
+  kidsNaturalVoices?: boolean;
+  /** A grown-up's monthly share of the household's hours for this profile, in minutes; null for none. */
+  monthlyListeningMinutes?: number | null;
+  monthlyVoiceMinutes?: number | null;
   /** Kids profiles: bedtime and wake-up ("HH:MM", the device's clock); both or neither (lib/bedtime.ts). */
   bedtime: string | null;
   wakeTime: string | null;
@@ -285,6 +290,8 @@ export interface PlayerSettings {
   bookSpeeds: Record<string, number>;
   /** Voices chosen for named speakers, by book (lib/castChoices.ts): speaker (lower case) to voice. */
   castChoices: Record<string, Record<string, string>>;
+  /** A speed per named speaker, by book (lib/castSpeeds.ts): speaker (lower case) to 0.8–1.2. */
+  castSpeeds?: Record<string, Record<string, number>>;
   /** Respellings of names a natural voice says wrongly, by book (lib/pronunciations.ts): word to how it sounds. */
   pronunciations: Record<string, Record<string, string>>;
 }
@@ -545,6 +552,8 @@ export type SavedA11y = Omit<A11ySettings, "language">;
 
 export interface A11ySettings {
   textScale: number;
+  /** Letter, word and line spacing for the whole app: "wider" is WCAG 1.4.12's (dyslexia-friendly). */
+  textSpacing: "normal" | "wide" | "wider";
   readableFont: boolean;
   /** The whole interface in OpenDyslexic (self-hosted); turning it on turns Lexend off, and the other way round. */
   dyslexicFont: boolean;

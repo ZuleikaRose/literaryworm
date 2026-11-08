@@ -1,5 +1,85 @@
 [
   {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Natural voices for Kids profiles",
+    "body": "A grown-up can now turn on natural voices for a Kids profile in its profile editor, with the account password, so children can hear their uploaded books read by a natural voice.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "A monthly share for each profile",
+    "body": "In the profile editor a grown-up can give a profile its own share of the month's audiobook listening and natural-voice reading. When it's used, that profile pauses and the rest of the household carries on.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Give natural-voice hours",
+    "body": "Gifts has a third choice: 5 hours of natural-voice reading for $14.99 or 10 for $24.99, for a member's uploads. They're redeemed in Account, used after the month's plan hours, and last 12 months.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "A speed for each character",
+    "body": "Under Who reads whom, give a speaker their own pace, from 0.8× to 1.2× of the narration, for a character who should talk slowly or quickly. It follows the profile to every device.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Club polls can offer uploads",
+    "body": "What to read next can offer the owner's own uploaded books beside LiteraryWorm titles. Only the title and author are shown; each member reads their own copy.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Your club's year together",
+    "body": "In December and January a club's page shows its year: posts, meetings held, highlights shared, how many members posted and the chapter talked about most, counted only up to your own chapter.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Continue on your phone",
+    "body": "In the reader, the player or the mini-player's More menu, Continue on your phone shows a code: scan it with your phone's camera and the book opens at the same page or moment. The code is made on your device.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Text spacing, and Read aloud speed in the reader",
+    "body": "The accessibility menu has Text spacing: Wide, or Wider, which adds the letter, word, line and paragraph spacing WCAG asks pages to cope with. While Read aloud is on, the reader's top bar has its speed.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Right to left, mirrored",
+    "body": "With the app in Arabic, every page now mirrors properly, from the header and menus to the reader, the player and its chapter marks, and book text follows its own direction.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Greek, for the app and natural voices",
+    "body": "Choose Ελληνικά in the accessibility menu to see LiteraryWorm in Greek, the 21st language. Natural voices now read Greek books you upload too, with two Greek voices and character voices that find who's speaking, articles and all.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-07",
     "version": "2026.11",
     "kind": "feature",

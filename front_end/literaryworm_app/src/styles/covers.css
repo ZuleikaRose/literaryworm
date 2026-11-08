@@ -22,7 +22,7 @@
   justify-content: flex-end;
   padding: 11cqi 9cqi;
   color: var(--cover-ink);
-  text-align: left;
+  text-align: start;
 }
 
 /* Inner frame and spine line, as in the wireframe. */
@@ -38,7 +38,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 5.2cqi;
+  inset-inline-start: 5.2cqi;
   width: 1px;
   background: #ffffff28;
   content: "";

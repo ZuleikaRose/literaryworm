@@ -313,7 +313,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-left: 10px;
+  margin-inline-start: 10px;
   padding: 2px 8px;
   border: 1px solid color-mix(in srgb, var(--success) 55%, transparent);
   border-radius: 999px;
@@ -636,7 +636,7 @@
 .goal-table td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--line);
-  text-align: left;
+  text-align: start;
   white-space: nowrap;
 }
 
@@ -765,7 +765,7 @@
 .club-side button {
   max-width: 100%;
   white-space: normal;
-  text-align: left;
+  text-align: start;
 }
 
 .club-discussion h2 {
@@ -1010,7 +1010,7 @@
   display: inline-block;
   width: 10px;
   height: 10px;
-  margin-right: 6px;
+  margin-inline-end: 6px;
   border-radius: 3px;
 }
 
@@ -1064,16 +1064,16 @@
   display: grid;
   gap: 8px;
   margin: 0;
-  padding-left: 1.25em;
+  padding-inline-start: 1.25em;
 }
 
 .stats-rank li {
-  padding-left: 4px;
+  padding-inline-start: 4px;
 }
 
 .stats-rank li > span + span {
-  float: right;
-  margin-left: 12px;
+  float: inline-end;
+  margin-inline-start: 12px;
   color: var(--muted);
   font-size: 0.875rem;
 }
@@ -1116,7 +1116,7 @@
 
 .club-new {
   display: inline-block;
-  margin-left: 8px;
+  margin-inline-start: 8px;
   padding: 1px 8px;
   border-radius: 999px;
   background: var(--rust-bright);
@@ -1128,7 +1128,7 @@
 
 .club-alerts {
   position: fixed;
-  right: 16px;
+  inset-inline-end: 16px;
   bottom: calc(16px + var(--alerts-offset, 0px));
   z-index: 60;
   display: grid;
@@ -1176,7 +1176,7 @@ body:has(.mini-player) .club-alerts {
 
 .listen-along-bar {
   position: fixed;
-  left: 16px;
+  inset-inline-start: 16px;
   bottom: calc(16px + var(--alerts-offset, 0px));
   z-index: 59;
   display: flex;
@@ -1384,7 +1384,7 @@ body:has(.mini-player) .listen-along-bar {
 
 .import-missing ul {
   margin: 0 0 8px;
-  padding-left: 18px;
+  padding-inline-start: 18px;
   color: var(--ink-soft);
   font-size: 0.875rem;
 }
@@ -2008,7 +2008,7 @@ body:has(.mini-player) .listen-along-bar {
 }
 
 .highlight-review-quote {
-  border-left: 4px solid var(--quote);
+  border-inline-start: 4px solid var(--quote);
 }
 
 .highlight-review-note {
@@ -2062,7 +2062,7 @@ body:has(.mini-player) .listen-along-bar {
 }
 
 .club-poll-chosen {
-  padding-left: 0;
+  padding-inline-start: 0;
 }
 
 .club-poll-result p {
@@ -2105,7 +2105,7 @@ body:has(.mini-player) .listen-along-bar {
   display: grid;
   gap: 10px;
   margin: 0;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 .discussion-list li p {
@@ -2428,11 +2428,19 @@ body:has(.mini-player) .listen-along-bar {
 }
 .family-usage-table th,
 .family-usage-table td {
-  text-align: left;
+  text-align: start;
   padding: 8px 6px;
   border-bottom: 1px solid var(--line);
 }
 .family-usage-table thead th {
   font-size: 0.8125rem;
   color: var(--muted);
+}
+
+/* A club's year together (components/ClubYear.tsx). */
+.club-year-facts {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 8px;
+  padding-inline-start: 1.2em;
 }

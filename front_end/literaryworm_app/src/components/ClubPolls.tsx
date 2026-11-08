@@ -1,7 +1,8 @@
 import { type FormEvent, useId, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { books, getBook, isAllowed } from "../data/books";
-import { type ClubPoll, leader, POLL_DEFAULT_QUESTION, POLL_OPTIONS_MAX, POLL_QUESTION_MAX, pollError, tally } from "../lib/clubPolls";
+import { type ClubPoll, leader, POLL_DEFAULT_QUESTION, POLL_OPTIONS_MAX, POLL_QUESTION_MAX, pollError, pollOptionLabel, tally } from "../lib/clubPolls";
+import { useProfileData } from "../store/context";
 import { keywordText, wordsMatch } from "../lib/search";
 import { useClubPolls } from "../lib/useClubPolls";
 import { rich, type T } from "../lib/i18n";
@@ -9,7 +10,9 @@ import { useT } from "../lib/useT";
 import type { AgeRating } from "../types";
 import { Icon } from "./Icon";
 
-const titleOf = (id: string) => getBook(id)?.title ?? "A LiteraryWorm title";
+// A catalog book's title, or an upload's as the poll keeps it (never the upload itself).
+const titleOf = (id: string, poll?: Pick<ClubPoll, "uploadLabels">) => pollOptionLabel(poll ?? {}, id, getBook)?.title ?? "A LiteraryWorm title";
+const isUpload = (id: string) => id.startsWith("u-");
 const votesText = (t: T, n: number) => t.plural(n, { one: "{count} vote", other: "{count} votes" });
 
 /**
@@ -67,15 +70,17 @@ export function ClubPolls({
         <div className="club-poll-result">
           <p>
             {rich(t("{title} won {question} with {votes}."), {
-              title: <strong>{titleOf(closed.winner ?? "")}</strong>,
+              title: <strong>{titleOf(closed.winner ?? "", closed)}</strong>,
               question: <q>{closed.question}</q>,
               votes: votesText(t, tally(closed)[closed.options.indexOf(closed.winner ?? "")] ?? 0),
             })}
           </p>
           <div className="goal-actions">
-            <Link className="ghost-button small-button" to={`/books/${closed.winner}`}>
-              {t("About the book")}
-            </Link>
+            {!isUpload(closed.winner ?? "") && (
+              <Link className="ghost-button small-button" to={`/books/${closed.winner}`}>
+                {t("About the book")}
+              </Link>
+            )}
             {isOwner && (
               <>
                 <Link className="primary-button small-button" to={`/library?view=clubs&start=${closed.winner}`}>
@@ -148,12 +153,14 @@ function OpenPoll({
           const voters = Object.entries(poll.votes)
             .filter(([, c]) => c === i)
             .map(([u]) => nameOf(u));
-          const book = getBook(id);
+          const book = pollOptionLabel(poll, id, getBook);
           return (
             <li key={id} className={mine === i ? "is-mine" : undefined}>
               <div>
-                <Link to={`/books/${id}`}>{book?.title ?? id}</Link>
-                {book && <small>{t(" by {author}", { author: book.author })}</small>}
+                {/* An upload is private: its title and author only, with no page to link to. */}
+                {isUpload(id) ? <span>{book?.title ?? id}</span> : <Link to={`/books/${id}`}>{book?.title ?? id}</Link>}
+                {book?.author && <small>{t(" by {author}", { author: book.author })}</small>}
+                {isUpload(id) && <small className="goal-hint"> · {t("an upload: each member uses their own copy")}</small>}
                 <p className="goal-hint">
                   {votesText(t, counts[i])}
                   {voters.length > 0 && `: ${voters.join(", ")}`}
@@ -205,11 +212,18 @@ function PollForm({
   const [options, setOptions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const id = useId();
+  const { uploads } = useProfileData();
   const catalog = useMemo(() => books.filter((b) => isAllowed(b.ageRating, ageRating)), [ageRating]);
-  const found = useMemo(
-    () => (query.trim() ? catalog.filter((b) => !options.includes(b.id) && wordsMatch(keywordText(b), query)).slice(0, 6) : []),
-    [catalog, query, options],
-  );
+  // LiteraryWorm titles and your own uploads (members see only an upload's title and author).
+  const found = useMemo(() => {
+    if (!query.trim()) return [];
+    const fromCatalog = catalog.filter((b) => !options.includes(b.id) && wordsMatch(keywordText(b), query)).map((b) => ({ id: b.id, title: b.title, author: b.author, upload: false }));
+    const fromUploads = uploads
+      .filter((u) => !options.includes(u.id) && wordsMatch(`${u.title} ${u.author}`, query))
+      .map((u) => ({ id: u.id, title: u.title, author: u.author, upload: true }));
+    return [...fromUploads, ...fromCatalog].slice(0, 6);
+  }, [catalog, uploads, query, options]);
+  const labelOf = (o: string) => uploads.find((u) => u.id === o)?.title ?? titleOf(o);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -240,7 +254,7 @@ function PollForm({
           onChange={(e) => setQuery(e.target.value)}
         />
         <p className="goal-hint" id={`${id}-count`}>
-          {t("{n} of {max} books chosen. Search by title, author or keywords.", { n: options.length, max: POLL_OPTIONS_MAX })}
+          {t("{n} of {max} books chosen. Search LiteraryWorm and your uploads by title, author or keywords.", { n: options.length, max: POLL_OPTIONS_MAX })}
         </p>
       </div>
       {found.length > 0 && (
@@ -248,7 +262,8 @@ function PollForm({
           {found.map((b) => (
             <li key={b.id}>
               <span>
-                {b.title} <small>{t("by {author}", { author: b.author })}</small>
+                {b.title} {b.author && <small>{t("by {author}", { author: b.author })}</small>}
+                {b.upload && <small className="goal-hint"> · {t("your upload")}</small>}
               </span>
               <button
                 type="button"
@@ -268,9 +283,9 @@ function PollForm({
         <ol className="club-poll-chosen" aria-label={t("Books in the poll")}>
           {options.map((o) => (
             <li key={o}>
-              <span>{titleOf(o)}</span>
+              <span>{labelOf(o)}</span>
               <button type="button" className="text-button" onClick={() => setOptions((list) => list.filter((x) => x !== o))}>
-                {t("Remove")}<span className="visually-hidden"> {titleOf(o)}</span>
+                {t("Remove")}<span className="visually-hidden"> {labelOf(o)}</span>
               </button>
             </li>
           ))}

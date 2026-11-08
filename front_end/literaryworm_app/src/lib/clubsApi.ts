@@ -423,7 +423,7 @@ export async function unshareHighlight(id: string): Promise<void> {
 // votes; the owner starts and deletes them; votes go through vote_club_poll() and closing through
 // close_club_poll().
 
-const POLL_COLUMNS = "id, club_id, created_by, question, options, created_at, closed_at, winner, votes:club_poll_votes(user_id, choice)";
+const POLL_COLUMNS = "id, club_id, created_by, question, options, upload_labels, created_at, closed_at, winner, votes:club_poll_votes(user_id, choice)";
 
 interface PollRow {
   id: string;
@@ -431,6 +431,7 @@ interface PollRow {
   created_by: string;
   question: string;
   options: string[];
+  upload_labels?: Record<string, { title: string; author: string }> | null;
   created_at: string;
   closed_at: string | null;
   winner: string | null;
@@ -443,6 +444,7 @@ const toPoll = (row: PollRow): ClubPoll => ({
   createdBy: row.created_by,
   question: row.question,
   options: row.options,
+  uploadLabels: row.upload_labels ?? {},
   createdAt: Date.parse(row.created_at),
   closedAt: row.closed_at ? Date.parse(row.closed_at) : null,
   winner: row.winner,

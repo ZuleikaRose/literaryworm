@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { type ClubPoll, leader, pollAlerts, pollError, tally } from "./clubPolls";
+import { type ClubPoll, leader, pollAlerts, pollError, pollOptionLabel, tally } from "./clubPolls";
 
 const poll = (over: Partial<ClubPoll> = {}): ClubPoll => ({
   id: "p",
@@ -48,5 +48,15 @@ describe("club polls", () => {
     const alerts = pollAlerts(polls, (c) => c === "muted", "me", () => "Sunday Classics");
     expect(alerts.map((a) => a.poll.id)).toEqual(["2", "1"]);
     expect(alerts[0]).toMatchObject({ clubName: "Sunday Classics", at: 20 });
+  });
+});
+
+describe("poll options from uploads", () => {
+  it("names an upload by the title and author the poll keeps, a catalog book by the catalog", () => {
+    const poll = { uploadLabels: { "u-0123456789abcdef0123456789abcdef": { title: "My Book", author: "Me" } } };
+    const catalog = (id: string) => (id === "dune" ? { title: "Dune", author: "Frank Herbert" } : undefined);
+    expect(pollOptionLabel(poll, "u-0123456789abcdef0123456789abcdef", catalog)).toEqual({ title: "My Book", author: "Me" });
+    expect(pollOptionLabel(poll, "dune", catalog)).toEqual({ title: "Dune", author: "Frank Herbert" });
+    expect(pollOptionLabel({}, "nope", catalog)).toBeNull();
   });
 });

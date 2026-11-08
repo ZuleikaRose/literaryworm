@@ -414,8 +414,16 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 - **Theme rows on Discover**: ordinary shelves, eyebrow *For your challenge: {title}*, the theme as the title.
 - **Theme list in a challenge** (`.challenge-themes`): nine lines in `--muted`; a covered theme turns `--ink` with a `--success` check and the names of who covered it.
 - **More natural-voice hours** (`.voice-packs`, under Natural voices in Account → This month): a hint with the hours left in packs and when the first ends, then two secondary buttons in a wrapping row (*Buy 5 more hours for $14.99*, *Buy 10…*), 44px tall, then one plain line of terms (paid once, 12 months, no refunds). Disabled with the reason in words in the free week or while a payment is owed; staff see none of it.
-- **Right to left** (`<html dir="rtl">` for Arabic, `RTL_LANGUAGES`): text, flex rows and grids mirror on their own. Write new CSS with logical properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`) so it mirrors too; about a hundred older rules still say left or right and are changed as they're touched. Only icons that point (back, next, chevrons) should flip. Book text keeps the book's own direction.
+- **Right to left** (`<html dir="rtl">` for Arabic, `RTL_LANGUAGES`): text, flex rows and grids mirror on their own. All CSS uses logical properties (`margin-inline-start`, `inset-inline-end`, `padding-inline`, `text-align: start`), so whole layouts mirror (since 8 November 2026; only centring rules like `left: 50%` with a transform stay physical); write new CSS the same way, and position inline styles with `insetInlineStart`. Only icons that point (back, next, chevrons) should flip. The reader's text and the read-along have `dir="auto"`, so book text keeps its own direction.
 - **Voice the whole book** (`.goal-card.voice-whole-book`): a hint with the time it could take and what's left, then one secondary button; while running, a goal bar, *n of N parts voiced* as a live status, and *Stop*.
+
+### Added 8 November 2026
+
+- **Continue on your phone** (`ContinueDialog`, `.continue-qr`): a small dialog with a QR code (up to 240px square, 70% of a narrow window, always black on white with `--qr-ink` and `--qr-paper`, a quiet zone of four cells), the link beneath it in muted small text that wraps, and *Copy link* as a secondary small button. The trigger is an icon button with the `qr` icon and a visually hidden label.
+- **Text spacing** (accessibility menu): a segmented control under the font controls, *Normal*, *Wide*, *Wider*. Wider is WCAG 1.4.12's letter (0.12em), word (0.16em), line (1.8) and paragraph spacing; layouts must not clip or scroll sideways with it on.
+- **Read aloud speed** (`.reader-speed`): a compact select in the reader's top bar while Read aloud is on, 44px tall, the speeds the player offers.
+- **Your year together** (`.club-year-facts`): a `goal-card` on the club page in December and January: a heading (*2026 together*), a short list of counts (posts, members who posted, meetings held, highlights shared), the most talked-about chapter, and a muted line saying only chapters you've reached are counted.
+- **Per-character speed** (Who reads whom): a small select after each speaker's voice, *Usual speed* first, then 0.8× to 1.2×, labelled for screen readers as *{name}'s speed*.
 
 ## Motion
 

@@ -1,5 +1,5 @@
 import { HttpError } from "../_shared/http.ts";
-import { VOICE_BUCKET } from "../_shared/naturalVoice.ts";
+import { CHARACTERS_PER_HOUR, naturalVoiceMonth, VOICE_BUCKET } from "../_shared/naturalVoice.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { synthesize } from "./google.ts";
@@ -27,6 +27,22 @@ Deno.serve((req) => {
       const { data, error } = await db.from("reader_profiles").select("age_rating").eq("id", profileId).maybeSingle();
       if (error) dbError("read the profile", error);
       return (data?.age_rating as string | undefined) ?? null;
+    },
+    profileShare: async (userId, profileId) => {
+      const { data, error } = await db.from("reader_profiles").select("monthly_voice_minutes").eq("id", profileId).eq("account_id", userId).maybeSingle();
+      if (error) dbError("read the profile", error);
+      const minutes = data?.monthly_voice_minutes as number | null | undefined;
+      if (minutes === null || minutes === undefined) return null;
+      const month = naturalVoiceMonth(new Date());
+      const { data: usage, error: usageError } = await db.from("natural_voice_profile_usage").select("characters")
+        .eq("account_id", userId).eq("profile_id", profileId).eq("month", month).maybeSingle();
+      if (usageError) dbError("read the profile's use", usageError);
+      return { limit: Math.round((minutes / 60) * CHARACTERS_PER_HOUR), used: (usage?.characters as number | undefined) ?? 0 };
+    },
+    kidsVoices: async (profileId) => {
+      const { data, error } = await db.from("reader_profiles").select("kids_natural_voices").eq("id", profileId).maybeSingle();
+      if (error) dbError("read the profile", error);
+      return data?.kids_natural_voices === true;
     },
     membership: async (userId) => {
       const { data, error } = await db.from("subscriptions").select("plan_id, status, trial_until").eq("user_id", userId).maybeSingle();

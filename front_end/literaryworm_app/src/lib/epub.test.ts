@@ -24,6 +24,8 @@ describe("an EPUB's language", () => {
     expect(languageIn("ger")).toBe("de");
     expect(languageIn("nld")).toBe("nl");
     expect(languageIn("fre")).toBe("fr");
+    expect(languageIn("gre")).toBe("el");
+    expect(languageIn("el-GR")).toBe("el");
     expect(languageIn("zh-Hans")).toBe("zh");
     expect(languageIn("jpn")).toBe("ja");
     expect(languageIn("fil")).toBe("tl");

@@ -4,8 +4,8 @@ Contact: hello [at] literaryworm.com
 Location: Global
 
 /* SITE */
-Last update: November 7, 2026
-Language: English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian and Romanian (policies and Help in English)
+Last update: November 8, 2026
+Language: English, Spanish, French, German, Portuguese, Italian, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Arabic, Polish, Russian, Turkish, Swedish, Ukrainian, Tagalog, Bulgarian, Romanian and Greek (policies and Help in English)
 Doctype: HTML5
 IDE: Visual Studio Code
 
@@ -15,6 +15,7 @@ Book data: Open Library (CC0, the Internet Archive) for adult profiles' Home row
 Book search: Google Books API (by title, author, keywords or ISBN; answers cached in Supabase only as long as Google's cache headers allow, at most 7 days)
 Fonts: Literata, Manrope, DM Sans, Lexend (Google Fonts) and OpenDyslexic (SIL Open Font License)
 Reading uploaded PDFs: pdf.js by Mozilla (Apache-2.0), in the browser
+QR codes (Continue on your phone): qrcode-generator by Kazuhiko Arase (MIT), drawn in the browser
 
 /* TECHNOLOGY */
 Framework: React with TypeScript, built with Vite
@@ -24,7 +25,7 @@ Database and sign-in: Supabase (PostgreSQL, Auth, Storage, Edge Functions), mana
 Payments: Stripe (memberships, gifts and gift cards, invitation credits, affiliate credits and the once-per-account credit offered instead of cancelling)
 Email: Mailgun
 AI summaries, content notes, recaps, quizzes, translations, club discussion questions and Ask the book: Claude by Anthropic
-Natural voices for members' uploads: Google Cloud Text-to-Speech (Chirp 3: HD), in English and 19 other languages (from French and Japanese to Hindi, Arabic, Bulgarian and Romanian), through our server only; parts played are kept on the device for offline listening
+Natural voices for members' uploads: Google Cloud Text-to-Speech (Chirp 3: HD), in English and 20 other languages (from French and Japanese to Hindi, Arabic, Romanian and Greek), through our server only; parts played are kept on the device for offline listening
 Structured data: schema.org (WebSite, Organization, Product, FAQPage, Book)
 Read-along: eight LibriVox recordings lined up with their text once, ahead of time, with whisper.cpp (run on our machine, not part of the app)
 Standards: HTML5, CSS3, WCAG 2.2 Level AA (partially conformant: see the Accessibility Policy), installable web app (PWA)

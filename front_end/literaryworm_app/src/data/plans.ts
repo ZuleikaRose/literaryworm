@@ -31,7 +31,7 @@ export const plans: Plan[] = [
       tk("Natural voices from Google to read your uploads aloud: 2 hours of new voicing a month, and listening again is free"),
       tk("More natural-voice hours when you need them: 5 for $14.99 or 10 for $24.99, paid once"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
-      tk("The app in 20 languages, and a Year in reading email each January if you'd like one"),
+      tk("The app in 21 languages, and a Year in reading email each January if you'd like one"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
       tk("Keep discovering on Home that runs on through every genre for as long as you scroll"),
       tk("Share a clip of any LibriVox recording as a link"),
@@ -130,7 +130,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I give LiteraryWorm as a gift?"),
-    a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, or a gift card of $25, $50 or $100 for any plan, paid once. With months, add up to 10 LiteraryWorm books to start them off, from a title, one of your lists or the wishlist someone shared with you. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library."),
+    a: tk("Yes. On Gifts, buy one, three, six or twelve months of any plan, or a gift card of $25, $50 or $100 for any plan, paid once. With months, add up to 10 LiteraryWorm books to start them off, from a title, one of your lists or the wishlist someone shared with you. You get a code to pass on (or we email it to them); it never expires, the person redeems it in Account or on Plans, and the books are waiting in their library. Or give natural-voice hours for a member's uploads: 5 for $14.99 or 10 for $24.99."),
   },
   {
     q: tk("Is LiteraryWorm safe for my kids?"),
@@ -166,7 +166,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can LiteraryWorm read my own books aloud?"),
-    a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. Natural voices aren't offered on Kids profiles.\n\nNatural voices read 20 languages. With Character voices on, what the characters say is read by other voices, and you can choose who reads whom; Voice the whole book keeps every part on your device for listening offline.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
+    a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. On Kids profiles, a grown-up can turn them on in Account → Family.\n\nNatural voices read 21 languages. With Character voices on, what the characters say is read by other voices, and you can choose who reads whom; Voice the whole book keeps every part on your device for listening offline.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
   },
   {
     q: tk("Can I get more natural-voice hours?"),
@@ -186,7 +186,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read in other languages?"),
-    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in 20 languages, the same ones natural voices read: choose one in the accessibility menu, and your profile keeps it on every device. Arabic reads right to left. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 20 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
+    a: tk("Yes. Six classics have their full text and a LibriVox recording in their own language: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover, on Search, or with Search's language filter.\n\nLiteraryWorm itself comes in 21 languages, the same ones natural voices read: choose one in the accessibility menu, and your profile keeps it on every device. Arabic reads right to left. Policies and Help stay in English.\n\nBooks you upload can be read aloud by a natural voice in their own language, in 21 languages from French and Polish to Japanese, Hindi, Arabic, Bulgarian and Romanian.\n\nIn any public-domain classic, select a passage and choose Translate to read it in English, French, German, Spanish, Italian, Portuguese or Dutch (not on Kids profiles)."),
   },
   {
     q: tk("Who can see what I read?"),

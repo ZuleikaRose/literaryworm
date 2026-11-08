@@ -26,6 +26,7 @@ import { AccountError } from "../lib/accountApi";
 import { calendarFeedUrl } from "../lib/clubsApi";
 import { onClubPost } from "../lib/clubEvents";
 import { ClubHighlights } from "../components/ClubHighlights";
+import { ClubYear } from "../components/ClubYear";
 import { ClubPlaces } from "../components/ClubPlaces";
 import { ClubPolls } from "../components/ClubPolls";
 import { DiscussionQuestions } from "../components/DiscussionQuestions";
@@ -742,6 +743,7 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
         <aside className="club-side">
           <ClubSchedule club={club} book={book} isOwner={isOwner} mine={mine} me={me} />
           <ClubMeetings club={club} book={book} isOwner={isOwner} initial={detail.meetings} me={me} members={members} />
+          <ClubYear clubId={club.id} book={book} posts={posts} meetings={detail.meetings} upTo={Math.max(0, mine)} demo={!clubs.remote} />
           <ClubPolls clubId={club.id} isOwner={isOwner} me={me} members={members} ageRating={profile?.ageRating ?? "all"} />
           <ReadingSprint scope={{ kind: "club", clubId: club.id }} readPath={`/read/${book.id}`} />
           {/* On an uploaded book each member hears their own copy, kept at the same chapter and share of it. */}

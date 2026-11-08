@@ -78,10 +78,12 @@ export const NATURAL_VOICES: readonly NaturalVoice[] = [
   voice("bg-BG", "Charon"),
   voice("ro-RO", "Aoede"),
   voice("ro-RO", "Charon"),
+  voice("el-GR", "Aoede"),
+  voice("el-GR", "Charon"),
 ];
 
 /** The languages natural voices read, besides English (two letters, as uploaded_books.language keeps them). */
-export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl", "bg", "ro"] as const;
+export const NATURAL_LANGUAGES = ["fr", "de", "es", "it", "pt", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl", "bg", "ro", "el"] as const;
 
 /** The voices offered for a book: its own language's first (when there are some), then English. */
 export function voicesFor(language: string | null): NaturalVoice[] {
@@ -142,8 +144,9 @@ export function naturalVoiceLimit(planId: string, trial = false): number {
 }
 
 /** Whether a profile is offered natural voices for a book: members' own stored uploads, never on Kids profiles. */
-export function naturalVoiceOffered(input: { member: boolean; ageRating: string | null; uploadPath: string | null }): boolean {
-  return input.member && input.ageRating !== null && input.ageRating !== "kids" && input.uploadPath !== null;
+export function naturalVoiceOffered(input: { member: boolean; ageRating: string | null; uploadPath: string | null; kidsAllowed?: boolean }): boolean {
+  // Kids profiles only when a grown-up turned them on (reader_profiles.kids_natural_voices).
+  return input.member && input.ageRating !== null && (input.ageRating !== "kids" || input.kidsAllowed === true) && input.uploadPath !== null;
 }
 
 /**
@@ -299,8 +302,8 @@ export function pronunciationKey(pron: Pronunciations): string {
  * two people are talking in turn, the one who spoke the paragraph before last, else one voice kept
  * for speech. Voices are dealt out, not matched to the character. Speech and names are found in
  * every language uploads are read in: quotation marks of each (and 「」 『』), dialogue that opens
- * a paragraph with a dash, verbs of saying (SAID_BY_LANGUAGE) beside capitalised names in Latin and
- * Cyrillic scripts, and the words around the verb in Chinese, Japanese, Korean, Hindi and Arabic. Chapters with no speech are
+ * a paragraph with a dash, verbs of saying (SAID_BY_LANGUAGE) beside capitalised names in Latin,
+ * Cyrillic and Greek scripts, and the words around the verb in Chinese, Japanese, Korean, Hindi and Arabic. Chapters with no speech are
  * read exactly as without character voices (the same pieces, the same files).
  */
 export const CAST_NAMES: readonly string[] = ["Charon", "Kore", "Puck", "Leda", "Fenrir", "Zephyr", "Orus", "Despina"];
@@ -310,6 +313,8 @@ export interface VoicePiece extends VoiceSegment {
   voice: string;
   /** Cut for character voices (numbered apart in voiceFile()). */
   cast: boolean;
+  /** Whose speech it is (lower case), for a speed per character (lib/castSpeeds.ts); never part of a file's name. */
+  speaker?: string | null;
 }
 
 export interface CastSegment extends VoiceSegment {
@@ -335,6 +340,7 @@ const SAID_BY_LANGUAGE: Record<string, string[]> = {
   ru: ["сказал", "сказала", "спросил", "спросила", "ответил", "ответила", "крикнул", "крикнула", "прошептал", "прошептала", "воскликнул", "воскликнула", "произнёс", "произнесла"],
   bg: ["каза", "попита", "отговори", "извика", "прошепна", "възкликна", "рече"],
   ro: ["spuse", "zise", "întrebă", "răspunse", "strigă", "șopti", "exclamă", "a spus", "a întrebat", "a răspuns"],
+  el: ["είπε", "ρώτησε", "απάντησε", "φώναξε", "ψιθύρισε", "αναφώνησε", "μουρμούρισε", "πρόσθεσε", "συνέχισε"],
   uk: ["сказав", "сказала", "запитав", "запитала", "спитав", "спитала", "відповів", "відповіла", "крикнув", "крикнула", "прошепотів", "прошепотіла", "вигукнув", "вигукнула"],
 };
 // Longest first, so "sade" is tried before "sa".
@@ -343,8 +349,10 @@ const SAID = Object.values(SAID_BY_LANGUAGE)
   .sort((a, b) => b.length - a.length)
   .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+"))
   .join("|");
-const TITLES = "Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur|Mademoiselle|Herr|Frau|Señor|Señora|Don|Doña|Dom|Dona|Signor|Signora|Pan|Pani|Fru|Bay|Bayan|Gospodin|Domnul|Doamna|Domnișoara|Господин|Госпожа";
+const TITLES = "Mr|Mrs|Ms|Miss|Dr|Lady|Lord|Sir|Captain|Aunt|Uncle|Madame|Monsieur|Mademoiselle|Herr|Frau|Señor|Señora|Don|Doña|Dom|Dona|Signor|Signora|Pan|Pani|Fru|Bay|Bayan|Gospodin|Domnul|Doamna|Domnișoara|Господин|Госпожа|Κύριος|Κυρία|Δεσποινίς|Κος|Κα";
 const NAME = `(?:(?:${TITLES})\\.?\\s+)?\\p{Lu}[\\p{Ll}\\p{M}'’-]+`;
+// Greek puts an article before a name ("ρώτησε η Ελένη"); it's skipped, not part of the name.
+const ARTICLE = "(?:(?:ο|η|το|οι)\\s+)?";
 // Scripts without capital letters name speakers with words around the verb.
 const HAN_SAID = "说道|问道|答道|喊道|叫道|回答|说|问|道|喊";
 const JA_SAID = "言った|言う|聞いた|尋ねた|答えた|叫んだ|呟いた|つぶやいた|囁いた|ささやいた";
@@ -353,7 +361,7 @@ const HI_SAID = "कहा|पूछा|जवाब दिया|उत्त�
 const AR_SAID = "قال|قالت|سأل|سألت|أجاب|أجابت|صاح|صاحت|همس|همست";
 /** After the words: each pattern's first group that matched is the speaker. */
 const AFTER = [
-  new RegExp(`^[\\s,.!?;:—–―-]*(?:(${NAME})\\s+(?:${SAID})(?!\\p{L})|(?:${SAID})\\s+(${NAME}))`, "u"),
+  new RegExp(`^[\\s,.!?;:—–―-]*(?:${ARTICLE}(${NAME})\\s+(?:${SAID})(?!\\p{L})|(?:${SAID})\\s+${ARTICLE}(${NAME}))`, "u"),
   new RegExp(`^[，,。.]?\\s*(\\p{Script=Han}{2,3})(?:${HAN_SAID})`, "u"),
   new RegExp(`^と(?:(\\p{Script=Han}{1,4}|\\p{Script=Katakana}{2,8})(?:は|が))?(?:${JA_SAID})`, "u"),
   new RegExp(`^(?:라고|하고)\\s*(\\p{Script=Hangul}{2,4})(?:이|가|은|는)\\s*(?:${KO_SAID})`, "u"),
@@ -362,7 +370,7 @@ const AFTER = [
 ];
 /** Before the words. */
 const BEFORE = [
-  new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+(${NAME}))\\s*[,:]?\\s*$`, "u"),
+  new RegExp(`(?:(${NAME})\\s+(?:${SAID})|(?:${SAID})\\s+${ARTICLE}(${NAME}))\\s*[,:]?\\s*$`, "u"),
   new RegExp(`(\\p{Script=Han}{2,3})(?:${HAN_SAID})[:：，,]?\\s*$`, "u"),
   new RegExp(`(\\p{Script=Han}{1,4}|\\p{Script=Katakana}{2,8})(?:は|が)\\s*$`, "u"),
   new RegExp(`(\\p{Script=Hangul}{2,4})(?:이|가|은|는)\\s*(?:${KO_SAID})[.:]?\\s*$`, "u"),
@@ -375,6 +383,7 @@ const NOT_NAMES = new Set([
   "il", "elle", "ils", "elles", "on", "je", "er", "sie", "es", "ich", "man", "él", "ella", "yo", "ellos", "ellas", "usted",
   "ele", "ela", "eles", "eu", "você", "lui", "lei", "egli", "ella", "io", "hij", "zij", "ze", "ik", "jij",
   "ona", "oni", "ja", "ty", "han", "hon", "jag", "de", "o", "ben", "sen", "siya", "ako", "ikaw",
+  "αυτός", "αυτή", "αυτοί", "αυτές", "εκείνος", "εκείνη", "εγώ", "εσύ", "εμείς", "εσείς",
   "он", "она", "они", "я", "ты", "він", "вона", "вони", "той", "тя", "те", "аз", "ти", "el", "ea", "ei", "ele", "eu", "tu", "dumneavoastră",
   "他", "她", "我", "你", "他们", "她们", "彼", "彼女", "私", "僕", "俺", "그", "그녀", "나", "너", "वह", "मैं", "उस", "هو", "هي", "أنا",
 ]);
@@ -388,7 +397,7 @@ const QUOTED =
 const DASH = /[—–―]/g;
 // Inside dash dialogue with no closing dash ("— Bună ziua, zise Ion."), a comma before a verb of
 // saying and a name ends the speech; the rest is narration.
-const INLINE_SAID = new RegExp(`,\\s+(?=(?:${SAID})\\s+${NAME}|${NAME}\\s+(?:${SAID})(?!\\p{L}))`, "u");
+const INLINE_SAID = new RegExp(`,\\s+(?=(?:${SAID})\\s+${ARTICLE}${NAME}|${NAME}\\s+(?:${SAID})(?!\\p{L}))`, "u");
 
 function speakerIn(text: string, patterns: RegExp[]): string | null {
   for (const pattern of patterns) {
@@ -588,5 +597,11 @@ export function bookSpeakers(chapters: string[], max = 20): { speaker: string; s
 export function chapterPieces(chapter: string, narrator: NaturalVoice, characterVoices: boolean, choices: CastChoices = {}): VoicePiece[] {
   const cast = characterVoices ? castSegments(chapter) : null;
   if (!cast) return voiceSegments(chapter).map((p) => ({ ...p, voice: narrator.id, cast: false }));
-  return cast.map((p) => ({ offset: p.offset, text: p.text, voice: p.speech ? speakerVoice(narrator, p.speaker, choices) : narrator.id, cast: true }));
+  return cast.map((p) => ({
+    offset: p.offset,
+    text: p.text,
+    voice: p.speech ? speakerVoice(narrator, p.speaker, choices) : narrator.id,
+    cast: true,
+    speaker: p.speech && p.speaker ? p.speaker.toLowerCase() : null,
+  }));
 }

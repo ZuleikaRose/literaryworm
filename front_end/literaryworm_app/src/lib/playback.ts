@@ -37,6 +37,8 @@ export interface PlaybackSnapshot {
 
 /** The month's listening is used up: the plan, its hours, and when listening starts again. */
 export interface AllowanceUsed {
+  /** The profile's own monthly share, in hours, when that's what ran out (not the plan's hours). */
+  share?: number | null;
   planId: PlanId | null;
   planName: string;
   hours: number;

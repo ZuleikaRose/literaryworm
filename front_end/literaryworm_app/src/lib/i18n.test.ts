@@ -35,13 +35,13 @@ const dictionary = (code: string): Record<string, string> => JSON.parse(readFile
 describe("languages", () => {
   it("start from the browser's language when the app speaks it", () => {
     expect(uiLanguageFor(["pt-BR", "en"])).toBe("pt");
-    expect(uiLanguageFor(["el", "de-AT"])).toBe("de");
-    expect(uiLanguageFor(["el"])).toBe("en");
+    expect(uiLanguageFor(["fi", "de-AT"])).toBe("de");
+    expect(uiLanguageFor(["fi"])).toBe("en");
     // The languages natural voices read are the app's too; Filipino is Tagalog.
     expect(uiLanguageFor(["ja-JP"])).toBe("ja");
     expect(uiLanguageFor(["zh-Hans-CN"])).toBe("zh");
     expect(uiLanguageFor(["fil-PH"])).toBe("tl");
-    expect(UI_LANGUAGES).toHaveLength(20);
+    expect(UI_LANGUAGES).toHaveLength(21);
     expect(uiLanguageFor(undefined)).toBe("en");
   });
 

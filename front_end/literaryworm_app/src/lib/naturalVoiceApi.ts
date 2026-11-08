@@ -15,6 +15,7 @@ export class NaturalVoiceError extends Error {}
 const FRIENDLY: Record<string, string> = {
   network: tk("We couldn't reach LiteraryWorm. Check your connection, then press play to try again."),
   limit_reached: tk("This month's natural-voice reading is used up. Choose one of your device's voices, or listen again to chapters already voiced."),
+  profile_limit_reached: tk("This profile's share of this month's natural-voice reading is used up. A grown-up can change it in Account → Family; until then, choose one of your device's voices."),
   trial_limit_reached: tk("Your free week's hour of natural-voice reading is used up. Your plan's full hours start with your first payment; until then, choose one of your device's voices."),
   payment_required: tk("Natural voices are paused because your last payment didn't go through. Update your payment method in Account, and they come back as soon as a payment succeeds."),
   forbidden: tk("Natural voices come with a membership, on grown-up and teen profiles. Choose one of your device's voices."),

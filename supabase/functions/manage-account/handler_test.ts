@@ -27,6 +27,7 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
     stripe: [] as string[],
     gift: { id: "gift_1", plan_id: "standard", months: 3, redeemed_at: null, starts_on: null, books: [] } as Gift,
     redeemedBy: null as string | null,
+    voicePacks: [] as string[],
     addedBooks: [] as { userId: string; books: string[] }[],
     answers: [] as { reason: string; comment: string | null; offer: string | null; outcome: string }[],
     creditClaimed: false,
@@ -116,6 +117,10 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       },
       addBooks: (userId, books) => {
         state.addedBooks.push({ userId, books });
+        return Promise.resolve();
+      },
+      addVoicePack: (userId, giftId) => {
+        state.voicePacks.push(`${userId} ${giftId}`);
         return Promise.resolve();
       },
     },
@@ -683,5 +688,25 @@ Deno.test("when Stripe can't add a gift card's credit, the code still works", as
   state.gift = { ...state.gift, kind: "credit", plan_id: null, months: null, credit_cents: 2500 };
   deps.billing = { ...deps.billing, credit: () => Promise.reject(new HttpError("upstream_error", "Stripe is down")) };
   assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 502);
+  assertEquals(state.gift.redeemed_at, null);
+});
+
+Deno.test("a gift of natural-voice hours becomes a pack, for any account, with no Stripe call", async () => {
+  const { state, deps } = setup(null);
+  state.gift = { id: "gift_v", kind: "voice_hours", plan_id: null, months: null, voice_hours: 10, redeemed_at: null, starts_on: null, books: [] };
+  const res = await call(deps, { action: "gift", code: GIFT_CODE });
+  assertEquals(res.status, 200);
+  assertEquals(res.body, { gift: { kind: "voice_hours", voiceHours: 10 } });
+  assertEquals(state.voicePacks, [`${USER.id} gift_v`]);
+  assertEquals(state.stripe, []);
+  // Used once.
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 400);
+});
+
+Deno.test("a natural-voice-hours gift is handed back if the pack can't be added", async () => {
+  const { state, deps } = setup(null);
+  state.gift = { id: "gift_v", kind: "voice_hours", plan_id: null, months: null, voice_hours: 5, redeemed_at: null, starts_on: null, books: [] };
+  deps.gifts.addVoicePack = () => Promise.reject(new Error("database down"));
+  assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 500);
   assertEquals(state.gift.redeemed_at, null);
 });

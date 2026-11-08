@@ -42,6 +42,7 @@ import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
 import { parseBookSpeeds } from "./bookSpeed";
+import { parseAllCastSpeeds } from "./castSpeeds";
 import { parseAllCastChoices } from "./castChoices";
 import { parseAllPronunciations } from "./pronunciations";
 
@@ -665,6 +666,18 @@ export async function buyGiftCard(creditCents: number, startsOn: string | null =
   return url;
 }
 
+/** Natural-voice hours as a gift (5 or 10, lib/voicePacks.ts): a one-off Checkout like a gift card. */
+export async function buyGiftVoiceHours(hours: 5 | 10, startsOn: string | null = null, recipient: GiftRecipient | null = null): Promise<string> {
+  const body = {
+    gift: true,
+    voiceHours: hours,
+    ...(startsOn ? { startsOn } : {}),
+    ...(recipient ? { recipientEmail: recipient.email.trim(), ...(recipient.message.trim() ? { message: recipient.message.trim() } : {}) } : {}),
+  };
+  const { url } = await callFunction<{ url: string }>("checkout", body, "We couldn't start the payment. Try again.");
+  return url;
+}
+
 /** Starts paying for a gift on Stripe Checkout; returns the page to send the member to. */
 export async function buyGift(planId: PlanId, months: number, startsOn: string | null = null, recipient: GiftRecipient | null = null, books: string[] = []): Promise<string> {
   const body = {
@@ -690,10 +703,12 @@ export interface BoughtGift {
   id: string;
   code: string;
   /** A gift membership's plan and months, or a gift card's credit (creditCents). */
-  kind: "membership" | "credit";
+  kind: "membership" | "credit" | "voice_hours";
   planId: PlanId | null;
   months: number | null;
   creditCents: number | null;
+  /** A gift of natural-voice hours (5 or 10). */
+  voiceHours: number | null;
   amountCents: number;
   currency: string;
   redeemedAt: string | null;
@@ -711,16 +726,17 @@ export interface BoughtGift {
 export async function myGifts(): Promise<BoughtGift[]> {
   const { data, error } = await client()
     .from("gift_codes")
-    .select("id, code, kind, plan_id, months, credit_cents, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at, books")
+    .select("id, code, kind, plan_id, months, credit_cents, voice_hours, amount_cents, currency, redeemed_at, created_at, starts_on, recipient_email, delivered_at, books")
     .order("created_at", { ascending: false });
   if (error) throw new AccountError("We couldn't load your gifts. Try again.");
-  return (data as { id: string; code: string; kind: "membership" | "credit" | null; plan_id: PlanId | null; months: number | null; credit_cents: number | null; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null; books: string[] | null }[]).map((g) => ({
+  return (data as { id: string; code: string; kind: "membership" | "credit" | "voice_hours" | null; plan_id: PlanId | null; months: number | null; credit_cents: number | null; voice_hours: number | null; amount_cents: number; currency: string; redeemed_at: string | null; created_at: string; starts_on: string | null; recipient_email: string | null; delivered_at: string | null; books: string[] | null }[]).map((g) => ({
     id: g.id,
     code: g.code,
     kind: g.kind ?? "membership",
     planId: g.plan_id,
     months: g.months,
     creditCents: g.credit_cents,
+    voiceHours: g.voice_hours,
     amountCents: g.amount_cents,
     currency: g.currency,
     redeemedAt: g.redeemed_at,
@@ -736,6 +752,12 @@ export async function myGifts(): Promise<BoughtGift[]> {
 export interface RedeemedGiftCard {
   kind: "credit";
   creditCents: number;
+}
+
+/** A redeemed gift of natural-voice hours: a pack on the account (natural_voice_packs). */
+export interface RedeemedVoiceHours {
+  kind: "voice_hours";
+  voiceHours: number;
 }
 
 export interface RedeemedGift {
@@ -755,13 +777,14 @@ export interface RedeemedGift {
  * a membership free for the months (`renewalTermsAccepted`: the member agreed to what happens
  * after), which the webhook writes a moment later (`plan` is null then).
  */
-export async function redeemGift(code: string, renewalTermsAccepted: boolean): Promise<RedeemedGift | RedeemedGiftCard> {
-  const res = await callFunction<{ gift: { kind?: "credit"; creditCents?: number; planId: PlanId; months: number; until: string; books?: string[] }; subscription?: SubscriptionRow }>(
+export async function redeemGift(code: string, renewalTermsAccepted: boolean): Promise<RedeemedGift | RedeemedGiftCard | RedeemedVoiceHours> {
+  const res = await callFunction<{ gift: { kind?: "credit" | "voice_hours"; creditCents?: number; voiceHours?: number; planId: PlanId; months: number; until: string; books?: string[] }; subscription?: SubscriptionRow }>(
     "manage-account",
     { action: "gift", code, ...(renewalTermsAccepted ? { renewalTermsAccepted: true } : {}) },
     "We couldn't redeem that gift. Try again.",
   );
   if (res.gift.kind === "credit") return { kind: "credit", creditCents: res.gift.creditCents ?? 0 };
+  if (res.gift.kind === "voice_hours") return { kind: "voice_hours", voiceHours: res.gift.voiceHours ?? 0 };
   return { ...res.gift, kind: "membership", books: res.gift.books ?? [], plan: res.subscription ? fromSubscription(res.subscription) : null };
 }
 
@@ -852,6 +875,9 @@ interface ProfileRow {
   locked_until: string | null;
   daily_limit_minutes: number | null;
   weekly_goal_minutes?: number | null;
+  kids_natural_voices?: boolean;
+  monthly_listening_minutes?: number | null;
+  monthly_voice_minutes?: number | null;
   bedtime?: string | null;
   wake_time?: string | null;
   favorite_genres: string[];
@@ -860,7 +886,7 @@ interface ProfileRow {
 }
 
 const PROFILE_COLUMNS =
-  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, bedtime, wake_time, favorite_genres, kids_consent_at, set_aside_at";
+  "id, name, avatar, age_rating, has_pin, failed_pin_attempts, locked_until, daily_limit_minutes, weekly_goal_minutes, kids_natural_voices, monthly_listening_minutes, monthly_voice_minutes, bedtime, wake_time, favorite_genres, kids_consent_at, set_aside_at";
 
 const toProfile = (row: ProfileRow): Profile => ({
   id: row.id,
@@ -874,6 +900,9 @@ const toProfile = (row: ProfileRow): Profile => ({
   favoriteGenres: row.favorite_genres,
   dailyLimitMinutes: row.daily_limit_minutes,
   weeklyGoalMinutes: row.age_rating === "kids" ? (row.weekly_goal_minutes ?? null) : null,
+  kidsNaturalVoices: row.age_rating === "kids" && row.kids_natural_voices === true,
+  monthlyListeningMinutes: row.monthly_listening_minutes ?? null,
+  monthlyVoiceMinutes: row.monthly_voice_minutes ?? null,
   // Postgres sends a time as "20:30:00".
   bedtime: row.age_rating === "kids" && row.bedtime && row.wake_time ? row.bedtime.slice(0, 5) : null,
   wakeTime: row.age_rating === "kids" && row.bedtime && row.wake_time ? row.wake_time.slice(0, 5) : null,
@@ -936,6 +965,8 @@ type ProtectedProfileChange =
   | { action: "set_daily_limit"; profileId: string; dailyLimitMinutes: number | null }
   | { action: "set_weekly_goal"; profileId: string; weeklyGoalMinutes: number | null }
   | { action: "set_bedtime"; profileId: string; bedtime: string | null; wakeTime: string | null }
+  | { action: "set_kids_voices"; profileId: string; on: boolean }
+  | { action: "set_monthly_share"; profileId: string; listeningMinutes: number | null; voiceMinutes: number | null }
   | { action: "set_age_rating"; profileId: string; ageRating: AgeRating; noticeVersion?: string }
   | { action: "unlock"; profileId: string }
   | { action: "set_aside"; profileId: string }
@@ -1376,6 +1407,7 @@ type PlayerRow = {
   character_voices: boolean;
   book_speeds: unknown;
   cast_choices: unknown;
+  cast_speeds?: unknown;
   pronunciations: unknown;
 };
 
@@ -1383,7 +1415,7 @@ type PlayerRow = {
 async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
   const { data, error } = await client()
     .from("reader_profiles")
-    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices, book_speeds, cast_choices, pronunciations");
+    .select("id, playback_speed, player_volume, player_muted, skip_back_seconds, skip_forward_seconds, auto_skip_intro, auto_skip_outro, character_voices, book_speeds, cast_choices, cast_speeds, pronunciations");
   if (error) {
     console.error("player settings: couldn't load", error.message);
     return {};
@@ -1402,6 +1434,7 @@ async function loadPlayerSettings(): Promise<Record<string, PlayerSettings>> {
         characterVoices: r.character_voices,
         bookSpeeds: parseBookSpeeds(r.book_speeds),
         castChoices: parseAllCastChoices(r.cast_choices),
+        castSpeeds: parseAllCastSpeeds(r.cast_speeds),
         pronunciations: parseAllPronunciations(r.pronunciations),
       },
     ]),
@@ -1423,6 +1456,7 @@ export async function savePlayerSettings(profileId: string, player: PlayerSettin
       character_voices: player.characterVoices,
       book_speeds: player.bookSpeeds,
       cast_choices: player.castChoices,
+      cast_speeds: player.castSpeeds ?? {},
       pronunciations: player.pronunciations,
     })
     .eq("id", profileId);

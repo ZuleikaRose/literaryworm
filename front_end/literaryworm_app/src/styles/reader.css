@@ -94,8 +94,8 @@
 
 .reading-guide {
   position: absolute;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   pointer-events: none;
   z-index: 1;
 }
@@ -256,7 +256,7 @@
 }
 
 .reader-chapter-title + p::first-letter {
-  float: left;
+  float: inline-start;
   margin: 0.06em 0.08em 0 0;
   color: var(--paper-accent);
   font-size: 3.1em;
@@ -418,7 +418,7 @@
   top: 50%;
   width: 2px;
   height: 12px;
-  margin-left: -1px;
+  margin-inline-start: -1px;
   border-radius: 1px;
   background: var(--paper, var(--bg));
   transform: translateY(-50%);
@@ -444,7 +444,7 @@
   padding: 8px;
   border-radius: var(--radius-sm);
   color: var(--ink-soft);
-  text-align: left;
+  text-align: start;
 }
 
 .chapter-list button:hover {
@@ -460,7 +460,7 @@
   color: var(--faint);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: end;
 }
 
 .chapter-list button[aria-current="true"] .chapter-number {
@@ -507,7 +507,7 @@
   gap: 10px;
   padding: 6px 4px;
   color: var(--ink);
-  text-align: left;
+  text-align: start;
 }
 
 .bookmark-go svg {
@@ -515,7 +515,7 @@
 }
 
 .bookmark-go small {
-  margin-left: auto;
+  margin-inline-start: auto;
   color: var(--muted);
 }
 
@@ -604,7 +604,7 @@
   max-width: 420px;
   gap: 16px;
   margin-bottom: 8px;
-  text-align: left;
+  text-align: start;
 }
 
 .grown-up-form .reading-message-actions {
@@ -990,7 +990,7 @@
 /* Voice control (components/VoiceControl.tsx): on the left of the top bar, Exit on the right. */
 .car-voice-button {
   min-height: 48px;
-  margin-right: auto;
+  margin-inline-end: auto;
 }
 
 .car-voice-button.is-on {
@@ -1507,4 +1507,34 @@
 .voice-preview {
   flex: none;
   align-self: flex-end;
+}
+
+/* The reader's Read aloud speed (pages/Reader.tsx), shown while it reads. */
+.reader-speed select {
+  min-height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+/* Continue on your phone (components/ContinueOnPhone.tsx): dark modules on white in every theme, as cameras need. */
+.continue-qr {
+  display: block;
+  width: min(240px, 70vw);
+  height: auto;
+  margin: 12px auto;
+}
+.continue-qr-paper {
+  fill: var(--qr-paper);
+}
+.continue-qr-ink {
+  fill: var(--qr-ink);
+}
+.continue-link {
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  color: var(--muted);
 }

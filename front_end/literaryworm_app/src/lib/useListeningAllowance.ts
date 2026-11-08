@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { planById } from "../data/plans";
-import { useStore } from "../store/context";
+import { useActiveProfile, useStore } from "../store/context";
+import { combinedLeft, shareLeft } from "./profileShares";
 import { listeningBetween } from "./accountApi";
 import { today } from "./reading";
 import { listenedSoFar, listenedThisMonth, listeningLeft, monthRange, nextMonthLabel } from "./planLimits";
@@ -50,8 +51,14 @@ export function useListeningAllowance(playing: boolean) {
   }, [member, playing, hours, from, to]);
 
   const listened = check?.month === from ? listenedSoFar(check.server, check.local, local) : local;
-  const left = listeningLeft(planId, listened);
+  // A profile's own share (a grown-up's setting in Account → Family) stops it sooner.
+  const profile = useActiveProfile();
+  const share = profile?.monthlyListeningMinutes ?? null;
+  const profileListened = listenedThisMonth([state.profileData[profile?.id ?? ""]?.readingDays ?? {}], day);
+  const { left, byShare } = combinedLeft(listeningLeft(planId, listened), shareLeft(share, profileListened));
   return {
+    /** The profile's own share in hours when that's what runs out first, else null. */
+    shareHours: byShare && share !== null ? share / 60 : null,
     /** The plan's hours a month, or null for unlimited. */
     hours,
     planId,

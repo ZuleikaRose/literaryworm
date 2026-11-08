@@ -328,12 +328,12 @@ describe("languages", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("offers the natural voices' 20 languages, with Arabic right to left", async () => {
+  it("offers the natural voices' 21 languages, with Arabic right to left", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
     await page.getByRole("button", { name: "Accessibility menu" }).click();
     const language = page.getByLabel("Language");
-    expect(await language.locator("option").count()).toBe(20);
+    expect(await language.locator("option").count()).toBe(21);
     await language.selectOption("ar");
     await page.waitForFunction(() => document.documentElement.lang === "ar" && document.documentElement.dir === "rtl");
     await page.getByRole("button", { name: /إمكانية الوصول|Accessibility/ }).first().waitFor();
@@ -1022,6 +1022,44 @@ describe("the demo household", () => {
     await page.getByRole("alert").filter({ hasText: "The demo account can't make payments. Create an account to give a gift." }).waitFor();
     await page.getByLabel("A membership").check();
     await page.getByRole("group", { name: "Plan" }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("offers natural-voice hours as a gift, with the hours and price", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/gifts");
+    await page.getByLabel("Natural-voice hours").check();
+    await expect(page.getByRole("group", { name: "Plan" }).count()).resolves.toBe(0);
+    await page.getByLabel(/^10 hours for/).check();
+    await page.getByText(/10 hours of natural-voice reading for \$24\.99, paid once\./).waitFor();
+    await page.getByRole("button", { name: "Continue to payment" }).click();
+    await page.getByRole("alert").filter({ hasText: "The demo account can't make payments." }).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows a QR code that continues the open book on a phone", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/frankenstein");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.getByRole("button", { name: "Continue on your phone" }).click();
+    const dialog = page.getByRole("dialog", { name: "Continue on your phone" });
+    await dialog.getByRole("img", { name: /QR code that opens Frankenstein/ }).waitFor();
+    await dialog.getByText(/\/read\/frankenstein\?chapter=\d+&page=\d+$/).waitFor();
+    await dialog.getByRole("button", { name: "Close" }).click();
+    expect(errors()).toEqual([]);
+  });
+
+  it("sets wider text spacing from the accessibility menu without sideways scroll", async () => {
+    const { page, errors } = await newPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(BASE_URL);
+    await page.getByRole("button", { name: "Accessibility menu" }).click();
+    const panel = page.getByRole("region", { name: "Accessibility settings" });
+    await panel.getByRole("group", { name: "Text spacing" }).getByLabel("Wider").check();
+    expect(await page.evaluate(() => document.documentElement.dataset.textSpacing)).toBe("wider");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     expect(errors()).toEqual([]);
   });
 

@@ -103,7 +103,7 @@ Deno.serve((req) =>
     customerFor,
     gifts: {
       async find(code) {
-        const { data, error } = await serviceClient().from("gift_codes").select("id, kind, plan_id, months, credit_cents, redeemed_at, starts_on, books").eq("code", code).maybeSingle();
+        const { data, error } = await serviceClient().from("gift_codes").select("id, kind, plan_id, months, credit_cents, voice_hours, redeemed_at, starts_on, books").eq("code", code).maybeSingle();
         if (error) throw error;
         return data as Gift | null;
       },
@@ -120,6 +120,10 @@ Deno.serve((req) =>
       },
       async release(giftId) {
         const { error } = await serviceClient().from("gift_codes").update({ redeemed_by: null, redeemed_at: null }).eq("id", giftId);
+        if (error) throw error;
+      },
+      async addVoicePack(userId, giftId) {
+        const { error } = await serviceClient().rpc("add_gift_voice_pack", { p_account: userId, p_gift: giftId });
         if (error) throw error;
       },
       async addBooks(userId, books) {

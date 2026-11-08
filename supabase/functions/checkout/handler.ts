@@ -96,6 +96,8 @@ export interface GiftCheckoutInput {
   months: GiftMonths | null;
   /** A gift card: the credit in cents (null for a gift membership). */
   creditCents: GiftCardCents | null;
+  /** A gift of natural-voice hours (5 or 10); null for the other gifts. */
+  voiceHours?: VoicePackHours | null;
   /** The first day the code can be redeemed ("YYYY-MM-DD"); null for straight away. */
   startsOn: string | null;
   /** Who to email the code to, and what the buyer wrote; null when the buyer passes it on. */
@@ -160,10 +162,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       return json(req, METHODS, { url });
     }
     if (body.gift !== undefined) {
-      onlyKeys(body, ["gift", "planId", "months", "credit", "startsOn", "recipientEmail", "message", "books"]);
+      onlyKeys(body, ["gift", "planId", "months", "credit", "voiceHours", "startsOn", "recipientEmail", "message", "books"]);
       if (body.gift !== true) throw new HttpError("bad_request", "gift is true when buying a gift.");
+      // Natural-voice hours as a gift: the same packs, redeemed into the recipient's account.
+      const voices = body.voiceHours !== undefined;
+      if (voices && (body.credit !== undefined || body.planId !== undefined || body.months !== undefined || body.books !== undefined || !isVoicePack(body.voiceHours))) {
+        throw new HttpError("bad_request", "A gift of natural-voice hours is 5 or 10 hours: no plan, months, credit or books.");
+      }
       const card = body.credit !== undefined;
-      if (card) {
+      if (voices) {
+        // Checked above.
+      } else if (card) {
         if (body.planId !== undefined || body.months !== undefined || body.books !== undefined) {
           throw new HttpError("bad_request", "A gift card is an amount of credit: no plan, months or books.");
         }
@@ -195,9 +204,10 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       const url = await deps.createGiftCheckout({
         customerId,
         userId: user.id,
-        planId: card ? null : (body.planId as PlanId),
-        months: card ? null : (body.months as GiftMonths),
+        planId: card || voices ? null : (body.planId as PlanId),
+        months: card || voices ? null : (body.months as GiftMonths),
         creditCents: card ? (body.credit as GiftCardCents) : null,
+        voiceHours: voices ? (body.voiceHours as VoicePackHours) : null,
         startsOn,
         recipientEmail,
         message,

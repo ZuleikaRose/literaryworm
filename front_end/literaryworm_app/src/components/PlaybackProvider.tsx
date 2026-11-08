@@ -8,6 +8,7 @@ import { chapterAt, chapterTimes, resumeAfterSleep, SLEEP_FADE_SECONDS, SLEEP_RE
 import { useDeviceLink } from "../lib/useDeviceLink";
 import { useDailyLimit } from "../lib/useDailyLimit";
 import { useListeningAllowance } from "../lib/useListeningAllowance";
+import { speakerRate } from "../lib/castSpeeds";
 import { tr } from "../lib/i18n";
 import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
@@ -224,16 +225,23 @@ function Engine({
   // Listening counts towards this book's statistics too, with the place in the recording.
   const limit = useDailyLimit(playing, profileId, true, () => ({ bookId: book.id, fraction: total ? position / total : null }));
   const allowance = useListeningAllowance(playing);
-  const { reached: allowanceReached, hours: allowanceHours, planId: allowancePlan, planName, resumesOn, leftSeconds } = allowance;
+  const { reached: allowanceReached, hours: allowanceHours, planId: allowancePlan, planName, resumesOn, leftSeconds, shareHours } = allowance;
   // Whole minutes, so the snapshot changes once a minute rather than every step.
   const leftMinutes = leftSeconds === null ? null : Math.floor(leftSeconds / 60);
   const listeningLeft = useMemo(
-    () => (leftMinutes === null || allowanceHours === null ? null : { seconds: leftMinutes * 60, hours: allowanceHours }),
-    [leftMinutes, allowanceHours],
+    () => {
+      // The profile's share when that's what runs out first, else the plan's hours.
+      const hours = shareHours ?? allowanceHours;
+      return leftMinutes === null || hours === null ? null : { seconds: leftMinutes * 60, hours };
+    },
+    [leftMinutes, allowanceHours, shareHours],
   );
   const allowanceUsed = useMemo(
-    () => (allowanceReached && allowanceHours !== null ? { planId: allowancePlan, planName, hours: allowanceHours, resumesOn } : null),
-    [allowanceReached, allowanceHours, allowancePlan, planName, resumesOn],
+    () =>
+      allowanceReached && (allowanceHours !== null || shareHours !== null)
+        ? { planId: allowancePlan, planName, hours: allowanceHours ?? 0, resumesOn, share: shareHours }
+        : null,
+    [allowanceReached, allowanceHours, allowancePlan, planName, resumesOn, shareHours],
   );
 
   const save = (seconds: number, finishedNow = false) =>
@@ -301,6 +309,12 @@ function Engine({
   useEffect(() => {
     choicesRef.current = choices;
   });
+  // A speed per character (lib/castSpeeds.ts) only changes how fast a part plays, from the next part.
+  const castSpeedsRef = useRef(player.castSpeeds?.[book.id]);
+  useEffect(() => {
+    castSpeedsRef.current = player.castSpeeds?.[book.id];
+  });
+  const rateFor = (piece: { speaker?: string | null }) => speakerRate(castSpeedsRef.current, piece.speaker);
   // So do respellings of names (pronunciations), which change what's sent to Google.
   const pronunciations = player.pronunciations?.[book.id] ?? {};
   const pronunciationsRef = useRef(pronunciations);
@@ -355,14 +369,14 @@ function Engine({
               (() => {
                 // The demo plays its recorded samples, with character voices and Who reads whom too.
                 const part = demoVoicePart(book.id, natural, text, characterVoices, choicesRef.current);
-                return naturalNarrator(text, starts, lengths, part.url, events, undefined, part.pieces);
+                return naturalNarrator(text, starts, lengths, part.url, events, undefined, part.pieces, rateFor);
               })()
             : (() => {
                 // Members' parts are voiced as they listen and kept on this device, so they play
                 // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
                 const part = memberVoicePart(book.id, natural, text, characterVoices, choicesRef.current, pronunciationsRef.current);
                 const ahead = voiceAhead(text, part.keep, part.count);
-                return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces);
+                return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces, rateFor);
               })()
           : v && text
             ? speechNarrator(text, starts, lengths, v, events)

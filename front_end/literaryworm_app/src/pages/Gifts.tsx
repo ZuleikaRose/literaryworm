@@ -7,7 +7,8 @@ import { RedeemGift } from "../components/RedeemGift";
 import { formatPrice, planById, plans } from "../data/plans";
 import { getBook } from "../data/books";
 import { GiftBooksPicker } from "../components/GiftBooksPicker";
-import { AccountError, type BoughtGift, buyGift, buyGiftCard, myGifts } from "../lib/accountApi";
+import { AccountError, type BoughtGift, buyGift, buyGiftCard, buyGiftVoiceHours, myGifts } from "../lib/accountApi";
+import { packPrice, VOICE_PACK_HOURS, VOICE_PACKS, type VoicePackHours } from "../lib/voicePacks";
 import { endDate, formatMoney } from "../lib/billing";
 import {
   formatGiftCode,
@@ -101,7 +102,8 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
   const t = useT();
   const id = useId();
   // A gift membership (a plan for some months), or a gift card (credit for any plan).
-  const [kind, setKind] = useState<"membership" | "card">("membership");
+  const [kind, setKind] = useState<"membership" | "card" | "voices">("membership");
+  const [voiceHours, setVoiceHours] = useState<VoicePackHours>(5);
   const [credit, setCredit] = useState<number>(5000);
   const [planId, setPlanId] = useState<PlanId>("standard");
   const [months, setMonths] = useState<number>(3);
@@ -123,8 +125,10 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const bounds = giftStartBounds();
   const plan = planById.get(planId)!;
-  const card = kind === "card";
-  const total = card ? credit : giftPriceCents(plan, months);
+  // A gift card and natural-voice hours are both one amount, with no plan, months or books.
+  const voices = kind === "voices";
+  const card = kind === "card" || voices;
+  const total = voices ? VOICE_PACKS[voiceHours] : kind === "card" ? credit : giftPriceCents(plan, months);
   const yearSaving = Math.round(plan.price * 100) * GIFT_YEAR_MONTHS - giftPriceCents(plan, GIFT_YEAR_MONTHS);
 
   async function submit(e: FormEvent) {
@@ -146,7 +150,9 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
     try {
       const startDay = later ? startsOn : null;
       const to = byEmail ? { email: recipient, message } : null;
-      window.location.assign(card ? await buyGiftCard(credit, startDay, to) : await buyGift(planId, months, startDay, to, books));
+      window.location.assign(
+        voices ? await buyGiftVoiceHours(voiceHours, startDay, to) : card ? await buyGiftCard(credit, startDay, to) : await buyGift(planId, months, startDay, to, books),
+      );
     } catch (err) {
       setError(err instanceof AccountError ? err.message : t("We couldn't start the payment. Try again."));
       setBusy(false);
@@ -165,17 +171,36 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
               <span>{t("A membership")}</span>
             </label>
             <label className="chip">
-              <input type="radio" name={`${id}-kind`} checked={card} onChange={() => setKind("card")} />
+              <input type="radio" name={`${id}-kind`} checked={kind === "card"} onChange={() => setKind("card")} />
               <span>{t("A gift card")}</span>
+            </label>
+            <label className="chip">
+              <input type="radio" name={`${id}-kind`} checked={voices} onChange={() => setKind("voices")} />
+              <span>{t("Natural-voice hours")}</span>
             </label>
           </div>
           <p className="field-hint">
-            {card
+            {voices
+              ? t("Hours of Google's natural voices reading the books they upload, used after their plan's hours each month and lasting 12 months from when they redeem them.")
+              : card
               ? t("Credit for any plan: it comes off their charges, whichever plan they choose. No cash value.")
               : t("A plan for a number of months, free to them, with books to start them off if you like.")}
           </p>
         </fieldset>
-        {card && (
+        {voices && (
+          <fieldset className="gift-choice">
+            <legend className="field-label">{t("Hours")}</legend>
+            <div className="chip-group chip-group-lg gift-months">
+              {VOICE_PACK_HOURS.map((h) => (
+                <label key={h} className="chip">
+                  <input type="radio" name={`${id}-hours`} value={h} checked={h === voiceHours} onChange={() => setVoiceHours(h)} />
+                  <span>{t("{hours} hours for {price}", { hours: h, price: packPrice(h) })}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        {kind === "card" && (
           <fieldset className="gift-choice">
             <legend className="field-label">{t("Amount")}</legend>
             <div className="chip-group chip-group-lg gift-months">
@@ -335,7 +360,8 @@ function BuyGift({ demo = false }: { demo?: boolean }) {
         {!card && <GiftBooksPicker books={books} onChange={setBooks} />}
         <div className="gift-total">
           <p>
-            {card && rich(t("A {price} gift card, paid once."), { price: <strong>{formatMoney(total, "usd")}</strong> })}
+            {voices && rich(t("{hours} hours of natural-voice reading for {price}, paid once."), { hours: voiceHours, price: <strong>{formatMoney(total, "usd")}</strong> })}
+            {kind === "card" && rich(t("A {price} gift card, paid once."), { price: <strong>{formatMoney(total, "usd")}</strong> })}
             {!card && rich(t("{price} for {period} of {plan}, paid once."), {
               price: <strong>{formatMoney(total, "usd")}</strong>,
               period: months === GIFT_YEAR_MONTHS ? t("a year") : monthsLabel(months),
@@ -438,7 +464,13 @@ function YourGifts({ justPaid }: { justPaid: boolean }) {
               <div>
                 <p className="gift-code">{formatGiftCode(g.code)}</p>
                 <p className="gift-meta">
-                  {g.kind === "credit"
+                  {g.kind === "voice_hours"
+                    ? t("{hours} hours of natural voices · {price} · bought {date}", {
+                        hours: g.voiceHours ?? 0,
+                        price: formatMoney(g.amountCents, g.currency),
+                        date: endDate(g.createdAt),
+                      })
+                    : g.kind === "credit"
                     ? t("{credit} gift card · {price} · bought {date}", {
                         credit: formatMoney(g.creditCents ?? 0, "usd"),
                         price: formatMoney(g.amountCents, g.currency),

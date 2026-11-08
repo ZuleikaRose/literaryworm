@@ -467,7 +467,7 @@
 
   .passkey-actions {
     grid-column: 2;
-    margin-left: -10px;
+    margin-inline-start: -10px;
   }
 }
 
@@ -629,7 +629,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding-left: 12px;
+  padding-inline-start: 12px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   font-size: 0.8125rem;
@@ -707,12 +707,12 @@
 .dashboard-table td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--line);
-  text-align: right;
+  text-align: end;
   font-variant-numeric: tabular-nums;
 }
 
 .dashboard-table th:first-child {
-  text-align: left;
+  text-align: start;
 }
 
 .dashboard-table thead th {
@@ -1209,7 +1209,7 @@
 
 .maintenance-pill {
   display: inline-block;
-  margin-left: 6px;
+  margin-inline-start: 6px;
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--surface-high);
@@ -1245,7 +1245,7 @@
   }
 
   .maintenance-actions {
-    margin-left: -10px;
+    margin-inline-start: -10px;
   }
 }
 

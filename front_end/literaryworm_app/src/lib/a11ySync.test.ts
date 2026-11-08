@@ -4,6 +4,7 @@ import { a11yStep, parseSavedA11y, sameA11y, savedA11y } from "./a11ySync";
 
 const base: SavedA11y = {
   textScale: 1,
+  textSpacing: "normal",
   readableFont: false,
   dyslexicFont: false,
   highContrast: false,
@@ -25,6 +26,13 @@ describe("savedA11y", () => {
 });
 
 describe("parseSavedA11y", () => {
+  it("keeps text spacing, and ignores what it doesn't know", () => {
+    expect(parseSavedA11y({ textSpacing: "wider" }, base)?.textSpacing).toBe("wider");
+    expect(parseSavedA11y({ textSpacing: "huge" }, base)?.textSpacing).toBe("normal");
+    // An older row without it keeps what's on screen.
+    expect(parseSavedA11y({ textScale: 1 }, { ...base, textSpacing: "wide" })?.textSpacing).toBe("wide");
+  });
+
   it("reads a kept row", () => {
     expect(parseSavedA11y({ ...big }, base)).toEqual(big);
   });

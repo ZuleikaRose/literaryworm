@@ -237,6 +237,14 @@ const paths = {
       <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
     </>
   ),
+  qr: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <path d="M14 14h3v3M21 14v.01M14 21h.01M17 21h4v-4" />
+    </>
+  ),
   devices: (
     <>
       <rect x="2" y="4" width="14" height="10" rx="1.5" />

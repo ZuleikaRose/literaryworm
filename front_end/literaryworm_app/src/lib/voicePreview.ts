@@ -29,6 +29,7 @@ export const PREVIEW_TEXTS: Record<string, string> = {
   tl: "Kumusta. Ganito ko babasahin nang malakas ang iyong aklat.",
   bg: "Здравейте. Така ще звучи вашата книга, прочетена на глас.",
   ro: "Bună ziua. Așa aș citi cu voce tare cartea dumneavoastră.",
+  el: "Γεια σας. Έτσι θα ακούγεται το βιβλίο σας, διαβασμένο δυνατά.",
 };
 
 /** Every voice with a preview: id and the language it speaks. */
