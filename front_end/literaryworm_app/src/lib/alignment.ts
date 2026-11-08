@@ -20,6 +20,13 @@ export const ALIGNED_BOOKS = [
   "the-wonderful-wizard-of-oz",
   "dr-jekyll-and-mr-hyde",
   "the-call-of-the-wild",
+  // Aligned on GitHub's machines (.github/workflows/align.yml), 2026-11-08.
+  "treasure-island",
+  "peter-pan",
+  "the-war-of-the-worlds",
+  "the-jungle-book",
+  "heart-of-darkness",
+  "the-picture-of-dorian-gray",
 ] as const;
 
 export const isAligned = (bookId: string): boolean => (ALIGNED_BOOKS as readonly string[]).includes(bookId);

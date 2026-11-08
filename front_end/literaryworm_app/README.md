@@ -298,3 +298,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Natural voices on classics (`naturalVoiceOffered({ publicDomain })`, natural-voice `bookId`); `components/VoiceSettings.tsx` (`VoiceSelect`, `CharacterVoiceSettings`, `VoicesButton`) |
 | — | Upload file types: `UPLOAD_FORMATS` (`lib/bookFile.ts`, + test), `components/UploadFormats.tsx` |
 | — | Classics: `VoiceWholeBook` (player and book page), natural-voice clips in `ClipDialog` / `UploadClip` (`v=` on `/clips/:id`) |
+| — | Read-along: six more `public/alignments` files and `ALIGNED_BOOKS` entries; `.github/workflows/align.yml` |

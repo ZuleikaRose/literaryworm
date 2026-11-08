@@ -1,9 +1,12 @@
 import { describe, expect, it } from "@jest/globals";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { getBook } from "../data/books";
 import type { Book } from "../types";
-import { alignedTranscript, type Anchor, isAligned, parseAlignment, wordsBefore, wordTime } from "./alignment";
+import { ALIGNED_BOOKS, alignedTranscript, type Anchor, isAligned, parseAlignment, wordsBefore, wordTime } from "./alignment";
 
 describe("isAligned", () => {
-  it("names the eight books with an alignment file", () => {
+  it("names the fourteen books with an alignment file", () => {
     for (const id of [
       "frankenstein",
       "pride-and-prejudice",
@@ -13,10 +16,31 @@ describe("isAligned", () => {
       "the-wonderful-wizard-of-oz",
       "dr-jekyll-and-mr-hyde",
       "the-call-of-the-wild",
+      "treasure-island",
+      "peter-pan",
+      "the-war-of-the-worlds",
+      "the-jungle-book",
+      "heart-of-darkness",
+      "the-picture-of-dorian-gray",
     ]) {
       expect(isAligned(id)).toBe(true);
     }
+    // The Time Machine was aligned too, but most of its chapters barely matched, so it isn't listed.
+    expect(isAligned("the-time-machine")).toBe(false);
     expect(isAligned("dracula")).toBe(false);
+  });
+
+  it("has a well-formed file for every listed book, one chapter per recording track", () => {
+    for (const id of ALIGNED_BOOKS) {
+      const file: unknown = JSON.parse(readFileSync(join(process.cwd(), "public", "alignments", `${id}.json`), "utf8"));
+      const tracks = getBook(id)?.recording?.tracks.length ?? 0;
+      expect(tracks).toBeGreaterThan(0);
+      // parseAlignment() refuses a file whose chapters don't match the recording's tracks.
+      expect(parseAlignment(file, tracks)).not.toBeNull();
+    }
+    // And a damaged or mismatched file is refused, so the transcript falls back to the sample.
+    expect(parseAlignment(null, 3)).toBeNull();
+    expect(parseAlignment({ chapters: [] }, 3)).toBeNull();
   });
 });
 

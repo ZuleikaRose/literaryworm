@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-08",
     "version": "2026.11",
     "kind": "feature",
+    "title": "True read-along for six more classics",
+    "body": "Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness and The Picture of Dorian Gray now show the book's own text in the player's Read-along while their LibriVox recording plays, each sentence marked as the reader says it. That makes fourteen classics with a true read-along.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Voice a whole classic, save it as an MP3, and share a clip in its natural voice",
     "body": "Voice the whole book now works for the classics too, in the player and on the book's page: every part is voiced ahead on Wi-Fi and kept on your device for listening offline, and parts any member has heard before cost nothing. Download the audiobook (MP3) joins them into one file for any audio app. And Share a clip on a classic you hear in a natural voice links to that voice, for members to play; choose the LibriVox recording first to share a clip anyone can play.",
     "major": false
