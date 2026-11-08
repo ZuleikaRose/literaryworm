@@ -9,6 +9,7 @@ import { useT } from "../lib/useT";
 import type { UploadedBook } from "../types";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
+import { UploadFormats } from "./UploadFormats";
 
 /**
  * A club reading an uploaded book, before this member has linked their own copy. Uploads are
@@ -63,13 +64,16 @@ export function ClubCopyPicker({ club, uploads, onLinked }: { club: Club; upload
         <p>
           {club.bookTitle
             ? rich(
-                t("Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload {title} (a DRM-free EPUB, such as one you bought) on this profile, then choose it below."),
+                t("Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload {title} (a DRM-free book file, such as one you bought) on this profile, then choose it below."),
                 { title: <em>{club.bookTitle}</em> },
               )
-            : t("Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload it (a DRM-free EPUB, such as one you bought) on this profile, then choose it below.")}
+            : t("Each member reads their own copy of an uploaded book, so the discussion follows your place in it and nothing past your chapter is spoiled. Upload it (a DRM-free book file, such as one you bought) on this profile, then choose it below.")}
         </p>
         {uploads.length === 0 ? (
-          <p className="goal-hint">{t("You haven't uploaded any books on this profile yet.")}</p>
+          <>
+            <p className="goal-hint">{t("You haven't uploaded any books on this profile yet.")}</p>
+            <UploadFormats />
+          </>
         ) : (
           <>
             <Field

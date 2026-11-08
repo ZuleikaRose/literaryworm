@@ -485,3 +485,4 @@ Tracks each story against the front-end build in `front_end/literaryworm_app`. T
 | Greek classics (new request) | — | Done | Two titles with full text and LibriVox recordings; texts to upload to `book-texts`. |
 | Who reads whom for the classics (new request) | — | Done | A device voice and a speed per character on the classics, like uploads. `reader_profiles.device_cast_choices` (6812); Help, Privacy, What's new 6813. |
 | Natural voices for the classics; change voices anywhere (new request) | — | Done | Classics read by Google's natural voices first, with character voices, previews and per-speaker speeds; Voices and characters in the reader, on club pages and in the mini-player; Kids with a grown-up's yes. Migrations 6814–6815. |
+| List every file type you can upload (new request) | — | Done | `UPLOAD_FORMATS` and `UploadFormats` on Uploads and the club upload screens; FAQ, Help (6816), What's new (6817), llms.txt. |

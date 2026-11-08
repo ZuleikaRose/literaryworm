@@ -169,6 +169,10 @@ export const planFaqs = [
     a: tk("Yes. Choose Listen on a book you uploaded, and one of your device's voices reads it in the player.\n\nMembers can also choose a natural voice from Google: each part is voiced the first time you play it and kept with your upload, so listening again is free. Each plan includes new natural-voice reading every month: Basic 2 hours, Standard 6, Premium 12. On Kids profiles, a grown-up can turn them on in Account → Family.\n\nNatural voices read 21 languages. With Character voices on, what the characters say is read by other voices, and you can choose who reads whom; Voice the whole book keeps every part on your device for listening offline.\n\nWhen LiteraryWorm has the same public-domain book, you can hear its LibriVox recording, read by a person, instead."),
   },
   {
+    q: tk("Which files can I upload?"),
+    a: tk("Books without DRM, in any of these file types: EPUB (.epub), PDF (.pdf), and Kindle MOBI (.mobi), AZW3 (.azw3) and AZW (.azw). Add up to 20 at a time in My Library → Uploads, each up to 50 MB, and up to 50 on each profile.\n\nPDFs need real text: password-locked and scanned (picture-only) PDFs can't be read. Books with DRM, as most ebook shops' own apps sell them, can't be uploaded, and some older Kindle files need converting to EPUB first, with a free app such as Calibre. Upload only books you have the right to read."),
+  },
+  {
     q: tk("Can I hear the classics in a natural voice?"),
     a: tk("Yes, as a member. Natural voices from Google come first in a classic's Voice menu and read its full text, and the LibriVox recording, read by a person, is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month.\n\nYou can change the voice, give the characters voices and speeds of their own, and preview every voice at any time: in the player, the mini-player's settings, the reader's Voices and characters button, or a book club's page. On Kids profiles, a grown-up turns natural voices on in Account → Family."),
   },

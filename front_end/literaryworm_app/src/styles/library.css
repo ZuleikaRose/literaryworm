@@ -2444,3 +2444,24 @@ body:has(.mini-player) .listen-along-bar {
   margin: 0 0 8px;
   padding-inline-start: 1.2em;
 }
+
+/* What you can upload (components/UploadFormats.tsx): a short list under the upload hint. */
+.upload-formats {
+  margin: 10px 0 12px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+.upload-formats p {
+  margin: 0;
+}
+.upload-formats ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+  padding-inline-start: 1.2em;
+}
+.upload-formats-ext,
+.upload-formats-note {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}

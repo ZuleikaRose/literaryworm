@@ -1,5 +1,6 @@
 import { type ChangeEvent, type FormEvent, useId, useRef, useState } from "react";
 import { BOOK_FILE_ACCEPT } from "../lib/bookFile";
+import { UploadFormats } from "./UploadFormats";
 import { Link, useSearchParams } from "react-router-dom";
 import { activeReading } from "../store/reducer";
 import { useStore } from "../store/context";
@@ -46,6 +47,7 @@ export function UploadsView({ profile }: { profile: Profile }) {
   const input = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const hintId = useId();
+  const listId = useId();
   const errorId = useId();
   const remote = Boolean(state.account?.userId);
   const searchId = useId();
@@ -137,21 +139,22 @@ export function UploadsView({ profile }: { profile: Profile }) {
         <h2 id="upload-title">{t("Add a book you own")}</h2>
         <p className="goal-hint" id={hintId}>
           {remote
-            ? t("Choose up to {max} books without DRM at a time (EPUB, PDF or Kindle MOBI and AZW3), each up to 50 MB. LiteraryWorm keeps their text only, privately for {name}. Upload only books you have the right to read.", {
+            ? t("Choose up to {max} books without DRM at a time, in any of the file types below. LiteraryWorm keeps their text only, privately for {name}. Upload only books you have the right to read.", {
                 max: UPLOADS_AT_ONCE,
                 name: profile.name,
               })
-            : t("Choose up to {max} books without DRM at a time (EPUB, PDF or Kindle MOBI and AZW3), each up to 50 MB. LiteraryWorm keeps their text only, privately for {name} in this tab: the demo forgets it when you refresh. Upload only books you have the right to read.", {
+            : t("Choose up to {max} books without DRM at a time, in any of the file types below. LiteraryWorm keeps their text only, privately for {name} in this tab: the demo forgets it when you refresh. Upload only books you have the right to read.", {
                 max: UPLOADS_AT_ONCE,
                 name: profile.name,
               })}
         </p>
+        <UploadFormats id={listId} />
         <button
           ref={button}
           type="button"
           className="primary-button small-button"
           disabled={busy !== null}
-          aria-describedby={[hintId, error ? errorId : null]
+          aria-describedby={[hintId, listId, error ? errorId : null]
             .filter(Boolean)
             .join(" ")}
           onClick={() => input.current?.click()}

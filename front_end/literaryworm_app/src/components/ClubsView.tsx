@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { books, getBook, isAllowed } from "../data/books";
 import { onClubPost } from "../lib/clubEvents";
+import { UploadFormats } from "./UploadFormats";
 import {
   type Club,
   clubBook,
@@ -322,11 +323,14 @@ function StartClubForm({ profile, initialBook, initialUpload, onCancel }: { prof
         </div>
       </div>
       {source === "uploads" && uploads.length === 0 ? (
-        <p className="goal-hint">
-          {rich(t("You haven't uploaded any books yet. Add a DRM-free EPUB, such as one you bought, in {link}, then start the club around it."), {
-            link: <Link to="/library?view=uploads">{t("My Library → Uploads")}</Link>,
-          })}
-        </p>
+        <>
+          <p className="goal-hint">
+            {rich(t("You haven't uploaded any books yet. Add a DRM-free book you own, such as one you bought, in {link}, then start the club around it."), {
+              link: <Link to="/library?view=uploads">{t("My Library → Uploads")}</Link>,
+            })}
+          </p>
+          <UploadFormats />
+        </>
       ) : (
         <div className="field">
           <label className="field-label" htmlFor="club-book">

@@ -538,5 +538,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Two Greek classics: Delta's fairy tale and Papadiamantis's Christmas stories. |
 | —    | Who reads whom for the classics: device voices and speeds per character. Migrations 6812–6813. |
 | —    | Natural voices for the public-domain classics, and Voices and characters in the reader, the mini-player and club pages. |
+| —    | Uploads list every DRM-free file type they take (EPUB, PDF, Kindle .mobi/.azw3/.azw), also on club pages, the FAQ and Help. |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

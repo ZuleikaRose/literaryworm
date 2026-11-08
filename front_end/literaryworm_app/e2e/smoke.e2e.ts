@@ -1223,6 +1223,21 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("lists every DRM-free file type Uploads takes, and the Choose books button points to it", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/library?view=uploads");
+    const list = page.locator(".upload-formats").first();
+    await list.getByText("You can upload these DRM-free files:").waitFor();
+    for (const ext of [".epub", ".pdf", ".mobi", ".azw3", ".azw"]) {
+      await expect(list.getByText(new RegExp(`\\${ext}\\b`)).count()).resolves.toBeGreaterThan(0);
+    }
+    // The Choose books button points screen readers at the list too.
+    const describedBy = (await page.getByRole("button", { name: "Choose books" }).getAttribute("aria-describedby")) ?? "";
+    expect(describedBy.split(" ")).toContain(await list.getAttribute("id"));
+    expect(errors()).toEqual([]);
+  });
+
   it("searches uploads by title, author and keywords, linking to the page", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
