@@ -11,7 +11,7 @@ describe("voice previews", () => {
 
   it("has a recorded preview of every narrator and character voice (scripts/voice-previews.mjs)", () => {
     const list = previewVoices();
-    expect(list.length).toBe(192);
+    expect(list.length).toBe(201);
     const missing = list.filter((v) => !existsSync(join(__dirname, "../../public", previewPath(v.id)))).map((v) => v.id);
     expect(missing).toEqual([]);
   });
