@@ -1794,11 +1794,13 @@ describe("the demo household", () => {
     const dialog = page.getByRole("dialog", { name: "Player settings" });
     await dialog.getByRole("switch", { name: /Character voices/ }).check();
     const who = dialog.getByRole("region", { name: "Who reads whom" });
-    await who.getByLabel("Ezra").selectOption("Puck");
-    await who.getByLabel("Juno").waitFor();
+    await who.getByLabel(/^Ezra(?!'s speed)/).selectOption("Puck");
+    await who.getByLabel(/^Juno(?!'s speed)/).waitFor();
+    await who.getByLabel("Ezra's speed").selectOption("0.8");
     await dialog.getByRole("button", { name: "Close" }).click();
     await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
-    await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel("Ezra").inputValue()).resolves.toBe("Puck");
+    await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel(/^Ezra(?!'s speed)/).inputValue()).resolves.toBe("Puck");
+    await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel("Ezra's speed").inputValue()).resolves.toBe("0.8");
     await page.keyboard.press("Escape");
     // The demo plays it: The Tide Clock is recorded in natural voices, each speech in every character voice.
     await page.getByText(/Read aloud by Aoede, a natural voice from Google\. In the demo/).waitFor();
@@ -1893,7 +1895,7 @@ describe("the demo household", () => {
     const dialog = page.getByRole("dialog", { name: "Player settings" });
     await dialog.getByRole("switch", { name: /Character voices/ }).check();
     const who = dialog.getByRole("region", { name: "Who reads whom" });
-    await who.getByLabel("Ezra").selectOption("Puck");
+    await who.getByLabel(/^Ezra(?!'s speed)/).selectOption("Puck");
     const puck = page.waitForResponse((r) => r.url().endsWith("/voices/preview/en-GB-Chirp3-HD-Puck.mp3"));
     await who.getByRole("button", { name: "Hear Ezra" }).click();
     expect((await puck).ok()).toBe(true);
