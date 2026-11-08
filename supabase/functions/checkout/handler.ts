@@ -145,7 +145,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       throw new HttpError("bad_request", "Staff accounts have a complimentary membership and are never charged.");
     }
     const body = await readJsonBody(req);
-    if (body.voiceHours !== undefined) {
+    // Hours for yourself; a gift of hours (gift: true) is handled with the other gifts below.
+    if (body.voiceHours !== undefined && body.gift === undefined) {
       onlyKeys(body, ["voiceHours"]);
       if (!isVoicePack(body.voiceHours)) throw new HttpError("bad_request", "Pick 5 or 10 hours.");
       // More hours go with a membership that's paid up: not in the free week, nor while a payment is owed.
