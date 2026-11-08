@@ -1,5 +1,11 @@
 // POST /functions/v1/natural-voice  { "uploadId": "u-…", "chapter": 0, "segment": 0, "voice": "en-GB-Chirp3-HD-Aoede", "cast": false }
+//   or { "bookId": "frankenstein", "profileId": "<uuid>", "chapter": 0, … } for a public-domain classic
 // → { "url": "<a signed link to the MP3, good for an hour>" }
+//
+// A classic's parts come from its own text (the site's /texts, _shared/bookText.ts, the same chapters
+// the reader shows) and are kept once for everyone under catalog/<book>/ (nothing about the member is
+// in them), so a part one member has voiced costs the next nothing; new voicing is claimed from the
+// listener's account like an upload's, for the profile named (which must be the caller's).
 //
 // A natural voice reading a member's own uploaded book: one piece of one chapter (voiceSegments()
 // in _shared/naturalVoice.ts, which the browser cuts the same way), voiced by Google Cloud
@@ -18,6 +24,7 @@ import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { CAST_CHOICES_MAX, chapterPieces, naturalVoice, naturalVoiceLimit, parseCastChoices, parsePronunciations, piecePronunciations, PRONUNCIATIONS_MAX, pronunciationKey, sayAs, voiceFile } from "../_shared/naturalVoice.ts";
 import { onlyKeys, parseInt } from "../_shared/validate.ts";
+import { CATALOG } from "../_shared/catalog.ts";
 
 const METHODS = "POST";
 
@@ -28,6 +35,10 @@ export type Deps = {
   user: (req: Request) => Promise<string>;
   /** The caller's upload, or null when it isn't theirs or doesn't exist. */
   upload: (userId: string, uploadId: string) => Promise<Upload | null>;
+  /** Whether the profile is one of the caller's (for a classic, where there's no upload to say whose). */
+  ownProfile?: (userId: string, profileId: string) => Promise<boolean>;
+  /** A public-domain classic's chapters (the site's /texts). */
+  bookChapters?: (bookId: string) => Promise<string[]>;
   /** The profile's age rating ("kids", "teen" or "all"). */
   ageRating: (profileId: string) => Promise<string | null>;
   /** Whether a grown-up turned natural voices on for this Kids profile (reader_profiles.kids_natural_voices). */
@@ -65,6 +76,9 @@ export type Deps = {
 };
 
 const UPLOAD_ID = /^u-[0-9a-f]{32}$/;
+const PROFILE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Where a classic's parts are kept: shared by every listener, since they hold only the book's own text. */
+export const CATALOG_VOICES = "catalog";
 
 export async function handle(req: Request, deps: Deps): Promise<Response> {
   const early = preflight(req, METHODS);
@@ -74,11 +88,22 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     requireMethod(req, ["POST"]);
     const userId = await deps.user(req);
     const body = await readJsonBody(req);
-    onlyKeys(body, ["uploadId", "chapter", "segment", "voice", "cast", "castChoices", "pronunciations"]);
-    if (typeof body.uploadId !== "string" || !UPLOAD_ID.test(body.uploadId)) {
-      throw new HttpError("bad_request", "uploadId must be an uploaded book's id.");
+    onlyKeys(body, ["uploadId", "bookId", "profileId", "chapter", "segment", "voice", "cast", "castChoices", "pronunciations"]);
+    // Either a member's upload or a public-domain classic (with the listening profile).
+    const classic = body.bookId !== undefined;
+    if (classic) {
+      if (body.uploadId !== undefined) throw new HttpError("bad_request", "Send uploadId or bookId, not both.");
+      if (typeof body.bookId !== "string" || !Object.hasOwn(CATALOG, body.bookId) || !CATALOG[body.bookId].publicDomain) {
+        throw new HttpError("bad_request", "bookId must be one of the public-domain classics.");
+      }
+      if (typeof body.profileId !== "string" || !PROFILE_ID.test(body.profileId)) throw new HttpError("bad_request", "profileId must be one of your profiles.");
+    } else {
+      if (typeof body.uploadId !== "string" || !UPLOAD_ID.test(body.uploadId)) {
+        throw new HttpError("bad_request", "uploadId must be an uploaded book's id.");
+      }
+      if (body.profileId !== undefined) throw new HttpError("bad_request", "profileId goes with bookId.");
     }
-    const uploadId = body.uploadId;
+    const uploadId = (classic ? body.bookId : body.uploadId) as string;
     const chapter = parseInt(body.chapter, "chapter", 0, 499);
     const segment = parseInt(body.segment, "segment", 0, 9999);
     const voice = typeof body.voice === "string" ? naturalVoice(body.voice) : null;
@@ -107,8 +132,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     }
     const respelled = Object.keys(pronunciations).length > 0;
 
-    const upload = await deps.upload(userId, uploadId);
-    if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
+    let upload: Upload | null;
+    if (classic) {
+      const profileId = body.profileId as string;
+      if (!deps.ownProfile || !deps.bookChapters || !(await deps.ownProfile(userId, profileId))) throw new HttpError("not_found", "That profile isn't one of yours.");
+      upload = { profileId, storagePath: "" };
+    } else {
+      upload = await deps.upload(userId, uploadId);
+      if (!upload) throw new HttpError("not_found", "That book isn't one of your uploads.");
+    }
+    // Uploads are kept in the member's own folder; classics once for everyone.
+    const owner = classic ? CATALOG_VOICES : userId;
     const rating = await deps.ageRating(upload.profileId);
     // A Kids profile only when a grown-up turned them on for it (Account → Family, with the password).
     if (rating === null || (rating === "kids" && !(await deps.kidsVoices(upload.profileId)))) {
@@ -122,18 +156,18 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     // Without character voices or respellings the piece's file is known at once, so a kept one costs no text read.
     if (!cast && !respelled) {
-      const kept = await deps.signedUrl(voiceFile(userId, uploadId, voice.id, chapter, segment));
+      const kept = await deps.signedUrl(voiceFile(owner, uploadId, voice.id, chapter, segment));
       if (kept) return json(req, METHODS, { url: kept });
     }
 
-    const chapters = await deps.chapters(upload.storagePath);
+    const chapters = classic ? await deps.bookChapters!(uploadId) : await deps.chapters(upload.storagePath);
     if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
     const pieces = chapterPieces(chapters[chapter], voice, cast, choices);
     if (segment >= pieces.length) throw new HttpError("bad_request", `segment must be below ${pieces.length}.`);
     const piece = pieces[segment];
     // Only the respellings of words in this piece count, so pieces without them keep their files.
     const says = piecePronunciations(piece.text, pronunciations);
-    const path = voiceFile(userId, uploadId, piece.voice, chapter, segment, piece.cast, pronunciationKey(says));
+    const path = voiceFile(owner, uploadId, piece.voice, chapter, segment, piece.cast, pronunciationKey(says));
     if (cast || respelled) {
       const kept = await deps.signedUrl(path);
       if (kept) return json(req, METHODS, { url: kept });
@@ -152,10 +186,11 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     let payer = userId;
     let club: { clubId: string; ownerId: string } | null = null;
     if (!(await deps.claim(userId, text.length, naturalVoiceLimit(plan, trial)))) {
-      club = (await deps.clubVoice?.(userId, uploadId, text.length)) ?? null;
-      const owner = club ? await deps.membership(club.ownerId) : null;
+      // A club's hours are for members' own copies of its uploaded book, never classics.
+      club = classic ? null : ((await deps.clubVoice?.(userId, uploadId, text.length)) ?? null);
+      const clubOwner = club ? await deps.membership(club.ownerId) : null;
       const ownerPays = Boolean(
-        club && owner && !owner.pastDue && (await deps.claim(club.ownerId, text.length, naturalVoiceLimit(owner.plan, owner.trial))),
+        club && clubOwner && !clubOwner.pastDue && (await deps.claim(club.ownerId, text.length, naturalVoiceLimit(clubOwner.plan, clubOwner.trial))),
       );
       if (!ownerPays) {
         // In the free week the limit is its hour; the plan's own hours start with the first payment.

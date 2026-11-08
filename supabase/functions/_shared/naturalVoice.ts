@@ -143,10 +143,11 @@ export function naturalVoiceLimit(planId: string, trial = false): number {
   return Math.round((trial ? Math.min(hours, NATURAL_VOICE_TRIAL_HOURS) : hours) * CHARACTERS_PER_HOUR);
 }
 
-/** Whether a profile is offered natural voices for a book: members' own stored uploads, never on Kids profiles. */
-export function naturalVoiceOffered(input: { member: boolean; ageRating: string | null; uploadPath: string | null; kidsAllowed?: boolean }): boolean {
+/** Whether a profile is offered natural voices for a book: members' own stored uploads and the public-domain classics; Kids profiles only with a grown-up's yes. */
+export function naturalVoiceOffered(input: { member: boolean; ageRating: string | null; uploadPath: string | null; kidsAllowed?: boolean; publicDomain?: boolean }): boolean {
   // Kids profiles only when a grown-up turned them on (reader_profiles.kids_natural_voices).
-  return input.member && input.ageRating !== null && (input.ageRating !== "kids" || input.kidsAllowed === true) && input.uploadPath !== null;
+  // A member's upload, or a public-domain classic (its own text, read by the natural-voice function).
+  return input.member && input.ageRating !== null && (input.ageRating !== "kids" || input.kidsAllowed === true) && (input.uploadPath !== null || input.publicDomain === true);
 }
 
 /**

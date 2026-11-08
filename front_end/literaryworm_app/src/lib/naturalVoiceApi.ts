@@ -27,17 +27,24 @@ const FRIENDLY: Record<string, string> = {
 
 const friendly = (code: string) => tr(Object.hasOwn(FRIENDLY, code) ? FRIENDLY[code] : FRIENDLY.upstream_error);
 
-/** A link (good for an hour) to one voiced piece of an upload, voicing it first if it's new. */
-/** `voice` is the narrator; with `cast`, the piece is one of chapterPieces() with character voices, read in its own voice. */
+/**
+ * A link (good for an hour) to one voiced piece of an upload or a public-domain classic, voicing it
+ * first if it's new. `voice` is the narrator; with `cast`, the piece is one of chapterPieces() with
+ * character voices, read in its own voice. A classic (any id but an upload's "u-") names the
+ * listening profile, whose month the new voicing counts towards.
+ */
 export async function naturalVoiceUrl(
-  uploadId: string,
+  bookId: string,
   chapter: number,
   segment: number,
   voice: string,
   cast = false,
   castChoices: Record<string, string> = {},
   pronunciations: Record<string, string> = {},
+  profileId: string | null = null,
 ): Promise<string> {
+  const upload = bookId.startsWith("u-");
+  if (!upload && !profileId) throw new NaturalVoiceError(friendly("unauthorized"));
   const token = supabase ? (await supabase.auth.getSession()).data.session?.access_token : undefined;
   if (!token) throw new NaturalVoiceError(friendly("unauthorized"));
   let res: Response;
@@ -46,7 +53,7 @@ export async function naturalVoiceUrl(
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        uploadId,
+        ...(upload ? { uploadId: bookId } : { bookId, profileId }),
         chapter,
         segment,
         voice,

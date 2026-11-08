@@ -5,7 +5,7 @@ import { CarMode } from "../components/CarMode";
 import { nearBedtime } from "../lib/bedtimeListening";
 import { RecapDialog } from "../components/RecapDialog";
 import { ClipDialog } from "../components/ClipDialog";
-import { VoicePreviewButton } from "../components/VoicePreviewButton";
+import { VoiceSelect } from "../components/VoiceSettings";
 import { Cover } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { UploadRecordingLink } from "../components/UploadRecordingLink";
@@ -14,8 +14,8 @@ import { playerContinueUrl, readAt } from "../lib/continueLink";
 import { CastButton, DevicesDialog, JumpDialog, type JumpSection, PlayerSettingsDialog, SleepMore, VolumeControl } from "../components/PlayerControls";
 import { BookmarksDialog, DailyLimitReached, ListeningAllowanceUsed, FinishedPanel, MarkFinishedDialog, ReadingGate } from "../components/ReadingParts";
 import { Transcript } from "../components/Transcript";
-import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
-import { NATURAL_PREFIX, NATURAL_VOICE_HOURS, type NaturalVoice, voicesFor } from "../lib/naturalVoice";
+import { resolveNarration, useVoices, voiceLabel } from "../lib/narration";
+import { NATURAL_VOICE_HOURS } from "../lib/naturalVoice";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { usePlayback } from "../lib/playback";
 import { hoursAndMinutes } from "../lib/planLimits";
@@ -25,7 +25,7 @@ import { canRecap } from "../lib/recap";
 import { formatTimeLeft, listeningSecondsLeft } from "../lib/pace";
 import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
-import { dateLocale, rich } from "../lib/i18n";
+import { rich } from "../lib/i18n";
 import { useAlignment } from "../lib/useAlignment";
 import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
@@ -50,20 +50,7 @@ function PlayerView({ book }: { book: Book }) {
   const narration = resolveNarration(book, narrationVoice, voices, naturalOffered);
   // The pilot's books have their recording lined up with the text, for a true read-along.
   const alignment = useAlignment(book, narration.kind === "recording" && state.a11y.transcript);
-  const voiceValue = narrationValue(narration);
-  // An English voice by its accent; another language's by the language's name, in the reader's language.
-  const voiceKind = (v: NaturalVoice) =>
-    v.accent === "British"
-      ? t("British English")
-      : v.accent === "American"
-        ? t("American English")
-        : v.accent === "Australian"
-          ? t("Australian English")
-          : (new Intl.DisplayNames([dateLocale()], { type: "language" }).of(v.language) ?? v.language);
   const naturalHours = NATURAL_VOICE_HOURS[state.account?.planId ?? "basic"] ?? 0;
-  const accents = (["British", "American", "Australian"] as const)
-    .map((accent) => [accent, voices.filter((v) => accentOf(v) === accent)] as const)
-    .filter(([, list]) => list.length > 0);
   const playback = usePlayback();
   const { open } = playback;
   const controls = usePlayerControls(book);
@@ -376,33 +363,8 @@ function PlayerView({ book }: { book: Book }) {
                     <option value="chapter">{t("End of chapter")}</option>
                   </select>
                 </label>
-                <label className="player-select player-voice">
-                  <span>{t("Voice")}</span>
-                  <select value={voiceValue} onChange={(e) => dispatch({ type: "setNarrationVoice", voice: e.target.value })}>
-                    {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
-                    {naturalOffered && (
-                      <optgroup label={t("Natural voices (Google)")}>
-                        {voicesFor(book.language).map((v) => (
-                          <option key={v.id} value={NATURAL_PREFIX + v.id}>
-                            {t("{name}, {accent}", { name: v.name, accent: voiceKind(v) })}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    {accents.map(([accent, list]) => (
-                      <optgroup key={accent} label={accent === "British" ? t("British English") : accent === "American" ? t("American English") : t("Australian English")}>
-                        {list.map((v) => (
-                          <option key={v.voiceURI} value={v.voiceURI}>
-                            {voiceLabel(v)}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                    {!book.recording && <option value={SILENT_VOICE}>{book.upload ? t("No voice") : t("No voice (silent sample)")}</option>}
-                  </select>
-                </label>
-                {/* A few seconds of the chosen natural voice, recorded ahead (lib/voicePreview.ts). */}
-                {narration.kind === "natural" && <VoicePreviewButton voiceId={narration.voice.id} name={narration.voice.name} />}
+{/* Natural voices first, with a preview (components/VoiceSettings.tsx, also in the reader and on club pages). */}
+                <VoiceSelect book={book} />
               </div>
 
               <p className="player-status" role="status">
@@ -432,7 +394,9 @@ function PlayerView({ book }: { book: Book }) {
               <>
                 {naturalSource === "demo"
                   ? t("Read aloud by {voice}, a natural voice from Google. In the demo, this sample upload was voiced ahead of time; members' uploads are voiced as they listen, a part at a time, and kept so listening again is free.", { voice: narration.voice.name })
-                  : t("Read aloud by {voice}, a natural voice from Google, from your upload. Each part is voiced the first time you play it and kept with your upload, so listening again is free.", { voice: narration.voice.name })}{" "}
+                  : book.upload
+                    ? t("Read aloud by {voice}, a natural voice from Google, from your upload. Each part is voiced the first time you play it and kept with your upload, so listening again is free.", { voice: narration.voice.name })
+                    : t("Read aloud by {voice}, a natural voice from Google, from the full public-domain text (Project Gutenberg). Each part is voiced the first time any member plays it and kept, so listening again is free. The LibriVox recording is still in Voice.", { voice: narration.voice.name })}{" "}
                 {naturalSource !== "demo" &&
                   t.plural(naturalHours, {
                       one: "Your plan includes {count} hour of new natural-voice reading a month.",
@@ -441,7 +405,10 @@ function PlayerView({ book }: { book: Book }) {
               </>
             ) : narration.kind === "speech" ? (
               book.recording ? (
-                <>{t("Read aloud by your device's {voice} voice from the full public-domain text (Project Gutenberg).", { voice: voiceLabel(narration.voice) })}</>
+                <>
+                  {t("Read aloud by your device's {voice} voice from the full public-domain text (Project Gutenberg).", { voice: voiceLabel(narration.voice) })}
+                  {naturalOffered && ` ${t("Or choose a natural voice from Google in Voice.")}`}
+                </>
               ) : book.upload ? (
                 <>
                   {t("Read aloud by your device's {voice} voice from your upload.", { voice: voiceLabel(narration.voice) })}
@@ -469,6 +436,14 @@ function PlayerView({ book }: { book: Book }) {
           </p>
           {book.upload && !naturalOffered && !state.account?.userId && profile?.ageRating !== "kids" && (
             <p className="reader-sample-note">{t("Members can choose a natural voice from Google for their uploads.")}</p>
+          )}
+          {/* The demo never calls Google, so its classics keep their LibriVox recording. */}
+          {book.publicDomain && book.recording && !book.upload && !naturalOffered && profile?.ageRating !== "kids" && (
+            <p className="reader-sample-note">{t("Members can also hear the classics in natural voices from Google, with a voice of their own for each character.")}</p>
+          )}
+          {/* A Kids profile hears natural voices once a grown-up turns them on for it. */}
+          {(book.upload || (book.publicDomain && book.recording)) && !naturalOffered && Boolean(state.account?.userId) && !state.account?.isDemo && profile?.ageRating === "kids" && (
+            <p className="reader-sample-note">{t("Natural voices from Google need a grown-up's yes: they can turn them on for this profile in Account → Family.")}</p>
           )}
           {book.upload && <UploadRecordingLink upload={book} className="reader-sample-note" />}
           {book.upload && narration.kind === "natural" && <VoiceWholeBook book={book} />}

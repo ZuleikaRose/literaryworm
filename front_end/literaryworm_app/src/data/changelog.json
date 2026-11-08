@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-08",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Natural voices for the classics, and voices you can change anywhere",
+    "body": "Members can now hear the public-domain classics read by natural voices from Google, first in the Voice menu, with each character's voice and speed under Who reads whom, previews of every voice, and Pronunciations; the LibriVox recordings are still there. Voices and characters is now in the reader's top bar and on a book club's page, as well as in Player settings in the player and the mini-player, so you can change who reads at any time while reading or listening. Read aloud in the reader works for the classics too. Kids profiles get it all once a grown-up turns natural voices on in Account → Family.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Who reads whom for the classics",
     "body": "Pick a voice from your device for each character in a classic, and a speed of their own, just like with uploads. Choose one of your device's voices under Voice and turn on Character voices; press play beside a character to hear them.",
     "major": true

@@ -1,0 +1,5 @@
+-- What's new: Natural voices for the classics, and voices you can change anywhere. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Natural voices for the classics, and voices you can change anywhere$lw$, $lw$Members can now hear the public-domain classics read by natural voices from Google, first in the Voice menu, with each character's voice and speed under Who reads whom, previews of every voice, and Pronunciations; the LibriVox recordings are still there. Voices and characters is now in the reader's top bar and on a book club's page, as well as in Player settings in the player and the mini-player, so you can change who reads at any time while reading or listening. Read aloud in the reader works for the classics too. Kids profiles get it all once a grown-up turns natural voices on in Account → Family.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices for the classics, and voices you can change anywhere$lw$ and c.released_on = '2026-11-08');

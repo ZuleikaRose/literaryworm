@@ -79,7 +79,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-11-07",
+    "updated": "2026-11-08",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -189,7 +189,7 @@
           "We send page addresses without anything after ? or #, though a form you send, such as a search, can include it. Ahrefs sets no cookies and keeps nothing in your browser. It's off while a Kids profile is in use and on pages whose links carry codes, such as password resets, invitations and unsubscribe links.",
           "Ahrefs handles this under its own privacy policy (https://ahrefs.com/legal/privacy-policy). To stop it, choose Consent Preferences at the bottom of any page and decline analytics.",
           "Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6).",
-          "Google Cloud Text-to-Speech reads members' uploaded books aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6).",
+          "Google Cloud Text-to-Speech reads members' uploaded books and the public-domain classics aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. Book covers and the Google Books preview load from books.google.com directly in your browser, and Google sets third-party cookies there (see the Cookie Policy).",
           "LibriVox recordings stream from the Internet Archive directly from your browser. The app's fonts load from Google Fonts the same way, so Google receives your IP address with those requests.",
           "Other members. Reading logs are public, with your display name. Book club posts are seen by the club's members. If you invite someone to a club by email, the invitation shows them your display name and the club's name, book and finish date; we send it through Mailgun and keep only a one-way fingerprint of their address for 30 days (so the same address isn't invited again within a week), never the address itself.",
@@ -226,6 +226,7 @@
           "Discussion questions: on a book club's page, questions about a chapter of a public-domain book you've reached. We send only the book's text up to the end of that chapter, nothing about you or the club, and keep the questions so every club at that chapter gets the same ones.",
           "Chapter quizzes: a few questions about a chapter of a public-domain book, written for young readers. We send only that chapter's text, nothing about you, and keep the quiz so every reader of that chapter gets the same one; your score is saved with your profile.",
           "Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, up to about a minute and a half at a time (shorter with Character voices on, which voice each speech apart), nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account.",
+          "Natural voices also read the public-domain classics, from their own text (Project Gutenberg). The parts are the book's own words, so each is voiced once and kept for every member who listens to that book in that voice, with nothing saying who asked for it; we count it towards the month's natural-voice reading of the account that heard it first, and towards that profile's share.",
           "Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player.",
           "How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreements with the AI Service Providers. We don't use your reading history, notes, uploads or posts to train AI models."
         ]
@@ -420,7 +421,7 @@
           "LiteraryWorm never asks for access to your local network (the other devices on your home Wi-Fi) and doesn't need it for anything, including Listen on another device and playing on a speaker or TV. If your browser asks, choose Block.",
           "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing.",
           "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.",
-          "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance.",
+          "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance.",
           "Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them.",
           "For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account.",
           "Downloading an upload's audiobook joins the parts already kept on your device into one file there; nothing is sent to us or to Google for it.",
@@ -653,7 +654,7 @@
         "paragraphs": [
           "A Kids profile can read AI-written book summaries and content notes, hear a recap of earlier chapters (Previously…) and take chapter quizzes. These are written by Claude, made by Anthropic.",
           "Kids profiles aren't offered voice control in car mode, because what's said would go to the browser's speech service (Google's or Apple's). Car mode's buttons work as usual.",
-          "Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them.",
+          "Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded, or a public-domain classic) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them.",
           "We send Anthropic only the book's details or its own text and which chapter it's about, never the child's name, answers, scores or anything else about them. The summaries, content notes, recaps and quizzes are kept and shared with every reader of that book, so they say nothing about who asked."
         ]
       },
@@ -703,7 +704,7 @@
         ]
       }
     ],
-    "updated": "2026-11-07"
+    "updated": "2026-11-08"
   },
   {
     "slug": "privacy-choices",
@@ -1723,6 +1724,7 @@
           "Your upload opens in the reader with your place, bookmarks and highlights, and once you've opened it on a device, it keeps working there if your connection drops. Books with DRM can't be uploaded, and removing DRM to upload a book isn't allowed (see the Terms of Service).",
           "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
           "Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
+          "The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording.",
           "To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.",
           "Under Voice the whole book, On this device shows how many voiced parts of the book are kept here and how much space they take, so you can check a book is ready before a trip. Remove the voices from this device frees the space afterwards; the book stays, and the voices play again online.",
           "Once every part is on your device, Download the audiobook (MP3) under Voice the whole book joins them, in order, into one file to play in any audio app. It's made on your device from the parts already there, so it costs nothing more; it's for your own listening, like the book you uploaded.",
@@ -1760,7 +1762,8 @@
           "Car mode (in the player and the mini-player's More) fills a phone or tablet with big buttons and keeps the screen on. Voice control there, off until you turn it on, lets you say Play, Pause, Back, Forward, Next chapter, Previous chapter or Exit car mode, with a length if you like (back 30 seconds). Your browser's speech service hears the words. Not on Kids profiles.",
           "Bedtime listening (in the player and the mini-player's More) is a dim, quiet view for winding down. It sets the sleep timer for you, to the end of the chapter when that's near or 15 minutes otherwise, and the sound fades out when it ends. Dimmer darkens the screen further, and nothing keeps it awake. Kids profiles with a bedtime are offered it in the player shortly before.",
           "When a voice reads the book's text (a natural voice or one of your device's), a sleep timer in minutes runs on to the end of the paragraph being read, up to 2 minutes more, so it fades out at a break instead of mid-sentence. LibriVox recordings stop at the minutes you chose.",
-          "In the reader, an upload with a natural voice has Read aloud in the top bar (the headphones). It reads on from the page you're on, turns the pages as it goes and marks the word being spoken. Choose it again to stop; the book keeps playing from the mini-player if you leave the reader."
+          "In the reader, an upload with a natural voice has Read aloud in the top bar (the headphones). It reads on from the page you're on, turns the pages as it goes and marks the word being spoken. Choose it again to stop; the book keeps playing from the mini-player if you leave the reader.",
+          "You can change who reads at any time, while reading or listening. Voices and characters (the two figures in the reader's top bar, and on a book club's page for the club's book) has the Voice menu with its previews, Character voices, Who reads whom with each speaker's voice and speed, and Pronunciations. The player and the mini-player have the same in Player settings. A change while the book plays carries on from the same place. Classics have Read aloud in the reader too, with a natural voice."
         ]
       },
       {
@@ -1840,7 +1843,7 @@
         ]
       }
     ],
-    "updated": "2026-11-07"
+    "updated": "2026-11-08"
   },
   {
     "slug": "status",

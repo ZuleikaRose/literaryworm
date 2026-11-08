@@ -40,7 +40,7 @@ export function rangeForWord(article: HTMLElement, pageText: string, n: number):
 }
 
 /**
- * *Read aloud* in the reader (lib/readAlong.ts), for an upload a natural voice reads: starts the
+ * *Read aloud* in the reader (lib/readAlong.ts), for an upload or a classic a natural voice reads: starts the
  * player from the page on screen, turns the pages as the voice moves on, and marks the word being
  * spoken with the CSS Custom Highlight API (where the browser has it), so the page itself and its
  * highlights and selections are untouched.
@@ -48,7 +48,8 @@ export function rangeForWord(article: HTMLElement, pageText: string, n: number):
 export function useReaderReadAloud(book: Book, pages: ReaderPage[], index: number, turnTo: (page: number) => void, articleRef: RefObject<HTMLElement | null>) {
   const playback = usePlayback();
   const source = useNaturalVoice(book);
-  const offered = Boolean(book.upload) && source !== null;
+  // Uploads and the classics (their own text), wherever natural voices are offered.
+  const offered = (Boolean(book.upload) || (book.publicDomain === true && Boolean(book.recording))) && source !== null;
   const [on, setOn] = useState(false);
   const [texts, setTexts] = useState<string[] | null>(null);
   useEffect(() => {

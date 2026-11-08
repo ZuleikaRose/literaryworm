@@ -1,5 +1,6 @@
 import { HttpError } from "../_shared/http.ts";
 import { CHARACTERS_PER_HOUR, naturalVoiceMonth, VOICE_BUCKET } from "../_shared/naturalVoice.ts";
+import { bookChapters } from "../_shared/bookText.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { requireUser, serviceClient } from "../_shared/supabase.ts";
 import { synthesize } from "./google.ts";
@@ -23,6 +24,12 @@ Deno.serve((req) => {
       if (error) dbError("read the upload", error);
       return data ? { profileId: data.profile_id as string, storagePath: data.storage_path as string } : null;
     },
+    ownProfile: async (userId, profileId) => {
+      const { data, error } = await db.from("reader_profiles").select("id").eq("id", profileId).eq("account_id", userId).maybeSingle();
+      if (error) dbError("read the profile", error);
+      return data !== null;
+    },
+    bookChapters,
     ageRating: async (profileId) => {
       const { data, error } = await db.from("reader_profiles").select("age_rating").eq("id", profileId).maybeSingle();
       if (error) dbError("read the profile", error);

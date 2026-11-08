@@ -55,9 +55,10 @@ export type Narration =
   | { kind: "silent" };
 
 /**
- * Who reads `book` for a profile's choice (ProfileData.narrationVoice) on this device. The
- * recording is the default where there is one; where natural voices are offered (`natural`: a
- * member's upload, not on Kids profiles) the default is the first natural voice; a voice the
+ * Who reads `book` for a profile's choice (ProfileData.narrationVoice) on this device. Where natural
+ * voices are offered (`natural`: a member's upload or a public-domain classic; Kids profiles only
+ * with a grown-up's yes) the default is the book's language's first natural voice, and the
+ * recording is a choice (LIBRIVOX_VOICE); otherwise the recording is the default where there is one; a voice the
  * device doesn't have falls back to the default; with no voices at all, the sample clock runs
  * silently.
  */
@@ -70,8 +71,9 @@ export function resolveNarration(book: Book, choice: string | null, voices: Spee
   if (naturalChoice) return { kind: "natural", voice: naturalChoice };
   const chosen = choice ? voices.find((v) => v.voiceURI === choice) : undefined;
   if (chosen) return { kind: "speech", voice: chosen };
-  if (book.recording) return { kind: "recording" };
+  if (choice === LIBRIVOX_VOICE && book.recording) return { kind: "recording" };
   if (natural) return { kind: "natural", voice: defaultNaturalVoice(book.language) };
+  if (book.recording) return { kind: "recording" };
   const fallback = defaultVoice(voices);
   return fallback ? { kind: "speech", voice: fallback } : { kind: "silent" };
 }

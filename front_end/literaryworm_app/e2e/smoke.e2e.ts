@@ -839,6 +839,17 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("keeps a classic's LibriVox recording in the demo and says members can hear it in natural voices", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein");
+    // The demo never calls Google: the recording stays the default, with no natural voices to choose.
+    await expect(page.getByLabel("Voice").inputValue()).resolves.toBe("librivox");
+    await expect(page.getByLabel("Voice").locator('option[value^="natural:"]').count()).resolves.toBe(0);
+    await page.getByText("Members can also hear the classics in natural voices from Google, with a voice of their own for each character.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("pauses on the sleep timer, then offers 15 more minutes from a little earlier", async () => {
     const { page, errors } = await newPage();
     // The page's clock, so five minutes of listening pass in a moment.
@@ -1879,6 +1890,37 @@ describe("the demo household", () => {
     const speech = await page.request.get(`${BASE_URL}/voices/demo/a1/en-GB-Chirp3-HD-Puck-1-c1.mp3`);
     expect(speech.ok()).toBe(true);
     expect(speech.headers()["content-type"]).toMatch(/audio\/mpeg/);
+    expect(errors()).toEqual([]);
+  });
+
+  it("changes the voice and the characters' voices from the reader, and keeps them for the player", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/u-d3e0a1000000000000000000000000a1");
+    await page.getByRole("button", { name: "Voices and characters" }).click();
+    const dialog = page.getByRole("dialog", { name: "Voices and characters" });
+    await dialog.getByLabel("Voice").selectOption({ label: "Charon, British English" });
+    await dialog.getByRole("switch", { name: /Character voices/ }).check();
+    await dialog.getByRole("region", { name: "Who reads whom" }).getByLabel(/^Juno(?!'s speed)/).selectOption("Puck");
+    await dialog.getByRole("button", { name: "Close" }).click();
+    // The same choices in the player: one set per profile and book.
+    await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
+    await expect(page.getByLabel("Voice").inputValue()).resolves.toBe("natural:en-GB-Chirp3-HD-Charon");
+    await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
+    await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel(/^Juno(?!'s speed)/).inputValue()).resolves.toBe("Puck");
+    expect(errors()).toEqual([]);
+  });
+
+  it("offers each club member the voices and characters for the club's book", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/clubs/demo-club");
+    await page.getByRole("button", { name: "Voices and characters" }).click();
+    const dialog = page.getByRole("dialog", { name: "Voices and characters" });
+    await dialog.getByLabel("Voice").waitFor();
+    await dialog.getByRole("switch", { name: /Character voices/ }).check();
+    // The demo's classic plays its LibriVox recording (no Google), so Who reads whom says how to change that.
+    await dialog.getByText(/^The LibriVox recording is read by one person\./).waitFor();
     expect(errors()).toEqual([]);
   });
 

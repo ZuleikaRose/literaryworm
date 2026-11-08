@@ -22,6 +22,7 @@ import { samplePage } from "../data/sampleText";
 import { type PageSelection, paragraphOffsets, paragraphSegments, selectionOnPage, singleWord } from "../lib/highlights";
 import { usePlayback } from "../lib/playback";
 import { useReaderReadAloud } from "../lib/useReaderReadAloud";
+import { VoicesButton } from "../components/VoiceSettings";
 import { ContinueDialog } from "../components/ContinueOnPhone";
 import { readerContinueUrl } from "../lib/continueLink";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
@@ -371,6 +372,8 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               <span className="visually-hidden">{readAloud.on ? t("Stop reading aloud") : t("Read aloud, marking each word")}</span>
             </button>
           )}
+          {/* Who reads, and the characters' voices, changeable at any time (components/VoiceSettings.tsx). */}
+          <VoicesButton book={book} />
           {readAloud.on && (
             // The player's own speed (per book when it keeps one), so both stay the same.
             <label className="reader-speed">

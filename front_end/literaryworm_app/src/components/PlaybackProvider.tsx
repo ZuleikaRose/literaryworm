@@ -380,7 +380,8 @@ function Engine({
             : (() => {
                 // Members' parts are voiced as they listen and kept on this device, so they play
                 // offline too; on Wi-Fi the rest of the chapter and the next are voiced ahead.
-                const part = memberVoicePart(book.id, natural, text, characterVoices, choicesRef.current, pronunciationsRef.current);
+                // A classic's parts count towards the listening profile's month (the function checks it's the account's).
+                const part = memberVoicePart(book.id, natural, text, characterVoices, choicesRef.current, pronunciationsRef.current, book.upload ? null : profileId);
                 const ahead = voiceAhead(text, part.keep, part.count);
                 return naturalNarrator(text, starts, lengths, part.url, events, ahead, part.pieces, rateFor);
               })()
@@ -406,7 +407,7 @@ function Engine({
       n.dispose();
       if (narrator.current === n) narrator.current = null;
     };
-  }, [narrationKey, text, book, starts, lengths, total]);
+  }, [narrationKey, text, book, starts, lengths, total, profileId]);
 
   const seek = (seconds: number) => {
     const next = Math.min(total, Math.max(0, seconds));

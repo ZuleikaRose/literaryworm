@@ -73,6 +73,11 @@ describe("natural voices for uploads", () => {
     expect(naturalVoiceOffered({ ...upload, ageRating: null })).toBe(false);
     expect(naturalVoiceOffered({ ...upload, member: false })).toBe(false);
     expect(naturalVoiceOffered({ ...upload, uploadPath: null })).toBe(false);
+    // The public-domain classics too, for members (their own text, voiced by the function).
+    expect(naturalVoiceOffered({ ...upload, uploadPath: null, publicDomain: true })).toBe(true);
+    expect(naturalVoiceOffered({ ...upload, uploadPath: null, publicDomain: true, member: false })).toBe(false);
+    expect(naturalVoiceOffered({ ...upload, uploadPath: null, publicDomain: true, ageRating: "kids" })).toBe(false);
+    expect(naturalVoiceOffered({ ...upload, uploadPath: null, publicDomain: true, ageRating: "kids", kidsAllowed: true })).toBe(true);
   });
 
   it("has a monthly allowance for each plan, growing with the plan", () => {

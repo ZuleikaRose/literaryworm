@@ -295,3 +295,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | `lib/offlineVoices.ts` (+ test), On this device in `VoiceWholeBook` |
 | — | Greek classics: `build-librivox.py` / `build-texts.py` entries, `books.ts`, `_shared/catalog.ts` |
 | — | Device Who reads whom: `lib/deviceCastChoices.ts` (+ test), `DeviceCastChoices` in `CastChoices.tsx`, `castVoiceFor(…, choices)`; 6812–6813 |
+| — | Natural voices on classics (`naturalVoiceOffered({ publicDomain })`, natural-voice `bookId`); `components/VoiceSettings.tsx` (`VoiceSelect`, `CharacterVoiceSettings`, `VoicesButton`) |

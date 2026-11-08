@@ -4,7 +4,7 @@ import { type CastChoices, chapterPieces, type NaturalVoice, piecePronunciations
 import { hasVoiceOffline, keepVoiceOffline, offlineVoiceBlob, offlineVoiceUrl } from "./uploadCache";
 
 /**
- * Natural voices offline, for members' uploads: every part played is kept on this device (the
+ * Natural voices offline, for members' uploads and the classics: every part played is kept on this device (the
  * lw-uploads cache, beside the upload's text), the player plays a kept part from there first, and
  * on Wi-Fi (never with Data Saver) the rest of the playing chapter and the next one are voiced and
  * kept ahead. Parts voiced ahead count towards the month's natural-voice reading like any other.
@@ -24,6 +24,8 @@ export function memberVoicePart(
   characterVoices = false,
   choices: CastChoices = {},
   pronunciations: Pronunciations = {},
+  /** The listening profile, for a public-domain classic (the function counts its month). */
+  profileId: string | null = null,
 ) {
   const cut: VoicePiece[][] = [];
   const pieces = (text: string) => chapterPieces(text, narrator, characterVoices, choices);
@@ -39,14 +41,14 @@ export function memberVoicePart(
   const keep = async (chapter: number, segment: number): Promise<void> => {
     const { voice, key, cast, says } = where(chapter, segment);
     if (await hasVoiceOffline(uploadId, voice, chapter, key)) return;
-    const url = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast, cast ? choices : {}, says);
+    const url = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast, cast ? choices : {}, says, profileId);
     await keepVoiceOffline(uploadId, voice, chapter, key, url);
   };
   const url = async (chapter: number, segment: number): Promise<string> => {
     const { voice, key, cast, says } = where(chapter, segment);
     const kept = await offlineVoiceUrl(uploadId, voice, chapter, key).catch(() => null);
     if (kept) return kept;
-    const link = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast, cast ? choices : {}, says);
+    const link = await naturalVoiceUrl(uploadId, chapter, segment, narrator.id, cast, cast ? choices : {}, says, profileId);
     // Kept in the background; a failure only means no offline copy.
     keepVoiceOffline(uploadId, voice, chapter, key, link).catch(log("keep a part"));
     return link;

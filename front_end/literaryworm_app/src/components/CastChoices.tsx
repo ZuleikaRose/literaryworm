@@ -11,24 +11,30 @@ import { VoicePreviewButton } from "./VoicePreviewButton";
 import { useProfileData } from "../store/context";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
+import { useNaturalVoice } from "../lib/useNaturalVoice";
 import type { Book } from "../types";
 
 /**
  * *Who reads whom* (Player settings, with Character voices on): the book's named speakers, most
  * speeches first, each with a voice to choose or *Chosen for you*, and a speed of their own. With a
- * natural voice (uploads) the voices are Google's; with a device voice (a classic's own text, or an
+ * natural voice (members' uploads and classics) the voices are Google's; with a device voice (a classic's own text, or an
  * upload) they're the device's (lib/deviceCastChoices.ts); a LibriVox recording is one reader.
  */
 export function CastChoices({ book }: { book: Book }) {
   const t = useT();
   const deviceVoices = useVoices();
-  const narration = resolveNarration(book, useProfileData().narrationVoice, deviceVoices, Boolean(book.upload));
+  const natural = useNaturalVoice(book) !== null;
+  const narration = resolveNarration(book, useProfileData().narrationVoice, deviceVoices, natural);
   if (narration.kind === "speech") return <DeviceCastChoices book={book} narrator={narration.voice} />;
   if (narration.kind !== "natural") {
     return (
       <section className="cast-choices">
         <h3>{t("Who reads whom")}</h3>
-        <p className="field-hint">{t("The LibriVox recording is read by one person. Choose one of your device's voices under Voice to hear the characters in voices of their own.")}</p>
+        <p className="field-hint">
+          {natural
+            ? t("The LibriVox recording is read by one person. Choose a natural voice or one of your device's voices under Voice to hear the characters in voices of their own.")
+            : t("The LibriVox recording is read by one person. Choose one of your device's voices under Voice to hear the characters in voices of their own.")}
+        </p>
       </section>
     );
   }

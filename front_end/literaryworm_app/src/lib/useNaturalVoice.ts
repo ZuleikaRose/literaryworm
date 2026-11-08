@@ -9,14 +9,17 @@ import { packSecondsLeft, type VoicePack } from "./voicePacks";
 
 /**
  * Where this book's natural voices come from for the active profile: "member" (a member's stored
- * upload, voiced by the natural-voice function), "demo" (the demo's Frankenstein and Tide Clock samples, recorded
+ * upload, or a public-domain classic with its own text, voiced by the natural-voice function), "demo" (the demo's Frankenstein and Tide Clock samples, recorded
  * in public/voices/demo), or null (not offered: other books, Kids profiles, the demo's other uploads).
  */
+/** A public-domain classic with its full text (and recording), which members can hear in a natural voice. */
+const isClassic = (book: Book) => book.publicDomain === true && Boolean(book.recording) && !book.upload;
+
 export function useNaturalVoice(book: Book): "member" | "demo" | null {
   const { state } = useStore();
   const profile = useActiveProfile();
   const ageRating = profile?.ageRating ?? null;
-  if (naturalVoiceOffered({ member: usesBackend && Boolean(state.account?.userId), ageRating, uploadPath: book.upload?.path ?? null, kidsAllowed: profile?.kidsNaturalVoices })) return "member";
+  if (naturalVoiceOffered({ member: usesBackend && Boolean(state.account?.userId), ageRating, uploadPath: book.upload?.path ?? null, kidsAllowed: profile?.kidsNaturalVoices, publicDomain: isClassic(book) })) return "member";
   if (state.account?.isDemo && book.upload && DEMO_NATURAL_SAMPLES.includes(book.id) && ageRating !== null && (ageRating !== "kids" || Boolean(profile?.kidsNaturalVoices))) return "demo";
   return null;
 }

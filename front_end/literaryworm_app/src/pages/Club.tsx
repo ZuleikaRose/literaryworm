@@ -50,6 +50,7 @@ import type { Book } from "../types";
 import { speedFor } from "../lib/bookSpeed";
 import { ClubSchedule } from "../components/ClubSchedule";
 import { ClubVoiceHours } from "../components/ClubVoiceHours";
+import { VoicesButton } from "../components/VoiceSettings";
 
 type Load = { status: "loading" } | { status: "ready"; detail: ClubDetail; me: string } | { status: "missing" } | { status: "error"; message: string };
 
@@ -670,6 +671,8 @@ function ClubView({ detail, me, book }: { detail: ClubDetail; me: string; book: 
             <Link className="ghost-button small-button" to={`/listen/${book.id}`}>
               <Icon name="headphones" size={15} /> {t("Listen")}
             </Link>
+            {/* Each member's own voice and characters' voices for the club's book (their own copy of an upload). */}
+            <VoicesButton book={book} className="ghost-button small-button" label />
           </div>
         </div>
       </header>

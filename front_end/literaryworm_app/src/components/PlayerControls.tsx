@@ -18,8 +18,7 @@ import { Field } from "./Field";
 import { Icon } from "./Icon";
 import { rich, tk } from "../lib/i18n";
 import { useT } from "../lib/useT";
-import { CastChoices } from "./CastChoices";
-import { Pronunciations } from "./Pronunciations";
+import { CharacterVoiceSettings, VoiceSelect } from "./VoiceSettings";
 
 /**
  * Controls the player page and the mini-player share: volume, Go to (contents, index,
@@ -332,6 +331,7 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
       <div className="player-settings-form">
         {withPlayback && (
           <>
+            {playback.book && <VoiceSelect book={playback.book} />}
             <label className="player-select">
               <span>{t("Speed")}</span>
               <select value={player.speed} onChange={(e) => update({ speed: Number(e.target.value) })}>
@@ -419,31 +419,8 @@ export function PlayerSettingsDialog({ open, onClose, withPlayback = false }: { 
             />
           </label>
         </li>
-        <li>
-          <label className="switch-row">
-            <span>
-              <strong>{t("Character voices")}</strong>
-              <small>{t("What the characters say is read by other voices: natural voices on your uploads, or your device's other voices when it reads a book aloud. Each named speaker keeps one voice.")}</small>
-            </span>
-            <input
-              type="checkbox"
-              role="switch"
-              className="switch"
-              checked={player.characterVoices}
-              onChange={(e) => update({ characterVoices: e.target.checked })}
-            />
-          </label>
-        </li>
-        {player.characterVoices && (playback.book?.upload || playback.book?.publicDomain) && (
-          <li>
-            <CastChoices book={playback.book} />
-          </li>
-        )}
-        {playback.book?.upload && (
-          <li>
-            <Pronunciations book={playback.book} />
-          </li>
-        )}
+        {/* The characters' voices for the book playing (components/VoiceSettings.tsx). */}
+        {playback.book && <CharacterVoiceSettings book={playback.book} />}
       </ul>
     </Dialog>
   );

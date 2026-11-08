@@ -285,3 +285,67 @@ Deno.test("when Google fails, a club claim goes back to the owner and off the me
   assertEquals(counted.length, 2);
   assertEquals(counted[0] + counted[1], 0);
 });
+
+// Public-domain classics: the site's own text, kept once for every listener under catalog/.
+const PROFILE = "22222222-2222-4222-8222-222222222222";
+const classicDeps = (overrides: Partial<Deps> = {}) =>
+  deps({
+    ownProfile: (userId, profileId) => Promise.resolve(userId === USER && profileId === PROFILE),
+    bookChapters: (id) => Promise.resolve(id === "frankenstein" ? CHAPTERS : []),
+    ...overrides,
+  });
+const askClassic = (body: Record<string, unknown> = {}) => post({ bookId: "frankenstein", profileId: PROFILE, chapter: 1, segment: 0, voice: VOICE, ...body });
+
+Deno.test("voices a classic's part from its own text, kept for everyone, counted to the listener", async () => {
+  const { d, calls } = classicDeps();
+  const res = await handle(askClassic(), d);
+  assertEquals(res.status, 200);
+  const path = `catalog/frankenstein/${VOICE}-1-0.mp3`;
+  assertEquals(await res.json(), { url: `https://signed/${path}` });
+  assertEquals(calls.synthesize, [voiceSegments(LONG)[0].text]);
+  assertEquals(calls.claimed, [voiceSegments(LONG)[0].text.length]);
+  assertEquals(calls.profiles, [[PROFILE, voiceSegments(LONG)[0].text.length]]);
+  // The next listener plays the kept part without voicing or counting it again.
+  const again = await handle(askClassic(), d);
+  assertEquals(await again.json(), { url: `https://signed/${path}` });
+  assertEquals(calls.synthesize.length, 1);
+  assertEquals(calls.claimed.length, 1);
+});
+
+Deno.test("a classic's character voices follow the listener's choices", async () => {
+  const { d, calls } = classicDeps();
+  const pieces = chapterPieces(TALK, naturalVoice(VOICE)!, true, { elizabeth: "en-GB-Chirp3-HD-Charon" });
+  const speech = pieces.findIndex((p) => p.cast);
+  const res = await handle(askClassic({ chapter: 2, segment: speech, cast: true, castChoices: { elizabeth: "en-GB-Chirp3-HD-Charon" } }), d);
+  assertEquals(res.status, 200);
+  assertEquals(calls.stored, [`catalog/frankenstein/${pieces[speech].voice}-2-c${speech}.mp3`]);
+});
+
+Deno.test("refuses books that aren't public-domain classics, and profiles that aren't the caller's", async () => {
+  const { d } = classicDeps();
+  for (const body of [{ bookId: "dune" }, { bookId: "no-such-book" }, { bookId: "__proto__" }, { profileId: "p1" }, { uploadId: UPLOAD }]) {
+    const res = await handle(askClassic(body), d);
+    assertEquals(res.status, 400, JSON.stringify(body));
+  }
+  const other = await handle(askClassic({ profileId: "33333333-3333-4333-8333-333333333333" }), d);
+  assertEquals(other.status, 404);
+  // A profile id is only for classics.
+  assertEquals((await handle(post({ uploadId: UPLOAD, profileId: PROFILE, chapter: 0, segment: 0, voice: VOICE }), d)).status, 400);
+});
+
+Deno.test("a classic on a Kids profile needs a grown-up to turn natural voices on, and never uses a club's hours", async () => {
+  const kids = classicDeps({ ageRating: () => Promise.resolve("kids") });
+  assertEquals((await handle(askClassic(), kids.d)).status, 403);
+  let asked = false;
+  const { d } = classicDeps({
+    claim: () => Promise.resolve(false),
+    clubVoice: () => {
+      asked = true;
+      return Promise.resolve({ clubId: "c1", ownerId: "o1" });
+    },
+  });
+  const res = await handle(askClassic(), d);
+  assertEquals(res.status, 403);
+  assertEquals((await res.json()).error.code, "limit_reached");
+  assertEquals(asked, false);
+});
