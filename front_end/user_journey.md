@@ -995,3 +995,5 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 290. **Read-along for more classics.** A listener who turns on the Read-along for Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness or The Picture of Dorian Gray now follows the book's own text, each sentence marked as the LibriVox reader says it, as they already could for eight other classics.
 
 291. **Choosing a man's voice.** A listener who'd rather hear a man read opens Voice and finds the natural voices grouped into women's and men's, and their device's voices the same way for each accent; they pick Charon for a classic, preview him first, and under Who reads whom give the book's men men's voices, each labelled. Everything works the same as with a woman's voice.
+
+292. **Read-along for The Secret Garden.** The Secret Garden joins the read-along classics: its LibriVox recording now plays with the book's own text, each sentence marked as it's read.

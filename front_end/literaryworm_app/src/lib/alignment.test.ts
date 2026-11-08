@@ -6,7 +6,7 @@ import type { Book } from "../types";
 import { ALIGNED_BOOKS, alignedTranscript, type Anchor, isAligned, parseAlignment, wordsBefore, wordTime } from "./alignment";
 
 describe("isAligned", () => {
-  it("names the fourteen books with an alignment file", () => {
+  it("names the fifteen books with an alignment file", () => {
     for (const id of [
       "frankenstein",
       "pride-and-prejudice",
@@ -22,6 +22,7 @@ describe("isAligned", () => {
       "the-jungle-book",
       "heart-of-darkness",
       "the-picture-of-dorian-gray",
+      "the-secret-garden",
     ]) {
       expect(isAligned(id)).toBe(true);
     }

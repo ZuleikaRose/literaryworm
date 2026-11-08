@@ -27,6 +27,7 @@ export const ALIGNED_BOOKS = [
   "the-jungle-book",
   "heart-of-darkness",
   "the-picture-of-dorian-gray",
+  "the-secret-garden",
 ] as const;
 
 export const isAligned = (bookId: string): boolean => (ALIGNED_BOOKS as readonly string[]).includes(bookId);

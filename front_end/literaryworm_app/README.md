@@ -300,3 +300,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Classics: `VoiceWholeBook` (player and book page), natural-voice clips in `ClipDialog` / `UploadClip` (`v=` on `/clips/:id`) |
 | — | Read-along: six more `public/alignments` files and `ALIGNED_BOOKS` entries; `.github/workflows/align.yml` |
 | — | Voice gender: `voiceGender()` (shared `naturalVoice.ts`), `lib/deviceVoiceGender.ts` (+ test), grouped in `VoiceSelect` and `CastChoices` |
+| — | Read-along: `public/alignments/the-secret-garden.json`, `ALIGNED_BOOKS` (fifteen) |

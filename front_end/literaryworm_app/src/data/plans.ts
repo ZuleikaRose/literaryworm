@@ -158,7 +158,7 @@ export const planFaqs = [
   },
   {
     q: tk("Can I read along while I listen?"),
-    a: tk("Yes. Turn on the Read-along in the player to see the words with each sentence marked as it's read. For fourteen classics (Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray and The Call of the Wild), it's the book's own text, lined up with the LibriVox recording. When your device's voice reads a classic, it shows the real text too. You choose the size of the text, and you can tap a sentence to jump there."),
+    a: tk("Yes. Turn on the Read-along in the player to see the words with each sentence marked as it's read. For fifteen classics (Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden and The Call of the Wild), it's the book's own text, lined up with the LibriVox recording. When your device's voice reads a classic, it shows the real text too. You choose the size of the text, and you can tap a sentence to jump there."),
   },
   {
     q: tk("Can my book club read a book I bought?"),
