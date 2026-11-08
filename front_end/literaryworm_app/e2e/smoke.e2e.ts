@@ -1899,13 +1899,13 @@ describe("the demo household", () => {
     await goInApp(page, "/read/u-d3e0a1000000000000000000000000a1");
     await page.getByRole("button", { name: "Voices and characters" }).click();
     const dialog = page.getByRole("dialog", { name: "Voices and characters" });
-    await dialog.getByLabel("Voice", { exact: true }).selectOption({ label: "Charon, British English" });
+    await dialog.getByRole("combobox", { name: /^Voice/ }).selectOption({ label: "Charon, British English" });
     await dialog.getByRole("switch", { name: /Character voices/ }).check();
     await dialog.getByRole("region", { name: "Who reads whom" }).getByLabel(/^Juno(?!'s speed)/).selectOption("Puck");
     await dialog.getByRole("button", { name: "Close" }).click();
     // The same choices in the player: one set per profile and book.
     await goInApp(page, "/listen/u-d3e0a1000000000000000000000000a1");
-    await expect(page.getByLabel("Voice").inputValue()).resolves.toBe("natural:en-GB-Chirp3-HD-Charon");
+    await expect(page.getByRole("combobox", { name: /^Voice/ }).inputValue()).resolves.toBe("natural:en-GB-Chirp3-HD-Charon");
     await page.getByRole("button", { name: "Skip lengths, intros and outros" }).click();
     await expect(page.getByRole("dialog", { name: "Player settings" }).getByLabel(/^Juno(?!'s speed)/).inputValue()).resolves.toBe("Puck");
     expect(errors()).toEqual([]);
@@ -1917,7 +1917,7 @@ describe("the demo household", () => {
     await goInApp(page, "/clubs/demo-club");
     await page.getByRole("button", { name: "Voices and characters" }).click();
     const dialog = page.getByRole("dialog", { name: "Voices and characters" });
-    await dialog.getByLabel("Voice", { exact: true }).waitFor();
+    await dialog.getByRole("combobox", { name: /^Voice/ }).waitFor();
     await dialog.getByRole("switch", { name: /Character voices/ }).check();
     // The demo's classic plays its LibriVox recording (no Google), so Who reads whom says how to change that.
     await dialog.getByText(/^The LibriVox recording is read by one person\./).waitFor();
