@@ -2191,6 +2191,22 @@ describe("the demo household", () => {
     expect(visitor.errors()).toEqual([]);
   });
 
+  it("opens a classic's natural-voice clip: members only, and the demo points to the LibriVox recording", async () => {
+    const path = "/clips/frankenstein?c=1&p=0&a=500&l=30&v=en-GB-Chirp3-HD-Aoede&x=0";
+    // A visitor is asked to log in (it names a voice, so it isn't a LibriVox clip).
+    const visitor = await newPage();
+    await visitor.page.goto(`${BASE_URL}${path}`);
+    await visitor.page.getByText("This clip is in a natural voice from Google, which LiteraryWorm members can play. Log in to listen.").waitFor();
+    // The demo never calls Google, so it says so and offers the book's recording.
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, path);
+    await page.getByText(/^The demo plays the classics in their LibriVox recordings/).waitFor();
+    await page.getByRole("link", { name: "Listen to Frankenstein" }).waitFor();
+    expect(errors()).toEqual([]);
+    expect(visitor.errors()).toEqual([]);
+  });
+
   it("starts a buddy read from a book's page and shows its invite code", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

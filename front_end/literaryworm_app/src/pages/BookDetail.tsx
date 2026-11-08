@@ -445,7 +445,8 @@ function DetailPage({ view }: { view: DetailView }) {
             </div>
           )}
           {view.local?.upload && profile && <UploadRecordingLink upload={view.local} />}
-          {view.local?.upload && profile && <VoiceWholeBook book={view.local} />}
+          {/* Uploads and the classics (it shows only where natural voices are offered). */}
+          {(view.local?.upload || (view.local?.publicDomain && view.local.recording)) && profile && <VoiceWholeBook book={view.local} />}
 
           <div className="detail-actions">
             {entry ? (

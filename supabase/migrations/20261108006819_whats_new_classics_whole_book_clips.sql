@@ -1,0 +1,5 @@
+-- What's new: Voice a whole classic, save it as an MP3, and share a clip in its natural voice. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Voice a whole classic, save it as an MP3, and share a clip in its natural voice$lw$, $lw$Voice the whole book now works for the classics too, in the player and on the book's page: every part is voiced ahead on Wi-Fi and kept on your device for listening offline, and parts any member has heard before cost nothing. Download the audiobook (MP3) joins them into one file for any audio app. And Share a clip on a classic you hear in a natural voice links to that voice, for members to play; choose the LibriVox recording first to share a clip anyone can play.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Voice a whole classic, save it as an MP3, and share a clip in its natural voice$lw$ and c.released_on = '2026-11-08');

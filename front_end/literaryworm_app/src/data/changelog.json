@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-08",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Voice a whole classic, save it as an MP3, and share a clip in its natural voice",
+    "body": "Voice the whole book now works for the classics too, in the player and on the book's page: every part is voiced ahead on Wi-Fi and kept on your device for listening offline, and parts any member has heard before cost nothing. Download the audiobook (MP3) joins them into one file for any audio app. And Share a clip on a classic you hear in a natural voice links to that voice, for members to play; choose the LibriVox recording first to share a clip anyone can play.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-08",
+    "version": "2026.11",
     "kind": "update",
     "title": "Every file type you can upload, listed",
     "body": "My Library → Uploads now lists every DRM-free file type you can add: EPUB, PDF (with real text), and Kindle MOBI, AZW3 and AZW, with what can't be read and how to convert an older Kindle file. The same list shows when you start a book club on an upload or choose your copy for a club, and the FAQ and Help have it too.",

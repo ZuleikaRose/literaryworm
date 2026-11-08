@@ -11,16 +11,17 @@ import { useT } from "../lib/useT";
 import { storageSize } from "../lib/offlineVoices";
 import { forgetVoicesOffline, voicesOnDevice } from "../lib/uploadCache";
 import { fitsAllowance, wholeBookPlan, type WholeBookPlan } from "../lib/voiceWholeBook";
-import { useProfileData } from "../store/context";
+import { useProfileData, useStore } from "../store/context";
 import type { Book } from "../types";
 import { Icon } from "./Icon";
 
 type Run = { kind: "idle" } | { kind: "running"; done: number } | { kind: "done" } | { kind: "stopped"; done: number; message: string | null };
 
 /**
- * *Voice the whole book* on an upload's page: every part voiced by the profile's natural voice
+ * *Voice the whole book* on an upload's or a classic's page and player: every part voiced by the profile's natural voice
  * (with character voices if they're on) and kept on this device for listening offline, on Wi-Fi.
- * Members only; the demo explains it, since its sample is already voiced.
+ * Members only; the demo explains it, since its sample is already voiced. A classic's parts are kept
+ * once for every member on the server, so voicing one ahead also saves later listeners' hours.
  */
 export function VoiceWholeBook({ book }: { book: Book }) {
   const t = useT();
@@ -28,6 +29,9 @@ export function VoiceWholeBook({ book }: { book: Book }) {
   const source = useNaturalVoice(book);
   const usage = useNaturalVoiceUsage();
   const { narrationVoice, player } = useProfileData();
+  // A classic's new parts count towards the listening profile's month (the function checks it's the account's).
+  const profileId = useStore().state.activeProfileId;
+  const forProfile = book.upload ? null : profileId;
   const narration = resolveNarration(book, narrationVoice, [], true);
   const narrator: NaturalVoice = narration.kind === "natural" ? narration.voice : defaultNaturalVoice(book.language);
   const [chapters, setChapters] = useState<string[] | null>(null);
@@ -67,7 +71,7 @@ export function VoiceWholeBook({ book }: { book: Book }) {
                 return res.ok ? res.blob() : null;
               };
             })()
-          : memberVoicePart(book.id, narrator, chapters, player.characterVoices, choices, player.pronunciations?.[book.id] ?? {}).keptBlob;
+          : memberVoicePart(book.id, narrator, chapters, player.characterVoices, choices, player.pronunciations?.[book.id] ?? {}, forProfile).keptBlob;
       const { blob, missing } = await collectAudiobook(plan.parts, blobOf);
       if (!blob) {
         setDownload({ busy: false, message: t.plural(missing, { one: "Voice the whole book first: {count} part isn't on this device yet.", other: "Voice the whole book first: {count} parts aren't on this device yet." }) });
@@ -109,7 +113,7 @@ export function VoiceWholeBook({ book }: { book: Book }) {
       return;
     }
     stop.current = false;
-    const part = memberVoicePart(book.id, narrator, chapters, player.characterVoices, player.castChoices?.[book.id] ?? {}, player.pronunciations?.[book.id] ?? {});
+    const part = memberVoicePart(book.id, narrator, chapters, player.characterVoices, player.castChoices?.[book.id] ?? {}, player.pronunciations?.[book.id] ?? {}, forProfile);
     let done = 0;
     setRun({ kind: "running", done });
     for (const [c, s] of plan.parts) {

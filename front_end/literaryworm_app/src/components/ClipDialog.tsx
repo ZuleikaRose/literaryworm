@@ -9,11 +9,13 @@ import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 import { useT } from "../lib/useT";
+import { useNaturalVoice } from "../lib/useNaturalVoice";
 
 /**
  * *Share a clip* in the player and the mini-player (lib/clips.ts): the last 15, 30 or 60 seconds
- * of a LibriVox recording as a link anyone can play, or of an upload's natural voice as a link only
- * the household can play (lib/uploadClips.ts). Nothing is recorded or uploaded.
+ * of a LibriVox recording as a link anyone can play, of an upload's natural voice as a link only
+ * the household can play, or of a classic's natural voice (when that's what's reading) as a link
+ * members can play (lib/uploadClips.ts). Nothing is recorded or uploaded.
  */
 export function ClipDialog({
   open,
@@ -39,8 +41,13 @@ export function ClipDialog({
   const { player } = usePlayerSettings(book.id);
   const [chapters, setChapters] = useState<string[] | null>(null);
   const isUpload = Boolean(book.upload) && !book.recording;
+  // A classic read by a natural voice shares that voice (members), not the LibriVox recording.
+  const naturalSource = useNaturalVoice(book);
+  const reading = resolveNarration(book, narrationVoice, [], naturalSource !== null);
+  const classicNatural = !isUpload && Boolean(book.publicDomain && book.recording) && naturalSource === "member" && reading.kind === "natural";
+  const naturalClip = isUpload || classicNatural;
   useEffect(() => {
-    if (!isUpload) return;
+    if (!naturalClip) return;
     let live = true;
     bookText(book).then(
       (text) => live && setChapters(text),
@@ -49,23 +56,24 @@ export function ClipDialog({
     return () => {
       live = false;
     };
-  }, [book, isUpload]);
+  }, [book, naturalClip]);
 
   const track = book.recording?.tracks[chapterIndex];
   let path: string | null = null;
   let span: { start: number; end: number } | null = null;
-  if (track) {
+  if (naturalClip) {
+    if (chapters) {
+      const narrator = reading.kind === "natural" ? reading.voice : defaultNaturalVoice(book.language);
+      const pieces = chapterPieces(chapters[chapterIndex] ?? "", narrator, player.characterVoices);
+      const clip = uploadClipAt(chapterIndex, chapterSeconds > 0 ? offset / chapterSeconds : 0, pieces, length, narrator.id, player.characterVoices);
+      if (clip) path = uploadClipPath(book.id, clip);
+    }
+  } else if (track) {
     const clip = clipAt(chapterIndex, offset, length, track.seconds);
     path = clipPath(book.id, clip);
     span = clip;
-  } else if (isUpload && chapters) {
-    const narration = resolveNarration(book, narrationVoice, [], true);
-    const narrator = narration.kind === "natural" ? narration.voice : defaultNaturalVoice(book.language);
-    const pieces = chapterPieces(chapters[chapterIndex] ?? "", narrator, player.characterVoices);
-    const clip = uploadClipAt(chapterIndex, chapterSeconds > 0 ? offset / chapterSeconds : 0, pieces, length, narrator.id, player.characterVoices);
-    if (clip) path = uploadClipPath(book.id, clip);
   }
-  if (!track && !isUpload) return null;
+  if (!track && !naturalClip) return null;
   const url = path ? `${window.location.origin}${path}` : "";
   const chapter = book.chapters[chapterIndex]?.title ?? t("Chapter {n}", { n: chapterIndex + 1 });
   const text = t("{title} by {author}, {chapter}", { title: book.title, author: book.author, chapter });
@@ -97,7 +105,9 @@ export function ClipDialog({
         <p>
           {isUpload
             ? t("A link that plays a short stretch of this book in its natural voice. Only your household can play it, logged in to this account.")
-            : t("A link that plays a short stretch of this LibriVox recording, which is in the public domain.")}
+            : classicNatural
+              ? t("A link that plays a short stretch of this classic in the natural voice you're hearing. LiteraryWorm members can play it, logged in. To share it with anyone, choose the LibriVox recording under Voice first.")
+              : t("A link that plays a short stretch of this LibriVox recording, which is in the public domain.")}
         </p>
       }
     >
@@ -117,7 +127,7 @@ export function ClipDialog({
           {t("{chapter}, {start} to {end}", { chapter, start: clipTime(span.start), end: clipTime(span.end) })}
         </p>
       )}
-      {isUpload && <p className="goal-hint">{path ? t("{chapter}, the part you're listening to", { chapter }) : t("Loading the narration…")}</p>}
+      {naturalClip && <p className="goal-hint">{path ? t("{chapter}, the part you're listening to", { chapter }) : t("Loading the narration…")}</p>}
       <input className="field-input" readOnly value={url} aria-label={t("Clip link")} onFocus={(e) => e.currentTarget.select()} />
       <div className="modal-actions">
         {typeof navigator.share === "function" && (

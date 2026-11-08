@@ -18,8 +18,9 @@ import { UploadClip } from "../components/UploadClip";
 export default function ClipPage() {
   const { bookId = "" } = useParams();
   const [params] = useSearchParams();
-  // Clips from uploads play only for the household they belong to. Each clip's address starts afresh.
-  return isUploadId(bookId) ? <UploadClip key={params.toString()} uploadId={bookId} /> : <RecordingClip bookId={bookId} />;
+  // Clips from uploads play only for the household they belong to; a classic's natural-voice clip
+  // (it names a voice) for members. Each clip's address starts afresh.
+  return isUploadId(bookId) || params.has("v") ? <UploadClip key={params.toString()} uploadId={bookId} /> : <RecordingClip bookId={bookId} />;
 }
 
 function RecordingClip({ bookId }: { bookId: string }) {

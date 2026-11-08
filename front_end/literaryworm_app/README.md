@@ -297,3 +297,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Device Who reads whom: `lib/deviceCastChoices.ts` (+ test), `DeviceCastChoices` in `CastChoices.tsx`, `castVoiceFor(…, choices)`; 6812–6813 |
 | — | Natural voices on classics (`naturalVoiceOffered({ publicDomain })`, natural-voice `bookId`); `components/VoiceSettings.tsx` (`VoiceSelect`, `CharacterVoiceSettings`, `VoicesButton`) |
 | — | Upload file types: `UPLOAD_FORMATS` (`lib/bookFile.ts`, + test), `components/UploadFormats.tsx` |
+| — | Classics: `VoiceWholeBook` (player and book page), natural-voice clips in `ClipDialog` / `UploadClip` (`v=` on `/clips/:id`) |

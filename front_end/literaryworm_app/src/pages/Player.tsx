@@ -446,7 +446,7 @@ function PlayerView({ book }: { book: Book }) {
             <p className="reader-sample-note">{t("Natural voices from Google need a grown-up's yes: they can turn them on for this profile in Account → Family.")}</p>
           )}
           {book.upload && <UploadRecordingLink upload={book} className="reader-sample-note" />}
-          {book.upload && narration.kind === "natural" && <VoiceWholeBook book={book} />}
+          {(book.upload || book.publicDomain) && narration.kind === "natural" && <VoiceWholeBook book={book} />}
         </div>
 
         {/* A real recording shows the transcript only where it has been lined up with the text (the pilot,
