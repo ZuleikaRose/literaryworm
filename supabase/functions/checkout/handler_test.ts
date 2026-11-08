@@ -312,7 +312,7 @@ Deno.test("more natural-voice hours: 5 or 10, for a paid-up membership outside t
   const { state, deps } = setup(linked({}));
   const res = await call(deps, { voiceHours: 10 });
   assertEquals(res.status, 200);
-  assertEquals((await res.json()).url, "https://checkout.stripe.com/c/pay/cs_test_voices");
+  assertEquals(res.body.url, "https://checkout.stripe.com/c/pay/cs_test_voices");
   assertEquals([state.voices[0].hours, state.voices[0].customerId], [10, "cus_1"]);
   for (const body of [{ voiceHours: 7 }, { voiceHours: "5" }, { voiceHours: 5, planId: "basic" }]) {
     assertEquals((await call(deps, body)).status, 400, JSON.stringify(body));
