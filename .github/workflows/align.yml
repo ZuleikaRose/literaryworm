@@ -1,0 +1,101 @@
+# Read-along alignment (scripts/align-librivox.py) on GitHub's machines, for the books in
+# NEXT_BOOKS in scripts/align-batch.sh: each book is its own job, which builds whisper.cpp (pinned,
+# cached), fetches the book's text from the live site (git keeps only three texts) and keeps
+# public/alignments/<id>.json and the log as an artifact. Nothing is committed: a person reads
+# the logs, then adds the books that came out well (most chapters 85% matched or more) to
+# ALIGNED_BOOKS in src/lib/alignment.ts.
+#
+# Runs on a push to the `align` branch (git push origin dev:align), or by hand with chosen ids.
+name: align
+
+on:
+  push:
+    branches: [align]
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: "Book ids, space-separated (empty: NEXT_BOOKS)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  WHISPER_VERSION: v1.7.6
+  WHISPER_MODEL: base.en
+
+jobs:
+  books:
+    runs-on: ubuntu-latest
+    outputs:
+      ids: ${{ steps.pick.outputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pick
+        name: Choose the books
+        working-directory: front_end/literaryworm_app
+        env:
+          IDS: ${{ github.event.inputs.ids }}
+        run: |
+          if [ -n "${IDS:-}" ]; then list="$IDS"; else
+            list=$(sed -n '/^NEXT_BOOKS=(/,/^)/p' scripts/align-batch.sh | grep -v '[()]' | tr -s ' \n' ' ')
+          fi
+          json=$(printf '%s\n' $list | grep -E '^[a-z0-9-]+$' | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')
+          echo "ids=$json" >> "$GITHUB_OUTPUT"
+          echo "Books: $json"
+
+  align:
+    needs: books
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        id: ${{ fromJSON(needs.books.outputs.ids) }}
+    defaults:
+      run:
+        working-directory: front_end/literaryworm_app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - name: Cache whisper.cpp and its model
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/whisper
+          key: whisper-${{ env.WHISPER_VERSION }}-${{ env.WHISPER_MODEL }}-${{ runner.os }}
+      - name: Build whisper.cpp
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}
+        run: |
+          git clone --depth 1 --branch "$WHISPER_VERSION" https://github.com/ggml-org/whisper.cpp.git src
+          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+          cmake --build src/build -j --config Release --target whisper-cli
+          mkdir -p ~/whisper
+          cp src/build/bin/whisper-cli ~/whisper/
+          curl -fsSL -o ~/whisper/ggml-$WHISPER_MODEL.bin "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-$WHISPER_MODEL.bin"
+      - name: Fetch the book's text
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          mkdir -p public/texts
+          [ -f "public/texts/$ID.json" ] || curl -fsSL -o "public/texts/$ID.json" "https://www.literaryworm.com/texts/$ID.json"
+      - name: Align
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/work/$ID" out
+          python3 scripts/align-librivox.py "$ID" --whisper ~/whisper/whisper-cli --model ~/whisper/ggml-$WHISPER_MODEL.bin \
+            --work "$RUNNER_TEMP/work/$ID" --threads "$(nproc)" 2>&1 | tee "out/$ID.log"
+          cp "public/alignments/$ID.json" out/
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alignment-${{ matrix.id }}
+          path: front_end/literaryworm_app/out/
+          if-no-files-found: warn
+          retention-days: 14
