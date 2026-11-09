@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/book/:id",
+      "destination": "/books/:id",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/texts/:file",
@@ -20,6 +27,33 @@
         {
           "key": "Service-Worker-Allowed",
           "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://www.literaryworm.com/>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/:page(plans|whats-new|search|signup|signin|affiliates)",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://www.literaryworm.com/:page>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/:section(books|series|authors|narrators|legal|readers)/:name",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://www.literaryworm.com/:section/:name>; rel=\"canonical\""
         }
       ]
     }
