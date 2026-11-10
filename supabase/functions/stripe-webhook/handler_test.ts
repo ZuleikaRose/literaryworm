@@ -44,6 +44,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     recorded: [] as [string, string, string | null][],
     released: [] as string[],
     notified: [] as string[],
+    cardPayments: [] as string[],
     packs: [] as { sessionId: string; userId: string; hours: number; characters: number; amountCents: number }[],
     failCredit: false,
     failAffiliate: false,
@@ -57,6 +58,10 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     },
     userForCustomer: (c) => Promise.resolve(c === "cus_1" ? USER : null),
     isStaff: () => Promise.resolve(state.staff),
+    recordCardPayment: (userId) => {
+      state.cardPayments.push(userId);
+      return Promise.resolve();
+    },
     getSubscription: () => Promise.resolve(state.sub),
     startMembership: (userId, fields, consentAt) => {
       state.started.push({ userId, fields, consentAt });
@@ -347,6 +352,29 @@ Deno.test("an invoice paid by a credit or a gift (nothing charged) rewards nothi
   await handle(post(), deps);
   assertEquals(state.credits, []);
   assert(state.reward !== null, "the referral waits for a real payment");
+});
+
+// Kids consent: a real payment verifies it ---------------------------------------------------------
+
+Deno.test("a paid invoice notes the account's card payment; a $0 one doesn't", async () => {
+  const one = setup(paid(1500));
+  await handle(post(), one.deps);
+  assertEquals(one.state.cardPayments, [USER]);
+  const free = setup(paid(0));
+  await handle(post(), free.deps);
+  assertEquals(free.state.cardPayments, []);
+});
+
+Deno.test("a paid Checkout notes the card payment; a free week or an unknown customer doesn't", async () => {
+  const paidCheckout = setup(completed({ customer: "cus_1", amount_total: 4000 }));
+  await handle(post(), paidCheckout.deps);
+  assertEquals(paidCheckout.state.cardPayments, [USER]);
+  const trial = setup(completed({ customer: "cus_1", amount_total: 0, payment_status: "no_payment_required" }));
+  await handle(post(), trial.deps);
+  assertEquals(trial.state.cardPayments, []);
+  const stranger = setup(completed({ customer: "cus_9", amount_total: 4000 }));
+  await handle(post(), stranger.deps);
+  assertEquals(stranger.state.cardPayments, []);
 });
 
 Deno.test("staff are never rewarded", async () => {

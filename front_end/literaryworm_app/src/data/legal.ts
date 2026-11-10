@@ -1,7 +1,7 @@
 import pages from "./legalPages.json";
 
 /** The Children's Privacy Notice version a parent agrees to when creating a Kids profile. */
-export const CHILDREN_NOTICE_VERSION = "2026-11";
+export const CHILDREN_NOTICE_VERSION = "2026-11-10";
 
 export interface LegalSection {
   heading: string;

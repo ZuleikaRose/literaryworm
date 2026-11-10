@@ -544,5 +544,6 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Men's and women's voices side by side: the Voice menu groups natural and device voices by gender, and Who reads whom labels them. |
 | —    | True read-along for The Secret Garden: fifteen classics in all. |
 | —    | Plans and pricing moved to www.literaryworm.com/pricing; old /plans links redirect (with their query); canonical header, structured data, sitemap and `llms.txt` updated; What's new (migration 6826) | Done    |
+| —    | COPPA: Kids profiles need a card payment on the account to confirm a parent's consent; the Children's Privacy Notice names COPPA and covers sharing, retention and security; written program in `docs/compliance/coppa.md` (migrations 6830–6832) | Done    |
 
 Each phase is checked with Playwright screenshots (desktop and phone) against the wireframe, a Chrome DevTools console and Lighthouse pass, and a clean build and lint before it's committed. Screenshots are in `front_end/literaryworm_app/docs/screenshots/`.

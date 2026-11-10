@@ -425,6 +425,10 @@ export async function loadAccount(): Promise<Account | null> {
   // The reader page switch came later (migration 6505): if it can't load, it reads as off.
   const reader = await db.from("profiles").select("public_reader").eq("id", user.id).maybeSingle();
   if (reader.error) console.error("account: couldn't load the reader page setting:", reader.error.message);
+  // Kids consent is verified by a card payment (migration 6830). Read on its own, so the account
+  // still opens where the column isn't yet; unknown reads as not yet verified.
+  const payment = await db.from("account_private").select("card_payment_at").eq("user_id", user.id).maybeSingle();
+  if (payment.error) console.error("account: couldn't load the card payment check:", payment.error.message);
   return {
     userId: user.id,
     publicReader: Boolean((reader.data as { public_reader?: boolean } | null)?.public_reader),
@@ -440,6 +444,7 @@ export async function loadAccount(): Promise<Account | null> {
     yearEmails: details.data?.year_emails ?? false,
     clubMeetingEmails: details.data?.club_meeting_emails ?? true,
     clubPostEmails: details.data?.club_post_emails ?? false,
+    kidsConsentVerified: Boolean((payment.data as { card_payment_at?: string | null } | null)?.card_payment_at),
     isDemo: false,
     ...fromSubscription(subscription.data as SubscriptionRow | null),
   };

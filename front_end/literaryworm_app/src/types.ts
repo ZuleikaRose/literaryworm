@@ -136,6 +136,12 @@ export interface Account {
   clubPostEmails: boolean;
   /** Each January, an email of the household's year in reading (members only; off until they turn it on). */
   yearEmails: boolean;
+  /**
+   * Members only: whether a card payment on this account (account_private.card_payment_at) has
+   * verified a parent's consent, which a new Kids profile needs (COPPA). Undefined for in-memory
+   * accounts, which never ask.
+   */
+  kidsConsentVerified?: boolean;
   isDemo: boolean;
   status: "active" | "paused" | "cancelled";
   /** Set once the member cancels: the date (ISO) the plan ends. Reading continues until then. */

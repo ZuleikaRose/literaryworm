@@ -104,6 +104,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     (rating === "kids" && (bedtime !== (profile?.bedtime ?? null) || wakeTime !== (profile?.wakeTime ?? null)));
   const needsPassword = protectedChange || confirm !== null;
   const needsConsent = rating === "kids" && !(profile?.ageRating === "kids" && profile.kidsConsent);
+  // COPPA: a member's consent is verified by a card payment on the account (migration 6830).
+  const consentUnverified = needsConsent && state.account?.kidsConsentVerified === false;
 
   const toggleGenre = (g: string) => setGenres((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
 
@@ -115,7 +117,8 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
     const next: Errors = {};
     const nameError = validateProfileName(name, others);
     if (nameError) next.name = nameError;
-    if (needsConsent && !consent) next.consent = t("Give consent as the parent or guardian to create a Kids profile.");
+    if (consentUnverified) next.consent = t("Kids profiles can be added once this account has made a card payment.");
+    else if (needsConsent && !consent) next.consent = t("Give consent as the parent or guardian to create a Kids profile.");
     if (pinOn && (pin.length > 0 || !profile?.hasPin) && !isValidPin(pin)) next.pin = t("Enter {n} digits.", { n: PIN_LENGTH });
     setBusy(true);
     if (needsPassword && !next.name && !next.consent && !next.pin) {
@@ -238,13 +241,29 @@ function ProfileForm({ profile, onDone }: { profile: Profile | null; onDone: () 
 
       {needsConsent && (
         <div className="consent-box">
+          {consentUnverified && (
+            <p className="field-hint" id="kids-verify">
+              {rich(
+                t(
+                  "Before a Kids profile is added, we confirm a parent's consent with a card payment on this account, as the US children's privacy law (COPPA) asks. It's confirmed once this account makes its first payment. {link}",
+                ),
+                {
+                  link: (
+                    <Link to="/legal/childrens-privacy" target="_blank">
+                      {t("Why we ask")}
+                    </Link>
+                  ),
+                },
+              )}
+            </p>
+          )}
           <label className="check-row">
             <input
               type="checkbox"
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
               aria-invalid={errors.consent ? true : undefined}
-              aria-describedby={errors.consent ? "consent-error" : undefined}
+              aria-describedby={[consentUnverified ? "kids-verify" : "", errors.consent ? "consent-error" : ""].filter(Boolean).join(" ") || undefined}
             />
             <span>
               {rich(

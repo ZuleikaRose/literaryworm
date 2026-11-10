@@ -79,7 +79,7 @@ LiteraryWorm gives readers one legal, affordable place to discover, read, listen
 4. They create their first profile and pick a few favorite genres to start their recommendations.
 
 **Setting up the family**
-5. The account holder adds profiles: Kids (under 13), Teen (13–17), or All. Creating a Kids profile is where the parent gives consent for LiteraryWorm to collect that child's reading data (see Q7–Q8). They can set a PIN on their own profile and a daily screen-time limit on each child's profile.
+5. The account holder adds profiles: Kids (under 13), Teen (13–17), or All. Creating a Kids profile is where the parent gives consent for LiteraryWorm to collect that child's reading data (see Q7–Q8). Since 2026-11-10 that consent is verified by a card payment on the account (COPPA's card-transaction method), so a Kids profile can be added once the account's first payment is made (`docs/compliance/coppa.md`). They can set a PIN on their own profile and a daily screen-time limit on each child's profile.
 
 **Everyday use**
 6. Each visit starts at *Who's reading?* The member picks a profile (entering a PIN if it's locked).

@@ -35,6 +35,10 @@ Deno.serve((req) =>
       if (error) throw error;
       return data.length > 0;
     },
+    async recordCardPayment(userId) {
+      const { error } = await serviceClient().rpc("record_card_payment", { p_user_id: userId });
+      if (error) throw error;
+    },
     getSubscription: (id) => stripeClient().subscriptions.retrieve(id),
     async startMembership(userId, fields: SubscriptionFields, consentAt) {
       const { stripe_customer_id, ...row } = fields;

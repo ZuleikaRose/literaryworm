@@ -305,3 +305,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Visitor menu label *Pricing* (was *Plans*): `Header.tsx`, the `Pricing` key in each dictionary; migration 6827 (What's new wording) |
 | — | Footer link label *Pricing* (was *Plans and pricing*): `Footer.tsx`; migration 6828 (What's new wording) |
 | — | Pricing page's label above its heading *Pricing* (was *Plans and pricing*): `Plans.tsx`; migration 6829 (What's new wording) |
+| — | COPPA: Kids consent verified by a card payment (`account_private.card_payment_at`, `record_card_payment()` from `stripe-webhook`, checked in `create_kids_profile()` / `set_profile_age_rating()`, migration 6830); `Account.kidsConsentVerified` and the profile editor's note; the Children's Privacy Notice, Privacy Policy (10), Terms (29) and Help (6831); `docs/compliance/coppa.md`; What's new 6832 |

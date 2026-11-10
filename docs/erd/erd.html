@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6768, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6832, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -119,18 +119,20 @@
             ["", "kids_report_emails", "boolean (off)"],
             ["", "club_meeting_emails", "boolean (on)"],
             ["", "club_post_emails", "boolean (off)"],
+            ["", "year_emails", "boolean (off)"],
             ["", "club_posts_emailed_through", "timestamptz", true],
             ["", "push_kinds", "text[] (all five)"],
             ["", "club_posts_pushed_through", "timestamptz"],
             ["", "streak_pushed_on", "date", true],
+            ["", "card_payment_at", "timestamptz", true],
             ["", "terms_accepted_at", "timestamptz"],
             ["", "created_at", "timestamptz"],
             ["", "updated_at", "timestamptz"],
           ],
-          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails, club_post_emails and push_kinds only (column grants); the *_through and streak_pushed_on columns are the service role's (club digest, device notifications).",
+          note: "Private sign-up details. RLS: read own; browser may change marketing_emails, release_emails, author_emails, update_emails, kids_report_emails, club_meeting_emails, club_post_emails, year_emails and push_kinds only (column grants); the *_through and streak_pushed_on columns are the service role's (club digest, device notifications). card_payment_at (6830): first real payment, set by stripe-webhook; verifies Kids consent (COPPA).",
         },
         {
-          id: "plans", color: colors.billing, x: 0, y: 1040, sub: "catalog",
+          id: "plans", color: colors.billing, x: 0, y: 1100, sub: "catalog",
           cols: [
             ["pk", "id", "text"],
             ["", "name", "text"],
@@ -379,12 +381,12 @@
             ["pk", "id", "uuid"],
             ["fk", "account_id", "uuid"],
             ["fk", "profile_id", "uuid", true],
-            ["", "method", "text"],
+            ["", "method", "text (card_payment)"],
             ["", "notice_version", "text"],
             ["", "consented_at", "timestamptz"],
             ["", "withdrawn_at", "timestamptz", true],
           ],
-          note: "Indexes: account_id, profile_id. RLS: read own; written only by the Edge Function.",
+          note: "Indexes: account_id, profile_id. RLS: read own; written only by the Edge Function. method: card_payment since 6830 (verified by account_private.card_payment_at), account_password_confirmation before.",
         },
         {
           id: "private.rate_limits", color: colors.server, x: 1260, y: 470, sub: "not exposed",

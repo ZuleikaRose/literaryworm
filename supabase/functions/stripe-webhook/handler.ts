@@ -40,6 +40,8 @@ export interface Deps {
   userForCustomer: (customerId: string) => Promise<string | null>;
   /** Whether the account holds any staff role. */
   isStaff: (userId: string) => Promise<boolean>;
+  /** Notes the account's first real payment (record_card_payment()), which verifies a parent's Kids consent. */
+  recordCardPayment: (userId: string) => Promise<void>;
   getSubscription: (id: string) => Promise<Stripe.Subscription>;
   /** Creates or replaces the membership; consentAt records when auto-renewal was agreed. */
   startMembership: (userId: string, fields: SubscriptionFields, consentAt: string) => Promise<void>;
@@ -204,11 +206,24 @@ async function rewardAffiliate(deps: Deps, customerId: string | null, amountPaid
   }
 }
 
+/**
+ * COPPA: a parent's consent to a Kids profile is verified by a card payment on the account. Any real
+ * payment counts (a membership invoice above $0, or a paid Checkout: membership, natural-voice hours,
+ * a gift or a gift card); a free week or an invoice paid by a credit doesn't. Kept once, the first time.
+ */
+async function noteCardPayment(deps: Deps, customer: string | { id: string } | null | undefined, amountPaid: number | null | undefined): Promise<void> {
+  const customerId = idOf(customer);
+  if (!customerId || !amountPaid || amountPaid <= 0) return;
+  const userId = await deps.userForCustomer(customerId);
+  if (userId) await deps.recordCardPayment(userId);
+}
+
 async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object;
+      if (session.payment_status === "paid") await noteCardPayment(deps, session.customer, session.amount_total);
       if (session.mode === "payment" && session.metadata?.kind === "voice_hours") {
         if (session.payment_status !== "paid") return;
         const hours = Number(session.metadata.hours);
@@ -294,6 +309,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event): Promise<void> {
           await deps.notifyPaymentFailed(userId).catch((err: unknown) => console.error("stripe-webhook: couldn't email a failed payment", err));
         }
       }
+      if (event.type === "invoice.paid") await noteCardPayment(deps, event.data.object.customer, event.data.object.amount_paid);
       if (event.type === "invoice.paid" && subId) {
         await rewardReferral(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);
         await rewardAffiliate(deps, idOf(event.data.object.customer), event.data.object.amount_paid ?? 0);

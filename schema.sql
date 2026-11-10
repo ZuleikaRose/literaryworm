@@ -14998,3 +14998,169 @@ where title = $lw$Plans and pricing has a new address$lw$ and released_on = '202
 update public.changelog_entries
 set body = $lw$Plans and pricing now lives at www.literaryworm.com/pricing, and the menu, the footer and the page itself call it Pricing. Old links to /plans still work and take you straight there.$lw$
 where title = $lw$Plans and pricing has a new address$lw$ and released_on = '2026-11-10';
+
+-- =============================================================================
+-- 20261110006830_kids_consent_card_payment.sql
+-- =============================================================================
+-- COPPA: a parent's consent to a Kids profile is verified by a card payment on the account, one of
+-- the FTC's listed methods (a card or other online payment used in a monetary transaction, which
+-- notifies the account holder). account_private.card_payment_at is when the account first paid
+-- something real through Stripe (a membership invoice above $0, or a paid Checkout: membership,
+-- natural-voice hours, a gift or a gift card); stripe-webhook sets it once through
+-- record_card_payment(). Creating a Kids profile, or moving one to Kids, needs it. Consents given
+-- before this (method account_password_confirmation) stay recorded as they were.
+
+alter table public.account_private add column card_payment_at timestamptz;
+
+-- The browser may read it (Account and the profile editor say what's needed), never write it.
+grant select (card_payment_at) on public.account_private to authenticated;
+
+alter table public.parental_consents alter column method set default 'card_payment';
+alter table public.parental_consents
+  add constraint parental_consents_method_check
+  check (method in ('account_password_confirmation', 'card_payment'));
+
+-- Called by stripe-webhook (service role) when a real payment arrives. Keeps the first time.
+create or replace function public.record_card_payment(p_user_id uuid)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.account_private
+  set card_payment_at = now()
+  where user_id = p_user_id and card_payment_at is null;
+$$;
+
+revoke execute on function public.record_card_payment(uuid) from public, anon, authenticated;
+grant execute on function public.record_card_payment(uuid) to service_role;
+
+-- True when the account's consent can be verified (a card payment on record).
+create or replace function private.consent_verifiable(p_account_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.account_private
+    where user_id = p_account_id and card_payment_at is not null
+  );
+$$;
+
+revoke execute on function private.consent_verifiable(uuid) from public, anon, authenticated;
+
+create or replace function public.create_kids_profile(
+  p_account_id uuid, p_name text, p_avatar smallint, p_daily_limit_minutes smallint, p_notice_version text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  new_id uuid;
+begin
+  if not private.consent_verifiable(p_account_id) then
+    raise exception 'Before you add a Kids profile, make a payment on this account with your card. That is how we confirm a parent''s consent.'
+      using errcode = 'check_violation';
+  end if;
+
+  insert into public.reader_profiles (account_id, name, avatar, age_rating, daily_limit_minutes, kids_consent_at)
+  values (p_account_id, btrim(p_name), coalesce(p_avatar, 0), 'kids', p_daily_limit_minutes, now())
+  returning id into new_id;
+
+  insert into public.parental_consents (account_id, profile_id, notice_version, method)
+  values (p_account_id, new_id, p_notice_version, 'card_payment');
+
+  return new_id;
+end;
+$$;
+
+revoke execute on function public.create_kids_profile(uuid, text, smallint, smallint, text) from public, anon, authenticated;
+grant execute on function public.create_kids_profile(uuid, text, smallint, smallint, text) to service_role;
+
+create or replace function public.set_profile_age_rating(
+  p_account_id uuid, p_profile_id uuid, p_age_rating public.age_rating, p_notice_version text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_rating public.age_rating;
+begin
+  select age_rating into current_rating from public.reader_profiles
+  where id = p_profile_id and account_id = p_account_id
+  for update;
+
+  if not found then
+    raise exception 'Profile not found' using errcode = 'no_data_found';
+  end if;
+  if current_rating = p_age_rating then
+    return;
+  end if;
+
+  if p_age_rating = 'kids' then
+    if p_notice_version is null or char_length(p_notice_version) not between 1 and 40 then
+      raise exception 'A Kids profile needs the parent''s consent' using errcode = 'check_violation';
+    end if;
+    if not private.consent_verifiable(p_account_id) then
+      raise exception 'Before you add a Kids profile, make a payment on this account with your card. That is how we confirm a parent''s consent.'
+        using errcode = 'check_violation';
+    end if;
+    update public.reader_profiles
+    set age_rating = 'kids', kids_consent_at = now()
+    where id = p_profile_id;
+    insert into public.parental_consents (account_id, profile_id, notice_version, method)
+    values (p_account_id, p_profile_id, p_notice_version, 'card_payment');
+  else
+    update public.reader_profiles
+    set age_rating = p_age_rating, kids_consent_at = null
+    where id = p_profile_id;
+    update public.parental_consents
+    set withdrawn_at = now()
+    where profile_id = p_profile_id and account_id = p_account_id and withdrawn_at is null;
+  end if;
+end;
+$$;
+
+revoke execute on function public.set_profile_age_rating(uuid, uuid, public.age_rating, text) from public, anon, authenticated;
+grant execute on function public.set_profile_age_rating(uuid, uuid, public.age_rating, text) to service_role;
+
+-- =============================================================================
+-- 20261110006831_coppa_notice.sql
+-- =============================================================================
+-- COPPA: the Children's Privacy Notice names COPPA and children under 13, says consent is verified by a card
+-- payment (migration 6830), adds Sharing a child's information and the written retention and security
+-- policies, and names LiteraryWorm as the operator; the Privacy Policy (10), Terms (29) and Help (Profiles,
+-- Kids and family) say so. Same text as src/data/legalPages.json. The old notice is kept as a revision by
+-- the edit trigger.
+
+update public.legal_pages
+set summary = $lw$For parents and guardians: how LiteraryWorm meets the Children's Online Privacy Protection Act (COPPA), what a Kids profile collects, why, who can see it, what we never collect, and how you stay in control. A Kids profile exists only with your verified consent, and you can see, download or delete everything it keeps.$lw$,
+    sections = $lw$[{"heading": "In short", "paragraphs": ["A Kids profile lives inside your account. Only you, the account holder, can create one, and only after you consent.", "It keeps what it needs to work: a first name or nickname, an avatar and the child's reading. We never ask a child for an email address, full name, photo, location or any way to contact them.", "Its reading is private to your account. It isn't shown to other members, it isn't used for advertising, and it is never sold, rented or licensed.", "You can see it, download it, change its limits or delete it at any time from Account."]}, {"heading": "About this notice", "paragraphs": ["This notice is how LiteraryWorm meets the Children's Online Privacy Protection Act (COPPA), the US law that protects the personal information of children under 13 online. It's our direct notice to parents, and it also covers the other children's privacy laws where you live.", "We treat every Kids profile as a child under 13, whatever the child's age, so everything here applies to every Kids profile.", "LiteraryWorm runs the service and is responsible for a Kids profile's information. You can reach us about it at usprivacy@literaryworm.com (see Questions, below)."]}, {"heading": "Your consent comes first", "paragraphs": ["Only the account holder, who must be 18 or older, can create a Kids profile or move a profile to Kids. You do it after reading this notice, and you confirm it with the account password.", "Before a Kids profile is created, we verify that the person giving consent is the adult who holds the account, as COPPA requires. We do that with a card payment on the account: your membership's first payment, or another purchase such as natural-voice hours, a gift or a gift card.", "Your card provider tells you about each charge, so you'll know the account is being used. It's one of the methods the US Federal Trade Commission accepts.", "A free week, or a gift membership someone gave you, doesn't verify consent on its own, because nothing is charged to your card. You can add a Kids profile as soon as the account's first payment is made. We never charge anything extra for this.", "We keep a record of that consent: when it was given, how it was verified, and which version of this notice it was for. Kids profiles made before 10 November 2026 were confirmed with the account password, and their record says so.", "Moving the profile to another age rating, or deleting it, withdraws that consent, and we record that too."]}, {"heading": "What a Kids profile collects", "paragraphs": ["The profile: its first name or nickname, its avatar, its age rating, and any daily reading limit, weekly reading goal and bedtime you set.", "Its reading: the books in its library, where it is in each book, its bookmarks, highlights and notes, its Up next queue, ratings, the moods and pace it tags books with, favourites and lists, the authors and narrators it follows, and its release reminders.", "Its time: how long it reads and listens each day, in total and for each book (shown on the book's page), how much of that was in Bedtime listening or after its bedtime, the books it finishes, its reading goals and pace, and any reading plan it makes (the day it chose to finish by and where it was when the plan started).", "Its learning: the words it saves from the dictionary and when they're next due for review, its private reading journal, and its chapter quiz scores.", "Its family activity: the books it asks a grown-up for and your answers, the household challenges it starts or joins, and the reading sprints it joins at home with the pages it turned (kept 90 days), which the other profiles on your account can see. Kids profiles can't join a book club's sprints.", "Badges are worked out on the device from this reading and are never stored; so are the certificates a child can print for them, made on the device. Books saved for offline reading stay on that device."]}, {"heading": "What we never collect", "paragraphs": ["We don't ask a child for their email address, full name, home address, school, phone number, photo, voice, location or any other way to contact them.", "A Kids profile can't write anything that other members see, so it can't share personal details with them.", "There's no advertising on LiteraryWorm and no advertising trackers. Our visit counter, Ahrefs Web Analytics, is switched off while a Kids profile is in use, so nothing a child does there is sent to it.", "Kids profiles show only LiteraryWorm's own titles, so Google Books covers and previews, and the third-party cookies Google sets from books.google.com with them, don't load there."]}, {"heading": "What a Kids profile can't do", "paragraphs": ["Kids profiles see only books rated for children. A grown-up can say yes to a book above that rating when the child asks for it.", "They can't write public reading logs, join or start book clubs, follow other readers, share lists by link, upload or import books, search Google Books, ask the book's AI assistant, translate passages or use Who's who.", "They can't make purchases or change account settings. A grown-up's password is needed to open Account or to allow extra time past a daily limit."]}, {"heading": "AI features", "paragraphs": ["A Kids profile can read AI-written book summaries and content notes, hear a recap of earlier chapters (Previously…) and take chapter quizzes. These are written by Claude, made by Anthropic.", "Kids profiles aren't offered voice control in car mode, because what's said would go to the browser's speech service (Google's or Apple's). Car mode's buttons work as usual.", "Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded, or a public-domain classic) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them.", "We send Anthropic only the book's details or its own text and which chapter it's about, never the child's name, answers, scores or anything else about them. The summaries, content notes, recaps and quizzes are kept and shared with every reader of that book, so they say nothing about who asked."]}, {"heading": "Who sees it", "paragraphs": ["You do: Account → Family shows each Kids profile's last 7 days, its weekly goal, how many nights it kept its bedtime and its time in Bedtime listening, its book requests, its quiz scores, and whether natural voices are on for it, with this month's natural-voice reading.", "If you turn on the weekly Kids reading report, we email last week's reading to your account's email address. Mailgun sends it for us. It's off until you turn it on.", "The Year in reading email, if you turn it on, includes every profile in the household, Kids profiles too: each one's name, time read and listened, days read, books finished and busiest month, sent to your account's email address each January through Mailgun. It's off until you turn it on.", "Our hosting providers, Supabase and Vercel, store and serve it only to run LiteraryWorm for you.", "Our support team can see how many profiles an account has, but not a profile's name, library, reading, notes or journal."]}, {"heading": "Sharing a child's information", "paragraphs": ["We don't sell, rent, license or otherwise disclose a Kids profile's information to third parties, and we don't use it for advertising. You can agree to us collecting it without agreeing to any sharing, because there isn't any.", "A few service providers help us run LiteraryWorm, and they handle it only on our instructions and only to provide the service: Supabase and Vercel store and serve it, and Mailgun sends the emails you choose to receive. They must keep it secure and may not use it for anything else.", "Anthropic and Google receive only a book's own words or details, never anything about your child (see AI features). Natural voices for a Kids profile have their own switch, off until you turn it on.", "We'd disclose a child's information only if the law required it, for example a valid court order, or to protect a child's safety."]}, {"heading": "How long we keep it", "paragraphs": ["This section is our written data retention policy for children's information. We keep it only as long as it's needed for the reason it was collected, then delete it.", "The profile, its reading, its time, its learning and its family activity are kept for as long as the profile exists, because they are the profile: its library, place in each book, goals and journal.", "Some things are deleted sooner on their own: the pages turned in reading sprints after 90 days, and each month's natural-voice reading per profile after a year.", "Deleting the profile, or your whole account, deletes everything it collected from our database straight away. Copies in our providers' backups are removed when those backups expire, and are never restored into the service except to recover from a failure.", "Information collected from a child without a parent's consent is deleted as soon as we learn of it."]}, {"heading": "Your choices as a parent", "paragraphs": ["From Account you can see the profile's activity, download a copy of your data, change its daily limit, weekly goal, bedtime and age rating, and answer its book requests.", "You can add a PIN to the other profiles so a child can't open them.", "You can stop us collecting anything more at any time by deleting the profile, which deletes everything it collected. Moving it to another age rating also ends the Kids protections, but keeps its reading under its new rating."]}, {"heading": "Keeping it safe", "paragraphs": ["We keep a written information security program for children's information. It sets out who is responsible for it, the risks we've assessed, the safeguards below, and how we check them, and we review it at least once a year and whenever what a Kids profile collects changes.", "A Kids profile's information is stored with access rules, so only your account can read it. Our support team can't see a profile's name, library or reading.", "Data travels encrypted between your device and our servers, and our service providers keep it encrypted where it's stored. Only the few service providers above handle it, and only to run LiteraryWorm.", "You can protect the account with two-step sign-in or a passkey, and lock other profiles with a PIN, which we keep only as a one-way hash."]}, {"heading": "Changes to this notice", "paragraphs": ["We keep the version of this notice you agreed to with each Kids profile. If we change what a Kids profile collects, we'll update this notice and say so on What's new."]}, {"heading": "Questions", "paragraphs": ["LiteraryWorm runs this service. If you have a question about your child's information, want to review or delete it, or think a child is using LiteraryWorm without a parent's consent, email usprivacy@literaryworm.com. We'll answer, and we'll delete information collected without consent.", "The Privacy Policy explains how we handle everyone's information, including your rights where you live."]}]$lw$::jsonb
+where slug = 'childrens-privacy';
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"By using the Services, you represent that you are at least 18 or the equivalent age as specified by law in your jurisdiction or that you are the parent or guardian of such a minor and consent to such minor dependent's use of the Services through a Kids profile. The Children's Privacy Notice explains what Kids profiles keep."$lw$, $lw$"By using the Services, you represent that you are at least 18 or the equivalent age as specified by law in your jurisdiction or that you are the parent or guardian of such a minor and consent to such minor dependent's use of the Services through a Kids profile. The Children's Privacy Notice explains what Kids profiles keep.", "Kids profiles are how we meet the Children's Online Privacy Protection Act (COPPA). We treat every Kids profile as a child under 13, verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties. The Children's Privacy Notice is our notice to parents under COPPA."$lw$)::jsonb
+where slug = 'privacy' and position($lw$"Kids profiles are how we meet the Children's Online Privacy Protection Act (COPPA). We treat every Kids profile as a child under 13, verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties. The Children's Privacy Notice is our notice to parents under COPPA."$lw$ in sections::text) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Account holders must be 18 or older. You may add profiles for people in your household, including Kids profiles with your consent, and you're responsible for how they're used."$lw$, $lw$"Account holders must be 18 or older. You may add profiles for people in your household, including Kids profiles with your consent, and you're responsible for how they're used.", "Before you add a Kids profile, we verify your consent with a card payment on your account, as the Children's Privacy Notice explains. A free week, or a gift membership someone gave you, isn't enough on its own."$lw$)::jsonb
+where slug = 'terms' and position($lw$"Before you add a Kids profile, we verify your consent with a card payment on your account, as the Children's Privacy Notice explains. A free week, or a gift membership someone gave you, isn't enough on its own."$lw$ in sections::text) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time."$lw$, $lw$"Each person at home can have their own profile, with its own library and recommendations. Lock a profile with a PIN, set daily limits for younger readers, and change your plan, password or emails in Account. You can cancel or pause online at any time.", "Adding a Kids profile needs a card payment on the account first: it's how we confirm a parent's consent, as the US children's privacy law (COPPA) asks. Your membership's first payment does it, or another purchase such as natural-voice hours. During a free week, or with only a gift membership someone gave you, add the Kids profile once the first payment's made."$lw$)::jsonb
+where slug = 'help' and position($lw$"Adding a Kids profile needs a card payment on the account first: it's how we confirm a parent's consent, as the US children's privacy law (COPPA) asks. Your membership's first payment does it, or another purchase such as natural-voice hours. During a free week, or with only a gift membership someone gave you, add the Kids profile once the first payment's made."$lw$ in sections::text) = 0;
+
+-- =============================================================================
+-- 20261110006832_whats_new_coppa.sql
+-- =============================================================================
+-- What's new: Kids consent verified by a card payment, and the COPPA notice (6830, 6831). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-10'::date, '2026.11', 'update', $lw$Kids profiles: consent confirmed by a card payment$lw$, $lw$Adding a Kids profile now needs a card payment on the account first, such as your membership's first payment. It's how we confirm a parent's consent, as the US children's privacy law (COPPA) asks, and it costs nothing extra. The Children's Privacy Notice now explains COPPA, how we verify consent, that we never share a child's information, how long we keep it and how we keep it safe.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Kids profiles: consent confirmed by a card payment$lw$ and c.released_on = '2026-11-10');
