@@ -303,3 +303,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Read-along: `public/alignments/the-secret-garden.json`, `ALIGNED_BOOKS` (fifteen) |
 | — | Pricing address: Plans and pricing at `/pricing` (route, links, `seo.ts` urls and `MEMBERSHIP_ID`, checkout return URLs, sitemap, `llms.txt`); `/plans` redirects (Vercel 308 and `LegacyPlansRedirect` in `App.tsx`, keeping the query); canonical header rule; migration 6826 (What's new) |
 | — | Visitor menu label *Pricing* (was *Plans*): `Header.tsx`, the `Pricing` key in each dictionary; migration 6827 (What's new wording) |
+| — | Footer link label *Pricing* (was *Plans and pricing*): `Footer.tsx`; migration 6828 (What's new wording) |

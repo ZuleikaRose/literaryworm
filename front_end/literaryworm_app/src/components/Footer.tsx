@@ -72,7 +72,7 @@ export function Footer() {
                 <Link to="/whats-new">{t("What's new")}</Link>
               </li>
               <li>
-                <Link to="/pricing">{t("Plans and pricing")}</Link>
+                <Link to="/pricing">{t("Pricing")}</Link>
               </li>
               <li>
                 <Link to="/gifts">{t("Gift a membership")}</Link>

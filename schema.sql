@@ -14980,3 +14980,12 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$P
 update public.changelog_entries
 set body = $lw$Plans and pricing now lives at www.literaryworm.com/pricing, and the menu calls it Pricing. Old links to /plans still work and take you straight there.$lw$
 where title = $lw$Plans and pricing has a new address$lw$ and released_on = '2026-11-10';
+
+-- =============================================================================
+-- 20261110006828_whats_new_pricing_footer.sql
+-- =============================================================================
+-- What's new: the footer's link is now Pricing too; the entry from 6826/6827 says so. src/data/changelog.json has the same.
+
+update public.changelog_entries
+set body = $lw$Plans and pricing now lives at www.literaryworm.com/pricing, and the menu and footer call it Pricing. Old links to /plans still work and take you straight there.$lw$
+where title = $lw$Plans and pricing has a new address$lw$ and released_on = '2026-11-10';
