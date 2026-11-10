@@ -19,7 +19,7 @@ Every **Kids profile** is treated as a child under 13, whatever the child's age.
 - **Method:** a card payment on the account, the FTC's "credit card, debit card or other online payment system that provides notification of each discrete transaction to the primary account holder", used in a monetary transaction.
 - **How it works:** `stripe-webhook` calls `record_card_payment()` on the first real payment (a membership invoice above $0, or a paid Checkout: membership, natural-voice hours, a gift purchase or a gift card), setting `account_private.card_payment_at` once (migration 6830). `create_kids_profile()` and `set_profile_age_rating(..., 'kids')` refuse without it and record `parental_consents.method = 'card_payment'` with the notice version (`CHILDREN_NOTICE_VERSION` in `src/data/legal.ts`). The profile editor explains it when `Account.kidsConsentVerified` is false.
 - **Not enough on its own:** a free week, a gift membership someone gave the account, a $0 invoice paid by a credit. Staff accounts are never billed, so they can't add Kids profiles.
-- **Before 10 November 2026:** consents were confirmed with the account password (`method = 'account_password_confirmation'`). Those records are kept as they are. Ask a lawyer whether existing profiles need fresh, verified consent.
+- **Before 10 November 2026:** consents were confirmed with the account password (`method = 'account_password_confirmation'`). At the switch-over production had no active Kids consents (checked 2026-11-10), and the live Stripe account had no payments yet, so no backfill of `card_payment_at` was needed and no family had to consent again.
 - **Withdrawal:** moving a profile off Kids, or deleting it, sets `withdrawn_at`.
 
 ## What is collected, and sharing
@@ -64,4 +64,4 @@ When a change touches Kids profiles, in the same commit:
 
 | Date | What changed |
 | --- | --- |
-| 2026-11-10 | Program written. Consent verified by card payment (6830). Notice names COPPA, adds sharing, retention and security (6831). Open: responsible person's name, postal address or phone, lawyer review of password-era consents. |
+| 2026-11-10 | Program written. Consent verified by card payment (6830). Notice names COPPA, adds sharing, retention and security (6831). No Kids profiles or payments on production yet, so nothing to backfill or re-consent. Open: responsible person's name, postal address or phone, lawyer review. |
