@@ -17,7 +17,7 @@ import type { BillingInterval, Plan, PlanId } from "../types";
 
 export default function Plans() {
   const t = useT();
-  useTitle(t("Plans and pricing"), plansDescription());
+  useTitle(t("Pricing"), plansDescription());
   const { state, dispatch } = useStore();
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -547,9 +547,9 @@ export default function Plans() {
         id="page"
         data={pageData({
           path: "/pricing",
-          name: "Plans and pricing",
+          name: "Pricing",
           description: plansDescription(),
-          crumbs: [HOME_CRUMB, { name: "Plans and pricing", path: "/pricing" }],
+          crumbs: [HOME_CRUMB, { name: "Pricing", path: "/pricing" }],
           mainEntity: { "@id": MEMBERSHIP_ID },
         })}
       />

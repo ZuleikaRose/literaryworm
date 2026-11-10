@@ -2271,7 +2271,7 @@ describe("the demo household", () => {
     };
     await page.goto(`${BASE_URL}/`);
     await visit("/", "WebPage", []);
-    await visit("/pricing", "WebPage", ["Home", "Plans and pricing"]);
+    await visit("/pricing", "WebPage", ["Home", "Pricing"]);
     await visit("/search?q=arctic&by=keywords", "SearchResultsPage", ["Home", "Search"]);
     await visit("/whats-new", "CollectionPage", ["Home", "What's new"]);
     await visit("/legal/privacy", "WebPage", ["Home", "Privacy Policy"]);
