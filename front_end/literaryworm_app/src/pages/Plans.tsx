@@ -191,7 +191,7 @@ export default function Plans() {
           </>
         ) : (
           <>
-            <p className="eyebrow">{t("Plans and pricing")}</p>
+            <p className="eyebrow">{t("Pricing")}</p>
             <h1>{t("One membership for every reader at home")}</h1>
             <p>{t("Ebooks and audiobooks in one place. Prices are in US dollars. Pay monthly, or yearly with two months free. Cancel online any time.")}</p>
           </>
