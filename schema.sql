@@ -14971,3 +14971,12 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$T
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-10'::date, '2026.11', 'update', $lw$Plans and pricing has a new address$lw$, $lw$Plans and pricing now lives at www.literaryworm.com/pricing. Old links to /plans still work and take you straight there.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Plans and pricing has a new address$lw$ and c.released_on = '2026-11-10');
+
+-- =============================================================================
+-- 20261110006827_whats_new_pricing_label.sql
+-- =============================================================================
+-- What's new: the menu's Plans link is now Pricing; added to the entry from 6826. src/data/changelog.json has the same.
+
+update public.changelog_entries
+set body = $lw$Plans and pricing now lives at www.literaryworm.com/pricing, and the menu calls it Pricing. Old links to /plans still work and take you straight there.$lw$
+where title = $lw$Plans and pricing has a new address$lw$ and released_on = '2026-11-10';

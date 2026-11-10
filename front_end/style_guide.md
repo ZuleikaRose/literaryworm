@@ -81,7 +81,7 @@ Scale (rem; 1rem = 16px, multiplied by the text-size setting):
 ## Layout
 
 - **Content width:** 1320px max, side gutter `clamp(16px, 5vw, 64px)`.
-- **Header:** 76px tall (64px on phones), sticky, blurred background. Its menu is Home, Search and Plans for visitors and Discover, Search and My Library for members (phones use the tab bar: Home, Search, Library, Account). A member's header also has the search box (not on the Search page itself), which gives way first when the window narrows (`min-width: 0`); under 1200px the gaps close to 20px and the *Ctrl K* hint goes, and under 1000px the profile button shows only its avatar, so nothing scrolls sideways down to 901px.
+- **Header:** 76px tall (64px on phones), sticky, blurred background. Its menu is Home, Search and Pricing for visitors and Discover, Search and My Library for members (phones use the tab bar: Home, Search, Library, Account). A member's header also has the search box (not on the Search page itself), which gives way first when the window narrows (`min-width: 0`); under 1200px the gaps close to 20px and the *Ctrl K* hint goes, and under 1000px the profile button shows only its avatar, so nothing scrolls sideways down to 901px.
 - **Section spacing:** `clamp(64px, 8vw, 104px)` between sections; 22px between a section title and its content.
 - **Book rows:** 6 columns on desktop, 4 under 900px, and a horizontal scroll with snap under 560px.
 - **Breakpoints:** 900px (tablet: nav collapses), 720px (phone: bottom tab bar, fixed popovers), 480px (small phone).

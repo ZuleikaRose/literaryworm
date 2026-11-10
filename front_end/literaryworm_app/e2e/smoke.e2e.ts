@@ -20,7 +20,7 @@ describe("a visitor", () => {
     // More than a reader: a card for each kind of tool.
     await page.getByRole("heading", { name: "Everything that happens around a good book" }).waitFor();
     await page.getByRole("heading", { name: "A private journal" }).waitFor();
-    await page.getByRole("link", { name: "Plans" }).first().click();
+    await page.getByRole("link", { name: "Pricing" }).first().click();
     await page.waitForURL(/\/pricing/);
     await page.getByText(/Cancel online any time/).waitFor();
     expect(errors()).toEqual([]);

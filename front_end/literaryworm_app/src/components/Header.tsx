@@ -124,7 +124,7 @@ export function Header() {
               {t("Home")}
             </NavLink>
             <NavLink to="/search">{t("Search")}</NavLink>
-            <NavLink to="/pricing">{t("Plans")}</NavLink>
+            <NavLink to="/pricing">{t("Pricing")}</NavLink>
           </>
         )}
       </nav>
