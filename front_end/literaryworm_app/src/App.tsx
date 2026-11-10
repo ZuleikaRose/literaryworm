@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { AppEffects, ImmersiveLayout, RequireAccount, RequireProfile, SiteLayout } from "./layouts/Layouts";
 import { ClubAlerts } from "./components/ClubAlerts";
 import { ListenAlong } from "./components/ListenAlong";
@@ -41,6 +41,12 @@ const Support = lazy(() => import("./pages/Support"));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
 const AffiliateReview = lazy(() => import("./pages/AffiliateReview"));
 
+/** The old /plans address (bookmarks, links in emails, Stripe sessions already open) keeps working. */
+function LegacyPlansRedirect() {
+  const { search, hash } = useLocation();
+  return <Navigate to={`/pricing${search}${hash}`} replace />;
+}
+
 /** Old /book/:id links keep working. */
 function LegacyBookRedirect() {
   return <Navigate to={`/books/${useParams().id ?? ""}`} replace />;
@@ -60,7 +66,8 @@ export default function App() {
         <Route element={<SiteLayout />}>
           {/* Public */}
           <Route index element={<Landing />} />
-          <Route path="plans" element={<Plans />} />
+          <Route path="pricing" element={<Plans />} />
+          <Route path="plans" element={<LegacyPlansRedirect />} />
           <Route path="signin" element={<SignIn />} />
           <Route path="signup" element={<SignUp />} />
           <Route path="reset-password" element={<ResetPassword />} />

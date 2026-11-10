@@ -113,14 +113,14 @@ describe("each page's own structured data", () => {
   it("names a person by the page about them, and the membership by its id", () => {
     expect(personNode("Mary Shelley", "/authors/Mary%20Shelley")).toEqual({ "@type": "Person", name: "Mary Shelley", url: `${SITE_URL}/authors/Mary%20Shelley` });
     expect(membershipData()["@id"]).toBe(MEMBERSHIP_ID);
-    expect(absoluteUrl("/plans")).toBe(`${SITE_URL}/plans`);
+    expect(absoluteUrl("/pricing")).toBe(`${SITE_URL}/pricing`);
   });
 });
 
 describe("canonicalUrl", () => {
   it("is the page's path on the site's own host, without a query or trailing slash", () => {
     expect(canonicalUrl("/")).toBe("https://www.literaryworm.com/");
-    expect(canonicalUrl("/plans/")).toBe("https://www.literaryworm.com/plans");
+    expect(canonicalUrl("/pricing/")).toBe("https://www.literaryworm.com/pricing");
     expect(canonicalUrl("/books/pride-and-prejudice")).toBe("https://www.literaryworm.com/books/pride-and-prejudice");
     expect(canonicalUrl("/authors/Jane%20Austen")).toBe("https://www.literaryworm.com/authors/Jane%20Austen");
   });

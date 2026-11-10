@@ -179,7 +179,7 @@ export default function Profiles() {
                   { one: "Your {plan} plan includes {count} profile. {link} to add more.", other: "Your {plan} plan includes {count} profiles. {link} to add more." },
                   { plan: plan.name },
                 ),
-            { link: <Link to="/plans">{t("Change plan")}</Link> },
+            { link: <Link to="/pricing">{t("Change plan")}</Link> },
           )}
         </p>
       )}

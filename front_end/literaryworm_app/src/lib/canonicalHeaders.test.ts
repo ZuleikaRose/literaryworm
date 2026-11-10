@@ -56,4 +56,10 @@ describe("canonical Link headers (vercel.json)", () => {
   it("send the old /book/:id addresses to /books/:id for good", () => {
     expect(vercel.redirects).toContainEqual({ source: "/book/:id", destination: "/books/:id", permanent: true });
   });
+
+  it("send the old /plans address to /pricing for good, and give /plans no canonical of its own", () => {
+    expect(vercel.redirects).toContainEqual({ source: "/plans", destination: "/pricing", permanent: true });
+    expect(canonicalHeaders("/plans")).toEqual([]);
+    expect(canonicalHeaders("/pricing")).toEqual(['<https://www.literaryworm.com/pricing>; rel="canonical"']);
+  });
 });

@@ -109,7 +109,7 @@ export function hoursAndMinutes(seconds: number): string {
 
 /**
  * The next plan up from `planId` (Basic → Standard → Premium), for "move up" links: they go to
- * `/plans?plan=<id>`, which opens that plan's checkout. Null on Premium. Without a plan, Basic.
+ * `/pricing?plan=<id>`, which opens that plan's checkout. Null on Premium. Without a plan, Basic.
  */
 export function nextPlanUp(planId: PlanId | null): Plan | null {
   if (planId === null) return planById.get("basic") ?? null;
@@ -118,7 +118,7 @@ export function nextPlanUp(planId: PlanId | null): Plan | null {
 }
 
 /** The address that opens a plan's checkout on Plans. */
-export const planCheckoutPath = (plan: Plan) => `/plans?plan=${plan.id}`;
+export const planCheckoutPath = (plan: Plan) => `/pricing?plan=${plan.id}`;
 
 export interface HouseholdSize {
   profiles: number;

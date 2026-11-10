@@ -21,7 +21,15 @@ describe("a visitor", () => {
     await page.getByRole("heading", { name: "Everything that happens around a good book" }).waitFor();
     await page.getByRole("heading", { name: "A private journal" }).waitFor();
     await page.getByRole("link", { name: "Plans" }).first().click();
-    await page.waitForURL(/\/plans/);
+    await page.waitForURL(/\/pricing/);
+    await page.getByText(/Cancel online any time/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("is sent from the old /plans address to /pricing, keeping the query", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/plans?billing=yearly`);
+    await page.waitForURL(/\/pricing\?billing=yearly$/);
     await page.getByText(/Cancel online any time/).waitFor();
     expect(errors()).toEqual([]);
   });
@@ -48,13 +56,13 @@ describe("a visitor", () => {
 
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
-    await page.goto(`${BASE_URL}/plans`);
+    await page.goto(`${BASE_URL}/pricing`);
     await page.getByText("$30.00").first().waitFor();
     await page.getByRole("radio", { name: /Yearly/ }).check({ force: true });
     await page.getByText("$300.00").first().waitFor();
     await page.getByText(/\$25\.00 a month, instead of \$30\.00/).waitFor();
     // ?billing=yearly opens on yearly prices.
-    await page.goto(`${BASE_URL}/plans?billing=yearly`);
+    await page.goto(`${BASE_URL}/pricing?billing=yearly`);
     expect(await page.getByRole("radio", { name: /Yearly/ }).isChecked()).toBe(true);
     expect(errors()).toEqual([]);
   });
@@ -273,7 +281,7 @@ describe("a visitor", () => {
 
   it("links to What's new from Home, Plans and Search, not only the footer", async () => {
     const { page, errors } = await newPage();
-    for (const path of ["/", "/search", "/plans"]) {
+    for (const path of ["/", "/search", "/pricing"]) {
       await page.goto(`${BASE_URL}${path}`);
       const link = page.locator("main .whats-new-link").getByRole("link", { name: "See everything that's new" });
       await expect(link.getAttribute("href")).resolves.toBe("/whats-new");
@@ -351,10 +359,10 @@ describe("languages", () => {
 describe("search engines", () => {
   it("gives each page its own canonical address, without the query", async () => {
     const { page, errors } = await newPage();
-    await page.goto(`${BASE_URL}/plans?ref=ABCD1234&utm_source=x`);
+    await page.goto(`${BASE_URL}/pricing?ref=ABCD1234&utm_source=x`);
     await page.getByRole("heading", { level: 1 }).first().waitFor();
     const canonical = () => page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href);
-    await expect(canonical()).resolves.toBe("https://www.literaryworm.com/plans");
+    await expect(canonical()).resolves.toBe("https://www.literaryworm.com/pricing");
     await page.getByRole("navigation", { name: "Primary" }).first().getByRole("link", { name: "Search" }).click();
     await page.waitForURL(/\/search/);
     await page.waitForFunction(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href.endsWith("/search"));
@@ -423,7 +431,7 @@ describe("the demo household", () => {
   it("can't move down to a plan the household doesn't fit, and is told what to remove", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
-    await goInApp(page, "/plans?plan=basic");
+    await goInApp(page, "/pricing?plan=basic");
     const checkout = page.getByRole("region", { name: /Confirm Basic/ });
     await checkout.getByText("Basic has room for 1 profile and your household uses 3. Set aside or remove 2 in Who's reading? first.").waitFor();
     expect(await checkout.getByRole("button", { name: /Switch to|Continue to payment/ }).count()).toBe(0);
@@ -475,7 +483,7 @@ describe("the demo household", () => {
     await aside.getByRole("button", { name: /^Sam/ }).waitFor();
     await page.getByRole("button", { name: "Done" }).click();
     expect(await page.getByRole("list").first().getByRole("button", { name: /^Sam/ }).count()).toBe(0);
-    await goInApp(page, "/plans?plan=basic");
+    await goInApp(page, "/pricing?plan=basic");
     await page.getByRole("region", { name: /Confirm Basic/ }).getByText("your household uses 2. Set aside or remove 1").waitFor();
 
     await goInApp(page, "/profiles");
@@ -982,7 +990,7 @@ describe("the demo household", () => {
     await ask.getByRole("button", { name: "Continue" }).click();
     let offer = page.getByRole("dialog", { name: "Cancel your membership?" });
     await offer.getByRole("heading", { name: "Try Standard instead" }).waitFor();
-    await expect(offer.getByRole("link", { name: "See Standard" }).getAttribute("href")).resolves.toBe("/plans?plan=standard");
+    await expect(offer.getByRole("link", { name: "See Standard" }).getAttribute("href")).resolves.toBe("/pricing?plan=standard");
     await offer.getByRole("button", { name: "Keep membership" }).click();
 
     await plan.getByRole("button", { name: "Cancel membership" }).click();
@@ -2232,7 +2240,7 @@ describe("the demo household", () => {
     const { page, errors } = await newPage();
     const types = () =>
       page.locator('script[type="application/ld+json"]').evaluateAll((els) => els.flatMap((el) => [JSON.parse(el.textContent ?? "null")].flat().map((d) => d["@type"])));
-    await page.goto(`${BASE_URL}/plans`);
+    await page.goto(`${BASE_URL}/pricing`);
     await page.getByRole("heading", { name: "Questions about plans" }).waitFor();
     await expect(types()).resolves.toEqual(expect.arrayContaining(["WebSite", "Organization", "Product", "FAQPage"]));
     await goInApp(page, "/books/frankenstein");
@@ -2263,7 +2271,7 @@ describe("the demo household", () => {
     };
     await page.goto(`${BASE_URL}/`);
     await visit("/", "WebPage", []);
-    await visit("/plans", "WebPage", ["Home", "Plans and pricing"]);
+    await visit("/pricing", "WebPage", ["Home", "Plans and pricing"]);
     await visit("/search?q=arctic&by=keywords", "SearchResultsPage", ["Home", "Search"]);
     await visit("/whats-new", "CollectionPage", ["Home", "What's new"]);
     await visit("/legal/privacy", "WebPage", ["Home", "Privacy Policy"]);
@@ -2452,7 +2460,7 @@ describe("the demo household", () => {
 });
 
 describe("on a phone", () => {
-  it.each(["/", "/plans", "/search?q=dune", "/legal/privacy", "/series/Oz"])("%s doesn't scroll sideways", async (path) => {
+  it.each(["/", "/pricing", "/search?q=dune", "/legal/privacy", "/series/Oz"])("%s doesn't scroll sideways", async (path) => {
     const { page, errors } = await newPage(390, 844);
     await page.goto(`${BASE_URL}${path}`);
     await page.locator("main").waitFor();

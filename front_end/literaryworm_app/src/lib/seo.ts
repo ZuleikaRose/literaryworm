@@ -85,7 +85,7 @@ const offer = (name: string, price: number, duration: "P1M" | "P1Y") => ({
   name,
   price: price.toFixed(2),
   priceCurrency: "USD",
-  url: `${SITE_URL}/plans`,
+  url: `${SITE_URL}/pricing`,
   availability: "https://schema.org/InStock",
   hasMerchantReturnPolicy: noReturns,
   priceSpecification: {
@@ -97,7 +97,7 @@ const offer = (name: string, price: number, duration: "P1M" | "P1Y") => ({
   },
 });
 
-export const MEMBERSHIP_ID = `${SITE_URL}/plans#membership`;
+export const MEMBERSHIP_ID = `${SITE_URL}/pricing#membership`;
 
 /** The membership and each plan's monthly and yearly price: on the home page and Plans. */
 export const membershipData = () => ({
@@ -108,7 +108,7 @@ export const membershipData = () => ({
   description: MEMBERSHIP_DESCRIPTION,
   image: LOGO_URL,
   brand: { "@type": "Brand", name: "LiteraryWorm" },
-  url: `${SITE_URL}/plans`,
+  url: `${SITE_URL}/pricing`,
   offers: plans.flatMap((p) => [offer(`${p.name}, monthly`, p.price, "P1M"), offer(`${p.name}, yearly`, p.yearlyPrice, "P1Y")]),
 });
 

@@ -95,7 +95,7 @@ describe("moving up a plan", () => {
   });
 
   it("links straight to that plan's checkout on Plans", () => {
-    expect(planCheckoutPath(nextPlanUp("basic")!)).toBe("/plans?plan=standard");
+    expect(planCheckoutPath(nextPlanUp("basic")!)).toBe("/pricing?plan=standard");
   });
 });
 

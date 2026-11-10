@@ -80,8 +80,8 @@ Deno.serve((req) =>
           metadata: { plan_id: input.planId, interval: input.interval, ...(input.trialDays > 0 ? { free_trial: "1" } : {}) },
         },
         custom_text: { submit: { message: renewalMessage(input) } },
-        success_url: `${input.origin}/plans?checkout=success${input.setup ? "&setup=1" : ""}`,
-        cancel_url: `${input.origin}/plans?checkout=cancelled`,
+        success_url: `${input.origin}/pricing?checkout=success${input.setup ? "&setup=1" : ""}`,
+        cancel_url: `${input.origin}/pricing?checkout=cancelled`,
         integration_identifier: `literaryworm_membership_${randomLetters()}`,
       });
       if (!session.url) throw new Error("Stripe returned no Checkout URL");

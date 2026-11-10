@@ -106,7 +106,7 @@ export function RequireAccount() {
   const location = useLocation();
   if (!state.authReady) return <Restoring />;
   if (!state.account) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />;
-  if (!state.account.planId) return <Navigate to="/plans?setup=1" replace />;
+  if (!state.account.planId) return <Navigate to="/pricing?setup=1" replace />;
   return <Outlet />;
 }
 
@@ -116,7 +116,7 @@ export function RequireProfile() {
   const location = useLocation();
   if (!state.authReady) return <Restoring />;
   if (!state.account) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />;
-  if (!state.account.planId) return <Navigate to="/plans?setup=1" replace />;
+  if (!state.account.planId) return <Navigate to="/pricing?setup=1" replace />;
   if (!state.activeProfileId) return <Navigate to="/profiles" replace state={{ from: location.pathname + location.search }} />;
   return <Outlet />;
 }

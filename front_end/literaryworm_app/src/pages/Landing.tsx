@@ -57,7 +57,7 @@ export default function Landing() {
       {t("Go to your profiles")} <Icon name="chevronRight" size={18} />
     </Link>
   ) : (
-    <Link className="primary-button" to="/plans">
+    <Link className="primary-button" to="/pricing">
       {t("See plans and join")} <Icon name="chevronRight" size={18} />
     </Link>
   );
@@ -230,7 +230,7 @@ export default function Landing() {
               <p className="eyebrow">{t("Membership")}</p>
               <h2 id="plan-strip-title">{t("Three plans, no surprises")}</h2>
             </div>
-            <Link className="text-button" to="/plans">
+            <Link className="text-button" to="/pricing">
               {t("Compare plans")} <Icon name="chevronRight" size={16} />
             </Link>
           </div>
@@ -309,7 +309,7 @@ export default function Landing() {
                   <Link className="primary-button" to="/signin">
                     {t("Log in")}
                   </Link>
-                  <Link className="secondary-button" to="/plans">
+                  <Link className="secondary-button" to="/pricing">
                     {t("See plans and join")}
                   </Link>
                   <button type="button" className="text-button" onClick={tryDemo}>

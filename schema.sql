@@ -14798,3 +14798,176 @@ where slug = 'privacy'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-08'::date, '2026.11', 'feature', $lw$Who reads whom for the classics$lw$, $lw$Pick a voice from your device for each character in a classic, and a speed of their own, just like with uploads. Choose one of your device's voices under Voice and turn on Character voices; press play beside a character to hear them.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Who reads whom for the classics$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006814_classics_natural_voices_policies.sql
+-- =============================================================================
+-- Natural voices for the public-domain classics, and Voices and characters in the reader and on club pages: Help, the Privacy Policy and the Children's Privacy Notice. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Google Cloud Text-to-Speech reads members' uploaded books aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6)."$lw$, $lw$"Google Cloud Text-to-Speech reads members' uploaded books and the public-domain classics aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6)."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Google Cloud Text-to-Speech reads members' uploaded books and the public-domain classics aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6).$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, up to about a minute and a half at a time (shorter with Character voices on, which voice each speech apart), nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account."$lw$, $lw$"Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, up to about a minute and a half at a time (shorter with Character voices on, which voice each speech apart), nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account.", "Natural voices also read the public-domain classics, from their own text (Project Gutenberg). The parts are the book's own words, so each is voiced once and kept for every member who listens to that book in that voice, with nothing saying who asked for it; we count it towards the month's natural-voice reading of the account that heard it first, and towards that profile's share."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Natural voices also read the public-domain classics, from their own text (Project Gutenberg). The parts are the book's own words, so each is voiced once and kept for every member who listens to that book in that voice, with nothing saying who asked for it; we count it towards the month's natural-voice reading of the account that heard it first, and towards that profile's share.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage with your upload. It's deleted with the upload, its profile or your account. We count how much is voiced each month, for your plan's allowance."$lw$, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them."$lw$, $lw$"Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded, or a public-domain classic) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$Natural voices (Google Cloud Text-to-Speech reading a book the household uploaded, or a public-domain classic) are off for Kids profiles until a grown-up turns them on for that profile in Account → Family with the account password. We send Google only the part of the book being voiced, never the child's name or anything else about them.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence."$lw$, $lw$"Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.", "The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In the reader, an upload with a natural voice has Read aloud in the top bar (the headphones). It reads on from the page you're on, turns the pages as it goes and marks the word being spoken. Choose it again to stop; the book keeps playing from the mini-player if you leave the reader."$lw$, $lw$"In the reader, an upload with a natural voice has Read aloud in the top bar (the headphones). It reads on from the page you're on, turns the pages as it goes and marks the word being spoken. Choose it again to stop; the book keeps playing from the mini-player if you leave the reader.", "You can change who reads at any time, while reading or listening. Voices and characters (the two figures in the reader's top bar, and on a book club's page for the club's book) has the Voice menu with its previews, Character voices, Who reads whom with each speaker's voice and speed, and Pronunciations. The player and the mini-player have the same in Player settings. A change while the book plays carries on from the same place. Classics have Read aloud in the reader too, with a natural voice."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$You can change who reads at any time, while reading or listening. Voices and characters (the two figures in the reader's top bar, and on a book club's page for the club's book) has the Voice menu with its previews, Character voices, Who reads whom with each speaker's voice and speed, and Pronunciations. The player and the mini-player have the same in Player settings. A change while the book plays carries on from the same place. Classics have Read aloud in the reader too, with a natural voice.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006815_whats_new_classics_natural_voices.sql
+-- =============================================================================
+-- What's new: Natural voices for the classics, and voices you can change anywhere. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Natural voices for the classics, and voices you can change anywhere$lw$, $lw$Members can now hear the public-domain classics read by natural voices from Google, first in the Voice menu, with each character's voice and speed under Who reads whom, previews of every voice, and Pronunciations; the LibriVox recordings are still there. Voices and characters is now in the reader's top bar and on a book club's page, as well as in Player settings in the player and the mini-player, so you can change who reads at any time while reading or listening. Read aloud in the reader works for the classics too. Kids profiles get it all once a grown-up turns natural voices on in Account → Family.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices for the classics, and voices you can change anywhere$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006816_upload_file_types_help.sql
+-- =============================================================================
+-- Help lists every DRM-free file type Uploads takes. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM, as EPUB, PDF or Kindle (MOBI, AZW3) files: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks."$lw$, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Yes. In My Library → Uploads, add books you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks."$lw$, $lw$"Yes. In My Library → Uploads, add books you own that have no DRM: up to 20 at a time, each up to 50 MB (a profile keeps up to 50). For example, buy a book the publisher sells DRM-free on Google Play Books, download its EPUB, then upload it here. Public-domain books are free from Project Gutenberg and Standard Ebooks.", "The file types you can upload, all without DRM: EPUB (.epub); PDF (.pdf), with real text, since password-locked and scanned (picture-only) PDFs can't be read; and Kindle MOBI (.mobi), AZW3 (.azw3) and AZW (.azw). Books with DRM, as most ebook shops' own apps sell them, can't be uploaded, and some older Kindle files need converting to EPUB first, with a free app such as Calibre. The same list is under Add a book you own in Uploads, and when you start a book club on an upload."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$The file types you can upload, all without DRM: EPUB (.epub); PDF (.pdf), with real text, since password-locked and scanned (picture-only) PDFs can't be read; and Kindle MOBI (.mobi), AZW3 (.azw3) and AZW (.azw). Books with DRM, as most ebook shops' own apps sell them, can't be uploaded, and some older Kindle files need converting to EPUB first, with a free app such as Calibre. The same list is under Add a book you own in Uploads, and when you start a book club on an upload.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006817_whats_new_upload_file_types.sql
+-- =============================================================================
+-- What's new: Every file type you can upload, listed. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$Every file type you can upload, listed$lw$, $lw$My Library → Uploads now lists every DRM-free file type you can add: EPUB, PDF (with real text), and Kindle MOBI, AZW3 and AZW, with what can't be read and how to convert an older Kindle file. The same list shows when you start a book club on an upload or choose your copy for a club, and the FAQ and Help have it too.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Every file type you can upload, listed$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006818_classics_whole_book_clips_policies.sql
+-- =============================================================================
+-- Voice the whole book, the audiobook MP3 and natural-voice clips for the classics: Help and the Privacy Policy. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive; we don't record or keep them, or who shared them."$lw$, $lw$"So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive, or to a part in a natural voice (an upload's plays only for your household, a classic's for logged-in members); we don't record or keep them, or who shared them."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$So are library exports for Goodreads and StoryGraph (a CSV of your books, shelves, star ratings, dates, and the moods and pace you tagged); we don't send them to either site. Audio clips you share are links to a stretch of a public-domain LibriVox recording, played from the Internet Archive, or to a part in a natural voice (an upload's plays only for your household, a classic's for logged-in members); we don't record or keep them, or who shared them.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"To listen to a whole upload offline, choose Voice the whole book in the player, under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up."$lw$, $lw$"To listen to a whole upload or classic offline, choose Voice the whole book in the player (or on the book's page), under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$To listen to a whole upload or classic offline, choose Voice the whole book in the player (or on the book's page), under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"To listen to a whole upload or classic offline, choose Voice the whole book in the player (or on the book's page), under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up."$lw$, $lw$"To listen to a whole upload or classic offline, choose Voice the whole book in the player (or on the book's page), under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.", "A classic's parts are kept on our server once for every member, since they're only the book's own words. So a part any member has heard in that voice before costs nothing, and voicing a classic ahead also saves the next listener's hours."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$A classic's parts are kept on our server once for every member, since they're only the book's own words. So a part any member has heard in that voice before costs nothing, and voicing a classic ahead also saves the next listener's hours.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Once every part is on your device, Download the audiobook (MP3) under Voice the whole book joins them, in order, into one file to play in any audio app. It's made on your device from the parts already there, so it costs nothing more; it's for your own listening, like the book you uploaded."$lw$, $lw$"Once every part is on your device, Download the audiobook (MP3) under Voice the whole book joins them, in order, into one file to play in any audio app, for an upload or a classic. It's made on your device from the parts already there, so it costs nothing more; it's for your own listening."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Once every part is on your device, Download the audiobook (MP3) under Voice the whole book joins them, in order, into one file to play in any audio app, for an upload or a classic. It's made on your device from the parts already there, so it costs nothing more; it's for your own listening.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"For a book you uploaded and hear in a natural voice, Share a clip makes a link to the part you're listening to. It plays only for your household, logged in to your account; anyone else is asked to log in. Nothing is cut or kept: the link asks for that part the way the player does."$lw$, $lw$"For a book you uploaded and hear in a natural voice, Share a clip makes a link to the part you're listening to. It plays only for your household, logged in to your account; anyone else is asked to log in. Nothing is cut or kept: the link asks for that part the way the player does.", "For a classic you hear in a natural voice, Share a clip makes a link to that voice's part instead, which any LiteraryWorm member can play, logged in. To share a stretch anyone can play, choose the LibriVox recording under Voice first. Kids profiles don't share natural-voice clips."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$For a classic you hear in a natural voice, Share a clip makes a link to that voice's part instead, which any LiteraryWorm member can play, logged in. To share a stretch anyone can play, choose the LibriVox recording under Voice first. Kids profiles don't share natural-voice clips.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006819_whats_new_classics_whole_book_clips.sql
+-- =============================================================================
+-- What's new: Voice a whole classic, save it as an MP3, and share a clip in its natural voice. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$Voice a whole classic, save it as an MP3, and share a clip in its natural voice$lw$, $lw$Voice the whole book now works for the classics too, in the player and on the book's page: every part is voiced ahead on Wi-Fi and kept on your device for listening offline, and parts any member has heard before cost nothing. Download the audiobook (MP3) joins them into one file for any audio app. And Share a clip on a classic you hear in a natural voice links to that voice, for members to play; choose the LibriVox recording first to share a clip anyone can play.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Voice a whole classic, save it as an MP3, and share a clip in its natural voice$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006820_readalong_fourteen_accessibility.sql
+-- =============================================================================
+-- Six more true read-along titles: the Accessibility Policy names them. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006821_whats_new_readalong_six_more.sql
+-- =============================================================================
+-- What's new: True read-along for six more classics. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$True read-along for six more classics$lw$, $lw$Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness and The Picture of Dorian Gray now show the book's own text in the player's Read-along while their LibriVox recording plays, each sentence marked as the reader says it. That makes fourteen classics with a true read-along.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$True read-along for six more classics$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006822_mens_and_womens_voices_help.sql
+-- =============================================================================
+-- Men's and women's voices, grouped in the Voice menu and named in Who reads whom: Help. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"To hear a natural voice before choosing it, press the play button beside the player's Voice menu, or beside each speaker under Who reads whom. The samples are recorded once and come with the site, so they don't count towards your month's natural-voice reading."$lw$, $lw$"To hear a natural voice before choosing it, press the play button beside the player's Voice menu, or beside each speaker under Who reads whom. The samples are recorded once and come with the site, so they don't count towards your month's natural-voice reading.", "Every book can be read by a man's voice or a woman's. The Voice menu groups natural voices into women's and men's (a woman's and a man's in each English accent and in each of the 20 other languages), and your device's voices into women's, men's and other voices for each accent, by the names devices give them. Under Who reads whom each voice says whether it's a man's or a woman's, so you can match a character. Men's voices work everywhere women's do: classics, read-alongs and uploads, previews, speeds, character voices, pronunciations, Voice the whole book and clips."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$Every book can be read by a man's voice or a woman's. The Voice menu groups natural voices into women's and men's (a woman's and a man's in each English accent and in each of the 20 other languages), and your device's voices into women's, men's and other voices for each accent, by the names devices give them. Under Who reads whom each voice says whether it's a man's or a woman's, so you can match a character. Men's voices work everywhere women's do: classics, read-alongs and uploads, previews, speeds, character voices, pronunciations, Voice the whole book and clips.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006823_whats_new_mens_and_womens_voices.sql
+-- =============================================================================
+-- What's new: Men's and women's voices, side by side. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'update', $lw$Men's and women's voices, side by side$lw$, $lw$The Voice menu now groups natural voices into women's and men's, and your device's voices into women's, men's and other voices for each accent, so a man's voice is easy to find for any classic, read-along or upload. Under Who reads whom each voice says whether it's a man's or a woman's, to match a character. Men's voices have every feature women's have: previews, speeds, character voices, pronunciations, Voice the whole book and clips.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Men's and women's voices, side by side$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261108006824_readalong_fifteen_accessibility.sql
+-- =============================================================================
+-- A fifteenth true read-along title: the Accessibility Policy names it. Same text as src/data/legalPages.json, matched as stored; made once.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$)::jsonb
+where slug = 'accessibility'
+  and strpos(sections::text, $lw$The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays.$lw$) = 0;
+
+-- =============================================================================
+-- 20261108006825_whats_new_readalong_garden.sql
+-- =============================================================================
+-- What's new: True read-along for The Secret Garden. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-08'::date, '2026.11', 'feature', $lw$True read-along for The Secret Garden$lw$, $lw$The Secret Garden now shows the book's own text in the player's Read-along while its LibriVox recording plays, each sentence marked as the reader says it. That makes fifteen classics with a true read-along.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$True read-along for The Secret Garden$lw$ and c.released_on = '2026-11-08');
+
+-- =============================================================================
+-- 20261110006826_whats_new_pricing_address.sql
+-- =============================================================================
+-- What's new: Plans and pricing moves from /plans to /pricing. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-10'::date, '2026.11', 'update', $lw$Plans and pricing has a new address$lw$, $lw$Plans and pricing now lives at www.literaryworm.com/pricing. Old links to /plans still work and take you straight there.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Plans and pricing has a new address$lw$ and c.released_on = '2026-11-10');

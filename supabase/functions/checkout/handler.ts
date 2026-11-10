@@ -20,7 +20,7 @@
 // recipientEmail (and an optional message of up to 300 characters) has the gift-reminders
 // function email the code to someone once it can be redeemed, instead of the buyer passing it on.
 //
-// Stripe sends the member back to /plans?checkout=success (with &setup=1 during sign-up), where
+// Stripe sends the member back to /pricing?checkout=success (with &setup=1 during sign-up), where
 // the page waits for the webhook to write the membership.
 //
 // A new membership goes through Stripe Checkout (Stripe-hosted): this returns { url } to send the

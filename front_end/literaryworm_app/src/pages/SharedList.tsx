@@ -123,7 +123,7 @@ export default function SharedList() {
       {current.status === "ready" && profile?.ageRating !== "kids" && <GiveWishlist list={current.list} />}
       {!state.account && current.status === "ready" && (
         <p className="shared-list-cta">
-          {rich(t("Read and listen to books like these on LiteraryWorm. {link}"), { link: <Link to="/plans">{t("See plans")}</Link> })}
+          {rich(t("Read and listen to books like these on LiteraryWorm. {link}"), { link: <Link to="/pricing">{t("See plans")}</Link> })}
         </p>
       )}
     </div>

@@ -546,10 +546,10 @@ export default function Plans() {
       <StructuredData
         id="page"
         data={pageData({
-          path: "/plans",
+          path: "/pricing",
           name: "Plans and pricing",
           description: plansDescription(),
-          crumbs: [HOME_CRUMB, { name: "Plans and pricing", path: "/plans" }],
+          crumbs: [HOME_CRUMB, { name: "Plans and pricing", path: "/pricing" }],
           mainEntity: { "@id": MEMBERSHIP_ID },
         })}
       />

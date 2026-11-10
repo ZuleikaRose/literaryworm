@@ -192,7 +192,7 @@ export function NotificationBell() {
                     )}
                     {offer && offerPlan && (
                       <li>
-                        <Link className="bell-item" to="/plans?billing=yearly" onClick={() => close(false)}>
+                        <Link className="bell-item" to="/pricing?billing=yearly" onClick={() => close(false)}>
                           <Icon name="star" size={18} />
                           <span>
                             <strong>

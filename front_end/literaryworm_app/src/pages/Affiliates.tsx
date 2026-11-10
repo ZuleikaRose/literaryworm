@@ -73,7 +73,7 @@ export default function Affiliates() {
             <Link className="primary-button" to="/signin">
               {t("Log in")}
             </Link>
-            <Link className="secondary-button" to="/plans">
+            <Link className="secondary-button" to="/pricing">
               {t("See plans and join")}
             </Link>
           </p>

@@ -4,6 +4,11 @@
       "source": "/book/:id",
       "destination": "/books/:id",
       "permanent": true
+    },
+    {
+      "source": "/plans",
+      "destination": "/pricing",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -40,7 +45,7 @@
       ]
     },
     {
-      "source": "/:page(plans|whats-new|search|signup|signin|affiliates)",
+      "source": "/:page(pricing|whats-new|search|signup|signin|affiliates)",
       "headers": [
         {
           "key": "Link",

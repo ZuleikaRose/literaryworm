@@ -69,7 +69,7 @@ export function ReadingGate({ format, children }: { format: Format; children: (b
         title={t("Your membership has ended")}
         icon="lock"
         action={
-          <Link className="primary-button" to="/plans">
+          <Link className="primary-button" to="/pricing">
             {t("Choose a plan")}
           </Link>
         }
@@ -178,7 +178,7 @@ export function ListeningAllowanceUsed({
                 : t("Move to {plan}: {hours} hours", { plan: next.name, hours: next.audioHoursPerMonth })}
             </Link>
           ) : (
-            <Link className="primary-button" to="/plans">
+            <Link className="primary-button" to="/pricing">
               {t("See plans")}
             </Link>
           )}

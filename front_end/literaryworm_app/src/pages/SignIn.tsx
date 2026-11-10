@@ -43,7 +43,7 @@ export default function SignIn() {
 
   // Also catches the render right after signing in, so it must agree with afterSignIn() on where to go.
   if (state.account)
-    return <Navigate to={state.account.planId ? "/profiles" : "/plans?setup=1"} replace state={from ? { from } : undefined} />;
+    return <Navigate to={state.account.planId ? "/profiles" : "/pricing?setup=1"} replace state={from ? { from } : undefined} />;
 
   // The password was right; two-step sign-in asks for the code before the account loads.
   if (state.secondStep) return <SecondStep />;

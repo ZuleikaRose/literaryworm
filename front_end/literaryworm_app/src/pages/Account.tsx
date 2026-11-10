@@ -275,7 +275,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
     return (
       <Section id="plan" title={t("Plan and billing")}>
         <p>{t("You haven't chosen a plan yet.")}</p>
-        <Link className="primary-button" to="/plans?setup=1">
+        <Link className="primary-button" to="/pricing?setup=1">
           {t("Choose a plan")}
         </Link>
         {billed && <RedeemGift account={account} />}
@@ -376,7 +376,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
       {!yearly && billed && account.stripeLinked && account.status === "active" && !endsOn && (
         <p className="field-hint">
           {rich(t("{link}: {price} a year, so two months are free."), {
-            link: <Link to="/plans?billing=yearly">{t("Pay yearly instead")}</Link>,
+            link: <Link to="/pricing?billing=yearly">{t("Pay yearly instead")}</Link>,
             price: formatPrice(plan.yearlyPrice),
           })}
         </p>
@@ -392,7 +392,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
       {yearly && !switchPlan && billed && account.stripeLinked && account.status === "active" && !endsOn && (
         <p className="field-hint">
           {rich(t("{link} from your renewal date. Nothing changes until then."), {
-            link: <Link to="/plans?billing=monthly">{t("Pay monthly instead")}</Link>,
+            link: <Link to="/pricing?billing=monthly">{t("Pay monthly instead")}</Link>,
           })}
         </p>
       )}
@@ -447,7 +447,7 @@ function PlanSection({ account }: { account: AccountDetails }) {
             {t("Update payment method")}
           </button>
         )}
-        <Link className="secondary-button" to="/plans">
+        <Link className="secondary-button" to="/pricing">
           {t("Change plan")}
         </Link>
         {billed && (

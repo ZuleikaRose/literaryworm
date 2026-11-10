@@ -37,7 +37,7 @@ If Log in or Log in with a passkey does nothing (no request to Supabase Auth in 
 | Route | Page | Access |
 | --- | --- | --- |
 | `/`, `/?genre=…` | Landing: technology row and the infinite genre feed | Public |
-| `/plans` | Plans and pricing | Public |
+| `/pricing` | Plans and pricing (`/plans` redirects here) | Public |
 | `/signin`, `/signup` | Log in, sign up (Supabase Auth), demo (in memory) | Public |
 | `/reset-password` | Choose a new password from an emailed reset link | Reset link |
 | `/legal/:slug` | Policies and help (editors and admins can edit them here) | Public |
@@ -301,3 +301,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Read-along: six more `public/alignments` files and `ALIGNED_BOOKS` entries; `.github/workflows/align.yml` |
 | — | Voice gender: `voiceGender()` (shared `naturalVoice.ts`), `lib/deviceVoiceGender.ts` (+ test), grouped in `VoiceSelect` and `CastChoices` |
 | — | Read-along: `public/alignments/the-secret-garden.json`, `ALIGNED_BOOKS` (fifteen) |
+| — | Pricing address: Plans and pricing at `/pricing` (route, links, `seo.ts` urls and `MEMBERSHIP_ID`, checkout return URLs, sitemap, `llms.txt`); `/plans` redirects (Vercel 308 and `LegacyPlansRedirect` in `App.tsx`, keeping the query); canonical header rule; migration 6826 (What's new) |

@@ -124,7 +124,7 @@ export function Header() {
               {t("Home")}
             </NavLink>
             <NavLink to="/search">{t("Search")}</NavLink>
-            <NavLink to="/plans">{t("Plans")}</NavLink>
+            <NavLink to="/pricing">{t("Plans")}</NavLink>
           </>
         )}
       </nav>
@@ -151,7 +151,7 @@ export function Header() {
                 </Link>
               )
             ) : (
-              <Link className="signup-button" to="/plans?setup=1">
+              <Link className="signup-button" to="/pricing?setup=1">
                 {t("Finish setup")}
               </Link>
             )}

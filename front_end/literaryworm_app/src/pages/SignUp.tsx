@@ -54,7 +54,7 @@ export default function SignUp() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const setupUrl = `/plans?setup=1${plan ? `&plan=${plan.id}` : ""}`;
+  const setupUrl = `/pricing?setup=1${plan ? `&plan=${plan.id}` : ""}`;
   // Also catches the render right after "Create account", so it must agree with submit() on where to go.
   if (state.account) return <Navigate to={state.account.planId ? "/profiles" : setupUrl} replace />;
 

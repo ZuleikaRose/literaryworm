@@ -38,7 +38,7 @@ def main() -> None:
     if len(books) < 100 or not legal:
         raise SystemExit(f"Found only {len(books)} books and {len(legal)} footer pages: has the data's shape changed?")
 
-    urls: list[tuple[str, str | None]] = [("/", TODAY), ("/plans", TODAY), ("/whats-new", TODAY), ("/search", None), ("/signup", None), ("/affiliates", None)]
+    urls: list[tuple[str, str | None]] = [("/", TODAY), ("/pricing", TODAY), ("/whats-new", TODAY), ("/search", None), ("/signup", None), ("/affiliates", None)]
     urls += [(f"/legal/{slug}", updated.get(slug)) for slug in legal]
     urls += [(f"/books/{quote(book)}", None) for book in books]
     urls += [(f"/series/{quote(name, safe='')}", None) for name in series]
