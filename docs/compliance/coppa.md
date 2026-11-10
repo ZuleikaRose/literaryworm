@@ -1,6 +1,6 @@
 # COPPA: children's information
 
-LiteraryWorm's written information security program and data retention policy for children's personal information, as the amended COPPA Rule (16 CFR Part 312, compliance from 22 April 2026) requires, and the checklist that keeps the public notice true. The public side is the **Children's Privacy Notice** (`/legal/childrens-privacy`, `src/data/legalPages.json`, seeded and updated by migrations; last 6831), linked in the footer's Privacy group and from the profile editor's consent box.
+LiteraryWorm's written information security program and data retention policy for children's personal information, as the amended COPPA Rule (16 CFR Part 312, compliance from 22 April 2026) requires, and the checklist that keeps the public notice true. The public side is the **Children's Privacy Notice** (`/legal/childrens-privacy`, `src/data/legalPages.json`, seeded and updated by migrations; last 6831), linked in the footer's Privacy group and from the profile editor's consent box. The FAQ *How do you protect my child's privacy?* (`data/plans.ts`, on Home and Pricing and in their FAQ structured data), Help, the Privacy Policy (section 10), the Terms (29) and `llms.txt` summarise it: keep them in step.
 
 This is not legal advice. Have a lawyer review it, and the notice, before relying on them.
 
@@ -57,7 +57,7 @@ When a change touches Kids profiles, in the same commit:
 
 1. Update the Children's Privacy Notice in `src/data/legalPages.json` and add a migration that applies the same text (the edit trigger keeps the old version).
 2. If what's collected, shared or kept changes materially, bump `CHILDREN_NOTICE_VERSION` and say so on What's new. Ask a lawyer whether parents must consent again.
-3. Update the tables above, the Privacy Policy (section 10 and section 18) and Help.
+3. Update the tables above, the Privacy Policy (section 10 and section 18), Help, the children's privacy FAQ (and its 20 translations) and `llms.txt`.
 4. Add an entry to the review log.
 
 ## Review log
@@ -65,3 +65,4 @@ When a change touches Kids profiles, in the same commit:
 | Date | What changed |
 | --- | --- |
 | 2026-11-10 | Program written. Consent verified by card payment (6830). Notice names COPPA, adds sharing, retention and security (6831). No Kids profiles or payments on production yet, so nothing to backfill or re-consent. Open: responsible person's name, postal address or phone, lawyer review. |
+| 2026-11-10 | Children's privacy FAQ added on Home and Pricing (and their FAQ structured data); `llms.txt` and the style guide describe the consent step. |

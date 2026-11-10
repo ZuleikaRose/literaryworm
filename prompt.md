@@ -210,3 +210,5 @@ At the end of each phase:
 - New data goes in a migration in `supabase/migrations/` (RLS on, `(select auth.uid())` policies, column grants, every foreign key indexed with `CREATE INDEX CONCURRENTLY` in its own migration); run `supabase/tests/security_test.sql` (on a scratch database or a Supabase branch, see `supabase/README.md`); regenerate `schema.sql` with `supabase/build-schema.sh` and re-render `drawsql.png`.
 - Update the README files and docs for the phase.
 - Commit only the phase's files, push to `main`, and stop for feedback before the next phase.
+
+Then the pricing page moved to `/pricing` (old `/plans` links redirect), called *Pricing* in the menu, footer, page label, title and breadcrumb. And Kids profiles were brought in line with COPPA: a parent's consent is verified by a card payment on the account before a Kids profile is added (`account_private.card_payment_at`, recorded by `stripe-webhook`), the Children's Privacy Notice names COPPA and sets out sharing, retention and security, a children's privacy FAQ joined Home and Pricing, and the written program lives in `docs/compliance/coppa.md`.
