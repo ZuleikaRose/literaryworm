@@ -997,3 +997,5 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 291. **Choosing a man's voice.** A listener who'd rather hear a man read opens Voice and finds the natural voices grouped into women's and men's, and their device's voices the same way for each accent; they pick Charon for a classic, preview him first, and under Who reads whom give the book's men men's voices, each labelled. Everything works the same as with a woman's voice.
 
 292. **Read-along for The Secret Garden.** The Secret Garden joins the read-along classics: its LibriVox recording now plays with the book's own text, each sentence marked as it's read.
+
+293. **Major and Minor on What's new.** Every entry on What's new shows a *Major* or a *Minor* label beside its kind (`pages/WhatsNew.tsx`, `.release-major` / `.release-minor` in `styles/pages.css`); minor entries had no label before. What's new (migration 6834).
