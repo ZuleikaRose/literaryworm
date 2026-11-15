@@ -270,12 +270,15 @@ describe("a visitor", () => {
     const majors = await page.locator(".release-entry").count();
     expect(majors).toBeGreaterThan(0);
     expect(majors).toBeLessThan(all);
+    // Every entry carries exactly one of the two labels.
     await expect(page.locator(".release-entry .release-major").count()).resolves.toBe(majors);
+    await expect(page.locator(".release-entry .release-minor").count()).resolves.toBe(0);
     await page.getByText("Minor", { exact: true }).first().click();
     const minors = await page.locator(".release-entry").count();
     expect(minors).toBeGreaterThan(0);
     expect(majors + minors).toBe(all);
     await expect(page.locator(".release-entry .release-major").count()).resolves.toBe(0);
+    await expect(page.locator(".release-entry .release-minor").count()).resolves.toBe(minors);
     expect(errors()).toEqual([]);
   });
 

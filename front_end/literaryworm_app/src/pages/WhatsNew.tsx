@@ -156,7 +156,7 @@ export default function WhatsNew() {
                   <li key={e.id ?? e.title} className="release-entry">
                     <p className="release-tags">
                       <span className={`release-kind kind-${e.kind}`}>{t(kindLabel(e.kind))}</span>
-                      {e.major && <span className="release-major">{t("Major")}</span>}
+                      {e.major ? <span className="release-major">{t("Major")}</span> : <span className="release-minor">{t("Minor")}</span>}
                       <span className="muted">{dayLabel(e.releasedOn)}</span>
                     </p>
                     <h3>{e.title}</h3>

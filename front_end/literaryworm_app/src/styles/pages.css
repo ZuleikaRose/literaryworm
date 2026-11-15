@@ -291,7 +291,8 @@
 }
 
 .release-kind,
-.release-major {
+.release-major,
+.release-minor {
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -316,6 +317,12 @@
 .release-major {
   background: var(--rust-bright);
   color: var(--on-accent);
+}
+
+/* Minor: a quiet step in tone, so Major stays the one filled accent. */
+.release-minor {
+  background: var(--surface-high);
+  color: var(--ink-soft);
 }
 
 .release-entry h3 {
