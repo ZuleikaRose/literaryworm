@@ -97,6 +97,29 @@ function HeaderSearch() {
   );
 }
 
+/**
+ * Light or dark, one press, for visitors (members have it in the accessibility menu, kept with
+ * their profile). A visit starts dark; the choice lasts until a refresh, like the menu's.
+ */
+function ThemeToggle() {
+  const { state, dispatch } = useStore();
+  const t = useT();
+  const dark = state.a11y.theme === "dark";
+  return (
+    <button
+      type="button"
+      className="icon-button theme-toggle"
+      aria-label={`${t("Theme")}: ${dark ? t("Dark") : t("Light")}`}
+      onClick={() => dispatch({ type: "updateA11y", patch: { theme: dark ? "light" : "dark" } })}
+    >
+      <Icon name={dark ? "moon" : "sun"} size={19} />
+      <span className="theme-toggle-name" aria-hidden="true">
+        {dark ? t("Dark") : t("Light")}
+      </span>
+    </button>
+  );
+}
+
 export function Header() {
   const { state } = useStore();
   const t = useT();
@@ -136,6 +159,7 @@ export function Header() {
           </Link>
         )}
         {isMember && <NotificationBell />}
+        {!isMember && <ThemeToggle />}
         <AccessibilityMenu />
         {isMember ? (
           <ProfileMenu />

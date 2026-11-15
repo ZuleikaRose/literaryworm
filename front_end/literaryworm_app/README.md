@@ -309,3 +309,4 @@ Lighthouse check, a clean `npm run build`, `npm run lint`, `npm test` and `npm r
 | — | Pricing page's browser title, structured-data name and breadcrumb *Pricing* (were *Plans and pricing*): `Plans.tsx`, smoke test |
 | — | Children's privacy FAQ (`planFaqs` in `data/plans.ts`, on Home and Pricing and their FAQ structured data, 20 translations); `llms.txt`, style guide, `prompt.md`, `coppa.md` |
 | — | What's new labels every entry *Major* or *Minor* (minor entries had no label): `WhatsNew.tsx`, `.release-minor` in `pages.css`, smoke test; migration 6834 (What's new) |
+| — | Public pages' new look (`styles/modern.css`, loaded last: header, home, Pricing, What's new) and a light/dark switch for visitors in the header (`ThemeToggle` in `Header.tsx`; a visit still starts dark); smoke test; migration 6835 (What's new) |

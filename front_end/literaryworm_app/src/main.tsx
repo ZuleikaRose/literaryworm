@@ -25,6 +25,7 @@ import "./styles/library.css";
 import "./styles/reader.css";
 import "./styles/account.css";
 import "./styles/study.css";
+import "./styles/modern.css";
 
 registerServiceWorker();
 

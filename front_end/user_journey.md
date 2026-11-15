@@ -999,3 +999,5 @@ The assessment brief in `README.md` (graded) and this blueprint differ in places
 292. **Read-along for The Secret Garden.** The Secret Garden joins the read-along classics: its LibriVox recording now plays with the book's own text, each sentence marked as it's read.
 
 293. **Major and Minor on What's new.** Every entry on What's new shows a *Major* or a *Minor* label beside its kind (`pages/WhatsNew.tsx`, `.release-major` / `.release-minor` in `styles/pages.css`); minor entries had no label before. What's new (migration 6834).
+
+294. **A new look for the public pages.** The header, the public home, Pricing and What's new are restyled by `styles/modern.css` (loaded last): larger headings, fuller cards, pill buttons, surfaces a step apart in tone, at phone, tablet and computer widths. A visit still starts dark, and visitors switch light or dark with `ThemeToggle` in the header (`components/Header.tsx`; members use the accessibility menu). What's new (migration 6835).

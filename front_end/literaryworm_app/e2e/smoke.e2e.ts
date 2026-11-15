@@ -282,6 +282,26 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("starts dark, and a visitor switches between light and dark from the header", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    const root = page.locator("html");
+    await expect(root.getAttribute("data-theme")).resolves.toBe("dark");
+    await page.getByRole("button", { name: "Theme: Dark" }).click();
+    await expect(root.getAttribute("data-theme")).resolves.toBe("light");
+    // The choice follows the visitor to the next page, and switches back.
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Pricing" }).click();
+    await page.waitForURL(/\/pricing/);
+    await expect(root.getAttribute("data-theme")).resolves.toBe("light");
+    await page.getByRole("button", { name: "Theme: Light" }).click();
+    await expect(root.getAttribute("data-theme")).resolves.toBe("dark");
+    // On a phone the switch is still in the header, and nothing scrolls sideways.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: "Theme: Dark" }).waitFor();
+    await expect(page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).resolves.toBe(true);
+    expect(errors()).toEqual([]);
+  });
+
   it("links to What's new from Home, Plans and Search, not only the footer", async () => {
     const { page, errors } = await newPage();
     for (const path of ["/", "/search", "/pricing"]) {

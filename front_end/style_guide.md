@@ -43,6 +43,10 @@ Chosen in the accessibility menu. Background `#f3f1ed`, surfaces white, ink `#1b
 
 Raises `--muted`, `--faint` and line colors toward the ink color and thickens the focus ring.
 
+### Public pages (2026-11-15)
+
+`styles/modern.css` restyles the header, the public home, Pricing and What's new: display headings up to 5rem at weight 800, cards with 20–28px corners and no border (a step in tone instead; high contrast gets its edges back), pill buttons and nav links, and the first feature card filled with the accent. A visit starts dark; visitors switch light or dark from the header.
+
 ### Rules
 
 - One accent. Terracotta appears on the main action, the active nav item, focus rings and small labels, not as decoration.
