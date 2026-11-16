@@ -26,6 +26,7 @@ Payments: Stripe (memberships, gifts and gift cards, invitation credits, affilia
 Email: Mailgun
 AI summaries, content notes, recaps, quizzes, translations, club discussion questions and Ask the book: Claude by Anthropic
 Natural voices for members' uploads and the public-domain classics: Google Cloud Text-to-Speech (Chirp 3: HD), in English and 20 other languages (from French and Japanese to Hindi, Arabic, Romanian and Greek), through our server only; parts played are kept on the device for offline listening
+AI assistants and the command line: a read-only MCP server (Streamable HTTP) at /mcp, and /mcp/public without logging in, with its own OAuth 2.1 log-in (PKCE) in a Supabase Edge Function; the `literaryworm` command (Node, no dependencies) uses the same
 Structured data: schema.org (WebSite, Organization, Product, FAQPage, Book)
 Read-along: eight LibriVox recordings lined up with their text once, ahead of time, with whisper.cpp (run on our machine, not part of the app)
 Standards: HTML5, CSS3, WCAG 2.2 Level AA (partially conformant: see the Accessibility Policy), installable web app (PWA)

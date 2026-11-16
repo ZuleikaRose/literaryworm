@@ -436,6 +436,12 @@ The selection toolbar lays the twelve swatches out as two rows of six (44px each
 - **What you can upload** (`.upload-formats`): under the upload hint, one plain line, then a short bulleted list (each type's name in bold, its file endings muted, then a one-sentence note), then one muted line on DRM and size. Body size 0.875rem, logical padding so it mirrors in Arabic.
 - **A row that keeps its space** (`Shelf keepSpace`, the public home): when it ends empty or can't load, invisible placeholder tiles hold its height and the message (muted, centred) or the error box sits over them, so nothing below moves once the page has shown.
 
+### Added 16 November 2026
+
+- **Connected apps** (Account → Sign-in, after Two-step sign-in): an `account-form` with an `h3`, hints, and the two things to copy in `.connect-address` (a monospace chip with a 1px `--line` edge, `user-select: all`, wrapping anywhere so a long address never scrolls sideways). The apps reuse the passkey list (`.passkey-list`, `.passkey-item` with the `devices` icon): the app's own name in bold, *Connected {date} · last used {date}* in `--muted`, and one danger text button, *Remove*, with the app's name for screen readers. Removing asks first in a small dialog (*Remove* in `danger-button`, *Keep it*).
+- **Consent page** (`/oauth/consent`): a `legal-page` article. `h1` *Connect an app*, then `h2.consent-app` *Connect {app} to LiteraryWorm?*, a plain bulleted `.consent-list` of exactly what the app can read, one paragraph of what it can't (with a link to Account → Sign-in), and a hint naming where the member is sent back in bold (`.consent-place`: a website's host, *a program on this device*, or *an app on this device*). The account password field, then *Allow* (primary) and *Don't allow* (secondary), side by side and wrapping on phones. Errors use `form-alert` with `role="alert"`.
+- **Voice**: say *connect*, *allow* and *remove*; say *can only read* rather than "read-only access" or "scopes"; never "authorize", "grant" or "token" in the interface. Name the two addresses exactly as a member types them.
+
 ## Motion
 
 - Durations: 140ms (hover, press), 220ms (popovers, toggles), 420ms (panels appearing).

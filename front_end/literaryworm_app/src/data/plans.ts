@@ -35,6 +35,7 @@ export const plans: Plan[] = [
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
       tk("Keep discovering on Home that runs on through every genre for as long as you scroll"),
       tk("Share a clip of any LibriVox recording as a link"),
+      tk("Connect an AI assistant or the command line to read your own library, highlights and reading time"),
     ],
   },
   {
@@ -223,6 +224,10 @@ export const planFaqs = [
   {
     q: tk("Does LiteraryWorm need access to my local network?"),
     a: tk("No. If your browser asks whether LiteraryWorm can reach devices on your local network, choose Block. Allowing it can stop logging in from working; if Log in does nothing, set Local network access to Block in the site's settings and reload."),
+  },
+  {
+    q: tk("Can I use LiteraryWorm with an AI assistant?"),
+    a: tk("Yes. Add https://www.literaryworm.com/mcp to an assistant that supports MCP, or run npx literaryworm login in a terminal, then allow it in your browser with your account password. It can read your library, your place in each book, your highlights and notes, and reading time for grown-up and teen profiles.\n\nIt can't change anything, and it never sees your password, your payment details or a Kids profile's reading time. Remove it at any time in Account → Sign-in. Anyone can search the catalog and prices from an assistant without logging in."),
   },
   {
     q: tk("How do I keep my account secure?"),
