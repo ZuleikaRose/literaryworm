@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6832, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6842, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -876,6 +876,46 @@
           note: "Which accounts have had which year's Year in reading email (account_private.year_emails, opt-in), so each gets it once. Claimed by claim_year_in_reading_emails(); service role only.",
         },
         {
+          id: "connected_app_clients", color: colors.server, x: 0, y: 11100, sub: "apps that registered · mcp function",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["", "name", "text 1–80"],
+            ["", "redirect_uris", "text[] 1–5"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "An AI assistant (MCP) or the command line that registered itself with the mcp function (RFC 7591): what it calls itself and where it may send a member back. Service role only. Removed nightly when a day old with nobody connected or connecting (pg_cron).",
+        },
+        {
+          id: "connected_app_requests", color: colors.server, x: 420, y: 11100, sub: "a request to connect",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "client_id", "uuid"],
+            ["", "redirect_uri", "text ≤ 300"],
+            ["", "code_challenge", "text (PKCE S256)"],
+            ["", "state", "text ≤ 512", true],
+            ["fk", "user_id", "uuid", true],
+            ["uq", "code_hash", "text (sha-256)", true],
+            ["", "created_at", "timestamptz"],
+            ["", "expires_at", "timestamptz"],
+          ],
+          note: "One request to connect, until its code is exchanged: 10 minutes to approve, then 5 to exchange. Approving (the member's session and account password, checked by the mcp function) sets user_id and the code's hash together; the code is never stored, and exchanging deletes the row. FK client_id → connected_app_clients, user_id → auth.users, on delete cascade; both indexed. Service role only; expired rows removed hourly.",
+        },
+        {
+          id: "connected_apps", color: colors.server, x: 1260, y: 11100, sub: "apps a member allowed · read-only",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["fk", "client_id", "uuid"],
+            ["uq", "access_hash", "text (sha-256)"],
+            ["", "access_expires_at", "timestamptz"],
+            ["uq", "refresh_hash", "text (sha-256)"],
+            ["", "refresh_expires_at", "timestamptz"],
+            ["", "created_at", "timestamptz"],
+            ["", "last_used_at", "timestamptz", true],
+          ],
+          note: "A connection: hashes of the access token (an hour) and refresh token (90 days from last use) the mcp function gave an app; the tokens are never stored and mean nothing outside that function, which only reads. Up to 20 an account. FK user_id → auth.users, client_id → connected_app_clients, on delete cascade; both indexed. Service role only: Account → Sign-in lists and removes them through the function. Run-out rows removed hourly.",
+        },
+        {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",
           cols: [
             ["pk", "volume_id", "text (book id)"],
@@ -1347,6 +1387,10 @@
         ["club_poll_votes", "poll_id", "club_polls", "id", "N : 1"],
         ["club_pace_votes", "club_id", "book_clubs", "id", "N : 1"],
         ["club_voice_usage", "club_id", "book_clubs", "id", "N : 1"],
+        ["connected_app_requests", "client_id", "connected_app_clients", "id", "N : 1"],
+        ["connected_app_requests", "user_id", "auth.users", "id", "N : 1 (once approved)"],
+        ["connected_apps", "client_id", "connected_app_clients", "id", "N : 1"],
+        ["connected_apps", "user_id", "auth.users", "id", "N : 1"],
         ["reading_sprints", "club_id", "book_clubs", "id", "N : 1 (optional)"],
         ["referral_codes", "account_id", "auth.users", "id", "1 : 1"],
         ["referrals", "referrer_id", "auth.users", "id", "N : 1"],

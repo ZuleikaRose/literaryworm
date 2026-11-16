@@ -13,6 +13,30 @@
   ],
   "rewrites": [
     {
+      "source": "/mcp",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/functions/v1/mcp"
+    },
+    {
+      "source": "/mcp/:path*",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/functions/v1/mcp/:path*"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/functions/v1/mcp/.well-known/oauth-protected-resource"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/:path*",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/functions/v1/mcp/.well-known/oauth-protected-resource"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/functions/v1/mcp/.well-known/oauth-authorization-server"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server/:path*",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/functions/v1/mcp/.well-known/oauth-authorization-server"
+    },
+    {
       "source": "/texts/:file",
       "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/storage/v1/object/public/book-texts/:file"
     },

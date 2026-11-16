@@ -79,7 +79,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-11-10",
+    "updated": "2026-11-16",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -181,6 +181,7 @@
           "And an email confirming that your account was deleted.",
           "We turn off Mailgun's open and click tracking.",
           "Our service providers may use your information only to provide their service to us, except where this section says they handle it under their own policy.",
+          "Apps you connect. If you choose to connect an AI assistant or the LiteraryWorm command line to your account, we give that app, when it asks, your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can only read. It's never given your password, your payment details, your email address, or a Kids profile's name or reading time, and books a Kids profile has spent time reading are left out. We share this only because you ask us to, confirmed with your account password, and you can stop it at any time in Account → Sign-in. What the app and its maker do with what they read is governed by their own privacy policy, not this one.",
           "If you turn on notifications on a device, the notification about a book you set Remind me on (its title and author, and the profile's name) goes through your browser's push service (Google for Chrome and Android, Apple for Safari, Mozilla for Firefox, Microsoft for Edge), encrypted so that only your browser can read it.",
           "You choose in Account → Preferences which kinds your devices get; besides release days they can be a club meeting in the next day (the club's and meeting's names), new posts in your clubs (the club's name, how many, the chapter and who wrote them; never what they said), an evening reading-streak nudge (a profile's name and run of days; for this we keep each device's time zone) and a grown-up's answer to a Kids book request (the profile's name and the book).",
           "Stripe processes payments. When you add a payment method, Stripe receives your name, email address, card details and billing address, and handles them under its own privacy notice (https://stripe.com/privacy).",
@@ -261,7 +262,7 @@
           "In Short: We do not knowingly collect data from or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction, except through Kids profiles that a parent or guardian creates on their own account.",
           "Account holders must be 18 or older. We do not knowingly collect, solicit data from, or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction, nor do we knowingly sell such personal information.",
           "By using the Services, you represent that you are at least 18 or the equivalent age as specified by law in your jurisdiction or that you are the parent or guardian of such a minor and consent to such minor dependent's use of the Services through a Kids profile. The Children's Privacy Notice explains what Kids profiles keep.",
-          "Kids profiles are how we meet the Children's Online Privacy Protection Act (COPPA). We treat every Kids profile as a child under 13, verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties. The Children's Privacy Notice is our notice to parents under COPPA.",
+          "Kids profiles are how we meet the Children's Online Privacy Protection Act (COPPA). We treat every Kids profile as a child under 13, verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties. An app you connect to your account yourself is never given a Kids profile's name or reading time, and books a Kids profile has spent time reading are left out of what it reads. The Children's Privacy Notice is our notice to parents under COPPA.",
           "If we learn that personal information from users less than 18 years of age or the equivalent age as specified by law in your jurisdiction has been collected without that consent, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any such data, please contact us at usprivacy@literaryworm.com."
         ]
       },
@@ -401,6 +402,7 @@
           "If you turn on Year in reading, each January we email the year just ended to your account's email address: for every profile in the household, its name, the time it read and listened, the days it read, how many books it finished (naming books from our catalog) and the month it read most. Mailgun sends it for us. We keep only that the year's email was sent.",
           "Your password is handled by our sign-in provider and kept only as a one-way hash; we never see it. If you add passkeys, our sign-in provider keeps each one's public key, its name and when it was added and last used; the private key stays on your device, browser or password manager, and your face or fingerprint never leaves your device.",
           "You can rename or remove passkeys in Account → Sign-in, and Download my data lists them. If you use two-step sign-in, we also note which passkeys were added after you entered your code, so logging in with one of them doesn't ask for the code again.",
+          "If you connect an app (an AI assistant, or the LiteraryWorm command line) to read your account, we keep the name the app gave itself, the address it sends you back to, when you connected it and when it was last used, and one-way hashes of the tokens we gave it, never the tokens themselves. Removing the app in Account → Sign-in, or deleting your account, deletes them. A request to connect that isn't finished is deleted within about an hour, and a connection that goes unused for 90 days ends.",
           "If you turn on notifications on a device, we keep that browser's push address and keys, a name for the device (like Chrome on Windows) and when it last got a notification, until you turn them off there or log out on it. Grown-up and teen profiles can put catalog books on a family shelf for the household; we keep which books, which profile added each and when, until they're taken off or the account is deleted.",
           "In a book club, if you turn on Show my place to this club, its members see the chapter you've reached in the club's book, how far through it you are and when you last read; turning it off hides it again.",
           "Club natural-voice hours: when a club reading an uploaded book has its owner give members natural-voice hours, we count how much of that gift each member uses each month (kept a year). Members see their own use; the owner's month is counted as usual.",
@@ -683,7 +685,8 @@
       {
         "heading": "Sharing a child's information",
         "paragraphs": [
-          "We don't sell, rent, license or otherwise disclose a Kids profile's information to third parties, and we don't use it for advertising. You can agree to us collecting it without agreeing to any sharing, because there isn't any.",
+          "We don't sell, rent, license or otherwise disclose a Kids profile's information to third parties, and we don't use it for advertising. You can agree to us collecting it without agreeing to any sharing, because we share nothing unless you connect an app yourself, as the next paragraph explains.",
+          "If you connect an app to your account (an AI assistant or the LiteraryWorm command line, in Account → Sign-in), it can read your household's shared library, places and highlights. It is never given a Kids profile's name, reading time, journal, quiz scores or book requests, and books a Kids profile has spent time reading or listening to are left out. A book a child only opened for under a minute can still appear in the shared library, without saying who opened it. Connecting an app is always your choice, needs your account password, and can be undone at any time.",
           "A few service providers help us run LiteraryWorm, and they handle it only on our instructions and only to provide the service: Supabase and Vercel store and serve it, and Mailgun sends the emails you choose to receive. They must keep it secure and may not use it for anything else.",
           "Anthropic and Google receive only a book's own words or details, never anything about your child (see AI features). Natural voices for a Kids profile have their own switch, off until you turn it on.",
           "We'd disclose a child's information only if the law required it, for example a valid court order, or to protect a child's safety."
@@ -730,7 +733,7 @@
         ]
       }
     ],
-    "updated": "2026-11-10"
+    "updated": "2026-11-16"
   },
   {
     "slug": "privacy-choices",
@@ -1857,7 +1860,7 @@
       {
         "heading": "Logging in and keeping your account safe",
         "paragraphs": [
-          "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."
+          "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use.", "You can connect an AI assistant or the LiteraryWorm command line to your account, to ask about your own reading. In an assistant that supports MCP (the Model Context Protocol), add the address https://www.literaryworm.com/mcp. From a terminal, run npx literaryworm login. Either one opens LiteraryWorm in your browser, where you log in, see what the app calls itself and where it will send you back, and allow it with your account password.", "A connected app can only read: your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can't change anything, and it never sees your password, your payment details, the text of your uploads, or a Kids profile's name or reading time. Books a Kids profile has spent time reading are left out of what it reads.", "Account → Sign-in → Connected apps lists every app you've allowed, with when it was connected and last used, and Remove ends its access at once. A connection that goes unused for 90 days ends on its own, and an account can have up to 20. What you ask an assistant, and what it does with the answers, is covered by that assistant's own privacy policy.", "Anyone can search LiteraryWorm's catalog, prices and What's new from an assistant without logging in, at https://www.literaryworm.com/mcp/public, or from a terminal with npx literaryworm search followed by a title or an author."
         ]
       },
       {
@@ -1875,7 +1878,7 @@
         ]
       }
     ],
-    "updated": "2026-11-10"
+    "updated": "2026-11-16"
   },
   {
     "slug": "status",

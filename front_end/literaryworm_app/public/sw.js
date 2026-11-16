@@ -39,6 +39,10 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.origin !== self.location.origin) return;
 
+  // Connecting an app (/mcp and the OAuth discovery addresses) is answered by an Edge Function:
+  // never handled or kept here, or its answers would be saved as the app's page.
+  if (url.pathname === "/mcp" || url.pathname.startsWith("/mcp/") || url.pathname.startsWith("/.well-known/")) return;
+
   // Pages: the network first (so a new version shows), the saved page when offline.
   if (request.mode === "navigate") {
     event.respondWith(

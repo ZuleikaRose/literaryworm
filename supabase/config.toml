@@ -80,6 +80,13 @@ verify_jwt = false
 # (nothing about the reader), keeps each book's notes, and limits new ones per IP and per day.
 verify_jwt = false
 
+[functions.mcp]
+# How AI assistants (MCP) and the LiteraryWorm command line connect. It answers the public catalog
+# tools without a log-in (rate limited per IP) and is its own small OAuth 2.1 server for members, so
+# the tokens apps hold are its own, not Supabase's: it checks them itself. The site's consent page
+# calls it with the member's session, which it verifies with requireUser().
+verify_jwt = false
+
 [functions.quiz]
 # Public like characters: the demo household uses chapter quizzes without a session. The
 # function validates every field, works only for public-domain catalog titles, keeps each

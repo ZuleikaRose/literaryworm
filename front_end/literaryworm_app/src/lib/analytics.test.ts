@@ -21,7 +21,7 @@ describe("analytics", () => {
     expect(analyticsAllowed("/browse", false)).toBe(true);
     expect(analyticsAllowed("/books/frankenstein", false)).toBe(true);
     expect(analyticsAllowed("/browse", true)).toBe(false);
-    for (const p of ["/signin", "/signup", "/reset-password", "/unsubscribe", "/clubs/join/AB12CD", "/lists/x1", "/support", "/dashboard", "/maintenance", "/affiliates/review"]) {
+    for (const p of ["/signin", "/signup", "/reset-password", "/unsubscribe", "/clubs/join/AB12CD", "/oauth/consent", "/lists/x1", "/support", "/dashboard", "/maintenance", "/affiliates/review"]) {
       expect(analyticsAllowed(p, false)).toBe(false);
     }
     expect(analyticsAllowed("/clubs/123", false)).toBe(true);

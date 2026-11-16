@@ -1,3 +1,4 @@
+import { ConnectedApps } from "../components/ConnectedApps";
 import { ReferAFriend } from "../components/ReferAFriend";
 import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -614,6 +615,8 @@ function SignInSection({ account }: { account: AccountDetails }) {
       <Passkeys account={account} />
 
       <TwoStepSignIn account={account} />
+
+      <ConnectedApps isDemo={Boolean(account.isDemo)} />
     </Section>
   );
 }

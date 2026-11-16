@@ -15191,3 +15191,171 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$W
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-15'::date, '2026.11', 'update', $lw$A fresh look for the public pages, and a light and dark switch$lw$, $lw$The home page, Pricing and What's new have a new look: larger headings, fuller cards and rounder buttons, laid out for phones, tablets and computers. The site still opens in dark, and visitors can now switch between light and dark with one press in the header. Members keep the same choice in the accessibility menu.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$A fresh look for the public pages, and a light and dark switch$lw$ and c.released_on = '2026-11-15');
+
+-- =============================================================================
+-- 20261116006836_connected_apps.sql
+-- =============================================================================
+-- Connected apps: members connect an AI assistant (over MCP) or the LiteraryWorm command line to
+-- read their own library, places, highlights and reading time. Read-only by construction: the
+-- `mcp` Edge Function is its own small OAuth 2.1 server (PKCE, dynamic client registration) and
+-- hands apps opaque tokens that mean something only to that function. An app never holds a
+-- Supabase session, so it can't reach the tables, Auth or any other function.
+--
+-- Only the function (service_role) reads and writes these rows; browser roles go through it
+-- (the consent page and Account → Sign-in → Connected apps), and it checks the member's session,
+-- two-step sign-in and, to approve, the account password.
+
+-- An app that registered itself (RFC 7591). The name is what the app calls itself: the consent
+-- page shows it beside where the app sends the member back.
+create table public.connected_app_clients (
+  id            uuid        primary key default gen_random_uuid(),
+  name          text        not null check (char_length(btrim(name)) between 1 and 80),
+  redirect_uris text[]      not null check (cardinality(redirect_uris) between 1 and 5),
+  created_at    timestamptz not null default now()
+);
+
+-- One request to connect, from the app opening LiteraryWorm until its code is exchanged (10 minutes
+-- to approve, then 5 to exchange). Approving sets the member and the code's SHA-256; the code
+-- itself is never stored. Exchanging deletes the row, so a code works once.
+create table public.connected_app_requests (
+  id             uuid        primary key default gen_random_uuid(),
+  client_id      uuid        not null references public.connected_app_clients (id) on delete cascade,
+  redirect_uri   text        not null check (char_length(redirect_uri) between 1 and 300),
+  -- PKCE, S256 only: base64url of a SHA-256.
+  code_challenge text        not null check (code_challenge ~ '^[A-Za-z0-9_-]{43}$'),
+  state          text        check (state is null or char_length(state) <= 512),
+  user_id        uuid        references auth.users (id) on delete cascade,
+  code_hash      text        unique check (code_hash ~ '^[0-9a-f]{64}$'),
+  created_at     timestamptz not null default now(),
+  expires_at     timestamptz not null default now() + interval '10 minutes',
+  check ((user_id is null) = (code_hash is null))
+);
+
+-- One connection: an app a member approved, with the SHA-256 of its current access token (an hour)
+-- and refresh token (90 days from its last use). The tokens themselves are never stored. Removing
+-- the row (the member in Account, the app logging out, or the account being deleted) ends it at once.
+create table public.connected_apps (
+  id                 uuid        primary key default gen_random_uuid(),
+  user_id            uuid        not null references auth.users (id) on delete cascade,
+  client_id          uuid        not null references public.connected_app_clients (id) on delete cascade,
+  access_hash        text        not null unique check (access_hash ~ '^[0-9a-f]{64}$'),
+  access_expires_at  timestamptz not null,
+  refresh_hash       text        not null unique check (refresh_hash ~ '^[0-9a-f]{64}$'),
+  refresh_expires_at timestamptz not null,
+  created_at         timestamptz not null default now(),
+  last_used_at       timestamptz
+);
+
+alter table public.connected_app_clients enable row level security;
+alter table public.connected_app_requests enable row level security;
+alter table public.connected_apps enable row level security;
+
+revoke all on public.connected_app_clients from public, anon, authenticated;
+revoke all on public.connected_app_requests from public, anon, authenticated;
+revoke all on public.connected_apps from public, anon, authenticated;
+
+grant select, insert, update, delete on public.connected_app_clients to service_role;
+grant select, insert, update, delete on public.connected_app_requests to service_role;
+grant select, insert, update, delete on public.connected_apps to service_role;
+
+-- Says out loud what RLS already does with no permissive policy: browser roles can't touch them.
+create policy "No browser access to connected app clients"
+  on public.connected_app_clients as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+create policy "No browser access to connection requests"
+  on public.connected_app_requests as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+create policy "No browser access to connected apps"
+  on public.connected_apps as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+-- Every hour: requests nobody finished, and connections whose refresh token ran out.
+select cron.schedule('connected-app-requests-cleanup', '25 * * * *',
+  $$delete from public.connected_app_requests where expires_at < now() - interval '1 hour'$$);
+
+select cron.schedule('connected-apps-cleanup', '35 * * * *',
+  $$delete from public.connected_apps where refresh_expires_at < now()$$);
+
+-- Every night: apps that registered a day or more ago and that nobody is connected to or connecting.
+select cron.schedule('connected-app-clients-cleanup', '45 3 * * *',
+  $$delete from public.connected_app_clients c
+     where c.created_at < now() - interval '1 day'
+       and not exists (select 1 from public.connected_apps a where a.client_id = c.id)
+       and not exists (select 1 from public.connected_app_requests r where r.client_id = c.id)$$);
+
+-- =============================================================================
+-- 20261116006837_connected_app_requests_client_idx.sql
+-- =============================================================================
+create index concurrently if not exists connected_app_requests_client_id_idx on public.connected_app_requests (client_id);
+
+-- =============================================================================
+-- 20261116006838_connected_app_requests_user_idx.sql
+-- =============================================================================
+create index concurrently if not exists connected_app_requests_user_id_idx on public.connected_app_requests (user_id);
+
+-- =============================================================================
+-- 20261116006839_connected_apps_user_idx.sql
+-- =============================================================================
+create index concurrently if not exists connected_apps_user_id_idx on public.connected_apps (user_id);
+
+-- =============================================================================
+-- 20261116006840_connected_apps_client_idx.sql
+-- =============================================================================
+create index concurrently if not exists connected_apps_client_id_idx on public.connected_apps (client_id);
+
+-- =============================================================================
+-- 20261116006841_connected_apps_policies.sql
+-- =============================================================================
+-- Connected apps (an AI assistant over MCP, or the LiteraryWorm command line, reading a member's own account):
+-- Help says how to connect and what an app can read; the Privacy Policy (4 and 18) says what's shared at the
+-- member's request and what's kept; the Children's Privacy Notice says what a connected app is never given.
+-- Same text as src/data/legalPages.json, matched as stored (jsonb text puts a space after each comma); made once.
+-- The edit trigger keeps each old version.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."$lw$, $lw$"In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use.", "You can connect an AI assistant or the LiteraryWorm command line to your account, to ask about your own reading. In an assistant that supports MCP (the Model Context Protocol), add the address https://www.literaryworm.com/mcp. From a terminal, run npx literaryworm login. Either one opens LiteraryWorm in your browser, where you log in, see what the app calls itself and where it will send you back, and allow it with your account password.", "A connected app can only read: your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can't change anything, and it never sees your password, your payment details, the text of your uploads, or a Kids profile's name or reading time. Books a Kids profile has spent time reading are left out of what it reads.", "Account → Sign-in → Connected apps lists every app you've allowed, with when it was connected and last used, and Remove ends its access at once. A connection that goes unused for 90 days ends on its own, and an account can have up to 20. What you ask an assistant, and what it does with the answers, is covered by that assistant's own privacy policy.", "Anyone can search LiteraryWorm's catalog, prices and What's new from an assistant without logging in, at https://www.literaryworm.com/mcp/public, or from a terminal with npx literaryworm search followed by a title or an author."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$"In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."$lw$) > 0
+  and strpos(sections::text, $lw$You can connect an AI assistant or the LiteraryWorm command line to your account, to ask about your own reading. In an assistant that supports MCP (the Model Context Protocol), add the address https://www.literaryworm.com/mcp. From a terminal, run npx literaryworm login. Either one opens LiteraryWorm in your browser, where you log in, see what the app calls itself and where it will send you back, and allow it with your account password.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Our service providers may use your information only to provide their service to us, except where this section says they handle it under their own policy."$lw$, $lw$"Our service providers may use your information only to provide their service to us, except where this section says they handle it under their own policy.", "Apps you connect. If you choose to connect an AI assistant or the LiteraryWorm command line to your account, we give that app, when it asks, your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can only read. It's never given your password, your payment details, your email address, or a Kids profile's name or reading time, and books a Kids profile has spent time reading are left out. We share this only because you ask us to, confirmed with your account password, and you can stop it at any time in Account → Sign-in. What the app and its maker do with what they read is governed by their own privacy policy, not this one."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$"Our service providers may use your information only to provide their service to us, except where this section says they handle it under their own policy."$lw$) > 0
+  and strpos(sections::text, $lw$Apps you connect. If you choose to connect an AI assistant or the LiteraryWorm command line to your account, we give that app, when it asks, your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can only read. It's never given your password, your payment details, your email address, or a Kids profile's name or reading time, and books a Kids profile has spent time reading are left out. We share this only because you ask us to, confirmed with your account password, and you can stop it at any time in Account → Sign-in. What the app and its maker do with what they read is governed by their own privacy policy, not this one.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"You can rename or remove passkeys in Account → Sign-in, and Download my data lists them. If you use two-step sign-in, we also note which passkeys were added after you entered your code, so logging in with one of them doesn't ask for the code again."$lw$, $lw$"You can rename or remove passkeys in Account → Sign-in, and Download my data lists them. If you use two-step sign-in, we also note which passkeys were added after you entered your code, so logging in with one of them doesn't ask for the code again.", "If you connect an app (an AI assistant, or the LiteraryWorm command line) to read your account, we keep the name the app gave itself, the address it sends you back to, when you connected it and when it was last used, and one-way hashes of the tokens we gave it, never the tokens themselves. Removing the app in Account → Sign-in, or deleting your account, deletes them. A request to connect that isn't finished is deleted within about an hour, and a connection that goes unused for 90 days ends."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$"You can rename or remove passkeys in Account → Sign-in, and Download my data lists them. If you use two-step sign-in, we also note which passkeys were added after you entered your code, so logging in with one of them doesn't ask for the code again."$lw$) > 0
+  and strpos(sections::text, $lw$If you connect an app (an AI assistant, or the LiteraryWorm command line) to read your account, we keep the name the app gave itself, the address it sends you back to, when you connected it and when it was last used, and one-way hashes of the tokens we gave it, never the tokens themselves. Removing the app in Account → Sign-in, or deleting your account, deletes them. A request to connect that isn't finished is deleted within about an hour, and a connection that goes unused for 90 days ends.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"We don't sell, rent, license or otherwise disclose a Kids profile's information to third parties, and we don't use it for advertising. You can agree to us collecting it without agreeing to any sharing, because there isn't any."$lw$, $lw$"We don't sell, rent, license or otherwise disclose a Kids profile's information to third parties, and we don't use it for advertising. You can agree to us collecting it without agreeing to any sharing, because we share nothing unless you connect an app yourself, as the next paragraph explains.", "If you connect an app to your account (an AI assistant or the LiteraryWorm command line, in Account → Sign-in), it can read your household's shared library, places and highlights. It is never given a Kids profile's name, reading time, journal, quiz scores or book requests, and books a Kids profile has spent time reading or listening to are left out. A book a child only opened for under a minute can still appear in the shared library, without saying who opened it. Connecting an app is always your choice, needs your account password, and can be undone at any time."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$"We don't sell, rent, license or otherwise disclose a Kids profile's information to third parties, and we don't use it for advertising. You can agree to us collecting it without agreeing to any sharing, because there isn't any."$lw$) > 0
+  and strpos(sections::text, $lw$If you connect an app to your account (an AI assistant or the LiteraryWorm command line, in Account → Sign-in), it can read your household's shared library, places and highlights. It is never given a Kids profile's name, reading time, journal, quiz scores or book requests, and books a Kids profile has spent time reading or listening to are left out. A book a child only opened for under a minute can still appear in the shared library, without saying who opened it. Connecting an app is always your choice, needs your account password, and can be undone at any time.$lw$) = 0;
+
+-- Privacy Policy, section 10 (children): the same, in one sentence.
+update public.legal_pages
+set sections = replace(sections::text, $lw$verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties.$lw$, $lw$verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties. An app you connect to your account yourself is never given a Kids profile's name or reading time, and books a Kids profile has spent time reading are left out of what it reads.$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$verify a parent's consent with a card payment on the account before one is created, and never disclose its information to third parties.$lw$) > 0
+  and strpos(sections::text, $lw$An app you connect to your account yourself is never given$lw$) = 0;
+
+-- =============================================================================
+-- 20261116006842_whats_new_connected_apps.sql
+-- =============================================================================
+-- What's new: connecting an AI assistant (MCP) or the command line to read your own account. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-16'::date, '2026.11', 'feature', $lw$Connect an AI assistant or the command line to your reading$lw$, $lw$Ask an AI assistant about your own reading. Add https://www.literaryworm.com/mcp to an assistant that supports MCP, or run npx literaryworm login in a terminal, then allow it in your browser with your account password. A connected app can only read your library, your place in each book, your highlights and notes, and reading time for grown-up and teen profiles. It can't change anything, and books read on Kids profiles are left out. See and remove connected apps in Account → Sign-in. The catalog, prices and What's new can be searched without logging in.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Connect an AI assistant or the command line to your reading$lw$ and c.released_on = '2026-11-16');

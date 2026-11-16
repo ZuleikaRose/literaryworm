@@ -1,0 +1,5 @@
+-- What's new: connecting an AI assistant (MCP) or the command line to read your own account. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-16'::date, '2026.11', 'feature', $lw$Connect an AI assistant or the command line to your reading$lw$, $lw$Ask an AI assistant about your own reading. Add https://www.literaryworm.com/mcp to an assistant that supports MCP, or run npx literaryworm login in a terminal, then allow it in your browser with your account password. A connected app can only read your library, your place in each book, your highlights and notes, and reading time for grown-up and teen profiles. It can't change anything, and books read on Kids profiles are left out. See and remove connected apps in Account → Sign-in. The catalog, prices and What's new can be searched without logging in.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Connect an AI assistant or the command line to your reading$lw$ and c.released_on = '2026-11-16');

@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-16",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Connect an AI assistant or the command line to your reading",
+    "body": "Ask an AI assistant about your own reading. Add https://www.literaryworm.com/mcp to an assistant that supports MCP, or run npx literaryworm login in a terminal, then allow it in your browser with your account password. A connected app can only read your library, your place in each book, your highlights and notes, and reading time for grown-up and teen profiles. It can't change anything, and books read on Kids profiles are left out. See and remove connected apps in Account → Sign-in. The catalog, prices and What's new can be searched without logging in.",
+    "major": true
+  },
+  {
     "releasedOn": "2026-11-15",
     "version": "2026.11",
     "kind": "update",

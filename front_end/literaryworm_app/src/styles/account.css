@@ -1334,3 +1334,33 @@
 .voice-pack-buttons button {
   min-height: 44px;
 }
+
+/* Connected apps (Account → Sign-in) and the consent page: addresses to copy, and what an app can read. */
+.connect-address {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.consent-app {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.consent-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 1.3em;
+}
+
+.consent-place {
+  overflow-wrap: anywhere;
+}

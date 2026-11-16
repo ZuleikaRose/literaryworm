@@ -1,5 +1,6 @@
 # Checks every push to dev and main, and every pull request to them: the app builds, lints and passes its unit tests
 # (Jest), then its end-to-end smoke tests (Jest driving Chromium through the Playwright library).
+# The command-line tool (cli/) passes its own Jest tests, which stub the network.
 # Separately, the Supabase Edge Functions type-check and pass their Deno tests (auth, the
 # database and Stripe are stubbed, so that job needs no settings either).
 # The e2e run serves the app with Vite in "e2e" mode, with no Supabase settings, so it needs no
@@ -39,6 +40,27 @@ jobs:
       # The Chromium that matches the playwright-core version in package.json.
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:e2e
+
+  cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+      - run: npm ci
+      - run: npm test
+      # The oldest Node the package says it runs on can at least start it.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: node bin/literaryworm.js --version && node bin/literaryworm.js help
 
   functions:
     runs-on: ubuntu-latest

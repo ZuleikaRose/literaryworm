@@ -1505,6 +1505,31 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("shows a sample connected app in Account, removes it, and the consent page connects nothing in the demo", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#sign-in");
+    const apps = page.locator(".account-form", { has: page.getByRole("heading", { name: "Connected apps" }) });
+    await apps.getByText("https://www.literaryworm.com/mcp", { exact: true }).waitFor();
+    await apps.getByText("npx literaryworm login", { exact: true }).waitFor();
+    await apps.getByText("The demo household can't connect apps. This is a sample of how one looks.").waitFor();
+    const list = apps.getByRole("list", { name: "Your connected apps" });
+    await list.getByText("Claude", { exact: true }).waitFor();
+    await list.getByRole("button", { name: "Remove Claude" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Remove", exact: true }).click();
+    await apps.getByText("Claude removed. It can't read your account any more.").waitFor();
+    await apps.getByText("No apps connected.").waitFor();
+    await expect(scrollsSideways(page)).resolves.toBe(false);
+
+    await goInApp(page, "/oauth/consent");
+    await page.getByRole("heading", { name: "Connect an app", level: 1 }).waitFor();
+    await page.getByText("This link is missing its request. Go back to the app and connect again.").waitFor();
+    await goInApp(page, "/oauth/consent?request=0b1c2d3e-4f50-4a6b-8c7d-9e0f1a2b3c4d");
+    await page.getByText("The demo household can't connect apps. Log in to your own account to connect one.").waitFor();
+    await expect(page.getByRole("button", { name: "Allow" }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
   it("shows the demo a sample affiliate dashboard", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

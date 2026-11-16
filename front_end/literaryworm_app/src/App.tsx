@@ -40,6 +40,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Support = lazy(() => import("./pages/Support"));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
 const AffiliateReview = lazy(() => import("./pages/AffiliateReview"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 /** The old /plans address (bookmarks, links in emails, Stripe sessions already open) keeps working. */
 function LegacyPlansRedirect() {
@@ -97,6 +98,15 @@ export default function App() {
             <Route path="browse" element={<Browse />} />
             <Route path="library" element={<Library />} />
             <Route path="clubs/join/:code" element={<JoinClub />} />
+            {/* Where an AI assistant (MCP) or the command line sends a member to allow it to read their account. */}
+            <Route
+              path="oauth/consent"
+              element={
+                <Suspense fallback={null}>
+                  <OAuthConsent />
+                </Suspense>
+              }
+            />
             <Route path="clubs/:id" element={<ClubPage />} />
             <Route path="account" element={<Account />} />
             <Route

@@ -16,6 +16,8 @@ const PRIVATE_PATHS = [
   /^\/reset-password\b/,
   /^\/unsubscribe\b/,
   /^\/clubs\/join\//,
+  // The consent page for connecting an app names the request.
+  /^\/oauth\//,
   /^\/lists\//,
   // Clips from uploads name the upload.
   /^\/clips\/u-/,

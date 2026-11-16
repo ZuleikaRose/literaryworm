@@ -1,0 +1,30 @@
+{
+  "name": "literaryworm",
+  "version": "1.0.0",
+  "description": "LiteraryWorm from the command line: search the catalog, and read your own library, highlights and reading time. Read-only.",
+  "homepage": "https://www.literaryworm.com/legal/help",
+  "license": "UNLICENSED",
+  "bin": {
+    "literaryworm": "bin/literaryworm.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^30.5.2"
+  }
+}
