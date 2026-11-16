@@ -1514,7 +1514,7 @@ describe("the demo household", () => {
     await apps.getByText("npx literaryworm login", { exact: true }).waitFor();
     await apps.getByText("The demo household can't connect apps. This is a sample of how one looks.").waitFor();
     const list = apps.getByRole("list", { name: "Your connected apps" });
-    await list.getByText("Claude", { exact: true }).waitFor();
+    await list.locator("strong", { hasText: "Claude" }).waitFor();
     await list.getByRole("button", { name: "Remove Claude" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Remove", exact: true }).click();
     await apps.getByText("Claude removed. It can't read your account any more.").waitFor();
