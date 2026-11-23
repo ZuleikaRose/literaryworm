@@ -4,7 +4,7 @@
  */
 import { tk } from "./i18n";
 
-export type ReaderAction = "next" | "previous" | "chapters" | "highlights" | "bookmark" | "dictionary" | "display" | "help" | "guideDown" | "guideUp";
+export type ReaderAction = "next" | "previous" | "chapters" | "highlights" | "bookmark" | "dictionary" | "xray" | "display" | "help" | "guideDown" | "guideUp";
 
 export const READER_SHORTCUTS: { keys: string[]; label: string; action: ReaderAction }[] = [
   { keys: ["→", "Page Down"], label: tk("Next page"), action: "next" },
@@ -13,6 +13,7 @@ export const READER_SHORTCUTS: { keys: string[]; label: string; action: ReaderAc
   { keys: ["N"], label: tk("Notes and highlights"), action: "highlights" },
   { keys: ["B"], label: tk("Bookmark this page, or remove its bookmark"), action: "bookmark" },
   { keys: ["D"], label: tk("Dictionary"), action: "dictionary" },
+  { keys: ["X"], label: tk("X-Ray"), action: "xray" },
   { keys: ["T"], label: tk("Display settings"), action: "display" },
   { keys: ["J"], label: tk("Move the reading guide down a line (when it's on)"), action: "guideDown" },
   { keys: ["K"], label: tk("Move the reading guide up a line (when it's on)"), action: "guideUp" },
@@ -33,5 +34,5 @@ export function readerAction(e: { key: string; altKey: boolean; ctrlKey: boolean
       return "help";
   }
   const letter = e.key.length === 1 ? e.key.toLowerCase() : "";
-  return ({ c: "chapters", n: "highlights", b: "bookmark", d: "dictionary", t: "display", j: "guideDown", k: "guideUp" } as Record<string, ReaderAction>)[letter] ?? null;
+  return ({ c: "chapters", n: "highlights", b: "bookmark", d: "dictionary", x: "xray", t: "display", j: "guideDown", k: "guideUp" } as Record<string, ReaderAction>)[letter] ?? null;
 }

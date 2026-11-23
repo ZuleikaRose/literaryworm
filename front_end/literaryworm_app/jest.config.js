@@ -4,6 +4,8 @@ export default {
   testEnvironment: "node",
   roots: ["<rootDir>/src"],
   testMatch: ["**/*.test.ts"],
+  // lib/backend.ts reads import.meta.env, which CommonJS can't: tests run without Supabase, as e2e does.
+  moduleNameMapper: { "^(\\.{1,2}/)+(lib/)?backend$": "<rootDir>/src/lib/backendStub.ts" },
   transform: {
     "^.+\\.ts$": ["@swc/jest", { jsc: { parser: { syntax: "typescript" }, target: "es2022" }, module: { type: "commonjs" } }],
   },

@@ -79,7 +79,7 @@
     "slug": "privacy",
     "title": "Privacy Policy",
     "summary": "This Privacy Notice for LiteraryWorm (\"we,\" \"us,\" or \"our\") describes how and why we might access, collect, store, use, and/or share (\"process\") your personal information when you use our services (\"Services\"), including when you visit our website at https://www.literaryworm.com or any website of ours that links to this Privacy Notice, or engage with us in other related ways.",
-    "updated": "2026-11-16",
+    "updated": "2026-11-23",
     "sections": [
       {
         "heading": "Questions or concerns?",
@@ -189,7 +189,7 @@
           "Ahrefs Web Analytics counts visits so we can see which pages people use. If you allow analytics in the consent banner, your browser sends Ahrefs (analytics.ahrefs.com) the pages you visit, their titles, the site you came from, your screen size and language, and links you follow to other sites. Ahrefs also receives your IP address and browser details with each request.",
           "We send page addresses without anything after ? or #, though a form you send, such as a search, can include it. Ahrefs sets no cookies and keeps nothing in your browser. It's off while a Kids profile is in use and on pages whose links carry codes, such as password resets, invitations and unsubscribe links.",
           "Ahrefs handles this under its own privacy policy (https://ahrefs.com/legal/privacy-policy). To stop it, choose Consent Preferences at the bottom of any page and decline analytics.",
-          "Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6).",
+          "Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes X-Ray (Who's who, places and terms), chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6).",
           "Google Cloud Text-to-Speech reads members' uploaded books and the public-domain classics aloud in a natural voice when they choose one. Our server sends it only the part of the book being voiced, never who's listening (see section 6).",
           "Google Books answers searches and book details through our server, which sends only the search words or ISBN, book ids and the names of authors people follow, never who's asking. Book covers and the Google Books preview load from books.google.com directly in your browser, and Google sets third-party cookies there (see the Cookie Policy).",
           "LibriVox recordings stream from the Internet Archive directly from your browser. The app's fonts load from Google Fonts the same way, so Google receives your IP address with those requests.",
@@ -222,13 +222,14 @@
           "Content notes: for each of our titles, how much violence, death, frightening scenes, language, sexual content, alcohol and drugs, prejudice and self-harm it has, written the first time anyone asks, from the book's details; no personal information is sent, and the notes are kept so everyone sees the same ones.",
           "Ask the book: answers to your questions about a public-domain book. We send your question and the book's text up to your chapter; we don't send your name, email or account details.",
           "Translate: a passage you select in a public-domain book, in another language. We send only the words you selected (they must be in that chapter), nothing about you, and keep nothing.",
-          "Who's who: the characters you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the list so the next reader at that chapter gets the same one.",
+          "X-Ray (Who's who, places and terms): the people, places and terms you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the names and descriptions so the next reader at that chapter gets the same ones. How often each is mentioned is counted on your device.",
+          "For books you upload, and on Kids profiles, X-Ray lists the names it finds in the text on your device and sends nothing anywhere.",
           "Previously…: in the player, a recap of a public-domain book up to the chapter you've reached. We send only the text of the chapters before it, nothing about you, and keep the recap so the next listener there gets the same one.",
           "Discussion questions: on a book club's page, questions about a chapter of a public-domain book you've reached. We send only the book's text up to the end of that chapter, nothing about you or the club, and keep the questions so every club at that chapter gets the same ones.",
           "Chapter quizzes: a few questions about a chapter of a public-domain book, written for young readers. We send only that chapter's text, nothing about you, and keep the quiz so every reader of that chapter gets the same one; your score is saved with your profile.",
           "Natural voices: a book you uploaded, read aloud by a natural-sounding voice from Google Cloud Text-to-Speech when you choose one in the player. Our server sends Google only the part being voiced, up to about a minute and a half at a time (shorter with Character voices on, which voice each speech apart), nothing about you. The audio is kept privately with your upload so you can listen again, and is deleted with the upload, its profile or your account.",
           "Natural voices also read the public-domain classics, from their own text (Project Gutenberg). The parts are the book's own words, so each is voiced once and kept for every member who listens to that book in that voice, with nothing saying who asked for it; we count it towards the month's natural-voice reading of the account that heard it first, and towards that profile's share.",
-          "Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player.",
+          "Ask the book, Translate, X-Ray's AI descriptions and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, X-Ray descriptions, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player.",
           "How We Process Your Data Using AI. All personal information processed using our AI Products is handled in line with this Privacy Notice and our agreements with the AI Service Providers. We don't use your reading history, notes, uploads or posts to train AI models."
         ]
       },
@@ -629,7 +630,7 @@
         "paragraphs": [
           "Only the account holder, who must be 18 or older, can create a Kids profile or move a profile to Kids. You do it after reading this notice, and you confirm it with the account password.",
           "Before a Kids profile is created, we verify that the person giving consent is the adult who holds the account, as COPPA requires. We do that with a card payment on the account: your membership's first payment, or another purchase such as natural-voice hours, a gift or a gift card.",
-        "Your card provider tells you about each charge, so you'll know the account is being used. It's one of the methods the US Federal Trade Commission accepts.",
+          "Your card provider tells you about each charge, so you'll know the account is being used. It's one of the methods the US Federal Trade Commission accepts.",
           "A free week, or a gift membership someone gave you, doesn't verify consent on its own, because nothing is charged to your card. You can add a Kids profile as soon as the account's first payment is made. We never charge anything extra for this.",
           "We keep a record of that consent: when it was given, how it was verified, and which version of this notice it was for. Kids profiles made before 10 November 2026 were confirmed with the account password, and their record says so.",
           "Moving the profile to another age rating, or deleting it, withdraws that consent, and we record that too."
@@ -659,7 +660,7 @@
         "heading": "What a Kids profile can't do",
         "paragraphs": [
           "Kids profiles see only books rated for children. A grown-up can say yes to a book above that rating when the child asks for it.",
-          "They can't write public reading logs, join or start book clubs, follow other readers, share lists by link, upload or import books, search Google Books, ask the book's AI assistant, translate passages or use Who's who.",
+          "They can't write public reading logs, join or start book clubs, follow other readers, share lists by link, upload or import books, search Google Books, ask the book's AI assistant, translate passages or see X-Ray's AI descriptions. Their X-Ray lists the names it finds in the book on the device, with no AI, and sends nothing.",
           "They can't make purchases or change account settings. A grown-up's password is needed to open Account or to allow extra time past a daily limit."
         ]
       },
@@ -733,7 +734,7 @@
         ]
       }
     ],
-    "updated": "2026-11-16"
+    "updated": "2026-11-23"
   },
   {
     "slug": "privacy-choices",
@@ -803,7 +804,7 @@
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-11-10",
+    "updated": "2026-11-23",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
@@ -924,7 +925,7 @@
           "11. Delete the copyright or other proprietary rights notice from any Content.",
           "12. Attempt to impersonate another user or person or use the display name of another user.",
           "13. Upload or transmit (or attempt to upload or to transmit) any material that acts as a passive or active information collection or transmission mechanism, including without limitation, clear graphics interchange formats (\"gifs\"), 1×1 pixels, web bugs, cookies, or other similar devices (sometimes referred to as \"spyware\" or \"passive collection mechanisms\" or \"pcms\").",
-          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, content notes, Ask the book, Translate, Who's who, Previously… recaps, chapter quizzes and discussion questions.",
+          "14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, content notes, Ask the book, Translate, X-Ray, Previously… recaps, chapter quizzes and discussion questions.",
           "15. Harass, annoy, intimidate, or threaten any of our employees or agents engaged in providing any portion of the Services to you.",
           "16. Attempt to bypass any measures of the Services designed to prevent or restrict access to the Services, or any portion of the Services.",
           "17. Copy or adapt the Services' software, including but not limited to HTML, JavaScript, or other code.",
@@ -1185,7 +1186,7 @@
         "paragraphs": [
           "Public-domain titles: the texts come from Project Gutenberg and the recordings from LibriVox, whose volunteers release their recordings into the public domain. These works are in the public domain in the United States; they may not be everywhere, so check your country's rules before using them outside LiteraryWorm.",
           "Other LiteraryWorm titles show sample pages, not the published books. Book details and covers from Google Books belong to their publishers and rights holders and are shown under Google's terms.",
-          "Summaries, content notes, Ask the book answers, translations, Who's who, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
+          "Summaries, content notes, Ask the book answers, translations, X-Ray descriptions, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.",
           "The LiteraryWorm name, logo, design and software belong to LiteraryWorm. Using the service doesn't give you any rights in them beyond these Terms."
         ]
       },
@@ -1381,7 +1382,7 @@
     "slug": "acceptable-use",
     "title": "Acceptable Use Policy",
     "summary": "This Acceptable Use Policy (\"Policy\") is part of our Terms of Service (\"Legal Terms\") and should therefore be read alongside our main Legal Terms: https://www.literaryworm.com/legal/terms. It sets out what you may and may not do on LiteraryWorm, what you may post, how to use our AI features responsibly, and how to report anything that breaks it.",
-    "updated": "2026-11-02",
+    "updated": "2026-11-23",
     "sections": [
       {
         "heading": "In short",
@@ -1394,7 +1395,7 @@
       {
         "heading": "Agreement to this policy",
         "paragraphs": [
-          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are book summaries, content notes, Ask the book, Translate, Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions. They're written by Claude, an AI model made by Anthropic, and labelled as written by AI.",
+          "When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are book summaries, content notes, Ask the book, Translate, X-Ray's descriptions (Who's who, places and terms), chapter quizzes, Previously… recaps and book clubs' discussion questions. They're written by Claude, an AI model made by Anthropic, and labelled as written by AI.",
           "Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.",
           "Please carefully review this Policy which applies to any and all:",
           "(a) uses of our Services (as defined in \"Legal Terms\");",
@@ -1469,7 +1470,7 @@
         "heading": "Artificial intelligence",
         "paragraphs": [
           "We recognize the significant impact AI can have on our users and society, and we are dedicated to ensuring that our AI Products are designed and operated in a manner that aligns with comprehensive ethical standards. We aim to use AI to enhance user experiences while upholding fairness, transparency, and accountability principles.",
-          "That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours, and discussion questions only the book up to the end of their chapter. Translate is given only the words you selected, and content notes only the book's details.",
+          "That's why everything our AI Products write is labelled as written by AI, and why Ask the book and X-Ray are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours, and discussion questions only the book up to the end of their chapter. Translate is given only the words you selected, and content notes only the book's details.",
           "This Policy applies to all AI-powered features, services, and systems in our Services. It governs the development, deployment, and use of AI technologies to protect users' rights and maintain transparency in all AI operations. This Policy applies to all stakeholders, including employees, third-party vendors, and partners who contribute to or interact with our AI Products.",
           "Enforcement. Any misuse of our AI Products or failure to adhere to the standards outlined in this Policy will result in appropriate actions to ensure the integrity of our platform and the protection of our users. The specific consequences for misuse of AI may vary depending on the nature and severity of the violation and the user's history with our Services.",
           "Violations may include, but are not limited to:",
@@ -1696,7 +1697,7 @@
     "slug": "disclaimer",
     "title": "Disclaimer",
     "summary": "The information provided by LiteraryWorm (\"we,\" \"us,\" or \"our\") on https://www.literaryworm.com (the \"Site\") is for general informational purposes only. This page explains what we can and can't promise about it, and about the other websites the Site links to.",
-    "updated": "2026-11-02",
+    "updated": "2026-11-23",
     "sections": [
       {
         "heading": "Website disclaimer",
@@ -1708,7 +1709,7 @@
       {
         "heading": "AI-written content disclaimer",
         "paragraphs": [
-          "Book summaries, content notes, Ask the book answers, translations, Who's who, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude, made by Anthropic) and labelled as written by AI.",
+          "Book summaries, content notes, Ask the book answers, translations, X-Ray descriptions, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude, made by Anthropic) and labelled as written by AI.",
           "They can be wrong, leave things out, or miss what matters to you. Use them as a reading aid, not as a source of fact.",
           "Content notes in particular are a guide, not a guarantee. If a topic matters to you or a child at home, check the book itself before choosing it."
         ]
@@ -1787,6 +1788,9 @@
           "On the home page, a visitor sees a sample of books in each genre, then can log in, join or try the demo to keep scrolling. Open the demo on your phone (on the home and log-in pages) shows a code to scan, which opens the demo there; it's a sample household of its own, so nothing carries over between devices. Logged in, Keep discovering on Home runs on from one genre into the next.",
           "There are 64 genres to browse and search by: the main ones, such as Fantasy, Mystery and Romance, and every subject Google Books files books under, from Antiques & Collectibles and Cooking to Travel and True Crime. Kids profiles see the genres with books chosen for them.",
           "In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.",
+          "X-Ray, in the reader's top bar (or press X) and in the player, lists the people (Who's who), places and terms you've met so far, with how often and where the book names them, in this chapter or in the book so far. Choose a chapter or page to go to a mention.",
+          "For the public-domain classics, X-Ray's descriptions are written by AI from the text up to your chapter only. In books you upload, and on Kids profiles, it lists the names it finds in the text on your device instead: no AI, and nothing is sent. Books with only sample pages have no X-Ray.",
+          "To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Keep it in My words to review later. The dictionary has English words only for now. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes.",
           "On an audiobook's page, Read offline has Listen offline on a schedule: this device keeps the chapter you're on and the next 1, 3, 5 or 10 as you listen, on Wi-Fi only if you like, and can remove chapters you've finished. It counts as one of your plan's offline devices.",
           "In a public-domain book, select some words and choose Translate to read them in English, French, German, Spanish, Italian, Portuguese or Dutch. Only the words you selected are sent. Not on Kids profiles.",
           "Eight classics are in their own language, with their LibriVox recording: Candide and Madame Bovary in French, Effi Briest and Max und Moritz in German, Παραμύθι χωρίς όνομα by Penelope Delta and Papadiamantis's Christmas stories in Greek, and Marianela and Lazarillo de Tormes in Spanish. Find them on Discover's In their own language row.",
@@ -1860,7 +1864,11 @@
       {
         "heading": "Logging in and keeping your account safe",
         "paragraphs": [
-          "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use.", "You can connect an AI assistant or the LiteraryWorm command line to your account, to ask about your own reading. In an assistant that supports MCP (the Model Context Protocol), add the address https://www.literaryworm.com/mcp. From a terminal, run npx literaryworm login. Either one opens LiteraryWorm in your browser, where you log in, see what the app calls itself and where it will send you back, and allow it with your account password.", "A connected app can only read: your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can't change anything, and it never sees your password, your payment details, the text of your uploads, or a Kids profile's name or reading time. Books a Kids profile has spent time reading are left out of what it reads.", "Account → Sign-in → Connected apps lists every app you've allowed, with when it was connected and last used, and Remove ends its access at once. A connection that goes unused for 90 days ends on its own, and an account can have up to 20. What you ask an assistant, and what it does with the answers, is covered by that assistant's own privacy policy.", "Anyone can search LiteraryWorm's catalog, prices and What's new from an assistant without logging in, at https://www.literaryworm.com/mcp/public, or from a terminal with npx literaryworm search followed by a title or an author."
+          "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use.",
+          "You can connect an AI assistant or the LiteraryWorm command line to your account, to ask about your own reading. In an assistant that supports MCP (the Model Context Protocol), add the address https://www.literaryworm.com/mcp. From a terminal, run npx literaryworm login. Either one opens LiteraryWorm in your browser, where you log in, see what the app calls itself and where it will send you back, and allow it with your account password.",
+          "A connected app can only read: your library and how far through each book you are, your highlights and their notes, and reading time for grown-up and teen profiles. It can't change anything, and it never sees your password, your payment details, the text of your uploads, or a Kids profile's name or reading time. Books a Kids profile has spent time reading are left out of what it reads.",
+          "Account → Sign-in → Connected apps lists every app you've allowed, with when it was connected and last used, and Remove ends its access at once. A connection that goes unused for 90 days ends on its own, and an account can have up to 20. What you ask an assistant, and what it does with the answers, is covered by that assistant's own privacy policy.",
+          "Anyone can search LiteraryWorm's catalog, prices and What's new from an assistant without logging in, at https://www.literaryworm.com/mcp/public, or from a terminal with npx literaryworm search followed by a title or an author."
         ]
       },
       {
@@ -1878,7 +1886,7 @@
         ]
       }
     ],
-    "updated": "2026-11-16"
+    "updated": "2026-11-23"
   },
   {
     "slug": "status",
@@ -1892,7 +1900,7 @@
           "Accounts, libraries and reading progress: working normally.",
           "Book search and details (Google Books): working normally.",
           "Audiobook recordings (Internet Archive): working normally.",
-          "Summaries, Ask the book, Who's who and chapter quizzes (AI): working normally."
+          "Summaries, Ask the book, X-Ray and chapter quizzes (AI): working normally."
         ]
       },
       {
@@ -1902,6 +1910,6 @@
         ]
       }
     ],
-    "updated": "2026-10-31"
+    "updated": "2026-11-23"
   }
 ]

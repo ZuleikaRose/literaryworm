@@ -15359,3 +15359,120 @@ where slug = 'privacy'
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-16'::date, '2026.11', 'feature', $lw$Connect an AI assistant or the command line to your reading$lw$, $lw$Ask an AI assistant about your own reading. Add https://www.literaryworm.com/mcp to an assistant that supports MCP, or run npx literaryworm login in a terminal, then allow it in your browser with your account password. A connected app can only read your library, your place in each book, your highlights and notes, and reading time for grown-up and teen profiles. It can't change anything, and books read on Kids profiles are left out. See and remove connected apps in Account → Sign-in. The catalog, prices and What's new can be searched without logging in.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Connect an AI assistant or the command line to your reading$lw$ and c.released_on = '2026-11-16');
+
+-- =============================================================================
+-- 20261123006860_book_xray.sql
+-- =============================================================================
+-- X-Ray (Who's who, places and terms): for a public-domain title, the people, places and terms
+-- a reader has met up to a chapter, each described only from the text so far. The `xray` Edge
+-- Function asks Claude for a book's X-Ray at a chapter the first time anyone needs it, checks
+-- every name against the book's own text, and keeps it here, so every later reader at that
+-- chapter gets the same one. The sibling of book_characters (Who's who, migration 3800).
+--
+-- Only the function (service_role) reads and writes these rows; browser roles have no access
+-- at all and go through the function. Nothing here is about any member, and no book text is
+-- kept: names, aliases, short descriptions and the chapter each is first named in.
+
+create table public.book_xray (
+  volume_id     text        not null check (volume_id ~ '^[A-Za-z0-9_-]{1,40}$'),
+  -- 0-based, like the reader's chapter index.
+  chapter_index smallint    not null check (chapter_index between 0 and 999),
+  -- Each [{ name, description, firstChapter, aliases }], checked by the function before it's kept.
+  people        jsonb       not null check (jsonb_typeof(people) = 'array' and jsonb_array_length(people) <= 40),
+  places        jsonb       not null check (jsonb_typeof(places) = 'array' and jsonb_array_length(places) <= 25),
+  terms         jsonb       not null check (jsonb_typeof(terms) = 'array' and jsonb_array_length(terms) <= 25),
+  -- The Claude model that wrote it, so X-Rays can be rewritten when the model changes.
+  model         text        not null check (char_length(model) between 1 and 80),
+  created_at    timestamptz not null default now(),
+  primary key (volume_id, chapter_index),
+  check (jsonb_array_length(people) + jsonb_array_length(places) + jsonb_array_length(terms) > 0)
+);
+
+alter table public.book_xray enable row level security;
+revoke all on public.book_xray from public, anon, authenticated;
+-- Newer branches don't grant service_role by default (see migration 6636).
+grant select, insert on public.book_xray to service_role;
+
+-- Says out loud what RLS already does with no permissive policy: browser roles can't touch it.
+create policy "No browser access to X-Ray"
+  on public.book_xray as restrictive for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
+-- =============================================================================
+-- 20261123006861_xray_policies_help.sql
+-- =============================================================================
+-- X-Ray (Who's who, places and terms), dictionary lookups and note exports: Help, the Privacy Policy, the Children's
+-- Privacy Notice, Terms, Acceptable Use, Disclaimer and Status. Same text as src/data/legalPages.json, matched as
+-- stored; made once. What's sent to Claude is unchanged (the public-domain text up to the reader's chapter, nothing
+-- about the reader); what it writes now includes places and terms, and uploads and Kids profiles get names found on
+-- the device, with nothing sent.
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only."$lw$, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.", "X-Ray, in the reader's top bar (or press X) and in the player, lists the people (Who's who), places and terms you've met so far, with how often and where the book names them, in this chapter or in the book so far. Choose a chapter or page to go to a mention.", "For the public-domain classics, X-Ray's descriptions are written by AI from the text up to your chapter only. In books you upload, and on Kids profiles, it lists the names it finds in the text on your device instead: no AI, and nothing is sent. Books with only sample pages have no X-Ray.", "To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Keep it in My words to review later. The dictionary has English words only for now. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes."$lw$)::jsonb
+where slug = 'help'
+  and strpos(sections::text, $lw$To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Keep it in My words to review later. The dictionary has English words only for now. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6)."$lw$, $lw$"Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes X-Ray (Who's who, places and terms), chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6)."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Anthropic (Claude) writes book summaries and content notes, answers Ask the book questions, translates passages you select, writes X-Ray (Who's who, places and terms), chapter quizzes, Previously… recaps and book clubs' discussion questions (see section 6).$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Who's who: the characters you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the list so the next reader at that chapter gets the same one."$lw$, $lw$"X-Ray (Who's who, places and terms): the people, places and terms you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the names and descriptions so the next reader at that chapter gets the same ones. How often each is mentioned is counted on your device.", "For books you upload, and on Kids profiles, X-Ray lists the names it finds in the text on your device and sends nothing anywhere."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$X-Ray (Who's who, places and terms): the people, places and terms you've met in a public-domain book so far. We send only the book's text up to your chapter, nothing about you, and keep the names and descriptions so the next reader at that chapter gets the same ones. How often each is mentioned is counted on your device.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Ask the book, Translate, Who's who and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, Who's who, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player."$lw$, $lw$"Ask the book, Translate, X-Ray's AI descriptions and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, X-Ray descriptions, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player."$lw$)::jsonb
+where slug = 'privacy'
+  and strpos(sections::text, $lw$Ask the book, Translate, X-Ray's AI descriptions and book clubs (with their discussion questions) aren't offered to Kids profiles, and natural voices only when a grown-up turns them on for that profile; summaries, content notes, recaps and quizzes are. Summaries, content notes, answers, translations, X-Ray descriptions, recaps, quizzes and discussion questions are labelled as written by AI, and natural voices are named as Google's in the player.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"They can't write public reading logs, join or start book clubs, follow other readers, share lists by link, upload or import books, search Google Books, ask the book's AI assistant, translate passages or use Who's who."$lw$, $lw$"They can't write public reading logs, join or start book clubs, follow other readers, share lists by link, upload or import books, search Google Books, ask the book's AI assistant, translate passages or see X-Ray's AI descriptions. Their X-Ray lists the names it finds in the book on the device, with no AI, and sends nothing."$lw$)::jsonb
+where slug = 'childrens-privacy'
+  and strpos(sections::text, $lw$They can't write public reading logs, join or start book clubs, follow other readers, share lists by link, upload or import books, search Google Books, ask the book's AI assistant, translate passages or see X-Ray's AI descriptions. Their X-Ray lists the names it finds in the book on the device, with no AI, and sends nothing.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, content notes, Ask the book, Translate, Who's who, Previously… recaps, chapter quizzes and discussion questions."$lw$, $lw$"14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, content notes, Ask the book, Translate, X-Ray, Previously… recaps, chapter quizzes and discussion questions."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$14. Interfere with, disrupt, or create an undue burden on the Services or the networks or services connected to the Services, including by trying to get around the limits on AI summaries, content notes, Ask the book, Translate, X-Ray, Previously… recaps, chapter quizzes and discussion questions.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Summaries, content notes, Ask the book answers, translations, Who's who, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's."$lw$, $lw$"Summaries, content notes, Ask the book answers, translations, X-Ray descriptions, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's."$lw$)::jsonb
+where slug = 'terms'
+  and strpos(sections::text, $lw$Summaries, content notes, Ask the book answers, translations, X-Ray descriptions, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude) and labelled so. They may be wrong; they're provided for your own reading and may not be republished as LiteraryWorm's.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are book summaries, content notes, Ask the book, Translate, Who's who, chapter quizzes, Previously… recaps and book clubs' discussion questions. They're written by Claude, an AI model made by Anthropic, and labelled as written by AI."$lw$, $lw$"When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are book summaries, content notes, Ask the book, Translate, X-Ray's descriptions (Who's who, places and terms), chapter quizzes, Previously… recaps and book clubs' discussion questions. They're written by Claude, an AI model made by Anthropic, and labelled as written by AI."$lw$)::jsonb
+where slug = 'acceptable-use'
+  and strpos(sections::text, $lw$When you use the AI-powered services provided by LiteraryWorm (\"AI Products\"), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Our AI Products are book summaries, content notes, Ask the book, Translate, X-Ray's descriptions (Who's who, places and terms), chapter quizzes, Previously… recaps and book clubs' discussion questions. They're written by Claude, an AI model made by Anthropic, and labelled as written by AI.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"That's why everything our AI Products write is labelled as written by AI, and why Ask the book and Who's who are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours, and discussion questions only the book up to the end of their chapter. Translate is given only the words you selected, and content notes only the book's details."$lw$, $lw$"That's why everything our AI Products write is labelled as written by AI, and why Ask the book and X-Ray are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours, and discussion questions only the book up to the end of their chapter. Translate is given only the words you selected, and content notes only the book's details."$lw$)::jsonb
+where slug = 'acceptable-use'
+  and strpos(sections::text, $lw$That's why everything our AI Products write is labelled as written by AI, and why Ask the book and X-Ray are only given the text up to your place in the book, and a quiz only the chapter it's about. A Previously… recap gets only the chapters before yours, and discussion questions only the book up to the end of their chapter. Translate is given only the words you selected, and content notes only the book's details.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Book summaries, content notes, Ask the book answers, translations, Who's who, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude, made by Anthropic) and labelled as written by AI."$lw$, $lw$"Book summaries, content notes, Ask the book answers, translations, X-Ray descriptions, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude, made by Anthropic) and labelled as written by AI."$lw$)::jsonb
+where slug = 'disclaimer'
+  and strpos(sections::text, $lw$Book summaries, content notes, Ask the book answers, translations, X-Ray descriptions, Previously… recaps, chapter quizzes and discussion questions are written by AI (Claude, made by Anthropic) and labelled as written by AI.$lw$) = 0;
+
+update public.legal_pages
+set sections = replace(sections::text, $lw$"Summaries, Ask the book, Who's who and chapter quizzes (AI): working normally."$lw$, $lw$"Summaries, Ask the book, X-Ray and chapter quizzes (AI): working normally."$lw$)::jsonb
+where slug = 'status'
+  and strpos(sections::text, $lw$Summaries, Ask the book, X-Ray and chapter quizzes (AI): working normally.$lw$) = 0;
+
+-- =============================================================================
+-- 20261123006862_whats_new_xray.sql
+-- =============================================================================
+-- What's new: X-Ray (major), and the dictionary in the player with the demo's notes and dictionary (minor). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-23'::date, '2026.11', 'feature', $lw$X-Ray: the people, places and terms in your book so far$lw$, $lw$Who's who is now X-Ray, in the reader's top bar (or press X) and in the player. It lists the people, places and terms you've met so far, with how often and where the book names them, in this chapter or in the book so far, and takes you to any mention. For the public-domain classics, the descriptions are written by AI from the text up to your chapter only. Books you upload, and Kids profiles, get the names found in the text on your device, with no AI and nothing sent. The demo has a sample X-Ray for its classics.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$X-Ray: the people, places and terms in your book so far$lw$ and c.released_on = '2026-11-23');
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-23'::date, '2026.11', 'update', $lw$The dictionary in the player, and notes to export on every demo profile$lw$, $lw$The player has Dictionary too, so you can look up a word while you listen and keep it in My words. In the demo, the dictionary answers from a small dictionary of its own when it can't reach ours. Exporting from the reader's Notes and highlights now includes the book's journal entries, as My Library → Notes does, and the demo's Kids profile has highlights and a journal entry to export.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$The dictionary in the player, and notes to export on every demo profile$lw$ and c.released_on = '2026-11-23');

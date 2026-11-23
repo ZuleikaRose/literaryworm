@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { cleanWord, type DictionaryEntry, DictionaryError, lookUpWord } from "../lib/dictionaryApi";
+import { cleanWord, type DictionaryEntry, DictionaryError, dictionaryCovers, lookUpWord } from "../lib/dictionaryApi";
 import { HIGHLIGHT_COLORS, highlightPlace, NOTE_MAX } from "../lib/highlights";
 import { useWords } from "../lib/useWords";
 import { firstDefinition, type WordSource } from "../lib/words";
@@ -9,6 +9,7 @@ import { ExportButtons } from "./NotesView";
 import { Icon } from "./Icon";
 import { rich, tr } from "../lib/i18n";
 import { useT } from "../lib/useT";
+import { useProfileData, useStore } from "../store/context";
 
 /** Runs a save and keeps its error for the control that started it. */
 function useAttempt() {
@@ -301,6 +302,8 @@ export function HighlightsDialog({
 }) {
   const t = useT();
   const { busy, error, attempt } = useAttempt();
+  // The book's journal entries go in the export too, as from My Library → Notes.
+  const journal = useProfileData().journal.filter((e) => e.bookId === book.id);
   const chapters = [...new Set(highlights.map((h) => h.chapterIndex))];
   const notes = highlights.filter((h) => h.note).length;
 
@@ -321,9 +324,9 @@ export function HighlightsDialog({
         </p>
       }
     >
-      {highlights.length > 0 && (
+      {(highlights.length > 0 || journal.length > 0) && (
         <ExportButtons
-          books={[{ title: book.title, author: book.author, chapterTitles: book.chapters.map((c) => c.title), highlights }]}
+          books={[{ title: book.title, author: book.author, chapterTitles: book.chapters.map((c) => c.title), highlights, journal }]}
           name={book.title}
           label={t("Export these notes and highlights")}
         />
@@ -380,17 +383,21 @@ export function DictionaryDialog({
   open,
   word,
   source = null,
+  bookLanguage = null,
   onClose,
 }: {
   open: boolean;
   word: string;
   /** Where the word was met, kept with it in My words. */
   source?: WordSource | null;
+  /** The book's language: the dictionary says plainly when it has no words in it. */
+  bookLanguage?: string | null;
   onClose: () => void;
 }) {
   const t = useT();
   return (
     <Dialog open={open} onClose={onClose} title={t("Dictionary")} size="sm">
+      {open && !dictionaryCovers(bookLanguage) && <p className="goal-hint">{t("The dictionary has English words only for now.")}</p>}
       {open && <DictionaryLookup key={word} initialWord={word} source={source} />}
     </Dialog>
   );
@@ -400,6 +407,8 @@ type Lookup = { status: "idle" } | { status: "loading"; word: string } | { statu
 
 function DictionaryLookup({ initialWord, source }: { initialWord: string; source: WordSource | null }) {
   const t = useT();
+  const { state } = useStore();
+  const demo = Boolean(state.account?.isDemo);
   const [query, setQuery] = useState(initialWord);
   const [result, setResult] = useState<Lookup>({ status: "idle" });
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -416,7 +425,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
     setFieldError(null);
     const ticket = ++latest.current;
     setResult({ status: "loading", word });
-    lookUpWord(word).then(
+    lookUpWord(word, { demo }).then(
       (entry) => ticket === latest.current && setResult({ status: "done", entry }),
       (err) =>
         ticket === latest.current &&
@@ -534,7 +543,7 @@ function DictionaryEntryView({ entry }: { entry: DictionaryEntry }) {
         </section>
       ))}
       <p className="dictionary-credit">
-        {rich(t("Definitions from {source}, CC BY-SA."), {
+        {entry.demo ? t("Sample definitions written for the demo.") : rich(t("Definitions from {source}, CC BY-SA."), {
           source: entry.sourceUrl ? (
             <a href={entry.sourceUrl} target="_blank" rel="noreferrer">
               Wiktionary<span className="visually-hidden"> {t("(opens in a new tab)")}</span>

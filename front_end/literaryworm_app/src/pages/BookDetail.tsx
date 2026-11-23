@@ -442,6 +442,12 @@ function DetailPage({ view }: { view: DetailView }) {
               <BuddyReadButton book={view.local} />
             </div>
           )}
+          {/* Google Books and Open Library give details, not text: say why there's no Read, X-Ray or dictionary here. */}
+          {!view.local && profile && (
+            <p className="goal-hint">
+              {t("LiteraryWorm has this book's details, not its text, so it can't be opened here. Reading tools such as X-Ray, the dictionary and highlights work in the catalog's books and in books you upload.")}
+            </p>
+          )}
           {view.local?.upload && profile && <UploadRecordingLink upload={view.local} />}
           {/* Uploads and the classics (it shows only where natural voices are offered). */}
           {(view.local?.upload || (view.local?.publicDomain && view.local.recording)) && profile && <VoiceWholeBook book={view.local} />}

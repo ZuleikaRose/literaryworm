@@ -14,7 +14,7 @@ import {
 import { AskDialog } from "../components/AskDialog";
 import { TranslateDialog } from "../components/TranslateDialog";
 import { usesBackend } from "../lib/backend";
-import { CharactersDialog } from "../components/CharactersDialog";
+import { XRayDialog } from "../components/XRayDialog";
 import { ReaderDisplayDialog } from "../components/ReaderDisplayDialog";
 import { QuoteCardDialog } from "../components/QuoteCardDialog";
 import { DictionaryDialog, HighlightDialog, HighlightsDialog, SelectionToolbar } from "../components/StudyTools";
@@ -46,7 +46,7 @@ import { countPage } from "../lib/sprintCounter";
 import { SprintChip } from "../components/SprintChip";
 import type { Book, Highlight, HighlightColor } from "../types";
 
-type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "characters" | "shortcuts" | "quiz" | "continue" | null;
+type Panel = "chapters" | "bookmarks" | "display" | "highlights" | "dictionary" | "ask" | "xray" | "shortcuts" | "quiz" | "continue" | null;
 
 export default function Reader() {
   return <ReadingGate format="ebook">{(book) => <ReaderPages key={book.id} book={book} />}</ReadingGate>;
@@ -414,13 +414,12 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
               <span className="visually-hidden">{t("Ask the book")}</span>
             </button>
           )}
-          {/* Not on Kids profiles either: it's written by an AI service from the book. */}
-          {book.recording && profile?.ageRating !== "kids" && (
-            <button type="button" className="icon-button" onClick={() => setPanel("characters")}>
-              <Icon name="users" size={20} />
-              <span className="visually-hidden">{t("Who's who")}</span>
-            </button>
-          )}
+          {/* Every book and profile (lib/xray.ts xrayMode()): AI descriptions for public-domain titles, not on
+              Kids profiles; names found on this device for uploads and Kids; a plain reason for sample pages. */}
+          <button type="button" className="icon-button" onClick={() => setPanel("xray")}>
+            <Icon name="users" size={20} />
+            <span className="visually-hidden">{t("X-Ray")}</span>
+          </button>
           {/* Every profile, Kids too: only the book and chapter go to the AI service. */}
           {book.recording && (
             <button type="button" className="icon-button" onClick={() => setPanel("quiz")}>
@@ -655,11 +654,19 @@ function ReaderView({ book, pages }: { book: Book; pages: ReaderPage[] }) {
         }}
       />
       <QuoteCardDialog book={book} highlight={sharing} onClose={() => setSharing(null)} />
-      <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} source={dictionarySource} onClose={() => setPanel(null)} />
+      <DictionaryDialog open={panel === "dictionary"} word={dictionaryWord} source={dictionarySource} bookLanguage={book.language} onClose={() => setPanel(null)} />
       {book.recording && profile?.ageRating !== "kids" && <AskDialog open={panel === "ask"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />}
-      {book.recording && profile?.ageRating !== "kids" && (
-        <CharactersDialog open={panel === "characters"} book={book} chapterIndex={page.chapterIndex} onClose={() => setPanel(null)} />
-      )}
+      <XRayDialog
+        open={panel === "xray"}
+        book={book}
+        chapterIndex={page.chapterIndex}
+        pages={pages}
+        onGo={(to) => {
+          setPanel(null);
+          goTo(to);
+        }}
+        onClose={() => setPanel(null)}
+      />
       {selection && !finished && (
         <SelectionToolbar
           rect={selection.rect}

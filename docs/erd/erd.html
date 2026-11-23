@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6842, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6862, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, book_xray in 6860)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -914,6 +914,19 @@
             ["", "last_used_at", "timestamptz", true],
           ],
           note: "A connection: hashes of the access token (an hour) and refresh token (90 days from last use) the mcp function gave an app; the tokens are never stored and mean nothing outside that function, which only reads. Up to 20 an account. FK user_id → auth.users, client_id → connected_app_clients, on delete cascade; both indexed. Service role only: Account → Sign-in lists and removes them through the function. Run-out rows removed hourly.",
+        },
+        {
+          id: "book_xray", color: colors.server, x: 1260, y: 11620, sub: "x-ray · function only",
+          cols: [
+            ["pk", "volume_id", "text (book id)"],
+            ["pk", "chapter_index", "smallint 0–999"],
+            ["", "people", "jsonb (0–40)"],
+            ["", "places", "jsonb (0–25)"],
+            ["", "terms", "jsonb (0–25)"],
+            ["", "model", "text"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "X-Ray for a public-domain title up to a chapter: names, aliases and short descriptions written by Claude the first time anyone asks, every name checked against the text, and kept so later readers get the same one. No book text is kept; mentions are counted in the browser. RLS on, no browser access; the xray function reads and writes it.",
         },
         {
           id: "chapter_discussions", color: colors.server, x: 1260, y: 8240, sub: "club questions · function",

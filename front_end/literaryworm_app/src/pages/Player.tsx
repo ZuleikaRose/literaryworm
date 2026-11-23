@@ -31,8 +31,10 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import { activeReading } from "../store/reducer";
 import type { Book } from "../types";
 import { VoiceWholeBook } from "../components/VoiceWholeBook";
+import { XRayDialog } from "../components/XRayDialog";
+import { DictionaryDialog } from "../components/StudyTools";
 
-type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | "clip" | "continue" | null;
+type Panel = "jump" | "bookmarks" | "settings" | "devices" | "recap" | "clip" | "continue" | "xray" | "dictionary" | null;
 
 export default function Player() {
   return <ReadingGate format="audiobook">{(book) => <PlayerView key={book.id} book={book} />}</ReadingGate>;
@@ -157,6 +159,15 @@ function PlayerView({ book }: { book: Book }) {
               <span className="visually-hidden">{t("Previously…: catch up on the story so far")}</span>
             </button>
           )}
+          {/* The reader's study tools while listening: X-Ray's mentions open the reader there; words looked up keep the chapter. */}
+          <button type="button" className="icon-button" onClick={() => setPanel("xray")}>
+            <Icon name="users" size={20} />
+            <span className="visually-hidden">{t("X-Ray")}</span>
+          </button>
+          <button type="button" className="icon-button" onClick={() => setPanel("dictionary")}>
+            <Icon name="dictionary" size={20} />
+            <span className="visually-hidden">{t("Dictionary")}</span>
+          </button>
           <button type="button" className="icon-button" onClick={() => setPanel("devices")}>
             <Icon name="devices" size={20} />
             <span className="visually-hidden">{t("Listen on another device")}</span>
@@ -468,6 +479,14 @@ function PlayerView({ book }: { book: Book }) {
       <DevicesDialog open={panel === "devices"} onClose={() => setPanel(null)} />
       {panel === "continue" && <ContinueDialog open onClose={() => setPanel(null)} url={playerContinueUrl(book.id, position)} title={book.title} />}
       <RecapDialog open={panel === "recap"} book={book} chapterIndex={chapterIndex} onClose={() => setPanel(null)} />
+      <XRayDialog open={panel === "xray"} book={book} chapterIndex={chapterIndex} onClose={() => setPanel(null)} />
+      <DictionaryDialog
+        open={panel === "dictionary"}
+        word=""
+        source={{ bookId: book.id, chapterIndex, page: null, context: null }}
+        bookLanguage={book.language}
+        onClose={() => setPanel(null)}
+      />
       {panel === "clip" && <ClipDialog open book={book} chapterIndex={chapterIndex} offset={position - chapterStart} chapterSeconds={places.chapterEnd - chapterStart} onClose={() => setPanel(null)} />}
       <BookmarksDialog
         open={panel === "bookmarks"}

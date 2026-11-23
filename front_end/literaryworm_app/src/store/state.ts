@@ -254,7 +254,7 @@ export function demoHousehold(): Household {
       demoHighlight(
         "demo-highlight-avery-2",
         "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered as the rightful property of some one or other of their daughters.",
-        118,
+        117,
         "pink",
         null,
         now - 26 * day,
@@ -302,7 +302,30 @@ export function demoHousehold(): Household {
       [today(new Date(now - 2 * 86_400_000))]: { seconds: 30 * 60, listened: 30 * 60, finished: 0, bedtimeListened: 12 * 60 },
       [today(new Date(now - 4 * 86_400_000))]: { seconds: 20 * 60, listened: 0, finished: 1, books: ["peter-pan"] },
     },
-    library: Object.fromEntries([catalogEntry("the-wild-robot", "reading", now - 2 * 86_400_000)]),
+    library: Object.fromEntries([catalogEntry("the-wild-robot", "reading", now - 2 * 86_400_000), catalogEntry("alice-in-wonderland", "reading", now - 3 * 86_400_000)]),
+    // Two highlights and a journal entry on Alice's first page (real offsets), so Mia's Notes has something to export.
+    highlights: [
+      demoHighlight(
+        "demo-highlight-mia-1",
+        "“and what is the use of a book,” thought Alice “without pictures or conversations?”",
+        240,
+        "purple",
+        "I like books with pictures too.",
+        now - 3 * 86_400_000,
+        "alice-in-wonderland",
+      ),
+      demoHighlight("demo-highlight-mia-2", "Oh dear! Oh dear! I shall be late!", 746, "yellow", null, now - 3 * 86_400_000, "alice-in-wonderland"),
+    ],
+    journal: [
+      {
+        id: "demo-journal-mia-1",
+        bookId: "alice-in-wonderland",
+        body: "The White Rabbit has a pocket watch. I want to know where he is going.",
+        writtenOn: today(new Date(now - 3 * 86_400_000)),
+        createdAt: now - 3 * 86_400_000,
+        updatedAt: now - 3 * 86_400_000,
+      },
+    ],
     // The author of the book Mia's listening to, for My Library → Following and Home's new-from row.
     follows: [{ kind: "author", name: "Peter Brown" }],
     progress: {

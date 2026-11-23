@@ -1,0 +1,9 @@
+-- What's new: X-Ray (major), and the dictionary in the player with the demo's notes and dictionary (minor). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-23'::date, '2026.11', 'feature', $lw$X-Ray: the people, places and terms in your book so far$lw$, $lw$Who's who is now X-Ray, in the reader's top bar (or press X) and in the player. It lists the people, places and terms you've met so far, with how often and where the book names them, in this chapter or in the book so far, and takes you to any mention. For the public-domain classics, the descriptions are written by AI from the text up to your chapter only. Books you upload, and Kids profiles, get the names found in the text on your device, with no AI and nothing sent. The demo has a sample X-Ray for its classics.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$X-Ray: the people, places and terms in your book so far$lw$ and c.released_on = '2026-11-23');
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-23'::date, '2026.11', 'update', $lw$The dictionary in the player, and notes to export on every demo profile$lw$, $lw$The player has Dictionary too, so you can look up a word while you listen and keep it in My words. In the demo, the dictionary answers from a small dictionary of its own when it can't reach ours. Exporting from the reader's Notes and highlights now includes the book's journal entries, as My Library → Notes does, and the demo's Kids profile has highlights and a journal entry to export.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$The dictionary in the player, and notes to export on every demo profile$lw$ and c.released_on = '2026-11-23');

@@ -53,6 +53,13 @@ verify_jwt = false
 # and limits new lists (Claude calls) per IP and per day.
 verify_jwt = false
 
+[functions.xray]
+# Public like characters: the demo household uses X-Ray without a session. The function
+# validates every field, works only for public-domain catalog titles, sends Claude only the
+# book's text up to the reader's chapter (nothing about the reader), keeps names the text
+# itself uses, keeps each X-Ray, and limits new X-Rays (Claude calls) per IP and per day.
+verify_jwt = false
+
 [functions.recaps]
 # Public like characters: the demo household uses "Previously…" without a session. The
 # function validates every field, works only for public-domain catalog titles, keeps each

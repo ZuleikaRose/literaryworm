@@ -14,7 +14,8 @@ export const CONTEXT_MAX = 400;
 export interface WordSource {
   bookId: string;
   chapterIndex: number;
-  page: number;
+  /** Null when the word was met while listening (the player has no pages). */
+  page: number | null;
   context: string | null;
 }
 

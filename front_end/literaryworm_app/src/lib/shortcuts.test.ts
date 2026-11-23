@@ -17,12 +17,13 @@ describe("readerAction", () => {
     expect(press("N")).toBe("highlights");
     expect(press("b")).toBe("bookmark");
     expect(press("d")).toBe("dictionary");
+    expect(press("x")).toBe("xray");
     expect(press("t")).toBe("display");
     expect(press("?")).toBe("help");
   });
 
   it("leaves other keys and the browser's shortcuts alone", () => {
-    expect(press("x")).toBeNull();
+    expect(press("q")).toBeNull();
     expect(press("Enter")).toBeNull();
     expect(press("d", { ctrlKey: true })).toBeNull();
     expect(press("ArrowRight", { altKey: true })).toBeNull();

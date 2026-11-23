@@ -825,16 +825,136 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("opens Who's who in the reader, which says plainly when the backend isn't there", async () => {
+  it("opens X-Ray on the demo's sample, counts mentions in this chapter and jumps to one", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);
-    await goInApp(page, "/read/frankenstein");
+    await goInApp(page, "/read/pride-and-prejudice");
     await page.getByText(/^Page 1 of \d+/).first().waitFor();
-    await page.getByRole("button", { name: "Who's who" }).click();
-    const dialog = page.getByRole("dialog", { name: "Who's who" });
-    await dialog.getByText(/Written by AI from the book up to chapter 1/).waitFor();
-    // The e2e server runs without Supabase, so the function can't be reached.
-    await dialog.getByRole("alert").getByText(/needs the LiteraryWorm backend/).waitFor();
+    await page.getByRole("button", { name: "X-Ray" }).click();
+    const dialog = page.getByRole("dialog", { name: "X-Ray" });
+    await dialog.getByText(/A sample X-Ray for the demo, written ahead of time/).waitFor();
+    for (const kind of ["Who's who", "Places", "Terms"]) await dialog.getByRole("button", { name: kind }).waitFor();
+    const bennet = dialog.getByRole("listitem").filter({ has: page.getByText("Mr. Bennet", { exact: true }) });
+    await bennet.getByText(/First met in chapter 1 · \d+ mentions?/).waitFor();
+    // Nobody first met later is listed: Mr. Collins arrives in chapter 13.
+    await expect(dialog.getByText("Mr. Collins", { exact: true }).count()).resolves.toBe(0);
+    await dialog.getByRole("button", { name: "Places" }).click();
+    await dialog.getByText("Netherfield", { exact: true }).waitFor();
+    await dialog.getByText("This chapter").click();
+    await dialog.getByRole("button", { name: "Who's who" }).click();
+    await bennet.getByRole("button", { name: /^Page 1/ }).click();
+    await dialog.waitFor({ state: "hidden" });
+    // The reader's shortcut opens it again.
+    await page.keyboard.press("x");
+    await dialog.getByText(/A sample X-Ray for the demo/).waitFor();
+    expect(await scrollsSideways(page)).toBe(false);
+    expect(errors()).toEqual([]);
+  });
+
+  it("gives a Kids profile X-Ray's names found on the device, with no AI", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /^Mia/ }).click();
+    await page.waitForURL(/\/browse/);
+    await goInApp(page, "/read/alice-in-wonderland");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.getByRole("button", { name: "X-Ray" }).click();
+    const dialog = page.getByRole("dialog", { name: "X-Ray" });
+    await dialog.getByText(/found on this device: no AI/).waitFor();
+    await dialog.getByText("Alice", { exact: true }).waitFor();
+    await expect(dialog.getByText(/Written by AI/).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("says plainly when X-Ray has only sample pages to look through", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/the-midnight-library");
+    await page.getByText(/^Page \d+ of \d+/).first().waitFor();
+    await page.getByRole("button", { name: "X-Ray" }).click();
+    await page.getByRole("dialog", { name: "X-Ray" }).getByText(/We only have sample pages for this book/).waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("opens X-Ray in the player, its mentions opening the reader there", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/frankenstein");
+    await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    await page.getByRole("button", { name: "X-Ray" }).click();
+    const dialog = page.getByRole("dialog", { name: "X-Ray" });
+    await dialog.getByRole("button", { name: "Places" }).click();
+    const geneva = dialog.getByRole("listitem").filter({ has: page.getByText("Geneva", { exact: true }) });
+    await geneva.getByRole("link", { name: /^Chapter 1/ }).click();
+    await page.waitForURL(/\/read\/frankenstein\?chapter=0&page=\d+/);
+    expect(errors()).toEqual([]);
+  });
+
+  it("looks up words in the demo with no backend, and keeps one in My words", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/read/pride-and-prejudice");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    // A word chosen on the page: Define looks it up straight away.
+    await page.evaluate((word) => {
+      const walker = document.createTreeWalker(document.querySelector(".reader-text")!, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const at = node.textContent!.indexOf(word);
+        if (at < 0) continue;
+        const range = document.createRange();
+        range.setStart(node, at);
+        range.setEnd(node, at + word.length);
+        getSelection()!.removeAllRanges();
+        getSelection()!.addRange(range);
+        return;
+      }
+    }, "universally");
+    await page.getByRole("toolbar", { name: "Selected text" }).getByRole("button", { name: "Define" }).click();
+    const dialog = page.getByRole("dialog", { name: "Dictionary" });
+    await dialog.getByText("By everyone, or in every case.").waitFor();
+    await dialog.getByRole("searchbox").fill("fortune");
+    await dialog.getByRole("button", { name: "Look up" }).click();
+    await dialog.getByText("A large amount of money or property.").waitFor();
+    await dialog.getByText("Sample definitions written for the demo.").waitFor();
+    await dialog.getByRole("button", { name: "Keep in My words" }).click();
+    await dialog.getByText(/In My words/).waitFor();
+    // A word the demo's dictionary doesn't have says so, and names one it does.
+    await dialog.getByRole("searchbox").fill("zyzzyva");
+    await dialog.getByRole("button", { name: "Look up" }).click();
+    await dialog.getByRole("alert").getByText(/offline dictionary has only some words/).waitFor();
+    await page.keyboard.press("Escape");
+    await goInApp(page, "/library?view=words");
+    await page.getByText(/^4 words/).waitFor();
+    // The player has the dictionary too.
+    await goInApp(page, "/listen/frankenstein");
+    await page.getByRole("button", { name: "Dictionary" }).click();
+    const player = page.getByRole("dialog", { name: "Dictionary" });
+    await player.getByRole("searchbox").fill("melancholy");
+    await player.getByRole("button", { name: "Look up" }).click();
+    await player.getByText("A deep, lasting sadness.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("exports a Kids profile's notes and journal from My Library, and a book's from the reader", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/profiles");
+    await page.getByRole("button", { name: /^Mia/ }).click();
+    await page.waitForURL(/\/browse/);
+    await goInApp(page, "/library?view=notes");
+    const all = page.getByRole("group", { name: "Export all notes and highlights" });
+    const [markdown] = await Promise.all([page.waitForEvent("download"), all.getByRole("button", { name: "Markdown" }).click()]);
+    const text = readFileSync((await markdown.path())!, "utf8");
+    expect(text).toContain("without pictures or conversations");
+    expect(text).toContain("The White Rabbit has a pocket watch.");
+    // From the reader: the book's highlights and journal, as a PDF.
+    await goInApp(page, "/read/alice-in-wonderland");
+    await page.getByText(/^Page 1 of \d+/).first().waitFor();
+    await page.keyboard.press("n");
+    const notes = page.getByRole("dialog", { name: "Notes and highlights" });
+    const [pdf] = await Promise.all([page.waitForEvent("download"), notes.getByRole("button", { name: "PDF" }).click()]);
+    expect(readFileSync((await pdf.path())!).toString("latin1").startsWith("%PDF-1.4")).toBe(true);
     expect(errors()).toEqual([]);
   });
 
