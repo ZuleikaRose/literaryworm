@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6842, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6845, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, referrals.reward_rule in 6843)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -782,11 +782,12 @@
             ["", "rewarded_at", "timestamptz", true],
             ["", "friend_credit_cents", "integer", true],
             ["", "referrer_credit_cents", "integer", true],
-            ["", "referrer_skipped", "text: staff, no_membership, limit_reached", true],
+            ["", "referrer_skipped", "text: staff, no_membership, limit_reached, already_credited", true],
             ["", "friend_credit_id", "text (Stripe)", true],
             ["", "referrer_credit_id", "text (Stripe)", true],
+            ["", "reward_rule", "text: free_month, percent_20"],
           ],
-          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits a month of each member's plan to their Stripe balance; the inviter earns at most 2 months in all. RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals().",
+          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits 20% of one month of each member's plan to their Stripe balance, the inviter once per account (reward_rule percent_20); referrals rewarded before 2026-11-23 keep free_month (a month each, at most 2 for inviting). RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals().",
         },
         {
           id: "affiliates", color: colors.billing, x: 0, y: 10084, sub: "affiliate program",

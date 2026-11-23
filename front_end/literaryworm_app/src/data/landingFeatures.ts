@@ -65,7 +65,7 @@ export const landingFeatures: LandingFeature[] = [
   {
     icon: "gift",
     title: tk("Gifts, wishlists and invitations"),
-    body: tk("Give months of any plan with books picked, straight from someone's shared wishlist if you like. Invite friends too: when one joins and pays, you each get a month free (up to 2 for you)."),
+    body: tk("Give months of any plan with books picked, straight from someone's shared wishlist if you like. Invite friends too: when one joins and pays, you each get 20% off a month."),
   },
   {
     icon: "bell",

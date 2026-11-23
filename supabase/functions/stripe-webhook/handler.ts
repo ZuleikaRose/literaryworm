@@ -19,8 +19,9 @@
 // step; a first failed attempt also emails the member, email.ts), invoice.created (staff), and charge.dispute.created, charge.refunded and
 // radar.early_fraud_warning.created (kept for the team to review). Everything else is ignored.
 //
-// Refer a friend: an invited member's first paid invoice credits a month of each member's plan to
-// them and to whoever invited them (claim_referral_reward() decides, once; see rewardReferral()).
+// Refer a friend: an invited member's first paid invoice credits 20% of one month of each member's
+// own plan to them and to whoever invited them, the inviter once per account (claim_referral_reward()
+// decides, once; see rewardReferral()). Referrals rewarded before 2026-11-23 kept the free month.
 //
 // Affiliates: a member who signed up with an approved affiliate's code earns that affiliate 20% of
 // their first payment as a balance credit (claim_affiliate_commission() decides, once; see
@@ -53,8 +54,8 @@ export interface Deps {
   deleteDraftInvoice: (invoiceId: string) => Promise<void>;
   /** Refer a friend: claims the invited member's referral once (null when there's nothing to give). */
   claimReferral: (referredId: string) => Promise<ReferralReward | null>;
-  /** Adds a credit to a Stripe customer's balance (taken off their next invoices); returns its id. */
-  creditCustomer: (customerId: string, cents: number, idempotencyKey: string, description: string) => Promise<string>;
+  /** Adds a credit to a Stripe customer's balance (taken off their next invoices), in the currency given (USD by default); returns its id. */
+  creditCustomer: (customerId: string, cents: number, idempotencyKey: string, description: string, currency?: string) => Promise<string>;
   recordReferralCredits: (referralId: string, friendCredit: string, referrerCredit: string | null) => Promise<void>;
   releaseReferral: (referralId: string) => Promise<void>;
   /** Affiliates: claims the referred member's commission once (null when there's nothing to give). */
@@ -74,15 +75,40 @@ export interface AffiliateCommission {
   cents: number;
 }
 
-/** What claim_referral_reward() gives: a month of each member's own plan, in cents. */
+/** Which offer a referral follows (referrals.reward_rule, migration 6843). */
+export type ReferralRule = "free_month" | "percent_20";
+
+/** What claim_referral_reward() gives: under its rule, each member's credit in cents. */
 export interface ReferralReward {
   referralId: string;
   friendCustomer: string;
   friendCents: number;
-  /** Null when the inviter gets nothing for this one (staff, no membership, or 2 months already earned). */
+  /** Null when the inviter gets nothing for this one (staff, no membership, or already credited). */
   referrerCustomer: string | null;
   referrerCents: number | null;
+  /** 'free_month' for a referral rewarded before 2026-11-23's change; 'percent_20' otherwise. */
+  rule: ReferralRule;
+  /** The plan's currency, lower case ("usd"). */
+  currency: string;
 }
+
+/**
+ * Each rule's Stripe idempotency keys and the descriptions members see on their balance. The free
+ * month keeps its old keys, so a claim handed back before the change and retried can't credit twice;
+ * 20% credits have their own.
+ */
+export const REFERRAL_CREDITS: Record<ReferralRule, { key: (id: string, side: "friend" | "referrer") => string; friend: string; referrer: string }> = {
+  free_month: {
+    key: (id, side) => `referral-${id}-${side}`,
+    friend: "A month free: you joined with a friend's invitation",
+    referrer: "A month free: a friend you invited joined",
+  },
+  percent_20: {
+    key: (id, side) => `referral20-${id}-${side}`,
+    friend: "20% off one month: you joined with a friend's invitation",
+    referrer: "20% off one month: a friend you invited joined",
+  },
+};
 
 export interface NewGift {
   sessionId: string;
@@ -157,9 +183,10 @@ async function syncSubscription(deps: Deps, sub: Stripe.Subscription): Promise<v
 }
 
 /**
- * Refer a friend: when an invited member's first payment goes through, a month of their plan is
- * credited to them and a month of the inviter's own plan to the inviter (at most 2 in all for
- * inviting; the database decides). Idempotency keys keep a retried event from crediting twice.
+ * Refer a friend: when an invited member's first payment goes through, 20% of one month of their plan
+ * is credited to them and 20% of one month of the inviter's own plan to the inviter (once per account
+ * for inviting; the database decides, and says which rule applies). Idempotency keys keep a retried
+ * event from crediting twice.
  */
 async function rewardReferral(deps: Deps, customerId: string | null, amountPaid: number): Promise<void> {
   if (!customerId || amountPaid <= 0) return;
@@ -167,11 +194,12 @@ async function rewardReferral(deps: Deps, customerId: string | null, amountPaid:
   if (!userId || (await deps.isStaff(userId))) return;
   const reward = await deps.claimReferral(userId);
   if (!reward) return;
+  const credits = REFERRAL_CREDITS[reward.rule];
   try {
-    const friend = await deps.creditCustomer(reward.friendCustomer, reward.friendCents, `referral-${reward.referralId}-friend`, "A month free: you joined with a friend's invitation");
+    const friend = await deps.creditCustomer(reward.friendCustomer, reward.friendCents, credits.key(reward.referralId, "friend"), credits.friend, reward.currency);
     let referrer: string | null = null;
     if (reward.referrerCustomer && reward.referrerCents) {
-      referrer = await deps.creditCustomer(reward.referrerCustomer, reward.referrerCents, `referral-${reward.referralId}-referrer`, "A month free: a friend you invited joined");
+      referrer = await deps.creditCustomer(reward.referrerCustomer, reward.referrerCents, credits.key(reward.referralId, "referrer"), credits.referrer, reward.currency);
     }
     await deps.recordReferralCredits(reward.referralId, friend, referrer);
   } catch (err) {

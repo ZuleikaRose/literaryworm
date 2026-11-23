@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-23",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Invite a friend: 20% off a month for each of you",
+    "body": "Inviting a friend now earns each of you 20% off one month of your own plan, instead of a free month. When a friend joins with your link and makes their first payment, the credit is added to both accounts and taken off your next bill; on yearly billing a month is a twelfth of the yearly price. You get your credit for inviting once, and every friend you invite gets theirs. Free months you've already earned stay on your account, including any for a friend who joined and paid before this change. See Account → Plan and billing.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-16",
     "version": "2026.11",
     "kind": "feature",

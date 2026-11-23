@@ -87,7 +87,15 @@ Deno.serve((req) =>
       const { data, error } = await serviceClient().rpc("claim_referral_reward", { p_referred: referredId });
       if (error) throw error;
       const row = (data ?? [])[0] as
-        | { referral_id: string; friend_customer: string | null; friend_cents: number | null; referrer_customer: string | null; referrer_cents: number | null }
+        | {
+            referral_id: string;
+            friend_customer: string | null;
+            friend_cents: number | null;
+            referrer_customer: string | null;
+            referrer_cents: number | null;
+            reward_rule?: string | null;
+            currency?: string | null;
+          }
         | undefined;
       if (!row?.friend_customer || !row.friend_cents) return null;
       return {
@@ -96,13 +104,16 @@ Deno.serve((req) =>
         friendCents: row.friend_cents,
         referrerCustomer: row.referrer_customer,
         referrerCents: row.referrer_cents,
+        // Before migration 6843 the function had neither column: that was the free month, in USD.
+        rule: row.reward_rule === "percent_20" ? "percent_20" : "free_month",
+        currency: /^[a-z]{3}$/.test(row.currency ?? "") ? row.currency! : "usd",
       };
     },
-    async creditCustomer(customerId, cents, idempotencyKey, description) {
+    async creditCustomer(customerId, cents, idempotencyKey, description, currency = "usd") {
       // A negative balance is a credit: Stripe takes it off the customer's next invoices.
       const txn = await stripeClient().customers.createBalanceTransaction(
         customerId,
-        { amount: -cents, currency: "usd", description },
+        { amount: -cents, currency, description },
         { idempotencyKey },
       );
       return txn.id;

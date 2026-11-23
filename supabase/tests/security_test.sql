@@ -1026,8 +1026,9 @@ select pg_temp.expect_error('select public.club_calendar_secret()', 'reading the
 reset role;
 reset request.jwt.claims;
 
--- Refer a friend (6657): codes made by my_referral_code() (never for staff, so Ann has none), referrals noted at sign-up, rewards claimed by
--- stripe-webhook only, and at most 2 free months in all for the member who invites.
+-- Refer a friend (6657, 6843): codes made by my_referral_code() (never for staff, so Ann has none), referrals noted at sign-up, rewards claimed by
+-- stripe-webhook only: 20% of one month of each member's own plan, the inviter once per account; a referral rewarded before the change keeps
+-- its free month (reward_rule 'free_month'), up to 2 for inviting.
 reset role;
 reset request.jwt.claims;
 set role authenticated;
@@ -1046,27 +1047,40 @@ select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'friend' || n || '@te
                           'referral_code', case when n = 4 then 'ZZZZZZZZ' else lower((select code from public.referral_codes where account_id = '00000000-0000-0000-0000-00000000000b')) end)
 from generate_series(1, 4) n;
 select pg_temp.check((select count(*) from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b') = 3, 'a sign-up with a code is noted; a code that matches nothing is ignored');
-insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at)
-select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'basic', 1, now() from generate_series(1, 3) n;
+insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at, billing_interval)
+select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'basic', 1, now(), case when n = 2 then 'year' else 'month' end from generate_series(1, 3) n;
 insert into public.stripe_customers (user_id, customer_id)
 select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'cus_friend' || n from generate_series(1, 3) n;
 insert into public.stripe_customers (user_id, customer_id) values ('00000000-0000-0000-0000-00000000000b', 'cus_ben') on conflict (user_id) do nothing;
 insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at) values ('00000000-0000-0000-0000-00000000000b', 'standard', 1, now())
   on conflict (user_id) do update set status = 'active';
+select pg_temp.check((select bool_and(reward_rule = 'percent_20') from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b'), 'new referrals follow the 20% rule');
+-- Friend 3 stands for one rewarded before the change and handed back by a failed Stripe call: it keeps the free month.
+update public.referrals set reward_rule = 'free_month' where referred_id = '00000000-0000-0000-0000-0000000000f3';
 set role service_role;
-select pg_temp.check((select count(*) = 1 and bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter a month each');
+select pg_temp.check((select count(*) = 1
+    and bool_and(friend_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic')
+                 and referrer_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard')
+                 and reward_rule = 'percent_20' and currency = 'usd')
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter 20% of a month of their own plans');
 select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')) = 0, 'a referral is rewarded once');
-select pg_temp.check((select bool_and(referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2')), 'the inviter''s second month');
-select pg_temp.check((select bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents is null) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'no more than 2 free months for inviting, while the friend still gets theirs');
-select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'limit_reached', 'the third is noted as past the limit');
+select pg_temp.check((select bool_and(friend_cents = (select (2 * yearly_price_cents + 60) / 120 from public.plans where id = 'basic') and referrer_cents is null)
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2')), 'a yearly friend gets 20% of a twelfth of the yearly price; the inviter nothing more');
+select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2') = 'already_credited', 'the second is noted as already credited');
+select pg_temp.check((select bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents = (select price_cents from public.plans where id = 'standard') and reward_rule = 'free_month')
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'a free month earned before the change is still a month each');
 reset role;
+select pg_temp.check(private.referral_credit_cents(3000, 30000, 'month') = 600 and private.referral_credit_cents(4000, 40000, 'year') = 667
+  and private.referral_credit_cents(null, null, 'month') is null and private.referral_credit_cents(2, null, 'month') is null, '20% of a month, rounded to the cent');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
-select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 2 from public.my_referrals()), 'the inviter sees their counts');
+select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 1 and waiting = 0
+    and credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard') from public.my_referrals()), 'the inviter sees their counts, their 20% credit and their free month');
 select pg_temp.check((select count(*) from public.referrals) = 0, 'the inviter can''t read who they invited');
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
-select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select price_cents from public.plans where id = 'basic')) from public.referrals), 'an invited member sees their own month');
+select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic') and reward_rule = 'percent_20') from public.referrals), 'an invited member sees their own credit and its rule');
 select pg_temp.expect_error($$select friend_credit_id from public.referrals$$, 'reading Stripe''s credit ids');
+select pg_temp.expect_error($$select referrer_credit_cents from public.referrals$$, 'reading what the inviter was credited');
 reset role;
 reset request.jwt.claim.sub;
 

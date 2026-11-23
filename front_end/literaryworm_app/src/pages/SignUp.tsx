@@ -186,7 +186,7 @@ export default function SignUp() {
             {referralCode && (
               <>
                 {" "}
-                <strong>{t("A friend invited you: after your first payment, a month of your plan is free.")}</strong>
+                <strong>{t("A friend invited you: after your first payment, you get 20% off a month of your plan.")}</strong>
               </>
             )}
             {affiliateCode && (

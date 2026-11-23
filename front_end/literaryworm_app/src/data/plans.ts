@@ -123,7 +123,7 @@ export const planFaqs = [
   },
   {
     q: tk("How does inviting a friend work?"),
-    a: tk("Share your link from Account → Plan and billing. When a friend who's new to LiteraryWorm joins with it and makes their first payment, you each get a month of your own plan free, taken off your next bill.\n\nYou can earn up to 2 free months by inviting friends, and every friend you invite still gets theirs. Staff memberships aren't billed, so they don't take part."),
+    a: tk("Share your link from Account → Plan and billing. When a friend who's new to LiteraryWorm joins with it and makes their first payment, you each get 20% off one month of your own plan, taken off your next bill. On yearly billing, a month is a twelfth of the yearly price.\n\nYou get your credit for inviting once, and every friend you invite gets theirs. Free months earned before November 2026 stay on your account. Staff memberships aren't billed, so they don't take part."),
   },
   {
     q: tk("Can I earn credit by recommending LiteraryWorm?"),
