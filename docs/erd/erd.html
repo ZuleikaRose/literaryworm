@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6845, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, referrals.reward_rule in 6843, its review columns in 160955 and 165931)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6845, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, referrals.reward_rule in 6843, its review columns in 160955 and 165931, referral_write_offs in 174720)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -918,6 +918,21 @@
           note: "One request to connect, until its code is exchanged: 10 minutes to approve, then 5 to exchange. Approving (the member's session and account password, checked by the mcp function) sets user_id and the code's hash together; the code is never stored, and exchanging deletes the row. FK client_id → connected_app_clients, user_id → auth.users, on delete cascade; both indexed. Service role only; expired rows removed hourly.",
         },
         {
+          id: "referral_write_offs", color: colors.billing, x: 840, y: 11800, sub: "refer a friend · audit",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "referral_id", "uuid"],
+            ["", "side", "text: friend, referrer"],
+            ["", "kind", "text: credit, credit_check, reversal, recredit"],
+            ["", "round", "smallint"],
+            ["", "cents", "integer", true],
+            ["", "reason", "text 10-500"],
+            ["", "written_off_by", "uuid (no FK)", true],
+            ["", "written_off_at", "timestamptz"],
+          ],
+          note: "What billing staff chose not to make at Stripe for a held referral side, by whom and why (write_off_referral_side()). That transaction, and what it would undo, are never owed (referral_pending()). Unique (referral_id, side, kind, round), which is the referral_id index. RLS on; no browser access.",
+        },
+        {
           id: "connected_apps", color: colors.server, x: 1260, y: 11900, sub: "apps a member allowed · read-only",
           cols: [
             ["pk", "id", "uuid"],
@@ -1293,6 +1308,7 @@
             ["", "review_referral", "uuid", true],
             ["", "review_referred_user", "uuid", true],
             ["", "review_resolved_at", "timestamptz", true],
+            ["", "review_payload", "jsonb (the event)", true],
           ],
           note: "Each Stripe webhook event once (repeats skipped), written by stripe-webhook after it's handled. Disputes, refunds and fraud warnings need_review; a referral step set aside keeps why and which referral (staff see them through referral_events_to_review() until dismissed). Index: received_at where needs_review. RLS on; no browser access.",
         },
@@ -1416,6 +1432,7 @@
         ["referral_codes", "account_id", "auth.users", "id", "1 : 1"],
         ["referrals", "referrer_id", "auth.users", "id", "N : 1"],
         ["referrals", "referred_id", "auth.users", "id", "1 : 1"],
+        ["referral_write_offs", "referral_id", "referrals", "id", "N : 1"],
         ["reading_sprints", "started_by", "reader_profiles", "id", "N : 1"],
         ["reading_sprint_readers", "sprint_id", "reading_sprints", "id", "N : 1"],
         ["reading_sprint_readers", "profile_id", "reader_profiles", "id", "N : 1"],

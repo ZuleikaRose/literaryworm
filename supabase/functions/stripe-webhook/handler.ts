@@ -294,7 +294,11 @@ async function settleOne(deps: SettleDeps, txn: ReferralTransaction): Promise<vo
   const description = referralDescription(txn);
   const signed = txn.kind === "reversal" ? txn.cents : -txn.cents;
   // A free month made before keys were kept is found by its description and currency, after the referral.
-  const unmarked = txn.rule === "free_month" && credit ? { description, currency: txn.currency, since: txn.createdAt } : undefined;
+  // A 20% credit counts one too: an old-code claim that was handed back may have made it already, and the
+  // friend or inviter then keeps that month instead of getting 20% on top.
+  const unmarked = credit
+    ? { description: referralDescription({ ...txn, rule: "free_month" }), currency: txn.currency, since: txn.createdAt }
+    : undefined;
   const found = await deps.findBalanceTransaction(txn.customer, key, unmarked);
   if (txn.kind === "credit_check") {
     // Taken back before this side's credit was recorded: if it was made, record it so it's taken back too.
@@ -383,6 +387,8 @@ function rewardReferral(deps: Deps, ctx: EventContext, customerId: string | null
 function takeBackReferral(deps: Deps, ctx: EventContext, chargeId: string | null, customerId: string | null, restore: boolean): Promise<void> {
   return setAsideOnRefusal(ctx, async () => {
     if (!chargeId || !(await deps.takeBackPossible(customerId))) return;
+    // Who it's about, from our own database before any Stripe call, so a set-aside names the referral.
+    if (customerId) ctx.referredUserId = (await deps.userForCustomer(customerId)) ?? undefined;
     const charge = await deps.chargeDetails(chargeId);
     if (!charge.customer || !charge.invoiceId || (!customerId && !(await deps.takeBackPossible(charge.customer)))) return;
     const userId = await deps.userForCustomer(charge.customer);
@@ -566,6 +572,16 @@ async function handleEvent(deps: Deps, event: Stripe.Event, ctx: EventContext): 
     default:
       return; // Disputes, refunds and fraud warnings are recorded for review; nothing else is used.
   }
+}
+
+/**
+ * The team's Retry now on a set-aside event (referral-retry): runs this handler on the stored, verified
+ * event again, skipping only the duplicate check. Says whether something was set aside again, and why.
+ */
+export async function replayEvent(deps: Deps, event: Stripe.Event): Promise<{ review: boolean; note: ReviewNote | null }> {
+  const ctx: EventContext = { review: false };
+  await handleEvent(deps, event, ctx);
+  return { review: !!ctx.note, note: ctx.note ?? null };
 }
 
 export async function handle(req: Request, deps: Deps): Promise<Response> {

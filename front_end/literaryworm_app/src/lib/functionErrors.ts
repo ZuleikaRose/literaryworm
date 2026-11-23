@@ -9,6 +9,7 @@ export interface FunctionErrorPayload {
 export interface FunctionErrorWords {
   wrongPassword: string;
   staffOnly: string;
+  stillOwed: string;
   tooMany: string;
 }
 
@@ -17,6 +18,7 @@ export function functionErrorMessage(status: number, payload: FunctionErrorPaylo
   // "forbidden" is only ever a refused account password; a missing staff role is "staff_only".
   if (code === "forbidden") return words.wrongPassword;
   if (code === "staff_only") return words.staffOnly;
+  if (code === "still_owed") return words.stillOwed;
   if (status === 429) return words.tooMany;
   return payload?.error?.message ?? fallback;
 }

@@ -52,6 +52,14 @@ export interface ReferralIo {
   sleep: (ms: number) => Promise<void>;
 }
 
+/** Columns stripe_events has only once migrations 165931 and 174720 are in. */
+export const REVIEW_COLUMNS = ["review_reason", "review_referral", "review_referred_user", "review_payload"];
+
+/** Whether recording an event failed only because the review columns aren't there yet (before the migrations). */
+export function reviewColumnsMissing(error: { code?: string; message?: string } | null): boolean {
+  return !!error && (error.code === "PGRST204" || error.code === "42703") && REVIEW_COLUMNS.some((c) => error.message?.includes(c) ?? false);
+}
+
 const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : v?.id ?? null);
 
 /** Rows from private.referral_pending(), checked. */

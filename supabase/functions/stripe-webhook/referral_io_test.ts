@@ -2,7 +2,7 @@
 // (referral_io.ts) with stubbed clients: error sorting, schema-cache retries and the balance search.
 import { assert, assertEquals, assertRejects } from "jsr:@std/assert@1.0.13";
 import { PermanentFailure, type ReferralTransaction, SetAside } from "./handler.ts";
-import { BALANCE_LOOKBACK, KEY_METADATA, referralDeps, type ReferralIo, SCHEMA_RETRY_MS, stripeCall } from "./referral_io.ts";
+import { BALANCE_LOOKBACK, KEY_METADATA, referralDeps, type ReferralIo, reviewColumnsMissing, SCHEMA_RETRY_MS, stripeCall } from "./referral_io.ts";
 
 const CUSTOMER = "cus_inviter";
 const PAGE = 100;
@@ -227,4 +227,12 @@ Deno.test("what a referral still owes is asked of referral_owed()", async () => 
   const { deps, calls } = setup({ rpc: () => ({ data: [], error: null }) });
   assertEquals(await deps.referralOwed("ref_a"), []);
   assertEquals(calls.rpc[0], ["referral_owed", { p_referral: "ref_a" }]);
+});
+
+Deno.test("before the migrations, a missing review column lets the event be recorded without its note", () => {
+  assertEquals(reviewColumnsMissing({ code: "PGRST204", message: "Could not find the 'review_payload' column of 'stripe_events' in the schema cache" }), true);
+  assertEquals(reviewColumnsMissing({ code: "42703", message: 'column "review_reason" of relation "stripe_events" does not exist' }), true);
+  assertEquals(reviewColumnsMissing({ code: "PGRST204", message: "Could not find the 'other' column" }), false);
+  assertEquals(reviewColumnsMissing({ code: "23505", message: "review_reason" }), false);
+  assertEquals(reviewColumnsMissing(null), false);
 });

@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useId, useState } from "react";
 import { BackLink } from "../components/BackLink";
 import { Icon } from "../components/Icon";
 import { formatMoney } from "../lib/billing";
@@ -12,9 +12,13 @@ import {
   loadDashboard,
   loadParkedReferralCredits,
   loadReferralEventsToReview,
+  loadWaitingReferralRounds,
   type ParkedReferralCredit,
   type ReferralEventToReview,
+  replayReferralEvent,
   retryReferralCredit,
+  type WaitingReferralRound,
+  writeOffReferralSide,
   type StaffDashboard,
 } from "../lib/staffApi";
 import { CANCEL_REASON_LABEL, type SaveOffer } from "../lib/cancelSurvey";
@@ -280,30 +284,36 @@ function CancelReasons({ tries }: { tries: number }) {
 }
 
 /**
- * Refer a friend credits Stripe kept refusing (parked_referral_credits(): held, or cleared and not yet
- * made) and referral events stripe-webhook set aside (referral_events_to_review()). Retry now makes what's
- * still owed at once (referral-retry); a side stays listed until it's settled. See supabase/README.md.
+ * Refer a friend credits Stripe kept refusing (parked_referral_credits(): held, cleared and not yet made,
+ * or owed while an event is open), take-backs and give-backs waiting (waiting_referral_rounds()), and
+ * events stripe-webhook set aside (referral_events_to_review()). Retry now makes what's still owed at
+ * once, or replays a set-aside event, with the webhook's own code (referral-retry); Write off (with a
+ * reason) skips one held side. Nothing leaves the list until it's settled. See supabase/README.md.
  */
 function ParkedReferralCredits({ tries }: { tries: number }) {
   const t = useT();
+  const id = useId();
   const [rows, setRows] = useState<ParkedReferralCredit[] | null>(null);
+  const [waiting, setWaiting] = useState<WaitingReferralRound[] | null>(null);
   const [events, setEvents] = useState<ReferralEventToReview[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [writingOff, setWritingOff] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
   const [reload, setReload] = useState(0);
   useEffect(() => {
     let live = true;
-    Promise.all([loadParkedReferralCredits(), loadReferralEventsToReview()]).then(
-      ([r, e]) => live && (setRows(r), setEvents(e), setError(null)),
+    Promise.all([loadParkedReferralCredits(), loadWaitingReferralRounds(), loadReferralEventsToReview()]).then(
+      ([r, w, e]) => live && (setRows(r), setWaiting(w), setEvents(e), setError(null)),
       (err: Error) => live && setError(err.message),
     );
     return () => {
       live = false;
     };
   }, [tries, reload]);
-  const act = async (id: string, run: () => Promise<string>) => {
-    setBusy(id);
+  const act = async (key: string, run: () => Promise<string>) => {
+    setBusy(key);
     setNotice(null);
     setError(null);
     try {
@@ -318,20 +328,34 @@ function ParkedReferralCredits({ tries }: { tries: number }) {
   const retry = (referralId: string) =>
     act(referralId, async () => {
       const result = await retryReferralCredit(referralId);
+      if (!result.decided) return t("This referral isn't decided yet: use Retry now on its set-aside event.");
       if (result.held) return t("Stripe refused it again, so it's still held. Look at the last error.");
       return result.owed === 0 ? t("Done: nothing more is owed.") : t("Some of it is still owed. Look at the last error.");
+    });
+  const replay = (eventId: string) =>
+    act(eventId, async () => {
+      const result = await replayReferralEvent(eventId);
+      return result.done ? t("Done: the event went through.") : t("Stripe refused it again, so it's still held. Look at the last error.");
     });
   const dismiss = (eventId: string) =>
     act(eventId, async () => {
       await dismissReferralEvent(eventId);
       return t("Taken off the list.");
     });
-  const empty = rows !== null && events !== null && rows.length === 0 && events.length === 0;
-  const retryButton = (referralId: string) => (
-    <button type="button" className="secondary-button small-button" disabled={busy !== null} onClick={() => void retry(referralId)}>
-      {busy === referralId ? t("Retrying…") : t("Retry now")}
+  const writeOff = (referralId: string, side: "friend" | "referrer") =>
+    act(`${referralId}-${side}`, async () => {
+      await writeOffReferralSide(referralId, side, reason);
+      setWritingOff(null);
+      setReason("");
+      return t("Written off.");
+    });
+  const empty = rows !== null && waiting !== null && events !== null && rows.length + waiting.length + events.length === 0;
+  const button = (key: string, label: string, run: () => void) => (
+    <button type="button" className="secondary-button small-button" disabled={busy !== null} onClick={run}>
+      {busy === key ? t("Retrying…") : label}
     </button>
   );
+  const STATE_LABEL = { held: t("Held for review"), retry_requested: t("Retry requested"), event_open: t("Owed while an event is open") };
   return (
     <section className="stats-card dashboard-cancel" aria-labelledby="dash-parked">
       <h2 id="dash-parked">{t("Referral credits held for review")}</h2>
@@ -349,14 +373,46 @@ function ParkedReferralCredits({ tries }: { tries: number }) {
       {empty && <p className="account-sub">{t("Nothing held for review.")}</p>}
       {rows && rows.length > 0 && (
         <ul className="dashboard-list" role="list">
-          {rows.map((r) => (
-            <li key={`${r.referralId}-${r.side}`}>
-              <strong>{r.side === "friend" ? t("Invited friend") : t("Inviter")}</strong>{" "}
-              <code>{r.referralId}</code>
-              {r.cents != null && <> · {formatMoney(r.cents, r.currency.toUpperCase())}</>}
-              {r.failedAt && <> · {new Date(r.failedAt).toLocaleString(dateLocale())}</>}
-              {r.state === "retry_requested" && <> · {t("Retry requested")}</>}
-              {r.lastError && <span className="dashboard-note"> · {r.lastError}</span>} {retryButton(r.referralId)}
+          {rows.map((r) => {
+            const key = `${r.referralId}-${r.side}`;
+            return (
+              <li key={key}>
+                <strong>{r.side === "friend" ? t("Invited friend") : t("Inviter")}</strong> <code>{r.referralId}</code>
+                {r.cents != null && <> · {formatMoney(r.cents, r.currency.toUpperCase())}</>}
+                {r.failedAt && <> · {new Date(r.failedAt).toLocaleString(dateLocale())}</>} · {STATE_LABEL[r.state]}
+                {r.lastError && <span className="dashboard-note"> · {r.lastError}</span>} {button(r.referralId, t("Retry now"), () => void retry(r.referralId))}{" "}
+                {r.state === "held" && writingOff !== key && button(key, t("Write off"), () => (setWritingOff(key), setReason("")))}
+                {writingOff === key && (
+                  <form
+                    className="goal-actions"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void writeOff(r.referralId, r.side);
+                    }}
+                  >
+                    <label className="field-label" htmlFor={`${id}-${key}`}>
+                      {t("Why (kept with the write-off)")}
+                    </label>
+                    <input id={`${id}-${key}`} className="field-input" required minLength={10} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
+                    <button type="submit" className="primary-button small-button" disabled={busy !== null}>
+                      {t("Write off")}
+                    </button>
+                    <button type="button" className="secondary-button small-button" onClick={() => setWritingOff(null)}>
+                      {t("Cancel")}
+                    </button>
+                  </form>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {waiting && waiting.length > 0 && (
+        <ul className="dashboard-list" role="list" aria-label={t("Waiting take-backs and give-backs")}>
+          {waiting.map((w) => (
+            <li key={`${w.referralId}-${w.kind}`}>
+              <strong>{w.kind === "take_back" ? t("Take-back waiting") : t("Give-back waiting")}</strong> <code>{w.referralId}</code> · {new Date(w.since).toLocaleString(dateLocale())}
+              {w.heldSides && <span className="dashboard-note"> · {t("held up by: {sides}", { sides: w.heldSides.split(", ").map((side) => (side === "friend" ? t("Invited friend") : t("Inviter"))).join(", ") })}</span>} {button(w.referralId, t("Retry now"), () => void retry(w.referralId))}
             </li>
           ))}
         </ul>
@@ -372,7 +428,7 @@ function ParkedReferralCredits({ tries }: { tries: number }) {
                   · <code>{e.referralId}</code>
                 </>
               )}
-              <span className="dashboard-note"> · {e.reason}</span> {e.referralId && retryButton(e.referralId)}{" "}
+              <span className="dashboard-note"> · {e.reason}</span> {button(e.eventId, t("Retry now"), () => void replay(e.eventId))}{" "}
               <button type="button" className="secondary-button small-button" disabled={busy !== null} onClick={() => void dismiss(e.eventId)}>
                 {t("Dismiss")}
               </button>

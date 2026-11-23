@@ -529,6 +529,7 @@ export async function callFunction<T>(name: string, body: Record<string, unknown
       functionErrorMessage(res.status, payload, fallback, {
         wrongPassword: "That isn't the account password.",
         staffOnly: tr("Only billing staff can retry referral credits."),
+        stillOwed: tr("Something is still owed for this referral: use Retry now, or Write off a held side."),
         tooMany: "Too many tries in a short time. Wait a minute, then try again.",
       }),
     );

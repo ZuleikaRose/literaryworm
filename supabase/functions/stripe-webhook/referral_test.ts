@@ -3,7 +3,7 @@
 // what's still owed), and Stripe a model of customer balances with idempotency keys that expire after a day.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import type { Stripe } from "../_shared/stripe.ts";
-import { type Deps, handle, PermanentFailure, retryReferral, type ReferralRule, type ReferralTransaction, referralKey, SetAside } from "./handler.ts";
+import { type Deps, handle, PermanentFailure, replayEvent, retryReferral, type ReferralRule, type ReferralTransaction, referralKey, SetAside } from "./handler.ts";
 
 const FRIEND = "00000000-0000-0000-0000-0000000000f1";
 const FRIEND_CUSTOMER = "cus_friend";
@@ -127,7 +127,7 @@ function world(first: Stripe.Event, options: Options = {}) {
     failRecord: 0,
     /** The database functions aren't there yet (PGRST202 even after the wait). */
     missing: false,
-    handled: [] as { id: string; review: boolean; reason?: string; referralId?: string | null }[],
+    handled: [] as { id: string; review: boolean; reason?: string; referralId?: string | null; referredUserId?: string | null }[],
     affiliatePaid: 0,
     /** Run once, just before a transaction is recorded (another event landing in between). */
     beforeRecord: null as null | (() => Promise<void>),
@@ -184,7 +184,7 @@ function world(first: Stripe.Event, options: Options = {}) {
     verify: (_body, signature) => (signature === "good" ? Promise.resolve(ev) : Promise.reject(new Error("bad"))),
     alreadyHandled: () => Promise.resolve(false),
     markHandled: (e, review, note) => {
-      db.handled.push({ id: e.id, review, reason: note?.reason, referralId: note?.referralId });
+      db.handled.push({ id: e.id, review, reason: note?.reason, referralId: note?.referralId, referredUserId: note?.referredUserId });
       return Promise.resolve();
     },
     userForCustomer: (c) => Promise.resolve(c === FRIEND_CUSTOMER ? FRIEND : c === STRANGER_CUSTOMER ? "stranger" : null),
@@ -767,4 +767,40 @@ Deno.test("an affiliate credit the old code made without a key is found by descr
   before.stripe.oldAffiliate.push({ id: "cbtxn_other_amount", amount: -AFFILIATE_CENTS - 1, description: AFFILIATE_DESCRIPTION, created: "2026-11-03T00:00:00.000Z" });
   assertEquals(await before.run(), 200);
   assertEquals(before.db.affiliatePaid, 1);
+});
+
+// Replaying a set-aside event; an old free month counts for a 20% credit --------------------------
+
+Deno.test("a refund set aside (Stripe refused the key) is replayed once fixed: taken back once, and it names the friend", async () => {
+  const w = world(paid());
+  await w.run();
+  w.stripe.refuse = true;
+  w.stripe.charges.get(FIRST_CHARGE)!.refunded = true;
+  const refund = refunded(FIRST_CHARGE, true);
+  assertEquals(await w.run(refund), 200);
+  const last = w.db.handled.at(-1)!;
+  assertEquals([last.review, last.referredUserId !== null && last.referredUserId !== undefined], [true, true]);
+  assertEquals([w.balance(FRIEND_CUSTOMER), w.balance(INVITER_CUSTOMER)], [-FRIEND_CENTS, -INVITER_CENTS]);
+  w.stripe.refuse = false;
+  assertEquals(await replayEvent(w.deps, refund), { review: false, note: null });
+  assertEquals([w.balance(FRIEND_CUSTOMER), w.balance(INVITER_CUSTOMER)], [0, 0]);
+  // Replayed again by mistake: nothing more.
+  await replayEvent(w.deps, refund);
+  assertEquals([w.balance(FRIEND_CUSTOMER), w.balance(INVITER_CUSTOMER)], [0, 0]);
+});
+
+Deno.test("a replay that's refused again says so", async () => {
+  const w = world(paid());
+  w.stripe.refuse = true;
+  await w.run();
+  const replay = await replayEvent(w.deps, paid());
+  assertEquals([replay.review, replay.note?.reason?.startsWith("Stripe refused the key")], [true, true]);
+});
+
+Deno.test("an old-code free month already made for this referral is kept instead of adding 20% on top", async () => {
+  const w = world(paid());
+  w.stripe.txns.push({ id: "cbtxn_old_month", customer: FRIEND_CUSTOMER, amount: -FREE_MONTH_FRIEND_CENTS, currency: "usd", key: null, description: "A month free: you joined with a friend's invitation" });
+  await w.run();
+  assertEquals(w.row.sides.friend.credit, "cbtxn_old_month");
+  assertEquals(w.stripe.txns.filter((t) => t.customer === FRIEND_CUSTOMER).length, 1);
 });
