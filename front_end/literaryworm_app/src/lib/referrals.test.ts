@@ -246,6 +246,12 @@ describe("refer a friend: the inviter's credit on Account", () => {
     expect(inviterCredit(null, 1, true)).toBe("pending");
   });
 
+  it("says when the credit was taken back, even with friends still to pay", () => {
+    expect(inviterCredit(null, 0, true, true)).toBe("taken_back");
+    expect(inviterCredit(null, 2, false, true)).toBe("taken_back");
+    expect(inviterCredit(800, 0, true, true)).toBe("earned");
+  });
+
   it("needs a paid plan when the member has none while a friend is still to pay", () => {
     expect(inviterCredit(null, 1, false)).toBe("needs_plan");
     expect(inviterCredit(600, 1, false)).toBe("earned");

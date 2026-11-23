@@ -153,14 +153,16 @@ export const refundTakesBack = (rule: ReferralRule, chargeFullyRefunded: boolean
   rule === "percent_20" && chargeFullyRefunded && Boolean(chargeInvoice) && chargeInvoice === firstInvoice;
 
 /** Where the inviter's one 20% credit stands, for Account. */
-export type InviterCredit = "earned" | "pending" | "needs_plan" | "none";
+export type InviterCredit = "earned" | "taken_back" | "pending" | "needs_plan" | "none";
 
 /**
- * Earned once it's added; while a friend who signed up hasn't paid yet, pending, or needs_plan when the
- * member has no paid plan now (the credit goes only to an inviter with one when the friend pays).
+ * Earned once it's added; taken_back when the friend's first payment was fully refunded or disputed (the
+ * one credit is then used up); while a friend who signed up hasn't paid yet, pending, or needs_plan when
+ * the member has no paid plan now (the credit goes only to an inviter with one when the friend pays).
  */
-export function inviterCredit(creditCents: number | null | undefined, waiting: number | null | undefined, hasPaidPlan = true): InviterCredit {
+export function inviterCredit(creditCents: number | null | undefined, waiting: number | null | undefined, hasPaidPlan = true, takenBack = false): InviterCredit {
   if (positive(creditCents)) return "earned";
+  if (takenBack) return "taken_back";
   if (!positive(waiting)) return "none";
   return hasPaidPlan ? "pending" : "needs_plan";
 }

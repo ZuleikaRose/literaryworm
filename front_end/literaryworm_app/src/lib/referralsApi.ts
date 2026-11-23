@@ -23,6 +23,8 @@ export interface ReferralStatus {
   waiting: number;
   /** Whether the member has a paid plan now (the 20% goes only to an inviter with one when the friend pays). */
   hasPaidPlan: boolean;
+  /** Whether the member's 20% credit was taken back (the friend's first payment fully refunded or disputed). */
+  creditTakenBack: boolean;
   /** When this member joined with someone's invitation: which offer, whether their own credit was added, and whether it was taken back. */
   invited: { rule: ReferralRule; rewarded: boolean; creditCents: number | null; reversed: boolean } | null;
 }
@@ -34,6 +36,7 @@ interface CountsRow {
   credit_cents?: number | null;
   waiting?: number | null;
   has_paid_plan?: boolean | null;
+  credit_taken_back?: boolean | null;
 }
 
 interface OwnRow {
@@ -61,6 +64,7 @@ export async function loadReferrals(): Promise<ReferralStatus> {
     creditCents: c.credit_cents ?? null,
     waiting: c.waiting ?? Math.max(0, c.signed_up - c.rewarded),
     hasPaidPlan: c.has_paid_plan ?? true,
+    creditTakenBack: c.credit_taken_back ?? false,
     invited: mine
       ? {
           rule: mine.reward_rule ?? "percent_20",
