@@ -14,7 +14,8 @@ const vercel = JSON.parse(read("vercel.json")) as VercelConfig;
 const robots = read("public/robots.txt");
 const sitemapUrls = [...read("public/sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 const sitemapPaths = new Set(sitemapUrls.map((url) => new URL(url).pathname));
-const SHELL = "/shell.html";
+// shell.html, by its clean address (cleanUrls: a rewrite to "/shell.html" finds nothing).
+const SHELL = "/shell";
 
 /** The Disallow rules robots.txt gives every crawler (User-agent: *), as patterns. */
 function disallowedForAll(): RegExp[] {
@@ -98,7 +99,7 @@ describe("vercel.json routing", () => {
   });
 
   it("answers 404 for addresses the app doesn't have, instead of a copy of Home", () => {
-    for (const path of ["/nope", "/books/dune/extra", "/wp-login.php", "/index.php", "/shell", "/legal"]) {
+    for (const path of ["/nope", "/books/dune/extra", "/wp-login.php", "/index.php", "/legal"]) {
       expect(rewriteFor(vercel, path)).toBeNull();
     }
   });

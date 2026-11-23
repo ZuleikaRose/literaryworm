@@ -223,7 +223,7 @@ export function fileFor(path: string): string {
   return `${decodeURIComponent(path.replace(/^\//, ""))}.html`;
 }
 
-/** The app's page for every other address the app answers (vercel.json rewrites to it). */
+/** The app's page for every other address the app answers (vercel.json rewrites to it as /shell, its clean address). */
 export const SHELL_FILE = "shell.html";
 /** What Vercel serves, with a 404, for an address the app doesn't have. */
 export const NOT_FOUND_FILE = "404.html";

@@ -44,23 +44,23 @@
     },
     {
       "source": "/:page(pricing|signin|signup|reset-password|whats-new|affiliates|unsubscribe|search|profiles|gifts|browse|library|account|dashboard|support|maintenance)",
-      "destination": "/shell.html"
+      "destination": "/shell"
     },
     {
       "source": "/:section(legal|books|authors|narrators|series|clips|readers|lists|clubs|read|listen)/:id",
-      "destination": "/shell.html"
+      "destination": "/shell"
     },
     {
       "source": "/clubs/join/:code",
-      "destination": "/shell.html"
+      "destination": "/shell"
     },
     {
       "source": "/oauth/consent",
-      "destination": "/shell.html"
+      "destination": "/shell"
     },
     {
       "source": "/affiliates/review",
-      "destination": "/shell.html"
+      "destination": "/shell"
     }
   ],
   "headers": [
