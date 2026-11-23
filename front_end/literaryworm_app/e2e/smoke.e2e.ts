@@ -391,6 +391,36 @@ describe("search engines", () => {
     await page.waitForFunction(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href.endsWith("/search"));
     expect(errors()).toEqual([]);
   });
+
+  it("serves each public page's own title and one canonical in its HTML, before any JavaScript runs", async () => {
+    const canonicals = (html: string) => [...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1]);
+    const title = (html: string) => html.match(/<title>([^<]*)<\/title>/)?.[1];
+    const pages = [
+      ["/pricing?plan=premium", "https://www.literaryworm.com/pricing", "Pricing · LiteraryWorm"],
+      ["/books/dune", "https://www.literaryworm.com/books/dune", "Dune by Frank Herbert · LiteraryWorm"],
+      ["/legal/terms/", "https://www.literaryworm.com/legal/terms", "Terms of Service · LiteraryWorm"],
+      ["/series/Aunt%20Jane's%20Nieces", "https://www.literaryworm.com/series/Aunt%20Jane%27s%20Nieces", "Aunt Jane's Nieces (series) · LiteraryWorm"],
+    ] as const;
+    for (const [path, canonical, name] of pages) {
+      const html = await (await fetch(`${BASE_URL}${path}`)).text();
+      expect([path, canonicals(html), title(html)]).toEqual([path, [canonical], name]);
+    }
+    // Members' pages get the app with no canonical of their own: it sets one once it runs.
+    expect(canonicals(await (await fetch(`${BASE_URL}/library`)).text())).toEqual([]);
+  });
+
+  it("keeps the built data out of the running page, and a missing page out of search results", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/books/dune`);
+    await page.getByRole("heading", { level: 1, name: "Dune" }).waitFor();
+    expect(await page.evaluate(() => document.querySelectorAll("script[data-prerendered]").length)).toBe(0);
+    expect(await page.title()).toBe("Dune by Frank Herbert · LiteraryWorm");
+    await page.goto(`${BASE_URL}/no-such-page`);
+    await page.getByRole("heading", { level: 1 }).first().waitFor();
+    await page.waitForFunction(() => document.querySelector('meta[name="robots"]')?.getAttribute("content") === "noindex");
+    await expect(page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)).resolves.toBe("https://www.literaryworm.com/no-such-page");
+    expect(errors()).toEqual([]);
+  });
 });
 
 describe("the demo household", () => {

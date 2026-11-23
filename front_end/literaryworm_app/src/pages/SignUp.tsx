@@ -2,7 +2,7 @@ import { cleanReferralCode } from "../lib/referrals";
 import { cleanAffiliateCode } from "../lib/affiliates";
 import { recordAffiliateClick } from "../lib/affiliatesApi";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { HOME_CRUMB, pageData } from "../lib/seo";
+import { SIGNUP_DESCRIPTION, signupPageNode } from "../lib/publicPages";
 import { StructuredData } from "../components/StructuredData";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCard } from "../components/AuthCard";
@@ -28,7 +28,7 @@ const today = new Date().toISOString().slice(0, 10);
 
 export default function SignUp() {
   const t = useT();
-  useTitle(t("Create your account"));
+  useTitle(t("Create your account"), SIGNUP_DESCRIPTION);
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -169,7 +169,7 @@ export default function SignUp() {
     <>
       <StructuredData
         id="page"
-        data={pageData({ path: "/signup", name: "Create your account", crumbs: [HOME_CRUMB, { name: "Create your account", path: "/signup" }] })}
+        data={signupPageNode()}
       />
       <AuthCard
         eyebrow={t("Join LiteraryWorm")}

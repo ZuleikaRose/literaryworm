@@ -10,7 +10,8 @@ import { OfflineBook } from "../components/OfflineBook";
 import { RemindMe } from "../components/RemindMe";
 import { MoodPicker } from "../components/MoodPicker";
 import { StructuredData } from "../components/StructuredData";
-import { bookData, bookRef, type Crumb, HOME_CRUMB, pageData } from "../lib/seo";
+import { bookData, bookRef } from "../lib/seo";
+import { bookDescription, bookPageNode, bookTitle } from "../lib/publicPages";
 import { BuddyReadButton } from "../components/BuddyReadButton";
 import { ContentNotes } from "../components/ContentNotes";
 import { Dialog } from "../components/Dialog";
@@ -182,22 +183,19 @@ function DetailCover({ view }: { view: DetailView }) {
 
 /** A book page's own node: an ItemPage about the book, with the trail through its series if it has one. */
 function bookPageData(view: DetailView) {
-  const path = `/books/${encodeURIComponent(view.id)}`;
-  const crumbs: Crumb[] = [HOME_CRUMB];
-  const place = view.local?.source === "literaryworm" ? seriesPlace(view.id) : null;
-  if (place) crumbs.push({ name: place.series.name, path: seriesPath(place.series.name) });
-  crumbs.push({ name: view.title, path });
-  const mainEntity =
-    view.local?.source === "literaryworm"
-      ? bookRef(view.id)
-      : { "@type": "Book", name: view.title, ...(view.authors.length ? { author: view.authors.map((name) => ({ "@type": "Person", name })) } : {}) };
-  return pageData({ type: "ItemPage", path, name: view.title, crumbs, mainEntity });
+  const inCatalog = view.local?.source === "literaryworm";
+  const mainEntity = inCatalog
+    ? bookRef(view.id)
+    : { "@type": "Book", name: view.title, ...(view.authors.length ? { author: view.authors.map((name) => ({ "@type": "Person", name })) } : {}) };
+  return bookPageNode({ id: view.id, title: view.title, mainEntity, inCatalog });
 }
 
 type Pending = { kind: "remove" } | { kind: "deleteLog"; log: ReadingLog } | null;
 
 function DetailPage({ view }: { view: DetailView }) {
-  useTitle(view.title);
+  // A catalog book's page has the title and description it's built with (lib/publicPages.ts).
+  const catalogBook = view.local && !view.local.upload ? view.local : null;
+  useTitle(catalogBook ? bookTitle(catalogBook) : view.title, catalogBook ? bookDescription(catalogBook) : undefined);
   const t = useT();
   const { state, dispatch } = useStore();
   const profile = useActiveProfile();

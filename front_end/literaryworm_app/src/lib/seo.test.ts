@@ -124,4 +124,18 @@ describe("canonicalUrl", () => {
     expect(canonicalUrl("/books/pride-and-prejudice")).toBe("https://www.literaryworm.com/books/pride-and-prejudice");
     expect(canonicalUrl("/authors/Jane%20Austen")).toBe("https://www.literaryworm.com/authors/Jane%20Austen");
   });
+
+  it("spells each part of the path one way, however it came", () => {
+    const AUNT_JANE = "https://www.literaryworm.com/series/Aunt%20Jane%27s%20Nieces";
+    expect(canonicalUrl("/series/Aunt%20Jane's%20Nieces")).toBe(AUNT_JANE);
+    expect(canonicalUrl("/series/Aunt Jane's Nieces")).toBe(AUNT_JANE);
+    expect(canonicalUrl("/series/Aunt%20Jane%27s%20Nieces/")).toBe(AUNT_JANE);
+    expect(canonicalUrl("/authors/Jane%20Austen//")).toBe("https://www.literaryworm.com/authors/Jane%20Austen");
+  });
+
+  it("keeps a part that isn't valid percent-encoding as it is, and treats an empty path as Home", () => {
+    expect(canonicalUrl("/authors/100%")).toBe("https://www.literaryworm.com/authors/100%");
+    expect(canonicalUrl("")).toBe("https://www.literaryworm.com/");
+    expect(canonicalUrl("///")).toBe("https://www.literaryworm.com/");
+  });
 });

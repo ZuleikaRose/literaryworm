@@ -1,4 +1,6 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "redirects": [
     {
       "source": "/book/:id",
@@ -41,8 +43,24 @@
       "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/storage/v1/object/public/book-texts/:file"
     },
     {
-      "source": "/((?!\\.well-known/)(?!.*\\.(?:json|txt|xml|mp3|png|jpe?g|webp|gif|svg|ico|js|mjs|css|map|webmanifest|pdf|woff2?|ttf)$).*)",
-      "destination": "/index.html"
+      "source": "/:page(pricing|signin|signup|reset-password|whats-new|affiliates|unsubscribe|search|profiles|gifts|browse|library|account|dashboard|support|maintenance)",
+      "destination": "/shell.html"
+    },
+    {
+      "source": "/:section(legal|books|authors|narrators|series|clips|readers|lists|clubs|read|listen)/:id",
+      "destination": "/shell.html"
+    },
+    {
+      "source": "/clubs/join/:code",
+      "destination": "/shell.html"
+    },
+    {
+      "source": "/oauth/consent",
+      "destination": "/shell.html"
+    },
+    {
+      "source": "/affiliates/review",
+      "destination": "/shell.html"
     }
   ],
   "headers": [
@@ -69,7 +87,7 @@
       ]
     },
     {
-      "source": "/:page(pricing|whats-new|search|signup|signin|affiliates)",
+      "source": "/:page(pricing|whats-new|search|signup|affiliates)",
       "headers": [
         {
           "key": "Link",
@@ -78,11 +96,143 @@
       ]
     },
     {
-      "source": "/:section(books|series|authors|narrators|legal|readers)/:name",
+      "source": "/:section(books|authors|narrators|readers)/:name",
       "headers": [
         {
           "key": "Link",
           "value": "<https://www.literaryworm.com/:section/:name>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/:page(signin|reset-password|unsubscribe|profiles|gifts|browse|library|account|dashboard|support|maintenance)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/:section(read|listen|clubs|lists|clips|oauth)/:rest*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/affiliates/review",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "q"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "by"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "genre"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "sort"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "source"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "query",
+          "key": "length"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
         }
       ]
     }

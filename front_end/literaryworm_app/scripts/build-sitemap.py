@@ -2,7 +2,8 @@
 """Writes public/sitemap.xml: the pages anyone can open without logging in.
 
 The home page, Plans, What's new, Search, Sign up and the affiliate program; the footer pages (src/data/legalPages.json);
-every catalog book page (src/data/books.ts) and series page (src/data/series.ts). Members-only
+every catalog book page (src/data/books.ts) and series page (src/data/series.ts, and books' own `series`).
+Each is built as its own HTML file (src/lib/publicPages.ts; publicPages.test.ts checks the two lists match). Members-only
 pages are left out (robots.txt disallows them). Run it after adding titles, series or footer pages:
 
     python3 scripts/build-sitemap.py
@@ -30,7 +31,8 @@ def ids(path: Path, pattern: str) -> list[str]:
 
 def main() -> None:
     books = ids(APP / "src/data/books.ts", r'^    id: "([^"]+)",$')
-    series = ids(APP / "src/data/series.ts", r'name: "([^"]+)"')
+    # The curated series, then those named by a book's own `series` (lib/series.ts merges them the same way).
+    series = list(dict.fromkeys(ids(APP / "src/data/series.ts", r'name: "([^"]+)"') + ids(APP / "src/data/books.ts", r'series: \{ name: "([^"]+)"')))
     pages = json.loads((APP / "src/data/legalPages.json").read_text(encoding="utf-8"))
     legal = [page["slug"] for page in pages]
     # Each footer page's lastmod is the day its text last changed (its "updated").

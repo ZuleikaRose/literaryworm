@@ -8,7 +8,8 @@ import { StructuredData } from "../components/StructuredData";
 import { AccountError, choosePlan, listOfflineDevices, loadAccount, planFields } from "../lib/accountApi";
 import { CANCEL_NOTICE_HOURS, endDate, longDate, nextBillingDate, oneYearAfter, ordinal } from "../lib/billing";
 import { profilesInUse, tooBigFor } from "../lib/planLimits";
-import { faqData, membershipData, plansDescription, HOME_CRUMB, MEMBERSHIP_ID, pageData } from "../lib/seo";
+import { faqData, membershipData, plansDescription } from "../lib/seo";
+import { pricingPageNode } from "../lib/publicPages";
 import { useTitle } from "../lib/useTitle";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
@@ -545,13 +546,7 @@ export default function Plans() {
 
       <StructuredData
         id="page"
-        data={pageData({
-          path: "/pricing",
-          name: "Pricing",
-          description: plansDescription(),
-          crumbs: [HOME_CRUMB, { name: "Pricing", path: "/pricing" }],
-          mainEntity: { "@id": MEMBERSHIP_ID },
-        })}
+        data={pricingPageNode()}
       />
       <StructuredData id="membership" data={membershipData()} />
       <StructuredData id="faq" data={faqData(planFaqs)} />

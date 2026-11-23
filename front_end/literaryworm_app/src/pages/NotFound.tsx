@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
+import { useNoindex } from "../lib/useNoindex";
 import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
 import { useStore } from "../store/context";
@@ -7,6 +8,7 @@ import { useStore } from "../store/context";
 export default function NotFound() {
   const t = useT();
   useTitle(t("Page not found"));
+  useNoindex();
   const { state } = useStore();
   const home = state.activeProfileId ? "/browse" : "/";
   return (

@@ -1,10 +1,11 @@
 import { useEffect } from "react";
+import { documentTitle } from "./publicPages";
 import { siteDescription } from "./seo";
 
 /** Sets the tab title, so screen-reader users hear where they landed, and the page's description for search results. */
 export function useTitle(title: string, description?: string) {
   useEffect(() => {
-    document.title = title ? `${title} · LiteraryWorm` : "LiteraryWorm";
+    document.title = documentTitle(title);
   }, [title]);
   useEffect(() => {
     if (!description) return;

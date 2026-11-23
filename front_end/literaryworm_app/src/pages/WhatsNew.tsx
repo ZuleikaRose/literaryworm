@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
-import { HOME_CRUMB, pageData } from "../lib/seo";
+import { WHATS_NEW_DESCRIPTION, whatsNewPageNode } from "../lib/publicPages";
 import { StructuredData } from "../components/StructuredData";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -47,7 +47,7 @@ const message = (err: unknown) => (err instanceof AccountError ? err.message : t
  */
 export default function WhatsNew() {
   const t = useT();
-  useTitle(t("What's new"));
+  useTitle(t("What's new"), WHATS_NEW_DESCRIPTION);
   const { state } = useStore();
   const roles = useStaffRoles();
   const canEdit = hasRole(roles, "editor") || hasRole(roles, "developer");
@@ -85,18 +85,7 @@ export default function WhatsNew() {
     <article className="page whats-new">
       <StructuredData
         id="page"
-        data={pageData({
-          type: "CollectionPage",
-          path: "/whats-new",
-          name: "What's new",
-          description: "Every new feature, fix and update on LiteraryWorm, newest first.",
-          crumbs: [HOME_CRUMB, { name: "What's new", path: "/whats-new" }],
-          dateModified: entries[0]?.releasedOn,
-          mainEntity: {
-            "@type": "ItemList",
-            itemListElement: entries.slice(0, 10).map((e, i) => ({ "@type": "ListItem", position: i + 1, name: e.title })),
-          },
-        })}
+        data={whatsNewPageNode(entries)}
       />
       <h1 ref={headingRef} tabIndex={-1}>
         {t("What's new")}

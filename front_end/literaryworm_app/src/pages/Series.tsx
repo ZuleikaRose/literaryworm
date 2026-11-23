@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
-import { absoluteUrl, HOME_CRUMB, pageData, seriesData } from "../lib/seo";
+import { seriesData } from "../lib/seo";
+import { seriesDescription, seriesPageNode } from "../lib/publicPages";
 import { StructuredData } from "../components/StructuredData";
 import { BackLink } from "../components/BackLink";
 import { Cover } from "../components/Cover";
@@ -23,10 +24,10 @@ export default function Series() {
 
 function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
   const t = useT();
-  useTitle(t("{name} (series)", { name }));
   const profile = useActiveProfile();
   const ageRating = profile?.ageRating ?? "all";
   const titles = seriesBooks({ name, ids }, ageRating);
+  useTitle(t("{name} (series)", { name }), seriesDescription(name, titles));
   const authors = [...new Set(titles.map((b) => b.author))];
   const { state } = useStore();
   const library = useLibrary();
@@ -53,13 +54,7 @@ function SeriesPage({ name, ids }: { name: string; ids: string[] }) {
     <div className="page-content series-page">
       <StructuredData
         id="page"
-        data={pageData({
-          type: "CollectionPage",
-          path: seriesPath(name),
-          name: `${name} (series)`,
-          crumbs: [HOME_CRUMB, { name, path: seriesPath(name) }],
-          mainEntity: { "@id": `${absoluteUrl(seriesPath(name))}#series` },
-        })}
+        data={seriesPageNode(name)}
       />
       <StructuredData id="series" data={seriesData(name, seriesPath(name), titles)} />
       <BackLink />

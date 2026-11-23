@@ -13,11 +13,22 @@ export const SITE_URL = "https://www.literaryworm.com";
 /**
  * A page's one address for search engines (`<link rel="canonical">`, set by components/Canonical.tsx):
  * the site's own host, the path without a trailing slash, and no query, so Home's ?genre= views, a
- * search's ?q= and invitation links (?ref=, ?aff=) all count as the page they're on.
+ * search's ?q= and invitation links (?ref=, ?aff=) all count as the page they're on. Each part of the path
+ * is spelled one way, percent-encoding all but letters, digits and "-._~" (as the sitemap does), so
+ * `/series/Aunt%20Jane's%20Nieces` (the app's links) and `/series/Aunt%20Jane%27s%20Nieces` are one page.
  */
 export function canonicalUrl(pathname: string): string {
-  const path = pathname.replace(/\/+$/, "") || "/";
+  const path = pathname.replace(/\/+$/, "").split("/").map(normalSegment).join("/") || "/";
   return `${SITE_URL}${path}`;
+}
+
+function normalSegment(segment: string): string {
+  try {
+    return encodeURIComponent(decodeURIComponent(segment)).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+  } catch {
+    // Not valid percent-encoding: keep it as it came.
+    return segment;
+  }
 }
 export const LOGO_URL = `${SITE_URL}/icons/icon-512.png`;
 export const SUPPORT_EMAIL = "support@literaryworm.com";
@@ -153,8 +164,11 @@ export function bookData(book: Pick<Book, "id" | "title" | "author" | "year" | "
   };
 }
 
-/** An address on the site, absolute. */
-export const absoluteUrl = (path: string) => (path === "/" ? `${SITE_URL}/` : `${SITE_URL}${path}`);
+/** An address on the site, absolute, its path spelled as canonicalUrl() spells it (a query, such as a search's, is kept). */
+export function absoluteUrl(path: string): string {
+  const at = path.indexOf("?");
+  return at < 0 ? canonicalUrl(path) : `${canonicalUrl(path.slice(0, at))}${path.slice(at)}`;
+}
 
 /** One step of a page's breadcrumb trail: its name and path. */
 export interface Crumb {

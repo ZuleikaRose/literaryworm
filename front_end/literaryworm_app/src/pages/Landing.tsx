@@ -17,7 +17,8 @@ import { formatPrice, planFaqs, plans } from "../data/plans";
 import { StructuredData } from "../components/StructuredData";
 import { genreOrderAfter, genreQuery, genresAfter, VISITOR_SAMPLE } from "../lib/feedChain";
 import { useBookFeed } from "../lib/useBookFeed";
-import { faqData, membershipData, siteDescription, pageData } from "../lib/seo";
+import { faqData, membershipData, siteDescription } from "../lib/seo";
+import { HOME_TITLE, homePageNode } from "../lib/publicPages";
 import { useTitle } from "../lib/useTitle";
 import { rich, tk, dateLocale } from "../lib/i18n";
 import { useT } from "../lib/useT";
@@ -34,7 +35,7 @@ const household: { name: string; avatar: number; rating: AgeRating; note: string
 export default function Landing() {
   const t = useT();
   const genreIds = useBrowseGenres().map((g) => g.id);
-  useTitle(t("Read and listen in one place"), siteDescription());
+  useTitle(t(HOME_TITLE), siteDescription());
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const freeTitles = books.filter((b) => b.publicDomain && b.featured).concat(books.filter((b) => b.publicDomain && !b.featured)).slice(0, 6);
@@ -250,7 +251,7 @@ export default function Landing() {
           </ul>
         </section>
 
-        <StructuredData id="page" data={pageData({ path: "/", name: "LiteraryWorm: read and listen in one place", description: siteDescription() })} />
+        <StructuredData id="page" data={homePageNode()} />
         <StructuredData id="membership" data={membershipData()} />
         <StructuredData id="faq" data={faqData(planFaqs)} />
         <section className="faq" aria-labelledby="landing-faq-title">

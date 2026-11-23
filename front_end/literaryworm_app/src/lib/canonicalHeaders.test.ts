@@ -2,53 +2,47 @@ import { describe, expect, it } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { canonicalUrl } from "./seo";
+import { headerValues, type VercelConfig } from "./vercelRoutes";
 
 /**
- * Every route is served the same index.html, so without JavaScript every public page looks alike
- * and Google reports "Duplicate without user-selected canonical". vercel.json sends each public page's
- * canonical as an HTTP `Link` header, which Google reads before rendering. These checks keep those
- * rules in step with the sitemap and with canonicalUrl() (what components/Canonical.tsx sets).
+ * Pages in the sitemap are built with their own canonical link (publicPages.test.ts). vercel.json
+ * also sends a canonical as an HTTP `Link` header for public pages that can't all be built ahead
+ * (Google Books titles, authors, narrators, readers), which Google reads before rendering. These
+ * checks keep those headers in step with canonicalUrl() (what components/Canonical.tsx sets), so a
+ * page never gets two different canonicals.
  */
-type HeaderRule = { source: string; headers: { key: string; value: string }[] };
-const vercel = JSON.parse(readFileSync(join(__dirname, "../../vercel.json"), "utf8")) as {
-  headers: HeaderRule[];
-  redirects?: { source: string; destination: string; permanent: boolean }[];
-};
+const vercel = JSON.parse(readFileSync(join(__dirname, "../../vercel.json"), "utf8")) as VercelConfig;
 const sitemap = readFileSync(join(__dirname, "../../public/sitemap.xml"), "utf8");
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+const MIN_SITEMAP_URLS = 100;
 
-/** The two shapes the rules use: `:name(a|b)` and `:name` (one path segment), as Vercel reads them. */
-function compile(source: string): RegExp {
-  const pattern = source
-    .replace(/:(\w+)\(([^)]+)\)/g, "(?<$1>$2)")
-    .replace(/:(\w+)(?![\w(])/g, "(?<$1>[^/]+?)");
-  return new RegExp(`^${pattern}$`);
-}
-
-/** The canonical the headers give a path, or every one when more than one rule matches. */
-function canonicalHeaders(path: string): string[] {
-  return vercel.headers.flatMap((rule) => {
-    const match = path.match(compile(rule.source));
-    if (!match) return [];
-    return rule.headers
-      .filter((h) => h.key === "Link")
-      .map((h) => h.value.replace(/:(\w+)/g, (all, name: string) => match.groups?.[name] ?? all));
-  });
-}
+const canonicalHeaders = (path: string) => headerValues(vercel, path, "Link");
+const linkFor = (path: string) => `<${canonicalUrl(path)}>; rel="canonical"`;
 
 describe("canonical Link headers (vercel.json)", () => {
-  it("give every page in the sitemap exactly one canonical: its own address", () => {
-    expect(sitemapUrls.length).toBeGreaterThan(100);
+  it("never give a page in the sitemap a canonical other than its own address, nor more than one", () => {
+    expect(sitemapUrls.length).toBeGreaterThan(MIN_SITEMAP_URLS);
     const wrong = sitemapUrls.filter((url) => {
-      const path = new URL(url).pathname;
-      const headers = canonicalHeaders(path);
-      return headers.length !== 1 || headers[0] !== `<${canonicalUrl(path)}>; rel="canonical"` || canonicalUrl(path) !== url;
+      const headers = canonicalHeaders(new URL(url).pathname);
+      return headers.length > 1 || headers.some((h) => h !== `<${url}>; rel="canonical"`);
     });
     expect(wrong).toEqual([]);
   });
 
-  it("leave members-only routes and files alone", () => {
-    for (const path of ["/library", "/account", "/read/dune", "/listen/dune", "/clubs/abc", "/sitemap.xml", "/assets/index.js"]) {
+  it("give public pages that aren't built ahead their own address", () => {
+    for (const path of ["/books/zyTCAlFPjgYC", "/authors/Jane%20Austen", "/narrators/Karen%20Savage", "/readers/abc123"]) {
+      expect(canonicalHeaders(path)).toEqual([linkFor(path)]);
+    }
+  });
+
+  it("give the top pages theirs, Home included", () => {
+    for (const path of ["/", "/pricing", "/whats-new", "/search", "/signup", "/affiliates"]) {
+      expect(canonicalHeaders(path)).toEqual([linkFor(path)]);
+    }
+  });
+
+  it("leave members-only routes, logging in and files alone", () => {
+    for (const path of ["/library", "/account", "/signin", "/read/dune", "/listen/dune", "/clubs/abc", "/sitemap.xml", "/assets/index.js"]) {
       expect(canonicalHeaders(path)).toEqual([]);
     }
   });

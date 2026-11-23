@@ -1,25 +1,15 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { canonicalUrl } from "../lib/seo";
+import { applyCanonical } from "../lib/canonical";
 
 /**
- * Keeps `<link rel="canonical">` and og:url on the page you're on (lib/seo.ts canonicalUrl()). Set here
- * rather than in index.html, which every route is served: a fixed tag there would point every page
- * at the home page for crawlers that don't run the app. For those, vercel.json sends the same address
- * as an HTTP `Link: <…>; rel="canonical"` header on every public page (canonicalHeaders.test.ts).
+ * Keeps `<link rel="canonical">` and og:url on the page you're on (lib/seo.ts canonicalUrl()). The
+ * pages in the sitemap are built with theirs (lib/publicPages.ts); every other address is served
+ * shell.html, which has none, so main.tsx sets them before the app first draws and this follows
+ * each move. vercel.json also sends public pages' canonical as an HTTP `Link` header.
  */
 export function Canonical() {
   const { pathname } = useLocation();
-  useEffect(() => {
-    const href = canonicalUrl(pathname);
-    let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "canonical";
-      document.head.appendChild(link);
-    }
-    link.href = href;
-    document.querySelector('meta[property="og:url"]')?.setAttribute("content", href);
-  }, [pathname]);
+  useEffect(() => applyCanonical(pathname), [pathname]);
   return null;
 }

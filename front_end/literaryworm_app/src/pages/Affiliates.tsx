@@ -6,14 +6,13 @@ import { StructuredData } from "../components/StructuredData";
 import { formatPrice } from "../data/plans";
 import { affiliateLink, type Application, applicationErrors, CHANNELS_MAX, statusLabel } from "../lib/affiliates";
 import { applyAffiliate, DEMO_AFFILIATE, loadMyAffiliate, type MyAffiliate } from "../lib/affiliatesApi";
-import { HOME_CRUMB, pageData } from "../lib/seo";
+import { AFFILIATES_DESCRIPTION, affiliatesPageNode } from "../lib/publicPages";
 import { hasRole } from "../lib/staff";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
 import { useStore } from "../store/context";
 
-const DESCRIPTION = "Recommend LiteraryWorm and earn 20% of each referred member's first payment as credit on your own membership.";
 
 /**
  * /affiliates (public): the affiliate program (stories 82–84). Members apply here and, once
@@ -22,7 +21,7 @@ const DESCRIPTION = "Recommend LiteraryWorm and earn 20% of each referred member
  */
 export default function Affiliates() {
   const t = useT();
-  useTitle(t("Affiliate program"), DESCRIPTION);
+  useTitle(t("Affiliate program"), AFFILIATES_DESCRIPTION);
   const { state } = useStore();
   const account = state.account;
   const roles = useStaffRoles();
@@ -32,12 +31,7 @@ export default function Affiliates() {
     <article className="page affiliates-page">
       <StructuredData
         id="page"
-        data={pageData({
-          path: "/affiliates",
-          name: "Affiliate program",
-          description: DESCRIPTION,
-          crumbs: [HOME_CRUMB, { name: "Affiliate program", path: "/affiliates" }],
-        })}
+        data={affiliatesPageNode()}
       />
       <p className="eyebrow">{t("Affiliate program")}</p>
       <h1>{t("Recommend LiteraryWorm, earn account credit")}</h1>

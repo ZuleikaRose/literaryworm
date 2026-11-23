@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { HOME_CRUMB, pageData } from "../lib/seo";
+import { legalDescription, legalPageNode } from "../lib/publicPages";
 import { StructuredData } from "../components/StructuredData";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -25,7 +25,7 @@ export default function Legal() {
   const [saved, setSaved] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const t = useT();
-  useTitle(page?.title ?? "");
+  useTitle(page?.title ?? "", page ? legalDescription(page) : undefined);
   if (!page) return <NotFound />;
 
   return (
@@ -33,13 +33,7 @@ export default function Legal() {
     <article className="page legal-page" lang="en">
       <StructuredData
         id="page"
-        data={pageData({
-          path: `/legal/${page.slug}`,
-          name: page.title,
-          description: page.summary || undefined,
-          dateModified: page.updated,
-          crumbs: [HOME_CRUMB, { name: page.title, path: `/legal/${page.slug}` }],
-        })}
+        data={legalPageNode(page)}
       />
       <h1 ref={heading} tabIndex={-1}>
         {page.title}

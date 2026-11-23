@@ -6,6 +6,7 @@ import { registerServiceWorker } from "./lib/offline";
 // Listens for the browser's install offer before anything renders.
 import "./lib/installApp";
 import { PlaybackProvider } from "./components/PlaybackProvider";
+import { applyCanonical } from "./lib/canonical";
 import { StoreProvider } from "./store/StoreProvider";
 // OpenDyslexic for the accessibility menu and the reader (self-hosted; fetched only when shown).
 import "@fontsource/opendyslexic/400.css";
@@ -28,6 +29,12 @@ import "./styles/study.css";
 import "./styles/modern.css";
 
 registerServiceWorker();
+
+// A page built ahead (lib/publicPages.ts) carries its own structured data for crawlers that don't run
+// the app; the page adds the same through StructuredData, so drop the built copy. The canonical link is
+// set now, before the first draw, for addresses served the shell without one.
+document.querySelectorAll("script[data-prerendered]").forEach((script) => script.remove());
+applyCanonical(window.location.pathname);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,5 +1,7 @@
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { HOME_CRUMB, pageData } from "../lib/seo";
+import { SEARCH_DESCRIPTION, searchPageNode } from "../lib/publicPages";
+import { useNoindex } from "../lib/useNoindex";
 import { StructuredData } from "../components/StructuredData";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BookCard } from "../components/BookCard";
@@ -55,7 +57,9 @@ export default function Search() {
   const invalid = search.q ? queryError(search.q, search.by) : null;
   const searching = Boolean(search.q) && !invalid;
   const t = useT();
-  useTitle(searching ? `“${search.q}”` : t("Search"));
+  useTitle(searching ? `“${search.q}”` : t("Search"), searching ? undefined : SEARCH_DESCRIPTION);
+  // A search's results are never indexed: only /search itself is (lib/publicPages.ts).
+  useNoindex(searching);
 
   return (
     <div className="search-page page-content">
@@ -63,12 +67,16 @@ export default function Search() {
       <SearchHeader key={`${search.by}|${search.q}`} search={search} serverError={invalid} />
       <StructuredData
         id="page"
-        data={pageData({
-          type: searching ? "SearchResultsPage" : "WebPage",
-          path: searching ? searchUrl(search) : "/search",
-          name: searching ? `Search results for “${search.q}”` : "Search",
-          crumbs: [HOME_CRUMB, { name: "Search", path: "/search" }],
-        })}
+        data={
+          searching
+            ? pageData({
+                type: "SearchResultsPage",
+                path: searchUrl(search),
+                name: `Search results for “${search.q}”`,
+                crumbs: [HOME_CRUMB, { name: "Search", path: "/search" }],
+              })
+            : searchPageNode()
+        }
       />
       {searching ? <Results search={search} /> : <StartHere />}
       <WhatsNewLink />
