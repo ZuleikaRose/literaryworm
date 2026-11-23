@@ -3,7 +3,7 @@
 // what's still owed), and Stripe a model of customer balances with idempotency keys that expire after a day.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import type { Stripe } from "../_shared/stripe.ts";
-import { type Deps, handle, type ReferralRule, type ReferralTransaction, referralKey, SetAside } from "./handler.ts";
+import { type Deps, handle, PermanentFailure, type ReferralRule, type ReferralTransaction, referralKey, SetAside } from "./handler.ts";
 
 const FRIEND = "00000000-0000-0000-0000-0000000000f1";
 const FRIEND_CUSTOMER = "cus_friend";
@@ -25,6 +25,7 @@ const AFFILIATE_CENTS = 600;
 const DAY_MS = 86_400_000;
 const IDEMPOTENCY_KEY_LIFETIME_MS = DAY_MS;
 const FAILURES_BEFORE_REVIEW = 5;
+const REFERRAL_MADE_AT = "2026-11-01T00:00:00.000Z";
 const ALL_RECORD_TRIES = 3;
 
 type Side = "friend" | "referrer";
@@ -100,7 +101,12 @@ function world(first: Stripe.Event, options: Options = {}) {
     now: 0,
     txns: [] as Txn[],
     keys: new Map<string, { at: number; id: string }>(),
+    affiliateKeys: new Map<string, { at: number; id: string }>(),
+    affiliateMade: new Map<string, string>(),
+    /** Keys Stripe refuses for good (a 4xx such as a deleted customer). */
     fail: new Set<string>(),
+    /** Keys Stripe fails for now (5xx, network, 409, 429). */
+    transient: new Set<string>(),
     /** Stripe refuses our key (missing rights) for every call. */
     refuse: false,
     calls: 0,
@@ -118,6 +124,9 @@ function world(first: Stripe.Event, options: Options = {}) {
     affiliatePaid: 0,
     /** Run once, just before a transaction is recorded (another event landing in between). */
     beforeRecord: null as null | (() => Promise<void>),
+    lastError: null as string | null,
+    affiliateRecordFails: 0,
+    affiliateReleased: 0,
   };
 
   const pending = (): ReferralTransaction[] => {
@@ -132,7 +141,7 @@ function world(first: Stripe.Event, options: Options = {}) {
       else if (row.reversed && !s.credit && s.checkedRound < row.round) kind = "credit_check";
       else if (row.reversed && s.credit && !s.reversal) kind = "reversal";
       else if (!row.reversed && row.round > 0 && s.reversal && !s.recredit) kind = "recredit";
-      if (kind) out.push({ referralId: REFERRAL, side: name, kind, round: row.round, customer: s.customer, cents: s.cents, currency: s.currency, rule: row.rule });
+      if (kind) out.push({ referralId: REFERRAL, side: name, kind, round: row.round, customer: s.customer, cents: s.cents, currency: s.currency, rule: row.rule, createdAt: REFERRAL_MADE_AT });
     }
     return out;
   };
@@ -204,14 +213,19 @@ function world(first: Stripe.Event, options: Options = {}) {
     takeBackPossible: (customer) => Promise.resolve(row.decided && row.rule === "percent_20" && (customer === null || customer === FRIEND_CUSTOMER)),
     findBalanceTransaction: (customer, key, unmarked) => {
       stripeGate();
+      if (customer === "cus_aff") return Promise.resolve(stripe.affiliateMade.get(key) ?? null);
       const marked = stripe.txns.find((t) => t.customer === customer && t.key === key);
       if (marked) return Promise.resolve(marked.id);
-      const old = unmarked ? stripe.txns.find((t) => t.customer === customer && !t.key && t.amount === unmarked.amountCents && t.description === unmarked.description) : undefined;
+      const recorded = new Set(Object.values(row.sides).flatMap((x) => [x.credit, x.reversal, x.recredit]));
+      const old = unmarked
+        ? stripe.txns.find((t) => t.customer === customer && !t.key && t.currency === unmarked.currency && t.description === unmarked.description && !recorded.has(t.id))
+        : undefined;
       return Promise.resolve(old?.id ?? null);
     },
     adjustBalance: (customer, amount, currency, key, description) => {
       stripeGate();
-      if (stripe.fail.has(key)) return Promise.reject(new Error("stripe down"));
+      if (stripe.fail.has(key)) return Promise.reject(new PermanentFailure("Stripe 400: no such customer"));
+      if (stripe.transient.has(key)) return Promise.reject(new Error("Stripe 503"));
       const used = stripe.keys.get(key);
       if (used && stripe.now - used.at < IDEMPOTENCY_KEY_LIFETIME_MS) return Promise.resolve(used.id);
       const id = `cbtxn_${stripe.txns.length + 1}`;
@@ -240,8 +254,9 @@ function world(first: Stripe.Event, options: Options = {}) {
       s.checkedRound = Math.max(s.checkedRound, txn.round);
       return Promise.resolve();
     },
-    noteReferralFailure: (txn) => {
+    noteReferralFailure: (txn, message) => {
       const s = row.sides[txn.side];
+      db.lastError = message;
       s.failures += 1;
       s.needsReview ||= s.failures >= FAILURES_BEFORE_REVIEW;
       return Promise.resolve(s.needsReview);
@@ -250,13 +265,28 @@ function world(first: Stripe.Event, options: Options = {}) {
       stripeGate();
       return Promise.resolve(stripe.charges.get(chargeId) ?? { customer: null, refunded: false, invoiceId: null });
     },
-    creditCustomer: () => {
+    creditCustomer: (_customer, _cents, key) => {
+      // The affiliate's balance, kept apart from the referral sides; keys last a day, as at Stripe.
+      const used = stripe.affiliateKeys.get(key);
+      if (used && stripe.now - used.at < IDEMPOTENCY_KEY_LIFETIME_MS) return Promise.resolve(used.id);
       db.affiliatePaid += 1;
-      return Promise.resolve(`cbtxn_aff_${db.affiliatePaid}`);
+      const id = `cbtxn_aff_${db.affiliatePaid}`;
+      stripe.affiliateKeys.set(key, { at: stripe.now, id });
+      stripe.affiliateMade.set(key, id);
+      return Promise.resolve(id);
     },
     claimAffiliate: () => Promise.resolve({ referralId: "aff_1", affiliateCustomer: "cus_aff", cents: AFFILIATE_CENTS }),
-    recordAffiliateCredit: () => Promise.resolve(),
-    releaseAffiliate: () => Promise.resolve(),
+    recordAffiliateCredit: () => {
+      if (db.affiliateRecordFails > 0) {
+        db.affiliateRecordFails -= 1;
+        return Promise.reject(new Error("db down"));
+      }
+      return Promise.resolve();
+    },
+    releaseAffiliate: () => {
+      db.affiliateReleased += 1;
+      return Promise.resolve();
+    },
     notifyPaymentFailed: () => Promise.resolve(),
     addVoicePack: () => Promise.resolve(),
   };
@@ -313,7 +343,7 @@ Deno.test("a free month is credited as a free month, with its old keys", async (
   );
 });
 
-Deno.test("a free month made before keys were kept is found by amount and description, never made again", async () => {
+Deno.test("a free month made before keys were kept is found by description and currency, never made again", async () => {
   const w = world(paid(), { rule: "free_month" });
   w.stripe.txns.push({ id: "cbtxn_old", customer: FRIEND_CUSTOMER, amount: -FREE_MONTH_FRIEND_CENTS, currency: "usd", key: null, description: "A month free: you joined with a friend's invitation" });
   w.stripe.now += 2 * DAY_MS;
@@ -387,6 +417,38 @@ Deno.test("a side that keeps failing is set aside for review after 5 tries, and 
   assertEquals(w.stripe.txns.map((t) => t.key), [keyOf("friend")]);
 });
 
+Deno.test("temporary Stripe failures are never counted: the side is never set aside, and Stripe retries", async () => {
+  const w = world(paid());
+  w.stripe.transient.add(keyOf("referrer"));
+  const MANY_RETRIES = 3 * FAILURES_BEFORE_REVIEW;
+  for (let attempt = 0; attempt < MANY_RETRIES; attempt++) assertEquals(await w.run(), 500);
+  assertEquals([w.row.sides.referrer.failures, w.row.sides.referrer.needsReview], [0, false]);
+  w.stripe.transient.clear();
+  assertEquals(await w.run(), 200);
+  assertEquals(w.row.sides.referrer.credit, "cbtxn_2");
+});
+
+Deno.test("a permanent failure's message is kept for the team", async () => {
+  const w = world(paid());
+  w.stripe.fail.add(keyOf("referrer"));
+  await w.run();
+  assertEquals(w.db.lastError, "Stripe 400: no such customer");
+});
+
+Deno.test("a late retry of an affiliate commission finds it at Stripe instead of paying it twice", async () => {
+  const w = world(paid(FIRST_INVOICE, 0));
+  w.db.affiliateRecordFails = 1;
+  const affiliateEvent = paid();
+  w.row.decided = true; // Nothing to do for the referral here.
+  w.row.sides.friend.credit = "cbtxn_x";
+  w.row.sides.referrer.credit = "cbtxn_y";
+  assertEquals(await w.run(affiliateEvent), 500);
+  assertEquals(w.db.affiliateReleased, 1);
+  w.stripe.now += 2 * DAY_MS;
+  assertEquals(await w.run(affiliateEvent), 200);
+  assertEquals(w.db.affiliatePaid, 1);
+});
+
 Deno.test("a failing referral doesn't stop the affiliate's commission", async () => {
   const w = world(paid());
   w.stripe.fail.add(keyOf("referrer"));
@@ -399,7 +461,8 @@ Deno.test("Stripe refusing our key sets the referral aside for review instead of
   w.stripe.refuse = true;
   assertEquals(await w.run(), 200);
   assertEquals(lastReview(w), true);
-  assertEquals(w.db.affiliatePaid, 1);
+  // The affiliate's commission needs the same key: handed back for the team, not paid.
+  assertEquals([w.db.affiliatePaid, w.db.affiliateReleased], [0, 1]);
 });
 
 Deno.test("while the database functions aren't there yet, the referral is set aside for review", async () => {

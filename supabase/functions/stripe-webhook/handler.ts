@@ -69,17 +69,18 @@ export interface Deps {
   /**
    * A balance transaction already made with this key (kept in its metadata), so an expired idempotency key
    * can't make it twice. `unmarked` also matches one without the key in its metadata (free months made
-   * before keys were kept) by its amount and description.
+   * before keys were kept) by its description and currency, made after the referral and not recorded on
+   * any referral yet (the oldest such).
    */
-  findBalanceTransaction: (customerId: string, key: string, unmarked?: { amountCents: number; description: string }) => Promise<string | null>;
+  findBalanceTransaction: (customerId: string, key: string, unmarked?: { description: string; currency: string; since: string | null }) => Promise<string | null>;
   /** Adds to a Stripe customer's balance: negative is a credit, positive is owed on the next invoice; returns its id. */
   adjustBalance: (customerId: string, amountCents: number, currency: string, key: string, description: string) => Promise<string>;
   /** Records one referral transaction the moment it's made (record_referral_transaction()). */
   recordReferralTransaction: (txn: ReferralTransaction, transactionId: string) => Promise<void>;
   /** Notes that a side's unrecorded credit was looked for at Stripe this round and isn't there. */
   recordReferralCheck: (txn: ReferralTransaction) => Promise<void>;
-  /** Counts a side's failure; true once it's set aside for review (5 in a row). */
-  noteReferralFailure: (txn: ReferralTransaction) => Promise<boolean>;
+  /** Counts a side's permanent failure, with its message; true once it's set aside for review (5 in a row). */
+  noteReferralFailure: (txn: ReferralTransaction, message: string) => Promise<boolean>;
   /** A charge's customer, whether it's fully refunded, and the invoice it paid (null for a payment that isn't an invoice's). */
   chargeDetails: (chargeId: string) => Promise<{ customer: string | null; refunded: boolean; invoiceId: string | null }>;
   /** Adds a USD credit to a Stripe customer's balance (taken off their next invoices), its key in the metadata; returns its id. */
@@ -110,6 +111,13 @@ export type ReferralRule = "free_month" | "percent_20";
  */
 export class SetAside extends Error {}
 
+/**
+ * A Stripe answer that won't change by retrying (a 4xx other than 401/403, 409 or 429, such as a deleted
+ * customer), or a transaction already recorded elsewhere. Counted towards setting the side aside; any
+ * other failure (5xx, network, 409, 429, our database) is temporary and never counted.
+ */
+export class PermanentFailure extends Error {}
+
 /** One Stripe balance transaction a referral still needs (private.referral_pending()). */
 export interface ReferralTransaction {
   referralId: string;
@@ -126,6 +134,8 @@ export interface ReferralTransaction {
   /** The side's own plan currency, lower case. */
   currency: string;
   rule: ReferralRule;
+  /** When the referral was made (ISO): an old free month without a key is only looked for after it. */
+  createdAt: string | null;
 }
 
 /** The Stripe idempotency key (also kept in the transaction's metadata) for one referral transaction. */
@@ -259,8 +269,8 @@ async function settleOne(deps: Deps, txn: ReferralTransaction): Promise<void> {
   const key = referralKey(txn);
   const description = referralDescription(txn);
   const signed = txn.kind === "reversal" ? txn.cents : -txn.cents;
-  // A free month made before keys were kept is found by its amount and description.
-  const unmarked = txn.rule === "free_month" && credit ? { amountCents: signed, description } : undefined;
+  // A free month made before keys were kept is found by its description and currency, after the referral.
+  const unmarked = txn.rule === "free_month" && credit ? { description, currency: txn.currency, since: txn.createdAt } : undefined;
   const found = await deps.findBalanceTransaction(txn.customer, key, unmarked);
   if (txn.kind === "credit_check") {
     // Taken back before this side's credit was recorded: if it was made, record it so it's taken back too.
@@ -274,10 +284,10 @@ async function settleOne(deps: Deps, txn: ReferralTransaction): Promise<void> {
 /**
  * Makes every referral transaction still owed, one side at a time, then asks the database again (a
  * credit recorded during a take-back is then owed a reversal, a give-back waits for the take-back to be
- * recorded), up to SETTLE_PASSES times. A side that fails is counted: after 5 in a row it's set aside
- * for review and skipped, so it can't hold up the friend's later events; until then the failure is
- * thrown so Stripe retries, and the retry makes only what's still missing. A SetAside failure (Stripe
- * refused our key) is kept for review at once.
+ * recorded), up to SETTLE_PASSES times. Only permanent failures are counted: after 5 in a row the side
+ * is set aside for review and skipped, so it can't hold up the friend's later events; until then, and
+ * for any temporary failure, the failure is thrown so Stripe retries, and the retry makes only what's
+ * still missing. A SetAside failure (Stripe refused our key) is kept for review at once.
  */
 async function settleReferral(deps: Deps, ctx: EventContext, fetch: () => Promise<ReferralTransaction[]>): Promise<void> {
   for (let pass = 0; pass < SETTLE_PASSES; pass++) {
@@ -290,11 +300,19 @@ async function settleReferral(deps: Deps, ctx: EventContext, fetch: () => Promis
         await settleOne(deps, txn);
         progress = true;
       } catch (err) {
-        const setAside = await deps.noteReferralFailure(txn).catch(() => false);
-        if (err instanceof SetAside || setAside) {
-          console.error(`stripe-webhook: referral ${txn.referralId} ${txn.side} ${txn.kind} set aside for review`, err);
+        if (err instanceof SetAside) {
+          // Our key or our database isn't ready: the event is kept for review; nothing is counted.
+          console.error(`stripe-webhook: referral ${txn.referralId} ${txn.side} ${txn.kind} set aside`, err);
           ctx.review = true;
+        } else if (err instanceof PermanentFailure) {
+          // Counted (with its message, kept on the referral row, so the team sees it even if this event
+          // fails for another reason); the 5th in a row sets the side aside, and a retry then skips it.
+          const parked = await deps.noteReferralFailure(txn, err.message);
+          console.error(`stripe-webhook: referral ${txn.referralId} ${txn.side} ${txn.kind} failed${parked ? ", set aside for review" : ""}`, err);
+          if (parked) ctx.review = true;
+          else failures.push(err);
         } else {
+          // Temporary (Stripe 5xx, network, 409, 429, our database): not counted; Stripe retries the event.
           failures.push(err);
         }
       }
@@ -365,13 +383,12 @@ async function rewardAffiliate(deps: Deps, customerId: string | null, amountPaid
   if (!userId) return;
   const commission = await deps.claimAffiliate(userId, amountPaid);
   if (!commission) return;
+  const key = `affiliate-${commission.referralId}`;
   try {
-    const credit = await deps.creditCustomer(
-      commission.affiliateCustomer,
-      commission.cents,
-      `affiliate-${commission.referralId}`,
-      "Affiliate commission: 20% of a referred member's first payment",
-    );
+    // A late retry (its idempotency key expired after a day) finds the commission already paid by its key.
+    const credit =
+      (await deps.findBalanceTransaction(commission.affiliateCustomer, key)) ??
+      (await deps.creditCustomer(commission.affiliateCustomer, commission.cents, key, "Affiliate commission: 20% of a referred member's first payment"));
     await deps.recordAffiliateCredit(commission.referralId, credit);
   } catch (err) {
     await deps.releaseAffiliate(commission.referralId);
@@ -465,7 +482,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event, ctx: EventContext): 
         // Each runs even if the other fails.
         await each(
           () => rewardReferral(deps, ctx, idOf(sub.customer), session.amount_total ?? 0, idOf(session.invoice)),
-          () => rewardAffiliate(deps, idOf(sub.customer), session.amount_total ?? 0),
+          () => setAsideOnRefusal(ctx, () => rewardAffiliate(deps, idOf(sub.customer), session.amount_total ?? 0)),
         );
       }
       return;
@@ -490,7 +507,7 @@ async function handleEvent(deps: Deps, event: Stripe.Event, ctx: EventContext): 
         const invoice = event.data.object;
         await each(
           () => rewardReferral(deps, ctx, idOf(invoice.customer), invoice.amount_paid ?? 0, invoice.id ?? null),
-          () => rewardAffiliate(deps, idOf(invoice.customer), invoice.amount_paid ?? 0),
+          () => setAsideOnRefusal(ctx, () => rewardAffiliate(deps, idOf(invoice.customer), invoice.amount_paid ?? 0)),
         );
       }
       return;
