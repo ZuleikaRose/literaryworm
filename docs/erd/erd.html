@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6845, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, referrals.reward_rule in 6843)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6845, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, referrals.reward_rule in 6843, its review columns in 160955)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -795,8 +795,13 @@
             ["", "referrer_reversal_id", "text (Stripe)", true],
             ["", "friend_recredit_id", "text (Stripe)", true],
             ["", "referrer_recredit_id", "text (Stripe)", true],
+            ["", "friend_failures / referrer_failures", "smallint"],
+            ["", "friend_needs_review / referrer_needs_review", "boolean"],
+            ["", "friend_checked_round / referrer_checked_round", "smallint"],
+            ["", "friend_last_error / referrer_last_error", "text", true],
+            ["", "friend_failed_at / referrer_failed_at", "timestamptz", true],
           ],
-          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits 20% of one month of each member's plan to their Stripe balance, the inviter once per account (reward_rule percent_20), each Stripe transaction recorded per side as it's made; a full refund or dispute of the first invoice takes both back (reversal ids), a won dispute adds them again (recredit ids); referrals rewarded before 2026-11-23 keep free_month (a month each, at most 2 for inviting). RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals().",
+          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits 20% of one month of each member's plan to their Stripe balance, the inviter once per account (reward_rule percent_20), each Stripe transaction recorded per side as it's made; a full refund or dispute of the first invoice takes both back (reversal ids), a won dispute adds them again (recredit ids); credit ids are unique, and a side Stripe refuses for good 5 times is held for review (needs_review, last error, staff see them through parked_referral_credits()); referrals rewarded before 2026-11-23 keep free_month (a month each, at most 2 for inviting). RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals(), the friend their invitation through my_invitation().",
         },
         {
           id: "affiliates", color: colors.billing, x: 0, y: 10084, sub: "affiliate program",

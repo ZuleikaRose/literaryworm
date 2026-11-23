@@ -309,7 +309,8 @@ begin
   if exists (
     select 1 from public.referrals r
     where p_txn in (r.friend_credit_id, r.referrer_credit_id, r.friend_reversal_id, r.referrer_reversal_id, r.friend_recredit_id, r.referrer_recredit_id)
-      and not (r.id = p_referral and p_txn = case
+      -- (the same id again in its own slot is a repeat, not a reuse; an empty slot never matches)
+      and not (r.id = p_referral and p_txn is not distinct from case
         when p_kind = 'credit' and p_side = 'friend' then r.friend_credit_id
         when p_kind = 'credit' then r.referrer_credit_id
         when p_kind = 'reversal' and p_side = 'friend' then r.friend_reversal_id
@@ -484,7 +485,9 @@ as $$
   with mine as (select * from public.referrals r where r.referrer_id = (select auth.uid()) and public.second_step_done()),
   credit as (
     select x.referrer_credit_cents as cents,
-           case when x.referrer_credit_id is not null then 'added' when x.referrer_needs_review then 'parked' else 'adding' end as state
+           -- After a won dispute it's on the account again only once the give-back is recorded too.
+           case when x.referrer_credit_id is not null and (x.reversal_count = 0 or x.referrer_recredit_id is not null) then 'added'
+                when x.referrer_needs_review then 'parked' else 'adding' end as state
     from mine x
     where x.reward_rule = 'percent_20' and x.referrer_credit_cents is not null and x.reversed_at is null
     limit 1
@@ -516,7 +519,7 @@ as $$
          case
            when r.friend_credit_cents is null then null
            when r.reversed_at is not null then 'taken_back'
-           when r.friend_credit_id is not null then 'added'
+           when r.friend_credit_id is not null and (r.reversal_count = 0 or r.friend_recredit_id is not null) then 'added'
            when r.friend_needs_review then 'parked'
            else 'adding'
          end

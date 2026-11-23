@@ -39,6 +39,8 @@ At **/maintenance** (developers and admins; Account → Team access → *Mainten
 
 Apply the same migrations to **production**, one at a time and in the same order, once a person has approved it. Deploy any changed Edge Functions (`supabase functions deploy <name> --remote=<ref> --yes` with Supabase CLI v3, which needs `--yes` for every change to a hosted project); redeploy every function that imports a changed file in `supabase/functions/_shared`. Apply migrations before promoting code that reads new tables or columns: if the code goes first, members see errors until the migration is applied.
 
+**Refer a friend 20% (migrations 6843, 6844, 6845 and 160955, function `stripe-webhook`).** Before anything, check production: `select count(*) as referrals, count(*) filter (where rewarded_at is null) as waiting from public.referrals;` (read-only; the referrals still waiting are the ones the cut-over decides). Then, back to back with nothing in between: deploy `stripe-webhook` (with its dry run), apply 6843, then 160955 straight away (each tried in `begin … rollback` first), then 6844 and 6845. Between the deploy and the migrations, referral events are set aside for review rather than failing (the functions they call aren't there yet); keep that window to minutes. 160955 is safe on top of either version of 6843 and never runs the cut-over over a decision already made under the 20% rule. Then `scripts/promote.sh`. Afterwards, check `select * from public.parked_referral_credits()` as an admin (empty) and the Stripe key's permissions: Customers write (balance transactions), Charges read, Invoices read (invoice payments).
+
 ## 6. Promote dev to main
 
 ```bash
