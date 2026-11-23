@@ -135,6 +135,11 @@ select pg_temp.expect_error($$insert into public.reader_profiles (account_id, na
 reset role;
 
 -- Edge Function (service role) ------------------------------------------------
+-- A Kids profile needs a card payment on the account first (the parent's verified consent, COPPA).
+set role service_role;
+select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Early', 2::smallint, 60::smallint, '2026-10')$$, 'a Kids profile before any card payment');
+reset role;
+update public.account_private set card_payment_at = now() where user_id = '00000000-0000-0000-0000-00000000000a';
 set role service_role;
 select pg_temp.check(public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Mia', 2::smallint, 60::smallint, '2026-10') is not null, 'Kids profile with consent via the server');
 select pg_temp.check((select count(*) from public.parental_consents) = 1, 'consent recorded');
@@ -1205,8 +1210,13 @@ select pg_temp.check((select count(*) = 0 from private.referral_pending(current_
 select pg_temp.check((select count(*) = 1 from public.referral_write_offs where referral_id = current_setting('test.referral_f2')::uuid and kind = 'recredit' and written_off_by = '00000000-0000-0000-0000-00000000000a'), 'the write-off is recorded with who and why');
 set role service_role;
 update public.stripe_events set review_payload = '{"id":"evt_setaside2"}' where id = 'evt_setaside2';
+select pg_temp.expect_error($$select public.dismiss_referral_event('evt_setaside2')$$, 'dismissing a refund that was set aside and never replayed');
+select pg_temp.check(not public.record_referral_event_replay('evt_setaside2', false, 'Stripe refused the key: still'), 'a replay is noted, even when refused again');
 select pg_temp.check(public.dismiss_referral_event('evt_setaside2'), 'settled, the event can be dismissed');
 select pg_temp.check((select review_payload is null from public.stripe_events where id = 'evt_setaside2'), 'a dismissed event keeps no payload');
+reset role;
+select pg_temp.check(exists (select 1 from cron.job where jobname = 'referral-review-payloads-cleanup' and command like '%review_resolved_at is not null%'), 'the daily clean-up clears only resolved or dismissed events'' payloads');
+set role service_role;
 reset role;
 set role service_role;
 reset role;

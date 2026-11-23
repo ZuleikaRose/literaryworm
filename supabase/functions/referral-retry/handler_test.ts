@@ -168,3 +168,10 @@ Deno.test("GET is refused", async () => {
   const { deps } = setup();
   assertEquals((await handle(new Request("http://x", { method: "GET" }), deps)).status, 405);
 });
+
+Deno.test("Dismiss of a refund or dispute that hasn't been replayed is refused with the same code", async () => {
+  const { deps } = setup({ dismiss: () => Promise.reject(new Error("referral_not_replayed: replay it first")) });
+  const res = await handle(post({ action: "dismiss", eventId: EVENT }), deps);
+  const body = await res.json();
+  assertEquals([res.status, body.error.code, body.error.message.startsWith("Replay this refund")], [409, "still_owed", true]);
+});

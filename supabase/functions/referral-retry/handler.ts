@@ -9,10 +9,12 @@
 // retry: clears the referral's held sides (retry requested, so they stay listed until settled) and makes
 // what it still owes at once, with stripe-webhook's own code. An undecided referral has nothing to make:
 // its set-aside event is replayed instead.
-// replay: runs stripe-webhook's handler again on the event it kept when it set it aside (only the
-// duplicate check is skipped; Stripe's own resend keeps the event id, which is already handled). The
-// event is resolved when nothing is set aside again.
-// dismiss: refused while the event's referral still owes anything or has a take-back or give-back waiting.
+// replay: runs only the referral and affiliate steps of the event stripe-webhook kept when it set it aside
+// (replayEvent(); never the membership's, and without the duplicate check, since Stripe's own resend keeps
+// the event id, which is already handled). Take-backs and give-backs check the charge at Stripe as it is
+// now. The event is resolved when nothing is set aside or held again.
+// dismiss: refused while the event's referral still owes anything or has a take-back or give-back waiting,
+// and for a refund or dispute that still has its payload and hasn't been replayed.
 
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { preflight } from "../_shared/cors.ts";
@@ -64,6 +66,9 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       try {
         return json(req, METHODS, { dismissed: await deps.dismiss(id) });
       } catch (err) {
+        if ((err as Error)?.message?.includes("referral_not_replayed")) {
+          throw new HttpError("still_owed", "Replay this refund or dispute with Retry now before dismissing it.");
+        }
         if ((err as Error)?.message?.includes(STILL_OWED)) {
           throw new HttpError("still_owed", "Something is still owed for this referral: use Retry now, or Write off a held side.");
         }
