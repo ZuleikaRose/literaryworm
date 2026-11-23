@@ -1,4 +1,5 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink";
 import { BookFeed } from "../components/BookFeed";
 import { GenreNav } from "../components/GenreNav";
@@ -39,6 +40,14 @@ function GenrePage({ genre }: { genre: BrowseGenre }) {
   const heading = t("{genre} books", { genre: t(genreLabel(genre)) });
   useTitle(heading, genreDescription(genre, visitorTitles));
   useNoindex(!genreIndexable(genre));
+  // vercel.json's redirect from /?genre=<id> keeps the query: drop the stale genre so the address is the page's own.
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    if (!params.has("genre")) return;
+    const next = new URLSearchParams(params);
+    next.delete("genre");
+    setParams(next, { replace: true });
+  }, [params, setParams]);
   // Kids profiles see only the catalog.
   const showGoogle = usesBackend && ageRating !== "kids";
 

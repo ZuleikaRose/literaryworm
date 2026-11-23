@@ -247,15 +247,6 @@
           "value": "noindex"
         }
       ]
-    },
-    {
-      "source": "/shell",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex"
-        }
-      ]
     }
   ]
 }

@@ -423,6 +423,9 @@ describe("search engines", () => {
     const robots = () => page.evaluate(() => document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? null);
     await expect(robots()).resolves.toBeNull();
     await expect(page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)).resolves.toBe("https://www.literaryworm.com/genres/fantasy");
+    // Vercel's redirect from /?genre=fantasy keeps the query; the page drops it.
+    await page.goto(`${BASE_URL}/genres/fantasy?genre=fantasy&ref=ABC`);
+    await page.waitForURL(/\/genres\/fantasy\?ref=ABC$/);
     await page.goto(`${BASE_URL}/genres/antiques`);
     await page.getByRole("heading", { level: 1, name: "Antiques & Collectibles books" }).waitFor();
     await expect(robots()).resolves.toBe("noindex");

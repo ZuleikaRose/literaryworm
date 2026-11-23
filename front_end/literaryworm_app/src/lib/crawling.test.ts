@@ -55,7 +55,6 @@ const KEPT_OUT = [
   "/search?q=dune",
   "/search?genre=fantasy",
   "/search?by=author&q=austen",
-  "/shell",
 ];
 
 describe("robots.txt and the sitemap", () => {
