@@ -4,7 +4,49 @@ import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { paymentFailedEmail } from "./email.ts";
 import { giftCode, releaseSchedule, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
-import { handle, type NewGift, type SubscriptionFields } from "./handler.ts";
+import { handle, type NewGift, type ReferralTransaction, type SubscriptionFields } from "./handler.ts";
+
+/** The metadata key that carries a referral transaction's own key, so a retry can find it at Stripe. */
+const KEY_METADATA = "literaryworm_key";
+/** How many of a customer's latest balance transactions are searched for one already made. */
+const BALANCE_LOOKBACK = 500;
+
+/** Rows from private.referral_pending(), checked. */
+function pendingRows(data: unknown): ReferralTransaction[] {
+  const rows = (Array.isArray(data) ? data : []) as {
+    referral_id: string;
+    side: string;
+    kind: string;
+    round: number;
+    customer: string | null;
+    cents: number | null;
+    currency: string | null;
+    reward_rule: string | null;
+  }[];
+  return rows
+    .filter((r) => r.customer && r.cents && r.cents > 0 && (r.side === "friend" || r.side === "referrer") && ["credit", "reversal", "recredit"].includes(r.kind))
+    .map((r) => ({
+      referralId: r.referral_id,
+      side: r.side as ReferralTransaction["side"],
+      kind: r.kind as ReferralTransaction["kind"],
+      round: r.round ?? 0,
+      customer: r.customer!,
+      cents: r.cents!,
+      currency: /^[a-z]{3}$/.test(r.currency ?? "") ? r.currency! : "usd",
+      rule: r.reward_rule === "free_month" ? "free_month" : "percent_20",
+    }));
+}
+
+/** Taking back or giving again; nothing while the database is older than migration 6843. */
+async function referralRpc(fn: "reverse_referral_reward" | "restore_referral_reward", referredId: string, invoiceId: string): Promise<ReferralTransaction[]> {
+  const { data, error } = await serviceClient().rpc(fn, { p_referred: referredId, p_invoice: invoiceId });
+  if (error?.code === "PGRST202") {
+    console.warn(`stripe-webhook: ${fn} isn't there yet (migration 6843)`);
+    return [];
+  }
+  if (error) throw error;
+  return pendingRows(data);
+}
 
 const MEMBERSHIP_COLUMNS = "user_id";
 
@@ -83,37 +125,80 @@ Deno.serve((req) =>
     async deleteDraftInvoice(invoiceId) {
       await stripeClient().invoices.del(invoiceId);
     },
-    async claimReferral(referredId) {
-      const { data, error } = await serviceClient().rpc("claim_referral_reward", { p_referred: referredId });
-      if (error) throw error;
-      const row = (data ?? [])[0] as
-        | {
-            referral_id: string;
-            friend_customer: string | null;
-            friend_cents: number | null;
-            referrer_customer: string | null;
-            referrer_cents: number | null;
-            reward_rule?: string | null;
-            currency?: string | null;
-          }
+    async claimReferral(referredId, invoiceId) {
+      const db = serviceClient();
+      const res = await db.rpc("claim_referral_reward", { p_referred: referredId, p_invoice: invoiceId });
+      if (!res.error) return { pending: pendingRows(res.data) };
+      // Before migration 6843 the function took only the account: the old free month, the old way.
+      if (res.error.code !== "PGRST202") throw res.error;
+      const old = await db.rpc("claim_referral_reward", { p_referred: referredId });
+      if (old.error) throw old.error;
+      const row = (old.data ?? [])[0] as
+        | { referral_id: string; friend_customer: string | null; friend_cents: number | null; referrer_customer: string | null; referrer_cents: number | null }
         | undefined;
-      if (!row?.friend_customer || !row.friend_cents) return null;
+      if (!row?.friend_customer || !row.friend_cents) return { pending: [], legacy: null };
       return {
-        referralId: row.referral_id,
-        friendCustomer: row.friend_customer,
-        friendCents: row.friend_cents,
-        referrerCustomer: row.referrer_customer,
-        referrerCents: row.referrer_cents,
-        // Before migration 6843 the function had neither column: that was the free month, in USD.
-        rule: row.reward_rule === "percent_20" ? "percent_20" : "free_month",
-        currency: /^[a-z]{3}$/.test(row.currency ?? "") ? row.currency! : "usd",
+        pending: [],
+        legacy: {
+          referralId: row.referral_id,
+          friendCustomer: row.friend_customer,
+          friendCents: row.friend_cents,
+          referrerCustomer: row.referrer_customer,
+          referrerCents: row.referrer_cents,
+        },
       };
     },
-    async creditCustomer(customerId, cents, idempotencyKey, description, currency = "usd") {
+    async reverseReferral(referredId, invoiceId) {
+      return referralRpc("reverse_referral_reward", referredId, invoiceId);
+    },
+    async restoreReferral(referredId, invoiceId) {
+      return referralRpc("restore_referral_reward", referredId, invoiceId);
+    },
+    async findBalanceTransaction(customerId, key) {
+      // Newest first; a referral's transactions are recent, so the latest few hundred are enough.
+      let seen = 0;
+      for await (const txn of stripeClient().customers.listBalanceTransactions(customerId, { limit: 100 })) {
+        if (txn.metadata?.[KEY_METADATA] === key) return txn.id;
+        if (++seen >= BALANCE_LOOKBACK) break;
+      }
+      return null;
+    },
+    async adjustBalance(customerId, amountCents, currency, key, description) {
+      const txn = await stripeClient().customers.createBalanceTransaction(
+        customerId,
+        { amount: amountCents, currency, description, metadata: { [KEY_METADATA]: key } },
+        { idempotencyKey: key },
+      );
+      return txn.id;
+    },
+    async recordReferralTransaction(txn, transactionId) {
+      const { error } = await serviceClient().rpc("record_referral_transaction", {
+        p_referral: txn.referralId,
+        p_side: txn.side,
+        p_kind: txn.kind,
+        p_round: txn.round,
+        p_txn: transactionId,
+      });
+      if (error) throw error;
+    },
+    async chargeDetails(chargeId) {
+      const stripe = stripeClient();
+      const charge = await stripe.charges.retrieve(chargeId);
+      const paymentIntent = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+      let invoiceId: string | null = null;
+      if (paymentIntent) {
+        const payments = await stripe.invoicePayments.list({ payment: { type: "payment_intent", payment_intent: paymentIntent }, limit: 1 });
+        const invoice = payments.data[0]?.invoice;
+        invoiceId = (typeof invoice === "string" ? invoice : invoice?.id) ?? null;
+      }
+      const customer = typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
+      return { customer, refunded: charge.refunded, invoiceId };
+    },
+    async creditCustomer(customerId, cents, idempotencyKey, description) {
       // A negative balance is a credit: Stripe takes it off the customer's next invoices.
       const txn = await stripeClient().customers.createBalanceTransaction(
         customerId,
-        { amount: -cents, currency, description },
+        { amount: -cents, currency: "usd", description },
         { idempotencyKey },
       );
       return txn.id;

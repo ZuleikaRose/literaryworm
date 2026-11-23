@@ -21,8 +21,10 @@ export interface ReferralStatus {
   creditCents: number | null;
   /** Friends who signed up and haven't made their first payment yet. */
   waiting: number;
-  /** When this member joined with someone's invitation: which offer, and whether their own credit has been added. */
-  invited: { rule: ReferralRule; rewarded: boolean; creditCents: number | null } | null;
+  /** Whether the member has a paid plan now (the 20% goes only to an inviter with one when the friend pays). */
+  hasPaidPlan: boolean;
+  /** When this member joined with someone's invitation: which offer, whether their own credit was added, and whether it was taken back. */
+  invited: { rule: ReferralRule; rewarded: boolean; creditCents: number | null; reversed: boolean } | null;
 }
 
 interface CountsRow {
@@ -31,12 +33,14 @@ interface CountsRow {
   months_earned: number;
   credit_cents?: number | null;
   waiting?: number | null;
+  has_paid_plan?: boolean | null;
 }
 
 interface OwnRow {
   rewarded_at: string | null;
   reward_rule?: ReferralRule | null;
   friend_credit_cents?: number | null;
+  reversed_at?: string | null;
 }
 
 export async function loadReferrals(): Promise<ReferralStatus> {
@@ -44,7 +48,7 @@ export async function loadReferrals(): Promise<ReferralStatus> {
   const [code, counts, own] = await Promise.all([
     db.rpc("my_referral_code"),
     db.rpc("my_referrals"),
-    db.from("referrals").select("rewarded_at, reward_rule, friend_credit_cents").limit(1),
+    db.from("referrals").select("rewarded_at, reward_rule, friend_credit_cents, reversed_at").limit(1),
   ]);
   if (code.error || counts.error) throw new AccountError(tr("We couldn't load your invitation link. Try again."));
   const c = ((counts.data ?? [])[0] ?? { signed_up: 0, rewarded: 0, months_earned: 0 }) as CountsRow;
@@ -56,8 +60,14 @@ export async function loadReferrals(): Promise<ReferralStatus> {
     monthsEarned: c.months_earned,
     creditCents: c.credit_cents ?? null,
     waiting: c.waiting ?? Math.max(0, c.signed_up - c.rewarded),
+    hasPaidPlan: c.has_paid_plan ?? true,
     invited: mine
-      ? { rule: mine.reward_rule ?? "percent_20", rewarded: Boolean(mine.rewarded_at), creditCents: mine.friend_credit_cents ?? null }
+      ? {
+          rule: mine.reward_rule ?? "percent_20",
+          rewarded: Boolean(mine.rewarded_at),
+          creditCents: mine.friend_credit_cents ?? null,
+          reversed: Boolean(mine.reversed_at),
+        }
       : null,
   };
 }

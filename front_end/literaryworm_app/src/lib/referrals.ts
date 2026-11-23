@@ -103,19 +103,66 @@ export function referralReward(rule: ReferralRule, friend: Member, inviter: Memb
   return { friendCents, referrerCents, referrerSkipped: null };
 }
 
+/** A referral as it stood when the change went live (migration 6843 reads the same). */
+export interface CutoverFacts {
+  rewardedAt?: string | null;
+  /** Any credit for it already recorded (either side's Stripe transaction id). */
+  creditRecorded?: boolean | null;
+  /** When the friend first paid anything (account_private.card_payment_at). */
+  friendPaidAt?: string | null;
+}
+
 /**
- * The rule a referral follows at the cut-over: one already rewarded keeps the free month, every other
- * one (and every new one) is 20%. Migration 6843 stamps the same.
+ * The rule a referral follows at the cut-over: one already claimed, with a credit recorded, or whose
+ * friend had already paid keeps the free month (a claim handed back by a failed Stripe call is still
+ * earned); every other one, and every new one, is 20%. Migration 6843 stamps the same.
  */
-export const ruleAtCutover = (rewardedAt: string | null | undefined): ReferralRule => (rewardedAt ? "free_month" : "percent_20");
+export const ruleAtCutover = (facts: CutoverFacts | null | undefined): ReferralRule =>
+  facts && (facts.rewardedAt || facts.creditRecorded || facts.friendPaidAt) ? "free_month" : "percent_20";
+
+/** One side's Stripe transactions, as recorded (ids, or null while not made). */
+export interface SideTransactions {
+  credit: string | null;
+  reversal: string | null;
+  recredit: string | null;
+}
+
+/** Where a decided referral stands: taken back (refund or dispute), and how many rounds of that so far. */
+export interface ReversalState {
+  reversed: boolean;
+  round: number;
+}
+
+export type ReferralTransactionKind = "credit" | "reversal" | "recredit";
+
+/**
+ * The Stripe transaction one side still needs (private.referral_pending()): its credit; while taken back,
+ * a reversal of a credit that was made; after a won dispute, the credit again. Never one it already has,
+ * and a free month is never taken back. Null when nothing is owed.
+ */
+export function owedTransaction(rule: ReferralRule, side: SideTransactions, state: ReversalState): ReferralTransactionKind | null {
+  if (!state.reversed && !side.credit) return "credit";
+  if (rule !== "percent_20") return null;
+  if (state.reversed && side.credit && !side.reversal) return "reversal";
+  if (!state.reversed && state.round > 0 && side.reversal && !side.recredit) return "recredit";
+  return null;
+}
+
+/** Only a full refund of the charge that earned the reward takes it back; a partial one never does. */
+export const refundTakesBack = (rule: ReferralRule, chargeFullyRefunded: boolean, chargeInvoice: string | null, firstInvoice: string | null) =>
+  rule === "percent_20" && chargeFullyRefunded && Boolean(chargeInvoice) && chargeInvoice === firstInvoice;
 
 /** Where the inviter's one 20% credit stands, for Account. */
-export type InviterCredit = "earned" | "pending" | "none";
+export type InviterCredit = "earned" | "pending" | "needs_plan" | "none";
 
-/** Earned once it's added; pending while a friend who signed up hasn't paid yet; otherwise none. */
-export function inviterCredit(creditCents: number | null | undefined, waiting: number | null | undefined): InviterCredit {
+/**
+ * Earned once it's added; while a friend who signed up hasn't paid yet, pending, or needs_plan when the
+ * member has no paid plan now (the credit goes only to an inviter with one when the friend pays).
+ */
+export function inviterCredit(creditCents: number | null | undefined, waiting: number | null | undefined, hasPaidPlan = true): InviterCredit {
   if (positive(creditCents)) return "earned";
-  return positive(waiting) ? "pending" : "none";
+  if (!positive(waiting)) return "none";
+  return hasPaidPlan ? "pending" : "needs_plan";
 }
 
 /** Codes are 8 letters and digits, without 0, O, 1 or I so they're easy to read out. */

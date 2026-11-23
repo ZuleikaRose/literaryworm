@@ -13,7 +13,16 @@ import { Icon } from "./Icon";
  */
 /** The demo household's sample: its own link, two friends signed up, one of them paid (Standard, monthly: $8.00). */
 const DEMO_CREDIT_CENTS = 800;
-const DEMO_STATUS: ReferralStatus = { code: "AVERY234", signedUp: 2, joined: 1, monthsEarned: 0, creditCents: DEMO_CREDIT_CENTS, waiting: 1, invited: null };
+const DEMO_STATUS: ReferralStatus = {
+  code: "AVERY234",
+  signedUp: 2,
+  joined: 1,
+  monthsEarned: 0,
+  creditCents: DEMO_CREDIT_CENTS,
+  waiting: 1,
+  hasPaidPlan: true,
+  invited: null,
+};
 /** Credits are in the plans' currency (public.plans.currency). */
 const CURRENCY = "usd";
 
@@ -62,24 +71,29 @@ export function ReferAFriend({ demo = false }: { demo?: boolean }) {
     }
   };
 
-  const credit = status ? inviterCredit(status.creditCents, status.waiting) : "none";
+  const credit = status ? inviterCredit(status.creditCents, status.waiting, status.hasPaidPlan) : "none";
+  const invited = status?.invited ?? null;
   const invitedCredit = status?.invited?.creditCents ? formatMoney(status.invited.creditCents, CURRENCY) : null;
   return (
     <section className="refer-friend" aria-labelledby={`${id}-title`}>
       <h3 id={`${id}-title`}>{t("Invite a friend")}</h3>
       <p className="field-hint">
-        {t("When a friend joins with your link and makes their first payment, you each get 20% off one month of your own plan, taken off your next bill. You get yours once, and every friend you invite gets theirs.")}
+        {t("When a friend joins with your link and makes their first payment, you each get 20% off one month of your own plan, taken off your next bill. You get yours once, and every friend you invite gets theirs. If that first payment is refunded or disputed, both credits are taken back.")}
       </p>
-      {status?.invited && (
-        <p className="form-success">
-          <Icon name="check" size={16} />
-          {status.invited.rule === "free_month" && status.invited.rewarded
-            ? t("You joined with a friend's invitation, and your free month is on your account.")
-            : status.invited.rewarded
-              ? invitedCredit
-                ? t("You joined with a friend's invitation, and your 20% credit of {amount} is on your account.", { amount: invitedCredit })
-                : t("You joined with a friend's invitation.")
-              : t("You joined with a friend's invitation: 20% off a month of your plan is added after your first payment.")}
+      {invited && (
+        <p className={invited.reversed ? "field-hint" : "form-success"}>
+          {!invited.reversed && <Icon name="check" size={16} />}
+          {invited.rule === "free_month"
+            ? invited.rewarded
+              ? t("You joined with a friend's invitation, and your free month is on your account.")
+              : t("You joined with a friend's invitation: your free month is added after your first payment.")
+            : invited.reversed
+              ? t("You joined with a friend's invitation. Your 20% credit was taken back because your first payment was refunded or disputed.")
+              : invited.rewarded
+                ? invitedCredit
+                  ? t("You joined with a friend's invitation, and your 20% credit of {amount} is on your account.", { amount: invitedCredit })
+                  : t("You joined with a friend's invitation.")
+                : t("You joined with a friend's invitation: 20% off a month of your plan is added after your first payment.")}
         </p>
       )}
       {demo && <p className="goal-hint">{t("In the demo the link and counts are a sample: members get their own link here.")}</p>}
@@ -107,7 +121,9 @@ export function ReferAFriend({ demo = false }: { demo?: boolean }) {
               ? t("Your 20% credit of {amount} is on your account.", { amount: formatMoney(status.creditCents ?? 0, CURRENCY) })
               : credit === "pending"
                 ? t("Your 20% credit is pending: it's added when a friend you invited makes their first payment.")
-                : t("Not earned yet: your 20% credit is added when a friend joins with your link and makes their first payment.")}
+                : credit === "needs_plan"
+                  ? t("A friend you invited hasn't paid yet. Your 20% credit is added when they do, as long as you have a paid plan then.")
+                  : t("Not earned yet: your 20% credit is added when a friend joins with your link and makes their first payment while you have a paid plan.")}
           </p>
           {status.monthsEarned > 0 && (
             <p className="field-hint">

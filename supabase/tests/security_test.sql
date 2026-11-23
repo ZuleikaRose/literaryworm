@@ -1055,30 +1055,52 @@ insert into public.stripe_customers (user_id, customer_id) values ('00000000-000
 insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at) values ('00000000-0000-0000-0000-00000000000b', 'standard', 1, now())
   on conflict (user_id) do update set status = 'active';
 select pg_temp.check((select bool_and(reward_rule = 'percent_20') from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b'), 'new referrals follow the 20% rule');
--- Friend 3 stands for one rewarded before the change and handed back by a failed Stripe call: it keeps the free month.
-update public.referrals set reward_rule = 'free_month' where referred_id = '00000000-0000-0000-0000-0000000000f3';
+-- Friend 3 paid before the change, and the claim was handed back by a failed Stripe call: the cut-over keeps its free month.
+update public.account_private set card_payment_at = now() - interval '1 day' where user_id = '00000000-0000-0000-0000-0000000000f3';
+select pg_temp.check(private.referral_cutover() = 1, 'the cut-over keeps one referral on the free month');
+select pg_temp.check((select reward_rule from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'free_month'
+  and (select reward_rule from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1') = 'percent_20', 'a friend who already paid keeps the free month; one who hadn''t gets 20%');
 set role service_role;
-select pg_temp.check((select count(*) = 1
-    and bool_and(friend_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic')
-                 and referrer_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard')
-                 and reward_rule = 'percent_20' and currency = 'usd')
-  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter 20% of a month of their own plans');
-select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')) = 0, 'a referral is rewarded once');
-select pg_temp.check((select bool_and(friend_cents = (select (2 * yearly_price_cents + 60) / 120 from public.plans where id = 'basic') and referrer_cents is null)
-  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2')), 'a yearly friend gets 20% of a twelfth of the yearly price; the inviter nothing more');
+select pg_temp.check((select count(*) = 2
+    and bool_and(kind = 'credit' and reward_rule = 'percent_20' and currency = 'usd')
+    and bool_or(side = 'friend' and customer = 'cus_friend1' and cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic'))
+    and bool_or(side = 'referrer' and customer = 'cus_ben' and cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard'))
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a first payment owes the friend and the inviter 20% of a month of their own plans');
+select pg_temp.check((select count(*) = 2 from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_second1')), 'until it''s made, a retry or a later payment still owes both, never more');
+select pg_temp.check(public.record_referral_transaction((select id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'friend', 'credit', 0, 'cbtxn_f1'), 'the friend''s credit is recorded at once');
+select pg_temp.check(not public.record_referral_transaction((select id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'friend', 'credit', 0, 'cbtxn_again'), 'a side''s credit is recorded only once');
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'referrer') from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_second1')), 'a retry owes only the side still missing');
+select pg_temp.check(public.record_referral_transaction((select id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'referrer', 'credit', 0, 'cbtxn_b1'), 'the inviter''s credit is recorded');
+select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_third1')) = 0, 'every later payment owes nothing');
+select pg_temp.check((select first_invoice_id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1') = 'in_first1', 'the invoice that earned it is kept');
+select pg_temp.check((select bool_and(side = 'friend' and cents = (select (2 * yearly_price_cents + 60) / 120 from public.plans where id = 'basic'))
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'a yearly friend gets 20% of a twelfth of the yearly price; the inviter nothing more');
 select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2') = 'already_credited', 'the second is noted as already credited');
-select pg_temp.check((select bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents = (select price_cents from public.plans where id = 'standard') and reward_rule = 'free_month')
-  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'a free month earned before the change is still a month each');
+select pg_temp.check((select count(*) = 2 and bool_and(cents = case side when 'friend' then (select price_cents from public.plans where id = 'basic') else (select price_cents from public.plans where id = 'standard') end and reward_rule = 'free_month')
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3', 'in_first3')), 'a free month earned before the change is still a month each, and doesn''t use up the 20%');
+-- Taking back: a refund of a later invoice does nothing; of the first, it owes both reversals, once per round.
+select pg_temp.check((select count(*) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_second1')) = 0, 'a refund of a later payment takes nothing back');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'reversal' and round = 1) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a refund of the first payment takes both credits back');
+select pg_temp.check(public.record_referral_transaction((select id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'friend', 'reversal', 1, 'cbtxn_rf1')
+  and public.record_referral_transaction((select id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'referrer', 'reversal', 1, 'cbtxn_rb1'), 'reversals are recorded');
+select pg_temp.check((select count(*) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')) = 0, 'taken back once');
+select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_fourth1')) = 0, 'a payment after the refund gives nothing back');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'recredit' and round = 1) from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a won dispute adds both again');
+select pg_temp.check((select count(*) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f3', 'in_first3')) = 0, 'a free month is never taken back');
+select pg_temp.expect_error($$select public.record_referral_transaction(gen_random_uuid(), 'both', 'credit', 0, 'cbtxn_x')$$, 'recording a made-up side');
 reset role;
 select pg_temp.check(private.referral_credit_cents(3000, 30000, 'month') = 600 and private.referral_credit_cents(4000, 40000, 'year') = 667
   and private.referral_credit_cents(null, null, 'month') is null and private.referral_credit_cents(2, null, 'month') is null, '20% of a month, rounded to the cent');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
-select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 1 and waiting = 0
+select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 1 and waiting = 0 and has_paid_plan
     and credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard') from public.my_referrals()), 'the inviter sees their counts, their 20% credit and their free month');
 select pg_temp.check((select count(*) from public.referrals) = 0, 'the inviter can''t read who they invited');
+select pg_temp.expect_error($$select * from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', null)$$, 'claiming from the browser');
+select pg_temp.expect_error($$select * from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')$$, 'taking back from the browser');
+select pg_temp.expect_error($$select public.record_referral_transaction(gen_random_uuid(), 'friend', 'credit', 0, 'cbtxn_x')$$, 'recording from the browser');
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
-select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic') and reward_rule = 'percent_20') from public.referrals), 'an invited member sees their own credit and its rule');
+select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic') and reward_rule = 'percent_20' and reversed_at is null) from public.referrals), 'an invited member sees their own credit, its rule and whether it was taken back');
 select pg_temp.expect_error($$select friend_credit_id from public.referrals$$, 'reading Stripe''s credit ids');
 select pg_temp.expect_error($$select referrer_credit_cents from public.referrals$$, 'reading what the inviter was credited');
 reset role;

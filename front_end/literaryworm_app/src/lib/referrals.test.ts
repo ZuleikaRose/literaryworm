@@ -10,6 +10,8 @@ import {
   referralLink,
   referralReward,
   referralSideCents,
+  owedTransaction,
+  refundTakesBack,
   ruleAtCutover,
 } from "./referrals";
 
@@ -177,13 +179,59 @@ describe("refer a friend: who gets what", () => {
 
 describe("refer a friend: the cut-over", () => {
   it("keeps the free month for a referral rewarded before the change", () => {
-    expect(ruleAtCutover("2026-11-20T10:00:00Z")).toBe("free_month");
+    expect(ruleAtCutover({ rewardedAt: "2026-11-20T10:00:00Z" })).toBe("free_month");
+  });
+
+  it("keeps the free month for a friend who paid before the change, even if the claim was handed back", () => {
+    expect(ruleAtCutover({ rewardedAt: null, friendPaidAt: "2026-11-20T10:00:00Z" })).toBe("free_month");
+    expect(ruleAtCutover({ rewardedAt: null, creditRecorded: true })).toBe("free_month");
   });
 
   it("gives 20% to a referral whose friend hadn't paid yet, and to every new one", () => {
+    expect(ruleAtCutover({ rewardedAt: null, creditRecorded: false, friendPaidAt: null })).toBe("percent_20");
+    expect(ruleAtCutover({})).toBe("percent_20");
     expect(ruleAtCutover(null)).toBe("percent_20");
     expect(ruleAtCutover(undefined)).toBe("percent_20");
-    expect(ruleAtCutover("")).toBe("percent_20");
+    expect(ruleAtCutover({ rewardedAt: "" })).toBe("percent_20");
+  });
+});
+
+describe("refer a friend: what each side is still owed", () => {
+  const NONE = { credit: null, reversal: null, recredit: null };
+  const CREDITED = { ...NONE, credit: "cbtxn_1" };
+  const REVERSED = { ...CREDITED, reversal: "cbtxn_2" };
+  const ACTIVE = { reversed: false, round: 0 };
+  const TAKEN_BACK = { reversed: true, round: 1 };
+  const GIVEN_AGAIN = { reversed: false, round: 1 };
+
+  it("owes a credit until it's made, and never twice", () => {
+    expect(owedTransaction("percent_20", NONE, ACTIVE)).toBe("credit");
+    expect(owedTransaction("percent_20", CREDITED, ACTIVE)).toBeNull();
+    expect(owedTransaction("free_month", NONE, ACTIVE)).toBe("credit");
+  });
+
+  it("takes a made credit back once; one never made is never made", () => {
+    expect(owedTransaction("percent_20", CREDITED, TAKEN_BACK)).toBe("reversal");
+    expect(owedTransaction("percent_20", REVERSED, TAKEN_BACK)).toBeNull();
+    expect(owedTransaction("percent_20", NONE, TAKEN_BACK)).toBeNull();
+  });
+
+  it("gives it again after a won dispute, once", () => {
+    expect(owedTransaction("percent_20", REVERSED, GIVEN_AGAIN)).toBe("recredit");
+    expect(owedTransaction("percent_20", { ...REVERSED, recredit: "cbtxn_3" }, GIVEN_AGAIN)).toBeNull();
+    expect(owedTransaction("percent_20", NONE, GIVEN_AGAIN)).toBe("credit");
+  });
+
+  it("never takes a free month back", () => {
+    expect(owedTransaction("free_month", CREDITED, TAKEN_BACK)).toBeNull();
+  });
+
+  it("takes back only on a full refund of the payment that earned it", () => {
+    expect(refundTakesBack("percent_20", true, "in_1", "in_1")).toBe(true);
+    expect(refundTakesBack("percent_20", false, "in_1", "in_1")).toBe(false);
+    expect(refundTakesBack("percent_20", true, "in_2", "in_1")).toBe(false);
+    expect(refundTakesBack("percent_20", true, null, null)).toBe(false);
+    expect(refundTakesBack("free_month", true, "in_1", "in_1")).toBe(false);
   });
 });
 
@@ -195,6 +243,13 @@ describe("refer a friend: the inviter's credit on Account", () => {
 
   it("is pending while a friend who signed up hasn't paid", () => {
     expect(inviterCredit(null, 1)).toBe("pending");
+    expect(inviterCredit(null, 1, true)).toBe("pending");
+  });
+
+  it("needs a paid plan when the member has none while a friend is still to pay", () => {
+    expect(inviterCredit(null, 1, false)).toBe("needs_plan");
+    expect(inviterCredit(600, 1, false)).toBe("earned");
+    expect(inviterCredit(null, 0, false)).toBe("none");
   });
 
   it("is none with no friends waiting, or nothing to read", () => {
