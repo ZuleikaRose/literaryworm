@@ -187,22 +187,24 @@ describe("a visitor", () => {
   it("browses a new genre from Home, and narrows a search by it", async () => {
     const { page, errors } = await newPage();
     await page.goto(BASE_URL);
-    const genres = page.locator("#discover").getByRole("navigation", { name: "Genres" });
-    await genres.getByRole("link", { name: "Fantasy" }).click();
-    await page.waitForURL(/genre=fantasy/);
-    await page.getByRole("heading", { name: "Fantasy books" }).waitFor();
-    await expect(genres.getByRole("link", { name: "Fantasy" }).getAttribute("aria-current")).resolves.toBe("page");
-
+    const homeGenres = page.locator("#discover").getByRole("navigation", { name: "Genres" });
     // Without the backend (as here, and for Kids profiles) only the genres with sample titles are offered:
     // of the 44 Google Books subjects added after the first twenty, Family & Relationships is the one.
     const all = ["Technology", "Adventure", "Sci-Fi", "Fiction", "Non-Fiction", "Horror", "Fantasy", "Mystery", "Thriller", "Romance", "Classics", "Historical Fiction", "Young Adult", "Children's", "Biography & Memoir", "History", "Science", "Self-Help", "Poetry", "LGBTQIA+", "Family & Relationships"];
+    await expect(homeGenres.getByRole("link").allInnerTexts()).resolves.toEqual(all);
+    // Each genre has a page of its own (the old /?genre= addresses are redirected there by vercel.json).
+    await homeGenres.getByRole("link", { name: "Fantasy" }).click();
+    await page.waitForURL(/\/genres\/fantasy$/);
+    await page.getByRole("heading", { level: 1, name: "Fantasy books" }).waitFor();
+    const genres = page.getByRole("navigation", { name: "Genres" });
+    await expect(genres.getByRole("link", { name: "Fantasy" }).getAttribute("aria-current")).resolves.toBe("page");
     await expect(genres.getByRole("link").allInnerTexts()).resolves.toEqual(all);
 
     await page.goto(`${BASE_URL}/search`);
     const browse = page.locator("section", { has: page.getByRole("heading", { name: "Or browse a genre" }) });
     await expect(browse.getByRole("link").allInnerTexts()).resolves.toEqual(all);
     await browse.getByRole("link", { name: "Historical Fiction" }).click();
-    await page.waitForURL(/genre=historical-fiction/);
+    await page.waitForURL(/\/genres\/historical-fiction$/);
 
     await page.goto(`${BASE_URL}/search?q=wonder&source=literaryworm&genre=fantasy`);
     await page.getByRole("radio", { name: "Fantasy" }).waitFor();
@@ -400,6 +402,8 @@ describe("search engines", () => {
       ["/books/dune", "https://www.literaryworm.com/books/dune", "Dune by Frank Herbert · LiteraryWorm"],
       ["/legal/terms/", "https://www.literaryworm.com/legal/terms", "Terms of Service · LiteraryWorm"],
       ["/series/Aunt%20Jane's%20Nieces", "https://www.literaryworm.com/series/Aunt%20Jane%27s%20Nieces", "Aunt Jane's Nieces (series) · LiteraryWorm"],
+      ["/genres/fantasy", "https://www.literaryworm.com/genres/fantasy", "Fantasy books · LiteraryWorm"],
+      ["/authors/Mary%20Shelley", "https://www.literaryworm.com/authors/Mary%20Shelley", "Mary Shelley (author) · LiteraryWorm"],
     ] as const;
     for (const [path, canonical, name] of pages) {
       const html = await (await fetch(`${BASE_URL}${path}`)).text();
@@ -407,6 +411,31 @@ describe("search engines", () => {
     }
     // Members' pages get the app with no canonical of their own: it sets one once it runs.
     expect(canonicals(await (await fetch(`${BASE_URL}/library`)).text())).toEqual([]);
+  });
+
+  it("leads Home's genre links to each genre's own page, listing its titles; a genre with none stays out of search results", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(BASE_URL);
+    await page.getByRole("navigation", { name: "Genres" }).first().getByRole("link", { name: "Fantasy", exact: true }).click();
+    await page.waitForURL(/\/genres\/fantasy$/);
+    await page.getByRole("heading", { level: 1, name: "Fantasy books" }).waitFor();
+    expect(await page.getByRole("link", { name: /Circe/ }).count()).toBeGreaterThan(0);
+    const robots = () => page.evaluate(() => document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? null);
+    await expect(robots()).resolves.toBeNull();
+    await expect(page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)).resolves.toBe("https://www.literaryworm.com/genres/fantasy");
+    await page.goto(`${BASE_URL}/genres/antiques`);
+    await page.getByRole("heading", { level: 1, name: "Antiques & Collectibles books" }).waitFor();
+    await expect(robots()).resolves.toBe("noindex");
+    expect(errors()).toEqual([]);
+  });
+
+  it("takes another spelling of a catalog author's name to the catalog's spelling", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/authors/mary%20shelley`);
+    await page.waitForURL(/\/authors\/Mary%20Shelley$/);
+    await page.getByRole("heading", { level: 1, name: "Mary Shelley" }).waitFor();
+    await expect(page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)).resolves.toBe("https://www.literaryworm.com/authors/Mary%20Shelley");
+    expect(errors()).toEqual([]);
   });
 
   it("keeps the built data out of the running page, and a missing page out of search results", async () => {
@@ -2356,6 +2385,7 @@ describe("the demo household", () => {
     await visit("/authors/Mary%20Shelley", "ProfilePage", ["Home", "Mary Shelley"]);
     await visit("/series/Anne%20of%20Green%20Gables", "CollectionPage", ["Home", "Anne of Green Gables"]);
     expect((await nodes()).some((d) => d["@type"] === "BookSeries" && d.hasPart.length > 1)).toBe(true);
+    await visit("/genres/fantasy", "CollectionPage", ["Home", "Fantasy books"]);
     await visit("/books/anne-of-avonlea", "ItemPage", ["Home", "Anne of Green Gables", "Anne of Avonlea"]);
     // Only the page shown: the series' nodes went with its page.
     expect((await nodes()).some((d) => d["@type"] === "BookSeries")).toBe(false);

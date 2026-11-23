@@ -6,6 +6,8 @@
 export interface VercelHas {
   type: string;
   key: string;
+  /** A pattern the value must match in full; its named groups can be used in the destination. */
+  value?: string;
 }
 export interface VercelHeaderRule {
   source: string;
@@ -19,7 +21,7 @@ export interface VercelRoute {
 export interface VercelConfig {
   cleanUrls?: boolean;
   trailingSlash?: boolean;
-  redirects: (VercelRoute & { permanent: boolean })[];
+  redirects: (VercelRoute & { permanent: boolean; has?: VercelHas[] })[];
   rewrites: VercelRoute[];
   headers: VercelHeaderRule[];
 }
@@ -49,4 +51,29 @@ export function headerValues(config: VercelConfig, address: string, key: string)
 export function rewriteFor(config: VercelConfig, path: string): string | null {
   const rule = config.rewrites.find((r) => compileSource(r.source).test(path));
   return rule?.destination ?? null;
+}
+
+/**
+ * Where the redirects send an address (path and optional query), with its :names filled in from the
+ * path and from `has` query patterns, or null when none matches. Vercel tries redirects before
+ * anything else, in order.
+ */
+export function redirectFor(config: VercelConfig, address: string): string | null {
+  const url = new URL(address, "https://www.literaryworm.com");
+  for (const rule of config.redirects) {
+    const match = url.pathname.match(compileSource(rule.source));
+    if (!match) continue;
+    const groups: Record<string, string> = { ...match.groups };
+    const met = (rule.has ?? []).every((h) => {
+      if (h.type !== "query") return false;
+      const value = url.searchParams.get(h.key);
+      if (value === null) return false;
+      if (h.value === undefined) return true;
+      const found = value.match(new RegExp(`^(?:${h.value})$`));
+      Object.assign(groups, found?.groups);
+      return Boolean(found);
+    });
+    if (met) return rule.destination.replace(/:(\w+)/g, (all, name: string) => groups[name] ?? all);
+  }
+  return null;
 }

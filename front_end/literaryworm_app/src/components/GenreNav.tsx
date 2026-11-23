@@ -6,7 +6,7 @@ import { useBrowseGenres } from "../lib/useBrowseGenres";
 
 interface GenreNavProps {
   current: BrowseGenre;
-  /** Where the links point; the genre is added as ?genre=, and #discover takes the page to the feed. */
+  /** Where the links point: "/" for the genre pages (/genres/:id), or a page whose feed takes ?genre= (genreHref()). */
   basePath: string;
 }
 

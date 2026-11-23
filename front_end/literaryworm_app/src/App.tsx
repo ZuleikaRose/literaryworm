@@ -21,6 +21,7 @@ import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
 import Person from "./pages/Person";
 import Series from "./pages/Series";
+import Genre from "./pages/Genre";
 import ClipPage from "./pages/Clip";
 import ReaderProfile from "./pages/ReaderProfile";
 import Plans from "./pages/Plans";
@@ -82,6 +83,7 @@ export default function App() {
           <Route path="authors/:name" element={<Person kind="author" />} />
           <Route path="narrators/:name" element={<Person kind="narrator" />} />
           <Route path="series/:name" element={<Series />} />
+          <Route path="genres/:id" element={<Genre />} />
           <Route path="clips/:bookId" element={<ClipPage />} />
           <Route path="readers/:id" element={<ReaderProfile />} />
           {/* Search is public too (the brief); Kids profiles get the catalog only. */}

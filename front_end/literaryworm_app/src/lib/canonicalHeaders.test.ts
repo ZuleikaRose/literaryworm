@@ -35,6 +35,13 @@ describe("canonical Link headers (vercel.json)", () => {
     }
   });
 
+  it("say nothing for an address spelled another way than its canonical, rather than contradict the page", () => {
+    // A bare apostrophe: canonicalUrl() spells it %27, which the page itself names.
+    expect(canonicalHeaders("/authors/Flannery%20O'Connor")).toEqual([]);
+    expect(canonicalHeaders("/authors/Flannery%20O%27Connor")).toEqual([linkFor("/authors/Flannery%20O%27Connor")]);
+    expect(canonicalHeaders("/authors/%C3%89mile%20Zola")).toEqual([linkFor("/authors/%C3%89mile%20Zola")]);
+  });
+
   it("give the top pages theirs, Home included", () => {
     for (const path of ["/", "/pricing", "/whats-new", "/search", "/signup", "/affiliates"]) {
       expect(canonicalHeaders(path)).toEqual([linkFor(path)]);

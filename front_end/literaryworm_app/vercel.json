@@ -11,6 +11,18 @@
       "source": "/plans",
       "destination": "/pricing",
       "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "genre",
+          "value": "(?<genre>young-adult-nonfiction|literary-collections|juvenile-nonfiction|historical-fiction|literary-criticism|political-science|body-mind-spirit|foreign-language|performing-arts|social-science|transportation|language-arts|architecture|mathematics|non-fiction|photography|young-adult|house-home|philosophy|psychology|study-aids|true-crime|adventure|biography|computers|technology|education|gardening|reference|self-help|antiques|business|children|classics|religion|thriller|cooking|fantasy|fiction|history|lgbtqia|medical|mystery|romance|science|bibles|comics|crafts|design|family|health|horror|nature|poetry|sci-fi|sports|travel|drama|games|humor|music|pets|art|law)"
+        }
+      ],
+      "destination": "/genres/:genre",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -47,7 +59,7 @@
       "destination": "/shell"
     },
     {
-      "source": "/:section(legal|books|authors|narrators|series|clips|readers|lists|clubs|read|listen)/:id",
+      "source": "/:section(legal|books|authors|narrators|clips|readers|lists|clubs|read|listen)/:id",
       "destination": "/shell"
     },
     {
@@ -96,7 +108,7 @@
       ]
     },
     {
-      "source": "/:section(books|authors|narrators|readers)/:name",
+      "source": "/:section(books|authors|narrators|readers)/:name([A-Za-z0-9_.~%-]+)",
       "headers": [
         {
           "key": "Link",
@@ -229,6 +241,15 @@
           "key": "length"
         }
       ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/shell",
       "headers": [
         {
           "key": "X-Robots-Tag",

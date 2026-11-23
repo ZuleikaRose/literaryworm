@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { HOME_CRUMB, pageData, personNode } from "../lib/seo";
 import { StructuredData } from "../components/StructuredData";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { BackLink } from "../components/BackLink";
 import { BookFeed } from "../components/BookFeed";
 import { FollowButton } from "../components/FollowButton";
@@ -9,7 +8,9 @@ import { Shelf } from "../components/Shelf";
 import { usesBackend } from "../lib/backend";
 import { fromLocal } from "../lib/booksApi";
 import { fetchFollowerCount } from "../lib/followersApi";
-import { catalogBy, followerCountNow, followerLabel, type PersonKind, personInitials, personName, personPath } from "../lib/people";
+import { catalogBy, catalogSpelling, followerCountNow, followerLabel, type PersonKind, personInitials, personName, personPath } from "../lib/people";
+import { personDescription, personIndexable, personPageNode } from "../lib/publicPages";
+import { useNoindex } from "../lib/useNoindex";
 import { useFollows } from "../lib/useFollows";
 import { useTitle } from "../lib/useTitle";
 import { useT } from "../lib/useT";
@@ -20,6 +21,9 @@ import NotFound from "./NotFound";
 export default function Person({ kind }: { kind: PersonKind }) {
   const name = personName(useParams().name);
   if (!name) return <NotFound />;
+  // Another spelling of a name the catalog has ("jane austen"): its page is the catalog's spelling.
+  const spelled = catalogSpelling(kind, name);
+  if (spelled && spelled !== name) return <Navigate replace to={personPath(kind, spelled)} />;
   return <PersonPage key={`${kind}:${name}`} kind={kind} name={name} />;
 }
 
@@ -28,8 +32,9 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
   const signedIn = Boolean(useStore().state.account);
   const ageRating = profile?.ageRating ?? "all";
   const t = useT();
-  const role = kind === "author" ? "Author" : "Narrator";
-  useTitle(kind === "author" ? t("{name} (author)", { name }) : t("{name} (narrator)", { name }));
+    // The description and structured data follow what a visitor sees, as the page built ahead has them (lib/publicPages.ts).
+  useTitle(kind === "author" ? t("{name} (author)", { name }) : t("{name} (narrator)", { name }), personDescription(kind, name, catalogBy(kind, name, "all")));
+  useNoindex(!personIndexable(kind, name));
   const catalog = catalogBy(kind, name, ageRating);
   // Google Books lists authors, not narrators; Kids profiles see only the catalog.
   const showGoogle = kind === "author" && usesBackend && ageRating !== "kids";
@@ -55,16 +60,7 @@ function PersonPage({ kind, name }: { kind: PersonKind; name: string }) {
 
   return (
     <div className="page-content person-page">
-      <StructuredData
-        id="page"
-        data={pageData({
-          type: "ProfilePage",
-          path: personPath(kind, name),
-          name: `${name} (${role.toLowerCase()})`,
-          crumbs: [HOME_CRUMB, { name, path: personPath(kind, name) }],
-          mainEntity: personNode(name, personPath(kind, name)),
-        })}
-      />
+      <StructuredData id="page" data={personPageNode(kind, name)} />
       <BackLink />
       <header className="person-hero">
         <span className="person-mark" aria-hidden="true">

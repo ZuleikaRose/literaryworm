@@ -1,6 +1,7 @@
 import { formatPrice, plans } from "../data/plans";
 import type { Book } from "../types";
 import { isAligned } from "./alignment";
+import { pathSegment } from "./urlPath";
 
 /**
  * What search engines show for the site. index.html carries the site-wide description and the
@@ -14,8 +15,8 @@ export const SITE_URL = "https://www.literaryworm.com";
  * A page's one address for search engines (`<link rel="canonical">`, set by components/Canonical.tsx):
  * the site's own host, the path without a trailing slash, and no query, so Home's ?genre= views, a
  * search's ?q= and invitation links (?ref=, ?aff=) all count as the page they're on. Each part of the path
- * is spelled one way, percent-encoding all but letters, digits and "-._~" (as the sitemap does), so
- * `/series/Aunt%20Jane's%20Nieces` (the app's links) and `/series/Aunt%20Jane%27s%20Nieces` are one page.
+ * is spelled one way (urlPath.ts pathSegment(), which the app's links use too), so a request for
+ * `/series/Aunt%20Jane's%20Nieces` names `/series/Aunt%20Jane%27s%20Nieces`, the address every link gives.
  */
 export function canonicalUrl(pathname: string): string {
   const path = pathname.replace(/\/+$/, "").split("/").map(normalSegment).join("/") || "/";
@@ -24,7 +25,7 @@ export function canonicalUrl(pathname: string): string {
 
 function normalSegment(segment: string): string {
   try {
-    return encodeURIComponent(decodeURIComponent(segment)).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+    return pathSegment(decodeURIComponent(segment));
   } catch {
     // Not valid percent-encoding: keep it as it came.
     return segment;
@@ -138,7 +139,7 @@ const LANGUAGE_CODES: Record<string, string> = { English: "en", French: "fr", Ge
 
 /** A catalog book's page: the book, as an ebook and, with a recording, an audiobook. */
 export function bookData(book: Pick<Book, "id" | "title" | "author" | "year" | "language" | "synopsis" | "pages" | "genres" | "recording" | "formats">) {
-  const url = `${SITE_URL}/books/${encodeURIComponent(book.id)}`;
+  const url = `${SITE_URL}${bookPath(book.id)}`;
   const inLanguage = LANGUAGE_CODES[book.language] ?? "en";
   const editions: Record<string, unknown>[] = [];
   if (book.formats.includes("ebook")) {
@@ -224,7 +225,10 @@ export function pageData({ type = "WebPage", path, name, description, crumbs, da
 export const HOME_CRUMB: Crumb = { name: "Home", path: "/" };
 
 /** A catalog book's node, by reference (bookData() gives it in full on the book's page). */
-export const bookRef = (id: string) => ({ "@id": `${absoluteUrl(`/books/${encodeURIComponent(id)}`)}#book` });
+export const bookRef = (id: string) => ({ "@id": `${absoluteUrl(bookPath(id))}#book` });
+
+/** A book page's path. */
+export const bookPath = (id: string) => `/books/${pathSegment(id)}`;
 
 /** A series page: the series and its books in reading order. */
 export function seriesData(name: string, path: string, books: Pick<Book, "id" | "title" | "author">[]) {
@@ -241,7 +245,7 @@ export function seriesData(name: string, path: string, books: Pick<Book, "id" | 
       "@type": "Book",
       "@id": bookRef(b.id)["@id"],
       name: b.title,
-      url: absoluteUrl(`/books/${encodeURIComponent(b.id)}`),
+      url: absoluteUrl(bookPath(b.id)),
       author: { "@type": "Person", name: b.author },
       position: i + 1,
     })),

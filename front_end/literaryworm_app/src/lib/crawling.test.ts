@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileFor, publicPages } from "./publicPages";
 import { headerValues, rewriteFor, type VercelConfig } from "./vercelRoutes";
 
 /**
@@ -16,6 +17,8 @@ const sitemapUrls = [...read("public/sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>
 const sitemapPaths = new Set(sitemapUrls.map((url) => new URL(url).pathname));
 // shell.html, by its clean address (cleanUrls: a rewrite to "/shell.html" finds nothing).
 const SHELL = "/shell";
+/** Routes whose every page is built ahead (lib/publicPages.ts), so vercel.json gives them no rewrite. */
+const BUILT_ONLY = new Set(["series/:name", "genres/:id"]);
 
 /** The Disallow rules robots.txt gives every crawler (User-agent: *), as patterns. */
 function disallowedForAll(): RegExp[] {
@@ -52,6 +55,7 @@ const KEPT_OUT = [
   "/search?q=dune",
   "/search?genre=fantasy",
   "/search?by=author&q=austen",
+  "/shell",
 ];
 
 describe("robots.txt and the sitemap", () => {
@@ -93,9 +97,20 @@ describe("vercel.json routing", () => {
     const routes = [...app.matchAll(/<Route\s+path="([^"]+)"/g)].map((m) => m[1]).filter((p) => p !== "*");
     // /plans and /book/:id are redirected before any rewrite (canonicalHeaders.test.ts).
     const redirected = new Set(["plans", "book/:id"]);
-    const paths = routes.filter((r) => !redirected.has(r)).map((r) => `/${r.replace(/:\w+/g, "sample-id")}`);
+    const paths = routes.filter((r) => !redirected.has(r) && !BUILT_ONLY.has(r)).map((r) => `/${r.replace(/:\w+/g, "sample-id")}`);
     expect(paths.length).toBeGreaterThan(20);
     expect(paths.filter((path) => rewriteFor(vercel, path) !== SHELL)).toEqual([]);
+  });
+
+  it("serves series and genres only as built, so a name the catalog doesn't have is a real 404", () => {
+    const app = read("src/App.tsx");
+    expect([...BUILT_ONLY].filter((route) => !app.includes(`<Route path="${route}"`))).toEqual([]);
+    for (const path of ["/series/Oz", "/series/oz", "/series/Not%20A%20Series", "/genres/fantasy", "/genres/nope"]) {
+      expect(rewriteFor(vercel, path)).toBeNull();
+    }
+    const files = new Set(publicPages().map((p) => fileFor(p.path)));
+    expect(files.has("series/Oz.html")).toBe(true);
+    expect(files.has("genres/fantasy.html")).toBe(true);
   });
 
   it("answers 404 for addresses the app doesn't have, instead of a copy of Home", () => {

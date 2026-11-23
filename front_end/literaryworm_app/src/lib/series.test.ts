@@ -20,7 +20,8 @@ describe("finding a series", () => {
   it("finds by name in any case and builds its path", () => {
     expect(seriesNamed("anne of green gables")?.ids[0]).toBe("anne-of-green-gables");
     expect(seriesNamed(undefined)).toBeUndefined();
-    expect(seriesPath("The d'Artagnan Romances")).toBe("/series/The%20d'Artagnan%20Romances");
+    // Spelled as its canonical link spells it: a link with a bare apostrophe is another address to Google.
+    expect(seriesPath("The d'Artagnan Romances")).toBe("/series/The%20d%27Artagnan%20Romances");
   });
 
   it("gives a book's place", () => {

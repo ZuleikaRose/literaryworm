@@ -1,11 +1,15 @@
 import { books } from "../data/books";
+import { type BrowseGenre, browseGenres, genreLabel } from "../data/genres";
 import { legalPages, type LegalPage } from "../data/legal";
 import { FREE_TRIAL_DAYS, planFaqs } from "../data/plans";
 import type { Book } from "../types";
 import { builtInEntries, type ChangeEntry } from "./changelog";
+import { GENRE_LIST_MAX, genreBooks, genreIndexable, genrePath, genreTitle, indexedGenres } from "./genrePages";
+import { catalogBy, type PersonKind, personName, personPath } from "./people";
 import {
   absoluteUrl,
   bookData,
+  bookPath,
   bookRef,
   canonicalUrl,
   type Crumb,
@@ -14,6 +18,7 @@ import {
   MEMBERSHIP_ID,
   membershipData,
   pageData,
+  personNode,
   plansDescription,
   seriesData,
   siteDescription,
@@ -154,12 +159,87 @@ export const bookDescription = (book: Pick<Book, "title" | "author" | "synopsis"
 
 /** A book page's own node: an ItemPage about the book, with the trail through its series if it has one. */
 export function bookPageNode({ id, title, mainEntity, inCatalog }: { id: string; title: string; mainEntity: Record<string, unknown>; inCatalog: boolean }) {
-  const path = `/books/${encodeURIComponent(id)}`;
+  const path = bookPath(id);
   const crumbs: Crumb[] = [HOME_CRUMB];
   const place = inCatalog ? seriesPlace(id) : null;
   if (place) crumbs.push({ name: place.series.name, path: seriesPath(place.series.name) });
   crumbs.push({ name: title, path });
   return pageData({ type: "ItemPage", path, name: title, crumbs, mainEntity });
+}
+
+/** "Dune, Emma and Persuasion": the first few titles of a list, for a description. */
+function someTitles(titles: Pick<Book, "title">[], max = 3): string {
+  const names = titles.slice(0, max).map((b) => b.title);
+  return names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+const countOf = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** A genre page's description: what the catalog has in it, or, with nothing, what Google Books adds. */
+export function genreDescription(id: BrowseGenre, titles: Pick<Book, "title">[]): string {
+  const label = genreLabel(id);
+  if (titles.length === 0) return shortDescription(`${label} books from Google Books on LiteraryWorm: browse, save and rate them, with a profile for everyone at home.`);
+  return shortDescription(
+    `${label} books on LiteraryWorm: ${countOf(titles.length, "title", "titles")} to read and listen to, including ${someTitles(titles)}. More from Google Books, with a profile for everyone at home.`,
+  );
+}
+
+/** A genre page's own node: a CollectionPage listing the catalog's titles in it. */
+export function genrePageNode(id: BrowseGenre, titles: Pick<Book, "id" | "title">[]) {
+  const path = genrePath(id);
+  return pageData({
+    type: "CollectionPage",
+    path,
+    name: genreTitle(id),
+    description: genreDescription(id, titles),
+    crumbs: [HOME_CRUMB, { name: genreTitle(id), path }],
+    ...(titles.length > 0 && {
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: Math.min(titles.length, GENRE_LIST_MAX),
+        itemListElement: titles.slice(0, GENRE_LIST_MAX).map((b, i) => ({ "@type": "ListItem", position: i + 1, name: b.title, url: absoluteUrl(bookPath(b.id)) })),
+      },
+    }),
+  });
+}
+
+/** A narrator's page is indexed once they read at least this many catalog titles (one is too thin a page). */
+export const NARRATOR_MIN_TITLES = 2;
+
+/** An author's or narrator's page title: "Jane Austen (author)". */
+export const personTitle = (kind: PersonKind, name: string) => `${name} (${kind})`;
+
+/** A person page's description, from the catalog titles a visitor sees. */
+export function personDescription(kind: PersonKind, name: string, titles: Pick<Book, "title">[]): string {
+  if (titles.length === 0) return shortDescription(`Books by ${name} from Google Books: save them, rate them and follow ${name} on LiteraryWorm.`);
+  const count = countOf(titles.length, "title", "titles");
+  return shortDescription(
+    kind === "author"
+      ? `${name} on LiteraryWorm: ${count} to read and listen to, including ${someTitles(titles)}.`
+      : `Audiobooks read by ${name} on LiteraryWorm: ${count}, including ${someTitles(titles)}.`,
+  );
+}
+
+/** Whether a person's page should be in search results: authors always, narrators with NARRATOR_MIN_TITLES. */
+export const personIndexable = (kind: PersonKind, name: string) => kind === "author" || catalogBy(kind, name, "all").length >= NARRATOR_MIN_TITLES;
+
+/** A person page's own node: a ProfilePage about them. */
+export function personPageNode(kind: PersonKind, name: string) {
+  const path = personPath(kind, name);
+  return pageData({
+    type: "ProfilePage",
+    path,
+    name: personTitle(kind, name),
+    description: personDescription(kind, name, catalogBy(kind, name, "all")),
+    crumbs: [HOME_CRUMB, { name, path }],
+    mainEntity: personNode(name, path),
+  });
+}
+
+/** A link a page gives readers without JavaScript (and crawlers reading the HTML before it runs). */
+export interface PageLink {
+  name: string;
+  path: string;
 }
 
 /** One page to serve as its own HTML file. */
@@ -170,7 +250,13 @@ export interface PublicPage {
   description: string;
   /** Its own schema.org nodes (index.html already has WebSite and Organization). */
   structured: unknown[];
+  /** Pages it links to, written into its HTML for readers without JavaScript and for crawlers. */
+  links?: PageLink[];
+  /** Built so its address is right, but kept out of search results and the sitemap (a thin page). */
+  noindex?: boolean;
 }
+
+const bookLink = (b: Pick<Book, "id" | "title">): PageLink => ({ name: b.title, path: bookPath(b.id) });
 
 const seriesPage = (series: Series): PublicPage => {
   // What a visitor sees: the books for every age.
@@ -180,6 +266,38 @@ const seriesPage = (series: Series): PublicPage => {
     title: seriesTitle(series.name),
     description: seriesDescription(series.name, titles),
     structured: [seriesPageNode(series.name), seriesData(series.name, seriesPath(series.name), titles)],
+    links: titles.map(bookLink),
+  };
+};
+
+const genrePage = (id: BrowseGenre): PublicPage => {
+  const titles = genreBooks(id, "all");
+  return {
+    path: genrePath(id),
+    title: genreTitle(id),
+    description: genreDescription(id, titles),
+    structured: [genrePageNode(id, titles)],
+    links: titles.slice(0, GENRE_LIST_MAX).map(bookLink),
+    ...(!genreIndexable(id) && { noindex: true }),
+  };
+};
+
+/** The catalog's authors and narrators, each once, as their pages spell them. */
+function catalogPeople(kind: PersonKind): string[] {
+  const names = new Set(books.map((b) => (kind === "author" ? b.author : b.narrator)).filter((n): n is string => Boolean(n)));
+  // Only names the page would take as they are (personName()), and none with a "/" (it would be a folder in dist/).
+  return [...names].filter((n) => personName(n) === n && !n.includes("/"));
+}
+
+const personPage = (kind: PersonKind, name: string): PublicPage => {
+  const titles = catalogBy(kind, name, "all");
+  return {
+    path: personPath(kind, name),
+    title: personTitle(kind, name),
+    description: personDescription(kind, name, titles),
+    structured: [personPageNode(kind, name)],
+    links: titles.map(bookLink),
+    ...(!personIndexable(kind, name) && { noindex: true }),
   };
 };
 
@@ -188,18 +306,28 @@ const bookPage = (book: Book): PublicPage => {
   const own = book.source === "literaryworm";
   const mainEntity = own ? bookRef(book.id) : { "@type": "Book", name: book.title, author: [{ "@type": "Person", name: book.author }] };
   const node = bookPageNode({ id: book.id, title: book.title, mainEntity, inCatalog: own });
+  const place = own ? seriesPlace(book.id) : null;
   return {
-    path: `/books/${encodeURIComponent(book.id)}`,
+    path: bookPath(book.id),
     title: bookTitle(book),
     description: bookDescription(book),
     structured: own ? [bookData(book), node] : [node],
+    links: [
+      { name: book.author, path: personPath("author", book.author) },
+      ...(book.narrator ? [{ name: `Read by ${book.narrator}`, path: personPath("narrator", book.narrator) }] : []),
+      ...(place ? [{ name: `${place.series.name} (series)`, path: seriesPath(place.series.name) }] : []),
+    ],
   };
 };
 
-/** Every page to index, in the sitemap's order. */
+/** Every page built ahead, in the sitemap's order (indexedPages() leaves out the ones marked noindex). */
 export function publicPages(): PublicPage[] {
+  const homeLinks: PageLink[] = [
+    { name: PRICING_TITLE, path: "/pricing" },
+    ...indexedGenres().map((id) => ({ name: genreTitle(id), path: genrePath(id) })),
+  ];
   return [
-    { path: "/", title: HOME_TITLE, description: siteDescription(), structured: [homePageNode(), membershipData(), faqData(planFaqs)] },
+    { path: "/", title: HOME_TITLE, description: siteDescription(), structured: [homePageNode(), membershipData(), faqData(planFaqs)], links: homeLinks },
     { path: "/pricing", title: PRICING_TITLE, description: plansDescription(), structured: [pricingPageNode(), membershipData(), faqData(planFaqs)] },
     { path: "/whats-new", title: WHATS_NEW_TITLE, description: WHATS_NEW_DESCRIPTION, structured: [whatsNewPageNode(builtInEntries)] },
     { path: "/search", title: SEARCH_TITLE, description: SEARCH_DESCRIPTION, structured: [searchPageNode()] },
@@ -208,7 +336,29 @@ export function publicPages(): PublicPage[] {
     ...legalPages.map((p) => ({ path: `/legal/${p.slug}`, title: p.title, description: legalDescription(p), structured: [legalPageNode(p)] })),
     ...books.map(bookPage),
     ...allSeries.map(seriesPage),
+    ...browseGenres.map((g) => genrePage(g.id)),
+    ...catalogPeople("author").map((name) => personPage("author", name)),
+    ...catalogPeople("narrator").map((name) => personPage("narrator", name)),
   ];
+}
+
+/** The pages for search engines: the sitemap's list. */
+export const indexedPages = (pages: PublicPage[] = publicPages()) => pages.filter((p) => !p.noindex);
+
+/**
+ * public/sitemap.xml (scripts/build-sitemap.mjs writes it; publicPages.test.ts checks it's current).
+ * A lastmod only where the date is known: a footer page's is the day its text last changed. Other
+ * pages have none rather than a guess (a build date on every page teaches search engines to ignore it;
+ * What's new and Home also change from the database, after any date the repository knows).
+ */
+export function sitemapXml(pages: PublicPage[] = indexedPages()): string {
+  const updated = new Map(legalPages.map((p) => [`/legal/${p.slug}`, p.updated]));
+  const lastmod = (path: string) => updated.get(path);
+  const lines = pages.map((p) => {
+    const when = lastmod(p.path);
+    return `  <url><loc>${escapeHtml(canonicalUrl(p.path))}</loc>${when ? `<lastmod>${when}</lastmod>` : ""}</url>`;
+  });
+  return ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', ...lines, "</urlset>", ""].join("\n");
 }
 
 /** The page at a path (any spelling of it), if it's one to index. */
@@ -266,7 +416,11 @@ export function renderPage(template: string, page: PublicPage): string {
   );
   const data = page.structured.map((d) => `    <script type="application/ld+json" data-prerendered>${scriptJson(d)}</script>\n`).join("");
   html = replaceOne(html, /\n\s*<\/head>/, `\n${data}  </head>`, "</head>");
-  const noscript = `<noscript><main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p><p><a href="/">LiteraryWorm</a></p></main></noscript>`;
+  if (page.noindex) html = replaceOne(html, /<meta name="viewport"/, `<meta name="robots" content="noindex" />\n    <meta name="viewport"`, "viewport");
+  const links = page.links?.length
+    ? `<ul>${page.links.map((l) => `<li><a href="${escapeHtml(l.path)}">${escapeHtml(l.name)}</a></li>`).join("")}</ul>`
+    : "";
+  const noscript = `<noscript><main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p>${links}<p><a href="/">LiteraryWorm</a></p></main></noscript>`;
   return replaceOne(html, /<div id="root"><\/div>/, `<div id="root"></div>\n    ${noscript}`, "#root");
 }
 

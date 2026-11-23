@@ -2,6 +2,7 @@ import { books, getBook, isAllowed } from "../data/books";
 import { SERIES } from "../data/series";
 import type { AgeRating, Book } from "../types";
 import { type SeriesPlace, seriesInTitle } from "./librarySort";
+import { pathSegment } from "./urlPath";
 
 /**
  * Series: the curated list in data/series.ts, plus books with `series` set in the catalog. A
@@ -46,7 +47,7 @@ export function seriesNamed(name: string | undefined): Series | undefined {
 }
 
 export function seriesPath(name: string): string {
-  return `/series/${encodeURIComponent(name)}`;
+  return `/series/${pathSegment(name)}`;
 }
 
 /** The books of a series a profile may see, in order. */

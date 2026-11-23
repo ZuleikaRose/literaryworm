@@ -1,12 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { getBook } from "../data/books";
+import { books, getBook } from "../data/books";
+import { catalogBy, personPath } from "./people";
+import { allSeries, seriesPath } from "./series";
 import {
   bookTitle,
   DESCRIPTION_MAX,
   documentTitle,
   fileFor,
+  indexedPages,
+  NARRATOR_MIN_TITLES,
   NOT_FOUND_FILE,
   prerenderedFiles,
   publicPageAt,
@@ -15,6 +19,7 @@ import {
   renderPage,
   SHELL_FILE,
   shortDescription,
+  sitemapXml,
 } from "./publicPages";
 import { canonicalUrl, plansDescription, SITE_URL, siteDescription } from "./seo";
 
@@ -26,6 +31,7 @@ import { canonicalUrl, plansDescription, SITE_URL, siteDescription } from "./seo
  */
 const template = readFileSync(join(__dirname, "../../index.html"), "utf8");
 const sitemap = readFileSync(join(__dirname, "../../public/sitemap.xml"), "utf8");
+const NOINDEX = '<meta name="robots" content="noindex" />';
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 const files = prerenderedFiles(template);
 const byFile = new Map(files.map((f) => [f.file, f.html]));
@@ -44,9 +50,41 @@ const htmlFor = (url: string) => byFile.get(fileFor(new URL(url).pathname)) ?? "
 describe("the pages built ahead", () => {
   it("are exactly the sitemap's pages", () => {
     expect(sitemapUrls.length).toBeGreaterThan(MIN_SITEMAP_URLS);
-    const built = publicPages().map((p) => canonicalUrl(p.path));
+    const built = indexedPages().map((p) => canonicalUrl(p.path));
     expect([...built].sort()).toEqual([...sitemapUrls].sort());
     expect(new Set(built).size).toBe(built.length);
+  });
+
+  it("are listed in public/sitemap.xml exactly as sitemapXml() writes it (npm run sitemap)", () => {
+    expect(sitemap).toBe(sitemapXml());
+  });
+
+  it("give a lastmod only where the date is known: the footer pages", () => {
+    const dated = [...sitemap.matchAll(/<loc>([^<]+)<\/loc><lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod>/g)].map((m) => new URL(m[1]).pathname);
+    expect(dated.length).toBeGreaterThan(0);
+    expect(dated.filter((path) => !path.startsWith("/legal/"))).toEqual([]);
+  });
+
+  it("built but kept out of the sitemap ask not to be indexed, and still name only themselves", () => {
+    const thin = publicPages().filter((p) => p.noindex);
+    expect(thin.length).toBeGreaterThan(0);
+    const wrong = thin.filter((p) => {
+      const html = byFile.get(fileFor(p.path)) ?? "";
+      return !html.includes(NOINDEX) || canonicals(html).join() !== canonicalUrl(p.path) || sitemapUrls.includes(canonicalUrl(p.path));
+    });
+    expect(wrong).toEqual([]);
+    expect(sitemapUrls.filter((url) => htmlFor(url).includes(NOINDEX))).toEqual([]);
+  });
+
+  it("link only to pages built ahead, each spelled as its own canonical", () => {
+    const built = new Set(publicPages().map((p) => p.path));
+    const wrong = publicPages().flatMap((p) => (p.links ?? []).map((l) => l.path)).filter((path) => !built.has(path) || canonicalUrl(path) !== `${SITE_URL}${path}`);
+    expect(wrong).toEqual([]);
+  });
+
+  it("each have exactly one h1, for readers without JavaScript (the app draws its own when it runs)", () => {
+    const wrong = sitemapUrls.filter((url) => (htmlFor(url).match(/<h1>/g) ?? []).length !== 1);
+    expect(wrong).toEqual([]);
   });
 
   it("each have exactly one canonical link and one og:url, both their own address", () => {
@@ -99,8 +137,12 @@ describe("the pages built ahead", () => {
     expect(html).toContain('<div id="root"></div>');
   });
 
-  it("tell readers without JavaScript what the page is", () => {
-    expect(htmlFor(`${SITE_URL}/books/dune`)).toMatch(/<noscript><main><h1>Dune by Frank Herbert<\/h1><p>[^<]+<\/p>/);
+  it("tell readers without JavaScript what the page is, with links on to its author, narrator and series", () => {
+    const dune = htmlFor(`${SITE_URL}/books/dune`);
+    expect(dune).toMatch(/<noscript><main><h1>Dune by Frank Herbert<\/h1><p>[^<]+<\/p>/);
+    expect(dune).toContain('<a href="/authors/Frank%20Herbert">Frank Herbert</a>');
+    const anne = htmlFor(`${SITE_URL}/books/anne-of-avonlea`);
+    expect(anne).toContain(`<a href="${seriesPath("Anne of Green Gables")}">`);
   });
 
   it("put Home in index.html and each other page in its own file", () => {
@@ -137,7 +179,8 @@ describe("publicPageAt", () => {
   });
 
   it("finds nothing for addresses that aren't built ahead", () => {
-    expect(publicPageAt("/authors/Jane%20Austen")).toBeUndefined();
+    expect(publicPageAt("/authors/Not%20A%20Catalog%20Author")).toBeUndefined();
+    expect(publicPageAt("/genres/not-a-genre")).toBeUndefined();
     expect(publicPageAt("/books/not-a-book")).toBeUndefined();
     expect(publicPageAt("/account")).toBeUndefined();
   });
@@ -191,5 +234,38 @@ describe("renderPage", () => {
   it("refuses an index.html without the tags it fills in, rather than build a page without them", () => {
     expect(() => renderPage(template.replace(/<title>[^<]*<\/title>/, ""), PAGE)).toThrow("<title>");
     expect(() => renderPage(template.replace(/<meta property="og:url"[^>]*>/, ""), PAGE)).toThrow("og:url");
+  });
+});
+
+describe("author and narrator pages", () => {
+  const authors = [...new Set(books.map((b) => b.author))];
+  const narrators = [...new Set(books.flatMap((b) => (b.narrator ? [b.narrator] : [])))];
+
+  it("are built for every catalog author, in the sitemap at the address the app links to", () => {
+    expect(authors.length).toBeGreaterThan(0);
+    expect(authors.filter((name) => !sitemapUrls.includes(canonicalUrl(personPath("author", name))))).toEqual([]);
+    expect(canonicals(htmlFor(`${SITE_URL}/authors/Jane%20Austen`))).toEqual([`${SITE_URL}/authors/Jane%20Austen`]);
+    expect(titleOf(htmlFor(`${SITE_URL}/authors/Jane%20Austen`))).toBe(documentTitle("Jane Austen (author)"));
+  });
+
+  it("index a narrator's page from NARRATOR_MIN_TITLES titles; one with fewer is built but kept out", () => {
+    const wrong = narrators.filter((name) => {
+      const url = canonicalUrl(personPath("narrator", name));
+      const many = catalogBy("narrator", name, "all").length >= NARRATOR_MIN_TITLES;
+      return sitemapUrls.includes(url) !== many || (htmlFor(url).includes(NOINDEX) === many);
+    });
+    expect(wrong).toEqual([]);
+  });
+
+  it("spell names with accents and apostrophes the one way, in links, files and canonicals", () => {
+    expect(personPath("author", "Émile Zola")).toBe("/authors/%C3%89mile%20Zola");
+    expect(personPath("author", "Flannery O'Connor")).toBe("/authors/Flannery%20O%27Connor");
+    expect(fileFor("/authors/%C3%89mile%20Zola")).toBe("authors/Émile Zola.html");
+    expect(allSeries.filter((s) => canonicalUrl(seriesPath(s.name)) !== `${SITE_URL}${seriesPath(s.name)}`)).toEqual([]);
+  });
+
+  it("list the person's catalog titles as links to the book pages", () => {
+    const links = [...htmlFor(`${SITE_URL}/authors/Jane%20Austen`).matchAll(/<a href="(\/books\/[^"]+)">/g)].map((m) => m[1]);
+    expect(links.length).toBe(catalogBy("author", "Jane Austen", "all").length);
   });
 });

@@ -83,11 +83,14 @@ export function genreLabel(id: BrowseGenre): string {
 }
 
 /**
- * A genre's place in the home feed: `/?genre=horror#discover` (technology, the default, has
- * no parameter). The #discover hash takes the page to the feed instead of the top, and keeps
- * it there while switching genres.
+ * Where a genre link goes. From the public pages (basePath "/"), the genre's own page,
+ * `/genres/horror` (lib/genrePages.ts; the old `/?genre=horror` is redirected there by vercel.json).
+ * Elsewhere (members' Browse), its place in that page's feed: `/browse?genre=horror#discover`
+ * (technology, the default, has no parameter); the #discover hash takes the page to the feed instead
+ * of the top, and keeps it there while switching genres.
  */
 export function genreHref(basePath: string, id: BrowseGenre): string {
+  if (basePath === "/") return `/genres/${id}`;
   return `${basePath}${id === "technology" ? "" : `?genre=${id}`}#discover`;
 }
 

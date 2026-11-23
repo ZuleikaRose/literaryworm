@@ -2,6 +2,7 @@ import { dateLocale, tr } from "./i18n";
 import { books, isAllowed } from "../data/books";
 import type { AgeRating, Book, Follow } from "../types";
 import { normalizeQuery, queryError, wordsMatch } from "./search";
+import { pathSegment } from "./urlPath";
 
 /** Authors and narrators: their pages, what they've made in the catalog, and following them. */
 
@@ -11,7 +12,7 @@ export type PersonKind = Follow["kind"];
 export const FOLLOWS_MAX = 200;
 
 export function personPath(kind: PersonKind, name: string): string {
-  return `/${kind === "author" ? "authors" : "narrators"}/${encodeURIComponent(name)}`;
+  return `/${kind === "author" ? "authors" : "narrators"}/${pathSegment(name)}`;
 }
 
 /**
@@ -21,6 +22,13 @@ export function personPath(kind: PersonKind, name: string): string {
 export function personName(raw: string | undefined): string | null {
   const name = normalizeQuery(raw ?? "");
   return name && !queryError(name) ? name : null;
+}
+
+/** The catalog's spelling of an author's or narrator's name, matched without regard to case, or null. */
+export function catalogSpelling(kind: PersonKind, name: string): string | null {
+  const key = name.toLowerCase();
+  const found = books.find((b) => (kind === "author" ? b.author : b.narrator)?.toLowerCase() === key);
+  return (kind === "author" ? found?.author : found?.narrator) ?? null;
 }
 
 export function isFollowing(follows: Follow[], kind: PersonKind, name: string): boolean {
