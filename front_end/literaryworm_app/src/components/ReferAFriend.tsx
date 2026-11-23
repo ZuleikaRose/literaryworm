@@ -22,6 +22,7 @@ const DEMO_STATUS: ReferralStatus = {
   waiting: 1,
   hasPaidPlan: true,
   creditTakenBack: false,
+  creditState: "added",
   invited: null,
 };
 /** Credits are in the plans' currency (public.plans.currency). */
@@ -82,19 +83,25 @@ export function ReferAFriend({ demo = false }: { demo?: boolean }) {
         {t("When a friend joins with your link and makes their first payment, you each get 20% off one month of your own plan, taken off your next bill. You get yours once, and every friend you invite gets theirs. If that first payment is fully refunded or disputed, both credits are taken back; if a dispute is won, they're added again.")}
       </p>
       {invited && (
-        <p className={invited.reversed ? "field-hint" : "form-success"}>
-          {!invited.reversed && <Icon name="check" size={16} />}
-          {invited.rule === "free_month"
-            ? invited.rewarded
-              ? t("You joined with a friend's invitation, and your free month is on your account.")
-              : t("You joined with a friend's invitation: your free month is added after your first payment.")
-            : invited.reversed
+        <p className={invited.state === "added" ? "form-success" : "field-hint"}>
+          {invited.state === "added" && <Icon name="check" size={16} />}
+          {!invited.rewarded
+            ? invited.rule === "free_month"
+              ? t("You joined with a friend's invitation: your free month is added after your first payment.")
+              : t("You joined with a friend's invitation: 20% off a month of your plan is added after your first payment.")
+            : invited.state === "taken_back"
               ? t("You joined with a friend's invitation. Your 20% credit was taken back because your first payment was fully refunded or disputed.")
-              : invited.rewarded
-                ? invitedCredit
-                  ? t("You joined with a friend's invitation, and your 20% credit of {amount} is on your account.", { amount: invitedCredit })
-                  : t("You joined with a friend's invitation.")
-                : t("You joined with a friend's invitation: 20% off a month of your plan is added after your first payment.")}
+              : invited.state === "parked"
+                ? t("You joined with a friend's invitation. Your credit is delayed: we're looking into it.")
+                : !invitedCredit || !invited.state
+                  ? t("You joined with a friend's invitation.")
+                  : invited.rule === "free_month"
+                    ? invited.state === "added"
+                      ? t("You joined with a friend's invitation, and your free month is on your account.")
+                      : t("You joined with a friend's invitation, and your free month is being added to your account.")
+                    : invited.state === "added"
+                      ? t("You joined with a friend's invitation, and your 20% credit of {amount} is on your account.", { amount: invitedCredit })
+                      : t("You joined with a friend's invitation, and your 20% credit of {amount} is being added to your account.", { amount: invitedCredit })}
         </p>
       )}
       {demo && <p className="goal-hint">{t("In the demo the link and counts are a sample: members get their own link here.")}</p>}
@@ -119,7 +126,11 @@ export function ReferAFriend({ demo = false }: { demo?: boolean }) {
           </p>
           <p className="field-hint">
             {credit === "earned"
-              ? t("Your 20% credit of {amount} is on your account.", { amount: formatMoney(status.creditCents ?? 0, CURRENCY) })
+              ? status.creditState === "parked"
+                ? t("Your 20% credit is delayed: we're looking into it.")
+                : status.creditState === "added"
+                  ? t("Your 20% credit of {amount} is on your account.", { amount: formatMoney(status.creditCents ?? 0, CURRENCY) })
+                  : t("Your 20% credit of {amount} is being added to your account.", { amount: formatMoney(status.creditCents ?? 0, CURRENCY) })
               : credit === "taken_back"
                 ? t("Your 20% credit was taken back because your friend's first payment was fully refunded or disputed.")
                 : credit === "pending"

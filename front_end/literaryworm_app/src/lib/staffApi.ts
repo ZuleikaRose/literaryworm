@@ -125,6 +125,29 @@ export async function loadCancelReasons(days = 90): Promise<CancelReasonCount[]>
   }));
 }
 
+/** A referral side set aside for review after Stripe kept refusing it (parked_referral_credits(): billing staff and admins). */
+export interface ParkedReferralCredit {
+  referralId: string;
+  side: "friend" | "referrer";
+  cents: number | null;
+  currency: string;
+  lastError: string | null;
+  failedAt: string | null;
+}
+
+export async function loadParkedReferralCredits(): Promise<ParkedReferralCredit[]> {
+  const { data, error } = await client().rpc("parked_referral_credits");
+  if (error) throw new AccountError(tr("We couldn't load the referral credits held for review. Try again."));
+  return ((data ?? []) as { referral_id: string; side: "friend" | "referrer"; cents: number | null; currency: string; last_error: string | null; failed_at: string | null }[]).map((r) => ({
+    referralId: r.referral_id,
+    side: r.side,
+    cents: r.cents,
+    currency: r.currency,
+    lastError: r.last_error,
+    failedAt: r.failed_at,
+  }));
+}
+
 export async function loadDashboard(): Promise<StaffDashboard> {
   const { data, error } = await client().rpc("staff_dashboard");
   if (error) {

@@ -5,7 +5,7 @@ import { formatMoney } from "../lib/billing";
 import { readingTime } from "../lib/goals";
 import { dateLocale, type T, tk } from "../lib/i18n";
 import { hasRole } from "../lib/staff";
-import { type CancelReasonCount, loadCancelReasons, loadDashboard, type StaffDashboard } from "../lib/staffApi";
+import { type CancelReasonCount, loadCancelReasons, loadDashboard, loadParkedReferralCredits, type ParkedReferralCredit, type StaffDashboard } from "../lib/staffApi";
 import { CANCEL_REASON_LABEL, type SaveOffer } from "../lib/cancelSurvey";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { useT } from "../lib/useT";
@@ -83,6 +83,7 @@ function DashboardBody() {
       )}
       {data && <Totals data={data} />}
       {data && <CancelReasons tries={tries} />}
+      {data && <ParkedReferralCredits tries={tries} />}
     </>
   );
 }
@@ -259,6 +260,51 @@ function CancelReasons({ tries }: { tries: number }) {
                   {")"}
                 </span>
               )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Refer a friend credits Stripe kept refusing, set aside for the team (parked_referral_credits()). Fix the
+ * cause, then clear one with clear_referral_review() in the SQL editor (supabase/README.md).
+ */
+function ParkedReferralCredits({ tries }: { tries: number }) {
+  const t = useT();
+  const [rows, setRows] = useState<ParkedReferralCredit[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadParkedReferralCredits().then(
+      (r) => live && (setRows(r), setError(null)),
+      (err: Error) => live && setError(err.message),
+    );
+    return () => {
+      live = false;
+    };
+  }, [tries]);
+  return (
+    <section className="stats-card dashboard-cancel" aria-labelledby="dash-parked">
+      <h2 id="dash-parked">{t("Referral credits held for review")}</h2>
+      {error && (
+        <p className="field-error" role="alert">
+          <Icon name="alert" size={15} />
+          {error}
+        </p>
+      )}
+      {rows && rows.length === 0 && <p className="account-sub">{t("None: every referral credit has gone through.")}</p>}
+      {rows && rows.length > 0 && (
+        <ul className="dashboard-list" role="list">
+          {rows.map((r) => (
+            <li key={`${r.referralId}-${r.side}`}>
+              <strong>{r.side === "friend" ? t("Invited friend") : t("Inviter")}</strong>{" "}
+              <code>{r.referralId}</code>
+              {r.cents != null && <> · {formatMoney(r.cents, r.currency.toUpperCase())}</>}
+              {r.failedAt && <> · {new Date(r.failedAt).toLocaleString(dateLocale())}</>}
+              {r.lastError && <span className="dashboard-note"> · {r.lastError}</span>}
             </li>
           ))}
         </ul>

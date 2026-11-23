@@ -179,3 +179,12 @@ export function cleanReferralCode(input: string | null | undefined): string | nu
 /** The link a member shares. */
 export const referralLink = (code: string, origin = typeof window === "undefined" ? "https://www.literaryworm.com" : window.location.origin) =>
   `${origin}/signup?ref=${encodeURIComponent(code)}`;
+
+/** Where a 20% credit is: "added" once its Stripe transaction is recorded, "adding" before, "parked" while held for the team. */
+export type CreditState = "added" | "adding" | "parked";
+
+/** A credit state from the database; anything else is unknown (null), never "added". */
+export const creditState = (s: string | null | undefined): CreditState | null => (s === "added" || s === "adding" || s === "parked" ? s : null);
+
+/** The invited member's own credit state (my_invitation()), which can also be taken back. */
+export const invitationState = (s: string | null | undefined): CreditState | "taken_back" | null => (s === "taken_back" ? s : creditState(s));

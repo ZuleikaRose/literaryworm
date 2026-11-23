@@ -1,6 +1,8 @@
 import { describe, expect, it } from "@jest/globals";
 import {
   cleanReferralCode,
+  creditState,
+  invitationState,
   type InviterHistory,
   inviterCredit,
   type Member,
@@ -262,5 +264,19 @@ describe("refer a friend: the inviter's credit on Account", () => {
     expect(inviterCredit(null, 0)).toBe("none");
     expect(inviterCredit(undefined, undefined)).toBe("none");
     expect(inviterCredit(0, 0)).toBe("none");
+  });
+});
+
+describe("where a credit is (on your account only once recorded)", () => {
+  it("passes the three known states through", () => {
+    expect(["added", "adding", "parked"].map(creditState)).toEqual(["added", "adding", "parked"]);
+  });
+
+  it("never says added for anything unknown, empty or null", () => {
+    expect([null, undefined, "", "taken_back", "ADDED"].map(creditState)).toEqual([null, null, null, null, null]);
+  });
+
+  it("lets the invited member's credit also be taken back", () => {
+    expect(["taken_back", "added", "parked", null, "other"].map(invitationState)).toEqual(["taken_back", "added", "parked", null, null]);
   });
 });
