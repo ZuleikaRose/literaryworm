@@ -83,10 +83,13 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     // Refer a friend is tested in referral_test.ts; here the account was invited by nobody.
     claimReferral: (userId, invoiceId) => {
       state.referralClaims.push([userId, invoiceId]);
-      return Promise.resolve({ pending: [] });
+      return Promise.resolve([]);
     },
     reverseReferral: () => Promise.resolve([]),
     restoreReferral: () => Promise.resolve([]),
+    takeBackPossible: () => Promise.resolve(false),
+    recordReferralCheck: () => Promise.resolve(),
+    noteReferralFailure: () => Promise.resolve(false),
     findBalanceTransaction: () => Promise.resolve(null),
     adjustBalance: () => Promise.reject(new Error("no referral transactions here")),
     recordReferralTransaction: () => Promise.resolve(),
@@ -96,8 +99,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
       state.credits.push({ customer, cents, key });
       return Promise.resolve(`cbtxn_${state.credits.length}`);
     },
-    recordReferralCredits: () => Promise.reject(new Error("only the old database")),
-    releaseReferral: () => Promise.reject(new Error("only the old database")),
+
     claimAffiliate: (_id, amount) => {
       // Claimed once, like claim_affiliate_commission().
       state.claimedAmounts.push(amount);

@@ -4,7 +4,7 @@ import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { paymentFailedEmail } from "./email.ts";
 import { giftCode, releaseSchedule, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
-import { handle, type NewGift, type ReferralTransaction, type SubscriptionFields } from "./handler.ts";
+import { handle, type NewGift, type ReferralTransaction, SetAside, type SubscriptionFields } from "./handler.ts";
 
 /** The metadata key that carries a referral transaction's own key, so a retry can find it at Stripe. */
 const KEY_METADATA = "literaryworm_key";
@@ -24,7 +24,7 @@ function pendingRows(data: unknown): ReferralTransaction[] {
     reward_rule: string | null;
   }[];
   return rows
-    .filter((r) => r.customer && r.cents && r.cents > 0 && (r.side === "friend" || r.side === "referrer") && ["credit", "reversal", "recredit"].includes(r.kind))
+    .filter((r) => r.customer && r.cents && r.cents > 0 && (r.side === "friend" || r.side === "referrer") && ["credit", "credit_check", "reversal", "recredit"].includes(r.kind))
     .map((r) => ({
       referralId: r.referral_id,
       side: r.side as ReferralTransaction["side"],
@@ -37,15 +37,35 @@ function pendingRows(data: unknown): ReferralTransaction[] {
     }));
 }
 
-/** Taking back or giving again; nothing while the database is older than migration 6843. */
-async function referralRpc(fn: "reverse_referral_reward" | "restore_referral_reward", referredId: string, invoiceId: string): Promise<ReferralTransaction[]> {
-  const { data, error } = await serviceClient().rpc(fn, { p_referred: referredId, p_invoice: invoiceId });
-  if (error?.code === "PGRST202") {
-    console.warn(`stripe-webhook: ${fn} isn't there yet (migration 6843)`);
-    return [];
+/** How long to wait before asking once more when PostgREST doesn't know a function yet (its schema cache). */
+const SCHEMA_RETRY_MS = 1500;
+
+/**
+ * Calls a referral database function. PostgREST answers PGRST202 when it doesn't know the function (not
+ * migrated yet, or its schema cache is behind): asked once more after a moment, then set aside for
+ * review. Never retried with fewer arguments, which could reach another version of the function.
+ */
+async function referralRpc(fn: string, args: Record<string, unknown>): Promise<ReferralTransaction[]> {
+  for (let attempt = 0; ; attempt++) {
+    const { data, error } = await serviceClient().rpc(fn, args);
+    if (!error) return pendingRows(data);
+    if (error.code !== "PGRST202") throw error;
+    if (attempt >= 1) throw new SetAside(`${fn} isn't in the database's API yet (migration 6843)`);
+    await new Promise((resolve) => setTimeout(resolve, SCHEMA_RETRY_MS));
   }
-  if (error) throw error;
-  return pendingRows(data);
+}
+
+/** Stripe refusing our key (missing rights, or a bad key) isn't worth three days of retries: set aside. */
+async function stripeCall<T>(call: () => Promise<T>): Promise<T> {
+  try {
+    return await call();
+  } catch (err) {
+    const e = err as { type?: string; statusCode?: number };
+    if (e?.type === "StripePermissionError" || e?.type === "StripeAuthenticationError" || e?.statusCode === 401 || e?.statusCode === 403) {
+      throw new SetAside(`Stripe refused the key: ${(err as Error).message}`);
+    }
+    throw err;
+  }
 }
 
 const MEMBERSHIP_COLUMNS = "user_id";
@@ -125,87 +145,89 @@ Deno.serve((req) =>
     async deleteDraftInvoice(invoiceId) {
       await stripeClient().invoices.del(invoiceId);
     },
-    async claimReferral(referredId, invoiceId) {
-      const db = serviceClient();
-      const res = await db.rpc("claim_referral_reward", { p_referred: referredId, p_invoice: invoiceId });
-      if (!res.error) return { pending: pendingRows(res.data) };
-      // Before migration 6843 the function took only the account: the old free month, the old way.
-      if (res.error.code !== "PGRST202") throw res.error;
-      const old = await db.rpc("claim_referral_reward", { p_referred: referredId });
-      if (old.error) throw old.error;
-      const row = (old.data ?? [])[0] as
-        | { referral_id: string; friend_customer: string | null; friend_cents: number | null; referrer_customer: string | null; referrer_cents: number | null }
-        | undefined;
-      if (!row?.friend_customer || !row.friend_cents) return { pending: [], legacy: null };
-      return {
-        pending: [],
-        legacy: {
-          referralId: row.referral_id,
-          friendCustomer: row.friend_customer,
-          friendCents: row.friend_cents,
-          referrerCustomer: row.referrer_customer,
-          referrerCents: row.referrer_cents,
-        },
-      };
+    claimReferral(referredId, invoiceId) {
+      return referralRpc("claim_referral_reward", { p_referred: referredId, p_invoice: invoiceId });
     },
-    async reverseReferral(referredId, invoiceId) {
-      return referralRpc("reverse_referral_reward", referredId, invoiceId);
+    reverseReferral(referredId, invoiceId) {
+      return referralRpc("reverse_referral_reward", { p_referred: referredId, p_invoice: invoiceId });
     },
-    async restoreReferral(referredId, invoiceId) {
-      return referralRpc("restore_referral_reward", referredId, invoiceId);
+    restoreReferral(referredId, invoiceId) {
+      return referralRpc("restore_referral_reward", { p_referred: referredId, p_invoice: invoiceId });
     },
-    async findBalanceTransaction(customerId, key) {
-      // Newest first; a referral's transactions are recent, so the latest few hundred are enough.
-      let seen = 0;
-      for await (const txn of stripeClient().customers.listBalanceTransactions(customerId, { limit: 100 })) {
-        if (txn.metadata?.[KEY_METADATA] === key) return txn.id;
-        if (++seen >= BALANCE_LOOKBACK) break;
-      }
-      return null;
+    async takeBackPossible(customerId) {
+      const { data, error } = await serviceClient().rpc("referral_takeback_possible", { p_customer: customerId });
+      // Not migrated yet: there's nothing a refund could take back.
+      if (error?.code === "PGRST202") return false;
+      if (error) throw error;
+      return data === true;
     },
-    async adjustBalance(customerId, amountCents, currency, key, description) {
-      const txn = await stripeClient().customers.createBalanceTransaction(
-        customerId,
-        { amount: amountCents, currency, description, metadata: { [KEY_METADATA]: key } },
-        { idempotencyKey: key },
-      );
-      return txn.id;
+    findBalanceTransaction(customerId, key, unmarked) {
+      return stripeCall(async () => {
+        // Newest first; a referral's transactions are recent, so the latest few hundred are enough.
+        let seen = 0;
+        let match: string | null = null;
+        for await (const txn of stripeClient().customers.listBalanceTransactions(customerId, { limit: 100 })) {
+          if (txn.metadata?.[KEY_METADATA] === key) return txn.id;
+          if (!match && unmarked && !txn.metadata?.[KEY_METADATA] && txn.amount === unmarked.amountCents && txn.description === unmarked.description) {
+            match = txn.id;
+          }
+          if (++seen >= BALANCE_LOOKBACK) break;
+        }
+        return match;
+      });
+    },
+    adjustBalance(customerId, amountCents, currency, key, description) {
+      return stripeCall(async () => {
+        const txn = await stripeClient().customers.createBalanceTransaction(
+          customerId,
+          { amount: amountCents, currency, description, metadata: { [KEY_METADATA]: key } },
+          { idempotencyKey: key },
+        );
+        return txn.id;
+      });
     },
     async recordReferralTransaction(txn, transactionId) {
       const { error } = await serviceClient().rpc("record_referral_transaction", {
         p_referral: txn.referralId,
         p_side: txn.side,
-        p_kind: txn.kind,
+        p_kind: txn.kind === "credit_check" ? "credit" : txn.kind,
         p_round: txn.round,
         p_txn: transactionId,
       });
       if (error) throw error;
     },
-    async chargeDetails(chargeId) {
-      const stripe = stripeClient();
-      const charge = await stripe.charges.retrieve(chargeId);
-      const paymentIntent = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
-      let invoiceId: string | null = null;
-      if (paymentIntent) {
-        const payments = await stripe.invoicePayments.list({ payment: { type: "payment_intent", payment_intent: paymentIntent }, limit: 1 });
-        const invoice = payments.data[0]?.invoice;
-        invoiceId = (typeof invoice === "string" ? invoice : invoice?.id) ?? null;
-      }
-      const customer = typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
-      return { customer, refunded: charge.refunded, invoiceId };
+    async recordReferralCheck(txn) {
+      const { error } = await serviceClient().rpc("record_referral_check", { p_referral: txn.referralId, p_side: txn.side, p_round: txn.round });
+      if (error) throw error;
+    },
+    async noteReferralFailure(txn) {
+      const { data, error } = await serviceClient().rpc("note_referral_failure", { p_referral: txn.referralId, p_side: txn.side });
+      if (error) throw error;
+      return data === true;
+    },
+    chargeDetails(chargeId) {
+      return stripeCall(async () => {
+        const stripe = stripeClient();
+        const charge = await stripe.charges.retrieve(chargeId);
+        const paymentIntent = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+        let invoiceId: string | null = null;
+        if (paymentIntent) {
+          const payments = await stripe.invoicePayments.list({ payment: { type: "payment_intent", payment_intent: paymentIntent }, limit: 1 });
+          const invoice = payments.data[0]?.invoice;
+          invoiceId = (typeof invoice === "string" ? invoice : invoice?.id) ?? null;
+        }
+        const customer = typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
+        return { customer, refunded: charge.refunded, invoiceId };
+      });
     },
     async creditCustomer(customerId, cents, idempotencyKey, description) {
       // A negative balance is a credit: Stripe takes it off the customer's next invoices.
       const txn = await stripeClient().customers.createBalanceTransaction(
         customerId,
-        { amount: -cents, currency: "usd", description },
+        { amount: -cents, currency: "usd", description, metadata: { [KEY_METADATA]: idempotencyKey } },
         { idempotencyKey },
       );
       return txn.id;
-    },
-    async recordReferralCredits(referralId, friendCredit, referrerCredit) {
-      const { error } = await serviceClient().rpc("record_referral_credits", { p_referral: referralId, p_friend: friendCredit, p_referrer: referrerCredit });
-      if (error) throw error;
     },
     async claimAffiliate(referredId, amountCents) {
       const { data, error } = await serviceClient().rpc("claim_affiliate_commission", { p_referred: referredId, p_amount_cents: amountCents });
@@ -221,10 +243,6 @@ Deno.serve((req) =>
     async releaseAffiliate(referralId) {
       const { error } = await serviceClient().rpc("release_affiliate_commission", { p_referral: referralId });
       if (error) console.error(`stripe-webhook: couldn't hand back affiliate commission ${referralId}`, error.message);
-    },
-    async releaseReferral(referralId) {
-      const { error } = await serviceClient().rpc("release_referral_reward", { p_referral: referralId });
-      if (error) console.error(`stripe-webhook: couldn't hand back referral ${referralId}`, error.message);
     },
     async addVoicePack(pack) {
       const { error } = await serviceClient().rpc("add_natural_voice_pack", {

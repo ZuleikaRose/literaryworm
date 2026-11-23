@@ -14,17 +14,22 @@
 -- The cut-over is in the data: referrals.reward_rule, set when this runs. A referral keeps 'free_month'
 -- (a month of each plan, up to 2 for the inviter) when, at that moment, its reward was claimed
 -- (rewarded_at), or any credit for it is recorded, or the friend had already paid anything
--- (account_private.card_payment_at: so a claim handed back by a failed Stripe call, or a payment that
--- came in before the membership row, still counts as earned). Every other referral, and every new one,
+-- (account_private.card_payment_at, kept since 2026-11-10) or has a paid membership row (for payments
+-- before that): so a claim handed back by a failed Stripe call, or a payment that came in before the
+-- membership row, still counts as earned. Every other referral, and every new one,
 -- is 'percent_20'. Running this file again only moves referrals to 'free_month' by the same test.
 --
 -- Each side's Stripe balance transaction is recorded as soon as it's made (record_referral_transaction()),
--- and a decided reward is never handed back: a retry, or the friend's next paid invoice, only makes the
--- transactions still missing (private.referral_pending()). stripe-webhook also looks for a transaction it
--- already made (its key is in the metadata) before making one, so an expired Stripe idempotency key can't
--- credit twice.
+-- and a decided reward is never handed back: every call says everything still owed
+-- (private.referral_pending()), so a retry or any later event only makes what's missing. stripe-webhook
+-- looks for a transaction it already made (its key is in the metadata) before making one, so an expired
+-- Stripe idempotency key can't make it twice. A credit made during a take-back is then taken back; a side
+-- whose credit may have been made but not recorded is looked up at Stripe ('credit_check'); a new round of
+-- taking back, or giving back after a won dispute, starts only once the last round is all recorded. A side
+-- that keeps failing (5 times) is set aside for review (needs_review) instead of holding up every event.
 --
--- Deploy stripe-webhook before applying this: it falls back to the old functions while these are missing.
+-- Deploy stripe-webhook before applying this: until these functions exist it sets referral events aside
+-- for review rather than failing them.
 
 alter table public.referrals
   add column if not exists reward_rule text not null default 'percent_20' check (reward_rule in ('free_month', 'percent_20')),
@@ -40,7 +45,15 @@ alter table public.referrals
   add column if not exists friend_reversal_id text check (friend_reversal_id is null or friend_reversal_id ~ '^cbtxn_[A-Za-z0-9]+$'),
   add column if not exists referrer_reversal_id text check (referrer_reversal_id is null or referrer_reversal_id ~ '^cbtxn_[A-Za-z0-9]+$'),
   add column if not exists friend_recredit_id text check (friend_recredit_id is null or friend_recredit_id ~ '^cbtxn_[A-Za-z0-9]+$'),
-  add column if not exists referrer_recredit_id text check (referrer_recredit_id is null or referrer_recredit_id ~ '^cbtxn_[A-Za-z0-9]+$');
+  add column if not exists referrer_recredit_id text check (referrer_recredit_id is null or referrer_recredit_id ~ '^cbtxn_[A-Za-z0-9]+$'),
+  -- Failed attempts at a side's Stripe transaction since its last success; at 5 it's set aside for review.
+  add column if not exists friend_failures smallint not null default 0 check (friend_failures >= 0),
+  add column if not exists referrer_failures smallint not null default 0 check (referrer_failures >= 0),
+  add column if not exists friend_needs_review boolean not null default false,
+  add column if not exists referrer_needs_review boolean not null default false,
+  -- The take-back round in which a side's unrecorded credit was looked for at Stripe and not found.
+  add column if not exists friend_checked_round smallint not null default 0 check (friend_checked_round >= 0),
+  add column if not exists referrer_checked_round smallint not null default 0 check (referrer_checked_round >= 0);
 
 -- The cut-over (see above), as a function so the security tests run the very same test; it says how
 -- many referrals it kept on the free month.
@@ -58,7 +71,9 @@ begin
     and (r.rewarded_at is not null
          or r.friend_credit_id is not null
          or r.referrer_credit_id is not null
-         or exists (select 1 from public.account_private a where a.user_id = r.referred_id and a.card_payment_at is not null));
+         or exists (select 1 from public.account_private a where a.user_id = r.referred_id and a.card_payment_at is not null)
+         -- card_payment_at was only kept from 2026-11-10: a paid membership row counts as paid too.
+         or exists (select 1 from public.subscriptions s where s.user_id = r.referred_id and not s.complimentary));
   get diagnostics v_kept = row_count;
   return v_kept;
 end;
@@ -108,10 +123,14 @@ as $$
 $$;
 revoke execute on function private.referral_side_cents(text, integer, integer, text) from public, anon, authenticated;
 
--- The Stripe balance transactions a decided referral still needs, from its recorded state: one row per
--- side and kind. 'credit' (the reward, a negative balance), 'reversal' (taking it back in round n, a
--- positive balance) or 'recredit' (the reward again after a won dispute, round n). A side is never owed
--- a transaction it already has, and a free month is never taken back.
+-- Everything a decided referral still needs at Stripe, from its recorded state: one row per side.
+--   credit        the reward (a negative balance), while not taken back and not yet recorded;
+--   credit_check  while taken back, a side whose credit isn't recorded: look for it at Stripe (it may
+--                 have been made and not recorded) once per round, so it can be taken back too;
+--   reversal      taking a recorded credit back in round n (a positive balance);
+--   recredit      the reward again after a won dispute, for a side whose round-n reversal is recorded.
+-- A side is never owed a transaction it already has, a side set aside for review is skipped, and a free
+-- month is never taken back.
 create or replace function private.referral_pending(p_referral uuid)
 returns table (referral_id uuid, side text, kind text, round integer, customer text, cents integer, currency text, reward_rule text)
 language sql
@@ -122,23 +141,26 @@ as $$
   sides as (
     select r.id, 'friend'::text as side, r.referred_id as user_id, r.friend_credit_cents as cents, r.friend_currency as currency,
            r.friend_credit_id as credit_id, r.friend_reversal_id as reversal_id, r.friend_recredit_id as recredit_id,
+           r.friend_needs_review as needs_review, r.friend_checked_round as checked_round,
            r.reversed_at, r.reversal_count, r.reward_rule
     from r
     union all
     select r.id, 'referrer', r.referrer_id, r.referrer_credit_cents, r.referrer_currency,
-           r.referrer_credit_id, r.referrer_reversal_id, r.referrer_recredit_id, r.reversed_at, r.reversal_count, r.reward_rule
+           r.referrer_credit_id, r.referrer_reversal_id, r.referrer_recredit_id,
+           r.referrer_needs_review, r.referrer_checked_round, r.reversed_at, r.reversal_count, r.reward_rule
     from r
   ),
   owed as (
     select s.*,
            case
              when s.reversed_at is null and s.credit_id is null then 'credit'
-             when s.reward_rule = 'percent_20' and s.reversed_at is not null and s.credit_id is not null and s.reversal_id is null then 'reversal'
-             when s.reward_rule = 'percent_20' and s.reversed_at is null and s.reversal_count > 0
-                  and s.reversal_id is not null and s.recredit_id is null then 'recredit'
+             when s.reward_rule <> 'percent_20' then null
+             when s.reversed_at is not null and s.credit_id is null and s.checked_round < s.reversal_count then 'credit_check'
+             when s.reversed_at is not null and s.credit_id is not null and s.reversal_id is null then 'reversal'
+             when s.reversed_at is null and s.reversal_count > 0 and s.reversal_id is not null and s.recredit_id is null then 'recredit'
            end as kind
     from sides s
-    where s.cents is not null
+    where s.cents is not null and not s.needs_review
   )
   select o.id, o.side, o.kind, o.reversal_count::integer, c.customer_id, o.cents, coalesce(o.currency, 'usd'), o.reward_rule
   from owed o
@@ -219,15 +241,15 @@ begin
         first_invoice_id = case when p_invoice ~ '^in_[A-Za-z0-9]+$' then p_invoice end
     where id = r.id;
   end if;
-  return query select * from private.referral_pending(r.id) q where q.kind in ('credit', 'recredit');
+  return query select * from private.referral_pending(r.id);
 end;
 $$;
 revoke execute on function public.claim_referral_reward(uuid, text) from public, anon, authenticated;
 grant execute on function public.claim_referral_reward(uuid, text) to service_role;
 
 -- For stripe-webhook, when the invoice that earned a 20% reward is fully refunded or disputed: takes
--- both credits back (once per round; a side not credited yet is then never credited), and says which
--- reversals Stripe still needs. Never a free month, and nothing for any other invoice.
+-- both credits back (once per round; a side not credited yet is then never credited), and says what
+-- Stripe still needs. Never a free month, and nothing for any other invoice.
 create or replace function public.reverse_referral_reward(p_referred uuid, p_invoice text)
 returns table (referral_id uuid, side text, kind text, round integer, customer text, cents integer, currency text, reward_rule text)
 language plpgsql
@@ -244,12 +266,13 @@ begin
   if r.id is null then
     return;
   end if;
-  if r.reversed_at is null then
+  -- A new round starts only once the last one is all recorded: no side still owed its credit again.
+  if r.reversed_at is null and not exists (select 1 from private.referral_pending(r.id) q where q.kind = 'recredit') then
     update public.referrals
     set reversed_at = now(), reversal_count = reversal_count + 1, friend_reversal_id = null, referrer_reversal_id = null
     where id = r.id;
   end if;
-  return query select * from private.referral_pending(r.id) q where q.kind = 'reversal';
+  return query select * from private.referral_pending(r.id);
 end;
 $$;
 revoke execute on function public.reverse_referral_reward(uuid, text) from public, anon, authenticated;
@@ -272,10 +295,13 @@ begin
   if r.id is null then
     return;
   end if;
-  if r.reversed_at is not null then
+  -- Given back only once the take-back is all recorded (no reversal or credit check still owed), so a
+  -- reversal made but not recorded is found first and given back too, never made twice.
+  if r.reversed_at is not null
+     and not exists (select 1 from private.referral_pending(r.id) q where q.kind in ('reversal', 'credit_check')) then
     update public.referrals set reversed_at = null, friend_recredit_id = null, referrer_recredit_id = null where id = r.id;
   end if;
-  return query select * from private.referral_pending(r.id) q where q.kind in ('credit', 'recredit');
+  return query select * from private.referral_pending(r.id);
 end;
 $$;
 revoke execute on function public.restore_referral_reward(uuid, text) from public, anon, authenticated;
@@ -297,17 +323,17 @@ begin
     raise exception 'Not a referral transaction' using errcode = 'invalid_parameter_value';
   end if;
   if p_kind = 'credit' and p_side = 'friend' then
-    update public.referrals set friend_credit_id = p_txn where id = p_referral and friend_credit_id is null;
+    update public.referrals set friend_credit_id = p_txn, friend_failures = 0 where id = p_referral and friend_credit_id is null;
   elsif p_kind = 'credit' then
-    update public.referrals set referrer_credit_id = p_txn where id = p_referral and referrer_credit_id is null;
+    update public.referrals set referrer_credit_id = p_txn, referrer_failures = 0 where id = p_referral and referrer_credit_id is null;
   elsif p_kind = 'reversal' and p_side = 'friend' then
-    update public.referrals set friend_reversal_id = p_txn where id = p_referral and reversal_count = p_round and friend_reversal_id is null;
+    update public.referrals set friend_reversal_id = p_txn, friend_failures = 0 where id = p_referral and reversal_count = p_round and friend_reversal_id is null;
   elsif p_kind = 'reversal' then
-    update public.referrals set referrer_reversal_id = p_txn where id = p_referral and reversal_count = p_round and referrer_reversal_id is null;
+    update public.referrals set referrer_reversal_id = p_txn, referrer_failures = 0 where id = p_referral and reversal_count = p_round and referrer_reversal_id is null;
   elsif p_side = 'friend' then
-    update public.referrals set friend_recredit_id = p_txn where id = p_referral and reversal_count = p_round and friend_recredit_id is null;
+    update public.referrals set friend_recredit_id = p_txn, friend_failures = 0 where id = p_referral and reversal_count = p_round and friend_recredit_id is null;
   else
-    update public.referrals set referrer_recredit_id = p_txn where id = p_referral and reversal_count = p_round and referrer_recredit_id is null;
+    update public.referrals set referrer_recredit_id = p_txn, referrer_failures = 0 where id = p_referral and reversal_count = p_round and referrer_recredit_id is null;
   end if;
   get diagnostics v_done = row_count;
   return v_done > 0;
@@ -315,6 +341,64 @@ end;
 $$;
 revoke execute on function public.record_referral_transaction(uuid, text, text, integer, text) from public, anon, authenticated;
 grant execute on function public.record_referral_transaction(uuid, text, text, integer, text) to service_role;
+
+-- A credit looked for at Stripe during a take-back round and not found: don't look again this round.
+create or replace function public.record_referral_check(p_referral uuid, p_side text, p_round integer)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.referrals
+  set friend_checked_round = case when p_side = 'friend' then greatest(friend_checked_round, p_round) else friend_checked_round end,
+      referrer_checked_round = case when p_side = 'referrer' then greatest(referrer_checked_round, p_round) else referrer_checked_round end
+  where id = p_referral and p_side in ('friend', 'referrer') and p_round between 0 and reversal_count;
+$$;
+revoke execute on function public.record_referral_check(uuid, text, integer) from public, anon, authenticated;
+grant execute on function public.record_referral_check(uuid, text, integer) to service_role;
+
+-- A side's Stripe transaction failed: counted, and at 5 failures in a row the side is set aside for the
+-- team to review (it's then skipped, so the friend's later events go through). Says whether it was.
+create or replace function public.note_referral_failure(p_referral uuid, p_side text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_review boolean;
+begin
+  if p_side = 'friend' then
+    update public.referrals set friend_failures = least(friend_failures + 1, 32767), friend_needs_review = friend_needs_review or friend_failures + 1 >= 5
+    where id = p_referral returning friend_needs_review into v_review;
+  elsif p_side = 'referrer' then
+    update public.referrals set referrer_failures = least(referrer_failures + 1, 32767), referrer_needs_review = referrer_needs_review or referrer_failures + 1 >= 5
+    where id = p_referral returning referrer_needs_review into v_review;
+  end if;
+  return coalesce(v_review, false);
+end;
+$$;
+revoke execute on function public.note_referral_failure(uuid, text) from public, anon, authenticated;
+grant execute on function public.note_referral_failure(uuid, text) to service_role;
+
+-- Whether a charge of this Stripe customer (or, with null, of anyone) could have earned a 20% reward
+-- that a refund or dispute would take back, so other charges are passed over without asking Stripe.
+create or replace function public.referral_takeback_possible(p_customer text default null)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.referrals r
+    left join public.stripe_customers c on c.user_id = r.referred_id
+    where r.reward_rule = 'percent_20' and r.rewarded_at is not null and r.first_invoice_id is not null
+      and (p_customer is null or c.customer_id = p_customer)
+  );
+$$;
+revoke execute on function public.referral_takeback_possible(text) from public, anon, authenticated;
+grant execute on function public.referral_takeback_possible(text) to service_role;
 
 -- A decided reward is no longer handed back (that let a retry credit a side twice). Kept for an old
 -- stripe-webhook still running, but it now does nothing to a 'percent_20' referral or one with any credit
@@ -337,9 +421,10 @@ drop function if exists public.my_referrals();
 
 -- How the caller's invitations have gone: friends who signed up, how many have paid, the free months
 -- earned under the old offer, their one 20% credit (null until it's decided, or while it's taken back),
--- friends still to pay, and whether the caller has a paid plan now (the 20% needs one when a friend pays).
+-- friends still to pay, whether the caller has a paid plan now (the 20% needs one when a friend pays),
+-- and whether their 20% was taken back (a friend's first payment refunded or disputed).
 create function public.my_referrals()
-returns table (signed_up integer, rewarded integer, months_earned integer, credit_cents integer, waiting integer, has_paid_plan boolean)
+returns table (signed_up integer, rewarded integer, months_earned integer, credit_cents integer, waiting integer, has_paid_plan boolean, credit_taken_back boolean)
 language sql
 stable
 security definer
@@ -351,7 +436,8 @@ as $$
          max(r.referrer_credit_cents) filter (where r.reward_rule = 'percent_20' and r.reversed_at is null),
          count(*) filter (where r.rewarded_at is null)::integer,
          exists (select 1 from public.subscriptions s
-                 where s.user_id = (select auth.uid()) and s.status in ('active', 'past_due', 'paused') and not s.complimentary)
+                 where s.user_id = (select auth.uid()) and s.status in ('active', 'past_due', 'paused') and not s.complimentary),
+         coalesce(bool_or(r.reward_rule = 'percent_20' and r.referrer_credit_cents is not null and r.reversed_at is not null), false)
   from public.referrals r
   where r.referrer_id = (select auth.uid()) and public.second_step_done();
 $$;
