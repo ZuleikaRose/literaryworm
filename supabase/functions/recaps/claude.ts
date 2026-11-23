@@ -1,12 +1,12 @@
 // Writes "Previously…" for a public-domain book before a chapter, with Claude. ANTHROPIC_API_KEY
-// is a function setting (the same one `ask`, `characters` and `summaries` use); the SDK reads it
+// is a function setting (the same one `ask`, `xray` and `summaries` use); the SDK reads it
 // from the environment.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { HttpError } from "../_shared/http.ts";
 import type { RecapBook } from "./handler.ts";
 
-// Haiku, like `characters`: the book's text is the context and the recap is short.
+// Haiku, like `xray`: the book's text is the context and the recap is short.
 export const MODEL = "claude-haiku-5-5";
 
 const SYSTEM = `You write the "Previously…" recap for LiteraryWorm, an app where households read ebooks and listen to audiobooks.

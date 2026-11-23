@@ -2,7 +2,7 @@
 // X-Rays and Claude are all stand-ins.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { HttpError } from "../_shared/http.ts";
-import { ALIASES_MAX, checkXRay, type Deps, DESCRIPTION_MAX, firstChapterNaming, handle, KIND_MAX, mentionPattern, type XRay } from "./handler.ts";
+import { ALIASES_MAX, checkXRay, laterNames, namesLater, type Deps, DESCRIPTION_MAX, firstChapterNaming, handle, KIND_MAX, mentionPattern, type XRay } from "./handler.ts";
 
 const ORIGIN = "http://localhost:5173";
 const BOOK_ID = "pride-and-prejudice";
@@ -14,6 +14,7 @@ const CHAPTERS = [
   "A proposal from Mr. Collins at Longbourn.",
 ];
 const READER_CHAPTER = 1;
+const LAST_CHAPTER = CHAPTERS.length - 1;
 
 const post = (body: unknown, method = "POST") =>
   new Request("http://local/xray", {
@@ -142,7 +143,7 @@ Deno.test("answers the CORS preflight", async () => {
 });
 
 Deno.test("checkXRay: takes each first chapter from the text, aliases included", () => {
-  const xray = checkXRay(WRITTEN, CHAPTERS.slice(0, READER_CHAPTER + 1));
+  const xray = checkXRay(WRITTEN, CHAPTERS, READER_CHAPTER);
   const elizabeth = xray.people.find((p) => p.name === "Elizabeth Bennet")!;
   assertEquals(elizabeth.firstChapter, 2);
   // "Lizzy" first appears in chapter 3, past the reader, so it isn't kept.
@@ -165,7 +166,7 @@ Deno.test("checkXRay: keeps each name once across kinds, trims to the limits and
     places: [{ name: "elizabeth bennet", aliases: [], description: "The same name again." }],
     terms: "not a list",
   };
-  const xray = checkXRay(raw, CHAPTERS);
+  const xray = checkXRay(raw, CHAPTERS, LAST_CHAPTER);
   assertEquals(xray.people.length, 1);
   assertEquals(xray.people[0].description.length, DESCRIPTION_MAX);
   assertEquals(xray.people[0].aliases, ["Elizabeth", "Bennet", "Mrs.", "Mr."].slice(0, ALIASES_MAX));
@@ -174,15 +175,15 @@ Deno.test("checkXRay: keeps each name once across kinds, trims to the limits and
 });
 
 Deno.test("checkXRay: an empty or missing answer is an empty X-Ray", () => {
-  assertEquals(checkXRay(null, CHAPTERS), { people: [], places: [], terms: [] });
-  assertEquals(checkXRay({}, CHAPTERS), { people: [], places: [], terms: [] });
-  assertEquals(checkXRay(WRITTEN, []), { people: [], places: [], terms: [] });
+  assertEquals(checkXRay(null, CHAPTERS, LAST_CHAPTER), { people: [], places: [], terms: [] });
+  assertEquals(checkXRay({}, CHAPTERS, LAST_CHAPTER), { people: [], places: [], terms: [] });
+  assertEquals(checkXRay(WRITTEN, [], 0), { people: [], places: [], terms: [] });
 });
 
 Deno.test("checkXRay: keeps at most each kind's limit", () => {
   const text = Array.from({ length: KIND_MAX.places + 5 }, (_, i) => `Town${i}`).join(" ");
   const raw = { people: [], places: Array.from({ length: KIND_MAX.places + 5 }, (_, i) => ({ name: `Town${i}`, aliases: [], description: "A town." })), terms: [] };
-  assertEquals(checkXRay(raw, [text]).places.length, KIND_MAX.places);
+  assertEquals(checkXRay(raw, [text], 0).places.length, KIND_MAX.places);
 });
 
 Deno.test("mentionPattern: whole words only, small first letters found at a sentence's start", () => {
@@ -213,7 +214,7 @@ Deno.test("checkXRay: drops an alias that holds another entry's name, or that's 
     places: [],
     terms: [],
   };
-  const xray = checkXRay(raw, [text]);
+  const xray = checkXRay(raw, [text], 0);
   assertEquals(xray.people.find((p) => p.name === "Mrs. Bennet")!.aliases, []);
 });
 
@@ -224,7 +225,59 @@ Deno.test("checkXRay: a person's or place's alias is a name, with a capital; a t
     places: [],
     terms: [{ name: "entail", aliases: ["entailment"], description: "Who inherits." }],
   };
-  const xray = checkXRay(raw, [text]);
+  const xray = checkXRay(raw, [text], 0);
   assertEquals(xray.people[0].aliases, ["Mama"]);
   assertEquals(xray.terms[0].aliases, ["entailment"]);
+});
+
+Deno.test("checkXRay: the first chapter comes from the name and the aliases that stayed", () => {
+  // "Mama" (chapter 1) is kept; "my dear" (chapter 1) is dropped as a person's alias in small letters,
+  // so Mrs. Bennet's first chapter is where "Mrs. Bennet" or "Mama" first appear.
+  const chapters = ["Mr. Bennet, my dear, sat down.", "Mama laughed.", "Mrs. Bennet laughed again."];
+  const raw = { people: [{ name: "Mrs. Bennet", aliases: ["my dear", "Mama"], description: "His wife." }], places: [], terms: [] };
+  const [entry] = checkXRay(raw, chapters, 2).people;
+  assertEquals(entry.aliases, ["Mama"]);
+  assertEquals(entry.firstChapter, 2);
+});
+
+Deno.test("checkXRay: a description that names someone the reader hasn't met yet is blanked", () => {
+  const chapters = [
+    "Elizabeth walked to Meryton. Elizabeth smiled.",
+    "Elizabeth read a letter.",
+    "Wickham arrived. Wickham bowed to Elizabeth. Pemberley was far away. Pemberley was grand.",
+  ];
+  const raw = {
+    people: [
+      { name: "Elizabeth", aliases: [], description: "A lively young woman who will fall for Wickham." },
+      { name: "Elizabeth Bennet", aliases: [], description: "Unused." },
+    ],
+    places: [{ name: "Meryton", aliases: [], description: "A market town, a day's ride from Pemberley." }],
+    terms: [],
+  };
+  const xray = checkXRay(raw, chapters, 1);
+  assertEquals(xray.people[0].description, "");
+  assertEquals(xray.places[0].description, "");
+  // At the chapter where Wickham and Pemberley are met, the same descriptions are fine.
+  const later = checkXRay(raw, chapters, 2);
+  assertEquals(later.people[0].description, "A lively young woman who will fall for Wickham.");
+});
+
+Deno.test("laterNames: capitalised names used only after the chapter, not sentence-start words", () => {
+  const chapters = ["Then Jane spoke. The day was fine.", "Then Wickham came. Wickham smiled. The end. Then more."];
+  const later = laterNames(chapters, 0);
+  assert(later.has("Wickham"));
+  assert(!later.has("Then"));
+  assert(!later.has("Jane"));
+  assertEquals(laterNames(chapters, 1).size, 0);
+  assertEquals(laterNames([], 0).size, 0);
+  assert(namesLater("He met Wickham’s friend.", later));
+  assert(!namesLater("He met Jane.", later));
+});
+
+Deno.test("never counts a request it can't answer against the rate limits", async () => {
+  const { deps, calls } = setup();
+  assertEquals((await handle(post({ id: BOOK_ID, chapter: CHAPTERS.length }), deps)).status, 400);
+  assertEquals((await handle(post({ id: "dune", chapter: 0 }), deps)).status, 404);
+  assertEquals(calls.limited, 0);
+  assertEquals(calls.write.length, 0);
 });

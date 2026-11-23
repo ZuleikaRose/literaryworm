@@ -1,11 +1,11 @@
 // POST /functions/v1/xray  { "id": "pride-and-prejudice", "chapter": 4 }
 // X-Ray for a public-domain title, as far as the reader has got: the people, places and terms
-// met up to their chapter, each described only from the text so far. The sibling of
-// `characters` (Who's who), with the same rules: Claude writes a book's X-Ray for a chapter the
-// first time anyone asks (from the text up to that chapter only), it's kept, and every later
-// reader at that chapter gets the same one. Public like `characters` (the demo household uses it
-// without a session), so every field is validated, and new X-Rays are rate limited per IP and
-// capped for everyone each day.
+// met up to their chapter, each described only from the text so far (it replaced Who's who and
+// its `characters` function). Claude writes a book's X-Ray for a chapter the first time anyone
+// asks (from the text up to that chapter only), it's kept, and every later reader at that chapter
+// gets the same one. Public like `ask` (the demo household uses it without a session), so every
+// field is validated before anything else, and new X-Rays are rate limited per IP and capped for
+// everyone each day.
 //
 // What Claude writes is checked against the book's own text by our code before it's kept: an
 // entry whose name never appears in the chapters up to the reader's is dropped (nothing
@@ -34,6 +34,7 @@ export type XRayBook = { title: string; author: string };
 
 export interface XRayEntry {
   name: string;
+  /** Empty when what Claude wrote named something the reader hasn't met yet. */
   description: string;
   /** 1-based: the chapter whose text first names it. */
   firstChapter: number;
@@ -87,13 +88,66 @@ const startsSmall = (s: string) => s[0] !== undefined && s[0] === s[0].toLowerCa
 
 const clean = (value: unknown, max: number): string => (typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "");
 
+// Capitalised words that start sentences or address people, never a character or a place.
+const NOT_NAMES = new Set(
+  (
+    "I A An The And But Or Nor For So Yet If In On At To Of By As Is It Its He She His Her Him They Them Their We Our Us You Your My Me " +
+    "This That These Those There Then Than Thus Here When Where What Which Who Whom Whose Why How Oh O Ah Alas Yes No Not Well Now Do Did " +
+    "Be Was Were Are Am Have Has Had Will Would Shall Should May Might Must Can Could Let All Any Some One Two Every Each Both Such After " +
+    "Before Upon With Without From Into Over Under Again Once Even Only Still Perhaps Indeed Very Most More Much Many Few Nothing " +
+    "Chapter Book Part Volume Letter Mr Mrs Miss Ms Dr Sir Madam Lady Lord St Monday Tuesday Wednesday Thursday Friday Saturday Sunday " +
+    "January February March April June July August September October November December God"
+  ).split(" "),
+);
+
+const CAPITALISED = /(?<![\p{L}\p{N}])\p{Lu}[\p{L}\p{M}'’-]*/gu;
+
+/**
+ * Names the book uses only after the reader's chapter: capitalised words found by exact match in
+ * the whole text, at least twice, rarely written in small letters (so not ordinary words that
+ * start sentences), and nowhere in the chapters up to the reader's. A description naming one of
+ * them gives away something still to come, whatever Claude knows of the book.
+ */
+export function laterNames(allChapters: string[], chapter: number): Set<string> {
+  const counts = new Map<string, number>();
+  const small = new Map<string, number>();
+  for (const text of allChapters.slice(chapter + 1)) {
+    for (const m of text.matchAll(CAPITALISED)) {
+      const word = m[0].replace(/['’]s$/, "");
+      if (word.length > 1 && !NOT_NAMES.has(word)) counts.set(word, (counts.get(word) ?? 0) + 1);
+    }
+  }
+  if (counts.size === 0) return new Set();
+  const soFar = new Set<string>();
+  for (const text of allChapters.slice(0, chapter + 1)) for (const m of text.matchAll(CAPITALISED)) soFar.add(m[0].replace(/['’]s$/, ""));
+  for (const text of allChapters) {
+    for (const m of text.matchAll(/(?<![\p{L}\p{N}])\p{Ll}[\p{L}\p{M}'’-]*/gu)) {
+      const word = m[0];
+      const capital = word[0].toUpperCase() + word.slice(1);
+      if (counts.has(capital)) small.set(capital, (small.get(capital) ?? 0) + 1);
+    }
+  }
+  const later = new Set<string>();
+  for (const [word, n] of counts) if (n >= 2 && !soFar.has(word) && (small.get(word) ?? 0) * 5 < n) later.add(word);
+  return later;
+}
+
+/** Whether a description names anything in `later` (a capitalised word of the text met only later). */
+export function namesLater(description: string, later: Set<string>): boolean {
+  for (const m of description.matchAll(CAPITALISED)) if (later.has(m[0].replace(/['’]s$/, ""))) return true;
+  return false;
+}
+
 /**
  * Claude's X-Ray, made safe to show: well-formed entries only, trimmed to the limits, each name
- * once across all three kinds, only names the text up to the reader's chapter actually uses
- * (`chapters` are those chapters, 0 to the reader's), with the first chapter taken from the text,
- * in the order the reader meets them.
+ * once across all three kinds, only names the text up to the reader's chapter actually uses, with
+ * the first chapter taken from the text (after unfit aliases are dropped), in the order the reader
+ * meets them. `allChapters` is the whole book and `chapter` the reader's (0-based): a description
+ * that names anyone or anything first met later is blanked (`laterNames()`).
  */
-export function checkXRay(raw: unknown, chapters: string[]): XRay {
+export function checkXRay(raw: unknown, allChapters: string[], chapter: number): XRay {
+  const chapters = allChapters.slice(0, chapter + 1);
+  const later = laterNames(allChapters, chapter);
   const out: XRay = { people: [], places: [], terms: [] };
   const seen = new Set<string>();
   const body = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
@@ -115,10 +169,10 @@ export function checkXRay(raw: unknown, chapters: string[]): XRay {
         .slice(0, ALIASES_MAX);
       seen.add(cleanName.toLowerCase());
       for (const a of kept) seen.add(a.toLowerCase());
-      out[kind].push({ name: cleanName, description: cleanDescription, firstChapter: firstChapterNaming(chapters, [cleanName, ...kept]) ?? first, aliases: kept });
+      // A description naming someone or something not yet met is a spoiler: the entry stays, its description goes.
+      out[kind].push({ name: cleanName, description: namesLater(cleanDescription, later) ? "" : cleanDescription, firstChapter: first, aliases: kept });
       if (out[kind].length >= KIND_MAX[kind]) break;
     }
-    out[kind].sort((a, b) => a.firstChapter - b.firstChapter);
   }
   // An alias that holds another entry's name ("my dear Mr. Bennet" for Mrs. Bennet) would count
   // that entry's mentions as this one's: it's dropped, as are long phrases that aren't names.
@@ -131,7 +185,10 @@ export function checkXRay(raw: unknown, chapters: string[]): XRay {
           (kind === "terms" || !startsSmall(alias)) &&
           !KINDS.some((k) => out[k].some((other) => other !== entry && mentionPattern(other.name).test(alias))),
       );
+      // The first chapter from the name and the aliases that stayed.
+      entry.firstChapter = firstChapterNaming(chapters, [entry.name, ...entry.aliases]) ?? entry.firstChapter;
     }
+    out[kind].sort((a, b) => a.firstChapter - b.firstChapter);
   }
   return out;
 }
@@ -151,15 +208,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     const book = deps.book(id);
     if (!book) throw new HttpError("not_found", "X-Ray's AI descriptions work with LiteraryWorm's public-domain titles.");
+    // Every check first (the text is kept per warm instance), so a request that can't be answered
+    // never counts against the limits.
+    const chapters = await deps.chapters(id);
+    if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
 
     const kept = await deps.cached(id, chapter);
     if (kept) return json(req, METHODS, { ...kept, chapter });
 
     await deps.rateLimit?.(req);
-    const chapters = await deps.chapters(id);
-    if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
     const written = await deps.write({ book, chapter, chapterCount: chapters.length, text: contextText(chapters, chapter) });
-    const xray = checkXRay(written.xray, chapters.slice(0, chapter + 1));
+    const xray = checkXRay(written.xray, chapters, chapter);
     if (total(xray) === 0) throw new HttpError("upstream_error", "We couldn't put together the X-Ray just now. Try again later.");
     // A failed save still shows this X-Ray; the next reader just asks again.
     const shown = await deps.keep(id, chapter, xray, written.model).catch((err) => {

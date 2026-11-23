@@ -91,3 +91,11 @@ Deno.test("long books send only the most recent text, starting at a paragraph", 
   assert(!text.includes("[Chapter 1]"));
   assertEquals(contextText(CHAPTERS, 0), "[Chapter 1]\nIt is a truth universally acknowledged.");
 });
+
+Deno.test("a chapter past the end of the book never counts against the rate limits", async () => {
+  const { d, calls } = deps();
+  const res = await handle(post({ id: "pride-and-prejudice", chapter: CHAPTERS.length, question: "Who is Jane?" }), d);
+  assertEquals(res.status, 400);
+  assertEquals(calls.limited, 0);
+  assertEquals(calls.answer.length, 0);
+});

@@ -1,5 +1,5 @@
 // A public-domain title's own text, for the functions that send Claude the book up to the
-// reader's chapter (`ask`, `characters`). The texts are static files on the website
+// reader's chapter (`ask`, `xray`). The texts are static files on the website
 // (public/texts, built from Project Gutenberg); TEXTS_ORIGIN can point elsewhere, e.g. a
 // preview deploy.
 

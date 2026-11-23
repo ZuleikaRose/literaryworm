@@ -15476,3 +15476,16 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$X
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-23'::date, '2026.11', 'update', $lw$The dictionary in the player, and notes to export on every demo profile$lw$, $lw$The player has Dictionary too, so you can look up a word while you listen and keep it in My words. In the demo, the dictionary answers from a small dictionary of its own when it can't reach ours. Exporting from the reader's Notes and highlights now includes the book's journal entries, as My Library → Notes does, and the demo's Kids profile has highlights and a journal entry to export.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$The dictionary in the player, and notes to export on every demo profile$lw$ and c.released_on = '2026-11-23');
+
+-- =============================================================================
+-- 20261123006863_drop_book_characters.sql
+-- =============================================================================
+-- Who's who's own cache is retired: X-Ray (the `xray` function, book_xray, migration 6860)
+-- replaced it, the app no longer calls the `characters` function, and that function is removed
+-- from the repository. The table holds only Claude-written character lists for public-domain
+-- books (nothing about any member), so dropping it loses nothing X-Ray needs.
+--
+-- Go-live order: promote the app, undeploy the `characters` function, then apply this, so a tab
+-- opened before the release never meets a function without its table.
+
+drop table if exists public.book_characters;

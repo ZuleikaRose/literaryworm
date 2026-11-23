@@ -1,12 +1,12 @@
 // Writes a chapter quiz for a public-domain book, with Claude. ANTHROPIC_API_KEY is a function
-// setting (the same one `ask`, `characters` and `summaries` use); the SDK reads it from the
+// setting (the same one `ask`, `xray` and `summaries` use); the SDK reads it from the
 // environment.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { HttpError } from "../_shared/http.ts";
 import type { QuizBook } from "./handler.ts";
 
-// Haiku, like `characters`: one chapter is the context and the quiz is short.
+// Haiku, like `xray`: one chapter is the context and the quiz is short.
 export const MODEL = "claude-haiku-5-5";
 
 const SYSTEM = `You write chapter quizzes for LiteraryWorm, an app where households, children included, read ebooks and listen to audiobooks.

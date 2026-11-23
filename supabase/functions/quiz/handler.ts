@@ -2,7 +2,7 @@
 // A short chapter quiz for a public-domain title: a few multiple-choice questions about the
 // chapter the reader has just read, written for young readers. Claude writes a chapter's quiz
 // the first time anyone asks; it's kept and every later reader gets the same one. Nothing about
-// the reader is sent: only the book and the chapter. Public like `characters` (the demo household
+// the reader is sent: only the book and the chapter. Public like `xray` (the demo household
 // uses it without a session), so every field is validated, and new quizzes are rate limited per
 // IP and capped for everyone each day.
 

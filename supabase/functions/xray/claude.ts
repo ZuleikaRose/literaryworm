@@ -1,12 +1,12 @@
 // Writes the X-Ray for a public-domain book up to a chapter, with Claude. ANTHROPIC_API_KEY is
-// a function secret (the same one `characters`, `ask` and `summaries` use); the SDK reads it
+// a function secret (the same one `ask` and `summaries` use); the SDK reads it
 // from the environment.
 
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
 import { HttpError } from "../_shared/http.ts";
 import type { XRayBook } from "./handler.ts";
 
-// Haiku, like `characters`: the book's text is the context and the lists are short, so the
+// Haiku, like `ask`: the book's text is the context and the lists are short, so the
 // fast, low-cost model fits.
 export const MODEL = "claude-haiku-5-5";
 

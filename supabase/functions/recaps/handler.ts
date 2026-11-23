@@ -3,7 +3,7 @@
 // listener has reached (`chapter`, 0-based, at least 1), written only from that text, so it
 // can't spoil anything still to come. Claude writes a book's recap before a chapter the first
 // time anyone asks; it's kept and every later listener there gets the same one. Public like
-// `characters` (the demo household uses it without a session), so every field is validated,
+// `xray` (the demo household uses it without a session), so every field is validated,
 // and new recaps are rate limited per IP and capped for everyone each day.
 
 import { contextText } from "../_shared/bookText.ts";

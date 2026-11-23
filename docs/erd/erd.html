@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6862, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, book_xray in 6860)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6864, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, book_xray in 6860 (book_characters dropped in 6863), saved_words.language in 6864)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -993,17 +993,6 @@
             ["", "expires_at", "timestamptz (≤ 7 days)"],
           ],
           note: "One list page from Google Books, kept on the same terms as volumes: Google's cache headers, at most 7 days, deleted hourly once expired. RLS on, no browser access.",
-        },
-        {
-          id: "book_characters", color: colors.server, x: 840, y: 5250, sub: "who's who · function only",
-          cols: [
-            ["pk", "volume_id", "text (book id)"],
-            ["pk", "chapter_index", "smallint 0–999"],
-            ["", "characters", "jsonb (1–40)"],
-            ["", "model", "text"],
-            ["", "created_at", "timestamptz"],
-          ],
-          note: "The characters met in a public-domain title up to a chapter, written by Claude the first time anyone asks and kept, so later readers get the same list. RLS on, no browser access; the characters function reads and writes it.",
         },
         {
           id: "changelog_entries", color: colors.server, x: 0, y: 5030, sub: "what's new · public",
