@@ -17,7 +17,7 @@
 -- (account_private.card_payment_at, kept since 2026-11-10) or has a paid membership row (for payments
 -- before that): so a claim handed back by a failed Stripe call, or a payment that came in before the
 -- membership row, still counts as earned. Every other referral, and every new one,
--- is 'percent_20'. Running this file again only moves referrals to 'free_month' by the same test.
+-- is 'percent_20'. The cut-over runs once (private.referral_cutover_done); running this file again changes no rule.
 --
 -- Each side's Stripe balance transaction is recorded as soon as it's made (record_referral_transaction()),
 -- and a decided reward is never handed back: every call says everything still owed
@@ -55,9 +55,16 @@ alter table public.referrals
   add column if not exists friend_checked_round smallint not null default 0 check (friend_checked_round >= 0),
   add column if not exists referrer_checked_round smallint not null default 0 check (referrer_checked_round >= 0);
 
--- The cut-over (see above), as a function so the security tests run the very same test; it says how
--- many referrals it kept on the free month.
-create or replace function private.referral_cutover()
+-- The cut-over (see above), as a function so the security tests run the very same test. It runs once:
+-- private.referral_cutover_done notes when, and later calls do nothing (a referral rewarded after the
+-- change must never be moved to the free month) unless p_again, for the tests. Says how many it kept.
+create table if not exists private.referral_cutover_done (
+  done_at timestamptz primary key default now()
+);
+alter table private.referral_cutover_done enable row level security;
+revoke all on private.referral_cutover_done from public, anon, authenticated;
+
+create or replace function private.referral_cutover(p_again boolean default false)
 returns integer
 language plpgsql
 set search_path = ''
@@ -65,6 +72,9 @@ as $$
 declare
   v_kept integer;
 begin
+  if not p_again and exists (select 1 from private.referral_cutover_done) then
+    return 0;
+  end if;
   update public.referrals r
   set reward_rule = 'free_month'
   where r.reward_rule <> 'free_month'
@@ -75,10 +85,12 @@ begin
          -- card_payment_at was only kept from 2026-11-10: a paid membership row counts as paid too.
          or exists (select 1 from public.subscriptions s where s.user_id = r.referred_id and not s.complimentary));
   get diagnostics v_kept = row_count;
+  insert into private.referral_cutover_done default values on conflict do nothing;
   return v_kept;
 end;
 $$;
-revoke execute on function private.referral_cutover() from public, anon, authenticated;
+revoke execute on function private.referral_cutover(boolean) from public, anon, authenticated;
+drop function if exists private.referral_cutover();
 
 select private.referral_cutover();
 

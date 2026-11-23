@@ -1057,7 +1057,8 @@ insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_a
 select pg_temp.check((select bool_and(reward_rule = 'percent_20') from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b'), 'new referrals follow the 20% rule');
 -- Friend 3 paid before the change, and the claim was handed back by a failed Stripe call: the cut-over keeps its free month.
 update public.account_private set card_payment_at = now() - interval '1 day' where user_id = '00000000-0000-0000-0000-0000000000f3';
-select pg_temp.check(private.referral_cutover() = 1, 'the cut-over keeps one referral on the free month');
+select pg_temp.check(private.referral_cutover() = 0, 'the cut-over has run once already (migration 6843)');
+select pg_temp.check(private.referral_cutover(true) = 1, 'the cut-over keeps one referral on the free month');
 select pg_temp.check((select reward_rule from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'free_month'
   and (select reward_rule from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1') = 'percent_20', 'a friend who already paid keeps the free month; one who hadn''t gets 20%');
 set role service_role;
