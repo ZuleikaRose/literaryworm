@@ -15363,39 +15363,85 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$C
 -- =============================================================================
 -- 20261123006843_referral_twenty_percent.sql
 -- =============================================================================
--- Refer a friend, from free months to 20% (owner's decision, 2026-11-23). When a friend joins with a
+-- Refer a friend, from free months to 20% (owner's decisions, 2026-11-23). When a friend joins with a
 -- member's link and makes their first payment, each of them gets 20% off one month of their own plan
 -- as a credit on their Stripe balance: the friend once (one referral per invited account, as before),
--- and the member who invited them once per account, however many friends join. No more 2-month cap.
--- src/lib/referrals.ts holds the same rules (referralCreditCents(), referralReward()).
+-- and the member who invited them once per account, however many friends join and whatever free months
+-- they earned before. No more 2-month cap. If that first payment is fully refunded, or disputed, both
+-- 20% credits are taken back (a positive balance, owed on the next bill if already used); if a dispute
+-- is then closed in our favour, they're added again. Free months from the old offer are never taken back.
+-- src/lib/referrals.ts holds the same rules.
 --
 -- How much: 20% of the plan's monthly price on monthly billing; on yearly billing, 20% of a twelfth
--- of the yearly price (one month's share of what the member pays). Rounded half up to the cent, in the
--- plan's currency. Basic $6.00 / $5.00 yearly, Standard $8.00 / $6.67, Premium $12.00 / $10.00.
+-- of the yearly price (one month's share of what the member pays). Rounded half up to the cent, in each
+-- member's own plan currency. Basic $6.00 / $5.00 yearly, Standard $8.00 / $6.67, Premium $12.00 / $10.00.
 --
--- The cut-over is in the data: referrals.reward_rule. A referral whose reward was already claimed when
--- this runs (the friend joined and paid) keeps 'free_month', and so does everything claimed for it,
--- including a claim handed back by a failed Stripe call and claimed again. Every other referral, and
--- every new one, is 'percent_20'. The inviter's earlier free months stay and don't use up their 20%.
+-- The cut-over is in the data: referrals.reward_rule, set when this runs. A referral keeps 'free_month'
+-- (a month of each plan, up to 2 for the inviter) when, at that moment, its reward was claimed
+-- (rewarded_at), or any credit for it is recorded, or the friend had already paid anything
+-- (account_private.card_payment_at: so a claim handed back by a failed Stripe call, or a payment that
+-- came in before the membership row, still counts as earned). Every other referral, and every new one,
+-- is 'percent_20'. Running this file again only moves referrals to 'free_month' by the same test.
 --
--- Deploy stripe-webhook before applying this: it reads reward_rule and currency from
--- claim_referral_reward() and treats their absence (the old function) as a free month in USD.
+-- Each side's Stripe balance transaction is recorded as soon as it's made (record_referral_transaction()),
+-- and a decided reward is never handed back: a retry, or the friend's next paid invoice, only makes the
+-- transactions still missing (private.referral_pending()). stripe-webhook also looks for a transaction it
+-- already made (its key is in the metadata) before making one, so an expired Stripe idempotency key can't
+-- credit twice.
+--
+-- Deploy stripe-webhook before applying this: it falls back to the old functions while these are missing.
 
 alter table public.referrals
-  add column reward_rule text not null default 'percent_20' check (reward_rule in ('free_month', 'percent_20'));
+  add column if not exists reward_rule text not null default 'percent_20' check (reward_rule in ('free_month', 'percent_20')),
+  -- Each side's credit currency (its own plan's), set with the amounts.
+  add column if not exists friend_currency text check (friend_currency is null or friend_currency ~ '^[a-z]{3}$'),
+  add column if not exists referrer_currency text check (referrer_currency is null or referrer_currency ~ '^[a-z]{3}$'),
+  -- The invoice whose payment earned the reward: a full refund or a dispute of it takes the credits back.
+  add column if not exists first_invoice_id text check (first_invoice_id is null or first_invoice_id ~ '^in_[A-Za-z0-9]+$'),
+  -- Set while the credits are taken back (a refund, or an open or lost dispute); cleared when a dispute is won.
+  add column if not exists reversed_at timestamptz,
+  -- Rounds of taking back, so each round's Stripe transactions have their own keys.
+  add column if not exists reversal_count smallint not null default 0 check (reversal_count >= 0),
+  add column if not exists friend_reversal_id text check (friend_reversal_id is null or friend_reversal_id ~ '^cbtxn_[A-Za-z0-9]+$'),
+  add column if not exists referrer_reversal_id text check (referrer_reversal_id is null or referrer_reversal_id ~ '^cbtxn_[A-Za-z0-9]+$'),
+  add column if not exists friend_recredit_id text check (friend_recredit_id is null or friend_recredit_id ~ '^cbtxn_[A-Za-z0-9]+$'),
+  add column if not exists referrer_recredit_id text check (referrer_recredit_id is null or referrer_recredit_id ~ '^cbtxn_[A-Za-z0-9]+$');
 
-update public.referrals set reward_rule = 'free_month' where rewarded_at is not null;
+-- The cut-over (see above), as a function so the security tests run the very same test; it says how
+-- many referrals it kept on the free month.
+create or replace function private.referral_cutover()
+returns integer
+language plpgsql
+set search_path = ''
+as $$
+declare
+  v_kept integer;
+begin
+  update public.referrals r
+  set reward_rule = 'free_month'
+  where r.reward_rule <> 'free_month'
+    and (r.rewarded_at is not null
+         or r.friend_credit_id is not null
+         or r.referrer_credit_id is not null
+         or exists (select 1 from public.account_private a where a.user_id = r.referred_id and a.card_payment_at is not null));
+  get diagnostics v_kept = row_count;
+  return v_kept;
+end;
+$$;
+revoke execute on function private.referral_cutover() from public, anon, authenticated;
+
+select private.referral_cutover();
 
 comment on column public.referrals.reward_rule is
-  'Which offer this invitation follows: free_month (rewarded before 2026-11-23''s change: a month of each plan, up to 2 for the inviter) or percent_20 (20% off one month each, once per account for the inviter).';
+  'Which offer this invitation follows: free_month (earned before 2026-11-23''s change: a month of each plan, up to 2 for the inviter, never taken back) or percent_20 (20% off one month each, once per account for the inviter; taken back if the first payment is refunded or disputed).';
 
 -- 'already_credited': the inviter has had their one 20% credit.
-alter table public.referrals drop constraint referrals_referrer_skipped_check;
+alter table public.referrals drop constraint if exists referrals_referrer_skipped_check;
 alter table public.referrals add constraint referrals_referrer_skipped_check
   check (referrer_skipped is null or referrer_skipped in ('staff', 'no_membership', 'limit_reached', 'already_credited'));
 
--- An invited member reads their own row's rule, to say which offer they joined under.
-grant select (reward_rule) on public.referrals to authenticated;
+-- An invited member reads their own row's rule and whether it was taken back, to say where it stands.
+grant select (reward_rule, reversed_at) on public.referrals to authenticated;
 
 -- 20% of one month of a plan, in cents, rounded half up: (2n + d) / (2d) in whole numbers, so it
 -- never depends on floating point. Monthly: n = the monthly price, d = 5. Yearly: n = the yearly
@@ -15427,13 +15473,55 @@ as $$
 $$;
 revoke execute on function private.referral_side_cents(text, integer, integer, text) from public, anon, authenticated;
 
--- The return type changes (the rule and the currency are added), so it's dropped and made again.
-drop function public.claim_referral_reward(uuid);
+-- The Stripe balance transactions a decided referral still needs, from its recorded state: one row per
+-- side and kind. 'credit' (the reward, a negative balance), 'reversal' (taking it back in round n, a
+-- positive balance) or 'recredit' (the reward again after a won dispute, round n). A side is never owed
+-- a transaction it already has, and a free month is never taken back.
+create or replace function private.referral_pending(p_referral uuid)
+returns table (referral_id uuid, side text, kind text, round integer, customer text, cents integer, currency text, reward_rule text)
+language sql
+stable
+set search_path = ''
+as $$
+  with r as (select * from public.referrals x where x.id = p_referral and x.rewarded_at is not null),
+  sides as (
+    select r.id, 'friend'::text as side, r.referred_id as user_id, r.friend_credit_cents as cents, r.friend_currency as currency,
+           r.friend_credit_id as credit_id, r.friend_reversal_id as reversal_id, r.friend_recredit_id as recredit_id,
+           r.reversed_at, r.reversal_count, r.reward_rule
+    from r
+    union all
+    select r.id, 'referrer', r.referrer_id, r.referrer_credit_cents, r.referrer_currency,
+           r.referrer_credit_id, r.referrer_reversal_id, r.referrer_recredit_id, r.reversed_at, r.reversal_count, r.reward_rule
+    from r
+  ),
+  owed as (
+    select s.*,
+           case
+             when s.reversed_at is null and s.credit_id is null then 'credit'
+             when s.reward_rule = 'percent_20' and s.reversed_at is not null and s.credit_id is not null and s.reversal_id is null then 'reversal'
+             when s.reward_rule = 'percent_20' and s.reversed_at is null and s.reversal_count > 0
+                  and s.reversal_id is not null and s.recredit_id is null then 'recredit'
+           end as kind
+    from sides s
+    where s.cents is not null
+  )
+  select o.id, o.side, o.kind, o.reversal_count::integer, c.customer_id, o.cents, coalesce(o.currency, 'usd'), o.reward_rule
+  from owed o
+  join public.stripe_customers c on c.user_id = o.user_id
+  where o.kind is not null
+  order by o.side;
+$$;
+revoke execute on function private.referral_pending(uuid) from public, anon, authenticated;
 
--- For stripe-webhook, when an invited member's first payment goes through: claims their referral
--- once and says what to credit under its rule (null where there's nothing to give).
-create function public.claim_referral_reward(p_referred uuid)
-returns table (referral_id uuid, friend_customer text, friend_cents integer, referrer_customer text, referrer_cents integer, reward_rule text, currency text)
+-- The return type and arguments change, so the old ones are dropped.
+drop function if exists public.claim_referral_reward(uuid);
+drop function if exists public.claim_referral_reward(uuid, text);
+
+-- For stripe-webhook, when an invited member's payment goes through: decides their referral's reward
+-- once (on the first payment; p_invoice is its invoice), then says which Stripe transactions it still
+-- needs. Called again on a retry or a later paid invoice, it only gives what's still missing.
+create function public.claim_referral_reward(p_referred uuid, p_invoice text default null)
+returns table (referral_id uuid, side text, kind text, round integer, customer text, cents integer, currency text, reward_rule text)
 language plpgsql
 security definer
 set search_path = ''
@@ -15441,70 +15529,182 @@ as $$
 declare
   r          public.referrals;
   v_friend   integer;
-  v_cust     text;
-  v_currency text;
-  v_rcust    text;
+  v_fcur     text;
   v_rcents   integer;
+  v_rcur     text;
   v_skip     text;
 begin
-  select * into r from public.referrals x where x.referred_id = p_referred and x.rewarded_at is null for update;
+  select * into r from public.referrals x where x.referred_id = p_referred for update;
   if r.id is null then
     return;
   end if;
-  -- Staff are never billed, so a staff member who was invited isn't rewarded either.
-  if exists (select 1 from public.staff_roles s where s.user_id = p_referred) then
-    update public.referrals set rewarded_at = now(), referrer_skipped = 'staff' where id = r.id;
-    return;
-  end if;
-  select private.referral_side_cents(r.reward_rule, p.price_cents, p.yearly_price_cents, s.billing_interval), c.customer_id, lower(p.currency)
-    into v_friend, v_cust, v_currency
-  from public.subscriptions s join public.plans p on p.id = s.plan_id
-  join public.stripe_customers c on c.user_id = s.user_id
-  where s.user_id = p_referred;
-  if v_friend is null then
-    -- No paid membership to credit yet: wait for the next payment.
-    return;
-  end if;
-  -- Two friends paying at once are counted one after the other, so the inviter's limit holds.
-  perform pg_advisory_xact_lock(hashtextextended('referral-reward:' || r.referrer_id::text, 0));
-  if exists (select 1 from public.staff_roles s where s.user_id = r.referrer_id) then
-    v_skip := 'staff';
-  elsif r.reward_rule = 'free_month'
-    and (select count(*) from public.referrals x
-         where x.referrer_id = r.referrer_id and x.reward_rule = 'free_month' and x.referrer_credit_cents is not null) >= 2 then
-    -- The old offer: 2 free months in all from inviting friends.
-    v_skip := 'limit_reached';
-  elsif r.reward_rule = 'percent_20'
-    and exists (select 1 from public.referrals x
-                where x.referrer_id = r.referrer_id and x.reward_rule = 'percent_20' and x.referrer_credit_cents is not null) then
-    -- 20% once per account for inviting.
-    v_skip := 'already_credited';
-  else
-    select private.referral_side_cents(r.reward_rule, p.price_cents, p.yearly_price_cents, s.billing_interval), c.customer_id
-      into v_rcents, v_rcust
+  if r.rewarded_at is null then
+    -- Staff are never billed, so a staff member who was invited isn't rewarded either.
+    if exists (select 1 from public.staff_roles s where s.user_id = p_referred) then
+      update public.referrals set rewarded_at = now(), referrer_skipped = 'staff' where id = r.id;
+      return;
+    end if;
+    select private.referral_side_cents(r.reward_rule, p.price_cents, p.yearly_price_cents, s.billing_interval), lower(p.currency)
+      into v_friend, v_fcur
     from public.subscriptions s join public.plans p on p.id = s.plan_id
     join public.stripe_customers c on c.user_id = s.user_id
-    where s.user_id = r.referrer_id and s.status in ('active', 'past_due', 'paused') and not s.complimentary;
-    if v_rcents is null then v_skip := 'no_membership'; end if;
+    where s.user_id = p_referred;
+    if v_friend is null then
+      -- No paid membership to credit yet: wait for the next payment.
+      return;
+    end if;
+    -- Two friends paying at once are counted one after the other, so the inviter's limit holds.
+    perform pg_advisory_xact_lock(hashtextextended('referral-reward:' || r.referrer_id::text, 0));
+    if exists (select 1 from public.staff_roles s where s.user_id = r.referrer_id) then
+      v_skip := 'staff';
+    elsif r.reward_rule = 'free_month'
+      and (select count(*) from public.referrals x
+           where x.referrer_id = r.referrer_id and x.reward_rule = 'free_month' and x.referrer_credit_cents is not null) >= 2 then
+      -- The old offer: 2 free months in all from inviting friends.
+      v_skip := 'limit_reached';
+    elsif r.reward_rule = 'percent_20'
+      and exists (select 1 from public.referrals x
+                  where x.referrer_id = r.referrer_id and x.id <> r.id and x.reward_rule = 'percent_20'
+                    and (x.referrer_credit_cents is not null or x.referrer_credit_id is not null)) then
+      -- 20% once per account for inviting: already decided, or already made at Stripe. Free months don't count.
+      v_skip := 'already_credited';
+    else
+      select private.referral_side_cents(r.reward_rule, p.price_cents, p.yearly_price_cents, s.billing_interval), lower(p.currency)
+        into v_rcents, v_rcur
+      from public.subscriptions s join public.plans p on p.id = s.plan_id
+      join public.stripe_customers c on c.user_id = s.user_id
+      where s.user_id = r.referrer_id and s.status in ('active', 'past_due', 'paused') and not s.complimentary;
+      if v_rcents is null then v_skip := 'no_membership'; end if;
+    end if;
+    update public.referrals
+    set rewarded_at = now(), friend_credit_cents = v_friend, friend_currency = v_fcur,
+        referrer_credit_cents = case when v_skip is null then v_rcents end,
+        referrer_currency = case when v_skip is null then v_rcur end,
+        referrer_skipped = v_skip,
+        first_invoice_id = case when p_invoice ~ '^in_[A-Za-z0-9]+$' then p_invoice end
+    where id = r.id;
   end if;
-  update public.referrals
-  set rewarded_at = now(), friend_credit_cents = v_friend,
-      referrer_credit_cents = case when v_skip is null then v_rcents end, referrer_skipped = v_skip
-  where id = r.id;
-  return query select r.id, v_cust, v_friend, case when v_skip is null then v_rcust end, case when v_skip is null then v_rcents end,
-    r.reward_rule, coalesce(v_currency, 'usd');
+  return query select * from private.referral_pending(r.id) q where q.kind in ('credit', 'recredit');
 end;
 $$;
-revoke execute on function public.claim_referral_reward(uuid) from public, anon, authenticated;
-grant execute on function public.claim_referral_reward(uuid) to service_role;
+revoke execute on function public.claim_referral_reward(uuid, text) from public, anon, authenticated;
+grant execute on function public.claim_referral_reward(uuid, text) to service_role;
+
+-- For stripe-webhook, when the invoice that earned a 20% reward is fully refunded or disputed: takes
+-- both credits back (once per round; a side not credited yet is then never credited), and says which
+-- reversals Stripe still needs. Never a free month, and nothing for any other invoice.
+create or replace function public.reverse_referral_reward(p_referred uuid, p_invoice text)
+returns table (referral_id uuid, side text, kind text, round integer, customer text, cents integer, currency text, reward_rule text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  r public.referrals;
+begin
+  select * into r from public.referrals x
+  where x.referred_id = p_referred and x.reward_rule = 'percent_20' and x.rewarded_at is not null
+    and x.first_invoice_id is not null and x.first_invoice_id = p_invoice
+  for update;
+  if r.id is null then
+    return;
+  end if;
+  if r.reversed_at is null then
+    update public.referrals
+    set reversed_at = now(), reversal_count = reversal_count + 1, friend_reversal_id = null, referrer_reversal_id = null
+    where id = r.id;
+  end if;
+  return query select * from private.referral_pending(r.id) q where q.kind = 'reversal';
+end;
+$$;
+revoke execute on function public.reverse_referral_reward(uuid, text) from public, anon, authenticated;
+grant execute on function public.reverse_referral_reward(uuid, text) to service_role;
+
+-- For stripe-webhook, when a dispute of that invoice is closed in our favour: the credits come back
+-- (a side that was never credited is credited now).
+create or replace function public.restore_referral_reward(p_referred uuid, p_invoice text)
+returns table (referral_id uuid, side text, kind text, round integer, customer text, cents integer, currency text, reward_rule text)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  r public.referrals;
+begin
+  select * into r from public.referrals x
+  where x.referred_id = p_referred and x.reward_rule = 'percent_20' and x.first_invoice_id is not null and x.first_invoice_id = p_invoice
+  for update;
+  if r.id is null then
+    return;
+  end if;
+  if r.reversed_at is not null then
+    update public.referrals set reversed_at = null, friend_recredit_id = null, referrer_recredit_id = null where id = r.id;
+  end if;
+  return query select * from private.referral_pending(r.id) q where q.kind in ('credit', 'recredit');
+end;
+$$;
+revoke execute on function public.restore_referral_reward(uuid, text) from public, anon, authenticated;
+grant execute on function public.restore_referral_reward(uuid, text) to service_role;
+
+-- Records one Stripe balance transaction the moment it's made, so no retry makes it again. Fills only
+-- the empty slot of the round it was made for; says whether it did.
+create or replace function public.record_referral_transaction(p_referral uuid, p_side text, p_kind text, p_round integer, p_txn text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_done integer;
+begin
+  if p_side is null or p_side not in ('friend', 'referrer') or p_kind is null or p_kind not in ('credit', 'reversal', 'recredit')
+     or p_txn is null or p_txn !~ '^cbtxn_[A-Za-z0-9]+$' then
+    raise exception 'Not a referral transaction' using errcode = 'invalid_parameter_value';
+  end if;
+  if p_kind = 'credit' and p_side = 'friend' then
+    update public.referrals set friend_credit_id = p_txn where id = p_referral and friend_credit_id is null;
+  elsif p_kind = 'credit' then
+    update public.referrals set referrer_credit_id = p_txn where id = p_referral and referrer_credit_id is null;
+  elsif p_kind = 'reversal' and p_side = 'friend' then
+    update public.referrals set friend_reversal_id = p_txn where id = p_referral and reversal_count = p_round and friend_reversal_id is null;
+  elsif p_kind = 'reversal' then
+    update public.referrals set referrer_reversal_id = p_txn where id = p_referral and reversal_count = p_round and referrer_reversal_id is null;
+  elsif p_side = 'friend' then
+    update public.referrals set friend_recredit_id = p_txn where id = p_referral and reversal_count = p_round and friend_recredit_id is null;
+  else
+    update public.referrals set referrer_recredit_id = p_txn where id = p_referral and reversal_count = p_round and referrer_recredit_id is null;
+  end if;
+  get diagnostics v_done = row_count;
+  return v_done > 0;
+end;
+$$;
+revoke execute on function public.record_referral_transaction(uuid, text, text, integer, text) from public, anon, authenticated;
+grant execute on function public.record_referral_transaction(uuid, text, text, integer, text) to service_role;
+
+-- A decided reward is no longer handed back (that let a retry credit a side twice). Kept for an old
+-- stripe-webhook still running, but it now does nothing to a 'percent_20' referral or one with any credit
+-- recorded.
+create or replace function public.release_referral_reward(p_referral uuid)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.referrals
+  set rewarded_at = null, friend_credit_cents = null, referrer_credit_cents = null, referrer_skipped = null
+  where id = p_referral and reward_rule = 'free_month' and friend_credit_id is null and referrer_credit_id is null;
+$$;
+revoke execute on function public.release_referral_reward(uuid) from public, anon, authenticated;
+grant execute on function public.release_referral_reward(uuid) to service_role;
 
 -- The return type changes, so it's dropped and made again (the app reads only the columns it knows).
-drop function public.my_referrals();
+drop function if exists public.my_referrals();
 
 -- How the caller's invitations have gone: friends who signed up, how many have paid, the free months
--- earned under the old offer, and their one 20% credit (null until it's added).
+-- earned under the old offer, their one 20% credit (null until it's decided, or while it's taken back),
+-- friends still to pay, and whether the caller has a paid plan now (the 20% needs one when a friend pays).
 create function public.my_referrals()
-returns table (signed_up integer, rewarded integer, months_earned integer, credit_cents integer, waiting integer)
+returns table (signed_up integer, rewarded integer, months_earned integer, credit_cents integer, waiting integer, has_paid_plan boolean)
 language sql
 stable
 security definer
@@ -15513,8 +15713,10 @@ as $$
   select count(*)::integer,
          count(*) filter (where r.rewarded_at is not null)::integer,
          count(*) filter (where r.reward_rule = 'free_month' and r.referrer_credit_cents is not null)::integer,
-         max(r.referrer_credit_cents) filter (where r.reward_rule = 'percent_20'),
-         count(*) filter (where r.rewarded_at is null)::integer
+         max(r.referrer_credit_cents) filter (where r.reward_rule = 'percent_20' and r.reversed_at is null),
+         count(*) filter (where r.rewarded_at is null)::integer,
+         exists (select 1 from public.subscriptions s
+                 where s.user_id = (select auth.uid()) and s.status in ('active', 'past_due', 'paused') and not s.complimentary)
   from public.referrals r
   where r.referrer_id = (select auth.uid()) and public.second_step_done();
 $$;
@@ -15525,28 +15727,31 @@ grant execute on function public.my_referrals() to authenticated, service_role;
 -- 20261123006844_referral_twenty_percent_policies.sql
 -- =============================================================================
 -- Refer a friend, 20% of one month (6843): the Terms (30. Membership) say what each side is credited, that
--- the inviter's credit is once per account, and how free months earned before the change are kept; the
--- Privacy Policy says which offer is noted for each invitation. Same text as src/data/legalPages.json,
--- matched as stored (jsonb text puts a space after each comma); made once, and a page an editor has
--- reworded is left as it is. The edit trigger keeps each old version.
+-- the inviter needs a paid membership when the friend pays, that the inviter's credit is once per account
+-- whatever free months they earned before, that a full refund or a dispute of the friend's first payment
+-- takes both credits back (owed on the next invoice if already used; a won dispute adds them again), and
+-- how free months earned before the change are kept; the Privacy Policy says what's noted for each
+-- invitation. Same text as src/data/legalPages.json, matched as stored (jsonb text puts a space after
+-- each comma); made once, and a page an editor has reworded is left as it is. The edit trigger keeps each
+-- old version.
 
 update public.legal_pages
-set sections = replace(sections::text, $lw$"Inviting friends. Each member has a link to share from Account. When someone who hasn't had a LiteraryWorm account before signs up with it and makes their first payment, we add a month of their plan as a credit on their account, and a month of your own plan as a credit on yours. Credits come off your next invoices."$lw$, $lw$"Inviting friends. Each member has a link to share from Account. When someone who hasn't had a LiteraryWorm account before signs up with it and makes their first payment, we add 20% of one month of their plan as a credit on their account, and 20% of one month of your own plan as a credit on yours. On yearly billing, a month is a twelfth of the yearly price. Credits are rounded to the cent and come off your next invoices."$lw$)::jsonb
+set sections = replace(sections::text, $lw$"Inviting friends. Each member has a link to share from Account. When someone who hasn't had a LiteraryWorm account before signs up with it and makes their first payment, we add a month of their plan as a credit on their account, and a month of your own plan as a credit on yours. Credits come off your next invoices."$lw$, $lw$"Inviting friends. Each member has a link to share from Account. When someone who hasn't had a LiteraryWorm account before signs up with it and makes their first payment, we add 20% of one month of their plan as a credit on their account, and 20% of one month of your own plan as a credit on yours if you have a paid membership at that time. On yearly billing, a month is a twelfth of the yearly price. Credits are rounded to the cent and come off your next invoices."$lw$)::jsonb
 where slug = 'terms'
   and strpos(sections::text, $lw$"Inviting friends. Each member has a link to share from Account. When someone who hasn't had a LiteraryWorm account before signs up with it and makes their first payment, we add a month of their plan as a credit on their account, and a month of your own plan as a credit on yours. Credits come off your next invoices."$lw$) > 0
-  and strpos(sections::text, $lw$we add 20% of one month of their plan$lw$) = 0;
+  and strpos(sections::text, $lw$if you have a paid membership at that time$lw$) = 0;
 
 update public.legal_pages
-set sections = replace(sections::text, $lw$"You can earn up to 2 free months from inviting friends in all; the friends you invite after that still get their month. Credits have no cash value, can't be moved to another account, and aren't refunded when a membership ends. Staff memberships aren't billed, so they don't earn or receive credits."$lw$, $lw$"You earn the credit for inviting once per account, however many friends join with your link, and every friend you invite still gets theirs. Credits have no cash value, can't be moved to another account, and aren't refunded when a membership ends. Staff memberships aren't billed, so they don't earn or receive credits.", "Until November 2026 the reward was a free month for each of you, up to 2 free months for inviting. Free months already added to an account stay, and so do those earned when a friend joined and made their first payment before the change. A friend who hadn't made their first payment by then gets the 20% credit instead, and so does the member who invited them."$lw$)::jsonb
+set sections = replace(sections::text, $lw$"You can earn up to 2 free months from inviting friends in all; the friends you invite after that still get their month. Credits have no cash value, can't be moved to another account, and aren't refunded when a membership ends. Staff memberships aren't billed, so they don't earn or receive credits."$lw$, $lw$"The 20% credit for inviting is earned once per account, whatever free months you earned before and however many friends join with your link, and every friend you invite still gets theirs. If a friend's first payment is fully refunded or charged back (disputed), we take back both 20% credits for that invitation, theirs and yours; if a credit was already used, the amount taken back is added to the next invoice. A partial refund doesn't take credits back, and if a dispute is closed in our favour the credits are added again. Credits have no cash value, can't be moved to another account, and aren't refunded when a membership ends. Staff memberships aren't billed, so they don't earn or receive credits.", "Until November 2026 the reward was a free month for each of you, up to 2 free months for inviting. Free months already added to an account stay and aren't taken back, and so do those earned when a friend joined and made their first payment before the change. A friend who hadn't made their first payment by then gets the 20% credit instead, and so does the member who invited them."$lw$)::jsonb
 where slug = 'terms'
   and strpos(sections::text, $lw$"You can earn up to 2 free months from inviting friends in all; the friends you invite after that still get their month. Credits have no cash value, can't be moved to another account, and aren't refunded when a membership ends. Staff memberships aren't billed, so they don't earn or receive credits."$lw$) > 0
-  and strpos(sections::text, $lw$You earn the credit for inviting once per account$lw$) = 0;
+  and strpos(sections::text, $lw$The 20% credit for inviting is earned once per account$lw$) = 0;
 
 update public.legal_pages
-set sections = replace(sections::text, $lw$"Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, and the month credited to each of you (with Stripe's reference for the credit). You see how many friends signed up and how many months you've earned, never who they are; a friend sees only their own month."$lw$, $lw$"Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, which offer applied (20% of a month, or a free month before November 2026), and the credit added to each of you (with Stripe's reference for the credit). You see how many friends signed up and whether your credit has been added, never who they are; a friend sees only their own credit."$lw$)::jsonb
+set sections = replace(sections::text, $lw$"Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, and the month credited to each of you (with Stripe's reference for the credit). You see how many friends signed up and how many months you've earned, never who they are; a friend sees only their own month."$lw$, $lw$"Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, which offer applied (20% of a month, or a free month before November 2026), the credit added to each of you, and any credit taken back or added again after a refund or dispute (with Stripe's reference for each). You see how many friends signed up and whether your credit has been added, never who they are; a friend sees only their own credit."$lw$)::jsonb
 where slug = 'privacy'
   and strpos(sections::text, $lw$"Invitations: your invitation code, and for each friend who signed up with it, who invited them, when, and the month credited to each of you (with Stripe's reference for the credit). You see how many friends signed up and how many months you've earned, never who they are; a friend sees only their own month."$lw$) > 0
-  and strpos(sections::text, $lw$which offer applied (20% of a month$lw$) = 0;
+  and strpos(sections::text, $lw$any credit taken back or added again after a refund or dispute$lw$) = 0;
 
 -- =============================================================================
 -- 20261123006845_whats_new_referral_twenty_percent.sql
@@ -15555,5 +15760,5 @@ where slug = 'privacy'
 -- src/data/changelog.json has the same.
 
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
-select '2026-11-23'::date, '2026.11', 'update', $lw$Invite a friend: 20% off a month for each of you$lw$, $lw$Inviting a friend now earns each of you 20% off one month of your own plan, instead of a free month. When a friend joins with your link and makes their first payment, the credit is added to both accounts and taken off your next bill; on yearly billing a month is a twelfth of the yearly price. You get your credit for inviting once, and every friend you invite gets theirs. Free months you've already earned stay on your account, including any for a friend who joined and paid before this change. See Account → Plan and billing.$lw$, false
+select '2026-11-23'::date, '2026.11', 'update', $lw$Invite a friend: 20% off a month for each of you$lw$, $lw$Inviting a friend now earns each of you 20% off one month of your own plan, instead of a free month. When a friend joins with your link and makes their first payment, the credit is added to both accounts and taken off your next bill; on yearly billing a month is a twelfth of the yearly price. The member who invites needs a paid plan when the friend pays, and gets that credit once per account, whatever free months they earned before; every friend you invite gets theirs. If a friend's first payment is fully refunded or disputed, both credits are taken back (a credit already used is added to the next bill), and they come back if a dispute is closed in our favour. Free months you've already earned stay on your account, including any for a friend who joined and paid before this change. See Account → Plan and billing.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Invite a friend: 20% off a month for each of you$lw$ and c.released_on = '2026-11-23');
