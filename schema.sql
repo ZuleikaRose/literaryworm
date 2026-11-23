@@ -17004,7 +17004,7 @@ begin
   from public.stripe_events e where e.id = p_event;
   if v_referral is not null and private.referral_open(v_referral) then
     raise exception 'referral_still_owed: this referral still owes something at Stripe or has a take-back or give-back waiting. Use Retry now, or Write off a held side.'
-      using errcode = 'P0001';
+      using errcode = 'object_in_use';
   end if;
   update public.stripe_events set review_resolved_at = now()
   where id = p_event and review_reason is not null and review_resolved_at is null;
@@ -17082,3 +17082,56 @@ end;
 $$;
 revoke execute on function public.waiting_referral_rounds() from public, anon;
 grant execute on function public.waiting_referral_rounds() to authenticated, service_role;
+
+-- A reused transaction id is refused with unique_violation (stripe-webhook reads the message; P0001 is
+-- left to plain raised errors). Otherwise as in 165931.
+create or replace function public.record_referral_transaction(p_referral uuid, p_side text, p_kind text, p_round integer, p_txn text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_done integer;
+begin
+  if p_side is null or p_side not in ('friend', 'referrer') or p_kind is null or p_kind not in ('credit', 'reversal', 'recredit')
+     or p_txn is null or p_txn !~ '^cbtxn_[A-Za-z0-9]+$' then
+    raise exception 'Not a referral transaction' using errcode = 'invalid_parameter_value';
+  end if;
+  -- One transaction, one slot: an id already recorded anywhere is refused (stripe-webhook counts it as a
+  -- permanent failure, so it's set aside for the team rather than recorded twice).
+  if exists (
+    select 1 from public.referrals r
+    where p_txn in (r.friend_credit_id, r.referrer_credit_id, r.friend_reversal_id, r.referrer_reversal_id, r.friend_recredit_id, r.referrer_recredit_id)
+      -- (the same id again in its own slot is a repeat, not a reuse; an empty slot never matches)
+      and not (r.id = p_referral and p_txn is not distinct from case
+        when p_kind = 'credit' and p_side = 'friend' then r.friend_credit_id
+        when p_kind = 'credit' then r.referrer_credit_id
+        when p_kind = 'reversal' and p_side = 'friend' then r.friend_reversal_id
+        when p_kind = 'reversal' then r.referrer_reversal_id
+        when p_side = 'friend' then r.friend_recredit_id
+        else r.referrer_recredit_id end)
+  ) then
+    raise exception 'referral_txn_reused: % is already recorded on another referral or slot', p_txn using errcode = 'unique_violation';
+  end if;
+  if p_kind = 'credit' and p_side = 'friend' then
+    update public.referrals set friend_credit_id = p_txn, friend_failures = 0, friend_retry_requested_at = null where id = p_referral and friend_credit_id is null;
+  elsif p_kind = 'credit' then
+    update public.referrals set referrer_credit_id = p_txn, referrer_failures = 0, referrer_retry_requested_at = null where id = p_referral and referrer_credit_id is null;
+  elsif p_kind = 'reversal' and p_side = 'friend' then
+    update public.referrals set friend_reversal_id = p_txn, friend_failures = 0, friend_retry_requested_at = null where id = p_referral and reversal_count = p_round and friend_reversal_id is null;
+  elsif p_kind = 'reversal' then
+    update public.referrals set referrer_reversal_id = p_txn, referrer_failures = 0, referrer_retry_requested_at = null where id = p_referral and reversal_count = p_round and referrer_reversal_id is null;
+  elsif p_side = 'friend' then
+    update public.referrals set friend_recredit_id = p_txn, friend_failures = 0, friend_retry_requested_at = null where id = p_referral and reversal_count = p_round and friend_recredit_id is null;
+  else
+    update public.referrals set referrer_recredit_id = p_txn, referrer_failures = 0, referrer_retry_requested_at = null where id = p_referral and reversal_count = p_round and referrer_recredit_id is null;
+  end if;
+  get diagnostics v_done = row_count;
+  -- A take-back or give-back that waited for this one may go ahead now.
+  perform private.referral_advance(p_referral);
+  return v_done > 0;
+end;
+$$;
+revoke execute on function public.record_referral_transaction(uuid, text, text, integer, text) from public, anon, authenticated;
+grant execute on function public.record_referral_transaction(uuid, text, text, integer, text) to service_role;
