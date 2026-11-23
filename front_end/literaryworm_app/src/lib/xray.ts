@@ -70,25 +70,84 @@ export function mentionPattern(name: string): RegExp {
   return new RegExp(`(?<![\\p{L}\\p{N}])${head}${body}(?![\\p{L}\\p{N}])`, "gu");
 }
 
+const startsSmall = (s: string) => s[0] !== undefined && s[0] === s[0].toLowerCase() && s[0] !== s[0].toUpperCase();
+const oneSpace = (s: string) => s.trim().replace(/\s+/g, " ");
+
+/**
+ * One pattern for many names: longest first, so where two start at the same place the longer
+ * wins, behind a lookahead for the names' first letters, which lets the engine skip everything
+ * else quickly (about 50 ms for 450 names over 2.7 million characters in Node).
+ */
+function namesPattern(names: string[]): RegExp {
+  const sorted = [...names].sort((a, b) => b.length - a.length);
+  const firsts = new Set<string>();
+  const alternatives = sorted.map((name) => {
+    const first = name[0];
+    firsts.add(first);
+    if (startsSmall(name)) firsts.add(first.toUpperCase());
+    const head = startsSmall(name) ? `[${escape(first)}${escape(first.toUpperCase())}]` : escape(first);
+    return head + name.slice(1).split(" ").map(escape).join("\\s+");
+  });
+  return new RegExp(`(?=[${[...firsts].map(escape).join("")}])(?<![\\p{L}\\p{N}])(?:${alternatives.join("|")})(?![\\p{L}\\p{N}])`, "gu");
+}
+
+/** Each item's mentions by page index (pages up to the reader's chapter), aligned with the items. */
+export type MentionIndex = Map<number, number>[];
+
+/**
+ * Every item's mentions, page by page, up to the reader's chapter, in ONE pass over that text:
+ * each place in the text is one mention of one item (the longest name there wins, so "Mrs.
+ * Bennet" isn't also a mention of an item called "Bennet"). Exact names and aliases only.
+ */
+export function mentionIndex(items: Pick<XRayItem, "name" | "aliases">[], pages: ReaderPage[], chapterIndex: number): MentionIndex {
+  const counts: MentionIndex = items.map(() => new Map());
+  const owner = new Map<string, number>();
+  const names: string[] = [];
+  items.forEach((item, i) => {
+    for (const raw of [item.name, ...item.aliases]) {
+      const name = oneSpace(raw);
+      if (!name || owner.has(name)) continue;
+      owner.set(name, i);
+      names.push(name);
+      // "the entail" is also "The entail" at the start of a sentence.
+      if (startsSmall(name)) {
+        const capital = name[0].toUpperCase() + name.slice(1);
+        if (!owner.has(capital)) owner.set(capital, i);
+      }
+    }
+  });
+  if (names.length === 0) return counts;
+  const starts: number[] = [];
+  const pageOf: number[] = [];
+  const parts: string[] = [];
+  let length = 0;
+  pages.forEach((p, i) => {
+    if (p.chapterIndex > chapterIndex) return;
+    const text = pageText(p);
+    starts.push(length);
+    pageOf.push(i);
+    parts.push(text);
+    length += text.length + 2;
+  });
+  const text = parts.join("\n\n");
+  let at = 0;
+  for (const m of text.matchAll(namesPattern(names))) {
+    while (at + 1 < starts.length && starts[at + 1] <= m.index) at++;
+    const item = owner.get(oneSpace(m[0]));
+    if (item === undefined) continue;
+    const page = pageOf[at];
+    counts[item].set(page, (counts[item].get(page) ?? 0) + 1);
+  }
+  return counts;
+}
+
 /**
  * How many times any of `names` is named in `text`. Overlapping names ("Bennet" inside
  * "Mrs. Bennet") count once: the longest at each place wins.
  */
 export function countMentions(text: string, names: string[]): number {
-  const spans: [number, number][] = [];
-  for (const name of names) {
-    if (!name.trim()) continue;
-    for (const m of text.matchAll(mentionPattern(name.trim()))) spans.push([m.index, m.index + m[0].length]);
-  }
-  spans.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
-  let count = 0;
-  let end = -1;
-  for (const [from, to] of spans) {
-    if (from < end) continue;
-    count++;
-    end = to;
-  }
-  return count;
+  const [found] = mentionIndex([{ name: names[0] ?? "", aliases: names.slice(1) }], [{ chapterIndex: 0, page: 0, paragraphs: [text] }], 0);
+  return [...found.values()].reduce((n, c) => n + c, 0);
 }
 
 const pageText = (p: ReaderPage) => (p.paragraphs ?? []).join("\n");
@@ -103,27 +162,23 @@ export const metBy = <T extends { firstChapter: number }>(items: T[], chapterInd
  * The X-Ray's rows for the reader at `chapterIndex`: each item met so far with its mentions in
  * the scope, counted in the pages' own text. In "chapter" only items named in this chapter are
  * listed; in "sofar" every item met so far is (with no mentions when the text never names it
- * exactly). Most-mentioned first, then in the order they were met.
+ * exactly). Most-mentioned first, then in the order they were met. Pass the `index` from
+ * `mentionIndex()` for these items to reuse one pass over the text across scopes and tabs.
  */
-export function xrayRows(items: XRayItem[], pages: ReaderPage[], chapterIndex: number, scope: XRayScope): XRayRow[] {
-  const inScope = pages
-    .map((p, index) => ({ p, index }))
-    .filter(({ p }) => (scope === "chapter" ? p.chapterIndex === chapterIndex : p.chapterIndex <= chapterIndex));
-  const upToHere = pages.map((p, index) => ({ p, index })).filter(({ p }) => p.chapterIndex <= chapterIndex);
+export function xrayRows(items: XRayItem[], pages: ReaderPage[], chapterIndex: number, scope: XRayScope, index: MentionIndex = mentionIndex(items, pages, chapterIndex)): XRayRow[] {
   const rows: XRayRow[] = [];
-  for (const item of metBy(items, chapterIndex)) {
-    const names = [item.name, ...item.aliases];
+  items.forEach((item, i) => {
+    if (!(item.firstChapter >= 1 && item.firstChapter <= chapterIndex + 1)) return;
+    const byPage = [...(index[i] ?? new Map<number, number>()).entries()].sort((a, b) => a[0] - b[0]);
     // The text decides when it was first met: never later than the reader's chapter.
-    const first = upToHere.find(({ p }) => countMentions(pageText(p), names) > 0);
-    if (!first && item.description === null) continue;
-    const found: PageMentions[] = [];
-    for (const { p, index } of inScope) {
-      const count = countMentions(pageText(p), names);
-      if (count > 0) found.push({ index, chapterIndex: p.chapterIndex, page: p.page, count });
-    }
-    if (scope === "chapter" && found.length === 0) continue;
-    rows.push({ ...item, pages: found, total: found.reduce((n, f) => n + f.count, 0), firstMet: first ? first.p.chapterIndex + 1 : item.firstChapter });
-  }
+    const first = byPage.length > 0 ? pages[byPage[0][0]] : null;
+    if (!first && item.description === null) return;
+    const found: PageMentions[] = byPage
+      .filter(([page]) => scope === "sofar" || pages[page].chapterIndex === chapterIndex)
+      .map(([page, count]) => ({ index: page, chapterIndex: pages[page].chapterIndex, page: pages[page].page, count }));
+    if (scope === "chapter" && found.length === 0) return;
+    rows.push({ ...item, pages: found, total: found.reduce((n, f) => n + f.count, 0), firstMet: first ? first.chapterIndex + 1 : item.firstChapter });
+  });
   return rows.sort((a, b) => b.total - a.total || a.firstMet - b.firstMet || a.name.localeCompare(b.name));
 }
 
@@ -197,14 +252,16 @@ export function localNames(pages: ReaderPage[], chapterIndex: number): XRayItem[
     if (p.chapterIndex > chapterIndex) continue;
     const chapter = p.chapterIndex + 1;
     const text = pageText(p);
-    for (const w of text.matchAll(/(?<![\p{L}])\p{Ll}[\p{L}\p{M}'’-]*/gu)) lower.set(w[0], (lower.get(w[0]) ?? 0) + 1);
     for (const m of text.matchAll(run)) {
       if (m.index > 0 && /[\p{L}\p{N}]/u.test(text[m.index - 1])) continue;
-      const before = text.slice(0, m.index).trimEnd();
+      // The last character before the run that isn't a space or a tab (not a copy of the page so far).
+      let back = m.index - 1;
+      while (back >= 0 && (text[back] === " " || text[back] === "\t")) back--;
+      const before = back < 0 ? "" : text[back];
       // Cut the run where a sentence ends inside it ("Jane. Elizabeth"): a full stop not after a title.
       const segments: { words: string[]; startsSentence: boolean }[] = [];
       let words: string[] = [];
-      let startsSentence = before === "" || /[.!?:;"“”‘’(\n—-]$/.test(before);
+      let startsSentence = before === "" || /[.!?:;"“”‘’(\n—-]/.test(before);
       for (const raw of m[0].split(/[ \t]+/)) {
         const endsSentence = raw.endsWith(".") && !isTitle(raw);
         // "Jane’s" is Jane.
@@ -238,11 +295,20 @@ export function localNames(pages: ReaderPage[], chapterIndex: number): XRayItem[
       }
     }
   }
-  const candidates = [...seen.entries()].filter(([name, s]) => {
-    if (s.count < LOCAL_MIN_MENTIONS || s.inside === 0 || NOT_NAMES.has(name)) return false;
-    // Mostly written in small letters: an ordinary word that started sentences.
-    return (lower.get(name.toLowerCase()) ?? 0) * 5 < s.count;
-  });
+  const recurring = [...seen.entries()].filter(([name, s]) => s.count >= LOCAL_MIN_MENTIONS && s.inside > 0 && !NOT_NAMES.has(name));
+  // How often each is written in small letters, in one pass over the text so far.
+  const small = [...new Set(recurring.map(([name]) => name.toLowerCase()))].filter((n) => n !== n.toUpperCase());
+  if (small.length > 0) {
+    const text = pages
+      .filter((p) => p.chapterIndex <= chapterIndex)
+      .map(pageText)
+      .join("\n\n");
+    const firsts = [...new Set(small.map((n) => n[0]))].map(escape).join("");
+    const pattern = new RegExp(`(?=[${firsts}])(?<![\\p{L}\\p{N}])(?:${small.sort((a, b) => b.length - a.length).map(escape).join("|")})(?![\\p{L}\\p{N}])`, "gu");
+    for (const m of text.matchAll(pattern)) lower.set(m[0], (lower.get(m[0]) ?? 0) + 1);
+  }
+  // Mostly written in small letters: an ordinary word that started sentences.
+  const candidates = recurring.filter(([name, s]) => (lower.get(name.toLowerCase()) ?? 0) * 5 < s.count);
   return candidates
     .filter(([name, s]) => {
       if (name.includes(" ")) return true;

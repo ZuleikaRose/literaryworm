@@ -6,7 +6,7 @@ import { tk, tr } from "../lib/i18n";
 import { bookText } from "../lib/narration";
 import { type ReaderPage, textPages } from "../lib/reading";
 import { useT } from "../lib/useT";
-import { kindsFor, localNames, mentionStops, type XRayItem, type XRayKind, xrayMode, type XRayMode, type XRayRow, xrayRows, type XRayScope } from "../lib/xray";
+import { kindsFor, localNames, mentionIndex, mentionStops, type XRayItem, type XRayKind, xrayMode, type XRayMode, type XRayRow, xrayRows, type XRayScope } from "../lib/xray";
 import { fetchXRay, XRayError } from "../lib/xrayApi";
 import { useActiveProfile, useStore } from "../store/context";
 import type { Book } from "../types";
@@ -187,17 +187,11 @@ function XRayLists({
   const shownKind = kind && kinds.includes(kind) ? kind : (kinds[0] ?? null);
   const [scope, setScope] = useState<XRayScope>("sofar");
   const [filter, setFilter] = useState("");
-  // Counting mentions reads every page so far: done again only when the list, kind, chapter or scope changes.
-  const rows = useMemo(() => {
-    const listed = kindsFor(items);
-    const current = kind && listed.includes(kind) ? kind : (listed[0] ?? null);
-    return xrayRows(
-      items.filter((i) => i.kind === current),
-      pages,
-      chapterIndex,
-      scope,
-    );
-  }, [items, kind, pages, chapterIndex, scope]);
+  // One pass over the text so far for every entry (lib/xray.ts mentionIndex()), redone only when
+  // the entries or the chapter change; the scope reuses it, and a tab only filters the rows.
+  const index = useMemo(() => mentionIndex(items, pages, chapterIndex), [items, pages, chapterIndex]);
+  const allRows = useMemo(() => xrayRows(items, pages, chapterIndex, scope, index), [items, pages, chapterIndex, scope, index]);
+  const rows = allRows.filter((r) => r.kind === shownKind);
   const wanted = filter.trim().toLowerCase();
   const shown = rows.filter((r) => !wanted || [r.name, ...r.aliases].some((n) => n.toLowerCase().includes(wanted)));
 

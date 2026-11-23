@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "@jest/globals";
 import { DEMO_XRAY, DEMO_XRAY_BOOKS } from "../data/demoXRay";
 import { type ReaderPage, textPages } from "./reading";
-import { countMentions, hasRealText, kindsFor, LOCAL_MAX, localNames, mentionPattern, mentionStops, metBy, type XRayItem, xrayMode, xrayRows } from "./xray";
+import { countMentions, hasRealText, kindsFor, LOCAL_MAX, localNames, mentionIndex, mentionPattern, mentionStops, metBy, type XRayItem, xrayMode, xrayRows } from "./xray";
 import { itemsFrom } from "./xrayApi";
 
 const FIRST_CHAPTER = 0;
@@ -246,5 +246,46 @@ describe("the demo's sample X-Ray", () => {
       expect(hasRealText(pages)).toBe(true);
       expect(xrayRows(DEMO_XRAY[id], pages, FIRST_CHAPTER, "sofar").length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("a very long book", () => {
+  /** About 2.7 million characters: Pride and Prejudice four times over, as the reader's pages. */
+  const BOOK_CHARS = 2_700_000;
+  /** As many entries and names as the function can send: 40 + 25 + 25, each with 4 aliases. */
+  const ENTRIES = 90;
+  /** The budget for counting every mention once, generous for slow test machines (it takes about 50 ms). */
+  const BUDGET_MS = 400;
+  const chapters = bookText("pride-and-prejudice");
+  const many: string[] = [];
+  while (many.join("").length < BOOK_CHARS) many.push(...chapters);
+  const pages = textPages(many);
+  const last = many.length - 1;
+  const NAMES = ["Elizabeth", "Jane", "Mr. Bennet", "Mrs. Bennet", "Mr. Darcy", "Mr. Bingley", "Netherfield", "Longbourn", "Meryton", "Pemberley", "Wickham", "Lady Catherine", "Charlotte", "Lydia", "Kitty", "entail", "militia", "London"];
+  const entries: XRayItem[] = Array.from({ length: ENTRIES }, (_, i) =>
+    item(i < NAMES.length ? NAMES[i] : `Nobody${i}`, i % 3 === 0 ? "people" : i % 3 === 1 ? "places" : "terms", 1, [`Alias${i}a`, `Alias${i}b`, `Alias${i}c`, `Alias${i}d`]),
+  );
+
+  it("counts every entry's mentions in one pass, within the budget", () => {
+    const started = performance.now();
+    const index = mentionIndex(entries, pages, last);
+    const sofar = xrayRows(entries, pages, last, "sofar", index);
+    xrayRows(entries, pages, last, "chapter", index);
+    expect(performance.now() - started).toBeLessThan(BUDGET_MS);
+    expect(sofar.find((r) => r.name === "Elizabeth")!.total).toBeGreaterThan(2000);
+  });
+
+  it("gives the same counts as counting each entry on its own", () => {
+    const index = mentionIndex(entries.slice(0, 3), pages, 2);
+    for (const [i, entry] of entries.slice(0, 3).entries()) {
+      const one = pages.filter((p) => p.chapterIndex <= 2).reduce((n, p) => n + countMentions(p.paragraphs!.join("\n"), [entry.name, ...entry.aliases]), 0);
+      expect([...index[i].values()].reduce((n, c) => n + c, 0)).toBe(one);
+    }
+  });
+
+  it("finds names on the device within the budget too", () => {
+    const started = performance.now();
+    expect(localNames(pages, last).length).toBeGreaterThan(0);
+    expect(performance.now() - started).toBeLessThan(BUDGET_MS * 5);
   });
 });
