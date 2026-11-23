@@ -279,7 +279,7 @@ function XRayEntry({ book, row, pages, chapterIndex, scope, onGo }: { book: Book
               const label = (
                 <>
                   {placeLabel(s.at)}
-                  <span aria-hidden="true"> · {s.count}</span>
+                  <span aria-hidden="true">· {s.count}</span>
                   <span className="visually-hidden">, {t.plural(s.count, { one: "{count} mention", other: "{count} mentions" })}</span>
                 </>
               );

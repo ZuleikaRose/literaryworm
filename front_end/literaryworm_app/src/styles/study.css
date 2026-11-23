@@ -1166,6 +1166,7 @@
   display: inline-flex;
   min-height: 32px;
   align-items: center;
+  gap: 0.3em;
   padding: 0 10px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
