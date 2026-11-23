@@ -1,4 +1,5 @@
 import { bookChapters } from "../_shared/bookText.ts";
+import { chapterCount } from "../_shared/chapterCounts.ts";
 import { CATALOG } from "../_shared/catalog.ts";
 import { clientIp } from "../_shared/http.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
@@ -19,6 +20,7 @@ Deno.serve((req) =>
       const book = CATALOG[id];
       return book?.publicDomain ? { title: book.title, author: book.author } : null;
     },
+    chapterCount,
     chapters: bookChapters,
     async cached(id, chapter) {
       const { data, error } = await serviceClient().from("book_xray").select(COLUMNS).eq("volume_id", id).eq("chapter_index", chapter).maybeSingle();

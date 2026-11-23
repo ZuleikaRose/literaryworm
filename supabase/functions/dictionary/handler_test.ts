@@ -211,3 +211,17 @@ Deno.test("English stays the default and keeps its own rules", async () => {
   assertEquals((await res.json()).lang, "en");
   assertEquals((await handle(get("word=σπίτι"), { fetcher })).status, 400);
 });
+
+const CAFE_COMPOSED = "café";
+const CAFE_DECOMPOSED = "café";
+
+Deno.test("a word with a combining accent is looked up and echoed composed (NFC)", async () => {
+  const body = { fr: [{ partOfSpeech: "Noun", language: "French", definitions: [{ definition: "coffee" }] }] };
+  const composed = stub(200, body);
+  const decomposed = stub(200, body);
+  const a = await handle(get(`word=${encodeURIComponent(CAFE_COMPOSED)}&lang=fr`), { fetcher: composed.fetcher });
+  const b = await handle(get(`word=${encodeURIComponent(CAFE_DECOMPOSED)}&lang=fr`), { fetcher: decomposed.fetcher });
+  assertEquals((await a.json()).word, CAFE_COMPOSED);
+  assertEquals((await b.json()).word, CAFE_COMPOSED);
+  assertEquals(decomposed.calls[0].href, composed.calls[0].href);
+});

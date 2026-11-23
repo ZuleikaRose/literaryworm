@@ -24,8 +24,32 @@ export function contextText(chapters: string[], chapter: number): string {
 
 const TEXTS_ORIGIN = (Deno.env.get("TEXTS_ORIGIN") ?? "https://www.literaryworm.com").replace(/\/$/, "");
 
-// Kept between requests while the function instance is warm.
-const texts = new Map<string, Promise<string[]>>();
+/**
+ * Books kept between requests while the function instance is warm: at most TEXTS_KEPT books and
+ * TEXTS_KEPT_CHARS characters, the least recently used dropped first, so a run of requests for
+ * many different books can't fill the instance's memory.
+ */
+export const TEXTS_KEPT = 4;
+export const TEXTS_KEPT_CHARS = 8_000_000;
+
+type Kept = { pending: Promise<string[]>; chars: number };
+const texts = new Map<string, Kept>();
+
+const keptChars = () => [...texts.values()].reduce((n, k) => n + k.chars, 0);
+
+/** Drops the least recently used books until the cache is within both bounds. */
+function trim() {
+  for (const id of texts.keys()) {
+    if (texts.size <= TEXTS_KEPT && keptChars() <= TEXTS_KEPT_CHARS) return;
+    texts.delete(id);
+  }
+}
+
+/** How many books are kept now (for the tests). */
+export const textsKept = () => texts.size;
+
+/** Forgets every kept book (for the tests). */
+export const forgetTexts = () => texts.clear();
 
 async function download(id: string): Promise<string[]> {
   let res: Response;
@@ -46,13 +70,30 @@ async function download(id: string): Promise<string[]> {
   return chapters as string[];
 }
 
-/** A public-domain title's chapters (the reader's text), fetched once per warm instance. */
-export function bookChapters(id: string): Promise<string[]> {
-  let pending = texts.get(id);
-  if (!pending) {
-    pending = download(id);
-    texts.set(id, pending);
-    pending.catch(() => texts.delete(id));
+/**
+ * A public-domain title's chapters (the reader's text), fetched once per warm instance and kept
+ * within the cache's bounds. `beforeDownload` runs (and may refuse, by throwing) only when the
+ * book has to be downloaded, so a download counts against the caller's rate limit.
+ */
+export async function bookChapters(id: string, beforeDownload?: () => Promise<void>): Promise<string[]> {
+  const kept = texts.get(id);
+  if (kept) {
+    // Most recently used goes last.
+    texts.delete(id);
+    texts.set(id, kept);
+    return kept.pending;
   }
-  return pending;
+  await beforeDownload?.();
+  const entry: Kept = { pending: download(id), chars: 0 };
+  texts.set(id, entry);
+  trim();
+  try {
+    const chapters = await entry.pending;
+    entry.chars = chapters.reduce((n, c) => n + c.length, 0);
+    trim();
+    return chapters;
+  } catch (err) {
+    if (texts.get(id) === entry) texts.delete(id);
+    throw err;
+  }
 }

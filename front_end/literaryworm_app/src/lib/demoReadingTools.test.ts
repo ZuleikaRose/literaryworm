@@ -140,6 +140,15 @@ describe("cleanWord per language", () => {
     expect(cleanWord("", "fr")).toBeNull();
     expect(cleanWord("a".repeat(41), "fr")).toBeNull();
   });
+
+  it("gives one composed (NFC) spelling, however the accent was typed", () => {
+    const composed = "caf\u00e9";
+    const decomposed = "cafe\u0301";
+    expect(composed).not.toBe(decomposed);
+    expect(cleanWord(decomposed, "fr")).toBe(composed);
+    expect(cleanWord(composed, "fr")).toBe(composed);
+    expect(cleanWord(decomposed, "fr")!.length).toBe(composed.length);
+  });
 });
 
 describe("the demo dictionary in other languages", () => {

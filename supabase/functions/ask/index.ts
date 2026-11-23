@@ -1,5 +1,6 @@
 import { CATALOG } from "../_shared/catalog.ts";
 import { bookChapters } from "../_shared/bookText.ts";
+import { chapterCount } from "../_shared/chapterCounts.ts";
 import { clientIp } from "../_shared/http.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { answerQuestion } from "./claude.ts";
@@ -11,6 +12,7 @@ Deno.serve((req) =>
       const book = CATALOG[id];
       return book?.publicDomain ? { title: book.title, author: book.author } : null;
     },
+    chapterCount,
     chapters: bookChapters,
     answer: answerQuestion,
     // Each question is a Claude call: 20 an hour per IP, and 500 a day for everyone.

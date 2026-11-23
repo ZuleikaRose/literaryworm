@@ -23,7 +23,9 @@ export type AskBook = { title: string; author: string };
 export type Deps = {
   /** A public-domain catalog title, or null for any other id. */
   book: (id: string) => AskBook | null;
-  /** The book's chapters (the reader's text). */
+  /** How many chapters the book has (_shared/chapterCounts.ts), or null when that isn't known. */
+  chapterCount?: (id: string) => number | null;
+  /** The book's chapters (the reader's text): a download, unless the instance keeps it. */
   chapters: (id: string) => Promise<string[]>;
   /** Asks Claude; returns the answer. */
   answer: (input: { book: AskBook; chapter: number; chapterCount: number; text: string; question: string }) => Promise<string>;
@@ -45,11 +47,14 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const book = deps.book(id);
     if (!book) throw new HttpError("not_found", "Ask the book works with LiteraryWorm's public-domain titles.");
 
-    // Every check first, so a request that can't be answered never counts against the limits.
+    // The cheap checks first, with no download (the chapter against the catalog's count); then the
+    // limits, before the book is downloaded and Claude asked, so both count.
+    const count = deps.chapterCount?.(id) ?? null;
+    if (count !== null && chapter >= count) throw new HttpError("bad_request", `chapter must be below ${count}.`);
+    await deps.rateLimit?.(req);
     const chapters = await deps.chapters(id);
     if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
 
-    await deps.rateLimit?.(req);
     const answer = await deps.answer({ book, chapter, chapterCount: chapters.length, text: contextText(chapters, chapter), question });
     return json(req, METHODS, { answer: answer.slice(0, ANSWER_MAX) });
   } catch (err) {

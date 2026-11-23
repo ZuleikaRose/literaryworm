@@ -38,7 +38,8 @@ export function parseLang(raw: string | null): string {
  * apostrophe or hyphen inside, 1–40 characters, its case kept (German nouns have capitals).
  */
 export function parseForeignWord(raw: string | null): string {
-  const word = (raw ?? "").trim().replace(/’/g, "'");
+  // Composed (NFC): "café" with a combining accent is looked up, and echoed, as "café".
+  const word = (raw ?? "").normalize("NFC").trim().replace(/’/g, "'");
   if (!word) throw new HttpError("bad_request", "Send a word to look up.");
   if ([...word].length > 40) throw new HttpError("bad_request", "That word is too long to look up.");
   if (!/^[\p{L}\p{M}]+(?:['-][\p{L}\p{M}]+)*$/u.test(word)) throw new HttpError("bad_request", "Look up one word, using letters only.");
@@ -68,7 +69,7 @@ export type Deps = {
  * "well-known"), 1–40 characters. Returned in lower case.
  */
 export function parseWord(raw: string | null): string {
-  const word = (raw ?? "").trim().toLowerCase();
+  const word = (raw ?? "").normalize("NFC").trim().toLowerCase();
   if (!word) throw new HttpError("bad_request", "Send a word to look up.");
   if (word.length > 40) throw new HttpError("bad_request", "That word is too long to look up.");
   if (!/^[a-z]+(?:['’-][a-z]+)*$/.test(word)) {

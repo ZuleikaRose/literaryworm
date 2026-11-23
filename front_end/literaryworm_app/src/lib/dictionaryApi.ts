@@ -63,9 +63,11 @@ export function dictionaryLanguage(language: string | null | undefined): string 
 
 /**
  * The same rule as the function: one word, letters with an inner apostrophe or hyphen. English
- * words are a–z in lower case; other languages' words are any letters, their case kept.
+ * words are a–z in lower case; other languages' words are any letters, their case kept. Always NFC.
  */
 export function cleanWord(input: string, lang = "en"): string | null {
+  // Composed (NFC), as the function and saved_words keep it: one spelling for "café" however it was typed.
+  input = input.normalize("NFC");
   if (lang !== "en") {
     const word = input.trim().replace(/’/g, "'");
     return [...word].length <= 40 && /^[\p{L}\p{M}]+(?:['-][\p{L}\p{M}]+)*$/u.test(word) ? word : null;

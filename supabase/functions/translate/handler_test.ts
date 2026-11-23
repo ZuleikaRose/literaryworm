@@ -41,13 +41,14 @@ Deno.test("translates a passage from the chapter, across a line break and curly 
   assertEquals(calls.limited, 1);
 });
 
-Deno.test("refuses words that aren't in that chapter, before any Claude call", async () => {
+Deno.test("refuses words that aren't in that chapter, before any Claude call (after the rate limit, which guards the download)", async () => {
   const { d, calls } = deps();
   const res = await handle(post({ id: "les-miserables", chapter: 0, text: "Le vent souffle", to: "en" }), d);
   assertEquals(res.status, 400);
   await res.body?.cancel();
   assertEquals(calls.translate.length, 0);
-  assertEquals(calls.limited, 0);
+  // Checking the words needs the book's text, so the request counts against the limits first.
+  assertEquals(calls.limited, 1);
 });
 
 Deno.test("refuses books outside the public-domain catalog, unknown languages, long passages and extra fields", async () => {

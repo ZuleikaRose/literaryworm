@@ -47,7 +47,9 @@ export type XRay = Record<Kind, XRayEntry[]>;
 export type Deps = {
   /** A public-domain catalog title, or null for any other id. */
   book: (id: string) => XRayBook | null;
-  /** The book's chapters (the reader's text). */
+  /** How many chapters the book has (_shared/chapterCounts.ts), or null when that isn't known. */
+  chapterCount: (id: string) => number | null;
+  /** The book's chapters (the reader's text): a download, unless the instance keeps it. */
   chapters: (id: string) => Promise<string[]>;
   /** The X-Ray kept for this book and chapter (0-based), or null if there isn't one yet. */
   cached: (id: string, chapter: number) => Promise<XRay | null>;
@@ -208,15 +210,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
 
     const book = deps.book(id);
     if (!book) throw new HttpError("not_found", "X-Ray's AI descriptions work with LiteraryWorm's public-domain titles.");
-    // Every check first (the text is kept per warm instance), so a request that can't be answered
-    // never counts against the limits.
-    const chapters = await deps.chapters(id);
-    if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
-
+    // The cheap checks first, with no download: the chapter against the catalog's count, then the
+    // kept X-Ray (a kept row proves the chapter is real), served without the book's text.
+    const count = deps.chapterCount(id);
+    if (count !== null && chapter >= count) throw new HttpError("bad_request", `chapter must be below ${count}.`);
     const kept = await deps.cached(id, chapter);
     if (kept) return json(req, METHODS, { ...kept, chapter });
 
+    // Only now the limits, before the book is downloaded and Claude asked, so both count.
     await deps.rateLimit?.(req);
+    const chapters = await deps.chapters(id);
+    if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
     const written = await deps.write({ book, chapter, chapterCount: chapters.length, text: contextText(chapters, chapter) });
     const xray = checkXRay(written.xray, chapters, chapter);
     if (total(xray) === 0) throw new HttpError("upstream_error", "We couldn't put together the X-Ray just now. Try again later.");

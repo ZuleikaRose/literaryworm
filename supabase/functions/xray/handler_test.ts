@@ -34,11 +34,15 @@ const WRITTEN = {
 };
 
 function setup(overrides: Partial<Deps> = {}) {
-  const calls = { write: [] as { chapter: number; text: string }[], kept: [] as { chapter: number; xray: XRay }[], limited: 0 };
+  const calls = { write: [] as { chapter: number; text: string }[], kept: [] as { chapter: number; xray: XRay }[], limited: 0, textLoads: 0 };
   const store = new Map<string, XRay>();
   const deps: Deps = {
     book: (id) => (id === BOOK_ID ? { title: "Pride and Prejudice", author: "Jane Austen" } : null),
-    chapters: () => Promise.resolve(CHAPTERS),
+    chapterCount: (id) => (id === BOOK_ID ? CHAPTERS.length : null),
+    chapters: () => {
+      calls.textLoads++;
+      return Promise.resolve(CHAPTERS);
+    },
     cached: (id, chapter) => Promise.resolve(store.get(`${id}:${chapter}`) ?? null),
     keep: (id, chapter, xray) => {
       calls.kept.push({ chapter, xray });
@@ -279,5 +283,38 @@ Deno.test("never counts a request it can't answer against the rate limits", asyn
   assertEquals((await handle(post({ id: BOOK_ID, chapter: CHAPTERS.length }), deps)).status, 400);
   assertEquals((await handle(post({ id: "dune", chapter: 0 }), deps)).status, 404);
   assertEquals(calls.limited, 0);
+  assertEquals(calls.write.length, 0);
+});
+
+Deno.test("serves a kept X-Ray without loading the book's text", async () => {
+  const { deps, calls } = setup();
+  await handle(post({ id: BOOK_ID, chapter: READER_CHAPTER }), deps);
+  const loadsAfterFirst = calls.textLoads;
+  const again = await handle(post({ id: BOOK_ID, chapter: READER_CHAPTER }), deps);
+  assertEquals(again.status, 200);
+  assertEquals(calls.textLoads, loadsAfterFirst);
+});
+
+Deno.test("checks a chapter against the catalog's count without loading the text", async () => {
+  const { deps, calls } = setup();
+  assertEquals((await handle(post({ id: BOOK_ID, chapter: CHAPTERS.length }), deps)).status, 400);
+  assertEquals((await handle(post({ id: BOOK_ID, chapter: 999 }), deps)).status, 400);
+  assertEquals((await handle(post({ id: "dune", chapter: 0 }), deps)).status, 404);
+  assertEquals((await handle(post({ id: "not a volume id!", chapter: 0 }), deps)).status, 400);
+  assertEquals(calls.textLoads, 0);
+  assertEquals(calls.limited, 0);
+});
+
+Deno.test("loads the text only after the rate limit lets a new X-Ray through", async () => {
+  const { deps, calls } = setup({ rateLimit: () => Promise.reject(new HttpError("rate_limited", "Slow down.", 60)) });
+  assertEquals((await handle(post({ id: BOOK_ID, chapter: READER_CHAPTER }), deps)).status, 429);
+  assertEquals(calls.textLoads, 0);
+});
+
+Deno.test("a book with no known count is checked against its text, after the rate limit", async () => {
+  const { deps, calls } = setup({ chapterCount: () => null });
+  assertEquals((await handle(post({ id: BOOK_ID, chapter: CHAPTERS.length }), deps)).status, 400);
+  assertEquals(calls.limited, 1);
+  assertEquals(calls.textLoads, 1);
   assertEquals(calls.write.length, 0);
 });

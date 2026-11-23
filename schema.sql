@@ -15586,19 +15586,6 @@ select '2026-11-23'::date, '2026.11', 'update', $lw$The dictionary in the player
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$The dictionary in the player, and notes to export on every demo profile$lw$ and c.released_on = '2026-11-23');
 
 -- =============================================================================
--- 20261123006863_drop_book_characters.sql
--- =============================================================================
--- Who's who's own cache is retired: X-Ray (the `xray` function, book_xray, migration 6860)
--- replaced it, the app no longer calls the `characters` function, and that function is removed
--- from the repository. The table holds only Claude-written character lists for public-domain
--- books (nothing about any member), so dropping it loses nothing X-Ray needs.
---
--- Go-live order: promote the app, undeploy the `characters` function, then apply this, so a tab
--- opened before the release never meets a function without its table.
-
-drop table if exists public.book_characters;
-
--- =============================================================================
 -- 20261123006864_saved_words_language.sql
 -- =============================================================================
 -- My words in the book's own language: the reader's dictionary now looks a word up in the
@@ -15641,3 +15628,17 @@ grant insert (language) on public.saved_words to authenticated;
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-23'::date, '2026.11', 'update', $lw$The dictionary looks words up in the book's own language$lw$, $lw$Choose Define in the reader, or Dictionary in the reader or the player, and the word is looked up in the language of the book you're reading: French in Madame Bovary, German in Effi Briest, Greek in Papadiamantis's stories, and any of the app's 21 languages in your own uploads, with definitions in English from Wiktionary. You can switch to English for a word. My words keeps each word with its language and shows it.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$The dictionary looks words up in the book's own language$lw$ and c.released_on = '2026-11-23');
+
+-- =============================================================================
+-- 20261123161437_drop_book_characters.sql
+-- =============================================================================
+-- Who's who's own cache is retired: X-Ray (the `xray` function, book_xray, migration 6860)
+-- replaced it, the app no longer calls the `characters` function, and that function is removed
+-- from the repository. The table holds only Claude-written character lists for public-domain
+-- books (nothing about any member), so dropping it loses nothing X-Ray needs.
+--
+-- Go-live order: this is the very last step, applied on its own (never with `db push` and the
+-- others): promote the app, undeploy the `characters` function, then apply this, so a tab
+-- opened before the release never meets a function without its table.
+
+drop table if exists public.book_characters;

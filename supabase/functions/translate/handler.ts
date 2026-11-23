@@ -30,7 +30,9 @@ export type TranslateBook = { title: string; author: string };
 export type Deps = {
   /** A public-domain catalog title, or null for any other id. */
   book: (id: string) => TranslateBook | null;
-  /** The book's chapters (the reader's text). */
+  /** How many chapters the book has (_shared/chapterCounts.ts), or null when that isn't known. */
+  chapterCount?: (id: string) => number | null;
+  /** The book's chapters (the reader's text): a download, unless the instance keeps it. */
   chapters: (id: string) => Promise<string[]>;
   /** Asks Claude; returns the translation. */
   translate: (input: { book: TranslateBook; text: string; to: string }) => Promise<string>;
@@ -60,13 +62,17 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const book = deps.book(id);
     if (!book) throw new HttpError("not_found", "Translate works with LiteraryWorm's public-domain titles.");
 
+    // The cheap checks first, with no download (the chapter against the catalog's count); then the
+    // limits, before the book is downloaded, so a download always counts.
+    const count = deps.chapterCount?.(id) ?? null;
+    if (count !== null && chapter >= count) throw new HttpError("bad_request", `chapter must be below ${count}.`);
+    await deps.rateLimit?.(req);
+
     const chapters = await deps.chapters(id);
     if (chapter >= chapters.length) throw new HttpError("bad_request", `chapter must be below ${chapters.length}.`);
     if (!normalise(chapters[chapter]).includes(normalise(text))) {
       throw new HttpError("bad_request", "Select words from the page to translate them.");
     }
-
-    await deps.rateLimit?.(req);
 
     const translation = await deps.translate({ book, text, to });
     return json(req, METHODS, { translation: translation.slice(0, TRANSLATION_MAX), to: body.to });

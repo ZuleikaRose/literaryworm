@@ -6,7 +6,7 @@
 -- English words keep their old rule (lower case, letters with an inner apostrophe or hyphen);
 -- other languages' words are any letters (German nouns keep their capital, Greek, Cyrillic,
 -- Arabic, Devanagari, Chinese, Japanese and Korean too), with no spaces or control characters,
--- at most 40 characters. Rows already kept are English. RLS, the owner policies, the two-step
+-- at most 40 characters, in Unicode's composed form (NFC). Rows already kept are English. RLS, the owner policies, the two-step
 -- policy and the 500-word limit are unchanged; the browser may insert the new column.
 
 alter table public.saved_words
@@ -18,6 +18,9 @@ alter table public.saved_words
   add constraint saved_words_word_check check (
     char_length(word) between 1 and 40
     and word = btrim(word)
+    -- One spelling per word: composed (NFC), as the app and the dictionary function send it, so
+    -- "café" typed with a combining accent is the same word as "café", not a second one.
+    and word = normalize(word, NFC)
     and word !~ '[[:space:][:cntrl:]]'
     and word !~ '^[''-]|[''-]$'
     and (language <> 'en' or word ~ '^[a-z]+([''-][a-z]+)*$')

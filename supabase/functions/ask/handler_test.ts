@@ -16,10 +16,14 @@ const post = (body: unknown, method = "POST") =>
 const CHAPTERS = ["It is a truth universally acknowledged.", "Mr Bingley arrives.", "The ball at Meryton.", "A proposal."];
 
 function deps(overrides: Partial<Deps> = {}) {
-  const calls = { answer: [] as { chapter: number; text: string; question: string }[], limited: 0 };
+  const calls = { answer: [] as { chapter: number; text: string; question: string }[], limited: 0, textLoads: 0 };
   const d: Deps = {
     book: (id) => (id === "pride-and-prejudice" ? { title: "Pride and Prejudice", author: "Jane Austen" } : null),
-    chapters: () => Promise.resolve(CHAPTERS),
+    chapterCount: (id) => (id === "pride-and-prejudice" ? CHAPTERS.length : null),
+    chapters: () => {
+      calls.textLoads++;
+      return Promise.resolve(CHAPTERS);
+    },
     answer: (input) => {
       calls.answer.push(input);
       return Promise.resolve("Mr Bingley is a wealthy young man.");
@@ -97,5 +101,23 @@ Deno.test("a chapter past the end of the book never counts against the rate limi
   const res = await handle(post({ id: "pride-and-prejudice", chapter: CHAPTERS.length, question: "Who is Jane?" }), d);
   assertEquals(res.status, 400);
   assertEquals(calls.limited, 0);
+  assertEquals(calls.answer.length, 0);
+});
+
+Deno.test("loads no text for bad input, a bad chapter or a refused rate limit", async () => {
+  const { d, calls } = deps();
+  assertEquals((await handle(post({ id: "pride-and-prejudice", chapter: CHAPTERS.length, question: "Who is Jane?" }), d)).status, 400);
+  assertEquals((await handle(post({ id: "pride-and-prejudice", chapter: 0, question: "Hi" }), d)).status, 400);
+  assertEquals((await handle(post({ id: "dune", chapter: 0, question: "Who is Paul?" }), d)).status, 404);
+  const limited = deps({ rateLimit: () => Promise.reject(new HttpError("rate_limited", "Too many requests.", 60)) });
+  assertEquals((await handle(post({ id: "pride-and-prejudice", chapter: 0, question: "Who is Jane?" }), limited.d)).status, 429);
+  assertEquals(calls.textLoads + limited.calls.textLoads, 0);
+});
+
+Deno.test("loads the text after the rate limit, and checks the chapter against it when the count isn't known", async () => {
+  const { d, calls } = deps({ chapterCount: () => null });
+  assertEquals((await handle(post({ id: "pride-and-prejudice", chapter: CHAPTERS.length, question: "Who is Jane?" }), d)).status, 400);
+  assertEquals(calls.limited, 1);
+  assertEquals(calls.textLoads, 1);
   assertEquals(calls.answer.length, 0);
 });

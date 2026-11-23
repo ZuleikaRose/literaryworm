@@ -3,7 +3,8 @@
 -- from the repository. The table holds only Claude-written character lists for public-domain
 -- books (nothing about any member), so dropping it loses nothing X-Ray needs.
 --
--- Go-live order: promote the app, undeploy the `characters` function, then apply this, so a tab
+-- Go-live order: this is the very last step, applied on its own (never with `db push` and the
+-- others): promote the app, undeploy the `characters` function, then apply this, so a tab
 -- opened before the release never meets a function without its table.
 
 drop table if exists public.book_characters;
