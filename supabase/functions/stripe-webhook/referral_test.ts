@@ -3,7 +3,7 @@
 // what's still owed), and Stripe a model of customer balances with idempotency keys that expire after a day.
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import type { Stripe } from "../_shared/stripe.ts";
-import { type Deps, handle, PermanentFailure, type ReferralRule, type ReferralTransaction, referralKey, SetAside } from "./handler.ts";
+import { type Deps, handle, PermanentFailure, retryReferral, type ReferralRule, type ReferralTransaction, referralKey, SetAside } from "./handler.ts";
 
 const FRIEND = "00000000-0000-0000-0000-0000000000f1";
 const FRIEND_CUSTOMER = "cus_friend";
@@ -26,6 +26,7 @@ const DAY_MS = 86_400_000;
 const IDEMPOTENCY_KEY_LIFETIME_MS = DAY_MS;
 const FAILURES_BEFORE_REVIEW = 5;
 const REFERRAL_MADE_AT = "2026-11-01T00:00:00.000Z";
+const AFFILIATE_MADE_AT = "2026-11-02T00:00:00.000Z";
 const ALL_RECORD_TRIES = 3;
 
 type Side = "friend" | "referrer";
@@ -49,6 +50,8 @@ interface Row {
   firstInvoice: string | null;
   reversed: boolean;
   round: number;
+  takebackRequested: boolean;
+  restoreRequested: boolean;
   sides: Record<Side, SideRow>;
 }
 
@@ -88,6 +91,8 @@ function world(first: Stripe.Event, options: Options = {}) {
     firstInvoice: null,
     reversed: false,
     round: 0,
+    takebackRequested: false,
+    restoreRequested: false,
     sides: {
       friend: sideRow(rule === "free_month" ? FREE_MONTH_FRIEND_CENTS : FRIEND_CENTS, FRIEND_CUSTOMER),
       referrer: sideRow(
@@ -103,6 +108,8 @@ function world(first: Stripe.Event, options: Options = {}) {
     keys: new Map<string, { at: number; id: string }>(),
     affiliateKeys: new Map<string, { at: number; id: string }>(),
     affiliateMade: new Map<string, string>(),
+    /** Affiliate credits the old code made without a key in their metadata. */
+    oldAffiliate: [] as { id: string; amount: number; description: string; created: string }[],
     /** Keys Stripe refuses for good (a 4xx such as a deleted customer). */
     fail: new Set<string>(),
     /** Keys Stripe fails for now (5xx, network, 409, 429). */
@@ -120,7 +127,7 @@ function world(first: Stripe.Event, options: Options = {}) {
     failRecord: 0,
     /** The database functions aren't there yet (PGRST202 even after the wait). */
     missing: false,
-    handled: [] as { id: string; review: boolean }[],
+    handled: [] as { id: string; review: boolean; reason?: string; referralId?: string | null }[],
     affiliatePaid: 0,
     /** Run once, just before a transaction is recorded (another event landing in between). */
     beforeRecord: null as null | (() => Promise<void>),
@@ -129,12 +136,12 @@ function world(first: Stripe.Event, options: Options = {}) {
     affiliateReleased: 0,
   };
 
-  const pending = (): ReferralTransaction[] => {
+  const pending = (withHeld = false): ReferralTransaction[] => {
     if (!row.decided) return [];
     const out: ReferralTransaction[] = [];
     for (const name of ["friend", "referrer"] as Side[]) {
       const s = row.sides[name];
-      if (s.cents === null || s.needsReview) continue;
+      if (s.cents === null || (s.needsReview && !withHeld)) continue;
       let kind: Kind | null = null;
       if (!row.reversed && !s.credit) kind = "credit";
       else if (row.rule !== "percent_20") kind = null;
@@ -145,7 +152,24 @@ function world(first: Stripe.Event, options: Options = {}) {
     }
     return out;
   };
-  const owes = (...kinds: Kind[]) => pending().some((t) => kinds.includes(t.kind));
+  // The round gates count held sides too (private.referral_pending(id, true)).
+  const owes = (...kinds: Kind[]) => pending(true).some((t) => kinds.includes(t.kind));
+  /** private.referral_advance(): a take-back or give-back that had to wait goes ahead once nothing blocks it. */
+  const advance = () => {
+    if (!row.decided || row.rule !== "percent_20") return;
+    if (row.takebackRequested && !row.reversed && !owes("recredit")) {
+      row.reversed = true;
+      row.round += 1;
+      row.sides.friend.reversal = null;
+      row.sides.referrer.reversal = null;
+      row.takebackRequested = false;
+    } else if (row.restoreRequested && row.reversed && !owes("reversal", "credit_check")) {
+      row.reversed = false;
+      row.sides.friend.recredit = null;
+      row.sides.referrer.recredit = null;
+      row.restoreRequested = false;
+    }
+  };
 
   const balance = (customer: string) => stripe.txns.filter((t) => t.customer === customer).reduce((sum, t) => sum + t.amount, 0);
   const stripeGate = () => {
@@ -159,8 +183,8 @@ function world(first: Stripe.Event, options: Options = {}) {
   const deps: Deps = {
     verify: (_body, signature) => (signature === "good" ? Promise.resolve(ev) : Promise.reject(new Error("bad"))),
     alreadyHandled: () => Promise.resolve(false),
-    markHandled: (e, review) => {
-      db.handled.push({ id: e.id, review });
+    markHandled: (e, review, note) => {
+      db.handled.push({ id: e.id, review, reason: note?.reason, referralId: note?.referralId });
       return Promise.resolve();
     },
     userForCustomer: (c) => Promise.resolve(c === FRIEND_CUSTOMER ? FRIEND : c === STRANGER_CUSTOMER ? "stranger" : null),
@@ -192,28 +216,32 @@ function world(first: Stripe.Event, options: Options = {}) {
     reverseReferral: (_userId, invoiceId) => {
       dbGate();
       if (row.rule !== "percent_20" || !row.decided || row.firstInvoice !== invoiceId) return Promise.resolve([]);
-      if (!row.reversed && !owes("recredit")) {
-        row.reversed = true;
-        row.round += 1;
-        row.sides.friend.reversal = null;
-        row.sides.referrer.reversal = null;
-      }
+      if (!row.reversed) row.takebackRequested = true;
+      row.restoreRequested = false;
+      advance();
       return Promise.resolve(pending());
     },
     restoreReferral: (_userId, invoiceId) => {
       dbGate();
       if (row.rule !== "percent_20" || row.firstInvoice !== invoiceId) return Promise.resolve([]);
-      if (row.reversed && !owes("reversal", "credit_check")) {
-        row.reversed = false;
-        row.sides.friend.recredit = null;
-        row.sides.referrer.recredit = null;
-      }
+      if (row.reversed) row.restoreRequested = true;
+      row.takebackRequested = false;
+      advance();
       return Promise.resolve(pending());
     },
+    referralOwed: () => {
+      dbGate();
+      advance();
+      return Promise.resolve(pending());
+    },
+    affiliateReferralSince: () => Promise.resolve(AFFILIATE_MADE_AT),
     takeBackPossible: (customer) => Promise.resolve(row.decided && row.rule === "percent_20" && (customer === null || customer === FRIEND_CUSTOMER)),
     findBalanceTransaction: (customer, key, unmarked) => {
       stripeGate();
-      if (customer === "cus_aff") return Promise.resolve(stripe.affiliateMade.get(key) ?? null);
+      if (customer === "cus_aff") {
+        const old = unmarked && stripe.oldAffiliate.find((t) => t.amount === unmarked.amountCents && t.description === unmarked.description && t.created >= (unmarked.since ?? ""));
+        return Promise.resolve(stripe.affiliateMade.get(key) ?? old?.id ?? null);
+      }
       const marked = stripe.txns.find((t) => t.customer === customer && t.key === key);
       if (marked) return Promise.resolve(marked.id);
       const recorded = new Set(Object.values(row.sides).flatMap((x) => [x.credit, x.reversal, x.recredit]));
@@ -248,10 +276,12 @@ function world(first: Stripe.Event, options: Options = {}) {
       else if (txn.round === row.round && txn.kind === "reversal") s.reversal ??= id;
       else if (txn.round === row.round) s.recredit ??= id;
       s.failures = 0;
+      advance();
     },
     recordReferralCheck: (txn) => {
       const s = row.sides[txn.side];
       s.checkedRound = Math.max(s.checkedRound, txn.round);
+      advance();
       return Promise.resolve();
     },
     noteReferralFailure: (txn, message) => {
@@ -643,4 +673,98 @@ Deno.test("a dispute won on a charge that was refunded gives nothing back", asyn
   w.stripe.charges.get(FIRST_CHARGE)!.refunded = true;
   await w.run(disputeClosed(FIRST_CHARGE, "won"));
   assertEquals(w.stripe.txns.length, 4);
+});
+
+// Rounds never overlap, held sides included; the team's Retry now -----------------------------------
+
+const AFFILIATE_DESCRIPTION = "Affiliate commission: 20% of a referred member's first payment";
+
+Deno.test("dispute, won, a give-back held for review, then a refund: nothing is taken twice, and the refund isn't lost", async () => {
+  const w = world(paid());
+  await w.run();
+  await w.run(disputed(FIRST_CHARGE));
+  w.stripe.fail.add(keyOf("friend", "recredit", 1));
+  for (let attempt = 0; attempt < FAILURES_BEFORE_REVIEW; attempt++) await w.run(disputeClosed(FIRST_CHARGE, "won"));
+  assertEquals(w.row.sides.friend.needsReview, true);
+  const madeBefore = w.stripe.txns.length;
+  // The friend's give-back is still owed (held): the refund waits instead of starting round 2.
+  w.stripe.charges.get(FIRST_CHARGE)!.refunded = true;
+  assertEquals(await w.run(refunded(FIRST_CHARGE, true)), 200);
+  assertEquals([w.stripe.txns.length, w.row.round, w.row.takebackRequested], [madeBefore, 1, true]);
+  // The team fixes the cause and presses Retry now: the give-back, then the waiting take-back.
+  w.stripe.fail.clear();
+  w.row.sides.friend.needsReview = false;
+  w.row.sides.friend.failures = 0;
+  assertEquals(await retryReferral(w.deps, REFERRAL), { owed: 0, held: false, reason: null });
+  assertEquals(w.row.round, 2);
+  assertEquals([w.balance(FRIEND_CUSTOMER), w.balance(INVITER_CUSTOMER)], [0, 0]);
+  const reversals = w.stripe.txns.filter((t) => t.key?.includes("-reversal-"));
+  assertEquals(reversals.map((t) => t.key).sort(), [keyOf("friend", "reversal", 1), keyOf("friend", "reversal", 2), keyOf("referrer", "reversal", 1), keyOf("referrer", "reversal", 2)].sort());
+});
+
+Deno.test("a give-back that had to wait is cancelled by a refund", async () => {
+  const w = world(paid());
+  await w.run();
+  w.stripe.fail.add(keyOf("referrer", "reversal", 1));
+  for (let attempt = 0; attempt < FAILURES_BEFORE_REVIEW; attempt++) await w.run(disputed(FIRST_CHARGE));
+  assertEquals(w.row.sides.referrer.needsReview, true);
+  // Won while the inviter's take-back is held: the give-back waits for it.
+  await w.run(disputeClosed(FIRST_CHARGE, "won"));
+  assertEquals([w.row.reversed, w.row.restoreRequested], [true, true]);
+  // Then refunded after all: the waiting give-back is cancelled, so the credits stay taken back.
+  w.stripe.charges.get(FIRST_CHARGE)!.refunded = true;
+  await w.run(refunded(FIRST_CHARGE, true));
+  assertEquals([w.row.reversed, w.row.restoreRequested], [true, false]);
+});
+
+Deno.test("a take-back that had to wait is cancelled by a won dispute", async () => {
+  const w = world(paid());
+  await w.run();
+  await w.run(disputed(FIRST_CHARGE));
+  w.stripe.fail.add(keyOf("friend", "recredit", 1));
+  for (let attempt = 0; attempt < FAILURES_BEFORE_REVIEW; attempt++) await w.run(disputeClosed(FIRST_CHARGE, "won"));
+  // A second dispute waits for the held give-back, then is won: nothing is taken back again.
+  await w.runOther(event("charge.dispute.created", { id: "dp_2", charge: FIRST_CHARGE }));
+  assertEquals(w.row.takebackRequested, true);
+  await w.runOther(event("charge.dispute.closed", { id: "dp_2", charge: FIRST_CHARGE, status: "won" }));
+  assertEquals([w.row.takebackRequested, w.row.round], [false, 1]);
+});
+
+Deno.test("retrying a referral with nothing owed makes nothing", async () => {
+  const w = world(paid());
+  await w.run();
+  const made = w.stripe.txns.length;
+  assertEquals(await retryReferral(w.deps, REFERRAL), { owed: 0, held: false, reason: null });
+  assertEquals(w.stripe.txns.length, made);
+});
+
+Deno.test("a retry that Stripe still refuses for good says the side is held again", async () => {
+  const w = world(paid());
+  w.stripe.fail.add(keyOf("referrer"));
+  for (let attempt = 0; attempt < FAILURES_BEFORE_REVIEW; attempt++) await w.run();
+  w.row.sides.referrer.needsReview = false;
+  w.row.sides.referrer.failures = FAILURES_BEFORE_REVIEW - 1;
+  const result = await retryReferral(w.deps, REFERRAL);
+  assertEquals([result.owed, result.held, w.row.sides.referrer.needsReview], [0, true, true]);
+});
+
+Deno.test("an event set aside keeps why and which referral, for the team's list", async () => {
+  const w = world(paid());
+  w.stripe.refuse = true;
+  await w.run();
+  const last = w.db.handled.at(-1)!;
+  assertEquals([last.review, last.referralId, last.reason?.startsWith("Stripe refused the key")], [true, REFERRAL, true]);
+});
+
+Deno.test("an affiliate credit the old code made without a key is found by description and amount, after the affiliate row", async () => {
+  const w = world(paid());
+  w.stripe.oldAffiliate.push({ id: "cbtxn_old_aff", amount: -AFFILIATE_CENTS, description: AFFILIATE_DESCRIPTION, created: "2026-11-03T00:00:00.000Z" });
+  assertEquals(await w.run(), 200);
+  assertEquals(w.db.affiliatePaid, 0);
+
+  const before = world(paid());
+  before.stripe.oldAffiliate.push({ id: "cbtxn_older", amount: -AFFILIATE_CENTS, description: AFFILIATE_DESCRIPTION, created: "2026-10-01T00:00:00.000Z" });
+  before.stripe.oldAffiliate.push({ id: "cbtxn_other_amount", amount: -AFFILIATE_CENTS - 1, description: AFFILIATE_DESCRIPTION, created: "2026-11-03T00:00:00.000Z" });
+  assertEquals(await before.run(), 200);
+  assertEquals(before.db.affiliatePaid, 1);
 });

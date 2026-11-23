@@ -29,9 +29,8 @@ alter table public.referrals
   add column if not exists friend_failed_at timestamptz,
   add column if not exists referrer_failed_at timestamptz;
 
--- A Stripe balance transaction belongs to one slot of one referral.
-create unique index if not exists referrals_friend_credit_id_key on public.referrals (friend_credit_id) where friend_credit_id is not null;
-create unique index if not exists referrals_referrer_credit_id_key on public.referrals (referrer_credit_id) where referrer_credit_id is not null;
+-- A Stripe balance transaction belongs to one slot of one referral: the unique indexes on the credit
+-- ids are made CONCURRENTLY in 165932 and 165934.
 
 -- Whether a Stripe balance transaction id is already recorded anywhere on any referral.
 create or replace function private.referral_txn_used(p_txn text)

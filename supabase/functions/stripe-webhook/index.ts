@@ -23,10 +23,17 @@ Deno.serve((req) =>
       if (error) throw error;
       return data !== null;
     },
-    async markHandled(event, needsReview) {
+    async markHandled(event, needsReview, note) {
       const object = event.data.object as { id?: string };
       const { error } = await serviceClient().from("stripe_events").upsert(
-        { id: event.id, type: event.type, object_id: object.id ?? null, livemode: event.livemode, needs_review: needsReview },
+        {
+          id: event.id,
+          type: event.type,
+          object_id: object.id ?? null,
+          livemode: event.livemode,
+          needs_review: needsReview,
+          ...(note ? { review_reason: note.reason, review_referral: note.referralId, review_referred_user: note.referredUserId } : {}),
+        },
         { onConflict: "id", ignoreDuplicates: true },
       );
       if (error) throw error;
@@ -97,6 +104,11 @@ Deno.serve((req) =>
       const row = (data ?? [])[0] as { referral_id: string; affiliate_customer: string | null; commission_cents: number | null } | undefined;
       if (!row?.affiliate_customer || !row.commission_cents) return null;
       return { referralId: row.referral_id, affiliateCustomer: row.affiliate_customer, cents: row.commission_cents };
+    },
+    async affiliateReferralSince(referralId) {
+      const { data, error } = await serviceClient().from("affiliate_referrals").select("created_at").eq("id", referralId).maybeSingle();
+      if (error) throw error;
+      return (data?.created_at as string | undefined) ?? null;
     },
     async recordAffiliateCredit(referralId, creditId) {
       const { error } = await serviceClient().rpc("record_affiliate_credit", { p_referral: referralId, p_credit: creditId });

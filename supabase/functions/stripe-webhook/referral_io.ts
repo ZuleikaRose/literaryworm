@@ -128,6 +128,7 @@ export function referralDeps(io: ReferralIo) {
   const deps: Pick<
     Deps,
     | "claimReferral"
+    | "referralOwed"
     | "reverseReferral"
     | "restoreReferral"
     | "takeBackPossible"
@@ -140,6 +141,7 @@ export function referralDeps(io: ReferralIo) {
     | "creditCustomer"
   > = {
     claimReferral: (referredId, invoiceId) => referralRpc("claim_referral_reward", { p_referred: referredId, p_invoice: invoiceId }),
+    referralOwed: (referralId) => referralRpc("referral_owed", { p_referral: referralId }),
     reverseReferral: (referredId, invoiceId) => referralRpc("reverse_referral_reward", { p_referred: referredId, p_invoice: invoiceId }),
     restoreReferral: (referredId, invoiceId) => referralRpc("restore_referral_reward", { p_referred: referredId, p_invoice: invoiceId }),
     async takeBackPossible(customerId) {
@@ -162,6 +164,7 @@ export function referralDeps(io: ReferralIo) {
             !txn.metadata?.[KEY_METADATA] &&
             txn.description === unmarked.description &&
             txn.currency === unmarked.currency &&
+            (unmarked.amountCents === undefined || txn.amount === unmarked.amountCents) &&
             (!unmarked.since || txn.created * 1000 >= Date.parse(unmarked.since))
           ) {
             candidates.push(txn);

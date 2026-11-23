@@ -102,6 +102,10 @@ verify_jwt = false
 [functions.club-invite]
 verify_jwt = true
 
+[functions.referral-retry]
+# Billing staff's Retry now and Dismiss on the dashboard; the handler checks the role too.
+verify_jwt = true
+
 [functions.release-emails]
 # Called every hour by pg_cron, which sends no Supabase token: the function checks the
 # Authorization header against the release_emails_secret kept in Vault instead.

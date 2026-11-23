@@ -1,6 +1,6 @@
 import type { CancelReason, SaveOffer } from "./cancelSurvey";
 import { tr } from "./i18n";
-import { AccountError, signedInUserId } from "./accountApi";
+import { AccountError, callFunction, signedInUserId } from "./accountApi";
 import type { StaffMember, StaffRole } from "./staff";
 import { supabase } from "./supabase";
 
@@ -133,19 +133,55 @@ export interface ParkedReferralCredit {
   currency: string;
   lastError: string | null;
   failedAt: string | null;
+  /** Held after repeated refusals, or cleared and not yet made (retry_requested). */
+  state: "held" | "retry_requested";
+}
+
+/** A Stripe event stripe-webhook set aside for a referral (our key refused, or a database function missing). */
+export interface ReferralEventToReview {
+  eventId: string;
+  eventType: string;
+  receivedAt: string;
+  reason: string;
+  referralId: string | null;
 }
 
 export async function loadParkedReferralCredits(): Promise<ParkedReferralCredit[]> {
   const { data, error } = await client().rpc("parked_referral_credits");
   if (error) throw new AccountError(tr("We couldn't load the referral credits held for review. Try again."));
-  return ((data ?? []) as { referral_id: string; side: "friend" | "referrer"; cents: number | null; currency: string; last_error: string | null; failed_at: string | null }[]).map((r) => ({
+  return (
+    (data ?? []) as { referral_id: string; side: "friend" | "referrer"; cents: number | null; currency: string; last_error: string | null; failed_at: string | null; state?: string }[]
+  ).map((r) => ({
     referralId: r.referral_id,
     side: r.side,
     cents: r.cents,
     currency: r.currency,
     lastError: r.last_error,
     failedAt: r.failed_at,
+    state: r.state === "retry_requested" ? "retry_requested" : "held",
   }));
+}
+
+export async function loadReferralEventsToReview(): Promise<ReferralEventToReview[]> {
+  const { data, error } = await client().rpc("referral_events_to_review");
+  if (error) throw new AccountError(tr("We couldn't load the referral credits held for review. Try again."));
+  return ((data ?? []) as { event_id: string; event_type: string; received_at: string; reason: string; referral_id: string | null }[]).map((e) => ({
+    eventId: e.event_id,
+    eventType: e.event_type,
+    receivedAt: e.received_at,
+    reason: e.reason,
+    referralId: e.referral_id,
+  }));
+}
+
+/** Retry now (referral-retry): clears the referral's held sides and makes what it still needs at Stripe. */
+export function retryReferralCredit(referralId: string): Promise<{ owed: number; held: boolean; reason: string | null }> {
+  return callFunction("referral-retry", { action: "retry", referralId }, tr("We couldn't try it again. Try again in a few minutes."));
+}
+
+/** Takes a set-aside referral event off the list once the team has dealt with it. */
+export function dismissReferralEvent(eventId: string): Promise<{ dismissed: boolean }> {
+  return callFunction("referral-retry", { action: "dismiss", eventId }, tr("We couldn't try it again. Try again in a few minutes."));
 }
 
 export async function loadDashboard(): Promise<StaffDashboard> {

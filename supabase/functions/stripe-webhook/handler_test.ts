@@ -86,6 +86,8 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
       return Promise.resolve([]);
     },
     reverseReferral: () => Promise.resolve([]),
+    referralOwed: () => Promise.resolve([]),
+    affiliateReferralSince: () => Promise.resolve(null),
     restoreReferral: () => Promise.resolve([]),
     takeBackPossible: () => Promise.resolve(false),
     recordReferralCheck: () => Promise.resolve(),

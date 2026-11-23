@@ -211,3 +211,20 @@ Deno.test("every transaction made carries its key in the metadata and as its ide
 Deno.test("a charge's invoice is found through its payment intent", async () => {
   assertEquals(await setup().deps.chargeDetails("ch_1"), { customer: CUSTOMER, refunded: true, invoiceId: "in_1" });
 });
+
+Deno.test("an old affiliate credit is matched by amount too, never another amount", async () => {
+  const description = "Affiliate commission: 20% of a referred member's first payment";
+  const made = REFERRAL_A_MADE_S + DAY_S;
+  const other: Txn = { id: "cbtxn_other", amount: -999, currency: "usd", description, created: made };
+  const right: Txn = { id: "cbtxn_right", amount: -600, currency: "usd", description, created: made + 1 };
+  const { deps } = setup({ txns: [other, right], rpc: () => ({ data: false, error: null }) });
+  const since = new Date(REFERRAL_A_MADE_S * 1000).toISOString();
+  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "affiliate-aff_1", { description, currency: "usd", since, amountCents: -600 }), "cbtxn_right");
+  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "affiliate-aff_1", { description, currency: "usd", since, amountCents: -1 }), null);
+});
+
+Deno.test("what a referral still owes is asked of referral_owed()", async () => {
+  const { deps, calls } = setup({ rpc: () => ({ data: [], error: null }) });
+  assertEquals(await deps.referralOwed("ref_a"), []);
+  assertEquals(calls.rpc[0], ["referral_owed", { p_referral: "ref_a" }]);
+});
