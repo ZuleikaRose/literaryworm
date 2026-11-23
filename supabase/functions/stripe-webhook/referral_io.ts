@@ -42,6 +42,9 @@ export interface ReferralStripe {
   charges: {
     retrieve(id: string): Promise<{ customer: string | { id: string } | null; payment_intent: string | { id: string } | null; refunded: boolean }>;
   };
+  disputes: {
+    list(params: { charge: string; limit: number }): Promise<{ data: { status: string; created: number }[] }>;
+  };
   invoicePayments: {
     list(params: { payment: { type: "payment_intent"; payment_intent: string }; limit: number }): Promise<{ data: { invoice: string | { id: string } | null }[] }>;
   };
@@ -227,7 +230,9 @@ export function referralDeps(io: ReferralIo) {
           const payments = await stripe.invoicePayments.list({ payment: { type: "payment_intent", payment_intent: paymentIntent }, limit: 1 });
           invoiceId = idOf(payments.data[0]?.invoice);
         }
-        return { customer: idOf(charge.customer), refunded: charge.refunded, invoiceId };
+        // The latest dispute on the charge, if any (Stripe lists them newest first).
+        const disputes = await stripe.disputes.list({ charge: chargeId, limit: 1 });
+        return { customer: idOf(charge.customer), refunded: charge.refunded, invoiceId, disputeStatus: disputes.data[0]?.status ?? null };
       });
     },
     creditCustomer(customerId, cents, idempotencyKey, description) {

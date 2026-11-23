@@ -95,7 +95,7 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     findBalanceTransaction: () => Promise.resolve(null),
     adjustBalance: () => Promise.reject(new Error("no referral transactions here")),
     recordReferralTransaction: () => Promise.resolve(),
-    chargeDetails: () => Promise.resolve({ customer: null, refunded: false, invoiceId: null }),
+    chargeDetails: () => Promise.resolve({ customer: null, refunded: false, invoiceId: null, disputeStatus: null }),
     creditCustomer: (customer, cents, key) => {
       if (state.failAffiliate && key.startsWith("affiliate-")) return Promise.reject(new Error("stripe down"));
       state.credits.push({ customer, cents, key });

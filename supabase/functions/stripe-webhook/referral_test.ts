@@ -117,10 +117,10 @@ function world(first: Stripe.Event, options: Options = {}) {
     /** Stripe refuses our key (missing rights) for every call. */
     refuse: false,
     calls: 0,
-    charges: new Map<string, { customer: string; refunded: boolean; invoiceId: string | null }>([
-      [FIRST_CHARGE, { customer: FRIEND_CUSTOMER, refunded: false, invoiceId: FIRST_INVOICE }],
-      [LATER_CHARGE, { customer: FRIEND_CUSTOMER, refunded: false, invoiceId: LATER_INVOICE }],
-      [STRANGER_CHARGE, { customer: STRANGER_CUSTOMER, refunded: false, invoiceId: "in_stranger" }],
+    charges: new Map<string, { customer: string; refunded: boolean; invoiceId: string | null; disputeStatus: string | null }>([
+      [FIRST_CHARGE, { customer: FRIEND_CUSTOMER, refunded: false, invoiceId: FIRST_INVOICE, disputeStatus: null }],
+      [LATER_CHARGE, { customer: FRIEND_CUSTOMER, refunded: false, invoiceId: LATER_INVOICE, disputeStatus: null }],
+      [STRANGER_CHARGE, { customer: STRANGER_CUSTOMER, refunded: false, invoiceId: "in_stranger", disputeStatus: null }],
     ]),
   };
   const db = {
@@ -293,7 +293,7 @@ function world(first: Stripe.Event, options: Options = {}) {
     },
     chargeDetails: (chargeId) => {
       stripeGate();
-      return Promise.resolve(stripe.charges.get(chargeId) ?? { customer: null, refunded: false, invoiceId: null });
+      return Promise.resolve(stripe.charges.get(chargeId) ?? { customer: null, refunded: false, invoiceId: null, disputeStatus: null });
     },
     creditCustomer: (_customer, _cents, key) => {
       // The affiliate's balance, kept apart from the referral sides; keys last a day, as at Stripe.
@@ -321,12 +321,24 @@ function world(first: Stripe.Event, options: Options = {}) {
     addVoicePack: () => Promise.resolve(),
   };
   const post = () => new Request("http://x", { method: "POST", headers: { "Stripe-Signature": "good" }, body: "{}" });
+  /** Stripe's state when a dispute event is sent: opened (needs a response), or closed with its status. */
+  const stripeSees = (e: Stripe.Event) => {
+    const obj = e.data.object as unknown as { charge?: string; status?: string };
+    const charge = obj.charge ? stripe.charges.get(obj.charge) : undefined;
+    if (!charge) return;
+    if (e.type === "charge.dispute.created") charge.disputeStatus = "needs_response";
+    if (e.type === "charge.dispute.closed") charge.disputeStatus = obj.status ?? null;
+  };
   const run = async (next?: Stripe.Event) => {
     if (next) ev = next;
+    stripeSees(ev);
     return (await handle(post(), deps)).status;
   };
   /** Handles another event on the same database and Stripe without changing this world's current event. */
-  const runOther = async (other: Stripe.Event) => (await handle(post(), { ...deps, verify: () => Promise.resolve(other) })).status;
+  const runOther = async (other: Stripe.Event) => {
+    stripeSees(other);
+    return (await handle(post(), { ...deps, verify: () => Promise.resolve(other) })).status;
+  };
   return { row, stripe, db, deps, run, runOther, balance };
 }
 
@@ -803,4 +815,62 @@ Deno.test("an old-code free month already made for this referral is kept instead
   await w.run();
   assertEquals(w.row.sides.friend.credit, "cbtxn_old_month");
   assertEquals(w.stripe.txns.filter((t) => t.customer === FRIEND_CUSTOMER).length, 1);
+});
+
+// Review 6: take-backs check Stripe as it is now; replays touch only referral steps; the inviter by key only.
+
+Deno.test("a dispute replayed after it was won takes nothing back", async () => {
+  const w = world(paid());
+  await w.run();
+  const opened = disputed(FIRST_CHARGE);
+  w.stripe.refuse = true;
+  await w.run(opened); // Set aside: nothing taken.
+  w.stripe.refuse = false;
+  w.stripe.charges.get(FIRST_CHARGE)!.disputeStatus = "won"; // Won before the team replays it.
+  assertEquals(await replayEvent(w.deps, opened), { review: false, note: null });
+  assertEquals([w.balance(FRIEND_CUSTOMER), w.balance(INVITER_CUSTOMER)], [-FRIEND_CENTS, -INVITER_CENTS]);
+});
+
+Deno.test("a won dispute replayed after the charge was refunded gives nothing back", async () => {
+  const w = world(paid());
+  await w.run();
+  await w.run(disputed(FIRST_CHARGE));
+  const won = disputeClosed(FIRST_CHARGE, "won");
+  w.stripe.refuse = true;
+  await w.run(won);
+  w.stripe.refuse = false;
+  w.stripe.charges.get(FIRST_CHARGE)!.refunded = true;
+  await replayEvent(w.deps, won);
+  assertEquals([w.balance(FRIEND_CUSTOMER), w.balance(INVITER_CUSTOMER)], [0, 0]);
+});
+
+Deno.test("a replay runs only the referral and affiliate steps, never the membership's", async () => {
+  const w = world(paid());
+  const calls: string[] = [];
+  const spied = {
+    ...w.deps,
+    getSubscription: (...a: Parameters<Deps["getSubscription"]>) => (calls.push("getSubscription"), w.deps.getSubscription(...a)),
+    startMembership: (...a: Parameters<Deps["startMembership"]>) => (calls.push("startMembership"), w.deps.startMembership(...a)),
+    updateMembership: (...a: Parameters<Deps["updateMembership"]>) => (calls.push("updateMembership"), w.deps.updateMembership(...a)),
+  };
+  assertEquals(await replayEvent(spied, paid()), { review: false, note: null });
+  assertEquals(calls, []);
+  assertEquals(w.row.sides.friend.credit !== null && w.row.sides.referrer.credit !== null, true);
+});
+
+Deno.test("the inviter's credit is never matched by description: an old free month for another friend isn't taken", async () => {
+  const w = world(paid());
+  // A free month the old code made for the same inviter, for a different friend, without a key.
+  w.stripe.txns.push({ id: "cbtxn_other_friend", customer: INVITER_CUSTOMER, amount: -FREE_MONTH_INVITER_CENTS, currency: "usd", key: null, description: "A month free: a friend you invited joined" });
+  await w.run();
+  assertEquals(w.row.sides.referrer.credit === "cbtxn_other_friend", false);
+  assertEquals(w.stripe.txns.filter((t) => t.customer === INVITER_CUSTOMER && t.key === keyOf("referrer")).length, 1);
+});
+
+Deno.test("a replay with a side held again is not resolved", async () => {
+  const w = world(paid());
+  w.stripe.fail.add(keyOf("referrer"));
+  w.row.sides.referrer.failures = FAILURES_BEFORE_REVIEW - 1;
+  const result = await replayEvent(w.deps, paid());
+  assertEquals([result.review, w.row.sides.referrer.needsReview], [true, true]);
 });

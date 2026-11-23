@@ -1173,6 +1173,14 @@ where not exists (select 1 from public.subscriptions where user_id = '00000000-0
 select pg_temp.check(not private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'a free week isn''t a payment');
 select pg_temp.check(private.referral_friend_paid('00000000-0000-0000-0000-0000000000f3'), 'a card payment is');
 select pg_temp.check(not private.referral_friend_paid_before('00000000-0000-0000-0000-0000000000f3', now() - interval '2 days'), 'a card payment counts only from when it was made');
+-- 182634: a membership from before 2026-11-10 counts only if it wasn't a free week cancelled before any charge.
+update public.subscriptions set created_at = '2026-11-08', trial_until = '2026-11-15', status = 'cancelled' where user_id = '00000000-0000-0000-0000-0000000000f4';
+select pg_temp.check(not private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'a free week cancelled before any charge isn''t a payment');
+update public.subscriptions set status = 'active' where user_id = '00000000-0000-0000-0000-0000000000f4';
+select pg_temp.check(private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'still running after its free week, it was paid');
+update public.subscriptions set trial_until = null, status = 'cancelled' where user_id = '00000000-0000-0000-0000-0000000000f4';
+select pg_temp.check(private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'an old membership without a free week was paid, even cancelled');
+update public.subscriptions set created_at = now(), trial_until = now() + interval '5 days', status = 'active' where user_id = '00000000-0000-0000-0000-0000000000f4';
 -- 174720: a write-off of a held give-back lets a waiting refund go ahead, and that side isn't taken back again.
 -- (Friend 2: the friend's side only; its inviter was already credited.)
 set role service_role;
@@ -1196,7 +1204,9 @@ select pg_temp.check((select reversed_at is not null and takeback_requested_at i
 select pg_temp.check((select count(*) = 0 from private.referral_pending(current_setting('test.referral_f2')::uuid, true)), 'and takes nothing from the friend, who never got the give-back');
 select pg_temp.check((select count(*) = 1 from public.referral_write_offs where referral_id = current_setting('test.referral_f2')::uuid and kind = 'recredit' and written_off_by = '00000000-0000-0000-0000-00000000000a'), 'the write-off is recorded with who and why');
 set role service_role;
+update public.stripe_events set review_payload = '{"id":"evt_setaside2"}' where id = 'evt_setaside2';
 select pg_temp.check(public.dismiss_referral_event('evt_setaside2'), 'settled, the event can be dismissed');
+select pg_temp.check((select review_payload is null from public.stripe_events where id = 'evt_setaside2'), 'a dismissed event keeps no payload');
 reset role;
 set role service_role;
 reset role;

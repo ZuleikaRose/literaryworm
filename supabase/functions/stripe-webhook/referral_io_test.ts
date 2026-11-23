@@ -53,6 +53,7 @@ function setup(options: { txns?: Txn[]; rpc?: (fn: string, args: Record<string, 
       },
       charges: { retrieve: () => Promise.resolve({ customer: CUSTOMER, payment_intent: "pi_1", refunded: true }) },
       invoicePayments: { list: () => Promise.resolve({ data: [{ invoice: "in_1" }] }) },
+      disputes: { list: () => Promise.resolve({ data: [{ status: "lost", created: 1 }] }) },
     }),
     sleep: (ms) => {
       calls.sleeps.push(ms);
@@ -172,7 +173,7 @@ Deno.test("the search stops after the latest few hundred transactions", async ()
   assertEquals(calls.listed, BALANCE_LOOKBACK);
 });
 
-Deno.test("two old free months for the same inviter, at two prices: each referral finds its own, never one already recorded", async () => {
+Deno.test("the old free-month search (used for the friend side only) takes the oldest match after the referral, at any price, never one already recorded", async () => {
   const first: Txn = { id: "cbtxn_old_a", amount: -OLD_PRICE_CENTS, currency: "usd", description: OLD_DESCRIPTION, created: REFERRAL_A_MADE_S + DAY_S };
   const second: Txn = { id: "cbtxn_old_b", amount: -NEW_PRICE_CENTS, currency: "usd", description: OLD_DESCRIPTION, created: REFERRAL_B_MADE_S + DAY_S };
   const otherCurrency: Txn = { id: "cbtxn_eur", amount: -NEW_PRICE_CENTS, currency: "eur", description: OLD_DESCRIPTION, created: REFERRAL_B_MADE_S + 2 * DAY_S };
@@ -184,13 +185,13 @@ Deno.test("two old free months for the same inviter, at two prices: each referra
   const since = (s: number) => new Date(s * 1000).toISOString();
   const unmarked = (madeAt: number) => ({ description: OLD_DESCRIPTION, currency: "usd", since: since(madeAt) });
   // Referral A (made first) finds the oldest one after it, whatever its amount.
-  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "referral-ref_a-referrer", unmarked(REFERRAL_A_MADE_S)), "cbtxn_old_a");
+  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "referral-ref_a-friend", unmarked(REFERRAL_A_MADE_S)), "cbtxn_old_a");
   recorded.add("cbtxn_old_a");
   // Referral B only looks after it was made, and skips what A recorded.
-  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "referral-ref_b-referrer", unmarked(REFERRAL_B_MADE_S)), "cbtxn_old_b");
+  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "referral-ref_b-friend", unmarked(REFERRAL_B_MADE_S)), "cbtxn_old_b");
   recorded.add("cbtxn_old_b");
   // Nothing left in USD: never the euro one, never one already recorded.
-  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "referral-ref_c-referrer", unmarked(REFERRAL_A_MADE_S)), null);
+  assertEquals(await deps.findBalanceTransaction(CUSTOMER, "referral-ref_c-friend", unmarked(REFERRAL_A_MADE_S)), null);
 });
 
 Deno.test("without an unmarked match asked for, a transaction with no key is never taken", async () => {
@@ -209,7 +210,7 @@ Deno.test("every transaction made carries its key in the metadata and as its ide
 });
 
 Deno.test("a charge's invoice is found through its payment intent", async () => {
-  assertEquals(await setup().deps.chargeDetails("ch_1"), { customer: CUSTOMER, refunded: true, invoiceId: "in_1" });
+  assertEquals(await setup().deps.chargeDetails("ch_1"), { customer: CUSTOMER, refunded: true, invoiceId: "in_1", disputeStatus: "lost" });
 });
 
 Deno.test("an old affiliate credit is matched by amount too, never another amount", async () => {

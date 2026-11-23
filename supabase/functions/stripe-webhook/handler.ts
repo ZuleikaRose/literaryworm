@@ -87,7 +87,8 @@ export interface Deps {
   /** Counts a side's permanent failure, with its message; true once it's set aside for review (5 in a row). */
   noteReferralFailure: (txn: ReferralTransaction, message: string) => Promise<boolean>;
   /** A charge's customer, whether it's fully refunded, and the invoice it paid (null for a payment that isn't an invoice's). */
-  chargeDetails: (chargeId: string) => Promise<{ customer: string | null; refunded: boolean; invoiceId: string | null }>;
+  /** The charge as it is now at Stripe: its customer, whether it's fully refunded, its invoice, and its latest dispute's status. */
+  chargeDetails: (chargeId: string) => Promise<{ customer: string | null; refunded: boolean; invoiceId: string | null; disputeStatus: string | null }>;
   /** Adds a USD credit to a Stripe customer's balance (taken off their next invoices), its key in the metadata; returns its id. */
   creditCustomer: (customerId: string, cents: number, idempotencyKey: string, description: string) => Promise<string>;
   /** Affiliates: claims the referred member's commission once (null when there's nothing to give). */
@@ -246,6 +247,10 @@ function giftRecipient(metadata: Record<string, string>, sessionId: string): { r
   }
 }
 
+/** Dispute statuses that take a referral reward back (open, or lost), and those that give it back. */
+const DISPUTE_TAKES_BACK = new Set(["warning_needs_response", "warning_under_review", "needs_response", "under_review", "lost"]);
+const DISPUTE_WON = new Set(["won", "warning_closed"]);
+
 const REVIEW = new Set(["charge.dispute.created", "charge.refunded", "radar.early_fraud_warning.created"]);
 
 const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : v?.id ?? null);
@@ -296,7 +301,9 @@ async function settleOne(deps: SettleDeps, txn: ReferralTransaction): Promise<vo
   // A free month made before keys were kept is found by its description and currency, after the referral.
   // A 20% credit counts one too: an old-code claim that was handed back may have made it already, and the
   // friend or inviter then keeps that month instead of getting 20% on top.
-  const unmarked = credit
+  // The friend side only: an inviter's credits for different friends share one description, so the
+  // inviter's are only ever found by their key.
+  const unmarked = credit && txn.side === "friend"
     ? { description: referralDescription({ ...txn, rule: "free_month" }), currency: txn.currency, since: txn.createdAt }
     : undefined;
   const found = await deps.findBalanceTransaction(txn.customer, key, unmarked);
@@ -395,10 +402,14 @@ function takeBackReferral(deps: Deps, ctx: EventContext, chargeId: string | null
     if (!userId) return;
     ctx.referredUserId = userId;
     const invoiceId = charge.invoiceId;
+    // What Stripe says now, not what the event said (a replay, or events out of order): take back only a
+    // charge fully refunded or with an open or lost dispute; give back only after a won dispute on a
+    // charge that isn't refunded.
     if (restore) {
-      if (charge.refunded) return;
+      if (charge.refunded || !DISPUTE_WON.has(charge.disputeStatus ?? "")) return;
       await settleReferral(deps, ctx, () => deps.restoreReferral(userId, invoiceId));
     } else {
+      if (!charge.refunded && !DISPUTE_TAKES_BACK.has(charge.disputeStatus ?? "")) return;
       await settleReferral(deps, ctx, () => deps.reverseReferral(userId, invoiceId));
     }
   });
@@ -574,14 +585,71 @@ async function handleEvent(deps: Deps, event: Stripe.Event, ctx: EventContext): 
   }
 }
 
+/** Object fields a replay needs, by event type; nothing else of the event is kept (no names, emails or cards). */
+const REPLAY_FIELDS: Record<string, string[]> = {
+  "checkout.session.completed": ["id", "customer", "mode", "payment_status", "amount_total", "currency", "invoice", "subscription"],
+  "checkout.session.async_payment_succeeded": ["id", "customer", "mode", "payment_status", "amount_total", "currency", "invoice", "subscription"],
+  "invoice.paid": ["id", "customer", "amount_paid", "currency", "status"],
+  "charge.refunded": ["id", "customer", "amount", "amount_refunded", "currency", "refunded", "status", "invoice"],
+  "charge.dispute.created": ["id", "charge", "amount", "currency", "status"],
+  "charge.dispute.closed": ["id", "charge", "amount", "currency", "status"],
+};
+
 /**
- * The team's Retry now on a set-aside event (referral-retry): runs this handler on the stored, verified
- * event again, skipping only the duplicate check. Says whether something was set aside again, and why.
+ * What's kept of a set-aside event for a replay: its id, type and time, and only the referral-relevant
+ * fields of its object (ids as plain strings, amounts, currency, statuses, the refunded flag, and an
+ * invoice's subscription id). Null for any other event type.
+ */
+export function replayPayload(event: Stripe.Event): Record<string, unknown> | null {
+  const fields = REPLAY_FIELDS[event.type];
+  if (!fields) return null;
+  const object = event.data.object as unknown as Record<string, unknown>;
+  const kept: Record<string, unknown> = {};
+  for (const field of fields) {
+    const value = object[field];
+    if (value !== undefined) kept[field] = value !== null && typeof value === "object" ? idOf(value as { id: string }) : value;
+  }
+  if (event.type === "invoice.paid") {
+    const subscription = invoiceSubscriptionId(event.data.object as Stripe.Invoice);
+    if (subscription) kept.parent = { subscription_details: { subscription } };
+  }
+  return { id: event.id, type: event.type, created: event.created, livemode: event.livemode, data: { object: kept } };
+}
+
+/**
+ * The team's Retry now on a set-aside event (referral-retry): runs only the referral and affiliate steps
+ * of the stored event again (never the membership's), skipping the duplicate check. Take-backs and
+ * give-backs check the charge at Stripe as it is now. Resolved only if nothing was set aside or held.
  */
 export async function replayEvent(deps: Deps, event: Stripe.Event): Promise<{ review: boolean; note: ReviewNote | null }> {
   const ctx: EventContext = { review: false };
-  await handleEvent(deps, event, ctx);
-  return { review: !!ctx.note, note: ctx.note ?? null };
+  const object = event.data.object as unknown as Record<string, unknown>;
+  const customer = typeof object.customer === "string" ? object.customer : idOf(object.customer as { id: string } | null);
+  const rewards = (amount: number, invoice: string | null) =>
+    each(
+      () => rewardReferral(deps, ctx, customer, amount, invoice),
+      () => setAsideOnRefusal(ctx, () => rewardAffiliate(deps, customer, amount), "affiliate"),
+    );
+  switch (event.type) {
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded":
+      if (object.mode === "subscription" && object.payment_status === "paid") await rewards(Number(object.amount_total ?? 0), (object.invoice as string | null) ?? null);
+      break;
+    case "invoice.paid":
+      if (invoiceSubscriptionId(event.data.object as Stripe.Invoice)) await rewards(Number(object.amount_paid ?? 0), (object.id as string | null) ?? null);
+      break;
+    case "charge.refunded":
+      await takeBackReferral(deps, ctx, object.id as string, customer, false);
+      break;
+    case "charge.dispute.created":
+      await takeBackReferral(deps, ctx, (object.charge as string | null) ?? null, null, false);
+      break;
+    case "charge.dispute.closed":
+      await takeBackReferral(deps, ctx, (object.charge as string | null) ?? null, null, true);
+      break;
+  }
+  const review = ctx.review || !!ctx.note;
+  return { review, note: ctx.note ?? (review ? { reason: "A referral side is held for review", referralId: null, referredUserId: ctx.referredUserId ?? null } : null) };
 }
 
 export async function handle(req: Request, deps: Deps): Promise<Response> {

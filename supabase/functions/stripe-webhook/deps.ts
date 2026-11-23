@@ -4,7 +4,7 @@ import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { paymentFailedEmail } from "./email.ts";
 import { giftCode, releaseSchedule, stripeClient, verifyWebhook } from "../_shared/stripe.ts";
-import { type Deps, type NewGift, type SubscriptionFields } from "./handler.ts";
+import { type Deps, type NewGift, replayPayload, type SubscriptionFields } from "./handler.ts";
 import { referralDeps, type ReferralIo, reviewColumnsMissing } from "./referral_io.ts";
 
 const referralIo: ReferralIo = {
@@ -32,7 +32,7 @@ export const webhookDeps = (): Deps => ({
         livemode: event.livemode,
         needs_review: needsReview,
         // A set-aside event is kept whole, so the team can replay it (referral-retry).
-        ...(note ? { review_reason: note.reason, review_referral: note.referralId, review_referred_user: note.referredUserId, review_payload: event } : {}),
+        ...(note ? { review_reason: note.reason, review_referral: note.referralId, review_referred_user: note.referredUserId, review_payload: replayPayload(event) } : {}),
       },
       { onConflict: "id", ignoreDuplicates: true },
     );
