@@ -75,7 +75,7 @@ export function parseWord(raw: string | null): string {
   if (!/^[a-z]+(?:['’-][a-z]+)*$/.test(word)) {
     throw new HttpError("bad_request", "Look up one English word, using letters only.");
   }
-  return word.replace("’", "'");
+  return word.replaceAll("’", "'");
 }
 
 const text = (value: unknown, max = 400): string | null => {

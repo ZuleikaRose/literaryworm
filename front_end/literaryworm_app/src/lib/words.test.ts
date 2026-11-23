@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import type { SavedWord } from "../types";
-import { CONTEXT_MAX, dueLabel, dueWords, firstDefinition, hasWord, nextReview, practiceDeck, REVIEW_INTERVALS, sentenceAround, wordsSummary } from "./words";
+import { CONTEXT_MAX, dueLabel, dueWords, firstDefinition, hasWord, keptSource, nextReview, practiceDeck, REVIEW_INTERVALS, sentenceAround, wordsSummary } from "./words";
 
 const word = (w: string, createdAt: number, learned = false): SavedWord => ({
   word: w,
@@ -100,5 +100,24 @@ describe("review", () => {
     expect(dueLabel(due("a", "2026-11-01"), today)).toBe("Due tomorrow");
     expect(dueLabel(due("a", "2026-11-06"), today)).toBe("Due in 6 days");
     expect(dueLabel(due("a", null, 1, true), today)).toBeNull();
+  });
+});
+
+describe("keptSource", () => {
+  const FROM_PAGE = { bookId: "u-book", chapterIndex: 2, page: 4, context: "Das Haus war still." };
+
+  it("keeps the sentence for the word chosen on the page, in the book's language", () => {
+    expect(keptSource(FROM_PAGE, { word: "Haus", lang: "de" }, "Haus")).toEqual(FROM_PAGE);
+    expect(keptSource(FROM_PAGE, { word: "café", lang: "fr" }, "café")).toEqual(FROM_PAGE);
+    expect(keptSource(FROM_PAGE, { word: "rock'n'roll" }, "Rock’n’roll")).toEqual(FROM_PAGE);
+  });
+
+  it("keeps only the book for a word typed in instead", () => {
+    expect(keptSource(FROM_PAGE, { word: "Hund", lang: "de" }, "Haus")).toEqual({ ...FROM_PAGE, context: null });
+    expect(keptSource(FROM_PAGE, { word: "lantern" }, "")).toEqual({ ...FROM_PAGE, context: null });
+  });
+
+  it("has nothing to keep without a source", () => {
+    expect(keptSource(null, { word: "Haus", lang: "de" }, "Haus")).toBeNull();
   });
 });

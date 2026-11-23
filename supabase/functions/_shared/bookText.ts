@@ -72,10 +72,10 @@ async function download(id: string): Promise<string[]> {
 
 /**
  * A public-domain title's chapters (the reader's text), fetched once per warm instance and kept
- * within the cache's bounds. `beforeDownload` runs (and may refuse, by throwing) only when the
- * book has to be downloaded, so a download counts against the caller's rate limit.
+ * within the cache's bounds. Callers check the chapter (_shared/chapterCounts.ts) and rate-limit
+ * before calling this, so a download always counts against their limits.
  */
-export async function bookChapters(id: string, beforeDownload?: () => Promise<void>): Promise<string[]> {
+export async function bookChapters(id: string): Promise<string[]> {
   const kept = texts.get(id);
   if (kept) {
     // Most recently used goes last.
@@ -83,7 +83,6 @@ export async function bookChapters(id: string, beforeDownload?: () => Promise<vo
     texts.set(id, kept);
     return kept.pending;
   }
-  await beforeDownload?.();
   const entry: Kept = { pending: download(id), chars: 0 };
   texts.set(id, entry);
   trim();

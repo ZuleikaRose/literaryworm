@@ -1,5 +1,5 @@
 import type { SavedWord } from "../types";
-import type { DictionaryEntry } from "./dictionaryApi";
+import { cleanWord, type DictionaryEntry } from "./dictionaryApi";
 import { tr } from "./i18n";
 
 /**
@@ -109,4 +109,14 @@ export function dueLabel(word: SavedWord, today: string, t: typeof tr = tr): str
   if (isDue(word, today)) return t("Due today");
   const days = Math.round((Date.parse(`${word.reviewDue}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
   return days === 1 ? t("Due tomorrow") : t("Due in {days} days", { days });
+}
+
+/**
+ * Where a looked-up word is kept from: the word chosen on the page keeps its sentence; a word
+ * typed in keeps only the book. The page's word is cleaned in the entry's own language, so a
+ * German "Haus" or a French "café" is recognised as the word that was chosen.
+ */
+export function keptSource(source: WordSource | null, entry: Pick<DictionaryEntry, "word" | "lang">, chosenOnPage: string): WordSource | null {
+  if (!source) return null;
+  return entry.word === cleanWord(chosenOnPage, entry.lang ?? "en") ? source : { ...source, context: null };
 }

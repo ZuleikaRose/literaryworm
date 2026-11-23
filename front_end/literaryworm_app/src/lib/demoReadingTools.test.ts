@@ -127,6 +127,7 @@ describe("dictionaryLanguage: the book's own language", () => {
 describe("cleanWord per language", () => {
   it("keeps English to lower-case a–z", () => {
     expect(cleanWord(" Don’t ")).toBe("don't");
+    expect(cleanWord("Rock’n’roll")).toBe("rock'n'roll");
     expect(cleanWord("σπίτι")).toBeNull();
   });
 

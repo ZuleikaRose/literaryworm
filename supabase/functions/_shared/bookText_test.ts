@@ -1,7 +1,6 @@
 // deno test --allow-env supabase/functions/_shared/bookText_test.ts — the text cache, with fetch stubbed.
 import { assertEquals, assertRejects } from "jsr:@std/assert@1.0.13";
 import { bookChapters, forgetTexts, TEXTS_KEPT, TEXTS_KEPT_CHARS, textsKept } from "./bookText.ts";
-import { HttpError } from "./http.ts";
 
 const MANY_BOOKS = 50;
 const SHORT_BOOK = ["Chapter one.", "Chapter two."];
@@ -55,26 +54,6 @@ Deno.test("a kept book isn't downloaded again, and the most recently used is kep
     await bookChapters("one-more");
     await bookChapters("first");
     assertEquals(fetched.filter((id) => id === "first").length, 1);
-  } finally {
-    restore();
-  }
-});
-
-Deno.test("beforeDownload runs only for a download, and its refusal fetches nothing", async () => {
-  forgetTexts();
-  const { fetched, restore } = stubFetch();
-  try {
-    let checks = 0;
-    const count = () => {
-      checks++;
-      return Promise.resolve();
-    };
-    await bookChapters("counted", count);
-    await bookChapters("counted", count);
-    assertEquals(checks, 1);
-    await assertRejects(() => bookChapters("refused", () => Promise.reject(new HttpError("rate_limited", "Slow down.", 60))));
-    assertEquals(fetched, ["counted"]);
-    assertEquals(textsKept(), 1);
   } finally {
     restore();
   }

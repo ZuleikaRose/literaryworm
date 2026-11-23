@@ -225,3 +225,8 @@ Deno.test("a word with a combining accent is looked up and echoed composed (NFC)
   assertEquals((await b.json()).word, CAFE_COMPOSED);
   assertEquals(decomposed.calls[0].href, composed.calls[0].href);
 });
+
+Deno.test("every curly apostrophe in a word becomes a straight one, as saved_words keeps it", () => {
+  assertEquals(parseWord("rock’n’roll"), "rock'n'roll");
+  assertEquals(parseWord("Don’t"), "don't");
+});

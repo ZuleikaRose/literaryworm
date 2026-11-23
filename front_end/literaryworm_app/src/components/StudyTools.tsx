@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } f
 import { cleanWord, type DictionaryEntry, DictionaryError, dictionaryLanguage, lookUpWord } from "../lib/dictionaryApi";
 import { HIGHLIGHT_COLORS, highlightPlace, NOTE_MAX } from "../lib/highlights";
 import { useWords } from "../lib/useWords";
-import { firstDefinition, type WordSource } from "../lib/words";
+import { firstDefinition, keptSource, type WordSource } from "../lib/words";
 import type { Book, Highlight, HighlightColor } from "../types";
 import { Dialog } from "./Dialog";
 import { ExportButtons } from "./NotesView";
@@ -518,7 +518,7 @@ function DictionaryLookup({ initialWord, source, bookLang }: { initialWord: stri
           <>
             <DictionaryEntryView entry={result.entry} />
             {/* A word typed in isn't from the page, so it keeps only the book. */}
-            <KeepWord entry={result.entry} source={source && result.entry.word === cleanWord(initialWord) ? source : source && { ...source, context: null }} />
+            <KeepWord entry={result.entry} source={keptSource(source, result.entry, initialWord)} />
           </>
         )}
       </div>
