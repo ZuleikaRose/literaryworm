@@ -2,7 +2,7 @@ import { useActiveProfile, useProfileData, useStore } from "../store/context";
 import type { SavedWord } from "../types";
 import * as accountApi from "./accountApi";
 import { today } from "./reading";
-import { hasWord, nextReview, type WordSource, WORDS_MAX } from "./words";
+import { hasWord, isSameWord, nextReview, type WordSource, WORDS_MAX } from "./words";
 
 /**
  * My words for the active profile. Like favourites: real accounts save to Supabase
@@ -18,11 +18,12 @@ export function useWords() {
 
   const set = (next: SavedWord[]) => dispatch({ type: "patchProfileData", patch: { words: next } });
 
-  async function save(word: string, definition: string | null, source: WordSource | null) {
-    if (!profile || hasWord(words, word)) return;
+  async function save(word: string, definition: string | null, source: WordSource | null, language = "en") {
+    if (!profile || hasWord(words, word, language)) return;
     if (words.length >= WORDS_MAX) throw new accountApi.AccountError(`My words keeps up to ${WORDS_MAX} words. Remove some to keep more.`);
     const saved: SavedWord = {
       word,
+      language,
       definition,
       bookId: source?.bookId ?? null,
       chapterIndex: source?.chapterIndex ?? null,
@@ -37,26 +38,26 @@ export function useWords() {
     set([saved, ...words]);
   }
 
-  async function remove(word: string) {
+  async function remove(word: string, language = "en") {
     if (!profile) return;
-    if (remote) await accountApi.removeWord(profile.id, word);
-    set(words.filter((w) => w.word !== word));
+    if (remote) await accountApi.removeWord(profile.id, word, language);
+    set(words.filter((w) => !isSameWord(w, word, language)));
   }
 
-  async function setLearned(word: string, learned: boolean) {
+  async function setLearned(word: string, learned: boolean, language = "en") {
     if (!profile) return;
-    if (remote) await accountApi.setWordLearned(profile.id, word, learned);
-    set(words.map((w) => (w.word === word ? { ...w, learned } : w)));
+    if (remote) await accountApi.setWordLearned(profile.id, word, learned, language);
+    set(words.map((w) => (isSameWord(w, word, language) ? { ...w, learned } : w)));
   }
 
   /** A review answer (lib/words.ts nextReview()): saved first for members, like the rest. */
-  async function review(word: string, knew: boolean) {
-    const w = words.find((x) => x.word === word);
+  async function review(word: string, knew: boolean, language = "en") {
+    const w = words.find((x) => isSameWord(x, word, language));
     if (!profile || !w) return;
     const next = nextReview(w, knew, today());
-    if (remote) await accountApi.setWordReview(profile.id, word, next);
-    set(words.map((x) => (x.word === word ? { ...x, ...next } : x)));
+    if (remote) await accountApi.setWordReview(profile.id, word, next, language);
+    set(words.map((x) => (isSameWord(x, word, language) ? { ...x, ...next } : x)));
   }
 
-  return { words, has: (word: string) => hasWord(words, word), save, remove, setLearned, review };
+  return { words, has: (word: string, language = "en") => hasWord(words, word, language), save, remove, setLearned, review };
 }

@@ -16,6 +16,14 @@
     "major": false
   },
   {
+    "releasedOn": "2026-11-23",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "The dictionary looks words up in the book's own language",
+    "body": "Choose Define in the reader, or Dictionary in the reader or the player, and the word is looked up in the language of the book you're reading: French in Madame Bovary, German in Effi Briest, Greek in Papadiamantis's stories, and any of the app's 21 languages in your own uploads, with definitions in English from Wiktionary. You can switch to English for a word. My words keeps each word with its language and shows it.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-16",
     "version": "2026.11",
     "kind": "feature",

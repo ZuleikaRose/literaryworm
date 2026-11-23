@@ -936,6 +936,26 @@ describe("the demo household", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("looks words up in the book's own language, offering English too", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/listen/candide-fr");
+    await page.getByRole("button", { name: /^(Play|Pause)$/ }).first().waitFor();
+    await page.getByRole("button", { name: "Dictionary" }).click();
+    const dialog = page.getByRole("dialog", { name: "Dictionary" });
+    const language = dialog.getByLabel("Language of the word");
+    await expect(language.inputValue()).resolves.toBe("fr");
+    await dialog.getByRole("searchbox").fill("jardin");
+    await dialog.getByRole("button", { name: "Look up" }).click();
+    // The e2e server has no backend, and the demo's own dictionary is English only: it says so.
+    await dialog.getByRole("alert").getByText("The demo's offline dictionary has English words only.").waitFor();
+    await language.selectOption("en");
+    await dialog.getByRole("searchbox").fill("fortune");
+    await dialog.getByRole("button", { name: "Look up" }).click();
+    await dialog.getByText("A large amount of money or property.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("exports a Kids profile's notes and journal from My Library, and a book's from the reader", async () => {
     const { page, errors } = await newPage();
     await signInDemo(page);

@@ -1754,6 +1754,7 @@ export async function listOfflineDevices(): Promise<OfflineDevice[]> {
 type WordRow = {
   profile_id: string;
   word: string;
+  language: string;
   definition: string | null;
   volume_id: string | null;
   chapter_index: number | null;
@@ -1769,7 +1770,7 @@ type WordRow = {
 async function loadWords(): Promise<{ profileId: string; word: SavedWord }[]> {
   const { data, error } = await client()
     .from("saved_words")
-    .select("profile_id, word, definition, volume_id, chapter_index, page, context, learned, review_due, review_step, created_at")
+    .select("profile_id, word, language, definition, volume_id, chapter_index, page, context, learned, review_due, review_step, created_at")
     .order("created_at", { ascending: false });
   if (error) {
     console.error("collections: couldn't load My words:", error.message);
@@ -1779,6 +1780,7 @@ async function loadWords(): Promise<{ profileId: string; word: SavedWord }[]> {
     profileId: r.profile_id,
     word: {
       word: r.word,
+      language: r.language,
       definition: r.definition,
       bookId: r.volume_id,
       chapterIndex: r.chapter_index,
@@ -1797,6 +1799,7 @@ export async function saveWord(profileId: string, w: SavedWord): Promise<void> {
     profile_id: profileId,
     user_id: await signedInUserId(),
     word: w.word,
+    language: w.language ?? "en",
     definition: w.definition,
     volume_id: w.bookId,
     chapter_index: w.chapterIndex,
@@ -1809,22 +1812,23 @@ export async function saveWord(profileId: string, w: SavedWord): Promise<void> {
   }
 }
 
-export async function removeWord(profileId: string, word: string): Promise<void> {
-  const { error } = await client().from("saved_words").delete().eq("profile_id", profileId).eq("word", word);
+export async function removeWord(profileId: string, word: string, language = "en"): Promise<void> {
+  const { error } = await client().from("saved_words").delete().eq("profile_id", profileId).eq("language", language).eq("word", word);
   if (error) throw new AccountError("We couldn't remove the word. Try again.");
 }
 
-export async function setWordLearned(profileId: string, word: string, learned: boolean): Promise<void> {
-  const { error } = await client().from("saved_words").update({ learned }).eq("profile_id", profileId).eq("word", word);
+export async function setWordLearned(profileId: string, word: string, learned: boolean, language = "en"): Promise<void> {
+  const { error } = await client().from("saved_words").update({ learned }).eq("profile_id", profileId).eq("language", language).eq("word", word);
   if (error) throw new AccountError("We couldn't save that. Try again.");
 }
 
 /** Saves a review answer: the next due day, the step and whether the word is known. */
-export async function setWordReview(profileId: string, word: string, review: Pick<SavedWord, "reviewDue" | "reviewStep" | "learned">): Promise<void> {
+export async function setWordReview(profileId: string, word: string, review: Pick<SavedWord, "reviewDue" | "reviewStep" | "learned">, language = "en"): Promise<void> {
   const { error } = await client()
     .from("saved_words")
     .update({ review_due: review.reviewDue, review_step: review.reviewStep, learned: review.learned })
     .eq("profile_id", profileId)
+    .eq("language", language)
     .eq("word", word);
   if (error) throw new AccountError("We couldn't save that. Try again.");
 }

@@ -40,7 +40,7 @@ Deno.test("looks a word up and returns only what the reader shows", async () => 
   assertEquals(res.headers.get("Access-Control-Allow-Origin"), ORIGIN);
   assertEquals(res.headers.get("Cache-Control"), "public, max-age=86400");
   const body = await res.json();
-  assertEquals(Object.keys(body).sort(), ["meanings", "phonetic", "sourceUrl", "word"]);
+  assertEquals(Object.keys(body).sort(), ["lang", "meanings", "phonetic", "sourceUrl", "word"]);
   assertEquals(body.word, "lantern");
   assertEquals(body.phonetic, "/ˈlæn.tən/");
   assertEquals(body.sourceUrl, "https://en.wiktionary.org/wiki/lantern");
@@ -120,7 +120,7 @@ Deno.test("the dictionaries' limits and failures become friendly errors", async 
 
 Deno.test("words are validated before anything is called", async () => {
   const { calls, fetcher } = stub(200, lantern);
-  for (const q of ["", "word=", "word=two%20words", "word=x1", "word=%3Cscript%3E", `word=${"a".repeat(41)}`, "word=a&word=b", "word=a&lang=fr"]) {
+  for (const q of ["", "word=", "word=two%20words", "word=x1", "word=%3Cscript%3E", `word=${"a".repeat(41)}`, "word=a&word=b", "word=a&lang=xx"]) {
     const res = await handle(get(q), { fetcher });
     assertEquals(res.status, 400, q);
     assertEquals((await res.json()).error.code, "bad_request");
@@ -149,4 +149,65 @@ Deno.test("CORS: preflight, unknown origins and other methods", async () => {
   assertEquals(other.headers.get("Access-Control-Allow-Origin"), null);
   const post = await handle(get("word=sea", ORIGIN, "POST"));
   assertEquals(post.status, 405);
+});
+
+const WIKTIONARY_MAISON = {
+  fr: [{ partOfSpeech: "Noun", language: "French", definitions: [{ definition: '<a href="/wiki/house">house</a>', examples: ["<i>La maison</i> est grande."] }] }],
+  es: [{ partOfSpeech: "Verb", language: "Spanish", definitions: [{ definition: "Not the French word." }] }],
+};
+
+Deno.test("looks a word up in the book's language through Wiktionary, keeping that language's entries", async () => {
+  const { calls, fetcher } = stub(200, WIKTIONARY_MAISON);
+  const res = await handle(get("word=maison&lang=fr"), { fetcher });
+  assertEquals(res.status, 200);
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0].href, "https://en.wiktionary.org/api/rest_v1/page/definition/maison");
+  const body = await res.json();
+  assertEquals(body.lang, "fr");
+  assertEquals(body.word, "maison");
+  assertEquals(body.meanings, [{ partOfSpeech: "noun", definitions: [{ definition: "house", example: "La maison est grande." }] }]);
+  assertEquals(body.sourceUrl, "https://en.wiktionary.org/wiki/maison#French");
+});
+
+Deno.test("keeps a foreign word's case, and tries the other case when the first isn't there", async () => {
+  const calls: string[] = [];
+  const fetcher = ((input: URL) => {
+    calls.push(new URL(input).pathname);
+    const found = new URL(input).pathname.endsWith("/Haus");
+    return Promise.resolve(new Response(JSON.stringify(found ? { de: [{ partOfSpeech: "Noun", definitions: [{ definition: "house" }] }] } : {}), { status: found ? 200 : 404 }));
+  }) as typeof fetch;
+  const res = await handle(get("word=haus&lang=de"), { fetcher });
+  assertEquals(res.status, 200);
+  assertEquals(calls, ["/api/rest_v1/page/definition/haus", "/api/rest_v1/page/definition/Haus"]);
+  assertEquals((await res.json()).word, "Haus");
+});
+
+Deno.test("says plainly when the language has no entry for the word", async () => {
+  const { fetcher } = stub(200, WIKTIONARY_MAISON);
+  const res = await handle(get("word=maison&lang=de"), { fetcher });
+  assertEquals(res.status, 404);
+  assertEquals((await res.json()).error.message, 'No German definition found for "maison".');
+});
+
+Deno.test("takes letters of any script for other languages, and refuses unknown languages and non-words", async () => {
+  for (const word of ["σπίτι", "घर", "房子", "дом", "بيت", "aujourd'hui", "Straßenbahn"]) {
+    const { fetcher } = stub(200, { el: [], hi: [], zh: [], ru: [], ar: [], fr: [], de: [] });
+    const lang = { "σπίτι": "el", "घर": "hi", "房子": "zh", "дом": "ru", "بيت": "ar", "aujourd'hui": "fr", Straßenbahn: "de" }[word]!;
+    const res = await handle(get(`word=${encodeURIComponent(word)}&lang=${lang}`), { fetcher });
+    // Valid input: the stub has no entries, so it's a plain not-found, not a bad request.
+    assertEquals(res.status, 404);
+  }
+  for (const query of ["word=maison&lang=la", "word=maison&lang=", "word=two%20words&lang=fr", "word=x1&lang=fr", "word=maison&lang=fr&lang=de", `word=${"a".repeat(41)}&lang=fr`]) {
+    const { fetcher } = stub(200, {});
+    assertEquals((await handle(get(query), { fetcher })).status, 400, query);
+  }
+});
+
+Deno.test("English stays the default and keeps its own rules", async () => {
+  const { calls, fetcher } = stub(200, lantern);
+  const res = await handle(get("word=lantern&lang=en"), { fetcher });
+  assertEquals(res.status, 200);
+  assertEquals(calls[0].href, "https://api.dictionaryapi.dev/api/v2/entries/en/lantern");
+  assertEquals((await res.json()).lang, "en");
+  assertEquals((await handle(get("word=σπίτι"), { fetcher })).status, 400);
 });

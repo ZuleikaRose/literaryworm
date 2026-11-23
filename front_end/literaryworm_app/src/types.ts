@@ -504,8 +504,10 @@ export interface QuizResult {
 
 /** A word kept from the dictionary, with where it was met. */
 export interface SavedWord {
-  /** Lower case, as the dictionary looks it up. */
+  /** As the dictionary looks it up: lower case in English, its own case in other languages. */
   word: string;
+  /** The word's language (a dictionary code, lib/dictionaryApi.ts); English when missing. */
+  language?: string;
   /** The first sense, kept so lists and practice work without asking again. */
   definition: string | null;
   bookId: string | null;

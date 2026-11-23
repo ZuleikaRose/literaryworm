@@ -15420,11 +15420,11 @@ begin
   if s is null then raise exception 'xray policies: the help page is missing'; end if;
   was := s;
   -- passage 1
-  if strpos(s, $lw$To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Keep it in My words to review later. The dictionary has English words only for now. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes.$lw$) = 0 then
+  if strpos(s, $lw$To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Words are looked up in the book's own language, with definitions in English from Wiktionary, and you can switch to English. Keep a word in My words to review later. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes.$lw$) = 0 then
     if strpos(s, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only."$lw$) = 0 then
       raise exception 'xray policies: on the help page, this passage was not found as stored: %', $lw$In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter o$lw$;
     end if;
-    s := replace(s, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only."$lw$, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.", "X-Ray, in the reader's top bar (or press X) and in the player, lists the people (Who's who), places and terms you've met so far, with how often and where the book names them, in this chapter or in the book so far. Choose a chapter or page to go to a mention.", "For the public-domain classics, X-Ray's descriptions are written by AI from the text up to your chapter only. In books you upload, and on Kids profiles, it lists the names it finds in the text on your device instead: no AI, and nothing is sent. Books with only sample pages have no X-Ray.", "To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Keep it in My words to review later. The dictionary has English words only for now. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes."$lw$);
+    s := replace(s, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only."$lw$, $lw$"In the player (and the mini-player's More), Previously… catches you up on a public-domain book from the second chapter on: the story so far and the last chapter, written by AI from the chapters before yours only.", "X-Ray, in the reader's top bar (or press X) and in the player, lists the people (Who's who), places and terms you've met so far, with how often and where the book names them, in this chapter or in the book so far. Choose a chapter or page to go to a mention.", "For the public-domain classics, X-Ray's descriptions are written by AI from the text up to your chapter only. In books you upload, and on Kids profiles, it lists the names it finds in the text on your device instead: no AI, and nothing is sent. Books with only sample pages have no X-Ray.", "To look up a word, select it in the reader and choose Define, or open Dictionary (press D) in the reader or the player and type it. Words are looked up in the book's own language, with definitions in English from Wiktionary, and you can switch to English. Keep a word in My words to review later. Export a book's highlights, notes and journal from the reader's Notes and highlights, or every book's from My Library → Notes."$lw$);
   end if;
   if s <> was then update public.legal_pages set sections = s::jsonb where slug = 'help'; end if;
 end
@@ -15597,3 +15597,47 @@ where not exists (select 1 from public.changelog_entries c where c.title = $lw$T
 -- opened before the release never meets a function without its table.
 
 drop table if exists public.book_characters;
+
+-- =============================================================================
+-- 20261123006864_saved_words_language.sql
+-- =============================================================================
+-- My words in the book's own language: the reader's dictionary now looks a word up in the
+-- language of the book it was met in (the `dictionary` function's `lang`, Wiktionary's entries
+-- for that language, explained in English), so a kept word carries its language, and the same
+-- spelling can be kept once per language ("gift" in English and in German).
+--
+-- English words keep their old rule (lower case, letters with an inner apostrophe or hyphen);
+-- other languages' words are any letters (German nouns keep their capital, Greek, Cyrillic,
+-- Arabic, Devanagari, Chinese, Japanese and Korean too), with no spaces or control characters,
+-- at most 40 characters. Rows already kept are English. RLS, the owner policies, the two-step
+-- policy and the 500-word limit are unchanged; the browser may insert the new column.
+
+alter table public.saved_words
+  add column language text not null default 'en'
+    check (language in ('en', 'es', 'fr', 'de', 'pt', 'it', 'nl', 'ja', 'zh', 'ko', 'hi', 'ar', 'pl', 'ru', 'tr', 'sv', 'uk', 'tl', 'bg', 'ro', 'el'));
+
+alter table public.saved_words drop constraint saved_words_word_check;
+alter table public.saved_words
+  add constraint saved_words_word_check check (
+    char_length(word) between 1 and 40
+    and word = btrim(word)
+    and word !~ '[[:space:][:cntrl:]]'
+    and word !~ '^[''-]|[''-]$'
+    and (language <> 'en' or word ~ '^[a-z]+([''-][a-z]+)*$')
+  );
+
+-- The key includes the language. It still leads with (profile_id, user_id), so it still indexes
+-- the foreign key to reader_profiles.
+alter table public.saved_words drop constraint saved_words_pkey;
+alter table public.saved_words add primary key (profile_id, user_id, language, word);
+
+grant insert (language) on public.saved_words to authenticated;
+
+-- =============================================================================
+-- 20261123006865_whats_new_dictionary_languages.sql
+-- =============================================================================
+-- What's new: the dictionary in the book's own language (minor). src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-23'::date, '2026.11', 'update', $lw$The dictionary looks words up in the book's own language$lw$, $lw$Choose Define in the reader, or Dictionary in the reader or the player, and the word is looked up in the language of the book you're reading: French in Madame Bovary, German in Effi Briest, Greek in Papadiamantis's stories, and any of the app's 21 languages in your own uploads, with definitions in English from Wiktionary. You can switch to English for a word. My words keeps each word with its language and shows it.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$The dictionary looks words up in the book's own language$lw$ and c.released_on = '2026-11-23');

@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6864, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, book_xray in 6860 (book_characters dropped in 6863), saved_words.language in 6864)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6865, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, book_xray in 6860 (book_characters dropped in 6863), saved_words.language in 6864)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -516,7 +516,8 @@
           cols: [
             ["pk fk", "profile_id", "uuid"],
             ["pk fk", "user_id", "uuid"],
-            ["pk", "word", "text 1–40 (lower case)"],
+            ["pk", "language", "text (21 codes, default en)"],
+            ["pk", "word", "text 1–40 (English lower case)"],
             ["", "definition", "text ≤ 500", true],
             ["", "volume_id", "text", true],
             ["", "chapter_index", "smallint", true],
@@ -564,7 +565,7 @@
           note: "A chapter's quiz for a public-domain title, written by Claude from that chapter only the first time anyone asks, and kept. RLS on, no browser access; the quiz function reads and writes it.",
         },
         {
-          id: "maintenance_notices", color: colors.server, x: 0, y: 7423, sub: "site banner",
+          id: "maintenance_notices", color: colors.server, x: 0, y: 7447, sub: "site banner",
           cols: [
             ["pk", "id", "uuid"],
             ["", "title", "text 1–80"],

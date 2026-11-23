@@ -3,7 +3,9 @@ import { describe, expect, it } from "@jest/globals";
 import { DEMO_DICTIONARY, DEMO_DICTIONARY_EXAMPLE } from "../data/demoDictionary";
 import { getBook } from "../data/books";
 import { demoHousehold } from "../store/state";
-import { cleanWord, demoLookUp, DictionaryError, dictionaryCovers } from "./dictionaryApi";
+import { cleanWord, demoLookUp, DictionaryError, dictionaryLanguage, DICTIONARY_LANGUAGES, lookUpWord } from "./dictionaryApi";
+import { hasWord } from "./words";
+import type { SavedWord } from "../types";
 import { type BookNotes, exportNotes } from "./exportNotes";
 import { notesPdf } from "./notesPdf";
 import { textPages } from "./reading";
@@ -101,17 +103,60 @@ describe("the demo's offline dictionary", () => {
   });
 });
 
-describe("dictionaryCovers", () => {
-  it("covers English books and books with no language given", () => {
-    expect(dictionaryCovers("English")).toBe(true);
-    expect(dictionaryCovers("en")).toBe(true);
-    expect(dictionaryCovers("en-GB")).toBe(true);
-    expect(dictionaryCovers(null)).toBe(true);
-    expect(dictionaryCovers(undefined)).toBe(true);
+describe("dictionaryLanguage: the book's own language", () => {
+  it("looks English books, and books with no language given, up in English", () => {
+    expect(dictionaryLanguage("English")).toBe("en");
+    expect(dictionaryLanguage("en-GB")).toBe("en");
+    expect(dictionaryLanguage(null)).toBe("en");
+    expect(dictionaryLanguage(undefined)).toBe("en");
   });
 
-  it("doesn't cover books in other languages", () => {
-    expect(dictionaryCovers("fr")).toBe(false);
-    expect(dictionaryCovers("el")).toBe(false);
+  it("looks the site's other languages up in theirs, by code or name", () => {
+    expect(dictionaryLanguage("fr")).toBe("fr");
+    expect(dictionaryLanguage("de-AT")).toBe("de");
+    expect(dictionaryLanguage("el")).toBe("el");
+    expect(DICTIONARY_LANGUAGES).toHaveLength(21);
+  });
+
+  it("says when a book's language isn't one it has", () => {
+    expect(dictionaryLanguage("la")).toBeNull();
+    expect(dictionaryLanguage("eo")).toBeNull();
+  });
+});
+
+describe("cleanWord per language", () => {
+  it("keeps English to lower-case a–z", () => {
+    expect(cleanWord(" Don’t ")).toBe("don't");
+    expect(cleanWord("σπίτι")).toBeNull();
+  });
+
+  it("takes any letters, case kept, in other languages", () => {
+    expect(cleanWord("Haus", "de")).toBe("Haus");
+    expect(cleanWord("σπίτι", "el")).toBe("σπίτι");
+    expect(cleanWord("घर", "hi")).toBe("घर");
+    expect(cleanWord("aujourd’hui", "fr")).toBe("aujourd'hui");
+    expect(cleanWord("two words", "fr")).toBeNull();
+    expect(cleanWord("x1", "fr")).toBeNull();
+    expect(cleanWord("", "fr")).toBeNull();
+    expect(cleanWord("a".repeat(41), "fr")).toBeNull();
+  });
+});
+
+describe("the demo dictionary in other languages", () => {
+  it("says plainly that its offline words are English only", async () => {
+    await expect(lookUpWord("maison", { demo: true, lang: "fr" })).rejects.toThrow("English words only");
+  });
+});
+
+describe("My words per language", () => {
+  const word = (w: string, language?: string): SavedWord => ({ word: w, language, definition: null, bookId: null, chapterIndex: null, page: null, context: null, learned: false, reviewDue: null, reviewStep: 0, createdAt: 0 });
+
+  it("keeps the same spelling once per language, English when none is given", () => {
+    const words = [word("gift"), word("Gift", "de")];
+    expect(hasWord(words, "gift")).toBe(true);
+    expect(hasWord(words, "gift", "en")).toBe(true);
+    expect(hasWord(words, "Gift", "de")).toBe(true);
+    expect(hasWord(words, "gift", "de")).toBe(false);
+    expect(hasWord([], "gift")).toBe(false);
   });
 });

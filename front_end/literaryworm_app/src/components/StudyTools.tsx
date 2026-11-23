@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { cleanWord, type DictionaryEntry, DictionaryError, dictionaryCovers, lookUpWord } from "../lib/dictionaryApi";
+import { cleanWord, type DictionaryEntry, DictionaryError, dictionaryLanguage, lookUpWord } from "../lib/dictionaryApi";
 import { HIGHLIGHT_COLORS, highlightPlace, NOTE_MAX } from "../lib/highlights";
 import { useWords } from "../lib/useWords";
 import { firstDefinition, type WordSource } from "../lib/words";
@@ -7,7 +7,7 @@ import type { Book, Highlight, HighlightColor } from "../types";
 import { Dialog } from "./Dialog";
 import { ExportButtons } from "./NotesView";
 import { Icon } from "./Icon";
-import { rich, tr } from "../lib/i18n";
+import { activeLanguage, intlLocale, rich, tr } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useProfileData, useStore } from "../store/context";
 
@@ -397,18 +397,26 @@ export function DictionaryDialog({
   const t = useT();
   return (
     <Dialog open={open} onClose={onClose} title={t("Dictionary")} size="sm">
-      {open && !dictionaryCovers(bookLanguage) && <p className="goal-hint">{t("The dictionary has English words only for now.")}</p>}
-      {open && <DictionaryLookup key={word} initialWord={word} source={source} />}
+      {open && bookLanguage && dictionaryLanguage(bookLanguage) === null && (
+        <p className="goal-hint">{t("The dictionary doesn't have words in this book's language yet, so it looks up English words.")}</p>
+      )}
+      {open && <DictionaryLookup key={word} initialWord={word} source={source} bookLang={dictionaryLanguage(bookLanguage) ?? "en"} />}
     </Dialog>
   );
 }
 
 type Lookup = { status: "idle" } | { status: "loading"; word: string } | { status: "done"; entry: DictionaryEntry } | { status: "error"; message: string };
 
-function DictionaryLookup({ initialWord, source }: { initialWord: string; source: WordSource | null }) {
+/** A language's name in the app's language: "French", "français"… */
+const languageName = (code: string) => new Intl.DisplayNames([intlLocale(activeLanguage())], { type: "language" }).of(code) ?? code;
+
+function DictionaryLookup({ initialWord, source, bookLang }: { initialWord: string; source: WordSource | null; bookLang: string }) {
   const t = useT();
   const { state } = useStore();
   const demo = Boolean(state.account?.isDemo);
+  // Words are looked up in the book's language; English is offered too when that's another one.
+  const [lang, setLang] = useState(bookLang);
+  const langId = useId();
   const [query, setQuery] = useState(initialWord);
   const [result, setResult] = useState<Lookup>({ status: "idle" });
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -416,16 +424,16 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
   const errorId = useId();
   const latest = useRef(0);
 
-  const run = (input: string) => {
-    const word = cleanWord(input);
+  const run = (input: string, language = lang) => {
+    const word = cleanWord(input, language);
     if (!word) {
-      setFieldError(tr("Look up one English word, using letters only."));
+      setFieldError(language === "en" ? tr("Look up one English word, using letters only.") : tr("Look up one word, using letters only."));
       return;
     }
     setFieldError(null);
     const ticket = ++latest.current;
     setResult({ status: "loading", word });
-    lookUpWord(word, { demo }).then(
+    lookUpWord(word, { demo, lang: language }).then(
       (entry) => ticket === latest.current && setResult({ status: "done", entry }),
       (err) =>
         ticket === latest.current &&
@@ -441,6 +449,28 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
 
   return (
     <div className="dictionary">
+      {bookLang !== "en" && (
+        <div className="field dictionary-language">
+          <label className="field-label" htmlFor={langId}>
+            {t("Language of the word")}
+          </label>
+          <select
+            id={langId}
+            className="field-input"
+            value={lang}
+            onChange={(e) => {
+              setLang(e.target.value);
+              if (query.trim()) run(query, e.target.value);
+            }}
+          >
+            {[bookLang, "en"].map((code) => (
+              <option key={code} value={code}>
+                {languageName(code)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <form
         noValidate
         role="search"
@@ -459,6 +489,7 @@ function DictionaryLookup({ initialWord, source }: { initialWord: string; source
           type="search"
           value={query}
           placeholder={t("Look up a word")}
+          lang={lang}
           autoComplete="off"
           spellCheck
           aria-invalid={fieldError ? true : undefined}
@@ -500,7 +531,8 @@ function KeepWord({ entry, source }: { entry: DictionaryEntry; source: WordSourc
   const t = useT();
   const words = useWords();
   const { busy, error, attempt } = useAttempt();
-  const kept = words.has(entry.word);
+  const language = entry.lang ?? "en";
+  const kept = words.has(entry.word, language);
   return (
     <div className="keep-word">
       {kept ? (
@@ -508,7 +540,7 @@ function KeepWord({ entry, source }: { entry: DictionaryEntry; source: WordSourc
           <Icon name="check" size={16} /> {t("In My words. Find it in My Library → Words.")}
         </p>
       ) : (
-        <button type="button" className="secondary-button" disabled={busy} onClick={() => attempt(() => words.save(entry.word, firstDefinition(entry), source))}>
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => attempt(() => words.save(entry.word, firstDefinition(entry), source, language))}>
           <Icon name="plus" size={16} /> {t("Keep in My words")}
         </button>
       )}
@@ -526,7 +558,8 @@ function DictionaryEntryView({ entry }: { entry: DictionaryEntry }) {
   return (
     <article className="dictionary-entry" lang="en">
       <h3>
-        {entry.word}
+        <span lang={entry.lang ?? "en"}>{entry.word}</span>
+        {entry.lang && entry.lang !== "en" && <span className="dictionary-language-tag">{languageName(entry.lang)}</span>}
         {entry.phonetic && <span className="dictionary-phonetic">{entry.phonetic}</span>}
       </h3>
       {entry.meanings.map((m) => (

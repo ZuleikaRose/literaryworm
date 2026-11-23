@@ -47,9 +47,17 @@ export function sentenceAround(text: string, start: number, end: number): string
   return sentence ? clip(sentence, CONTEXT_MAX) : null;
 }
 
-export function hasWord(words: SavedWord[], word: string): boolean {
-  return words.some((w) => w.word === word);
+/** A kept word's language, English when it has none (words kept before languages). */
+export const wordLanguage = (w: Pick<SavedWord, "language">) => w.language ?? "en";
+
+/** Whether `word` in `language` is kept: the same spelling can be kept once per language. */
+export function hasWord(words: SavedWord[], word: string, language = "en"): boolean {
+  return words.some((w) => w.word === word && wordLanguage(w) === language);
 }
+
+/** A kept word, found by its spelling and language. */
+const same = (w: SavedWord, word: string, language: string) => w.word === word && wordLanguage(w) === language;
+export { same as isSameWord };
 
 /** Practise: words not yet known first, the longest-kept first among them, then the known ones. */
 export function practiceDeck(words: SavedWord[]): SavedWord[] {

@@ -8,7 +8,8 @@ import { tk, tr } from "./i18n";
  * the Free Dictionary API, or Wiktionary itself, on the server). The browser never calls a
  * dictionary directly. The function is public, so the demo uses it too; when the backend isn't
  * there or can't be reached, the demo falls back to its own small dictionary
- * (data/demoDictionary.ts), so a lookup there always works. English words only for now.
+ * (data/demoDictionary.ts, English only), so a lookup there always works. Words are looked up in
+ * the book's own language (`dictionaryLanguage()`), explained in English.
  */
 
 export interface Definition {
@@ -24,6 +25,8 @@ export interface DictionaryEntry {
   sourceUrl: string | null;
   /** From the demo's own small dictionary, credited as such. */
   demo?: boolean;
+  /** The word's language (a DICTIONARY_LANGUAGES code); English when missing. */
+  lang?: string;
 }
 
 export class DictionaryError extends Error {
@@ -46,11 +49,27 @@ const FRIENDLY: Record<string, string> = {
 /** Our words for an error code, in the reader's language. */
 const friendly = (code: keyof typeof FRIENDLY) => tr(FRIENDLY[code]);
 
-/** Whether a book's language is one the dictionary has words for (English; unknown counts as English). */
-export const dictionaryCovers = (language: string | null | undefined) => bookLangTag(language).split("-")[0] === "en";
+/** The languages the dictionary looks words up in: the site's 21, as the `dictionary` function's LANGUAGES. */
+export const DICTIONARY_LANGUAGES = ["en", "es", "fr", "de", "pt", "it", "nl", "ja", "zh", "ko", "hi", "ar", "pl", "ru", "tr", "sv", "uk", "tl", "bg", "ro", "el"] as const;
 
-/** The same rule as the function: one English word, letters with an inner apostrophe or hyphen. */
-export function cleanWord(input: string): string | null {
+/**
+ * The dictionary language for a book's language ("French", "fr", "de-AT"…): its code when the
+ * dictionary has it, null when it doesn't (then words are looked up in English). Unknown counts as English.
+ */
+export function dictionaryLanguage(language: string | null | undefined): string | null {
+  const code = bookLangTag(language).split("-")[0].toLowerCase();
+  return (DICTIONARY_LANGUAGES as readonly string[]).includes(code) ? code : null;
+}
+
+/**
+ * The same rule as the function: one word, letters with an inner apostrophe or hyphen. English
+ * words are a–z in lower case; other languages' words are any letters, their case kept.
+ */
+export function cleanWord(input: string, lang = "en"): string | null {
+  if (lang !== "en") {
+    const word = input.trim().replace(/’/g, "'");
+    return [...word].length <= 40 && /^[\p{L}\p{M}]+(?:['-][\p{L}\p{M}]+)*$/u.test(word) ? word : null;
+  }
   const word = input.trim().toLowerCase().replace(/’/g, "'");
   return word.length <= 40 && /^[a-z]+(?:['-][a-z]+)*$/.test(word) ? word : null;
 }
@@ -70,25 +89,30 @@ export function demoLookUp(word: string, instead?: DictionaryError): Promise<Dic
   );
 }
 
-export function lookUpWord(input: string, options: { demo?: boolean } = {}): Promise<DictionaryEntry> {
-  const word = cleanWord(input);
-  if (!word) return Promise.reject(new DictionaryError("bad_request", tr("Look up one English word, using letters only.")));
-  if (!usesBackend) return options.demo ? demoLookUp(word) : Promise.reject(new DictionaryError("unavailable", friendly("unavailable")));
-  let pending = cache.get(word);
-  if (!pending) {
-    pending = request(word);
-    cache.set(word, pending);
-    pending.catch(() => cache.delete(word));
+export function lookUpWord(input: string, options: { demo?: boolean; lang?: string } = {}): Promise<DictionaryEntry> {
+  const lang = options.lang ?? "en";
+  const word = cleanWord(input, lang);
+  if (!word) return Promise.reject(new DictionaryError("bad_request", lang === "en" ? tr("Look up one English word, using letters only.") : tr("Look up one word, using letters only.")));
+  if (!usesBackend) {
+    if (!options.demo) return Promise.reject(new DictionaryError("unavailable", friendly("unavailable")));
+    return lang === "en" ? demoLookUp(word) : Promise.reject(new DictionaryError("unavailable", tr("The demo's offline dictionary has English words only.")));
   }
-  // The demo answers from its own words when the function can't (not for a word it says doesn't exist).
-  if (options.demo) return pending.catch((err: unknown) => (err instanceof DictionaryError && err.code !== "not_found" && err.code !== "bad_request" ? demoLookUp(word, err) : Promise.reject(err)));
+  const key = `${lang}:${word}`;
+  let pending = cache.get(key);
+  if (!pending) {
+    pending = request(word, lang);
+    cache.set(key, pending);
+    pending.catch(() => cache.delete(key));
+  }
+  // The demo answers from its own (English) words when the function can't (not for a word it says doesn't exist).
+  if (options.demo && lang === "en") return pending.catch((err: unknown) => (err instanceof DictionaryError && err.code !== "not_found" && err.code !== "bad_request" ? demoLookUp(word, err) : Promise.reject(err)));
   return pending;
 }
 
-async function request(word: string): Promise<DictionaryEntry> {
+async function request(word: string, lang: string): Promise<DictionaryEntry> {
   let res: Response;
   try {
-    res = await fetch(`${SUPABASE_URL}/functions/v1/dictionary?${new URLSearchParams({ word })}`, {
+    res = await fetch(`${SUPABASE_URL}/functions/v1/dictionary?${new URLSearchParams(lang === "en" ? { word } : { word, lang })}`, {
       headers: { apikey: PUBLISHABLE_KEY! },
     });
   } catch {
@@ -102,5 +126,5 @@ async function request(word: string): Promise<DictionaryEntry> {
     const message = code === "not_found" || code === "bad_request" ? error?.message : Object.hasOwn(FRIENDLY, code) ? friendly(code) : undefined;
     throw new DictionaryError(code, message ?? friendly("upstream_error"));
   }
-  return body as DictionaryEntry;
+  return { ...(body as DictionaryEntry), lang };
 }

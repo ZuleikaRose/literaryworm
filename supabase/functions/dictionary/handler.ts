@@ -1,9 +1,12 @@
-// GET /functions/v1/dictionary?word=lantern — definitions for the reader's
-// dictionary. The only way the app reaches a dictionary: the Free Dictionary
-// API (dictionaryapi.dev) first, and Wiktionary's own REST API when that one is
-// down, slow or busy. Both serve Wiktionary's definitions (CC BY-SA). Public
-// like `books` (the demo household reads without a session), so the word is
-// validated and each IP is rate limited.
+// GET /functions/v1/dictionary?word=lantern[&lang=fr] — definitions for the reader's
+// dictionary, in the book's own language. The only way the app reaches a dictionary. English:
+// the Free Dictionary API (dictionaryapi.dev) first, and Wiktionary's own REST API when that one
+// is down, slow or busy. Other languages: the Free Dictionary API serves English only (its
+// /entries/<lang>/ answers 404 for French, Spanish or German), so Wiktionary's REST API, whose
+// definition endpoint gives every language's entries for a word keyed by language code,
+// explained in English. Both serve Wiktionary's definitions (CC BY-SA). Public like `books` (the
+// demo household reads without a session), so the word and language are validated and each IP
+// is rate limited.
 
 import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, requireMethod } from "../_shared/http.ts";
@@ -15,6 +18,32 @@ const WIKTIONARY = "https://en.wiktionary.org/api/rest_v1/page/definition/";
 const TIMEOUT_MS = 4000;
 // Wikimedia asks API clients to say who they are.
 const USER_AGENT = "LiteraryWorm-dictionary/1.0 (Supabase Edge Function; reading app demo)";
+
+/** The site's languages (the app's 21): a word is looked up in the book's own, English by default. */
+export const LANGUAGES: Record<string, string> = {
+  en: "English", es: "Spanish", fr: "French", de: "German", pt: "Portuguese", it: "Italian", nl: "Dutch", ja: "Japanese",
+  zh: "Chinese", ko: "Korean", hi: "Hindi", ar: "Arabic", pl: "Polish", ru: "Russian", tr: "Turkish", sv: "Swedish",
+  uk: "Ukrainian", tl: "Tagalog", bg: "Bulgarian", ro: "Romanian", el: "Greek",
+};
+
+/** One of LANGUAGES' codes; English when not given. */
+export function parseLang(raw: string | null): string {
+  if (raw === null) return "en";
+  if (!Object.hasOwn(LANGUAGES, raw)) throw new HttpError("bad_request", "The dictionary doesn't have words in that language.");
+  return raw;
+}
+
+/**
+ * A word in another language: letters (and their marks, for Hindi or Arabic), with an
+ * apostrophe or hyphen inside, 1–40 characters, its case kept (German nouns have capitals).
+ */
+export function parseForeignWord(raw: string | null): string {
+  const word = (raw ?? "").trim().replace(/’/g, "'");
+  if (!word) throw new HttpError("bad_request", "Send a word to look up.");
+  if ([...word].length > 40) throw new HttpError("bad_request", "That word is too long to look up.");
+  if (!/^[\p{L}\p{M}]+(?:['-][\p{L}\p{M}]+)*$/u.test(word)) throw new HttpError("bad_request", "Look up one word, using letters only.");
+  return word;
+}
 
 /** Up to this many parts of speech, each with up to this many definitions. */
 export const MAX_MEANINGS = 3;
@@ -107,9 +136,9 @@ export function plainText(html: unknown, max = 400): string | null {
   return stripped ? stripped.slice(0, max) : null;
 }
 
-/** Shapes Wiktionary's `{ en: [{ partOfSpeech, definitions: [{ definition, examples }] }] }`. */
-export function shapeWiktionary(word: string, body: unknown): Entry {
-  const english = (body as { en?: unknown } | null)?.en;
+/** Shapes Wiktionary's `{ en: [{ partOfSpeech, definitions: [{ definition, examples }] }], fr: … }`, for `lang`'s entries. */
+export function shapeWiktionary(word: string, body: unknown, lang = "en"): Entry {
+  const english = (body as Record<string, unknown> | null)?.[lang];
   const byPart = new Map<string, Definition[]>();
   for (const section of Array.isArray(english) ? english : []) {
     const s = section as Record<string, unknown>;
@@ -126,8 +155,8 @@ export function shapeWiktionary(word: string, body: unknown): Entry {
     if (list.length) byPart.set(part, list);
   }
   const meanings = [...byPart].slice(0, MAX_MEANINGS).map(([partOfSpeech, definitions]) => ({ partOfSpeech, definitions }));
-  if (meanings.length === 0) throw new HttpError("not_found", `No definition found for "${word}".`);
-  return { word, phonetic: null, meanings, sourceUrl: `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}` };
+  if (meanings.length === 0) throw new HttpError("not_found", lang === "en" ? `No definition found for "${word}".` : `No ${LANGUAGES[lang]} definition found for "${word}".`);
+  return { word, phonetic: null, meanings, sourceUrl: `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}${lang === "en" ? "" : `#${encodeURIComponent(LANGUAGES[lang])}`}` };
 }
 
 async function lookUp(url: URL, word: string, fetcher: typeof fetch): Promise<unknown> {
@@ -170,14 +199,33 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
     requireMethod(req, ["GET"]);
     const params = new URL(req.url).searchParams;
     for (const key of new Set(params.keys())) {
-      if (key !== "word") throw new HttpError("bad_request", `Unexpected parameter: ${key}.`);
+      if (key !== "word" && key !== "lang") throw new HttpError("bad_request", `Unexpected parameter: ${key}.`);
     }
-    if (params.getAll("word").length > 1) throw new HttpError("bad_request", "Send word once.");
-    const word = parseWord(params.get("word"));
+    if (params.getAll("word").length > 1 || params.getAll("lang").length > 1) throw new HttpError("bad_request", "Send word and lang once.");
+    const lang = parseLang(params.get("lang"));
+    const word = lang === "en" ? parseWord(params.get("word")) : parseForeignWord(params.get("word"));
 
     await deps.rateLimit?.(req);
 
     const fetcher = deps.fetcher ?? fetch;
+    if (lang !== "en") {
+      // Wiktionary's page names keep their case: try the word as written, then its other case
+      // ("Haus" for "haus", "maison" for "Maison").
+      const other = word === word.toLowerCase() ? word[0].toUpperCase() + word.slice(1) : word.toLowerCase();
+      const tryWord = async (w: string) => shapeWiktionary(w, await lookUp(new URL(WIKTIONARY + encodeURIComponent(w)), w, fetcher), lang);
+      const notFound = (err: unknown) => err instanceof HttpError && err.code === "not_found";
+      let found: Entry;
+      try {
+        found = await tryWord(word);
+      } catch (err) {
+        if (!notFound(err)) throw err;
+        if (other === word) throw new HttpError("not_found", `No ${LANGUAGES[lang]} definition found for "${word}".`);
+        found = await tryWord(other).catch((again) => {
+          throw notFound(again) ? new HttpError("not_found", `No ${LANGUAGES[lang]} definition found for "${word}".`) : again;
+        });
+      }
+      return json(req, METHODS, { ...found, lang }, 200, { "Cache-Control": "public, max-age=86400" });
+    }
     let entry: Entry;
     try {
       entry = shapeEntry(word, await lookUp(new URL(FREE_DICTIONARY + encodeURIComponent(word)), word, fetcher));
@@ -187,7 +235,7 @@ export async function handle(req: Request, deps: Deps = {}): Promise<Response> {
       entry = shapeWiktionary(word, await lookUp(new URL(WIKTIONARY + encodeURIComponent(word)), word, fetcher));
     }
     // Definitions rarely change: let the browser and CDN keep them for a day.
-    return json(req, METHODS, entry, 200, { "Cache-Control": "public, max-age=86400" });
+    return json(req, METHODS, { ...entry, lang }, 200, { "Cache-Control": "public, max-age=86400" });
   } catch (err) {
     return errorResponse(req, METHODS, err);
   }

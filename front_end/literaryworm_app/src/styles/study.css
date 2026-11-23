@@ -465,6 +465,25 @@
   letter-spacing: -0.02em;
 }
 
+.dictionary-language-tag,
+.word-language {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.dictionary-language {
+  margin-bottom: 10px;
+}
+
 .dictionary-phonetic {
   color: var(--muted);
   font-family: var(--font-body);

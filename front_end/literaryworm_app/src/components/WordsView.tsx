@@ -3,14 +3,16 @@ import { Link } from "react-router-dom";
 import { getBook } from "../data/books";
 import { useWords } from "../lib/useWords";
 import { today } from "../lib/reading";
-import { dueLabel, dueWords, practiceDeck, wordsSummary } from "../lib/words";
+import { dueLabel, dueWords, practiceDeck, wordLanguage, wordsSummary } from "../lib/words";
 import { activeLibrary } from "../store/reducer";
 import { useStore } from "../store/context";
 import type { SavedWord } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
-import { rich } from "../lib/i18n";
+import { activeLanguage, intlLocale, rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
+/** A language's name in the app's language. */
+const languageName = (code: string) => new Intl.DisplayNames([intlLocale(activeLanguage())], { type: "language" }).of(code) ?? code;
 
 /** My Library → Words: the words this profile kept from the dictionary, and Practise. */
 export function WordsView() {
@@ -79,9 +81,12 @@ export function WordsView() {
         {words.words.map((w) => {
           const title = bookTitle(w.bookId);
           return (
-            <li key={w.word} className="word-item">
+            <li key={`${wordLanguage(w)}:${w.word}`} className="word-item">
               <div className="word-head">
-                <h3 lang="en">{w.word}</h3>
+                <h3 lang={wordLanguage(w)}>
+                  {w.word}
+                  {wordLanguage(w) !== "en" && <span className="word-language">{languageName(wordLanguage(w))}</span>}
+                </h3>
                 {w.learned ? <span className="word-known">{t("Known")}</span> : <span className="word-due">{dueLabel(w, day, t)}</span>}
               </div>
               {w.definition && <p className="word-definition">{w.definition}</p>}
@@ -98,11 +103,11 @@ export function WordsView() {
                 </p>
               )}
               <div className="highlight-item-actions">
-                <button type="button" className="text-button" onClick={() => run(() => words.setLearned(w.word, !w.learned), w.learned ? t("Marked as still learning.") : t("Marked as known."))}>
+                <button type="button" className="text-button" onClick={() => run(() => words.setLearned(w.word, !w.learned, wordLanguage(w)), w.learned ? t("Marked as still learning.") : t("Marked as known."))}>
                   {w.learned ? t("Still learning") : t("I know this")}
                   <span className="visually-hidden">: {w.word}</span>
                 </button>
-                <button type="button" className="text-button danger-text" onClick={() => run(() => words.remove(w.word), t("Removed {word}.", { word: w.word }))}>
+                <button type="button" className="text-button danger-text" onClick={() => run(() => words.remove(w.word, wordLanguage(w)), t("Removed {word}.", { word: w.word }))}>
                   {t("Remove")}<span className="visually-hidden"> {w.word}</span>
                 </button>
               </div>
@@ -111,13 +116,13 @@ export function WordsView() {
         })}
       </ul>
       <Dialog open={practising !== null} onClose={() => setPractising(null)} title={practising === "review" ? t("Review") : t("Practise")} size="sm">
-        {practising === "review" && <Cards deck={due} onClose={() => setPractising(null)} onAnswer={(w, knew) => words.review(w.word, knew)} />}
+        {practising === "review" && <Cards deck={due} onClose={() => setPractising(null)} onAnswer={(w, knew) => words.review(w.word, knew, wordLanguage(w))} />}
         {practising === "all" && (
           <Cards
             deck={practiceDeck(words.words)}
             onClose={() => setPractising(null)}
             onAnswer={async (w, knew) => {
-              if (knew !== w.learned) await words.setLearned(w.word, knew);
+              if (knew !== w.learned) await words.setLearned(w.word, knew, wordLanguage(w));
             }}
           />
         )}
@@ -167,7 +172,7 @@ function Cards({ deck: initial, onClose, onAnswer }: { deck: SavedWord[]; onClos
       <p className="muted">
         {t("Word {n} of {total}", { n: at + 1, total: deck.length })}
       </p>
-      <p className="practise-word" lang="en">
+      <p className="practise-word" lang={wordLanguage(card)}>
         {card.word}
       </p>
       {card.context && <q className="word-context">{card.context}</q>}
