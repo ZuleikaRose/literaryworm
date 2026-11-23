@@ -33,7 +33,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
   try {
     requireMethod(req, ["POST"]);
     const user = await deps.requireUser(req);
-    if (!(await deps.isBilling(user.id))) throw new HttpError("forbidden", "Only billing staff and admins can do that.");
+    if (!(await deps.isBilling(user.id))) throw new HttpError("staff_only", "Only billing staff can retry referral credits.");
     const body = await readJsonBody(req);
     if (body.action === "dismiss") {
       onlyKeys(body, ["action", "eventId"]);

@@ -1632,6 +1632,7 @@
   "Only LiteraryWorm editors and admins can edit policies.": "只有 LiteraryWorm 编辑和管理员可以编辑政策。",
   "Only admins can give access.": "只有管理员可以授予访问权限。",
   "Only admins can remove access.": "只有管理员可以移除访问权限。",
+  "Only billing staff can retry referral credits.": "只有账单人员可以重试邀请抵扣额。",
   "Only developers and admins can change maintenance notices.": "只有开发者和管理员可以更改维护通知。",
   "Only editors, developers and admins can change What's new.": "只有编辑、开发者和管理员可以更改“最新动态”。",
   "Only essential ones. Our backend's host, Cloudflare, sets one to keep out bots, and your browser keeps your sign-in and the app's files for offline use.\n\nBecause we use the Google Books API, covers of books from Google Books and the Google Books preview load from books.google.com, and Google sets its own third-party cookies there. They're Google's, under Google's Privacy Policy; we don't receive them. Block third-party cookies in your browser to stop them: LiteraryWorm keeps working.\n\nThere's no advertising. If you allow analytics, Ahrefs Web Analytics counts page visits without cookies, and never for Kids profiles. The Cookie Policy lists everything.": "只使用必要的 Cookie。我们后端的托管商 Cloudflare 会设置一个 Cookie 来阻挡机器人，你的浏览器会保存你的登录状态和应用文件以便离线使用。\n\n因为我们使用 Google Books API，来自 Google Books 的图书封面和 Google Books 预览会从 books.google.com 加载，Google 会在那里设置自己的第三方 Cookie。这些 Cookie 属于 Google，受 Google 隐私政策约束；我们不会收到。在浏览器中屏蔽第三方 Cookie 即可阻止：LiteraryWorm 照常运行。\n\n没有广告。如果你允许分析，Ahrefs Web Analytics 会在不使用 Cookie 的情况下统计页面访问，且从不统计儿童档案。Cookie 政策列出了所有内容。",

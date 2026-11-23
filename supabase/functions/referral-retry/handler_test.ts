@@ -58,7 +58,8 @@ Deno.test("Retry now clears the held sides and makes what's still owed, once", a
 
 Deno.test("only billing staff and admins", async () => {
   const { deps, state } = setup({ isBilling: () => Promise.resolve(false) });
-  assertEquals((await handle(post({ action: "retry", referralId: REFERRAL }), deps)).status, 403);
+  const res = await handle(post({ action: "retry", referralId: REFERRAL }), deps);
+  assertEquals([res.status, (await res.json()).error], [403, { code: "staff_only", message: "Only billing staff can retry referral credits." }]);
   assertEquals(state.started, []);
 });
 
