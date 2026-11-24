@@ -135,6 +135,11 @@ select pg_temp.expect_error($$insert into public.reader_profiles (account_id, na
 reset role;
 
 -- Edge Function (service role) ------------------------------------------------
+-- A Kids profile needs a card payment on the account first (the parent's verified consent, COPPA).
+set role service_role;
+select pg_temp.expect_error($$select public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Early', 2::smallint, 60::smallint, '2026-10')$$, 'a Kids profile before any card payment');
+reset role;
+update public.account_private set card_payment_at = now() where user_id = '00000000-0000-0000-0000-00000000000a';
 set role service_role;
 select pg_temp.check(public.create_kids_profile('00000000-0000-0000-0000-00000000000a', 'Mia', 2::smallint, 60::smallint, '2026-10') is not null, 'Kids profile with consent via the server');
 select pg_temp.check((select count(*) from public.parental_consents) = 1, 'consent recorded');
@@ -1026,8 +1031,9 @@ select pg_temp.expect_error('select public.club_calendar_secret()', 'reading the
 reset role;
 reset request.jwt.claims;
 
--- Refer a friend (6657): codes made by my_referral_code() (never for staff, so Ann has none), referrals noted at sign-up, rewards claimed by
--- stripe-webhook only, and at most 2 free months in all for the member who invites.
+-- Refer a friend (6657, 6843): codes made by my_referral_code() (never for staff, so Ann has none), referrals noted at sign-up, rewards claimed by
+-- stripe-webhook only: 20% of one month of each member's own plan, the inviter once per account; a referral rewarded before the change keeps
+-- its free month (reward_rule 'free_month'), up to 2 for inviting.
 reset role;
 reset request.jwt.claims;
 set role authenticated;
@@ -1046,27 +1052,200 @@ select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'friend' || n || '@te
                           'referral_code', case when n = 4 then 'ZZZZZZZZ' else lower((select code from public.referral_codes where account_id = '00000000-0000-0000-0000-00000000000b')) end)
 from generate_series(1, 4) n;
 select pg_temp.check((select count(*) from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b') = 3, 'a sign-up with a code is noted; a code that matches nothing is ignored');
-insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at)
-select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'basic', 1, now() from generate_series(1, 3) n;
+-- The referrals' ids, kept for checks that run as staff (who can't read referrals).
+select set_config('test.referral_f1', (select id::text from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), false),
+       set_config('test.referral_f2', (select id::text from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2'), false);
+insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at, billing_interval)
+select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'basic', 1, now(), case when n = 2 then 'year' else 'month' end from generate_series(1, 3) n;
 insert into public.stripe_customers (user_id, customer_id)
 select ('00000000-0000-0000-0000-0000000000f' || n)::uuid, 'cus_friend' || n from generate_series(1, 3) n;
 insert into public.stripe_customers (user_id, customer_id) values ('00000000-0000-0000-0000-00000000000b', 'cus_ben') on conflict (user_id) do nothing;
 insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at) values ('00000000-0000-0000-0000-00000000000b', 'standard', 1, now())
   on conflict (user_id) do update set status = 'active';
+select pg_temp.check((select bool_and(reward_rule = 'percent_20') from public.referrals where referrer_id = '00000000-0000-0000-0000-00000000000b'), 'new referrals follow the 20% rule');
+-- Friend 3 paid before the change, and the claim was handed back by a failed Stripe call: the cut-over keeps its free month.
+update public.account_private set card_payment_at = now() - interval '1 day' where user_id = '00000000-0000-0000-0000-0000000000f3';
+select pg_temp.check(private.referral_cutover() = 0, 'the cut-over has run once already (migration 6843)');
+select pg_temp.check(private.referral_cutover(true) = 1, 'the cut-over keeps one referral on the free month');
+select pg_temp.check((select reward_rule from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'free_month'
+  and (select reward_rule from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1') = 'percent_20', 'a friend who already paid keeps the free month; one who hadn''t gets 20%');
 set role service_role;
-select pg_temp.check((select count(*) = 1 and bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')), 'a first payment gives the friend and the inviter a month each');
-select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1')) = 0, 'a referral is rewarded once');
-select pg_temp.check((select bool_and(referrer_cents > 0) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2')), 'the inviter''s second month');
-select pg_temp.check((select bool_and(friend_cents = (select price_cents from public.plans where id = 'basic') and referrer_cents is null) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3')), 'no more than 2 free months for inviting, while the friend still gets theirs');
-select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f3') = 'limit_reached', 'the third is noted as past the limit');
+select pg_temp.check((select count(*) = 2
+    and bool_and(kind = 'credit' and reward_rule = 'percent_20' and currency = 'usd')
+    and bool_or(side = 'friend' and customer = 'cus_friend1' and cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic'))
+    and bool_or(side = 'referrer' and customer = 'cus_ben' and cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard'))
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a first payment owes the friend and the inviter 20% of a month of their own plans');
+select pg_temp.check((select count(*) = 2 from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_second1')), 'until it''s made, a retry or a later payment still owes both, never more');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'credit', 0, 'cbtxn_f1'), 'the friend''s credit is recorded at once');
+select pg_temp.check(not public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'credit', 0, 'cbtxn_again'), 'a side''s credit is recorded only once');
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'referrer') from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_second1')), 'a retry owes only the side still missing');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'referrer', 'credit', 0, 'cbtxn_b1'), 'the inviter''s credit is recorded');
+select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_third1')) = 0, 'every later payment owes nothing');
+select pg_temp.check((select first_invoice_id from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1') = 'in_first1', 'the invoice that earned it is kept');
+select pg_temp.check((select bool_and(side = 'friend' and cents = (select (2 * yearly_price_cents + 60) / 120 from public.plans where id = 'basic'))
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'a yearly friend gets 20% of a twelfth of the yearly price; the inviter nothing more');
+select pg_temp.check((select referrer_skipped from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2') = 'already_credited', 'the second is noted as already credited');
+select pg_temp.check((select count(*) = 2 and bool_and(cents = case side when 'friend' then (select price_cents from public.plans where id = 'basic') else (select price_cents from public.plans where id = 'standard') end and reward_rule = 'free_month')
+  from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f3', 'in_first3')), 'a free month earned before the change is still a month each, and doesn''t use up the 20%');
+-- Taking back: a refund of a later invoice does nothing; of the first, it owes both reversals, once per round.
+select pg_temp.check((select count(*) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_second1')) = 0, 'a refund of a later payment takes nothing back');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'reversal' and round = 1) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a refund of the first payment takes both credits back');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'reversal', 1, 'cbtxn_rf1')
+  and public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'referrer', 'reversal', 1, 'cbtxn_rb1'), 'reversals are recorded');
+select pg_temp.check((select count(*) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')) = 0, 'taken back once');
+select pg_temp.check((select count(*) from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_fourth1')) = 0, 'a payment after the refund gives nothing back');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'recredit' and round = 1) from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a won dispute adds both again');
+select pg_temp.check((select count(*) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f3', 'in_first3')) = 0, 'a free month is never taken back');
+select pg_temp.expect_error($$select public.record_referral_transaction(gen_random_uuid(), 'both', 'credit', 0, 'cbtxn_x')$$, 'recording a made-up side');
+-- 160955: gates between rounds, credit checks, transaction ids used once, held sides.
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'recredit') from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a new round waits until both give-backs are recorded');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'recredit', 1, 'cbtxn_cf1')
+  and public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'referrer', 'recredit', 1, 'cbtxn_cb1'), 'give-backs are recorded');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'reversal' and round = 2) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a second dispute starts round 2');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'reversal') from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a won dispute waits until the take-back is recorded');
+select pg_temp.check((select reversed_at is not null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'so the credits stay taken back');
+select pg_temp.expect_error($$select public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'reversal', 2, 'cbtxn_f1')$$, 'recording a transaction id already used in another slot');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'reversal', 2, 'cbtxn_rf2')
+  and public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'referrer', 'reversal', 2, 'cbtxn_rb2'), 'round 2''s reversals are recorded');
+select pg_temp.check((select count(*) = 2 and bool_and(kind = 'recredit' and round = 2) from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'then the won dispute gives both back');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'friend', 'recredit', 2, 'cbtxn_cf2'), 'the friend''s give-back is recorded; the inviter''s not yet');
+-- Friend 2's credit was never recorded: a take-back looks for it at Stripe once per round, and a give-back waits for that.
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'friend' and kind = 'credit_check' and round = 1) from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'a take-back looks for an unrecorded credit at Stripe');
+select pg_temp.check((select count(*) = 1 and bool_and(kind = 'credit_check') from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'a give-back waits for the credit check');
+select public.record_referral_check(current_setting('test.referral_f2')::uuid, 'friend', 1);
+select pg_temp.check((select reversed_at is null and restore_requested_at is null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2'), 'checked once a round, the waiting give-back goes ahead by itself (165931)');
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'friend' and kind = 'credit') from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'given back, a side never credited is credited now');
+select pg_temp.expect_error($$select public.record_referral_transaction(current_setting('test.referral_f2')::uuid, 'friend', 'credit', 0, 'cbtxn_f1')$$, 'recording another referral''s credit id');
+select pg_temp.expect_error($$update public.referrals set friend_credit_id = 'cbtxn_f1' where referred_id = '00000000-0000-0000-0000-0000000000f2'$$, 'two referrals with the same credit id');
+select pg_temp.check(public.referral_transaction_known('cbtxn_f1') and public.referral_transaction_known('cbtxn_rb2') and not public.referral_transaction_known('cbtxn_new'), 'a recorded transaction id is known on any slot');
+select pg_temp.check(public.referral_takeback_possible('cus_friend1') and public.referral_takeback_possible(null)
+  and not public.referral_takeback_possible('cus_friend3') and not public.referral_takeback_possible('cus_nobody'), 'a refund matters only for a customer with a 20% reward');
+select pg_temp.check((select bool_and(not public.note_referral_failure(current_setting('test.referral_f2')::uuid, 'friend', 'Stripe 400: no such customer')) from generate_series(1, 4)), 'four permanent failures in a row don''t set a side aside');
+select pg_temp.check(public.note_referral_failure(current_setting('test.referral_f2')::uuid, 'friend', 'Stripe 400: no such customer'), 'the fifth does');
+select pg_temp.check((select count(*) = 0 from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_later2')), 'a side set aside is skipped');
+select pg_temp.check((select friend_last_error = 'Stripe 400: no such customer' and friend_failed_at is not null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2'), 'its last error and when are kept');
 reset role;
 set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'friend' and last_error like 'Stripe 400%' and failed_at is not null) from public.parked_referral_credits()), 'billing staff see the side set aside');
+select pg_temp.expect_error($$select public.clear_referral_review(current_setting('test.referral_f2')::uuid, 'friend')$$, 'clearing a held side from the browser');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f2';
+select pg_temp.check((select credit_state = 'parked' from public.my_invitation()), 'the friend sees their credit delayed, not on their account');
+select pg_temp.expect_error('select * from public.parked_referral_credits()', 'a member seeing held referral credits');
+reset role;
+reset request.jwt.claim.sub;
+set role service_role;
+select pg_temp.expect_error($$select public.clear_referral_review(current_setting('test.referral_f2')::uuid, 'both')$$, 'clearing a made-up side');
+select pg_temp.check(public.clear_referral_review(current_setting('test.referral_f2')::uuid, 'friend') and not public.clear_referral_review(current_setting('test.referral_f2')::uuid, 'friend'), 'the service role clears a held side, once');
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'friend' and kind = 'credit') from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_later2')), 'cleared, it''s tried again');
+-- 165931: rounds never overlap, held sides included; Retry now; set-aside events; a real payment.
+select pg_temp.check((select bool_or(x) from (select public.note_referral_failure(current_setting('test.referral_f1')::uuid, 'referrer', 'Stripe 400: no such customer') x from generate_series(1, 5)) f), 'the inviter''s round-2 give-back is held');
+select pg_temp.check((select count(*) = 0 from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')), 'a refund while a give-back is held starts no round');
+select pg_temp.check((select reversal_count = 2 and reversed_at is null and takeback_requested_at is not null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'the refund waits for the held give-back');
+select pg_temp.check((select referred_id = '00000000-0000-0000-0000-0000000000f1' and decided from public.referral_retry_start(current_setting('test.referral_f1')::uuid))
+  and not exists (select 1 from public.referral_retry_start(gen_random_uuid())), 'Retry now clears the held side and names the friend');
+select pg_temp.check((select count(*) = 1 and bool_and(side = 'referrer' and kind = 'recredit' and round = 2) from public.referral_owed(current_setting('test.referral_f1')::uuid)), 'the give-back is owed again');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) = 1 from public.parked_referral_credits() where side = 'referrer' and state = 'retry_requested'), 'a cleared side stays listed until it''s settled');
+reset role;
+insert into public.stripe_events (id, type, livemode, needs_review, review_reason, review_referred_user)
+values ('evt_setaside1', 'invoice.paid', false, true, 'Stripe refused the key: test', '00000000-0000-0000-0000-0000000000f1');
+set role authenticated;
+select pg_temp.check((select count(*) = 1 from public.referral_events_to_review() where event_id = 'evt_setaside1' and referral_id = current_setting('test.referral_f1')::uuid), 'billing staff see an event set aside, with its referral');
+reset role;
+set role service_role;
+select pg_temp.check((select count(*) = 0 from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1') where kind = 'reversal'), 'a won dispute cancels the waiting take-back');
+select pg_temp.check((select takeback_requested_at is null and reversed_at is null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'so nothing is taken back');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f1')::uuid, 'referrer', 'recredit', 2, 'cbtxn_cb2'), 'the give-back is recorded');
+select pg_temp.check((select referrer_retry_requested_at is null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f1'), 'its retry request is cleared');
+select pg_temp.check(public.dismiss_referral_event('evt_setaside1') and not public.dismiss_referral_event('evt_setaside1'), 'a set-aside event is dismissed once');
+reset role;
+set role authenticated;
+select pg_temp.check((select count(*) = 0 from public.parked_referral_credits() where referral_id = current_setting('test.referral_f1')::uuid), 'settled, it leaves the list');
+select pg_temp.check((select count(*) = 0 from public.referral_events_to_review() where event_id = 'evt_setaside1'), 'dismissed, the event leaves the list');
+select pg_temp.expect_error($$select public.referral_retry_start(gen_random_uuid())$$, 'starting a retry from the browser');
+select pg_temp.expect_error($$select * from public.referral_owed(gen_random_uuid())$$, 'asking what a referral owes from the browser');
+select pg_temp.expect_error($$select public.dismiss_referral_event('evt_setaside1')$$, 'dismissing an event from the browser');
+reset role;
+reset request.jwt.claim.sub;
+-- A free week (or a gift) isn't a payment, so the cut-over leaves such a friend on 20% (private.referral_friend_paid()).
+update public.subscriptions set stripe_subscription_id = 'sub_trial4', trial_until = now() + interval '5 days' where user_id = '00000000-0000-0000-0000-0000000000f4';
+insert into public.subscriptions (user_id, plan_id, billing_day, renewal_terms_accepted_at, stripe_subscription_id, trial_until)
+select '00000000-0000-0000-0000-0000000000f4', 'basic', 1, now(), 'sub_trial4', now() + interval '5 days'
+where not exists (select 1 from public.subscriptions where user_id = '00000000-0000-0000-0000-0000000000f4');
+select pg_temp.check(not private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'a free week isn''t a payment');
+select pg_temp.check(private.referral_friend_paid('00000000-0000-0000-0000-0000000000f3'), 'a card payment is');
+select pg_temp.check(not private.referral_friend_paid_before('00000000-0000-0000-0000-0000000000f3', now() - interval '2 days'), 'a card payment counts only from when it was made');
+-- 182634: a membership from before 2026-11-10 counts only if it wasn't a free week cancelled before any charge.
+update public.subscriptions set created_at = '2026-11-08', trial_until = '2026-11-15', status = 'cancelled' where user_id = '00000000-0000-0000-0000-0000000000f4';
+select pg_temp.check(not private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'a free week cancelled before any charge isn''t a payment');
+update public.subscriptions set status = 'active' where user_id = '00000000-0000-0000-0000-0000000000f4';
+select pg_temp.check(private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'still running after its free week, it was paid');
+update public.subscriptions set trial_until = null, status = 'cancelled' where user_id = '00000000-0000-0000-0000-0000000000f4';
+select pg_temp.check(private.referral_friend_paid('00000000-0000-0000-0000-0000000000f4'), 'an old membership without a free week was paid, even cancelled');
+update public.subscriptions set created_at = now(), trial_until = now() + interval '5 days', status = 'active' where user_id = '00000000-0000-0000-0000-0000000000f4';
+-- 174720: a write-off of a held give-back lets a waiting refund go ahead, and that side isn't taken back again.
+-- (Friend 2: the friend's side only; its inviter was already credited.)
+set role service_role;
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f2')::uuid, 'friend', 'credit', 0, 'cbtxn_f2'), 'friend 2''s credit is recorded');
+select pg_temp.check((select count(*) = 1 and bool_and(kind = 'reversal') from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'a dispute takes it back');
+select pg_temp.check(public.record_referral_transaction(current_setting('test.referral_f2')::uuid, 'friend', 'reversal', (select reversal_count from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2'), 'cbtxn_rf2x'), 'the take-back is recorded');
+select pg_temp.check((select count(*) = 1 and bool_and(kind = 'recredit') from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'won: the give-back is owed');
+select pg_temp.check((select bool_or(x) from (select public.note_referral_failure(current_setting('test.referral_f2')::uuid, 'friend', 'Stripe 400: gone') x from generate_series(1, 5)) f), 'the give-back is held');
+select pg_temp.check((select count(*) = 0 from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f2', 'in_first2')), 'a refund waits behind it');
+insert into public.stripe_events (id, type, livemode, needs_review, review_reason, review_referred_user)
+values ('evt_setaside2', 'charge.refunded', false, true, 'Stripe refused the key: test', '00000000-0000-0000-0000-0000000000f2');
+select pg_temp.expect_error($$select public.dismiss_referral_event('evt_setaside2')$$, 'dismissing an event while its referral still owes something');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.check((select count(*) = 1 from public.waiting_referral_rounds() where kind = 'take_back' and held_sides = 'friend'), 'billing staff see the waiting take-back and what holds it up');
+select pg_temp.expect_error($$select public.write_off_referral_side(current_setting('test.referral_f2')::uuid, 'friend', 'too short')$$, 'a write-off without a real reason');
+select pg_temp.check(public.write_off_referral_side(current_setting('test.referral_f2')::uuid, 'friend', 'Customer deleted at Stripe; agreed with support') = 'recredit', 'billing staff write off the held give-back');
+reset role;
+select pg_temp.check((select reversed_at is not null and takeback_requested_at is null from public.referrals where referred_id = '00000000-0000-0000-0000-0000000000f2'), 'the refund went ahead, once');
+select pg_temp.check((select count(*) = 0 from private.referral_pending(current_setting('test.referral_f2')::uuid, true)), 'and takes nothing from the friend, who never got the give-back');
+select pg_temp.check((select count(*) = 1 from public.referral_write_offs where referral_id = current_setting('test.referral_f2')::uuid and kind = 'recredit' and written_off_by = '00000000-0000-0000-0000-00000000000a'), 'the write-off is recorded with who and why');
+set role service_role;
+update public.stripe_events set review_payload = '{"id":"evt_setaside2"}' where id = 'evt_setaside2';
+select pg_temp.expect_error($$select public.dismiss_referral_event('evt_setaside2')$$, 'dismissing a refund that was set aside and never replayed');
+select pg_temp.check(not public.record_referral_event_replay('evt_setaside2', false, 'Stripe refused the key: still'), 'a replay is noted, even when refused again');
+select pg_temp.check(public.dismiss_referral_event('evt_setaside2'), 'settled, the event can be dismissed');
+select pg_temp.check((select review_payload is null from public.stripe_events where id = 'evt_setaside2'), 'a dismissed event keeps no payload');
+reset role;
+select pg_temp.check(exists (select 1 from cron.job where jobname = 'referral-review-payloads-cleanup' and command like '%review_resolved_at is not null%'), 'the daily clean-up clears only resolved or dismissed events'' payloads');
+set role service_role;
+reset role;
+set role service_role;
+reset role;
+select pg_temp.check(private.referral_credit_cents(3000, 30000, 'month') = 600 and private.referral_credit_cents(4000, 40000, 'year') = 667
+  and private.referral_credit_cents(null, null, 'month') is null and private.referral_credit_cents(2, null, 'month') is null, '20% of a month, rounded to the cent');
+set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
-select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 2 from public.my_referrals()), 'the inviter sees their counts');
+select pg_temp.check((select signed_up = 3 and rewarded = 3 and months_earned = 1 and waiting = 0 and has_paid_plan
+    and credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'standard') from public.my_referrals()), 'the inviter sees their counts, their 20% credit and their free month');
 select pg_temp.check((select count(*) from public.referrals) = 0, 'the inviter can''t read who they invited');
+select pg_temp.expect_error($$select * from public.claim_referral_reward('00000000-0000-0000-0000-0000000000f1', null)$$, 'claiming from the browser');
+select pg_temp.expect_error($$select * from public.reverse_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')$$, 'taking back from the browser');
+select pg_temp.expect_error($$select public.record_referral_transaction(gen_random_uuid(), 'friend', 'credit', 0, 'cbtxn_x')$$, 'recording from the browser');
+select pg_temp.expect_error($$select * from public.restore_referral_reward('00000000-0000-0000-0000-0000000000f1', 'in_first1')$$, 'giving back from the browser');
+select pg_temp.expect_error($$select public.record_referral_check(gen_random_uuid(), 'friend', 1)$$, 'recording a credit check from the browser');
+select pg_temp.expect_error($$select public.note_referral_failure(gen_random_uuid(), 'friend', 'x')$$, 'counting a failure from the browser');
+select pg_temp.expect_error($$select public.referral_takeback_possible(null)$$, 'asking about take-backs from the browser');
+select pg_temp.expect_error($$select public.referral_transaction_known('cbtxn_f1')$$, 'asking about Stripe transaction ids from the browser');
+select pg_temp.expect_error($$select public.clear_referral_review(gen_random_uuid(), 'friend')$$, 'clearing a held side from the browser');
+select pg_temp.expect_error($$select public.write_off_referral_side(gen_random_uuid(), 'friend', 'a member writing off')$$, 'a member writing off a referral credit');
+select pg_temp.expect_error('select * from public.waiting_referral_rounds()', 'a member seeing waiting take-backs');
+select pg_temp.expect_error($$select public.record_referral_event_replay('evt_x', true, null)$$, 'resolving a set-aside event from the browser');
+select pg_temp.expect_error('select * from public.referral_write_offs', 'reading write-offs from the browser');
+select pg_temp.check((select credit_state = 'added' from public.my_referrals()), 'the inviter''s credit is on their account once its give-back is recorded');
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
-select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select price_cents from public.plans where id = 'basic')) from public.referrals), 'an invited member sees their own month');
+select pg_temp.check((select reward_rule = 'percent_20' and rewarded and credit_state = 'added' from public.my_invitation()), 'the friend''s credit is on their account once its give-back is recorded');
+select pg_temp.check((select count(*) = 1 and bool_and(friend_credit_cents = (select (2 * price_cents + 5) / 10 from public.plans where id = 'basic') and reward_rule = 'percent_20' and reversed_at is null) from public.referrals), 'an invited member sees their own credit, its rule and whether it was taken back');
 select pg_temp.expect_error($$select friend_credit_id from public.referrals$$, 'reading Stripe''s credit ids');
+select pg_temp.expect_error($$select referrer_credit_cents from public.referrals$$, 'reading what the inviter was credited');
 reset role;
 reset request.jwt.claim.sub;
 

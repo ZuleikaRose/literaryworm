@@ -1,7 +1,7 @@
 // deno test --allow-env supabase/functions/stripe-webhook — runs offline with stubbed Stripe and database.
 import { assert, assertEquals } from "jsr:@std/assert@1.0.13";
 import { type Stripe, subscriptionRow } from "../_shared/stripe.ts";
-import { type AffiliateCommission, type Deps, handle, type NewGift, type ReferralReward, type SubscriptionFields } from "./handler.ts";
+import { type AffiliateCommission, type Deps, handle, type NewGift, type SubscriptionFields } from "./handler.ts";
 
 const USER = "00000000-0000-0000-0000-00000000000a";
 const PERIOD_END = 1_798_761_600; // 2027-01-01T00:00:00Z
@@ -35,18 +35,15 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
     hasMembership: true,
     sub: subscription(),
     staff: false,
-    reward: null as ReferralReward | null,
     commission: null as AffiliateCommission | null,
     claimedAmounts: [] as number[],
     affiliateCredits: [] as [string, string][],
     affiliateReleased: [] as string[],
     credits: [] as { customer: string; cents: number; key: string }[],
-    recorded: [] as [string, string, string | null][],
-    released: [] as string[],
+    referralClaims: [] as [string, string | null][],
     notified: [] as string[],
     cardPayments: [] as string[],
     packs: [] as { sessionId: string; userId: string; hours: number; characters: number; amountCents: number }[],
-    failCredit: false,
     failAffiliate: false,
   };
   const deps: Deps = {
@@ -83,26 +80,28 @@ function setup(ev: Stripe.Event, overrides: Partial<Deps> = {}) {
       state.deletedInvoices.push(id);
       return Promise.resolve();
     },
-    claimReferral: () => {
-      // Claimed once, like claim_referral_reward().
-      const reward = state.reward;
-      state.reward = null;
-      return Promise.resolve(reward);
+    // Refer a friend is tested in referral_test.ts; here the account was invited by nobody.
+    claimReferral: (userId, invoiceId) => {
+      state.referralClaims.push([userId, invoiceId]);
+      return Promise.resolve([]);
     },
+    reverseReferral: () => Promise.resolve([]),
+    referralOwed: () => Promise.resolve([]),
+    affiliateReferralSince: () => Promise.resolve(null),
+    restoreReferral: () => Promise.resolve([]),
+    takeBackPossible: () => Promise.resolve(false),
+    recordReferralCheck: () => Promise.resolve(),
+    noteReferralFailure: () => Promise.resolve(false),
+    findBalanceTransaction: () => Promise.resolve(null),
+    adjustBalance: () => Promise.reject(new Error("no referral transactions here")),
+    recordReferralTransaction: () => Promise.resolve(),
+    chargeDetails: () => Promise.resolve({ customer: null, refunded: false, invoiceId: null, disputeStatus: null }),
     creditCustomer: (customer, cents, key) => {
-      if (state.failCredit && key.endsWith("-referrer")) return Promise.reject(new Error("stripe down"));
       if (state.failAffiliate && key.startsWith("affiliate-")) return Promise.reject(new Error("stripe down"));
       state.credits.push({ customer, cents, key });
       return Promise.resolve(`cbtxn_${state.credits.length}`);
     },
-    recordReferralCredits: (id, friend, referrer) => {
-      state.recorded.push([id, friend, referrer]);
-      return Promise.resolve();
-    },
-    releaseReferral: (id) => {
-      state.released.push(id);
-      return Promise.resolve();
-    },
+
     claimAffiliate: (_id, amount) => {
       // Claimed once, like claim_affiliate_commission().
       state.claimedAmounts.push(amount);
@@ -320,38 +319,18 @@ Deno.test("a subscription with no gift consent never starts a membership by itse
   assertEquals(state.started.length, 0);
 });
 
-// Refer a friend ------------------------------------------------------------------------------------
+// Refer a friend: see referral_test.ts. Here, only that the invoice is passed on for the reward.
 
 const paid = (amount_paid: number) =>
   event("invoice.paid", { id: "in_1", customer: "cus_1", amount_paid, parent: { subscription_details: { subscription: "sub_1" } } });
-const REWARD: ReferralReward = { referralId: "ref_1", friendCustomer: "cus_1", friendCents: 1500, referrerCustomer: "cus_2", referrerCents: 2000 };
 
-Deno.test("an invited member's first payment credits a month to them and to whoever invited them", async () => {
-  const { state, deps } = setup(paid(1500));
-  state.reward = { ...REWARD };
-  const res = await handle(post(), deps);
-  assertEquals(res.status, 200);
-  assertEquals(state.credits, [
-    { customer: "cus_1", cents: 1500, key: "referral-ref_1-friend" },
-    { customer: "cus_2", cents: 2000, key: "referral-ref_1-referrer" },
-  ]);
-  assertEquals(state.recorded, [["ref_1", "cbtxn_1", "cbtxn_2"]]);
-});
-
-Deno.test("past the inviter's 2 months, only the friend is credited", async () => {
-  const { state, deps } = setup(paid(1500));
-  state.reward = { ...REWARD, referrerCustomer: null, referrerCents: null };
-  await handle(post(), deps);
-  assertEquals(state.credits.map((c) => c.key), ["referral-ref_1-friend"]);
-  assertEquals(state.recorded, [["ref_1", "cbtxn_1", null]]);
-});
-
-Deno.test("an invoice paid by a credit or a gift (nothing charged) rewards nothing yet", async () => {
-  const { state, deps } = setup(paid(0));
-  state.reward = { ...REWARD };
-  await handle(post(), deps);
-  assertEquals(state.credits, []);
-  assert(state.reward !== null, "the referral waits for a real payment");
+Deno.test("a paid invoice asks for the referral reward with its invoice; nothing charged asks nothing", async () => {
+  const one = setup(paid(3000));
+  await handle(post(), one.deps);
+  assertEquals(one.state.referralClaims, [[USER, "in_1"]]);
+  const free = setup(paid(0));
+  await handle(post(), free.deps);
+  assertEquals(free.state.referralClaims, []);
 });
 
 // Kids consent: a real payment verifies it ---------------------------------------------------------
@@ -379,21 +358,9 @@ Deno.test("a paid Checkout notes the card payment; a free week or an unknown cus
 
 Deno.test("staff are never rewarded", async () => {
   const { state, deps } = setup(paid(1500));
-  state.reward = { ...REWARD };
   state.staff = true;
   await handle(post(), deps);
-  assertEquals(state.credits, []);
-});
-
-Deno.test("if Stripe fails, the referral is handed back and the event retried", async () => {
-  const { state, deps } = setup(paid(1500));
-  state.reward = { ...REWARD };
-  state.failCredit = true;
-  const res = await handle(post(), deps);
-  assertEquals(res.status, 500);
-  assertEquals(state.released, ["ref_1"]);
-  assertEquals(state.recorded, []);
-  assertEquals(state.handled.size, 0);
+  assertEquals(state.referralClaims, []);
 });
 
 // Affiliates ----------------------------------------------------------------------------------------
@@ -412,10 +379,10 @@ Deno.test("a referred member's first payment credits the affiliate 20%, asked wi
 
 Deno.test("a member who came by both a friend and an affiliate rewards both", async () => {
   const { state, deps } = setup(paid(1500));
-  state.reward = { ...REWARD };
   state.commission = { ...COMMISSION };
   await handle(post(), deps);
-  assertEquals(state.credits.map((c) => c.key), ["referral-ref_1-friend", "referral-ref_1-referrer", "affiliate-aff_1"]);
+  assertEquals(state.referralClaims, [[USER, "in_1"]]);
+  assertEquals(state.credits.map((c) => c.key), ["affiliate-aff_1"]);
 });
 
 Deno.test("nothing charged means no commission is claimed yet", async () => {

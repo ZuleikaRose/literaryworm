@@ -43,10 +43,10 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
-  it("tells a friend who follows an invitation link about their free month", async () => {
+  it("tells a friend who follows an invitation link about their 20% credit", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/signup?ref=abcd2345`);
-    await page.getByText("A friend invited you: after your first payment, a month of your plan is free.").waitFor();
+    await page.getByText("A friend invited you: after your first payment, you get 20% off a month of your plan.").waitFor();
     // A link without a real code says nothing about it.
     await page.goto(`${BASE_URL}/signup?ref=nope`);
     await page.getByRole("heading", { name: "Create your account" }).waitFor();
@@ -1292,6 +1292,9 @@ describe("the demo household", () => {
     await goInApp(page, "/account");
     await page.getByRole("heading", { name: "Invite a friend" }).waitFor();
     await expect(page.getByLabel("Your link").inputValue()).resolves.toMatch(/\/signup\?ref=AVERY234$/);
+    // One 20% credit for inviting, shown as earned; no free-month counter.
+    await page.getByText("Your 20% credit of $8.00 is on your account.").waitFor();
+    await expect(page.getByText(/free months? earned/).count()).resolves.toBe(0);
     await goInApp(page, "/library?view=goals");
     const sprint = page.locator(".sprint-card");
     await sprint.getByText("Last sprint: 20 minutes").waitFor();

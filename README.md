@@ -483,6 +483,7 @@ Accounts, household profiles, libraries, logs, reading progress, bookmarks, high
 | —    | Each profile's language is saved and follows it to every device (migrations 6647–6648) | Done |
 | —    | Reading sprints: a 15–30 minute session a household or a book club joins, with a shared timer, a timer in the reader and everyone's pages when it ends; Realtime for members, the demo in memory; RLS and security checks (migrations 6649–6656) | Done |
 | —    | Refer a friend: a member's link gives a friend a month of their plan free after their first payment, and the member a month of theirs, up to 2 free months for inviting; Stripe balance credits added once by the webhook, never for staff; Terms and Privacy updated (migrations 6657–6660) | Done |
+| —    | Refer a friend, 20%: from 2026-11-23 each side gets 20% off one month of their own plan (a twelfth of the yearly price on yearly billing), the inviter once per account; free months already earned stay (`referrals.reward_rule`); Terms, Privacy, FAQ and What's new updated (migrations 6843–6845) | Done |
 | —    | Gift wishlists: every shared list is a wishlist; its page opens Gifts with up to 10 of its LiteraryWorm books picked, paid through the usual gift checkout (migrations 6661–6662) | Done |
 | —    | Home shows a running household sprint; the home page, Plans and FAQs describe the new features; ERD, schema, sitemap and public files refreshed (migration 6663) | Done |
 | —    | LGBTQIA+ added as a genre to browse, search and filter by, from Google Books (migration 6664) | Done |

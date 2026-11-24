@@ -35,6 +35,7 @@ import { DEFAULT_SAVED_A11Y, parseSavedA11y } from "./a11ySync";
 import { bookDaysFromRows } from "./bookStats";
 import { PUBLISHABLE_KEY, SUPABASE_URL } from "./backend";
 import { forgetDeviceId } from "./deviceId";
+import { functionErrorMessage } from "./functionErrors";
 import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey, usedPasskey } from "./passkeys";
 import { defaultPlayerSettings } from "./reading";
 import { forgetPushOnSignOut } from "./push";
@@ -524,9 +525,14 @@ export async function callFunction<T>(name: string, body: Record<string, unknown
   }
   const payload = (await res.json().catch(() => null)) as ({ error?: { code?: string; message?: string } } & T) | null;
   if (!res.ok) {
-    if (payload?.error?.code === "forbidden") throw new AccountError("That isn't the account password.");
-    if (res.status === 429) throw new AccountError("Too many tries in a short time. Wait a minute, then try again.");
-    throw new AccountError(payload?.error?.message ?? fallback);
+    throw new AccountError(
+      functionErrorMessage(res.status, payload, fallback, {
+        wrongPassword: "That isn't the account password.",
+        staffOnly: tr("Only billing staff can retry referral credits."),
+        stillOwed: tr("Something is still owed for this referral: use Retry now, or Write off a held side."),
+        tooMany: "Too many tries in a short time. Wait a minute, then try again.",
+      }),
+    );
   }
   return payload as T;
 }

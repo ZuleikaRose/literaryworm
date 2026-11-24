@@ -87,7 +87,7 @@
 
     <script>
       // ---- Keep in sync with schema.sql -------------------------------------------------
-      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6865, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, book_xray in 6860 (book_characters dropped in 6863), saved_words.language in 6864)";
+      const subtitle = "Supabase PostgreSQL · generated schema.sql (migrations 0100–6865 and 160955–013031, with the legal page rows added 29 Oct; uploaded_books.published_year added in 6626, account_private.push_kinds in 6550, card_payment_at in 6830, the connected-app tables in 6836, referrals.reward_rule in 6843, its review columns in 160955 and 165931, referral_write_offs in 174720, book_xray in 6860, saved_words.language in 6864, book_characters dropped in 013031)";
 
       const colors = {
         auth: "#5b6470", account: "#b8692a", billing: "#2f6f9c", household: "#3f7a5c",
@@ -783,11 +783,28 @@
             ["", "rewarded_at", "timestamptz", true],
             ["", "friend_credit_cents", "integer", true],
             ["", "referrer_credit_cents", "integer", true],
-            ["", "referrer_skipped", "text: staff, no_membership, limit_reached", true],
+            ["", "referrer_skipped", "text: staff, no_membership, limit_reached, already_credited", true],
             ["", "friend_credit_id", "text (Stripe)", true],
             ["", "referrer_credit_id", "text (Stripe)", true],
+            ["", "reward_rule", "text: free_month, percent_20"],
+            ["", "friend_currency", "text", true],
+            ["", "referrer_currency", "text", true],
+            ["", "first_invoice_id", "text (Stripe)", true],
+            ["", "reversed_at", "timestamptz", true],
+            ["", "reversal_count", "smallint"],
+            ["", "friend_reversal_id", "text (Stripe)", true],
+            ["", "referrer_reversal_id", "text (Stripe)", true],
+            ["", "friend_recredit_id", "text (Stripe)", true],
+            ["", "referrer_recredit_id", "text (Stripe)", true],
+            ["", "friend_failures / referrer_failures", "smallint"],
+            ["", "friend_needs_review / referrer_needs_review", "boolean"],
+            ["", "friend_checked_round / referrer_checked_round", "smallint"],
+            ["", "friend_last_error / referrer_last_error", "text", true],
+            ["", "friend_failed_at / referrer_failed_at", "timestamptz", true],
+            ["", "friend_retry_requested_at / referrer_retry_requested_at", "timestamptz", true],
+            ["", "takeback_requested_at / restore_requested_at", "timestamptz", true],
           ],
-          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits a month of each member's plan to their Stripe balance; the inviter earns at most 2 months in all. RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals().",
+          note: "Who invited whom, noted at sign-up by a trigger on auth.users from the link's code. stripe-webhook claims it once on the friend's first paid invoice (claim_referral_reward()) and credits 20% of one month of each member's plan to their Stripe balance, the inviter once per account (reward_rule percent_20), each Stripe transaction recorded per side as it's made; a full refund or dispute of the first invoice takes both back (reversal ids), a won dispute adds them again (recredit ids); credit ids are unique, and a side Stripe refuses for good 5 times is held for review (needs_review, last error, staff see them through parked_referral_credits()); referrals rewarded before 2026-11-23 keep free_month (a month each, at most 2 for inviting). RLS: the friend reads their own row (no Stripe ids); the inviter sees counts through my_referrals(), the friend their invitation through my_invitation().",
         },
         {
           id: "affiliates", color: colors.billing, x: 0, y: 10084, sub: "affiliate program",
@@ -831,7 +848,7 @@
           note: "Who signed up with which code (trigger on auth.users). stripe-webhook claims it once on the first paid invoice (claim_affiliate_commission()) and credits 20% to the affiliate's Stripe balance. Affiliates see counts only (my_affiliate()). No browser access.",
         },
         {
-          id: "natural_voice_usage", color: colors.server, x: 1260, y: 10061, sub: "natural voices · per month",
+          id: "natural_voice_usage", color: colors.server, x: 1260, y: 10861, sub: "natural voices · per month",
           cols: [
             ["pk fk", "account_id", "uuid"],
             ["pk", "month", "date (1st)"],
@@ -852,7 +869,7 @@
           note: "Each profile's new natural-voice reading a month, for Account → Family. Written by record_natural_voice_profile() from the natural-voice function; members read their own account's rows. Kept a year.",
         },
         {
-          id: "natural_voice_packs", color: colors.server, x: 1260, y: 10420, sub: "bought hours · stripe-webhook",
+          id: "natural_voice_packs", color: colors.server, x: 1260, y: 11220, sub: "bought hours · stripe-webhook",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "account_id", "uuid"],
@@ -902,7 +919,22 @@
           note: "One request to connect, until its code is exchanged: 10 minutes to approve, then 5 to exchange. Approving (the member's session and account password, checked by the mcp function) sets user_id and the code's hash together; the code is never stored, and exchanging deletes the row. FK client_id → connected_app_clients, user_id → auth.users, on delete cascade; both indexed. Service role only; expired rows removed hourly.",
         },
         {
-          id: "connected_apps", color: colors.server, x: 1260, y: 11100, sub: "apps a member allowed · read-only",
+          id: "referral_write_offs", color: colors.billing, x: 840, y: 11800, sub: "refer a friend · audit",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "referral_id", "uuid"],
+            ["", "side", "text: friend, referrer"],
+            ["", "kind", "text: credit, credit_check, reversal, recredit"],
+            ["", "round", "smallint"],
+            ["", "cents", "integer", true],
+            ["", "reason", "text 10-500"],
+            ["", "written_off_by", "uuid (no FK)", true],
+            ["", "written_off_at", "timestamptz"],
+          ],
+          note: "What billing staff chose not to make at Stripe for a held referral side, by whom and why (write_off_referral_side()). That transaction, and what it would undo, are never owed (referral_pending()). Unique (referral_id, side, kind, round), which is the referral_id index. RLS on; no browser access.",
+        },
+        {
+          id: "connected_apps", color: colors.server, x: 1260, y: 11900, sub: "apps a member allowed · read-only",
           cols: [
             ["pk", "id", "uuid"],
             ["fk", "user_id", "uuid"],
@@ -917,7 +949,7 @@
           note: "A connection: hashes of the access token (an hour) and refresh token (90 days from last use) the mcp function gave an app; the tokens are never stored and mean nothing outside that function, which only reads. Up to 20 an account. FK user_id → auth.users, client_id → connected_app_clients, on delete cascade; both indexed. Service role only: Account → Sign-in lists and removes them through the function. Run-out rows removed hourly.",
         },
         {
-          id: "book_xray", color: colors.server, x: 1260, y: 11620, sub: "x-ray · function only",
+          id: "book_xray", color: colors.server, x: 1260, y: 12440, sub: "x-ray · function only",
           cols: [
             ["pk", "volume_id", "text (book id)"],
             ["pk", "chapter_index", "smallint 0–999"],
@@ -1275,8 +1307,13 @@
             ["", "livemode", "boolean"],
             ["", "needs_review", "boolean"],
             ["", "received_at", "timestamptz"],
+            ["", "review_reason", "text", true],
+            ["", "review_referral", "uuid", true],
+            ["", "review_referred_user", "uuid", true],
+            ["", "review_resolved_at", "timestamptz", true],
+            ["", "review_payload", "jsonb (the event)", true],
           ],
-          note: "Each Stripe webhook event once (repeats skipped), written by stripe-webhook after it's handled. Disputes, refunds and fraud warnings need_review. Index: received_at where needs_review. RLS on; no browser access.",
+          note: "Each Stripe webhook event once (repeats skipped), written by stripe-webhook after it's handled. Disputes, refunds and fraud warnings need_review; a referral step set aside keeps why and which referral (staff see them through referral_events_to_review() until dismissed). Index: received_at where needs_review. RLS on; no browser access.",
         },
         {
           id: "gift_codes", color: colors.billing, x: 1260, y: 3790, sub: "gift memberships and gift cards",
@@ -1398,6 +1435,7 @@
         ["referral_codes", "account_id", "auth.users", "id", "1 : 1"],
         ["referrals", "referrer_id", "auth.users", "id", "N : 1"],
         ["referrals", "referred_id", "auth.users", "id", "1 : 1"],
+        ["referral_write_offs", "referral_id", "referrals", "id", "N : 1"],
         ["reading_sprints", "started_by", "reader_profiles", "id", "N : 1"],
         ["reading_sprint_readers", "sprint_id", "reading_sprints", "id", "N : 1"],
         ["reading_sprint_readers", "profile_id", "reader_profiles", "id", "N : 1"],

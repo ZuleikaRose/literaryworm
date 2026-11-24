@@ -7,6 +7,8 @@ export type ErrorCode =
   | "bad_request"
   | "unauthorized"
   | "forbidden"
+  | "staff_only"
+  | "still_owed"
   | "not_found"
   | "method_not_allowed"
   | "payload_too_large"
@@ -23,6 +25,10 @@ const STATUS: Record<ErrorCode, number> = {
   bad_request: 400,
   unauthorized: 401,
   forbidden: 403,
+  // Signed in, but without the staff role the action needs (not a wrong password).
+  staff_only: 403,
+  // Refer a friend: an event can't be dismissed while its referral still owes something at Stripe.
+  still_owed: 409,
   not_found: 404,
   method_not_allowed: 405,
   payload_too_large: 413,
