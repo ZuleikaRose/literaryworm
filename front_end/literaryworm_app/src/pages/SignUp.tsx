@@ -249,7 +249,7 @@ export default function SignUp() {
             error={liveErrors.password}
             hint={
               <>
-                {t("{min} to {max} characters. No need for symbols or numbers; a short phrase is strong.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}{" "}
+                {t("{min} to {max} characters, with a lowercase letter, a capital, a number and a symbol such as ! ? # or %.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}{" "}
                 <span className={length >= PASSWORD_MIN ? "hint-ok" : undefined} aria-live="polite">
                   {length >= PASSWORD_MIN ? (
                     <>

@@ -73,7 +73,7 @@ export default function ResetPassword() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           error={error}
-          hint={t("{min} to {max} characters. A short phrase is strong.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}
+          hint={t("{min} to {max} characters, with a lowercase letter, a capital, a number and a symbol such as ! ? # or %.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}
         />
         <button type="submit" className="primary-button auth-submit" disabled={busy || !state.authReady}>
           {busy ? t("Saving…") : t("Save new password")}

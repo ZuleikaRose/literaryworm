@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-27",
     "version": "2026.11",
     "kind": "update",
+    "title": "Password rules shown as they are",
+    "body": "New passwords need 15 to 64 characters with a lowercase letter, a capital, a number and a symbol such as ! ? # or %. The sign-up, password reset and Change password forms now say so and check it before sending, instead of the account service turning the password down afterwards. Passwords you already use keep working.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-27",
+    "version": "2026.11",
+    "kind": "update",
     "title": "A security check when you log in or sign up",
     "body": "The log-in and sign-up forms, and asking for a password reset or the confirmation email again, now show a security check from Cloudflare Turnstile, to keep bots from guessing passwords and making accounts. It usually finishes on its own. The demo doesn't need it.",
     "major": false

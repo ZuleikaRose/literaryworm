@@ -77,7 +77,7 @@ function authMessage(error: { message?: string; status?: number; code?: string }
     return tr("That email and password don't match an account. Check them and try again, or reset your password.");
   if (error.status === 429 || text.includes("rate limit"))
     return tr("Too many tries in a short time. Wait a few minutes, then try again.");
-  if (text.includes("password")) return tr("Choose a password of 15 to 64 characters that hasn't appeared in a data breach.");
+  if (text.includes("password")) return tr("Choose a password of 15 to 64 characters, with a lowercase letter, a capital, a number and a symbol, that hasn't appeared in a data breach.");
   if (text.includes("fetch") || text.includes("network")) return OFFLINE;
   return tr("Something went wrong on our side. Try again in a moment.");
 }
@@ -136,7 +136,7 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
     if ((error.message ?? "").toLowerCase().includes("database error"))
       throw new AccountError(tr("We couldn't create the account. Check your name and date of birth (18 or older), then try again."));
     if (error.status === 422 && (error.message ?? "").toLowerCase().includes("password"))
-      throw new AccountError(tr("Choose a password of 15 to 64 characters that hasn't appeared in a data breach."));
+      throw new AccountError(tr("Choose a password of 15 to 64 characters, with a lowercase letter, a capital, a number and a symbol, that hasn't appeared in a data breach."));
     throw new AccountError(authMessage(error));
   }
   return { needsConfirmation: !data.session };

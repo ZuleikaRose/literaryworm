@@ -53,7 +53,7 @@ import { PUSH_KINDS, type PushKind, toggleKind } from "../lib/pushState";
 import { answerable, type WaitingRequest } from "../lib/bookRequests";
 import { useBookRequests } from "../lib/useBookRequests";
 import { useTitle } from "../lib/useTitle";
-import { validateNewPassword } from "../lib/validation";
+import { PASSWORD_MAX, PASSWORD_MIN, validateNewPassword } from "../lib/validation";
 import { useActiveProfile, useStore } from "../store/context";
 import type { Account as AccountDetails } from "../types";
 import { CancelDialog } from "../components/CancelDialog";
@@ -599,7 +599,7 @@ function SignInSection({ account }: { account: AccountDetails }) {
           ref={nextRef}
           label={t("New password")}
           autoComplete="new-password"
-          hint={t("15 to 64 characters. A short phrase works well.")}
+          hint={t("{min} to {max} characters, with a lowercase letter, a capital, a number and a symbol such as ! ? # or %.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}
           value={next}
           onChange={(e) => {
             setNext(e.target.value);

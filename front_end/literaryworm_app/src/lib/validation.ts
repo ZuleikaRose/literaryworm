@@ -32,11 +32,37 @@ export function validateEmail(email: string): string | null {
   return null;
 }
 
-/** NIST SP 800-63B style: length and breach checks, no forced character mix. */
+/**
+ * The symbols Supabase Auth counts (its `password_required_characters`, set the same on
+ * production and the dev branch): a symbol outside this list, such as a space or £, doesn't count.
+ */
+export const PASSWORD_SYMBOLS = "!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
+
+/** Which of the four kinds Supabase Auth requires the password has (ASCII letters and digits only). */
+export function passwordMix(password: string) {
+  return {
+    lower: /[a-z]/.test(password),
+    upper: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    symbol: [...password].some((c) => PASSWORD_SYMBOLS.includes(c)),
+  };
+}
+
+export function hasPasswordMix(password: string): boolean {
+  const mix = passwordMix(password);
+  return mix.lower && mix.upper && mix.number && mix.symbol;
+}
+
+/**
+ * The same rules as Supabase Auth: 15 to 64 characters, a lowercase letter, a capital, a number
+ * and a symbol, and not a known breached password (Auth also checks Have I Been Pwned).
+ */
 export function validateNewPassword(password: string): string | null {
   if (!password) return tr("Choose a password.");
   if (password.length < PASSWORD_MIN) return tr("Use at least {n} characters. A short phrase works well.", { n: PASSWORD_MIN });
   if (password.length > PASSWORD_MAX) return tr("Use {n} characters or fewer.", { n: PASSWORD_MAX });
+  if (!hasPasswordMix(password))
+    return tr("Use at least one lowercase letter, one capital, one number and one symbol such as ! ? # or %.");
   if (breached.has(password.toLowerCase())) return tr("This password has appeared in a data breach. Choose a different one.");
   return null;
 }
