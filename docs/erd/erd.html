@@ -616,6 +616,16 @@
           note: "Passkeys added from a session that gave the two-step code (trust_passkey()). second_step_done() accepts a passkey log-in only when every passkey on the account is here. FK user_id → auth.users, on delete cascade; index on user_id. No browser access.",
         },
         {
+          id: "recovery_codes", color: colors.auth, x: 1260, y: 7500, sub: "two-step sign-in's way back in",
+          cols: [
+            ["pk", "id", "uuid"],
+            ["fk", "user_id", "uuid"],
+            ["", "code_hash", "text (sha256)"],
+            ["", "created_at", "timestamptz"],
+          ],
+          note: "Ten single-use recovery codes per account, kept only as SHA-256 hashes (create_recovery_codes() shows them once). They count only while two-step sign-in is on and when made after its oldest verified factor; the recovery-code function checks one (check_recovery_code(), 10 tries an hour), turns two-step sign-in off and deletes them all. FK user_id → auth.users, on delete cascade; unique (user_id, code_hash) is the index. No browser access.",
+        },
+        {
           id: "push_subscriptions", color: colors.auth, x: 0, y: 7921, sub: "per device · notifications",
           cols: [
             ["pk", "id", "uuid"],
@@ -1373,6 +1383,7 @@
         ["book_requests", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["journal_entries", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["trusted_passkeys", "user_id", "auth.users", "id", "N : 1"],
+        ["recovery_codes", "user_id", "auth.users", "id", "N : 1"],
         ["push_subscriptions", "user_id", "auth.users", "id", "N : 1"],
         ["book_reading_days", "profile_id", "reader_profiles", "id", "N : 1 (pair)"],
         ["family_shelf", "user_id", "auth.users", "id", "N : 1"],

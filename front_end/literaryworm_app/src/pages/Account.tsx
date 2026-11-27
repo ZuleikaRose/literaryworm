@@ -1,4 +1,5 @@
 import { ConnectedApps } from "../components/ConnectedApps";
+import { RecoveryCodes } from "../components/RecoveryCodes";
 import { ReferAFriend } from "../components/ReferAFriend";
 import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -1019,6 +1020,7 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
         </button>
       )}
       <Feedback error={loadError} done={notice} />
+      {on && <RecoveryCodes email={account.email} />}
 
       <Dialog
         open={setupOpen}

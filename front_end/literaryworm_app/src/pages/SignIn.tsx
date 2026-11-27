@@ -11,6 +11,7 @@ import * as accountApi from "../lib/accountApi";
 import { AccountError, UnconfirmedEmailError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
 import { passkeysSupported } from "../lib/passkeys";
+import { looksLikeRecoveryCode } from "../lib/recoveryCodes";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
@@ -271,19 +272,39 @@ export default function SignIn() {
   );
 }
 
-/** The second step of logging in: a 6-digit code from the member's authenticator app. */
+/**
+ * The second step of logging in: a 6-digit code from the member's authenticator app, or one of their
+ * recovery codes (lib/recoveryCodes.ts), which turns two-step sign-in off so they can set it up again.
+ */
 function SecondStep() {
+  const [recovery, setRecovery] = useState(false);
+  const [recovered, setRecovered] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const codeRef = useRef<HTMLInputElement>(null);
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const navigate = useNavigate();
   const t = useT();
-  useTitle(t("Enter your code"));
+  useTitle(recovered ? t("Two-step sign-in is off") : recovery ? t("Enter a recovery code") : t("Enter your code"));
+
+  const switchTo = (useRecovery: boolean) => {
+    setRecovery(useRecovery);
+    setCode("");
+    setError(null);
+    // The field is replaced; focus the new one once it's there.
+    setTimeout(() => codeRef.current?.focus(), 0);
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const digits = code.replace(/\s/g, "");
-    if (!/^\d{6}$/.test(digits)) {
+    if (recovery) {
+      if (!looksLikeRecoveryCode(code)) {
+        setError(t("Enter one of your recovery codes: 10 letters and numbers, such as 7k2mp-q9xzt."));
+        codeRef.current?.focus();
+        return;
+      }
+    } else if (!/^\d{6}$/.test(code.replace(/\s/g, ""))) {
       setError(t("Enter the 6-digit code from your authenticator app."));
       codeRef.current?.focus();
       return;
@@ -291,8 +312,15 @@ function SecondStep() {
     setBusy(true);
     setError(null);
     try {
-      await accountApi.verifySecondStep(digits);
-      // useAuthSync loads the account; the log-in page then moves on.
+      if (recovery) {
+        await accountApi.redeemRecoveryCode(code);
+        setRecovered(true);
+        setBusy(false);
+        setTimeout(() => continueRef.current?.focus(), 0);
+      } else {
+        await accountApi.verifySecondStep(code.replace(/\s/g, ""));
+        // useAuthSync loads the account; the log-in page then moves on.
+      }
     } catch (err) {
       setError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
       setBusy(false);
@@ -300,42 +328,118 @@ function SecondStep() {
     }
   };
 
+  // The code was right and two-step sign-in is off: refreshing the session lets useAuthSync load the
+  // account, and after the profile is chosen Account → Sign-in opens to set it up again.
+  const carryOn = async () => {
+    setBusy(true);
+    setError(null);
+    navigate("/signin", { replace: true, state: { from: "/account#sign-in" } });
+    try {
+      await accountApi.refreshAfterRecovery();
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
+      setBusy(false);
+    }
+  };
+
+  const logOut = (
+    <>
+      <span>{t("Not you, or no access to the app?")}</span>
+      <button type="button" onClick={() => void accountApi.signOut()}>
+        {t("Log out")}
+      </button>
+    </>
+  );
+
+  if (recovered) {
+    return (
+      <AuthCard
+        eyebrow={t("Two-step sign-in")}
+        title={t("Two-step sign-in is off")}
+        intro={
+          <p>
+            {t(
+              "That recovery code was right, so two-step sign-in is off and your recovery codes no longer work. Set it up again with your new phone, and make new recovery codes, in Account → Sign-in.",
+            )}
+          </p>
+        }
+      >
+        <div className="auth-form">
+          {error && (
+            <div className="form-alert" role="alert">
+              <Icon name="alert" size={17} />
+              <p>{error}</p>
+            </div>
+          )}
+          <button ref={continueRef} type="button" className="primary-button auth-submit" disabled={busy} onClick={() => void carryOn()}>
+            {busy ? t("Logging in…") : t("Continue")}
+          </button>
+        </div>
+      </AuthCard>
+    );
+  }
+
   return (
     <AuthCard
       eyebrow={t("Two-step sign-in")}
-      title={t("Enter your code")}
-      intro={<p>{t("Open your authenticator app and enter the 6-digit code it shows for LiteraryWorm.")}</p>}
-      footer={
-        <>
-          <span>{t("Not you, or no access to the app?")}</span>
-          <button type="button" onClick={() => void accountApi.signOut()}>
-            {t("Log out")}
-          </button>
-        </>
+      title={recovery ? t("Enter a recovery code") : t("Enter your code")}
+      intro={
+        <p>
+          {recovery
+            ? t("Enter one of the recovery codes you saved when you turned on two-step sign-in. Each code works once, and using one turns two-step sign-in off so you can set it up again on a new phone.")
+            : t("Open your authenticator app and enter the 6-digit code it shows for LiteraryWorm.")}
+        </p>
       }
+      footer={logOut}
     >
       <form className="auth-form" noValidate onSubmit={submit}>
-        <Field
-          ref={codeRef}
-          label={t("6-digit code")}
-          hint={t("The code changes every 30 seconds. Use the newest one.")}
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={7}
-          autoFocus
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value);
-            setError(null);
-          }}
-          error={error}
-        />
+        {recovery ? (
+          <Field
+            key="recovery"
+            ref={codeRef}
+            label={t("Recovery code")}
+            hint={t("Capitals, spaces and dashes don't matter.")}
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            maxLength={20}
+            autoFocus
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value);
+              setError(null);
+            }}
+            error={error}
+          />
+        ) : (
+          <Field
+            key="app"
+            ref={codeRef}
+            label={t("6-digit code")}
+            hint={t("The code changes every 30 seconds. Use the newest one.")}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={7}
+            autoFocus
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value);
+              setError(null);
+            }}
+            error={error}
+          />
+        )}
         <button type="submit" className="primary-button auth-submit" disabled={busy}>
           {busy ? t("Checking…") : t("Log in")}
         </button>
       </form>
       <p className="auth-note">
-        {rich(t("Lost the phone with your app? Write to {email} from your account's email and we'll help you back in."), {
+        <button type="button" className="text-button" onClick={() => switchTo(!recovery)}>
+          {recovery ? t("Use the code from your authenticator app instead") : t("Lost your phone? Use a recovery code")}
+        </button>
+      </p>
+      <p className="auth-note">
+        {rich(t("No recovery codes either? Write to {email} from your account's email and we'll help you back in."), {
           email: <a href="mailto:support@literaryworm.com">support@literaryworm.com</a>,
         })}
       </p>

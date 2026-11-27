@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-27",
+    "version": "2026.11",
+    "kind": "feature",
+    "title": "Recovery codes for two-step sign-in",
+    "body": "With two-step sign-in on, you can make ten recovery codes in Account → Sign-in and keep them somewhere safe, such as your password manager. If you lose the phone with your authenticator app, choose Lost your phone? Use a recovery code when you log in. Each code works once, and using one turns two-step sign-in off so you can set it up again on your new phone. We keep only one-way hashes of the codes.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-23",
     "version": "2026.11",
     "kind": "feature",

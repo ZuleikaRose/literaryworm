@@ -286,7 +286,7 @@ Kids profiles can browse, read, listen, use lists, and rate titles. They can't c
   - **Preferences:** autoplay of previews and next titles, notifications, and accessibility.
   - **Privacy:** personalized recommendations on/off, Your Privacy Choices, Download my data, and Reading Activity.
   - **Security:**
-    - **Two-step sign-in:** turn it on or off. Setup shows a QR code or setup key for an authenticator app, then asks for a six-digit code to confirm. Turning it off needs a current code.
+    - **Two-step sign-in:** turn it on or off. Setup shows a QR code or setup key for an authenticator app, then asks for a six-digit code to confirm. Turning it off needs a current code. While it's on, *Recovery codes* makes ten single-use codes (after the account password), shown once to copy or download; making new ones replaces the old. On the log-in page, *Lost your phone? Use a recovery code* takes one instead of the app's code and turns two-step sign-in off, so it can be set up again on a new phone (built 2026-11-27).
     - **Passkeys:** add one (the account password first, then the device's own prompt), see each one's name, when it was added and last used, rename it or remove it.
     - **Signed-in devices:** each device's browser and when it was last active, with this device marked. Sign out any one device, or all other devices.
   - **Family:** profiles, Kids consent, and screen-time limits.

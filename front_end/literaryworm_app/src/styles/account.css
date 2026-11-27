@@ -1364,3 +1364,47 @@
 .consent-place {
   overflow-wrap: anywhere;
 }
+
+/* Recovery codes: under Two-step sign-in, and the set shown once in two columns of monospace. */
+.recovery-codes {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.recovery-codes h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.recovery-code-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+  padding: 14px 16px;
+  padding-inline-start: 2.25em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.recovery-code-list code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.9375rem;
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+
+.recovery-code-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 360px) {
+  .recovery-code-list {
+    grid-template-columns: 1fr;
+  }
+}

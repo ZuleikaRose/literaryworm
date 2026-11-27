@@ -332,6 +332,66 @@ export async function turnOffTwoStep(code: string): Promise<void> {
     const { error } = await client().auth.mfa.unenroll({ factorId: f.id });
     if (error) throw new AccountError("We couldn't turn off two-step sign-in. Try again.");
   }
+  // They no longer work once it's off (they count only after a verified factor); this tidies them away.
+  const { error } = await client().rpc("forget_recovery_codes");
+  if (error) console.error("two-step: couldn't delete the recovery codes:", error.message);
+}
+
+// --- Recovery codes (migration 6866; rules in recoveryCodes.ts) ---
+
+/**
+ * Makes ten new recovery codes, replacing any made before, after checking the account password.
+ * The codes come back only this once; the database keeps hashes.
+ */
+export async function makeRecoveryCodes(email: string, password: string): Promise<string[]> {
+  if (!(await verifyPassword(email, password))) throw new AccountError(tr("That password isn't right. Check it and try again."));
+  const { data, error } = await client().rpc("create_recovery_codes");
+  if (error) {
+    if (error.message.includes("Too many tries")) throw new AccountError(tr("Too many tries. Wait an hour and try again."));
+    throw new AccountError(tr("We couldn't make recovery codes. Try again in a moment."));
+  }
+  if (!Array.isArray(data) || data.length === 0) throw new AccountError(tr("We couldn't make recovery codes. Try again in a moment."));
+  return data as string[];
+}
+
+/** How many recovery codes still work (0 when none were made, or two-step sign-in is off). */
+export async function recoveryCodesLeft(): Promise<number> {
+  const { data, error } = await client().rpc("recovery_codes_left");
+  if (error || typeof data !== "number") throw new AccountError(tr("We couldn't check your recovery codes. Refresh the page to try again."));
+  return data;
+}
+
+/**
+ * The log-in page's second step with a recovery code instead of the app's code. When it's right,
+ * the recovery-code function turns two-step sign-in off; refreshAfterRecovery() then carries on.
+ */
+export async function redeemRecoveryCode(code: string): Promise<void> {
+  const db = client();
+  const { data } = await db.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new AccountError(tr("Two-step sign-in isn't set up for this account. Log in again."));
+  let res: Response;
+  try {
+    res = await fetch(`${SUPABASE_URL}/functions/v1/recovery-code`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+  } catch {
+    throw new AccountError(OFFLINE);
+  }
+  if (!res.ok) {
+    if (res.status === 429) throw new AccountError(tr("Too many tries. Wait an hour and try again."));
+    if (res.status === 400) throw new AccountError(tr("That recovery code isn't right, or it has been used. Check it and try again."));
+    if (res.status === 401) throw new AccountError(tr("Your session has ended. Log in again."));
+    throw new AccountError(tr("We couldn't check the recovery code. Try again in a moment."));
+  }
+}
+
+/** After a recovery code: a fresh session no longer needs the second step, so useAuthSync loads the account. */
+export async function refreshAfterRecovery(): Promise<void> {
+  const { error } = await client().auth.refreshSession();
+  if (error) throw new AccountError(tr("Two-step sign-in is off now. Log in again with your password."));
 }
 
 // --- Passkeys (Supabase Auth WebAuthn; rules and words in passkeys.ts) ---

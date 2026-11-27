@@ -71,16 +71,18 @@ interface Stand {
   twoStep: boolean;
   /** What second_step_done() answers for the passkey session. */
   passkeyCounts: boolean;
+  /** The recovery code the recovery-code function accepts (it then turns two-step sign-in off). */
+  recoveryCode?: string;
 }
 
 /** Answers the app's Supabase calls; returns what it saw. */
 async function standIn(page: Page, stand: Stand) {
-  const seen = { stepChecks: 0, accountLoads: 0, codeChecks: 0 };
+  const seen = { stepChecks: 0, accountLoads: 0, codeChecks: 0, recoveryTries: 0, refreshes: 0 };
   const now = Math.floor(Date.now() / 1000);
   const factors = stand.twoStep
     ? [{ id: "f1", factor_type: "totp", status: "verified", friendly_name: "Authenticator app", created_at: "", updated_at: "" }]
     : [];
-  const user = {
+  const user: { factors: typeof factors } & Record<string, unknown> = {
     id: USER_ID,
     aud: "authenticated",
     role: "authenticated",
@@ -120,6 +122,19 @@ async function standIn(page: Page, stand: Stand) {
     if (pathname === "/auth/v1/passkeys/authentication/options")
       return json(route, { challenge_id: "challenge-1", options: { challenge: b64url(randomBytes(32)), rpId: "localhost", userVerification: "preferred", timeout: 60_000 } });
     if (pathname === "/auth/v1/passkeys/authentication/verify") return json(route, session);
+    if (pathname === "/functions/v1/recovery-code") {
+      seen.recoveryTries++;
+      const { code } = JSON.parse(route.request().postData() ?? "{}") as { code?: string };
+      if (!stand.recoveryCode || code !== stand.recoveryCode)
+        return json(route, { error: { code: "bad_request", message: "That recovery code isn't right, or it has been used." } }, 400);
+      // Two-step sign-in is off now: the account has no verified factor.
+      user.factors = [];
+      return json(route, { ok: true, twoStep: false });
+    }
+    if (pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "refresh_token") {
+      seen.refreshes++;
+      return json(route, { ...session, user });
+    }
     if (pathname === "/auth/v1/user") return json(route, user);
     if (pathname.startsWith("/auth/v1/factors")) {
       seen.codeChecks++;
@@ -212,4 +227,40 @@ it("logging in with a passkey without two-step sign-in goes straight in", async 
   expect(result.askedForCode).toBe(false);
   expect(result.stepChecks).toBe(0); // nothing to check
   expect(result.accountLoads).toBeGreaterThan(0);
+});
+
+it("a recovery code turns two-step sign-in off and logs in, after refusing a wrong one", async () => {
+  const context = await (await openBrowser()).newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const crashes: string[] = [];
+  page.on("pageerror", (e) => crashes.push(String(e)));
+  // A passkey added without the code: the code screen shows, as it would after a password.
+  const seen = await standIn(page, { twoStep: true, passkeyCounts: false, recoveryCode: "7k2mp-q9xzt" });
+  await addPasskey(page);
+  await page.goto(`${APP}/signin`);
+  await page.getByRole("button", { name: /Log in with a passkey/ }).click();
+  await page.getByRole("button", { name: "Lost your phone? Use a recovery code" }).click();
+  const field = page.getByLabel("Recovery code");
+  await expect(field.isVisible()).resolves.toBe(true);
+
+  await field.fill("123456");
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await page.getByText(/10 letters and numbers/).waitFor();
+  expect(seen.recoveryTries).toBe(0); // not a code's shape: nothing sent
+
+  await field.fill("aaaaa-bbbbb");
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await page.getByText(/isn't right, or it has been used/).waitFor();
+  expect(seen.accountLoads).toBe(0);
+
+  await field.fill("7k2mp-q9xzt");
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await page.getByRole("heading", { name: "Two-step sign-in is off" }).waitFor();
+  await page.getByRole("button", { name: "Continue" }).click();
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline && seen.accountLoads === 0) await page.waitForTimeout(100);
+  expect(seen.refreshes).toBeGreaterThan(0);
+  expect(seen.accountLoads).toBeGreaterThan(0); // the account started loading
+  expect(crashes).toEqual([]);
+  await context.close();
 });

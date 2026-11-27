@@ -19,6 +19,11 @@ verify_jwt = true
 [functions.manage-account]
 verify_jwt = true
 
+[functions.recovery-code]
+# The log-in page's second step: a password-only (aal1) session trades a recovery code for turning
+# two-step sign-in off. The function checks the session itself and rate limits each account.
+verify_jwt = true
+
 [functions.dictionary]
 # Public like books: the demo household reads without a session. The function
 # validates the word and rate limits each IP.
