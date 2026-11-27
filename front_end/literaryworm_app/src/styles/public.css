@@ -800,3 +800,16 @@ select.field-input {
   flex: none;
   margin-top: 3px;
 }
+
+/* Cloudflare Turnstile (lib/useTurnstile.ts): room kept for the widget, so the button below doesn't jump. */
+.turnstile {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin-block: 4px 12px;
+}
+
+.turnstile-widget {
+  min-height: 65px;
+  max-width: 100%;
+}

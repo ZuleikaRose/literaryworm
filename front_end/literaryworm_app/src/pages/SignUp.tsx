@@ -13,6 +13,8 @@ import { ResendConfirmation } from "../components/ResendConfirmation";
 import { planById } from "../data/plans";
 import { AccountError, signUp } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
+import { Turnstile } from "../components/Turnstile";
+import { useTurnstile } from "../lib/useTurnstile";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
@@ -56,6 +58,9 @@ export default function SignUp() {
 
   const setupUrl = `/pricing?setup=1${plan ? `&plan=${plan.id}` : ""}`;
   // Also catches the render right after "Create account", so it must agree with submit() on where to go.
+  // Cloudflare Turnstile: Supabase Auth checks the token when the account is created.
+  const check = useTurnstile("signup");
+
   if (state.account) return <Navigate to={state.account.planId ? "/profiles" : setupUrl} replace />;
 
   const validate = (): Errors => {
@@ -87,10 +92,17 @@ export default function SignUp() {
       return;
     }
     if (usesBackend) {
+      if (check.needed && !check.token) {
+        setFormError(check.waitMessage);
+        return;
+      }
       setBusy(true);
       setFormError(null);
       try {
-        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing, referralCode, affiliateCode });
+        const captchaToken = check.token ?? undefined;
+        // Each token works once: a new check starts for any next try.
+        check.reset();
+        const { needsConfirmation } = await signUp({ name, email, password, dob, marketingEmails: marketing, referralCode, affiliateCode, captchaToken });
         // Confirmed straight away: useAuthSync loads the account and the redirect above continues to the plan step.
         if (needsConfirmation) setSentTo(email.trim());
       } catch (err) {
@@ -289,6 +301,7 @@ export default function SignUp() {
             </label>
           </div>
 
+          <Turnstile check={check} />
           <button type="submit" className="primary-button auth-submit" disabled={busy}>
             {busy ? t("Creating your account…") : t("Create account")}
           </button>

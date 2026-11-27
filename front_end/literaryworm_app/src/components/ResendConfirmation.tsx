@@ -1,3 +1,5 @@
+import { Turnstile } from "./Turnstile";
+import { useTurnstile } from "../lib/useTurnstile";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useEffect, useState } from "react";
@@ -14,6 +16,8 @@ export function ResendConfirmation({ email }: { email: string }) {
   const [sent, setSent] = useState(false);
   const [wait, setWait] = useState(0);
   const t = useT();
+  // Supabase Auth checks a Turnstile token before sending the email again.
+  const check = useTurnstile("resend-confirmation");
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -22,11 +26,17 @@ export function ResendConfirmation({ email }: { email: string }) {
   }, [wait]);
 
   async function send() {
+    if (check.needed && !check.token) {
+      setError(check.waitMessage);
+      return;
+    }
     setBusy(true);
     setError(null);
     setSent(false);
+    const captchaToken = check.token ?? undefined;
+    check.reset();
     try {
-      await resendConfirmation(email);
+      await resendConfirmation(email, captchaToken);
       setSent(true);
       setWait(WAIT_SECONDS);
     } catch (err) {
@@ -38,6 +48,7 @@ export function ResendConfirmation({ email }: { email: string }) {
 
   return (
     <div className="resend-confirmation">
+      <Turnstile check={check} />
       <button type="button" className="secondary-button auth-submit" disabled={busy || wait > 0} onClick={send}>
         <Icon name="mail" size={16} /> {wait > 0 ? t("Send again in {n} s", { n: wait }) : t("Send the email again")}
       </button>

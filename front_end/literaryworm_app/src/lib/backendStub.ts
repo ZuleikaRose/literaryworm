@@ -5,3 +5,4 @@
 export const SUPABASE_URL: string | undefined = undefined;
 export const PUBLISHABLE_KEY: string | undefined = undefined;
 export const usesBackend = false;
+export const TURNSTILE_SITE_KEY: string | undefined = undefined;

@@ -68,6 +68,9 @@ function client() {
 /** Turns Supabase Auth errors into plain words. */
 function authMessage(error: { message?: string; status?: number; code?: string }): string {
   const text = (error.message ?? "").toLowerCase();
+  // Supabase Auth's CAPTCHA protection refused the Turnstile token (missing, used or expired).
+  if (error.code === "captcha_failed" || text.includes("captcha"))
+    return tr("The security check didn't go through. Wait for it to finish, then try again.");
   if (error.code === "email_not_confirmed" || text.includes("email not confirmed"))
     return tr("Confirm your email first: open the link we sent you, then log in.");
   if (text.includes("invalid login") || error.status === 400)
@@ -102,6 +105,8 @@ export interface SignUpInput {
   referralCode?: string | null;
   /** An approved affiliate's code from /signup?aff= (lib/affiliates.ts), noted with the new account. */
   affiliateCode?: string | null;
+  /** Cloudflare Turnstile's token (components/Turnstile.tsx), checked by Supabase Auth. */
+  captchaToken?: string;
 }
 
 /**
@@ -115,6 +120,7 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
     password: input.password,
     options: {
       emailRedirectTo: `${window.location.origin}/signin?confirmed=1`,
+      captchaToken: input.captchaToken,
       data: {
         display_name: input.name.trim(),
         date_of_birth: input.dob,
@@ -136,9 +142,9 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
   return { needsConfirmation: !data.session };
 }
 
-export async function signIn(email: string, password: string): Promise<void> {
+export async function signIn(email: string, password: string, captchaToken?: string): Promise<void> {
   signingInHere = true;
-  const { error } = await client().auth.signInWithPassword({ email: email.trim(), password });
+  const { error } = await client().auth.signInWithPassword({ email: email.trim(), password, options: { captchaToken } });
   if (error) {
     signingInHere = false;
     if (error.code === "email_not_confirmed") throw new UnconfirmedEmailError(authMessage(error));
@@ -178,18 +184,19 @@ export async function signOut(): Promise<void> {
  * Sends the sign-up confirmation link again (through Supabase Auth, so by Mailgun). Supabase
  * answers the same way for addresses without an account, so nothing is revealed.
  */
-export async function resendConfirmation(email: string): Promise<void> {
+export async function resendConfirmation(email: string, captchaToken?: string): Promise<void> {
   let error: Parameters<typeof authMessage>[0] | null;
   try {
     ({ error } = await client().auth.resend({
       type: "signup",
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/signin?confirmed=1` },
+      options: { emailRedirectTo: `${window.location.origin}/signin?confirmed=1`, captchaToken },
     }));
   } catch {
     throw new AccountError(OFFLINE);
   }
   if (!error) return;
+  if (error.code === "captcha_failed") throw new AccountError(authMessage(error));
   if (error.status === 429) throw new AccountError(tr("We've just sent one. Wait a minute, then try again."));
   throw new AccountError(tr("We couldn't send the email just now. Try again in a moment."));
 }
@@ -198,16 +205,18 @@ export async function resendConfirmation(email: string): Promise<void> {
  * Sends a reset link. Supabase answers the same way whether or not the email has an account,
  * so the page still reveals nothing; a failure here means the request itself didn't go through.
  */
-export async function sendPasswordReset(email: string): Promise<void> {
+export async function sendPasswordReset(email: string, captchaToken?: string): Promise<void> {
   let error: Parameters<typeof authMessage>[0] | null;
   try {
     ({ error } = await client().auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
+      captchaToken,
     }));
   } catch {
     throw new AccountError(OFFLINE);
   }
   if (!error) return;
+  if (error.code === "captcha_failed") throw new AccountError(authMessage(error));
   if (error.status === 429) throw new AccountError(authMessage(error));
   throw new AccountError(tr("We couldn't send the reset link just now. Try again in a moment."));
 }
@@ -222,26 +231,16 @@ export async function setNewPassword(password: string): Promise<void> {
  * Resolves false for a wrong password; throws an AccountError when the check couldn't run
  * (offline, rate limited), so the gate can say so instead of "wrong password".
  *
- * Asks Auth directly and drops the session it returns: signing in on the app's client would
- * replace the member's session with a password-only one, undoing two-step sign-in.
+ * Asked of the `check-password` function, which checks the signed-in member's own password with
+ * Auth on the server (exempt from the log-in page's Turnstile check, and rate limited per account).
+ * Never sign in on the app's client to check it: that would replace the member's session with a
+ * password-only one, undoing two-step sign-in. `email` is unused: the function takes the session's.
  */
-export async function verifyPassword(email: string, password: string): Promise<boolean> {
+export async function verifyPassword(_email: string, password: string): Promise<boolean> {
   if (!password) return false;
   if (!SUPABASE_URL || !PUBLISHABLE_KEY) throw new AccountError(OFFLINE);
-  let res: Response;
-  try {
-    res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: "POST",
-      headers: { apikey: PUBLISHABLE_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-  } catch {
-    throw new AccountError(OFFLINE);
-  }
-  if (res.ok) return true;
-  // 400 is Supabase's answer for a wrong email or password.
-  if (res.status === 400) return false;
-  throw new AccountError(authMessage({ status: res.status }));
+  const { ok } = await callFunction<{ ok: boolean }>("check-password", { password }, tr("We couldn't check the password. Try again."));
+  return ok === true;
 }
 
 // --- Two-step sign-in (Supabase Auth MFA: an authenticator app's 6-digit codes) ---
@@ -460,12 +459,14 @@ export async function deletePasskey(passkeyId: string): Promise<void> {
  * picks one, so no email is typed. useAuthSync takes it from there. A passkey counts as both steps,
  * so two-step sign-in doesn't ask for the code, unless a passkey on the account was added without it.
  */
-export async function signInWithPasskey(): Promise<void> {
+export async function signInWithPasskey(captchaToken?: string): Promise<void> {
   // A sign-in made here, like signIn(): useAuthSync treats it as fresh, not a restored session.
   signingInHere = true;
-  const { error } = await client().auth.signInWithPasskey();
+  // Supabase Auth checks the Turnstile token when the passkey challenge is fetched.
+  const { error } = await client().auth.signInWithPasskey({ options: { captchaToken } });
   if (error) {
     signingInHere = false;
+    if (error.code === "captcha_failed") throw new AccountError(authMessage(error));
     if (error.code === "email_not_confirmed") throw new UnconfirmedEmailError(passkeyMessage(error, "signin"));
     throw new AccountError(passkeyMessage(error, "signin"));
   }

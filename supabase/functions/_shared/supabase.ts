@@ -75,9 +75,20 @@ export async function requireUser(req: Request): Promise<User> {
   return data.user;
 }
 
-/** Re-checks the account password before sensitive changes. */
+/**
+ * Re-checks the account password before sensitive changes. Asked with the service role key, which
+ * Supabase Auth's CAPTCHA protection (Cloudflare Turnstile on the log-in page) lets through: the
+ * member is already signed in, and each caller rate limits it. The session it makes is dropped.
+ */
 export async function confirmPassword(email: string, password: string): Promise<void> {
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), noSession);
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw new HttpError("forbidden", "That password isn't right.");
+  const { error } = await serviceClient().auth.signInWithPassword({ email, password });
+  if (!error) return;
+  if (error.code === "captcha_failed") {
+    // The service role key wasn't accepted as an admin's, so Auth asked for a CAPTCHA token: a
+    // setting to fix, not a wrong password.
+    console.error("confirmPassword: Auth asked for a CAPTCHA token from the service role");
+    throw new HttpError("server_error", "We couldn't check the password just now. Try again later.");
+  }
+  if (error.status === 429) throw new HttpError("rate_limited", "Too many tries in a short time. Wait a few minutes, then try again.");
+  throw new HttpError("forbidden", "That password isn't right.");
 }

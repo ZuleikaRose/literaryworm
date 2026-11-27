@@ -12,6 +12,8 @@ import { AccountError, UnconfirmedEmailError } from "../lib/accountApi";
 import { usesBackend } from "../lib/backend";
 import { passkeysSupported } from "../lib/passkeys";
 import { looksLikeRecoveryCode } from "../lib/recoveryCodes";
+import { Turnstile } from "../components/Turnstile";
+import { useTurnstile } from "../lib/useTurnstile";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
@@ -42,6 +44,9 @@ export default function SignIn() {
   const t = useT();
   useTitle(mode === "signin" ? t("Log in") : t("Reset your password"));
 
+  // Cloudflare Turnstile: Supabase Auth checks the token on a password or passkey log-in, and on a reset.
+  const check = useTurnstile(mode === "signin" ? "login" : "reset-password");
+
   // Also catches the render right after signing in, so it must agree with afterSignIn() on where to go.
   if (state.account)
     return <Navigate to={state.account.planId ? "/profiles" : "/pricing?setup=1"} replace state={from ? { from } : undefined} />;
@@ -63,11 +68,18 @@ export default function SignIn() {
       return;
     }
     if (!isLocal) {
+      if (check.needed && !check.token) {
+        setFormError(check.waitMessage);
+        return;
+      }
       setBusy(true);
       setFormError(null);
       setUnconfirmed(null);
+      const captchaToken = check.token ?? undefined;
+      // Each token works once: a new check starts for any next try.
+      check.reset();
       try {
-        await accountApi.signIn(email, password);
+        await accountApi.signIn(email, password, captchaToken);
         // useAuthSync loads the account; the redirect above then takes over.
       } catch (err) {
         if (err instanceof UnconfirmedEmailError) setUnconfirmed(email);
@@ -87,11 +99,17 @@ export default function SignIn() {
 
   // A passkey picks the account itself, so no email is typed. Members only (the demo has none).
   const passkeyLogIn = async () => {
+    if (check.needed && !check.token) {
+      setFormError(check.waitMessage);
+      return;
+    }
     setBusy(true);
     setFormError(null);
     setUnconfirmed(null);
+    const captchaToken = check.token ?? undefined;
+    check.reset();
     try {
-      await accountApi.signInWithPasskey();
+      await accountApi.signInWithPasskey(captchaToken);
       // useAuthSync loads the account (or asks for the two-step code); the redirect above then takes over.
     } catch (err) {
       setFormError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
@@ -115,9 +133,15 @@ export default function SignIn() {
       return;
     }
     if (!isLocal) {
+      if (check.needed && !check.token) {
+        setEmailError(check.waitMessage);
+        return;
+      }
       setBusy(true);
+      const captchaToken = check.token ?? undefined;
+      check.reset();
       try {
-        await accountApi.sendPasswordReset(email);
+        await accountApi.sendPasswordReset(email, captchaToken);
       } catch (err) {
         setEmailError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
         setBusy(false);
@@ -169,6 +193,7 @@ export default function SignIn() {
             onChange={(e) => setEmail(e.target.value)}
             error={emailError}
           />
+          <Turnstile check={check} />
           <button type="submit" className="primary-button auth-submit" disabled={busy}>
             {busy ? t("Sending…") : t("Send reset link")}
           </button>
@@ -237,6 +262,7 @@ export default function SignIn() {
         <button type="button" className="text-button forgot-link" onClick={() => setMode("forgot")}>
           {t("Forgot password?")}
         </button>
+        <Turnstile check={check} />
         <button type="submit" className="primary-button auth-submit" disabled={busy}>
           {busy ? t("Logging in…") : t("Log in")}
         </button>

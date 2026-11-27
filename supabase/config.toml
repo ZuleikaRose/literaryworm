@@ -19,6 +19,11 @@ verify_jwt = true
 [functions.manage-account]
 verify_jwt = true
 
+[functions.check-password]
+# The app's grown-up gates re-check the signed-in member's own password here (requireUser, 20 tries
+# in 15 minutes), since Auth's CAPTCHA protection makes the browser's direct check need a token.
+verify_jwt = true
+
 [functions.recovery-code]
 # The log-in page's second step: a password-only (aal1) session trades a recovery code for turning
 # two-step sign-in off. The function checks the session itself and rate limits each account.

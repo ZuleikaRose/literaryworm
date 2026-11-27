@@ -30,7 +30,8 @@ beforeAll(async () => {
     cwd: `${__dirname}/..`,
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
-    env: { ...process.env, VITE_SUPABASE_URL: SUPABASE, VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_passkey_test" },
+    // Cloudflare's always-passing Turnstile test key: the widget runs for real and hands over a dummy token.
+    env: { ...process.env, VITE_SUPABASE_URL: SUPABASE, VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_passkey_test", VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA" },
   });
   let output = "";
   server.stdout?.on("data", (d: Buffer) => (output += d.toString()));
@@ -77,7 +78,7 @@ interface Stand {
 
 /** Answers the app's Supabase calls; returns what it saw. */
 async function standIn(page: Page, stand: Stand) {
-  const seen = { stepChecks: 0, accountLoads: 0, codeChecks: 0, recoveryTries: 0, refreshes: 0 };
+  const seen = { stepChecks: 0, accountLoads: 0, codeChecks: 0, recoveryTries: 0, refreshes: 0, missingCaptcha: 0 };
   const now = Math.floor(Date.now() / 1000);
   const factors = stand.twoStep
     ? [{ id: "f1", factor_type: "totp", status: "verified", friendly_name: "Authenticator app", created_at: "", updated_at: "" }]
@@ -116,11 +117,20 @@ async function standIn(page: Page, stand: Stand) {
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (url.origin === APP) return route.continue();
+    // Turnstile's widget, which the log-in page shows before a passkey log-in.
+    if (url.origin === "https://challenges.cloudflare.com") return route.continue();
     if (url.origin !== SUPABASE) return route.abort();
     const { pathname } = url;
     if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" } });
-    if (pathname === "/auth/v1/passkeys/authentication/options")
+    if (pathname === "/auth/v1/passkeys/authentication/options") {
+      // Supabase Auth's CAPTCHA protection checks the Turnstile token here.
+      const body = JSON.parse(route.request().postData() ?? "{}") as { gotrue_meta_security?: { captcha_token?: string } };
+      if (!body.gotrue_meta_security?.captcha_token) {
+        seen.missingCaptcha++;
+        return json(route, { code: "captcha_failed", message: "captcha protection: request disallowed (no captcha_token found)" }, 400);
+      }
       return json(route, { challenge_id: "challenge-1", options: { challenge: b64url(randomBytes(32)), rpId: "localhost", userVerification: "preferred", timeout: 60_000 } });
+    }
     if (pathname === "/auth/v1/passkeys/authentication/verify") return json(route, session);
     if (pathname === "/functions/v1/recovery-code") {
       seen.recoveryTries++;
@@ -156,6 +166,23 @@ async function standIn(page: Page, stand: Stand) {
   return seen;
 }
 
+/** Waits for Turnstile's test key to pass (its widget says so), as a person would before logging in. */
+async function passTurnstile(page: Page) {
+  await page.getByRole("group", { name: "Security check" }).waitFor();
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    const done = await page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLIFrameElement>(".turnstile-widget iframe")).length > 0 &&
+      // The widget keeps its token in a hidden input only when asked; ask the API instead.
+      typeof (window as unknown as { turnstile?: { getResponse?: () => string | undefined } }).turnstile?.getResponse === "function" &&
+      Boolean((window as unknown as { turnstile: { getResponse: () => string | undefined } }).turnstile.getResponse()),
+    );
+    if (done) return;
+    await page.waitForTimeout(200);
+  }
+  throw new Error("Turnstile's test key didn't pass within 20 seconds");
+}
+
 /** Chrome's virtual authenticator with one passkey for localhost, unlocked by "Face ID". */
 async function addPasskey(page: Page) {
   const cdp = await page.context().newCDPSession(page);
@@ -185,6 +212,7 @@ async function passkeyLogIn(size: { width: number; height: number; isMobile?: bo
   const seen = await standIn(page, stand);
   await addPasskey(page);
   await page.goto(`${APP}/signin`);
+  await passTurnstile(page);
   await page.getByRole("button", { name: /Log in with a passkey/ }).click();
   // Either the code screen shows, or the app moves on to load the account.
   const codeField = page.getByLabel("6-digit code");
@@ -207,6 +235,7 @@ describe("logging in with a passkey when two-step sign-in is on", () => {
   for (const [name, size] of SIZES) {
     it(`goes straight in on ${name}, without asking for the code`, async () => {
       const result = await passkeyLogIn(size, { twoStep: true, passkeyCounts: true });
+      expect(result.missingCaptcha).toBe(0); // the Turnstile token went with the passkey challenge
       expect(result.stepChecks).toBeGreaterThan(0); // the database was asked
       expect(result.askedForCode).toBe(false);
       expect(result.codeChecks).toBe(0);
@@ -238,6 +267,7 @@ it("a recovery code turns two-step sign-in off and logs in, after refusing a wro
   const seen = await standIn(page, { twoStep: true, passkeyCounts: false, recoveryCode: "7k2mp-q9xzt" });
   await addPasskey(page);
   await page.goto(`${APP}/signin`);
+  await passTurnstile(page);
   await page.getByRole("button", { name: /Log in with a passkey/ }).click();
   await page.getByRole("button", { name: "Lost your phone? Use a recovery code" }).click();
   const field = page.getByLabel("Recovery code", { exact: true });
