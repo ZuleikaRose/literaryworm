@@ -9,11 +9,23 @@ import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
 /**
- * Recovery codes, under Two-step sign-in in Account → Sign-in while it's on (members only): how many
- * still work, and making a new set after the account password. The codes are shown once, to copy or
- * download (made in the browser, never sent); the database keeps only hashes.
+ * Recovery codes, under Two-step sign-in in Account → Sign-in for every member: how many still work,
+ * and making a new set after the account password. Codes only mean something with two-step sign-in,
+ * so while it's off the button sets that up first (`onNeedTwoStep`); Account then opens the codes
+ * dialog (`openRequest` goes up by one). The codes are shown once, to copy or download (made in the
+ * browser, never sent); the database keeps only hashes.
  */
-export function RecoveryCodes({ email }: { email: string }) {
+export function RecoveryCodes({
+  email,
+  twoStepOn,
+  onNeedTwoStep,
+  openRequest,
+}: {
+  email: string;
+  twoStepOn: boolean;
+  onNeedTwoStep: () => void;
+  openRequest: number;
+}) {
   const t = useT();
   const [left, setLeft] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -26,7 +38,17 @@ export function RecoveryCodes({ email }: { email: string }) {
   const [copied, setCopied] = useState<string | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
 
+  // Asked to open once two-step sign-in has just been turned on for making codes (adjusted while
+  // rendering, as React suggests for state that follows a prop).
+  const [seenRequest, setSeenRequest] = useState(openRequest);
+  if (openRequest !== seenRequest) {
+    setSeenRequest(openRequest);
+    setOpen(true);
+  }
+
   useEffect(() => {
+    // The count is shown only while it's on; it's read again each time it's turned on.
+    if (!twoStepOn) return;
     let live = true;
     recoveryCodesLeft().then(
       (n) => live && setLeft(n),
@@ -35,7 +57,7 @@ export function RecoveryCodes({ email }: { email: string }) {
     return () => {
       live = false;
     };
-  }, []);
+  }, [twoStepOn]);
 
   const close = () => {
     setOpen(false);
@@ -86,7 +108,10 @@ export function RecoveryCodes({ email }: { email: string }) {
           "If you lose the phone with your authenticator app, a recovery code logs you in instead. Each code works once, and using one turns two-step sign-in off so you can set it up again on a new phone.",
         )}
       </p>
-      {left !== null && (
+      {!twoStepOn && (
+        <p className="field-hint">{t("Recovery codes work with two-step sign-in, so making them turns it on first.")}</p>
+      )}
+      {twoStepOn && left !== null && (
         <div className="account-fact-row">
           <span>{t("Recovery codes left")}</span>
           <strong>{left > 0 ? t.plural(left, { one: "{count} code", other: "{count} codes" }) : t("None yet")}</strong>
@@ -98,7 +123,7 @@ export function RecoveryCodes({ email }: { email: string }) {
           <p>{loadError}</p>
         </div>
       )}
-      <button type="button" className="secondary-button" onClick={() => setOpen(true)}>
+      <button type="button" className="secondary-button" onClick={() => (twoStepOn ? setOpen(true) : onNeedTwoStep())}>
         {left ? t("Make new recovery codes") : t("Make recovery codes")}
       </button>
 

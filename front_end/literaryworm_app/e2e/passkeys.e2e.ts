@@ -166,21 +166,22 @@ async function standIn(page: Page, stand: Stand) {
   return seen;
 }
 
-/** Waits for Turnstile's test key to pass (its widget says so), as a person would before logging in. */
+/** Waits for Turnstile's test key to pass, as a person would before logging in. */
 async function passTurnstile(page: Page) {
   await page.getByRole("group", { name: "Security check" }).waitFor();
-  const deadline = Date.now() + 20_000;
+  // Turnstile draws its frame in a shadow root, so ask its API for the token instead of the page.
+  const token = () =>
+    page.evaluate(() => {
+      const api = (window as unknown as { turnstile?: { getResponse?: () => string | undefined } }).turnstile;
+      return typeof api?.getResponse === "function" ? (api.getResponse() ?? "") : "";
+    });
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
-    const done = await page.evaluate(() =>
-      Array.from(document.querySelectorAll<HTMLIFrameElement>(".turnstile-widget iframe")).length > 0 &&
-      // The widget keeps its token in a hidden input only when asked; ask the API instead.
-      typeof (window as unknown as { turnstile?: { getResponse?: () => string | undefined } }).turnstile?.getResponse === "function" &&
-      Boolean((window as unknown as { turnstile: { getResponse: () => string | undefined } }).turnstile.getResponse()),
-    );
-    if (done) return;
+    if (await token()) return;
     await page.waitForTimeout(200);
   }
-  throw new Error("Turnstile's test key didn't pass within 20 seconds");
+  const problem = await page.locator(".turnstile .field-error").textContent().catch(() => null);
+  throw new Error(`Turnstile's test key didn't pass within 30 seconds${problem ? `: ${problem}` : ""}`);
 }
 
 /** Chrome's virtual authenticator with one passkey for localhost, unlocked by "Face ID". */

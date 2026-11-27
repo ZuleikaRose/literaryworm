@@ -1707,6 +1707,11 @@ describe("the demo household", () => {
     await passkeys.getByText("The demo household can't add passkeys.").waitFor();
     await expect(passkeys.getByRole("button", { name: /Add a passkey/ }).count()).resolves.toBe(0);
     await page.getByRole("heading", { name: "Two-step sign-in" }).waitFor();
+    // Make recovery codes is always in Sign-in; the demo shows it switched off, saying why.
+    const codes = page.getByRole("button", { name: "Make recovery codes" });
+    await codes.waitFor();
+    await expect(codes.isDisabled()).resolves.toBe(true);
+    await page.getByText("The demo household can't make recovery codes.").waitFor();
     expect(errors()).toEqual([]);
   });
 

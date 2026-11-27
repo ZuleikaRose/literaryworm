@@ -916,6 +916,9 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
   const [codeError, setCodeError] = useState<string | null>(null);
   const [offCode, setOffCode] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  // Set when the set-up was started from Make recovery codes: the codes dialog follows it.
+  const [codesAfterSetup, setCodesAfterSetup] = useState(false);
+  const [codesRequest, setCodesRequest] = useState(0);
   const start = useAttempt();
   const turnOff = useAttempt();
   const codeRef = useRef<HTMLInputElement>(null);
@@ -939,6 +942,13 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
         <p className="field-hint">
           {account.isDemo ? t("The demo household can't turn on two-step sign-in.") : t("Two-step sign-in needs a LiteraryWorm account.")}
         </p>
+        <h4>{t("Recovery codes")}</h4>
+        <button type="button" className="secondary-button" disabled aria-describedby="recovery-codes-demo">
+          {t("Make recovery codes")}
+        </button>
+        <p className="field-hint" id="recovery-codes-demo">
+          {account.isDemo ? t("The demo household can't make recovery codes.") : t("Recovery codes need a LiteraryWorm account.")}
+        </p>
       </div>
     );
   }
@@ -953,6 +963,7 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
 
   const closeSetup = () => {
     setSetupOpen(false);
+    setCodesAfterSetup(false);
     // An unfinished set-up changes nothing; tidy it away (the next set-up clears it if this fails).
     if (setup) cancelTwoStep(setup.factorId).catch((err: Error) => console.error("two-step:", err.message));
     setSetup(null);
@@ -974,6 +985,10 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
       setSetupOpen(false);
       setOn(true);
       setNotice(t("Two-step sign-in is on. You'll enter a code from the app each time you log in."));
+      if (codesAfterSetup) {
+        setCodesAfterSetup(false);
+        setCodesRequest((n) => n + 1);
+      }
     } else {
       codeRef.current?.focus();
     }
@@ -1020,7 +1035,17 @@ function TwoStepSignIn({ account }: { account: AccountDetails }) {
         </button>
       )}
       <Feedback error={loadError} done={notice} />
-      {on && <RecoveryCodes email={account.email} />}
+      {on !== null && (
+        <RecoveryCodes
+          email={account.email}
+          twoStepOn={on}
+          openRequest={codesRequest}
+          onNeedTwoStep={() => {
+            setCodesAfterSetup(true);
+            void openSetup();
+          }}
+        />
+      )}
 
       <Dialog
         open={setupOpen}
