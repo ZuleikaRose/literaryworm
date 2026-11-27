@@ -30,6 +30,7 @@ export const plans: Plan[] = [
       tk("Upload your own DRM-free EPUB, PDF and Kindle books, up to 20 at a time and 50 MB each, search them by title, author, keywords or ISBN, even inside their text, read them offline and listen to them read aloud"),
       tk("Natural voices from Google to read your uploads and the classics aloud, with a voice for each character: 2 hours of new voicing a month, and listening again is free"),
       tk("More natural-voice hours when you need them: 5 for $14.99 or 10 for $24.99, paid once"),
+      tk("Your device's own voices read any book aloud for free, as much as you like"),
       tk("Import your reading from Goodreads or StoryGraph, and export it back in either's format"),
       tk("The app in 21 languages, and a Year in reading email each January if you'd like one"),
       tk("Accessibility menu with high contrast that follows your device, OpenDyslexic, a reading ruler and line focus, and read-along transcripts"),
