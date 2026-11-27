@@ -240,7 +240,7 @@ it("a recovery code turns two-step sign-in off and logs in, after refusing a wro
   await page.goto(`${APP}/signin`);
   await page.getByRole("button", { name: /Log in with a passkey/ }).click();
   await page.getByRole("button", { name: "Lost your phone? Use a recovery code" }).click();
-  const field = page.getByLabel("Recovery code");
+  const field = page.getByLabel("Recovery code", { exact: true });
   await expect(field.isVisible()).resolves.toBe(true);
 
   await field.fill("123456");
