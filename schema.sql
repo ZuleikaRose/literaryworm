@@ -17969,3 +17969,332 @@ $migration$;
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-27'::date, '2026.11', 'update', $lw$A security check when you log in or sign up$lw$, $lw$The log-in and sign-up forms, and asking for a password reset or the confirmation email again, now show a security check from Cloudflare Turnstile, to keep bots from guessing passwords and making accounts. It usually finishes on its own. The demo doesn't need it.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$A security check when you log in or sign up$lw$ and c.released_on = '2026-11-27');
+
+-- =============================================================================
+-- 20261127006871_device_voices_free_help.sql
+-- =============================================================================
+-- Help: device voices are free on every plan and never use natural-voice hours (each plan's natural-voice hours
+-- are unchanged: Basic 2, Standard 6, Premium 12, with more bought as packs). Same text as src/data/legalPages.json.
+-- Loud like the other policy migrations; run again, it changes nothing.
+
+do $migration$
+declare
+  s text;
+  was text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if s is null then raise exception 'device voices help: the help page is missing'; end if;
+  was := s;
+  if strpos(s, $lw$"Your device's own voices are free on every plan: they read any book aloud as much as you like and never use natural-voice hours."$lw$) = 0 then
+    if strpos(s, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual."$lw$) = 0 then
+      raise exception 'device voices help: on the help page, this passage was not found as stored: %', $lw$Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month sh$lw$;
+    end if;
+    s := replace(s, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual."$lw$, $lw$"Each month your plan includes new natural-voice reading (Basic 2 hours, Standard 6, Premium 12); Account → This month shows what's left, and the bell tells you when most of it is used. Parts you've played stay on your device to listen offline, and on Wi-Fi the next chapter is voiced ahead. Listening counts towards your plan's audiobook hours as usual.", "Your device's own voices are free on every plan: they read any book aloud as much as you like and never use natural-voice hours."$lw$);
+  end if;
+  if s <> was then update public.legal_pages set sections = s::jsonb where slug = 'help'; end if;
+end
+$migration$;
+
+-- =============================================================================
+-- 20261127006872_password_rules_whats_new.sql
+-- =============================================================================
+-- What's new: the password forms now state and check Supabase Auth's character rules. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-27'::date, '2026.11', 'update', $lw$Password rules shown as they are$lw$, $lw$New passwords need 15 to 64 characters with a lowercase letter, a capital, a number and a symbol such as ! ? # or %. The sign-up, password reset and Change password forms now say so and check it before sending, instead of the account service turning the password down afterwards. Passwords you already use keep working.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Password rules shown as they are$lw$ and c.released_on = '2026-11-27');
+
+-- =============================================================================
+-- 20261127006873_signed_in_devices_help.sql
+-- =============================================================================
+-- Where you're logged in and Log out on every other device (Account → Sign-in): Help. Same text as src/data/legalPages.json.
+--
+-- One update (one revision row), and loud: if the passage it follows isn't there as stored, the migration stops.
+-- Run again, it changes nothing.
+
+do $migration$
+declare
+  s text;
+  was text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if s is null then raise exception 'signed-in devices help: the help page is missing'; end if;
+  was := s;
+  if strpos(s, $lw$"Account → Sign-in also shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose one, or logged in on a computer that isn't yours, choose Log out on every other device. Each is logged out and stops getting notifications, anything still open on one stops within an hour, and you stay logged in where you are."$lw$) = 0 then
+    if strpos(s, $lw$"You can also turn on two-step sign-in there, so logging in with your password also asks for a code from an authenticator app on your phone. Then make recovery codes in the same place and keep them somewhere safe, such as your password manager. If you lose the phone, choose Lost your phone? Use a recovery code when you're asked for the code. Each code works once, and using one turns two-step sign-in off, so set it up again on your new phone and make new codes."$lw$) = 0 then
+      raise exception 'signed-in devices help: on the help page, this passage was not found as stored: %', $lw$You can also turn on two-step sign-in there, so logging in with your password also asks $lw$;
+    end if;
+    s := replace(s, $lw$"You can also turn on two-step sign-in there, so logging in with your password also asks for a code from an authenticator app on your phone. Then make recovery codes in the same place and keep them somewhere safe, such as your password manager. If you lose the phone, choose Lost your phone? Use a recovery code when you're asked for the code. Each code works once, and using one turns two-step sign-in off, so set it up again on your new phone and make new codes."$lw$, $lw$"You can also turn on two-step sign-in there, so logging in with your password also asks for a code from an authenticator app on your phone. Then make recovery codes in the same place and keep them somewhere safe, such as your password manager. If you lose the phone, choose Lost your phone? Use a recovery code when you're asked for the code. Each code works once, and using one turns two-step sign-in off, so set it up again on your new phone and make new codes.", "Account → Sign-in also shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose one, or logged in on a computer that isn't yours, choose Log out on every other device. Each is logged out and stops getting notifications, anything still open on one stops within an hour, and you stay logged in where you are."$lw$);
+  end if;
+  if s <> was then update public.legal_pages set sections = s::jsonb where slug = 'help'; end if;
+end
+$migration$;
+
+-- =============================================================================
+-- 20261127006874_whats_new_devices_checklist.sql
+-- =============================================================================
+-- What's new: Log out on every other device (Account → Sign-in) and the live password checklist. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-27'::date, '2026.11', 'update', $lw$A checklist as you choose a password$lw$, $lw$When you choose a new password, on sign-up, password reset or Change password, the form now ticks off each rule as you type: 15 to 64 characters, a lowercase letter, a capital, a number and a symbol.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$A checklist as you choose a password$lw$ and c.released_on = '2026-11-27');
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-27'::date, '2026.11', 'feature', $lw$Log out on every other device$lw$, $lw$Account → Sign-in now shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose a phone or forget to log out of a shared computer, Log out on every other device logs them all out and stops their notifications, while you stay logged in where you are.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Log out on every other device$lw$ and c.released_on = '2026-11-27');
+
+-- =============================================================================
+-- 20261127006875_change_email_help.sql
+-- =============================================================================
+-- Changing the email address (Account → Sign-in): Help. Same text as src/data/legalPages.json.
+--
+-- One update (one revision row), and loud: if the passage it goes before isn't there as stored, the migration stops.
+-- Run again, it changes nothing.
+
+do $migration$
+declare
+  s text;
+  was text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if s is null then raise exception 'change email help: the help page is missing'; end if;
+  was := s;
+  if strpos(s, $lw$"To change your email address, choose Change email address in Account → Sign-in and enter the new one with your account password. We send a link to both addresses, and the change happens once you've followed both; your old address then gets a note that it changed. Your receipts go to the new address too."$lw$) = 0 then
+    if strpos(s, $lw$"In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."$lw$) = 0 then
+      raise exception 'change email help: on the help page, this passage was not found as stored: %', $lw$In Account → Sign-in you can add a passkey to log in $lw$;
+    end if;
+    s := replace(s, $lw$"In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."$lw$, $lw$"To change your email address, choose Change email address in Account → Sign-in and enter the new one with your account password. We send a link to both addresses, and the change happens once you've followed both; your old address then gets a note that it changed. Your receipts go to the new address too.", "In Account → Sign-in you can add a passkey to log in with your face, fingerprint, screen lock or a security key instead of your password, and rename or remove passkeys you no longer use."$lw$);
+  end if;
+  if s <> was then update public.legal_pages set sections = s::jsonb where slug = 'help'; end if;
+end
+$migration$;
+
+-- =============================================================================
+-- 20261127006876_whats_new_change_email.sql
+-- =============================================================================
+-- What's new: changing the email address. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-27'::date, '2026.11', 'feature', $lw$Change your email address$lw$, $lw$You can now change the email address of your account in Account → Sign-in. We send a link to your current address and one to the new one, and the change happens once you've followed both. Your old address gets a note when it's done, and your receipts move to the new address too.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Change your email address$lw$ and c.released_on = '2026-11-27');
+
+-- =============================================================================
+-- 20261127006877_sign_in_alerts.sql
+-- =============================================================================
+-- Log-in alerts: an email to the account's address a few minutes after each new log-in, with the kind
+-- of browser and device and the time, so a member hears about a log-in they didn't make.
+--
+-- * account_private.sign_in_emails: on by default; the member turns it off in Account → Sign-in.
+-- * sign_in_alerts: a copy of each new auth.sessions row's user agent and time, made by a trigger
+--   on auth.sessions (a log-in, not a token refresh). Service role only. Rows are claimed once by
+--   claim_sign_in_alerts() for the sign-in-alerts function, which pg_cron calls every 5 minutes,
+--   and deleted within a day.
+-- * The Edge Functions' own password checks (confirmPassword() signs in with the service role) end
+--   their session at once, and come from Deno: neither is ever emailed about. An alert is sent only
+--   while its session still exists, two minutes after it began.
+-- * The first log-in within 30 minutes of signing up isn't emailed about.
+-- The trigger never stops a log-in: anything that goes wrong in it is only a warning.
+
+alter table public.account_private add column sign_in_emails boolean not null default true;
+grant select (sign_in_emails), update (sign_in_emails) on public.account_private to authenticated;
+
+create table public.sign_in_alerts (
+  session_id   uuid primary key,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  -- The browser's own description (its user agent), cut to 300 characters; the function names it.
+  device       text not null default '' check (char_length(device) <= 300),
+  signed_in_at timestamptz not null,
+  claimed_at   timestamptz
+);
+-- The index for user_id (the foreign key) is in the next migration (CREATE INDEX CONCURRENTLY).
+
+alter table public.sign_in_alerts enable row level security;
+revoke all on public.sign_in_alerts from anon, authenticated;
+grant select, insert, update, delete on public.sign_in_alerts to service_role;
+
+create or replace function private.queue_sign_in_alert()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  begin
+    -- The Edge Functions' password re-checks (supabase-js on Deno), never a member's browser.
+    if coalesce(new.user_agent, '') like 'Deno/%' then
+      return new;
+    end if;
+    -- The log-in that comes with signing up.
+    if exists (select 1 from auth.users u where u.id = new.user_id and u.created_at > now() - interval '30 minutes') then
+      return new;
+    end if;
+    insert into public.sign_in_alerts (session_id, user_id, device, signed_in_at)
+    values (new.id, new.user_id, left(coalesce(new.user_agent, ''), 300), coalesce(new.created_at, now()))
+    on conflict (session_id) do nothing;
+  exception when others then
+    raise warning 'sign-in alerts: could not queue session %: %', new.id, sqlerrm;
+  end;
+  return new;
+end;
+$$;
+revoke execute on function private.queue_sign_in_alert() from public, anon, authenticated;
+
+create trigger queue_sign_in_alert
+  after insert on auth.sessions
+  for each row execute function private.queue_sign_in_alert();
+
+-- Claims due alerts once: two minutes after the log-in, while its session still exists, for an
+-- account that hasn't turned them off and has a confirmed address. Clears what won't be sent and
+-- anything older than a day.
+create or replace function public.claim_sign_in_alerts(max_count integer default 200)
+returns table (session_id uuid, email text, display_name text, device text, signed_in_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  delete from public.sign_in_alerts a
+  where a.signed_in_at < now() - interval '1 day'
+     or (a.claimed_at is null and a.signed_in_at < now() - interval '2 minutes'
+         and not exists (select 1 from auth.sessions s where s.id = a.session_id))
+     or (a.claimed_at is null and exists (
+           select 1 from public.account_private p where p.user_id = a.user_id and not p.sign_in_emails));
+
+  return query
+  with due as (
+    select a.session_id
+    from public.sign_in_alerts a
+    where a.claimed_at is null
+      and a.signed_in_at < now() - interval '2 minutes'
+    order by a.signed_in_at
+    limit least(greatest(coalesce(max_count, 200), 1), 500)
+    for update skip locked
+  ), claimed as (
+    update public.sign_in_alerts a set claimed_at = now()
+    from due where a.session_id = due.session_id
+    returning a.session_id, a.user_id, a.device, a.signed_in_at
+  )
+  select c.session_id, u.email::text, p.display_name, c.device, c.signed_in_at
+  from claimed c
+  join auth.users u on u.id = c.user_id and u.email is not null and u.email_confirmed_at is not null
+  left join public.profiles p on p.id = c.user_id;
+end;
+$$;
+revoke execute on function public.claim_sign_in_alerts(integer) from public, anon, authenticated;
+grant execute on function public.claim_sign_in_alerts(integer) to service_role;
+
+-- An alert whose email failed: handed back for the next run.
+create or replace function public.release_sign_in_alert(p_session uuid)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.sign_in_alerts set claimed_at = null where session_id = p_session;
+$$;
+revoke execute on function public.release_sign_in_alert(uuid) from public, anon, authenticated;
+grant execute on function public.release_sign_in_alert(uuid) to service_role;
+
+-- The secret the cron job sends and the sign-in-alerts function checks: 32 random bytes, made once.
+select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'sign_in_alerts_secret', 'Sent by the sign-in-alerts cron job; checked by the function')
+where not exists (select 1 from vault.secrets where name = 'sign_in_alerts_secret');
+
+create or replace function public.sign_in_alerts_secret()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'sign_in_alerts_secret';
+$$;
+revoke execute on function public.sign_in_alerts_secret() from public, anon, authenticated;
+grant execute on function public.sign_in_alerts_secret() to service_role;
+
+create or replace function private.call_sign_in_alerts()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  base   text := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url');
+  secret text := (select decrypted_secret from vault.decrypted_secrets where name = 'sign_in_alerts_secret');
+begin
+  -- Nothing to do: no call at all.
+  if not exists (select 1 from public.sign_in_alerts where claimed_at is null) then
+    return;
+  end if;
+  if base is null or secret is null then
+    return;
+  end if;
+  perform net.http_post(
+    url := rtrim(base, '/') || '/functions/v1/sign-in-alerts',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || secret),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 60000
+  );
+end;
+$$;
+revoke execute on function private.call_sign_in_alerts() from public, anon, authenticated;
+
+select cron.schedule('sign-in-alerts', '*/5 * * * *', $$select private.call_sign_in_alerts()$$);
+
+-- =============================================================================
+-- 20261127006878_sign_in_alerts_user_index.sql
+-- =============================================================================
+-- The foreign key's index for sign_in_alerts.user_id (6877). Run on its own, outside a transaction.
+create index concurrently if not exists sign_in_alerts_user_id_idx on public.sign_in_alerts (user_id);
+
+-- =============================================================================
+-- 20261127006879_sign_in_alerts_policies_help.sql
+-- =============================================================================
+-- Log-in alert emails (6877): the Privacy Policy (18. What we collect) and Help. Same text as src/data/legalPages.json.
+--
+-- One update per page (one revision row each), and loud: if the passage a paragraph follows isn't there as
+-- stored, the migration stops with the page named. Run again, it changes nothing.
+
+do $migration$
+declare
+  s text;
+  was text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'privacy' for update;
+  if s is null then raise exception 'sign-in alerts policies: the privacy page is missing'; end if;
+  was := s;
+  if strpos(s, $lw$"When someone logs in to your account, our sign-in service records the new session with the browser's description of itself. We copy that description and the time, and a few minutes later email your account's address to say which browser and device logged in and when, unless you've turned these emails off in Account → Sign-in. Mailgun sends it for us. We delete the copy within a day."$lw$) = 0 then
+    if strpos(s, $lw$"If you turn on Year in reading, each January we email the year just ended to your account's email address: for every profile in the household, its name, the time it read and listened, the days it read, how many books it finished (naming books from our catalog) and the month it read most. Mailgun sends it for us. We keep only that the year's email was sent."$lw$) = 0 then
+      raise exception 'sign-in alerts policies: on the privacy page, this passage was not found as stored: %', $lw$If you turn on Year in reading, each January we email the year just ended to you$lw$;
+    end if;
+    s := replace(s, $lw$"If you turn on Year in reading, each January we email the year just ended to your account's email address: for every profile in the household, its name, the time it read and listened, the days it read, how many books it finished (naming books from our catalog) and the month it read most. Mailgun sends it for us. We keep only that the year's email was sent."$lw$, $lw$"If you turn on Year in reading, each January we email the year just ended to your account's email address: for every profile in the household, its name, the time it read and listened, the days it read, how many books it finished (naming books from our catalog) and the month it read most. Mailgun sends it for us. We keep only that the year's email was sent.", "When someone logs in to your account, our sign-in service records the new session with the browser's description of itself. We copy that description and the time, and a few minutes later email your account's address to say which browser and device logged in and when, unless you've turned these emails off in Account → Sign-in. Mailgun sends it for us. We delete the copy within a day."$lw$);
+  end if;
+  if s <> was then update public.legal_pages set sections = s::jsonb where slug = 'privacy'; end if;
+end
+$migration$;
+
+do $migration$
+declare
+  s text;
+  was text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if s is null then raise exception 'sign-in alerts policies: the help page is missing'; end if;
+  was := s;
+  if strpos(s, $lw$"We also email you a few minutes after each new log-in to your account, naming the browser and device and the time. If it wasn't you, change your password and log out on every other device. You can turn these emails off under Where you're logged in."$lw$) = 0 then
+    if strpos(s, $lw$"Account → Sign-in also shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose one, or logged in on a computer that isn't yours, choose Log out on every other device. Each is logged out and stops getting notifications, anything still open on one stops within an hour, and you stay logged in where you are."$lw$) = 0 then
+      raise exception 'sign-in alerts policies: on the help page, this passage was not found as stored: %', $lw$Account → Sign-in also shows where you're logged in: the devices that have had L$lw$;
+    end if;
+    s := replace(s, $lw$"Account → Sign-in also shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose one, or logged in on a computer that isn't yours, choose Log out on every other device. Each is logged out and stops getting notifications, anything still open on one stops within an hour, and you stay logged in where you are."$lw$, $lw$"Account → Sign-in also shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose one, or logged in on a computer that isn't yours, choose Log out on every other device. Each is logged out and stops getting notifications, anything still open on one stops within an hour, and you stay logged in where you are.", "We also email you a few minutes after each new log-in to your account, naming the browser and device and the time. If it wasn't you, change your password and log out on every other device. You can turn these emails off under Where you're logged in."$lw$);
+  end if;
+  if s <> was then update public.legal_pages set sections = s::jsonb where slug = 'help'; end if;
+end
+$migration$;
+
+-- =============================================================================
+-- 20261127006880_whats_new_sign_in_alerts.sql
+-- =============================================================================
+-- What's new: log-in alert emails. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-27'::date, '2026.11', 'feature', $lw$An email when someone logs in$lw$, $lw$We now email you a few minutes after each new log-in to your account, naming the browser and device and the time, so you'd know straight away about a log-in that wasn't you. You can turn these emails off in Account → Sign-in, under Where you're logged in.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$An email when someone logs in$lw$ and c.released_on = '2026-11-27');

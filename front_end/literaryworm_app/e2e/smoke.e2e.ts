@@ -1746,6 +1746,10 @@ describe("the demo household", () => {
     await list.getByText("Open now").waitFor();
     await panel.getByText("The demo household can't log devices out. This is a sample of how the list looks.").waitFor();
     await expect(panel.getByRole("button", { name: "Log out on every other device" }).isDisabled()).resolves.toBe(true);
+    // Log-in emails are for members: the demo's switch is off and says why.
+    const alerts = panel.getByRole("switch", { name: /Email me when someone logs in/ });
+    await expect(alerts.isDisabled()).resolves.toBe(true);
+    await panel.getByText("The demo doesn't send emails. Members get an email after each new log-in.").waitFor();
     await expect(scrollsSideways(page)).resolves.toBe(false);
     expect(errors()).toEqual([]);
   });

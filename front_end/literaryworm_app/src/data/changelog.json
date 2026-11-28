@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-27",
     "version": "2026.11",
     "kind": "feature",
+    "title": "An email when someone logs in",
+    "body": "We now email you a few minutes after each new log-in to your account, naming the browser and device and the time, so you'd know straight away about a log-in that wasn't you. You can turn these emails off in Account → Sign-in, under Where you're logged in.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-27",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Change your email address",
     "body": "You can now change the email address of your account in Account → Sign-in. We send a link to your current address and one to the new one, and the change happens once you've followed both. Your old address gets a note when it's done, and your receipts move to the new address too.",
     "major": false

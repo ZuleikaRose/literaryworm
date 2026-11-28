@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { AccountError, loadSignedInDevices, signOutOtherDevices } from "../lib/accountApi";
 import { deviceIdFor } from "../lib/deviceId";
 import { dateLocale } from "../lib/i18n";
@@ -14,7 +14,9 @@ import { Icon } from "./Icon";
  */
 export function SignedInDevices({ userId, isDemo }: { userId: string | null; isDemo: boolean }) {
   const t = useT();
-  const { remote } = useAccount();
+  const { remote, account, setSignInEmails } = useAccount();
+  const alertsHintId = useId();
+  const [savingAlerts, setSavingAlerts] = useState(false);
   const [now] = useState(() => Date.now());
   const [devices, setDevices] = useState<SeenDevice[] | null>(() => (isDemo ? demoSignedInDevices(now) : null));
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -90,6 +92,38 @@ export function SignedInDevices({ userId, isDemo }: { userId: string | null; isD
           {t("Log out on every other device")}
         </button>
       )}
+      <label className="switch-row">
+        <span>
+          <strong>{t("Email me when someone logs in to my account")}</strong>
+          <small id={alertsHintId}>
+            {remote
+              ? t("A few minutes after each new log-in: the browser and device, and the time. If it wasn't you, you'll know straight away.")
+              : t("The demo doesn't send emails. Members get an email after each new log-in.")}
+          </small>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          aria-describedby={alertsHintId}
+          checked={remote ? (account?.signInEmails ?? true) : false}
+          disabled={!remote || savingAlerts}
+          onChange={async (e) => {
+            const on = e.target.checked;
+            setSavingAlerts(true);
+            setError(null);
+            setNotice(null);
+            try {
+              await setSignInEmails(on);
+              setNotice(on ? t("We'll email you after each new log-in.") : t("No more log-in emails. You can still see where you're logged in here."));
+            } catch (err) {
+              setLoadError(err instanceof AccountError ? err.message : t("Something went wrong. Try again."));
+            } finally {
+              setSavingAlerts(false);
+            }
+          }}
+        />
+      </label>
       {loadError && (
         <div className="form-alert" role="alert">
           <Icon name="alert" size={17} />

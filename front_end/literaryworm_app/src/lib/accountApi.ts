@@ -571,6 +571,9 @@ export async function loadAccount(): Promise<Account | null> {
   // still opens where the column isn't yet; unknown reads as not yet verified.
   const payment = await db.from("account_private").select("card_payment_at").eq("user_id", user.id).maybeSingle();
   if (payment.error) console.error("account: couldn't load the card payment check:", payment.error.message);
+  // Log-in alert emails (migration 6877), read on their own too: unknown reads as on, the default.
+  const alerts = await db.from("account_private").select("sign_in_emails").eq("user_id", user.id).maybeSingle();
+  if (alerts.error) console.error("account: couldn't load the log-in alert setting:", alerts.error.message);
   return {
     userId: user.id,
     publicReader: Boolean((reader.data as { public_reader?: boolean } | null)?.public_reader),
@@ -585,6 +588,7 @@ export async function loadAccount(): Promise<Account | null> {
     updateEmails: details.data?.update_emails ?? false,
     kidsReportEmails: details.data?.kids_report_emails ?? false,
     yearEmails: details.data?.year_emails ?? false,
+    signInEmails: (alerts.data as { sign_in_emails?: boolean } | null)?.sign_in_emails ?? true,
     clubMeetingEmails: details.data?.club_meeting_emails ?? true,
     clubPostEmails: details.data?.club_post_emails ?? false,
     kidsConsentVerified: Boolean((payment.data as { card_payment_at?: string | null } | null)?.card_payment_at),
@@ -980,6 +984,12 @@ export async function setUpdateEmails(userId: string, on: boolean): Promise<void
 export async function setYearEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ year_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/** An email after each new log-in (account_private.sign_in_emails, sent by the sign-in-alerts function). */
+export async function setSignInEmails(userId: string, on: boolean): Promise<void> {
+  const { error } = await client().from("account_private").update({ sign_in_emails: on }).eq("user_id", userId);
+  if (error) throw new AccountError(tr("We couldn't save your email preference. Try again."));
 }
 
 /** The weekly Kids reading report email (account_private.kids_report_emails, sent by the kids-report function). */

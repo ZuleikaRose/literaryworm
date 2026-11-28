@@ -141,6 +141,8 @@ export interface Account {
   clubPostEmails: boolean;
   /** Each January, an email of the household's year in reading (members only; off until they turn it on). */
   yearEmails: boolean;
+  /** An email after each new log-in to the account (account_private.sign_in_emails; members only, on by default). */
+  signInEmails?: boolean;
   /**
    * Members only: whether a card payment on this account (account_private.card_payment_at) has
    * verified a parent's consent, which a new Kids profile needs (COPPA). Undefined for in-memory

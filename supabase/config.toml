@@ -16,6 +16,10 @@ verify_jwt = true
 [functions.checkout]
 verify_jwt = true
 
+[functions.sign-in-alerts]
+# Called by pg_cron with a Vault secret (private.call_sign_in_alerts), not a Supabase token.
+verify_jwt = false
+
 [functions.manage-account]
 verify_jwt = true
 

@@ -81,8 +81,19 @@ export async function requireUser(req: Request): Promise<User> {
  * member is already signed in, and each caller rate limits it. The session it makes is dropped.
  */
 export async function confirmPassword(email: string, password: string): Promise<void> {
-  const { error } = await serviceClient().auth.signInWithPassword({ email, password });
-  if (!error) return;
+  const client = serviceClient();
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (!error) {
+    // The check made a session of its own: end it at once, so it never lingers (or counts as a
+    // log-in for the log-in alert emails, which skip sessions that no longer exist). A failure
+    // here doesn't undo the check.
+    const token = data.session?.access_token;
+    if (token) {
+      const { error: endError } = await client.auth.admin.signOut(token, "local");
+      if (endError) console.error("confirmPassword: couldn't end the check's session:", endError.message);
+    }
+    return;
+  }
   if (error.code === "captcha_failed") {
     // The service role key wasn't accepted as an admin's, so Auth asked for a CAPTCHA token: a
     // setting to fix, not a wrong password.
