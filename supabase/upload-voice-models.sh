@@ -8,12 +8,28 @@
 #   supabase/upload-voice-models.sh xjvisabdztxvnsglysdh             # the dev branch
 #   supabase/upload-voice-models.sh ldzdmrdvmacpudsbngvd             # production
 #   supabase/upload-voice-models.sh ldzdmrdvmacpudsbngvd --dry-run   # fetch and split, upload nothing
+#   supabase/upload-voice-models.sh <ref> [--dry-run] en_US-mike-medium en_US-sam-medium   # only these
 set -euo pipefail
-ref="${1:?usage: $0 <project ref> [--dry-run]}"
-dry="${2:-}"
+ref="${1:?usage: $0 <project ref> [--dry-run] [model name...]}"
+shift
+dry=""
+if [ "${1:-}" = "--dry-run" ]; then dry="--dry-run"; shift; fi
+only=("$@")
 upload() { # <file> <content type> <cache control>
   if [ "$dry" = "--dry-run" ]; then echo "would upload $(basename "$1") ($(stat -c %s "$1") bytes, $2) to ss:///voice-models/ on $ref"; return; fi
-  supabase --experimental storage cp --remote="$ref" --yes --content-type "$2" --cache-control "$3" "$1" "ss:///voice-models/$(basename "$1")" > /dev/null
+  # Storage now and then refuses an upload partway through a run: try three times, then stop with its answer.
+  local out
+  for try in 1 2 3; do
+    if out=$(supabase --experimental storage cp --remote="$ref" --yes --content-type "$2" --cache-control "$3" "$1" "ss:///voice-models/$(basename "$1")" 2>&1) \
+      && ! grep -q '"_tag":"Error"' <<< "$out"; then
+      echo "uploaded $(basename "$1")"
+      return
+    fi
+    sleep $((try * 5))
+  done
+  echo "FAILED $(basename "$1"):" >&2
+  grep -v "^A new version\|^We recommend\|^Target:\|^Confirmed" <<< "$out" >&2
+  exit 1
 }
 base=https://huggingface.co/rhasspy/piper-voices/resolve/main
 # Every model ON_DEVICE_VOICES uses, by its path in rhasspy/piper-voices.
@@ -39,6 +55,7 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 for model in "${models[@]}"; do
   name="$(basename "$model")"
+  if [ ${#only[@]} -gt 0 ] && [[ ! " ${only[*]} " == *" $name "* ]]; then continue; fi
   curl -fsSL -o "$work/$name.onnx" "$base/$model.onnx"
   curl -fsSL -o "$work/$name.onnx.json" "$base/$model.onnx.json"
   split -b 40M -d -a 1 "$work/$name.onnx" "$work/$name.onnx."
@@ -49,4 +66,4 @@ for model in "${models[@]}"; do
   upload "$work/$name.onnx.json" application/json "public, max-age=86400"
   rm -f "$work/$name.onnx".*
 done
-if [ "$dry" = "--dry-run" ]; then echo "dry run: nothing uploaded"; else echo "uploaded ${#models[@]} models"; fi
+if [ "$dry" = "--dry-run" ]; then echo "dry run: nothing uploaded"; else echo "done"; fi
