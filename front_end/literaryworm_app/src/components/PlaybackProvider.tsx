@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getBook, isAllowed } from "../data/books";
 import { loadDevices, sendHandoff } from "../lib/devicesApi";
@@ -374,7 +375,7 @@ function Engine({
     const characterVoices = Boolean(naturalKey?.includes("+cast"));
     const onDevice = narrationKey.startsWith("ondevice:") ? onDeviceVoice(narrationKey.slice("ondevice:".length)) : null;
     const n =
-      narrationKey === "recording" && book.recording
+      narrationKey === "recording" && playsRecording(book) && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
         : onDevice && text
           ? (() => {

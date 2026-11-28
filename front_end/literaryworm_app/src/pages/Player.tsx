@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BedtimeView } from "../components/BedtimeView";
@@ -180,7 +181,7 @@ function PlayerView({ book }: { book: Book }) {
             <Icon name="settings" size={20} />
             <span className="visually-hidden">{t("Skip lengths, intros and outros")}</span>
           </button>
-          {!book.recording && (
+          {!playsRecording(book) && (
             <button
               type="button"
               className="icon-button"
@@ -344,7 +345,7 @@ function PlayerView({ book }: { book: Book }) {
                   <Icon name="moon" size={16} /> {t("Bedtime listening")}
                 </Link>
                 <CastButton recording={narration.kind === "recording"} />
-                {(book.recording || (book.upload && naturalOffered)) && (
+                {(playsRecording(book) || ((book.upload || book.recording) && naturalOffered)) && (
                   <button type="button" className="text-button" onClick={() => setPanel("clip")}>
                     <Icon name="share" size={16} /> {t("Share a clip")}
                   </button>
@@ -462,7 +463,7 @@ function PlayerView({ book }: { book: Book }) {
 
         {/* A real recording shows the transcript only where it has been lined up with the text (the pilot,
             lib/alignment.ts); a device voice reading the real text always does. */}
-        {state.a11y.transcript && !finished && (!book.recording || narration.kind === "speech" || alignment) && (
+        {state.a11y.transcript && !finished && (!playsRecording(book) || narration.kind === "speech" || alignment) && (
           <Transcript
             book={book}
             chapterIndex={chapterIndex}

@@ -1,3 +1,4 @@
+import { playsRecording } from "./recordings";
 import type { Book } from "../types";
 
 /**
@@ -14,10 +15,10 @@ const AUDIO_BYTES_PER_SECOND = 8_000;
 export const offlineSupported = () => typeof caches !== "undefined" && "serviceWorker" in navigator;
 
 const textUrl = (book: Book) => `/texts/${book.id}.json`;
-const audioUrls = (book: Book) => book.recording?.tracks.map((t) => t.url) ?? [];
+const audioUrls = (book: Book) => (playsRecording(book) ? (book.recording?.tracks.map((t) => t.url) ?? []) : []);
 
 export function audioMegabytes(book: Book): number {
-  const seconds = book.recording?.tracks.reduce((sum, t) => sum + t.seconds, 0) ?? 0;
+  const seconds = playsRecording(book) ? (book.recording?.tracks.reduce((sum, t) => sum + t.seconds, 0) ?? 0) : 0;
   return Math.round((seconds * AUDIO_BYTES_PER_SECOND) / 1_000_000);
 }
 

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-28",
     "version": "2026.11",
     "kind": "update",
+    "title": "The Metamorphosis is read by our voices",
+    "body": "The Metamorphosis is now read aloud by a natural voice or a voice from your device, from the translation you read on the page. Its LibriVox recording reads a different translation, so we no longer offer it, and the voice and the text now say the same words.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
+    "kind": "update",
     "title": "Who runs LiteraryWorm",
     "body": "LiteraryWorm is run by Zuleika LLC. The footer says so, and every policy now names the company with its postal address: 1207 Delaware Ave Ste 4418, Wilmington, DE 19806.",
     "major": false

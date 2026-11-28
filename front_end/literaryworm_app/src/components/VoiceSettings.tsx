@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { useEffect, useState } from "react";
 import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { NATURAL_PREFIX, type NaturalVoice, voiceGender, voicesFor } from "../lib/naturalVoice";
@@ -106,7 +107,7 @@ export function VoiceSelect({ book }: { book: Book }) {
                 ))}
               </optgroup>
             ))}
-          {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
+          {playsRecording(book) && book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
           {deviceGroups.map((g) => (
             <optgroup key={g.key} label={g.label}>
               {g.list.map((v) => (

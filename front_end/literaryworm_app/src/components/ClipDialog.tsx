@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { useEffect, useId, useState } from "react";
 import { CLIP_LENGTHS, type ClipLength, clipAt, clipPath, clipTime } from "../lib/clips";
 import { bookText, resolveNarration } from "../lib/narration";
@@ -58,7 +59,7 @@ export function ClipDialog({
     };
   }, [book, naturalClip]);
 
-  const track = book.recording?.tracks[chapterIndex];
+  const track = playsRecording(book) ? book.recording?.tracks[chapterIndex] : undefined;
   let path: string | null = null;
   let span: { start: number; end: number } | null = null;
   if (naturalClip) {

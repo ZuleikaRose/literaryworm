@@ -49,6 +49,11 @@ export interface Recording {
   page: string;
   /** In order; each is one of the book's chapters. */
   tracks: RecordingTrack[];
+  /**
+   * Why the recording isn't offered (src/data/books.ts WITHDRAWN_RECORDINGS): its tracks still give
+   * the chapters, but it never plays, see lib/recordings.ts `playsRecording()`.
+   */
+  withdrawn?: string;
 }
 
 export interface Book {

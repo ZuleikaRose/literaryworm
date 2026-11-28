@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { ReadingSprint } from "../components/ReadingSprint";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -1117,10 +1118,10 @@ function ListenTogether({ club, book, members, me, mine }: { club: Club; book: B
       ) : (
         <>
           <p className="goal-hint">{t("Lead a session and everyone who joins hears {title} at your place, as you play, pause and skip.", { title: book.title })}</p>
-          <button type="button" className="primary-button small-button" disabled={busy || (!portable && !book.recording)} onClick={start}>
+          <button type="button" className="primary-button small-button" disabled={busy || (!portable && !playsRecording(book))} onClick={start}>
             <Icon name="headphones" size={15} /> {t("Start listening together")}
           </button>
-          {!portable && !book.recording && <p className="goal-hint">{t("This book has no recording to listen to together.")}</p>}
+          {!portable && !playsRecording(book) && <p className="goal-hint">{t("This book has no recording to listen to together.")}</p>}
           {portable && <p className="goal-hint">{t("Everyone hears their own copy, read by the voice they chose, kept at the same chapter.")}</p>}
         </>
       )}

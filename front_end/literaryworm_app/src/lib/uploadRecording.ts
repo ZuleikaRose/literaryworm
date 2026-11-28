@@ -1,3 +1,4 @@
+import { playsRecording } from "./recordings";
 import { books, isAllowed } from "../data/books";
 import type { AgeRating, Book, UploadedBook } from "../types";
 
@@ -62,7 +63,7 @@ export function recordingFor(
   return (
     catalog.find(
       (b) =>
-        b.recording &&
+        playsRecording(b) &&
         isAllowed(b.ageRating, ageRating) &&
         mainTitle(b.title) === title &&
         names.some((name) => fold(b.author).split(" ").includes(name)),

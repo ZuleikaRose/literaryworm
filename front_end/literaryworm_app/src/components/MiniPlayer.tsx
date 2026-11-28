@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { type CSSProperties, useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePlayback } from "../lib/playback";
@@ -150,7 +151,7 @@ function MiniPlayerView({ book }: { book: Book }) {
                 <li>
                   <CastButton className="menu-item" recording />
                 </li>
-                {(book.recording || (book.upload && naturalSource !== null)) && (
+                {(playsRecording(book) || ((book.upload || book.recording) && naturalSource !== null)) && (
                   <li>
                     <button type="button" className="menu-item" onClick={choose(() => setPanel("clip"))}>
                       <Icon name="share" size={16} /> {t("Share a clip")}

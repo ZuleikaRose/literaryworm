@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Cover } from "../components/Cover";
@@ -26,7 +27,7 @@ export default function ClipPage() {
 function RecordingClip({ bookId }: { bookId: string }) {
   const [params] = useSearchParams();
   const book = getBook(bookId);
-  const tracks = book?.recording?.tracks ?? [];
+  const tracks = book && playsRecording(book) ? (book.recording?.tracks ?? []) : [];
   const clip = book ? readClip(params, tracks.map((tr) => tr.seconds)) : null;
   const t = useT();
   useTitle(book && clip ? t("A clip from {title}", { title: book.title }) : t("Clip not found"));
@@ -59,7 +60,7 @@ function RecordingClip({ bookId }: { bookId: string }) {
     };
   }, [clip]);
 
-  if (!book || !clip || !book.recording) {
+  if (!book || !clip || !book.recording || !playsRecording(book)) {
     return (
       <section className="clip-page">
         <h1>{t("Clip not found")}</h1>

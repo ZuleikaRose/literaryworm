@@ -1,3 +1,4 @@
+import { playsRecording } from "../lib/recordings";
 import { useEffect, useState } from "react";
 import { offlineSupported, readNote, readOfflinePlace, removeTracks, savedTracks, saveTracks } from "../lib/offline";
 import { type ConnectionInfo, connectionAllows, parseSchedule, SCHEDULE_CHANGED, schedulePath, schedulePlan } from "../lib/offlineSchedule";
@@ -37,7 +38,7 @@ export function ScheduledDownloads() {
   }, []);
 
   useEffect(() => {
-    if (!book?.recording || chapter === null || !offlineSupported() || !navigator.onLine) return;
+    if (!book?.recording || !playsRecording(book) || chapter === null || !offlineSupported() || !navigator.onLine) return;
     let live = true;
     const run = running.then(async () => {
       if (!live) return;

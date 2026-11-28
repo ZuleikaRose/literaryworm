@@ -1,3 +1,4 @@
+import { playsRecording } from "./recordings";
 import { ageRatingLabel, listenMinutes } from "../data/books";
 import { releaseDay, releaseLabel } from "./release";
 import { tr } from "./i18n";
@@ -103,8 +104,8 @@ export function fromCatalogBook(book: Book): DetailView {
     facts: compact([
       {
         label: tr("Narrator"),
-        value: book.recording ? tr("{narrator} (LibriVox recording)", { narrator: book.recording.narrator }) : (book.narrator ?? null),
-        narrator: book.recording?.narrator ?? book.narrator,
+        value: playsRecording(book) && book.recording ? tr("{narrator} (LibriVox recording)", { narrator: book.recording.narrator }) : (book.narrator ?? null),
+        narrator: (playsRecording(book) ? book.recording?.narrator : undefined) ?? book.narrator,
       },
       { label: tr("Publisher"), value: book.publisher },
       { label: tr("Published"), value: String(book.year) },

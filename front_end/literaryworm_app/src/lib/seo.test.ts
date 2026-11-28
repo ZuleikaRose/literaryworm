@@ -60,6 +60,11 @@ describe("page structured data", () => {
     expect(data.workExample[1].readBy?.name).toBe(book.recording!.narrator);
   });
 
+  it("never describes a withdrawn recording as an audiobook edition", () => {
+    const data = bookData(getBook("the-metamorphosis")!) as unknown as { workExample: { "@type": string }[] };
+    expect(data.workExample.map((w) => w["@type"])).toEqual(["Book"]);
+  });
+
   it("says an aligned recording has its text in step with the audio, and only an aligned one", () => {
     const edition = (id: string) => (bookData(getBook(id)!) as unknown as { workExample: Record<string, unknown>[] }).workExample.find((w) => w["@type"] === "Audiobook")!;
     expect(edition("pride-and-prejudice").accessibilityFeature).toEqual(["synchronizedAudioText"]);

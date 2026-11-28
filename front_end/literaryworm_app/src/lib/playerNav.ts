@@ -1,3 +1,4 @@
+import { playsRecording } from "./recordings";
 import type { Book } from "../types";
 import { chapterAt, CREDITS_SECONDS } from "./reading";
 
@@ -17,14 +18,14 @@ export const END_LEAD_SECONDS = 30;
 /** Seconds of spoken introduction at the start of a chapter (0 if none). */
 export function chapterIntro(book: Book, index: number): number {
   const length = book.chapters[index].minutes * 60;
-  const intro = book.recording ? RECORDING_INTRO_SECONDS : index === 0 ? CREDITS_SECONDS : 0;
+  const intro = playsRecording(book) ? RECORDING_INTRO_SECONDS : index === 0 ? CREDITS_SECONDS : 0;
   return Math.min(intro, length / 3);
 }
 
 /** Seconds of closing announcement at the end of a chapter (0 if none). */
 export function chapterOutro(book: Book, index: number): number {
   const length = book.chapters[index].minutes * 60;
-  const outro = book.recording ? RECORDING_OUTRO_SECONDS : index === book.chapters.length - 1 ? CREDITS_SECONDS : 0;
+  const outro = playsRecording(book) ? RECORDING_OUTRO_SECONDS : index === book.chapters.length - 1 ? CREDITS_SECONDS : 0;
   return Math.min(outro, length / 3);
 }
 

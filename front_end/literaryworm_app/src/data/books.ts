@@ -24,9 +24,21 @@ type Seed = Omit<Book, "chapters" | "language" | "formats" | "source"> & {
   chapterNames?: string[];
 };
 
+/**
+ * Recordings never offered, though their tracks still give the chapters (lib/recordings.ts). Every
+ * LibriVox recording of The Metamorphosis reads Ian Johnston's translation, whose terms allow no
+ * commercial use without his written permission; our text is David Wyllie's (Gutenberg 5200), which
+ * the natural and device voices read instead.
+ */
+const WITHDRAWN_RECORDINGS: Record<string, string> = {
+  "the-metamorphosis": "The recording reads another translation, which may not be used commercially.",
+};
+
 function book(seed: Seed): Book {
   const { chapterCount = 12, listenMinutes = 480, chapterNames, ...rest } = seed;
-  const recording = recordings[seed.id];
+  const found = recordings[seed.id];
+  const withdrawn = WITHDRAWN_RECORDINGS[seed.id];
+  const recording = found && withdrawn ? { ...found, withdrawn } : found;
   return {
     language: "English",
     formats: ["ebook", "audiobook"],
@@ -35,7 +47,7 @@ function book(seed: Seed): Book {
     chapters: recording
       ? recording.tracks.map((t) => ({ title: t.title, minutes: t.seconds / 60 }))
       : chapters(chapterNames?.length ?? chapterCount, listenMinutes, chapterNames),
-    ...(recording && { narrator: recording.narrator, recording }),
+    ...(recording && { narrator: withdrawn ? undefined : recording.narrator, recording }),
   };
 }
 
@@ -597,7 +609,6 @@ export const books: Book[] = [
     id: "the-metamorphosis",
     title: "The Metamorphosis",
     author: "Franz Kafka",
-    narrator: "Owen Marsh",
     publisher: "Public domain edition",
     year: 1915,
     genres: ["Classics", "Literary fiction"],

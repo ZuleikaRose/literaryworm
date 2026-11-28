@@ -1,3 +1,4 @@
+import { playsRecording } from "./recordings";
 import { setCastMedia } from "./cast";
 import { useEffect, useState } from "react";
 import { samplePageSentences } from "../data/sampleText";
@@ -79,9 +80,9 @@ export function resolveNarration(book: Book, choice: string | null, voices: Spee
   if (naturalChoice) return { kind: "natural", voice: naturalChoice };
   const chosen = choice ? voices.find((v) => v.voiceURI === choice) : undefined;
   if (chosen) return { kind: "speech", voice: chosen };
-  if (choice === LIBRIVOX_VOICE && book.recording) return { kind: "recording" };
+  if (choice === LIBRIVOX_VOICE && playsRecording(book)) return { kind: "recording" };
   if (natural) return { kind: "natural", voice: defaultNaturalVoice(book.language) };
-  if (book.recording) return { kind: "recording" };
+  if (playsRecording(book)) return { kind: "recording" };
   const fallback = defaultVoice(voices);
   return fallback ? { kind: "speech", voice: fallback } : { kind: "silent" };
 }
