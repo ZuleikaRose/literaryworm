@@ -10,9 +10,9 @@ Every **Kids profile** is treated as a child under 13, whatever the child's age.
 
 ## Responsible person
 
-- **Operator:** LiteraryWorm. Privacy contact: usprivacy@literaryworm.com.
+- **Operator:** LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806. Privacy contact: usprivacy@literaryworm.com.
 - **Responsible for this program:** _name to be added_ (the person who answers usprivacy@ and approves changes to Kids features).
-- **Still to add:** a postal address or telephone number for the operator, in the notice's *Questions* section and the Privacy Policy (section 20). Email only for now (decided 2026-11-10).
+- **Postal address:** in the notice (*About this notice* and *Questions*) and the Privacy Policy (section 20) since 2026-11-28 (migration 6897).
 
 ## Verifiable parental consent
 
@@ -65,6 +65,7 @@ When a change touches Kids profiles, in the same commit:
 | Date | What changed |
 | --- | --- |
 | 2026-11-10 | Program written. Consent verified by card payment (6830). Notice names COPPA, adds sharing, retention and security (6831). No Kids profiles or payments on production yet, so nothing to backfill or re-consent. Open: responsible person's name, postal address or phone, lawyer review. |
+| 2026-11-28 | Operator named as LiteraryWorm by Zuleika LLC with its postal address in the notice and every policy (6897). Open: responsible person's name, lawyer review. |
 | 2026-11-10 | Children's privacy FAQ added on Home and Pricing (and their FAQ structured data); `llms.txt` and the style guide describe the consent step. |
 | 2026-11-16 | Connected apps (the `mcp` function, migrations 6836–6842): a parent can let an app read the household's shared library, places and highlights. Kids profiles' names, reading time, journals, scores and requests are never read, and books with Kids reading time are left out; the notice's *Sharing a child's information* says so and names the under-a-minute case, and `CHILDREN_NOTICE_VERSION` is 2026-11-16. Open: ask the lawyer whether a parent's password-confirmed choice to connect an app is consent enough for that residual disclosure, or whether households with Kids profiles need the library split by profile first. |
 | 2026-11-28 | Connected apps may change the library when the parent allows it (scope `library`, migrations 6885–6886): add catalog books to the shared library and change a book's status, never remove one. Books with Kids reading time are refused, and nothing more about a Kids profile is shared, so `CHILDREN_NOTICE_VERSION` stays; the notice's connected-apps paragraph says what an app may change. |

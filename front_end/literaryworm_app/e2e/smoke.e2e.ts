@@ -257,6 +257,7 @@ describe("a visitor", () => {
     await page.goto(BASE_URL);
     const footer = page.getByRole("contentinfo");
     const group = (name: string) => footer.getByRole("list", { name });
+    await footer.getByText("LiteraryWorm by Zuleika LLC", { exact: true }).waitFor();
     await expect(group("Explore").getByRole("link").first().textContent()).resolves.toBe("What's new");
     await group("Help").getByRole("link", { name: "Help" }).waitFor();
     await group("Your privacy").getByRole("link", { name: "Privacy Policy" }).waitFor();
@@ -1100,6 +1101,9 @@ describe("the demo household", () => {
     await expect(page.getByLabel("Voice").inputValue()).resolves.toBe("librivox");
     await expect(page.getByLabel("Voice").locator('option[value^="natural:"]').count()).resolves.toBe(0);
     await page.getByText("Members can also hear the classics in natural voices from Google, with a voice of their own for each character.").waitFor();
+    // The voices that run on the device are offered in the demo too (never the default): 39 of them.
+    await expect(page.getByLabel("Voice").locator('option[value^="ondevice:"]').count()).resolves.toBe(39);
+    await expect(page.getByLabel("Voice").locator('optgroup[label^="Natural voices on this device: men"] option', { hasText: "Toronto (p363), Canadian English" }).count()).resolves.toBe(1);
     expect(errors()).toEqual([]);
   });
 
@@ -1746,9 +1750,11 @@ describe("the demo household", () => {
     await list.getByText("Open now").waitFor();
     await panel.getByText("The demo household can't log devices out. This is a sample of how the list looks.").waitFor();
     await expect(panel.getByRole("button", { name: "Log out on every other device" }).isDisabled()).resolves.toBe(true);
-    // Log-in emails are for members: the demo's switch is off and says why.
+    // Log-in emails: the demo's switch works in memory (on, like a member's) and says nothing is sent.
     const alerts = panel.getByRole("switch", { name: /Email me when someone logs in/ });
-    await expect(alerts.isDisabled()).resolves.toBe(true);
+    await expect(alerts.isChecked()).resolves.toBe(true);
+    await alerts.click();
+    await expect(alerts.isChecked()).resolves.toBe(false);
     await panel.getByText("The demo doesn't send emails. Members get an email after each new log-in.").waitFor();
     await expect(scrollsSideways(page)).resolves.toBe(false);
     expect(errors()).toEqual([]);
@@ -1764,9 +1770,14 @@ describe("the demo household", () => {
     await apps.getByText("The demo household can't connect apps. This is a sample of how one looks.").waitFor();
     const list = apps.getByRole("list", { name: "Your connected apps" });
     await list.locator("strong", { hasText: "Claude" }).waitFor();
+    // The command line was allowed to change the library; the assistant only reads.
+    await list.getByText(/can add books and change their status/).waitFor();
+    await list.getByText(/reads only/).waitFor();
     await list.getByRole("button", { name: "Remove Claude" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Remove", exact: true }).click();
     await apps.getByText("Claude removed. It can't read your account any more.").waitFor();
+    await list.getByRole("button", { name: "Remove LiteraryWorm command line on Avery's laptop" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Remove", exact: true }).click();
     await apps.getByText("No apps connected.").waitFor();
     await expect(scrollsSideways(page)).resolves.toBe(false);
 
@@ -2741,6 +2752,18 @@ describe("the demo household", () => {
     await goInApp(page, "/books/babel");
     await page.getByRole("heading", { level: 1, name: "Babel" }).waitFor();
     await expect(page.getByRole("region", { name: "Your time with this book" }).count()).resolves.toBe(0);
+    expect(errors()).toEqual([]);
+  });
+
+  it("chooses a language for emails in the demo's Preferences", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#preferences");
+    const language = page.getByLabel("Language for emails");
+    await expect(language.inputValue()).resolves.toBe("");
+    await language.selectOption("fr");
+    await page.getByText("Saved. Our next emails will use it.").waitFor();
+    await expect(language.inputValue()).resolves.toBe("fr");
     expect(errors()).toEqual([]);
   });
 

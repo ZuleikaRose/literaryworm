@@ -23,6 +23,11 @@ describe("search results", () => {
     const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
     expect(JSON.parse(ld ?? "null")).toEqual(structuredData());
     expect(structuredData().map((d) => d["@type"])).toEqual(["WebSite", "Organization"]);
+    // Who runs it: the company the footer and every policy name, with its address.
+    const org = structuredData()[1] as { legalName?: string; address?: { streetAddress: string; postalCode: string } };
+    expect(org.legalName).toBe("Zuleika LLC");
+    expect(org.address?.streetAddress).toBe("1207 Delaware Ave Ste 4418");
+    expect(org.address?.postalCode).toBe("19806");
     // The membership and its prices are only on the pages that show them.
     expect(html).not.toContain('"Product"');
     const site = structuredData()[0] as { potentialAction?: { target: { urlTemplate: string } } };

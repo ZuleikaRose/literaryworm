@@ -63,6 +63,8 @@ export function Footer() {
         <div className="footer-brand">
           <Brand to="/" />
           <p>{t("Ebooks and audiobooks for everyone at home.")}</p>
+          {/* The company's name, the same in every language (and in every policy). */}
+          <p className="footer-company">LiteraryWorm by Zuleika LLC</p>
         </div>
         <nav className="footer-nav" aria-label={t("Footer")}>
           <div className="footer-group">

@@ -2,6 +2,22 @@
   {
     "releasedOn": "2026-11-28",
     "version": "2026.11",
+    "kind": "update",
+    "title": "Who runs LiteraryWorm",
+    "body": "LiteraryWorm is run by Zuleika LLC. The footer says so, and every policy now names the company with its postal address: 1207 Delaware Ave Ste 4418, Wilmington, DE 19806.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "More to try in the demo",
+    "body": "The demo now has the voices that run on your device (all 39, free and offline after one download), a language for emails and log-in emails in Preferences, and a second connected app: the LiteraryWorm command line, allowed to add books and change their status.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
     "kind": "feature",
     "title": "39 voices on your device, in eight English accents",
     "body": "The natural voices that run on your device now come in American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African English: 39 voices in all, women's, men's and a non-binary voice. Like Linda and Norman, each downloads once, then works offline for free, and the text never leaves your device. Find them in the player's Voice menu.",

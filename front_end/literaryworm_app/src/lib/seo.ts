@@ -70,12 +70,14 @@ const website = () => ({
   },
 });
 
-/** Who runs it, and how to reach support. */
+/** Who runs it (LiteraryWorm by Zuleika LLC, as the footer and every policy say), and how to reach support. */
 const organization = () => ({
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": ORGANIZATION_ID,
   name: "LiteraryWorm",
+  legalName: "Zuleika LLC",
+  address: { "@type": "PostalAddress", streetAddress: "1207 Delaware Ave Ste 4418", addressLocality: "Wilmington", addressRegion: "DE", postalCode: "19806", addressCountry: "US" },
   url: `${SITE_URL}/`,
   logo: LOGO_URL,
   email: SUPPORT_EMAIL,

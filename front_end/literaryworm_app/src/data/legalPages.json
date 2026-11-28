@@ -69,7 +69,8 @@
         "heading": "Preparation of this statement",
         "paragraphs": [
           "This statement was prepared on 28 October 2026 and last updated on 1 November 2026. We review it every year, and whenever we make significant changes to the service.",
-          "For questions about accessibility or this statement, email us at accessibility@literaryworm.com."
+          "For questions about accessibility or this statement, email us at accessibility@literaryworm.com.",
+          "LiteraryWorm is run by Zuleika LLC: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       }
     ],
@@ -84,7 +85,7 @@
       {
         "heading": "Questions or concerns?",
         "paragraphs": [
-          "Reading this Privacy Notice will help you understand your privacy rights and choices. We are responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at usprivacy@literaryworm.com."
+          "Reading this Privacy Notice will help you understand your privacy rights and choices. LiteraryWorm by Zuleika LLC (\"we,\" \"us,\" or \"our\") is responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at usprivacy@literaryworm.com."
         ]
       },
       {
@@ -430,7 +431,7 @@
           "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing.",
           "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.",
           "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance.",
-          "Reading aloud with a voice on your device: for books in English, members can choose from 39 natural voices that run in your own browser, with American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents (women's, men's and a non-binary voice). A voice, about 63 to 77 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too.",
+          "Reading aloud with a voice on your device: for books in English, members, and anyone trying the demo, can choose from 39 natural voices that run in your own browser, with American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents (women's, men's and a non-binary voice). A voice, about 63 to 77 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too.",
           "Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them.",
           "For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account.",
           "Downloading an upload's audiobook joins the parts already kept on your device into one file there; nothing is sent to us or to Google for it.",
@@ -447,7 +448,8 @@
       {
         "heading": "20. How can you contact us about this notice?",
         "paragraphs": [
-          "If you have questions or comments about this notice, you may email us at usprivacy@literaryworm.com."
+          "If you have questions or comments about this notice, you may email us at usprivacy@literaryworm.com.",
+          "Or write to us at: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       },
       {
@@ -605,7 +607,8 @@
       {
         "heading": "Where can I get further information?",
         "paragraphs": [
-          "If you have any questions about our use of cookies or other technologies, please email us at support@literaryworm.com. For privacy requests, email usprivacy@literaryworm.com."
+          "If you have any questions about our use of cookies or other technologies, please email us at support@literaryworm.com. For privacy requests, email usprivacy@literaryworm.com.",
+          "You can also write to us at: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       }
     ]
@@ -629,7 +632,7 @@
         "paragraphs": [
           "This notice is how LiteraryWorm meets the Children's Online Privacy Protection Act (COPPA), the US law that protects the personal information of children under 13 online. It's our direct notice to parents, and it also covers the other children's privacy laws where you live.",
           "We treat every Kids profile as a child under 13, whatever the child's age, so everything here applies to every Kids profile.",
-          "LiteraryWorm runs the service and is responsible for a Kids profile's information. You can reach us about it at usprivacy@literaryworm.com (see Questions, below)."
+          "LiteraryWorm by Zuleika LLC (1207 Delaware Ave Ste 4418, Wilmington, DE 19806) runs the service and is responsible for a Kids profile's information. You can reach us about it at usprivacy@literaryworm.com (see Questions, below)."
         ]
       },
       {
@@ -736,7 +739,7 @@
       {
         "heading": "Questions",
         "paragraphs": [
-          "LiteraryWorm runs this service. If you have a question about your child's information, want to review or delete it, or think a child is using LiteraryWorm without a parent's consent, email usprivacy@literaryworm.com. We'll answer, and we'll delete information collected without consent.",
+          "LiteraryWorm by Zuleika LLC runs this service, at 1207 Delaware Ave Ste 4418, Wilmington, DE 19806. If you have a question about your child's information, want to review or delete it, or think a child is using LiteraryWorm without a parent's consent, email usprivacy@literaryworm.com. We'll answer, and we'll delete information collected without consent.",
           "The Privacy Policy explains how we handle everyone's information, including your rights where you live."
         ]
       }
@@ -801,22 +804,23 @@
       {
         "heading": "Questions",
         "paragraphs": [
-          "Email usprivacy@literaryworm.com with any question about your privacy choices, or to make a request under the law where you live."
+          "Email usprivacy@literaryworm.com with any question about your privacy choices, or to make a request under the law where you live.",
+          "Or write to us at: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       }
     ],
-    "updated": "2026-11-07"
+    "updated": "2026-11-28"
   },
   {
     "slug": "terms",
     "title": "Terms of Service",
     "summary": "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to these legal terms (the \"Legal Terms\") (collectively, the \"Services\"). These Legal Terms cover who can have an account, how membership works, what you may do with the books, who owns what, and the license you give us for what you post. You can contact us by email at support@literaryworm.com.",
-    "updated": "2026-11-23",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "Agreement to our legal terms",
         "paragraphs": [
-          "These Legal Terms constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\"you\"), and LiteraryWorm, concerning your access to and use of the Services. You agree that by accessing the Services, you have read, understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.",
+          "These Legal Terms constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\"you\"), and LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806, concerning your access to and use of the Services. You agree that by accessing the Services, you have read, understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.",
           "Supplemental terms and conditions or documents that may be posted on the Services from time to time, such as our End User License Agreement (https://www.literaryworm.com/legal/eula), are hereby expressly incorporated herein by reference. We may change these Legal Terms from time to time. We'll tell you before changing them in ways that matter, and we'll update the \"Last updated\" date.",
           "You will be subject to, and will be deemed to have accepted, the changes in any revised Legal Terms by your continued use of the Services after the date such revised Legal Terms are posted.",
           "Account holders must be at least 18 years old. People under 18 may use the Services only through a profile, such as a Kids profile, that a parent or guardian adds to their own account and is responsible for.",
@@ -1224,7 +1228,7 @@
       {
         "heading": "36. Contact us",
         "paragraphs": [
-          "In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: LiteraryWorm, support@literaryworm.com."
+          "In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806, support@literaryworm.com."
         ]
       }
     ]
@@ -1233,7 +1237,7 @@
     "slug": "eula",
     "title": "End User License Agreement",
     "summary": "LiteraryWorm is licensed to You (End-User) by LiteraryWorm (\"Licensor\"), for use only under the terms of this License Agreement. By using the Licensed Application at https://www.literaryworm.com, or installing it on a device from your browser, and any update to it, You agree to be bound by all of the terms and conditions of this License Agreement. It sits alongside our Terms of Service; where they cover the same thing, the Terms of Service apply.",
-    "updated": "2026-11-07",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "In short",
@@ -1350,7 +1354,8 @@
       {
         "heading": "12. Contact information",
         "paragraphs": [
-          "For general inquiries, complaints, questions or claims concerning the Licensed Application, please email support@literaryworm.com."
+          "For general inquiries, complaints, questions or claims concerning the Licensed Application, please email support@literaryworm.com.",
+          "The Licensor is LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       },
       {
@@ -1390,7 +1395,7 @@
     "slug": "acceptable-use",
     "title": "Acceptable Use Policy",
     "summary": "This Acceptable Use Policy (\"Policy\") is part of our Terms of Service (\"Legal Terms\") and should therefore be read alongside our main Legal Terms: https://www.literaryworm.com/legal/terms. It sets out what you may and may not do on LiteraryWorm, what you may post, how to use our AI features responsibly, and how to report anything that breaks it.",
-    "updated": "2026-11-23",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "In short",
@@ -1415,7 +1420,7 @@
       {
         "heading": "Who we are",
         "paragraphs": [
-          "We are LiteraryWorm (\"Company,\" \"we,\" \"us,\" or \"our\"). We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to this Policy (collectively, the \"Services\")."
+          "We are LiteraryWorm by Zuleika LLC (\"Company,\" \"we,\" \"us,\" or \"our\"). Our address is 1207 Delaware Ave Ste 4418, Wilmington, DE 19806. We operate the website https://www.literaryworm.com (the \"Site\"), as well as any other related products and services that refer or link to this Policy (collectively, the \"Services\")."
         ]
       },
       {
@@ -1571,7 +1576,8 @@
       {
         "heading": "How can you contact us about this policy?",
         "paragraphs": [
-          "If you have any further questions or comments or wish to report any problematic Content or Contribution, you may contact us by email: report@literaryworm.com."
+          "If you have any further questions or comments or wish to report any problematic Content or Contribution, you may contact us by email: report@literaryworm.com.",
+          "Or write to us at: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       }
     ]
@@ -1580,7 +1586,7 @@
     "slug": "returns",
     "title": "Return Policy",
     "summary": "How billing, cancelling and refunds work for LiteraryWorm memberships and gift memberships, and who to contact with questions.",
-    "updated": "2026-11-07",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "In short",
@@ -1627,7 +1633,8 @@
       {
         "heading": "Questions",
         "paragraphs": [
-          "If you have any questions about this Return Policy, please contact us at support@literaryworm.com."
+          "If you have any questions about this Return Policy, please contact us at support@literaryworm.com.",
+          "Or write to us at: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       }
     ]
@@ -1636,7 +1643,7 @@
     "slug": "copyright",
     "title": "Copyright/DMCA",
     "summary": "How LiteraryWorm respects copyright, which works are in the public domain, and how a rights holder can report content they believe infringes, under the Digital Millennium Copyright Act (DMCA).",
-    "updated": "2026-10-28",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "In short",
@@ -1696,7 +1703,8 @@
         "heading": "Repeat infringers and false claims",
         "paragraphs": [
           "We close the accounts of members who repeatedly infringe copyright.",
-          "Knowingly misrepresenting that material infringes, or that it was removed by mistake, can make you liable for damages under the DMCA, so please be sure before you send a notice or counter-notice."
+          "Knowingly misrepresenting that material infringes, or that it was removed by mistake, can make you liable for damages under the DMCA, so please be sure before you send a notice or counter-notice.",
+          "LiteraryWorm is run by Zuleika LLC: LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       }
     ]
@@ -1705,13 +1713,14 @@
     "slug": "disclaimer",
     "title": "Disclaimer",
     "summary": "The information provided by LiteraryWorm (\"we,\" \"us,\" or \"our\") on https://www.literaryworm.com (the \"Site\") is for general informational purposes only. This page explains what we can and can't promise about it, and about the other websites the Site links to.",
-    "updated": "2026-11-23",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "Website disclaimer",
         "paragraphs": [
           "All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site. This includes book details and covers from Google Books, and everything written by AI, which is labelled as such (see below).",
-          "UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE. YOUR USE OF THE SITE AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE IS SOLELY AT YOUR OWN RISK."
+          "UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE. YOUR USE OF THE SITE AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE IS SOLELY AT YOUR OWN RISK.",
+          "The Site is run by LiteraryWorm by Zuleika LLC, 1207 Delaware Ave Ste 4418, Wilmington, DE 19806."
         ]
       },
       {
@@ -1765,7 +1774,7 @@
           "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
           "Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
           "The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording.",
-          "Members can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space.",
+          "Members, and anyone trying the demo, can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space.",
           "The on-device voices are Piper voices (MIT) made from these recordings: LJ Speech, LibriVox volunteers and Bryce Beattie (public domain); Kathleen's and the Open Home Foundation's datasets (CC0); NVIDIA's Hi-Fi Multi-Speaker English TTS Dataset, the University of Edinburgh's CSTR VCTK Corpus and Alba corpus (CC BY 4.0); Google's crowdsourced UK and Ireland English dataset (CC BY-SA 4.0); CMU ARCTIC from Carnegie Mellon University; and Sam, Accenture's non-binary voice (Apache 2.0). Pronunciation uses the Carnegie Mellon Pronouncing Dictionary.",
           "To listen to a whole upload or classic offline, choose Voice the whole book in the player (or on the book's page), under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.",
           "A classic's parts are kept on our server once for every member, since they're only the book's own words. So a part any member has heard in that voice before costs nothing, and voicing a classic ahead also saves the next listener's hours.",
