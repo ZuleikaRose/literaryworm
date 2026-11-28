@@ -66,8 +66,16 @@ export function parseConnectedApps(raw: unknown): ConnectedApp[] {
   return apps.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-/** The demo household's sample: one assistant connected three days before the demo started, used yesterday. */
+/**
+ * The demo household's sample: an assistant that only reads, connected three days before the demo
+ * started and used yesterday, and the command line on a laptop, allowed to change the library
+ * (login --library), connected yesterday and used two hours ago. Newest first, as the server sends them.
+ */
 export function demoConnectedApps(now: Date = new Date()): ConnectedApp[] {
   const day = 86_400_000;
-  return [{ id: "demo-assistant", name: "Claude", createdAt: new Date(now.getTime() - 3 * day).toISOString(), lastUsedAt: new Date(now.getTime() - day).toISOString(), canChangeLibrary: false }];
+  const at = (ms: number) => new Date(now.getTime() - ms).toISOString();
+  return [
+    { id: "demo-cli", name: "LiteraryWorm command line on Avery's laptop", createdAt: at(day), lastUsedAt: at(2 * 3_600_000), canChangeLibrary: true },
+    { id: "demo-assistant", name: "Claude", createdAt: at(3 * day), lastUsedAt: at(day), canChangeLibrary: false },
+  ];
 }

@@ -106,8 +106,8 @@ export function SignedInDevices({ userId, isDemo }: { userId: string | null; isD
           role="switch"
           className="switch"
           aria-describedby={alertsHintId}
-          checked={remote ? (account?.signInEmails ?? true) : false}
-          disabled={!remote || savingAlerts}
+          checked={remote || isDemo ? (account?.signInEmails ?? true) : false}
+          disabled={(!remote && !isDemo) || savingAlerts}
           onChange={async (e) => {
             const on = e.target.checked;
             setSavingAlerts(true);

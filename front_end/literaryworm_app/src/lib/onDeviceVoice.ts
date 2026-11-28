@@ -98,9 +98,9 @@ export function isEnglish(language: string | null | undefined): boolean {
 }
 
 /**
- * Whether the on-device voices are offered: members (any profile, Kids too: nothing is sent or
- * kept anywhere but the device), for a book in English. Not the demo or visitors, so the models
- * (about 64 MB each) are only downloaded for accounts.
+ * Whether the on-device voices are offered: members and the demo (any profile, Kids too: nothing is
+ * sent or kept anywhere but the device), for a book in English. Not visitors who aren't trying the
+ * demo, so the models (about 63 to 77 MB each) are only downloaded by someone listening.
  */
 export function onDeviceOffered({ member, language }: { member: boolean; language: string | null | undefined }): boolean {
   return member && isEnglish(language);

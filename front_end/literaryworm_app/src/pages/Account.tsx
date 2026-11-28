@@ -1391,7 +1391,7 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
           />
         </label>
       )}
-      {remote && (
+      {(remote || account.isDemo) && (
         <div className="field">
           <label className="field-label" htmlFor={emailLanguageId}>
             {t("Language for emails")}

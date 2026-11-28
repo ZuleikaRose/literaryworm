@@ -36,9 +36,14 @@ describe("connected apps", () => {
     expect(parseConnectedApps({ apps: [] })).toEqual([]);
   });
 
-  it("gives the demo one sample app, already used", () => {
-    const [app] = demoConnectedApps(new Date("2026-11-16T12:00:00Z"));
+  it("gives the demo two sample apps, newest first: the command line that may change the library, and an assistant that reads", () => {
+    const [cli, app] = demoConnectedApps(new Date("2026-11-16T12:00:00Z"));
+    expect(cli.name).toBe("LiteraryWorm command line on Avery's laptop");
+    expect(cli.canChangeLibrary).toBe(true);
+    expect(cli.createdAt).toBe("2026-11-15T12:00:00.000Z");
+    expect(cli.lastUsedAt).toBe("2026-11-16T10:00:00.000Z");
     expect(app.name).toBe("Claude");
+    expect(app.canChangeLibrary).toBe(false);
     expect(app.createdAt).toBe("2026-11-13T12:00:00.000Z");
     expect(app.lastUsedAt).toBe("2026-11-15T12:00:00.000Z");
   });
