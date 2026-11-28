@@ -95,4 +95,12 @@ function mcp(url) {
   ].join("\n");
 }
 
-module.exports = { duration, oneLine, safe, search, book, pricing, whatsNew, library, highlights, stats, mcp };
+/** What add and mark did. */
+function libraryChange(result) {
+  const name = result.title ? `${oneLine(result.title)} (${result.bookId})` : result.bookId;
+  if (result.added === true) return `Added ${name} to your library as ${result.status}.`;
+  if (result.added === false) return `${name} is already in your library, as ${result.status}. Nothing changed.`;
+  return result.was === result.status ? `${name} was already ${result.status}.` : `${name}: ${result.was} → ${result.status}.`;
+}
+
+module.exports = { duration, oneLine, safe, search, book, pricing, whatsNew, library, highlights, stats, mcp, libraryChange };

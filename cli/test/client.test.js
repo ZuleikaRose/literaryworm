@@ -167,7 +167,7 @@ describe("run", () => {
   it("shows help and the version without calling anything", async () => {
     const a = collect();
     expect(await run([], a)).toBe(0);
-    expect(a.lines.out[0]).toMatch(/Everything here only reads/);
+    expect(a.lines.out[0]).toMatch(/changes your library only if you allow it/);
     const b = collect();
     expect(await run(["--version"], b)).toBe(0);
     expect(b.lines.out[0]).toMatch(/^\d+\.\d+\.\d+$/);

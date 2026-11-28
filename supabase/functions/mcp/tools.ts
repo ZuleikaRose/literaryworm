@@ -1,6 +1,9 @@
-// The tools LiteraryWorm offers over MCP. Every one only reads. The public ones (the catalog,
-// pricing, What's new) need no log-in; the member ones read the connected member's own library,
-// places, highlights and reading time, never a Kids profile's reading time, and change nothing.
+// The tools LiteraryWorm offers over MCP. The public ones (the catalog, pricing, What's new) need
+// no log-in; the member ones read the connected member's own library, places, highlights and
+// reading time, never a Kids profile's reading time. Two (writes: true) change the library, and only
+// for a connection the member allowed to (scope "read library"): add_to_library adds a catalog book,
+// set_book_status changes a book's status. Nothing removes a book, and books read on a Kids profile
+// are left alone.
 
 import { CATALOG } from "../_shared/catalog.ts";
 
@@ -49,11 +52,17 @@ export type Data = {
    * child reads isn't passed to a connected app.
    */
   kidsBooks: (userId: string) => Promise<string[]>;
+  /** A book's status in the account's library, or null when it isn't there. */
+  libraryStatus: (userId: string, bookId: string) => Promise<string | null>;
+  /** Adds a book to the account's library (a new row only). */
+  addToLibrary: (userId: string, bookId: string, status: string) => Promise<void>;
+  /** Changes a book's status in the account's library. */
+  setLibraryStatus: (userId: string, bookId: string, status: string) => Promise<void>;
 };
 
 type Schema = { type: "object"; properties: Record<string, Record<string, unknown>>; required?: string[]; additionalProperties: false };
 
-export type Tool = { name: string; title: string; description: string; inputSchema: Schema; member: boolean };
+export type Tool = { name: string; title: string; description: string; inputSchema: Schema; member: boolean; writes?: boolean };
 
 const STATUSES = ["want_to_read", "reading", "finished", "did_not_finish"] as const;
 const BOOK_ID = /^[A-Za-z0-9_-]{1,40}$/;
@@ -146,6 +155,40 @@ export const TOOLS: Tool[] = [
       additionalProperties: false,
     },
     member: true,
+  },
+  {
+    name: "add_to_library",
+    title: "Add a book to my library",
+    description:
+      "Adds a LiteraryWorm catalog book (an id from search_catalog) to the connected member's library, as want_to_read unless another status is given. A book already there is left as it is. Only for connections the member allowed to change their library; ask the member first.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        book_id: { type: "string", pattern: "^[A-Za-z0-9_-]{1,40}$", description: "A catalog book id from search_catalog." },
+        status: { type: "string", enum: [...STATUSES], description: "want_to_read unless given." },
+      },
+      required: ["book_id"],
+      additionalProperties: false,
+    },
+    member: true,
+    writes: true,
+  },
+  {
+    name: "set_book_status",
+    title: "Change a book's status",
+    description:
+      "Changes the status of a book already in the connected member's library (an id from get_library): want_to_read, reading, finished or did_not_finish. It doesn't count towards goals or streaks. Only for connections the member allowed to change their library; ask the member first.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        book_id: { type: "string", pattern: "^[A-Za-z0-9_-]{1,40}$", description: "A book id from get_library." },
+        status: { type: "string", enum: [...STATUSES], description: "The new status." },
+      },
+      required: ["book_id", "status"],
+      additionalProperties: false,
+    },
+    member: true,
+    writes: true,
   },
 ];
 
@@ -286,6 +329,31 @@ export async function callTool(name: string, args: Record<string, unknown>, user
         note: "Minutes include listening. Kids profiles aren't included.",
       };
     }
+    case "add_to_library": {
+      const id = bookId(args.book_id, "book_id");
+      const status = libraryStatusArg(args.status ?? "want_to_read");
+      const book = CATALOG[id];
+      if (!book) throw new ToolError("That id isn't a LiteraryWorm catalog book. Use search_catalog to find one.");
+      if ((await data.kidsBooks(userId!)).includes(id)) throw new ToolError("This book is read on a Kids profile, so it can't be changed from here.");
+      const was = await data.libraryStatus(userId!, id);
+      if (was !== null) return { added: false, bookId: id, title: book.title, status: was, note: "It was already in the library, so it's left as it is." };
+      await data.addToLibrary(userId!, id, status);
+      return { added: true, bookId: id, title: book.title, status, url: bookUrl(id) };
+    }
+    case "set_book_status": {
+      const id = bookId(args.book_id, "book_id");
+      const status = libraryStatusArg(args.status);
+      if ((await data.kidsBooks(userId!)).includes(id)) throw new ToolError("This book is read on a Kids profile, so it can't be changed from here.");
+      const was = await data.libraryStatus(userId!, id);
+      if (was === null) throw new ToolError("That book isn't in the library. Use get_library for ids, or add_to_library first.");
+      if (was !== status) await data.setLibraryStatus(userId!, id, status);
+      return { bookId: id, title: CATALOG[id]?.title ?? null, status, was };
+    }
   }
   throw new ToolError(`There's no tool called ${name} here.`);
+}
+
+function libraryStatusArg(raw: unknown): string {
+  if (typeof raw !== "string" || !(STATUSES as readonly string[]).includes(raw)) throw new ToolError(`status must be one of ${STATUSES.join(", ")}.`);
+  return raw;
 }

@@ -25,3 +25,14 @@ describe("parseArgs", () => {
     for (const command of COMMANDS.filter((c) => c !== "help")) expect(HELP).toContain(`literaryworm ${command}`);
   });
 });
+
+describe("library commands", () => {
+  const { parseArgs, UsageError } = require("../lib/args");
+  test("add, mark and login --library", () => {
+    expect(parseArgs(["add", "dracula"]).command).toBe("add");
+    expect(parseArgs(["mark", "dracula", "--status", "finished"]).options.status).toBe("finished");
+    expect(parseArgs(["login", "--library"]).options.library).toBe(true);
+    expect(() => parseArgs(["mark", "dracula"])).toThrow(UsageError);
+    expect(() => parseArgs(["library", "--library"])).toThrow(UsageError);
+  });
+});

@@ -46,3 +46,12 @@ describe("formatting", () => {
     expect(format.mcp("https://www.literaryworm.com/mcp")).toContain("claude mcp add --transport http literaryworm https://www.literaryworm.com/mcp");
   });
 });
+
+describe("library changes", () => {
+  const { libraryChange } = require("../lib/format");
+  test("says what add and mark did", () => {
+    expect(libraryChange({ added: true, bookId: "dracula", title: "Dracula", status: "want_to_read" })).toBe("Added Dracula (dracula) to your library as want_to_read.");
+    expect(libraryChange({ added: false, bookId: "dracula", title: "Dracula", status: "reading" })).toBe("Dracula (dracula) is already in your library, as reading. Nothing changed.");
+    expect(libraryChange({ bookId: "dracula", title: "Dracula", status: "finished", was: "reading" })).toBe("Dracula (dracula): reading → finished.");
+  });
+});

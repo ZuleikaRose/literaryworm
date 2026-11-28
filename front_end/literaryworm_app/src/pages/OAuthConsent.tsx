@@ -17,7 +17,8 @@ type State = { status: "loading" } | { status: "ready"; details: ConnectionReque
  * /oauth/consent?request=…: where an AI assistant (MCP) or the command line sends a member to
  * allow it to read their account. Visitors log in first (the route guard brings them back here).
  * It shows what the app calls itself, where it sends the member back and exactly what it can
- * read, and allowing asks for the account password, so a profile left open can't connect an app.
+ * read (and, when the app asks and the member leaves it on, change in the library), and allowing
+ * asks for the account password, so a profile left open can't connect an app.
  * The `mcp` function does the checking; this page only asks and then sends the browser on.
  */
 export default function OAuthConsent() {
@@ -32,6 +33,8 @@ export default function OAuthConsent() {
   const able = valid && remote && !kids;
   const [state, setState] = useState<State>({ status: "loading" });
   const [password, setPassword] = useState("");
+  // Only asked about when the app asked to change the library; on until the member turns it off.
+  const [library, setLibrary] = useState(true);
   const [busy, setBusy] = useState<"allow" | "refuse" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +59,7 @@ export default function OAuthConsent() {
     setBusy(kind);
     setError(null);
     try {
-      const to = kind === "allow" ? await allowConnection(request, password) : await refuseConnection(request);
+      const to = kind === "allow" ? await allowConnection(request, password, state.details.library && library) : await refuseConnection(request);
       setState({ status: "leaving", app: state.details.app });
       window.location.assign(to);
     } catch (err) {
@@ -89,7 +92,7 @@ export default function OAuthConsent() {
       </p>
     );
   } else {
-    const { app, redirectUri } = state.details;
+    const { app, redirectUri, library: asksLibrary } = state.details;
     const place = returnPlace(redirectUri);
     const where = place?.kind === "web" ? place.host : place?.kind === "device" ? t("a program on this device") : place ? t("an app on this device ({scheme})", { scheme: place.scheme }) : redirectUri;
     body = (
@@ -101,10 +104,22 @@ export default function OAuthConsent() {
           <li>{t("Your highlights and the notes on them")}</li>
           <li>{t("Reading time for grown-up and teen profiles")}</li>
         </ul>
+        {asksLibrary && (
+          <label className="check-row consent-library">
+            <input type="checkbox" checked={library} onChange={(e) => setLibrary(e.target.checked)} />
+            <span>
+              <strong>{t("It also asks to change your library")}</strong>
+              <small>{t("Add LiteraryWorm books to your library and change a book's status, such as marking it finished. It can't remove books, and never touches books read on a Kids profile. Leave this off and it only reads.")}</small>
+            </span>
+          </label>
+        )}
         <p>
-          {rich(t("It can't change anything. It never sees your password or payment details, or a Kids profile's reading time. You can remove it at any time in {place}."), {
-            place: <Link to="/account#sign-in">{t("Account → Sign-in")}</Link>,
-          })}
+          {rich(
+            asksLibrary && library
+              ? t("It can't change anything else. It never sees your password or payment details, or a Kids profile's reading time. You can remove it at any time in {place}.")
+              : t("It can't change anything. It never sees your password or payment details, or a Kids profile's reading time. You can remove it at any time in {place}."),
+            { place: <Link to="/account#sign-in">{t("Account → Sign-in")}</Link> },
+          )}
         </p>
         <p className="field-hint">
           {rich(t("If you allow it, you'll be sent back to {place}. Only allow an app you started connecting yourself."), { place: <strong className="consent-place">{where}</strong> })}

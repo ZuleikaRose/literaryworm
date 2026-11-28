@@ -16,8 +16,8 @@ function challengeFor(verifier) {
   return base64url(crypto.createHash("sha256").update(verifier).digest());
 }
 
-/** Where the browser is sent to ask the member. */
-function authorizeUrl(metadata, clientId, redirectUri, attempt) {
+/** Where the browser is sent to ask the member: to read, or with `library`, to change the library too. */
+function authorizeUrl(metadata, clientId, redirectUri, attempt, library = false) {
   const url = new URL(metadata.authorization_endpoint);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", clientId);
@@ -25,7 +25,7 @@ function authorizeUrl(metadata, clientId, redirectUri, attempt) {
   url.searchParams.set("code_challenge", attempt.challenge);
   url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("state", attempt.state);
-  url.searchParams.set("scope", "read");
+  url.searchParams.set("scope", library ? "read library" : "read");
   return url.toString();
 }
 

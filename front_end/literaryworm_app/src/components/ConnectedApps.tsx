@@ -11,7 +11,7 @@ const day = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: 
 
 /**
  * Account → Sign-in → Connected apps: how to connect an AI assistant (MCP) or the command line,
- * and the apps this account has allowed, each with Remove. Connected apps only read. The demo
+ * and the apps this account has allowed, each with Remove. Connected apps read, and change the library only where allowed. The demo
  * household shows a sample kept in memory and connects nothing.
  */
 export function ConnectedApps({ isDemo }: { isDemo: boolean }) {
@@ -58,7 +58,7 @@ export function ConnectedApps({ isDemo }: { isDemo: boolean }) {
       <h3>{t("Connected apps")}</h3>
       <p className="field-hint">
         {t(
-          "Connect an AI assistant or the LiteraryWorm command line to read your library, your place in each book, your highlights and notes, and your reading time. Connected apps can't change anything, and never see your password, your payment details or a Kids profile's reading time.",
+          "Connect an AI assistant or the LiteraryWorm command line to read your library, your place in each book, your highlights and notes, and your reading time. Connected apps only read, unless you let one add books to your library and change their status when you connect it. They never see your password, your payment details or a Kids profile's reading time.",
         )}
       </p>
       <p className="field-hint">
@@ -79,6 +79,7 @@ export function ConnectedApps({ isDemo }: { isDemo: boolean }) {
                 <small>
                   {t("Connected {date}", { date: day(app.createdAt) })}
                   {app.lastUsedAt ? ` · ${t("last used {date}", { date: day(app.lastUsedAt) })}` : ` · ${t("not used yet")}`}
+                  {` · ${app.canChangeLibrary ? t("can add books and change their status") : t("reads only")}`}
                 </small>
               </div>
               <div className="passkey-actions">

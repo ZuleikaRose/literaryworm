@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-28",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Let an assistant add books to your library",
+    "body": "When you connect an AI assistant or the LiteraryWorm command line, it can now ask to add books from our catalog to your library and change a book's status, such as marking one finished. You choose: leave the new tick on when you allow it, or untick it and the app only reads. Nothing can remove a book, and Account → Sign-in shows which apps can make changes. From a terminal: npx literaryworm login --library, then add and mark.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Emails in your language",
     "body": "Our emails now come in the language you use LiteraryWorm in: book-out alerts, club reminders and digests, the Kids reading report, your year in reading, gifts, log-in alerts and the rest. Choose a different one under Language for emails in Account → Preferences. Book titles, names and What's new entries stay as they're written.",
     "major": true

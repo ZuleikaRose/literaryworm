@@ -15,6 +15,8 @@ export interface ConnectedApp {
   name: string;
   createdAt: string;
   lastUsedAt: string | null;
+  /** It may add books to the library and change a book's status (the "library" scope). */
+  canChangeLibrary: boolean;
 }
 
 const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -52,7 +54,14 @@ export function parseConnectedApps(raw: unknown): ConnectedApp[] {
   const apps: ConnectedApp[] = [];
   for (const item of raw as Partial<ConnectedApp>[]) {
     if (!item || typeof item.id !== "string" || typeof item.name !== "string" || typeof item.createdAt !== "string") continue;
-    apps.push({ id: item.id, name: item.name, createdAt: item.createdAt, lastUsedAt: typeof item.lastUsedAt === "string" ? item.lastUsedAt : null });
+    const scope = (item as { scope?: unknown }).scope;
+    apps.push({
+      id: item.id,
+      name: item.name,
+      createdAt: item.createdAt,
+      lastUsedAt: typeof item.lastUsedAt === "string" ? item.lastUsedAt : null,
+      canChangeLibrary: scope === "read library",
+    });
   }
   return apps.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
@@ -60,5 +69,5 @@ export function parseConnectedApps(raw: unknown): ConnectedApp[] {
 /** The demo household's sample: one assistant connected three days before the demo started, used yesterday. */
 export function demoConnectedApps(now: Date = new Date()): ConnectedApp[] {
   const day = 86_400_000;
-  return [{ id: "demo-assistant", name: "Claude", createdAt: new Date(now.getTime() - 3 * day).toISOString(), lastUsedAt: new Date(now.getTime() - day).toISOString() }];
+  return [{ id: "demo-assistant", name: "Claude", createdAt: new Date(now.getTime() - 3 * day).toISOString(), lastUsedAt: new Date(now.getTime() - day).toISOString(), canChangeLibrary: false }];
 }

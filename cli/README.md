@@ -1,6 +1,6 @@
 # literaryworm
 
-LiteraryWorm from the command line. Everything here only reads: nothing can change an account.
+LiteraryWorm from the command line. It reads, and changes your library only if you allow it: `login --library` asks to add books and change their status, and nothing can remove a book or touch billing.
 
 ```bash
 npx literaryworm search pride and prejudice   # the catalog, no log-in needed
@@ -10,6 +10,9 @@ npx literaryworm whats-new
 
 npx literaryworm login       # opens LiteraryWorm in your browser; allow it with your account password
 npx literaryworm library --status reading
+npx literaryworm login --library   # also allow adding books and changing their status
+npx literaryworm add dracula --status want_to_read
+npx literaryworm mark dracula --status finished
 npx literaryworm highlights dracula
 npx literaryworm stats --days 30
 npx literaryworm logout

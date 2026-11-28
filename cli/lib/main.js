@@ -70,21 +70,25 @@ function waitForAnswer(attempt, issuer, started) {
   });
 }
 
-async function login(client, out) {
+async function login(client, out, library = false) {
   const meta = oauth.checkMetadata(await client.metadata(), client.url);
   const attempt = oauth.newAttempt();
   let clientId = "";
   const answer = await waitForAnswer(attempt, meta.issuer, async (redirectUri) => {
     const name = `LiteraryWorm command line on ${os.hostname()}`.slice(0, 80);
     clientId = await client.register(meta, name, redirectUri);
-    const url = oauth.authorizeUrl(meta, clientId, redirectUri, attempt);
+    const url = oauth.authorizeUrl(meta, clientId, redirectUri, attempt, library);
     out("Opening LiteraryWorm in your browser. Allow this computer there, then come back.");
     out("If nothing opens, go to:\n");
     out(`  ${url}\n`);
     openBrowser(url);
   });
   await client.exchange(meta, clientId, answer.code, attempt.verifier, answer.redirectUri);
-  out("Connected. This computer can now read your LiteraryWorm library, highlights and reading time.");
+  out(
+    library
+      ? "Connected. This computer can now read your LiteraryWorm library, highlights and reading time, and, if you left that on, add books and change their status."
+      : "Connected. This computer can now read your LiteraryWorm library, highlights and reading time.",
+  );
   out("Remove it at any time: literaryworm logout, or Account → Sign-in → Connected apps on the site.");
 }
 
@@ -132,8 +136,14 @@ async function run(argv, { out = (line) => console.log(line), err = (line) => co
       case "stats":
         show(await api.memberTool("get_reading_stats", options.days ? { days: options.days } : {}), format.stats);
         break;
+      case "add":
+        show(await api.memberTool("add_to_library", { book_id: words[0], ...(options.status ? { status: options.status } : {}) }), format.libraryChange);
+        break;
+      case "mark":
+        show(await api.memberTool("set_book_status", { book_id: words[0], status: options.status }), format.libraryChange);
+        break;
       case "login":
-        await login(api, out);
+        await login(api, out, Boolean(options.library));
         break;
       case "logout":
         out((await api.logout()) ? "Disconnected. This computer can't read your account any more." : "This computer wasn't connected.");

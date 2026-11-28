@@ -9,16 +9,25 @@ import { type ConnectedApp, parseConnectedApps } from "./connectedApps";
 export interface ConnectionRequest {
   app: string;
   redirectUri: string;
+  /** The app also asked to change the library (add books, change a book's status). */
+  library: boolean;
 }
 
 export async function connectionRequest(request: string): Promise<ConnectionRequest> {
   const answer = await callFunction<Partial<ConnectionRequest>>("mcp/consent", { action: "details", request }, "We couldn't find that request. Go back to the app and connect again.");
-  return { app: typeof answer.app === "string" ? answer.app : "", redirectUri: typeof answer.redirectUri === "string" ? answer.redirectUri : "" };
+  return {
+    app: typeof answer.app === "string" ? answer.app : "",
+    redirectUri: typeof answer.redirectUri === "string" ? answer.redirectUri : "",
+    library: answer.library === true,
+  };
 }
 
-/** Allows the app (the account password is checked on the server). Returns where to send the browser. */
-export async function allowConnection(request: string, password: string): Promise<string> {
-  const answer = await callFunction<{ redirectTo: string }>("mcp/consent", { action: "approve", request, password }, "We couldn't connect the app. Try again.");
+/**
+ * Allows the app (the account password is checked on the server), letting it change the library
+ * only when `library` (and the app asked to). Returns where to send the browser.
+ */
+export async function allowConnection(request: string, password: string, library = false): Promise<string> {
+  const answer = await callFunction<{ redirectTo: string }>("mcp/consent", { action: "approve", request, password, library }, "We couldn't connect the app. Try again.");
   return answer.redirectTo;
 }
 

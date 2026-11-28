@@ -25,12 +25,14 @@ describe("connected apps", () => {
   it("keeps only well-formed apps, newest first", () => {
     const apps = parseConnectedApps([
       { id: "a", name: "Old", createdAt: "2026-11-01T00:00:00Z", lastUsedAt: null },
-      { id: "b", name: "New", createdAt: "2026-11-10T00:00:00Z", lastUsedAt: "2026-11-11T00:00:00Z" },
+      { id: "b", name: "New", createdAt: "2026-11-10T00:00:00Z", lastUsedAt: "2026-11-11T00:00:00Z", scope: "read library" },
       { id: 3, name: "Bad", createdAt: "2026-11-12T00:00:00Z" },
       null,
     ]);
     expect(apps.map((a) => a.name)).toEqual(["New", "Old"]);
     expect(apps[1].lastUsedAt).toBeNull();
+    // Only the library scope can change anything; anything else reads.
+    expect(apps.map((a) => a.canChangeLibrary)).toEqual([true, false]);
     expect(parseConnectedApps({ apps: [] })).toEqual([]);
   });
 

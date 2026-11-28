@@ -3,7 +3,7 @@ import { publicSiteOrigin } from "../_shared/mailgun.ts";
 import { isOpenLibraryId } from "../_shared/openLibrary.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
-import { type Config, type Deps, handle, type Store } from "./handler.ts";
+import { type Config, type Deps, handle, type Scope, type Store } from "./handler.ts";
 import type { Data, LibraryRow, ProfileStats } from "./tools.ts";
 
 /**
@@ -42,7 +42,7 @@ function store(): Store {
       const row = must(
         await db
           .from("connected_app_requests")
-          .insert({ client_id: r.clientId, redirect_uri: r.redirectUri, code_challenge: r.codeChallenge, state: r.state })
+          .insert({ client_id: r.clientId, redirect_uri: r.redirectUri, code_challenge: r.codeChallenge, state: r.state, scope: r.scope })
           .select("id")
           .single(),
       );
@@ -52,21 +52,21 @@ function store(): Store {
       const row = must(
         await db
           .from("connected_app_requests")
-          .select("id, redirect_uri, state, connected_app_clients(name)")
+          .select("id, redirect_uri, state, scope, connected_app_clients(name)")
           .eq("id", id)
           .is("user_id", null)
           .gt("expires_at", now)
           .maybeSingle(),
-      ) as { id: string; redirect_uri: string; state: string | null; connected_app_clients: { name: string } | { name: string }[] | null } | null;
+      ) as { id: string; redirect_uri: string; state: string | null; scope: Scope; connected_app_clients: { name: string } | { name: string }[] | null } | null;
       if (!row) return null;
       const client = Array.isArray(row.connected_app_clients) ? row.connected_app_clients[0] : row.connected_app_clients;
-      return { id: row.id, clientName: client?.name ?? "An app", redirectUri: row.redirect_uri, state: row.state };
+      return { id: row.id, clientName: client?.name ?? "An app", redirectUri: row.redirect_uri, state: row.state, scope: row.scope };
     },
-    async approveRequest(id, userId, codeHash, now, expiresAt) {
+    async approveRequest(id, userId, codeHash, now, expiresAt, scope) {
       const rows = must(
         await db
           .from("connected_app_requests")
-          .update({ user_id: userId, code_hash: codeHash, expires_at: expiresAt })
+          .update({ user_id: userId, code_hash: codeHash, expires_at: expiresAt, scope })
           .eq("id", id)
           .is("user_id", null)
           .gt("expires_at", now)
@@ -79,17 +79,17 @@ function store(): Store {
     },
     async takeCode(codeHash) {
       const rows = must(
-        await db.from("connected_app_requests").delete().eq("code_hash", codeHash).select("client_id, redirect_uri, code_challenge, user_id, expires_at"),
+        await db.from("connected_app_requests").delete().eq("code_hash", codeHash).select("client_id, redirect_uri, code_challenge, user_id, expires_at, scope"),
       );
       const row = rows?.[0];
-      return row ? { clientId: row.client_id, redirectUri: row.redirect_uri, codeChallenge: row.code_challenge, userId: row.user_id, expiresAt: row.expires_at } : null;
+      return row ? { clientId: row.client_id, redirectUri: row.redirect_uri, codeChallenge: row.code_challenge, userId: row.user_id, expiresAt: row.expires_at, scope: row.scope } : null;
     },
     async countApps(userId) {
       const { count, error } = await db.from("connected_apps").select("id", { count: "exact", head: true }).eq("user_id", userId);
       if (error) throw new Error(error.message);
       return count ?? 0;
     },
-    async createApp(userId, clientId, t) {
+    async createApp(userId, clientId, t, scope) {
       must(
         await db.from("connected_apps").insert({
           user_id: userId,
@@ -98,6 +98,7 @@ function store(): Store {
           access_expires_at: t.accessExpiresAt,
           refresh_hash: t.refreshHash,
           refresh_expires_at: t.refreshExpiresAt,
+          scope,
         }),
       );
     },
@@ -109,13 +110,13 @@ function store(): Store {
           .eq("refresh_hash", refreshHash)
           .eq("client_id", clientId)
           .gt("refresh_expires_at", now)
-          .select("id"),
+          .select("id, scope"),
       );
-      return (rows ?? []).length === 1;
+      return (rows ?? []).length === 1 ? (rows![0].scope as Scope) : null;
     },
     async appByAccess(accessHash) {
-      const row = must(await db.from("connected_apps").select("id, user_id, access_expires_at, last_used_at").eq("access_hash", accessHash).maybeSingle());
-      return row ? { id: row.id, userId: row.user_id, accessExpiresAt: row.access_expires_at, lastUsedAt: row.last_used_at } : null;
+      const row = must(await db.from("connected_apps").select("id, user_id, access_expires_at, last_used_at, scope").eq("access_hash", accessHash).maybeSingle());
+      return row ? { id: row.id, userId: row.user_id, accessExpiresAt: row.access_expires_at, lastUsedAt: row.last_used_at, scope: row.scope as Scope } : null;
     },
     async touchApp(id, now) {
       must(await db.from("connected_apps").update({ last_used_at: now }).eq("id", id));
@@ -125,11 +126,11 @@ function store(): Store {
     },
     async listApps(userId) {
       const rows = must(
-        await db.from("connected_apps").select("id, created_at, last_used_at, connected_app_clients(name)").eq("user_id", userId).order("created_at", { ascending: false }),
-      ) as { id: string; created_at: string; last_used_at: string | null; connected_app_clients: { name: string } | { name: string }[] | null }[] | null;
+        await db.from("connected_apps").select("id, created_at, last_used_at, scope, connected_app_clients(name)").eq("user_id", userId).order("created_at", { ascending: false }),
+      ) as { id: string; created_at: string; last_used_at: string | null; scope: Scope; connected_app_clients: { name: string } | { name: string }[] | null }[] | null;
       return (rows ?? []).map((r) => {
         const client = Array.isArray(r.connected_app_clients) ? r.connected_app_clients[0] : r.connected_app_clients;
-        return { id: r.id, name: client?.name ?? "An app", createdAt: r.created_at, lastUsedAt: r.last_used_at };
+        return { id: r.id, name: client?.name ?? "An app", createdAt: r.created_at, lastUsedAt: r.last_used_at, scope: r.scope };
       });
     },
     async removeApp(userId, id) {
@@ -211,6 +212,17 @@ function data(): Data {
         await db.from("book_reading_days").select("volume_id").eq("user_id", userId).in("profile_id", kids.map((k) => k.id)).limit(20000),
       ) ?? [];
       return [...new Set(days.map((d) => d.volume_id as string))];
+    },
+    async libraryStatus(userId, bookId) {
+      const row = must(await db.from("library_items").select("status").eq("user_id", userId).eq("volume_id", bookId).maybeSingle());
+      return (row?.status as string | undefined) ?? null;
+    },
+    async addToLibrary(userId, bookId, status) {
+      // A row made meanwhile by the member's own app wins: nothing is overwritten.
+      must(await db.from("library_items").upsert({ user_id: userId, volume_id: bookId, status }, { onConflict: "user_id,volume_id", ignoreDuplicates: true }));
+    },
+    async setLibraryStatus(userId, bookId, status) {
+      must(await db.from("library_items").update({ status, updated_at: new Date().toISOString() }).eq("user_id", userId).eq("volume_id", bookId));
     },
     async stats(userId, since) {
       // Kids profiles are left out here, in the query, so their reading time never leaves the database.

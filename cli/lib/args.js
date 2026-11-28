@@ -1,7 +1,7 @@
 "use strict";
 // Reads the command line: a command, its words, and a few options. No I/O.
 
-const COMMANDS = ["search", "book", "pricing", "whats-new", "login", "logout", "status", "library", "highlights", "stats", "mcp", "help"];
+const COMMANDS = ["search", "book", "pricing", "whats-new", "login", "logout", "status", "library", "highlights", "stats", "add", "mark", "mcp", "help"];
 const STATUSES = ["want_to_read", "reading", "finished", "did_not_finish"];
 /** Options that take a whole number, with the most each allows. */
 const NUMBERS = { limit: 200, days: 366 };
@@ -21,6 +21,7 @@ function parseArgs(argv) {
     if (arg === "--json") json = true;
     else if (arg === "--help" || arg === "-h") return { command: "help", words: [], options: {}, json };
     else if (arg === "--version" || arg === "-v") return { command: "version", words: [], options: {}, json };
+    else if (arg === "--library") options.library = true;
     else if (arg.startsWith("--")) {
       const [name, inline] = arg.slice(2).split("=", 2);
       const value = inline !== undefined ? inline : argv[++i];
@@ -39,10 +40,13 @@ function parseArgs(argv) {
   if (!COMMANDS.includes(command)) throw new UsageError(`Unknown command: ${command}. Try "literaryworm help".`);
   if (command === "search" && words.length === 0) throw new UsageError("Say what to search for: literaryworm search pride and prejudice");
   if (command === "book" && words.length !== 1) throw new UsageError("Give one book id: literaryworm book pride-and-prejudice");
+  if (command === "add" && words.length !== 1) throw new UsageError("Give one book id: literaryworm add pride-and-prejudice");
+  if (command === "mark" && (words.length !== 1 || !options.status)) throw new UsageError("Give one book id and a status: literaryworm mark pride-and-prejudice --status finished");
+  if (options.library && command !== "login") throw new UsageError("--library goes with login: literaryworm login --library");
   return { command, words, options, json };
 }
 
-const HELP = `LiteraryWorm from the command line. Everything here only reads.
+const HELP = `LiteraryWorm from the command line. It reads, and changes your library only if you allow it.
 
 Without logging in:
   literaryworm search <words> [--limit N]   Find books in LiteraryWorm's catalog
@@ -51,10 +55,13 @@ Without logging in:
   literaryworm whats-new [--limit N]        The latest changes
 
 Your own account (log in first):
-  literaryworm login                        Opens LiteraryWorm in your browser to allow this computer
+  literaryworm login [--library]            Opens LiteraryWorm in your browser to allow this computer
+                                            (--library also asks to add books and change their status)
   literaryworm library [--status reading]   Your books (want_to_read, reading, finished, did_not_finish)
   literaryworm highlights [book-id] [--limit N]
   literaryworm stats [--days N]             Reading time for grown-up and teen profiles
+  literaryworm add <id> [--status S]        Add a catalog book to your library (needs login --library)
+  literaryworm mark <id> --status S         Change a book's status (needs login --library)
   literaryworm status                       Whether this computer is connected
   literaryworm logout                       Disconnects this computer
 
