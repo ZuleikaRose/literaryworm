@@ -18377,3 +18377,55 @@ end;
 $$;
 revoke execute on function public.claim_sign_in_alerts(integer) from public, anon, authenticated;
 grant execute on function public.claim_sign_in_alerts(integer) to service_role;
+
+-- =============================================================================
+-- 20261128006882_email_languages_lookup.sql
+-- =============================================================================
+-- For the email functions: the language to write each address's email in, for a batch of addresses
+-- (account_email_language() of the account that uses it), and a gift's buyer's language for a gift
+-- emailed to someone without an account. Service role only; an address with no account isn't returned.
+
+create or replace function public.email_languages(p_emails text[])
+returns table (email text, language text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select u.email::text, public.account_email_language(u.id)
+  from auth.users u
+  where lower(u.email) = any (select lower(e) from unnest(coalesce(p_emails, '{}')) e)
+    and cardinality(coalesce(p_emails, '{}')) <= 1000;
+$$;
+revoke execute on function public.email_languages(text[]) from public, anon, authenticated;
+grant execute on function public.email_languages(text[]) to service_role;
+
+create or replace function public.gift_buyer_language(p_gift uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select public.account_email_language(g.buyer_id) from public.gift_codes g where g.id = p_gift and g.buyer_id is not null), 'en');
+$$;
+revoke execute on function public.gift_buyer_language(uuid) from public, anon, authenticated;
+grant execute on function public.gift_buyer_language(uuid) to service_role;
+
+-- =============================================================================
+-- 20261128006883_whats_new_voice_languages.sql
+-- =============================================================================
+-- What's new: voice control in car mode in every interface language. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-28'::date, '2026.11', 'update', $lw$Voice control in your language$lw$, $lw$Voice control in car mode now listens in the language you've chosen for LiteraryWorm, in all 21 of them: say play, pause, back 30 or next chapter in Spanish, Japanese, Greek or any of the others. The voice control dialog shows the words to use.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Voice control in your language$lw$ and c.released_on = '2026-11-28');
+
+-- =============================================================================
+-- 20261128006884_whats_new_email_languages.sql
+-- =============================================================================
+-- What's new: emails in the member's language. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-28'::date, '2026.11', 'feature', $lw$Emails in your language$lw$, $lw$Our emails now come in the language you use LiteraryWorm in: book-out alerts, club reminders and digests, the Kids reading report, your year in reading, gifts, log-in alerts and the rest. Choose a different one under Language for emails in Account → Preferences. Book titles, names and What's new entries stay as they're written.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Emails in your language$lw$ and c.released_on = '2026-11-28');

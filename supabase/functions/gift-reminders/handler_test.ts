@@ -1,6 +1,6 @@
 // deno test --allow-env supabase/functions/gift-reminders — runs offline with a stand-in database and Mailgun.
 import { assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
-import { type Delivery, type Email, giftDay, giftStartEmail } from "./email.ts";
+import { type Delivery, type Email, giftDay, giftDeliveryEmail, giftStartEmail } from "./email.ts";
 import { type Deps, handle, type Reminder } from "./handler.ts";
 
 const KEY = "cron-key-value";
@@ -130,4 +130,16 @@ Deno.test("a gift card is named by its amount in both emails", () => {
   const card = { id: "g1", planId: null, months: null, creditCents: 5000, startsOn: "2027-03-14" };
   assertStringIncludes(giftStartEmail({ to: "ann@example.com", name: "Ann", gift: card, site: "https://www.literaryworm.com" }).text, "a $50.00 gift card");
   assertFalse(giftStartEmail({ to: "ann@example.com", name: "Ann", gift: card, site: "https://www.literaryworm.com" }).text.includes("undefined"));
+});
+
+Deno.test("the reminder and the gift are written in the language given", () => {
+  const r = reminder("ann@example.com");
+  const en = giftStartEmail({ to: r.email, name: r.name, gift: r.gift, site: SITE });
+  const fr = giftStartEmail({ to: r.email, name: r.name, gift: r.gift, site: SITE, language: "fr" });
+  assertFalse(fr.subject === en.subject);
+  assertStringIncludes(fr.html, 'lang="fr"');
+  const d = delivery("bo@example.com");
+  const frGift = giftDeliveryEmail({ delivery: { ...d, language: "fr" }, site: SITE });
+  assertFalse(frGift.subject === giftDeliveryEmail({ delivery: d, site: SITE }).subject);
+  assertStringIncludes(frGift.text, "ABCD-EFGH-JKLM-NPQR");
 });

@@ -12,6 +12,7 @@ import { preflight } from "../_shared/cors.ts";
 import { errorResponse, HttpError, json, readJsonBody, requireMethod } from "../_shared/http.ts";
 import { onlyKeys, parseUuid } from "../_shared/validate.ts";
 import { type InviteEmail, inviteEmail } from "./email.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 
 const METHODS = "POST";
 
@@ -28,6 +29,8 @@ export interface Deps {
   send: (email: InviteEmail) => Promise<void>;
   bookTitle: (volumeId: string) => string | null;
   siteOrigin: string;
+  /** The inviter's email language, which the invitation is written in; English when left out. */
+  language?: (userId: string) => Promise<EmailLanguage>;
 }
 
 // Deliberately plain: one @, something before it, a dot in the domain, no spaces or angle brackets.
@@ -73,6 +76,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const result = await deps.record(user.id, clubId, await emailHash(clubId, email));
     if (result.status !== "ok") throw REFUSALS[result.status];
 
+    const language = deps.language ? await deps.language(user.id).catch(() => "en" as const) : "en";
     try {
       await deps.send(
         inviteEmail(
@@ -83,6 +87,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
             bookTitle: deps.bookTitle(result.volume_id),
             finishesOn: result.finishes_on,
             inviteCode: result.invite_code,
+            language,
           },
           deps.siteOrigin,
         ),

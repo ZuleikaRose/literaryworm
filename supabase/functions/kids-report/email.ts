@@ -1,8 +1,10 @@
 // The weekly Kids reading report: last week's reading for each Kids profile, for the grown-ups
 // who turned it on. Inline styles only (email clients drop <style> blocks), matching
-// supabase/templates and the What's new email.
+// supabase/templates and the What's new email. In the account's language (_shared/emailI18n.ts);
+// profile names and book titles stay as written.
 
 import { CATALOG } from "../_shared/catalog.ts";
+import { emailLocale, type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface KidWeek {
   name: string;
@@ -42,63 +44,82 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 /** 0 → "No reading", 45 → "45 min", 125 → "2 h 5 min". */
-export function timeRead(minutes: number): string {
-  if (minutes <= 0) return "No reading";
+export function timeRead(minutes: number, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
+  if (minutes <= 0) return t("No reading");
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m} min`;
+  return h === 0 ? t("{m} min", { m }) : m === 0 ? t("{h} h", { h }) : t("{h} h {m} min", { h, m });
 }
 
 /** "26 October" to "1 November 2026": the week, in words. */
-export function weekLabel(from: string, to: string): string {
+export function weekLabel(from: string, to: string, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
   const date = (d: string, year: boolean) =>
-    new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", ...(year ? { year: "numeric" } : {}), timeZone: "UTC" }).format(
+    new Intl.DateTimeFormat(emailLocale(lang), { day: "numeric", month: "long", ...(year ? { year: "numeric" } : {}), timeZone: "UTC" }).format(
       new Date(`${d}T00:00:00Z`),
     );
-  return `${date(from, false)} to ${date(to, true)}`;
+  return t("{from} to {to}", { from: date(from, false), to: date(to, true) });
 }
 
 /** One line about a profile's week, as plain words. */
-export function kidLine(k: KidWeek): string {
-  if (k.minutes <= 0) return "No reading or listening this week.";
-  const listening = k.listeningMinutes > 0 ? ` (${timeRead(k.listeningMinutes)} of it listening)` : "";
-  const days = k.daysRead === 1 ? "1 day" : `${k.daysRead} days`;
-  return `${timeRead(k.minutes)} on ${days}${listening}.`;
+export function kidLine(k: KidWeek, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
+  if (k.minutes <= 0) return t("No reading or listening this week.");
+  const time = timeRead(k.minutes, lang);
+  const n = k.daysRead;
+  if (k.listeningMinutes > 0) {
+    const listening = timeRead(k.listeningMinutes, lang);
+    return n === 1 ? t("{time} on 1 day ({listening} of it listening).", { time, listening }) : t("{time} on {n} days ({listening} of it listening).", { time, n, listening });
+  }
+  return n === 1 ? t("{time} on 1 day.", { time }) : t("{time} on {n} days.", { time, n });
 }
 
 /** Whether the week reached the goal a grown-up set, or null when there's none. */
-export function goalLine(k: KidWeek): string | null {
+export function goalLine(k: KidWeek, lang: EmailLanguage = "en"): string | null {
+  const t = translator(lang);
   if (!k.goalMinutes) return null;
-  const goal = `Weekly goal: ${timeRead(k.goalMinutes)}`;
-  return k.minutes >= k.goalMinutes ? `${goal}. Reached!` : `${goal}. ${timeRead(k.goalMinutes - k.minutes)} short.`;
+  const goal = timeRead(k.goalMinutes, lang);
+  return k.minutes >= k.goalMinutes
+    ? t("Weekly goal: {goal}. Reached!", { goal })
+    : t("Weekly goal: {goal}. {short} short.", { goal, short: timeRead(k.goalMinutes - k.minutes, lang) });
 }
 
 /** Bedtime kept, out of 7 nights, and Bedtime listening, for a profile with a bedtime; else null. */
-export function bedtimeLine(k: KidWeek): string | null {
+export function bedtimeLine(k: KidWeek, lang: EmailLanguage = "en"): string | null {
+  const t = translator(lang);
   if (!k.hasBedtime) return null;
   const kept = Math.max(0, 7 - (k.lateNights ?? 0));
-  const listening = (k.bedtimeMinutes ?? 0) > 0 ? ` ${timeRead(k.bedtimeMinutes!)} of bedtime listening.` : "";
-  return `Bedtime kept ${kept} of 7 nights.${listening}`;
+  return (k.bedtimeMinutes ?? 0) > 0
+    ? t("Bedtime kept {kept} of 7 nights. {time} of bedtime listening.", { kept, time: timeRead(k.bedtimeMinutes!, lang) })
+    : t("Bedtime kept {kept} of 7 nights.", { kept });
 }
 
 /** This month's natural-voice reading, for a profile with natural voices on (or that used some); else null. */
-export function voiceLine(k: KidWeek): string | null {
+export function voiceLine(k: KidWeek, lang: EmailLanguage = "en"): string | null {
+  const t = translator(lang);
   const used = k.voiceMinutes ?? 0;
   if (!k.naturalVoices && used <= 0) return null;
-  if (used <= 0) return "Natural voices are on; none used this month yet.";
-  const share = k.voiceShareMinutes ? ` of a ${timeRead(k.voiceShareMinutes)} share` : "";
-  return `Natural voices this month: ${timeRead(used)}${share}.`;
+  if (used <= 0) return t("Natural voices are on; none used this month yet.");
+  const time = timeRead(used, lang);
+  return k.voiceShareMinutes
+    ? t("Natural voices this month: {time} of a {share} share.", { time, share: timeRead(k.voiceShareMinutes, lang) })
+    : t("Natural voices this month: {time}.", { time });
 }
 
 /** The finished books' titles where we know them (our own catalog); others are counted. */
-export function finishedLine(k: KidWeek): string | null {
+export function finishedLine(k: KidWeek, lang: EmailLanguage = "en"): string | null {
+  const t = translator(lang);
   if (k.booksFinished <= 0) return null;
-  const titles = [...new Set(k.finishedBooks)].map((id) => CATALOG[id]?.title).filter((t): t is string => Boolean(t));
+  const titles = [...new Set(k.finishedBooks)].map((id) => CATALOG[id]?.title).filter((x): x is string => Boolean(x));
   const others = Math.max(k.booksFinished - titles.length, 0);
   const named = titles.join(", ");
-  const count = k.booksFinished === 1 ? "1 book" : `${k.booksFinished} books`;
-  if (!named) return `Finished ${count}.`;
-  return `Finished ${count}: ${named}${others > 0 ? ` and ${others === 1 ? "1 more" : `${others} more`}` : ""}.`;
+  const n = k.booksFinished;
+  if (!named) return n === 1 ? t("Finished 1 book.") : t("Finished {n} books.", { n });
+  if (others === 0) return n === 1 ? t("Finished 1 book: {titles}.", { titles: named }) : t("Finished {n} books: {titles}.", { n, titles: named });
+  return others === 1
+    ? t("Finished {n} books: {titles} and 1 more.", { n, titles: named })
+    : t("Finished {n} books: {titles} and {others} more.", { n, titles: named, others });
 }
 
 /**
@@ -121,8 +142,15 @@ export function kidGroup(k: KidWeek): KidGroup {
 }
 
 /** The kids in their groups, in KID_GROUPS order and their own order within; empty groups left out. */
-export function groupKids(kids: KidWeek[]): { id: KidGroup; heading: string; kids: KidWeek[] }[] {
-  return KID_GROUPS.map((g) => ({ ...g, kids: kids.filter((k) => kidGroup(k) === g.id) })).filter((g) => g.kids.length > 0);
+export function groupKids(kids: KidWeek[], lang: EmailLanguage = "en"): { id: KidGroup; heading: string; kids: KidWeek[] }[] {
+  const t = translator(lang);
+  const headings: Record<KidGroup, string> = {
+    toGo: t("Still working on their goal"),
+    notYet: t("No reading yet"),
+    reading: t("Reading, no goal set"),
+    reached: t("Goal reached"),
+  };
+  return KID_GROUPS.map((g) => ({ ...g, heading: headings[g.id], kids: kids.filter((k) => kidGroup(k) === g.id) })).filter((g) => g.kids.length > 0);
 }
 
 export function kidsReportEmail(input: {
@@ -135,23 +163,35 @@ export function kidsReportEmail(input: {
   site: string;
   /** The one-click unsubscribe page for this account and email. */
   unsubscribe: string;
+  /** The account's email language (account_email_language()). */
+  language?: EmailLanguage;
 }): Email {
-  const when = weekLabel(input.weekFrom, input.weekTo);
+  const lang = input.language ?? "en";
+  const t = translator(lang);
+  const when = weekLabel(input.weekFrom, input.weekTo, lang);
   const family = `${input.site}/account#family`;
   const settings = `${input.site}/account#family`;
-  const subject = `Your Kids reading report: ${when}`;
-  const hello = input.name ? `Hi ${input.name},` : "Hi,";
-  const lead = `Here's how ${input.kids.length === 1 ? input.kids[0].name : "your Kids profiles"} read and listened last week.`;
+  const subject = t("Your Kids reading report: {when}", { when });
+  const hello = input.name ? t("Hi {name},", { name: input.name }) : t("Hi,");
+  const lead =
+    input.kids.length === 1
+      ? t("Here's how {name} read and listened last week.", { name: input.kids[0].name })
+      : t("Here's how your Kids profiles read and listened last week.");
+  const why = t("You're getting this because you turned on the weekly Kids reading report.");
+  const unsubscribeText = t("Unsubscribe in one click");
+  const changeText = t("change it in Account");
+  const title = t("Kids reading report");
+  const button = t("See it in Account");
   // One group needs no headings.
-  const groups = groupKids(input.kids);
+  const groups = groupKids(input.kids, lang);
   const headed = groups.length > 1;
   const kidText = (k: KidWeek) => [
     k.name,
-    kidLine(k),
-    ...(goalLine(k) ? [goalLine(k)!] : []),
-    ...(bedtimeLine(k) ? [bedtimeLine(k)!] : []),
-    ...(voiceLine(k) ? [voiceLine(k)!] : []),
-    ...(finishedLine(k) ? [finishedLine(k)!] : []),
+    kidLine(k, lang),
+    ...(goalLine(k, lang) ? [goalLine(k, lang)!] : []),
+    ...(bedtimeLine(k, lang) ? [bedtimeLine(k, lang)!] : []),
+    ...(voiceLine(k, lang) ? [voiceLine(k, lang)!] : []),
+    ...(finishedLine(k, lang) ? [finishedLine(k, lang)!] : []),
     "",
   ];
 
@@ -161,10 +201,10 @@ export function kidsReportEmail(input: {
     lead,
     "",
     ...groups.flatMap((g) => [...(headed ? [`${g.heading.toUpperCase()} (${g.kids.length})`, ""] : []), ...g.kids.flatMap(kidText)]),
-    `See it in Account → Family: ${family}`,
+    t("See it in Account → Family: {link}", { link: family }),
     "",
-    `You're getting this because you turned on the weekly Kids reading report. Unsubscribe in one click: ${input.unsubscribe}`,
-    `Or change it in Account → Family: ${settings}`,
+    `${why} ${t("Unsubscribe in one click: {link}", { link: input.unsubscribe })}`,
+    t("Or change it in Account → Family: {link}", { link: settings }),
     "LiteraryWorm · https://www.literaryworm.com",
   ].join("\n");
 
@@ -172,14 +212,14 @@ export function kidsReportEmail(input: {
                     <td style="padding:20px 0 6px;${FONT}font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#5b5750;">${escapeHtml(g.heading)} (${g.kids.length})</td>
                   </tr>`;
   const kidRow = (k: KidWeek) => {
-    const finished = finishedLine(k);
-    const goal = goalLine(k);
-    const bedtime = bedtimeLine(k);
-    const voices = voiceLine(k);
+    const finished = finishedLine(k, lang);
+    const goal = goalLine(k, lang);
+    const bedtime = bedtimeLine(k, lang);
+    const voices = voiceLine(k, lang);
     return `<tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <div style="font-size:17px;font-weight:700;color:#1d1c1a;">${escapeHtml(k.name)}</div>
-                      <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(kidLine(k))}</div>
+                      <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(kidLine(k, lang))}</div>
                       ${goal ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(goal)}</div>` : ""}
                       ${bedtime ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(bedtime)}</div>` : ""}
                       ${voices ? `<div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(voices)}</div>` : ""}
@@ -190,7 +230,7 @@ export function kidsReportEmail(input: {
   const rows = groups.map((g) => [...(headed ? [heading(g)] : []), ...g.kids.map(kidRow)].join("\n")).join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -210,7 +250,7 @@ export function kidsReportEmail(input: {
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">Kids reading report</h1>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(title)}</h1>
                 <p style="margin:0 0 4px;font-size:14px;color:#5b5750;">${escapeHtml(when)}</p>
                 <p style="margin:12px 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hello)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
@@ -218,14 +258,17 @@ export function kidsReportEmail(input: {
                   ${rows}
                 </table>
                 <p style="margin:20px 0 0;">
-                  <a href="${escapeHtml(family)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">See it in Account</a>
+                  <a href="${escapeHtml(family)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(button)}</a>
                 </p>
               </td>
             </tr>
             <tr>
               <td style="padding:24px 32px 32px;${FONT}font-size:12px;line-height:1.5;color:#5b5750;">
                 <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
-                You're getting this because you turned on the weekly Kids reading report. <a href="${escapeHtml(input.unsubscribe)}" style="color:#a24e2f;">Unsubscribe in one click</a> or <a href="${escapeHtml(settings)}" style="color:#a24e2f;">change it in Account</a>.<br />
+                ${escapeHtml(why)} ${t("{unsubscribe} or {change}.", {
+                  unsubscribe: `<a href="${escapeHtml(input.unsubscribe)}" style="color:#a24e2f;">${escapeHtml(unsubscribeText)}</a>`,
+                  change: `<a href="${escapeHtml(settings)}" style="color:#a24e2f;">${escapeHtml(changeText)}</a>`,
+                })}<br />
                 LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
               </td>
             </tr>

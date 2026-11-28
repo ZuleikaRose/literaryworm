@@ -1,5 +1,6 @@
 // Deploy with JWT verification off (pg_cron sends the Vault secret, not a Supabase token).
 // Emails go through Mailgun's API (_shared/mailgun.ts). Nothing is hard-coded.
+import { addressLanguages } from "../_shared/accountLanguage.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { unsubscribeToken } from "../_shared/unsubscribe.ts";
@@ -43,7 +44,9 @@ Deno.serve((req) =>
     async claim(month, max) {
       const { data, error } = await serviceClient().rpc("claim_whats_new_emails", { p_month: month, max_count: max });
       if (error) throw error;
-      return (data as { user_id: string; email: string; account_name: string | null }[]).map((r) => ({ userId: r.user_id, email: r.email, name: r.account_name }));
+      const rows = data as { user_id: string; email: string; account_name: string | null }[];
+      const languageOf = await addressLanguages(rows.map((r) => r.email));
+      return rows.map((r) => ({ userId: r.user_id, email: r.email, name: r.account_name, language: languageOf(r.email) }));
     },
     async release(userId, month) {
       const { error } = await serviceClient().from("whats_new_sends").delete().eq("user_id", userId).eq("month", month);

@@ -181,3 +181,10 @@ Deno.test("refused callers trigger no notifications", async () => {
   assertEquals((await handle(post("Bearer wrong"), deps)).status, 401);
   assertEquals(pushed, false);
 });
+
+Deno.test("the email is written in the account's language, titles as they are", () => {
+  const email = releaseEmail([reminder({ language: "fr" })], SITE);
+  assertEquals(email.subject, "The Long Way Home est sorti");
+  assertStringIncludes(email.html, '<html lang="fr">');
+  assertStringIncludes(email.text, "Bonjour Ada,");
+});

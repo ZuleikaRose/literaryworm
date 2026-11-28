@@ -8,6 +8,7 @@
 // for changes, so two runs can't send twice); one whose emails all fail is handed back for the next run.
 
 import { sameSecret } from "../whats-new/handler.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 import { type Email, type Meeting, type MeetingChange, meetingChangeEmail, meetingReminderEmail } from "./email.ts";
 
 /** One member to remind about one meeting (what claim_club_meeting_reminders() returns). */
@@ -16,6 +17,8 @@ export interface Reminder {
   userId: string;
   email: string;
   name: string | null;
+  /** The member's email language; English when left out. */
+  language?: EmailLanguage;
 }
 
 /** One member to tell about one moved or cancelled meeting (what claim_club_meeting_changes() returns). */
@@ -24,6 +27,8 @@ export interface ChangeNotice {
   userId: string;
   email: string;
   name: string | null;
+  /** The member's email language; English when left out. */
+  language?: EmailLanguage;
 }
 
 export interface Deps {
@@ -93,7 +98,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       deps,
       await deps.claim(BATCH),
       (r) => r.meeting.id,
-      (r, unsubscribe) => meetingReminderEmail({ to: r.email, name: r.name, meeting: r.meeting, site: deps.siteOrigin, unsubscribe }),
+      (r, unsubscribe) => meetingReminderEmail({ to: r.email, name: r.name, meeting: r.meeting, site: deps.siteOrigin, unsubscribe, language: r.language }),
       deps.release,
       "reminding",
     );
@@ -101,7 +106,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
       deps,
       await deps.claimChanges(BATCH),
       (c) => c.change.meeting.id,
-      (c, unsubscribe) => meetingChangeEmail({ to: c.email, name: c.name, change: c.change, site: deps.siteOrigin, unsubscribe }),
+      (c, unsubscribe) => meetingChangeEmail({ to: c.email, name: c.name, change: c.change, site: deps.siteOrigin, unsubscribe, language: c.language }),
       deps.releaseChange,
       "telling",
     );

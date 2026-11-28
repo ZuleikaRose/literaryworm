@@ -128,3 +128,11 @@ Deno.test("the email escapes titles and names", () => {
   assert(!email.html.includes("<b>Ada</b>"));
   assertStringIncludes(email.html, "A &amp; B");
 });
+
+Deno.test("the email is written in the account's language; the entries stay in English", () => {
+  const email = whatsNewEmail({ to: "a@example.com", name: null, month: "2026-10-01", entries: ENTRIES, site: SITE, unsubscribe: `${SITE}/unsubscribe?t=x`, language: "fr" });
+  assertEquals(email.subject, "Nouveautés de LiteraryWorm : octobre 2026");
+  assertStringIncludes(email.html, '<html lang="fr">');
+  assertStringIncludes(email.html, '<div lang="en"');
+  assertStringIncludes(email.text, "Les changements sont décrits en anglais.");
+});

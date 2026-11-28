@@ -9,6 +9,7 @@
 
 import { sameSecret } from "../whats-new/handler.ts";
 import { type ChapterPosts, clubPostsEmail, type Email } from "./email.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 
 /** One row of claim_club_post_digests(): one account, one club, one chapter. */
 export interface DigestRow extends ChapterPosts {
@@ -17,6 +18,8 @@ export interface DigestRow extends ChapterPosts {
   name: string | null;
   /** What club_posts_emailed_through was before the claim (ISO), for handing it back. */
   wasThrough: string | null;
+  /** The account's email language; English when not given. */
+  language?: EmailLanguage;
 }
 
 export interface Deps {
@@ -57,7 +60,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         accounts += 1;
         try {
           const unsubscribe = await deps.unsubscribeLink(userId);
-          await deps.send(clubPostsEmail({ to: mine[0].email, name: mine[0].name, rows: mine, site: deps.siteOrigin, unsubscribe }), unsubscribe);
+          await deps.send(clubPostsEmail({ to: mine[0].email, name: mine[0].name, rows: mine, site: deps.siteOrigin, unsubscribe, language: mine[0].language }), unsubscribe);
           sent += 1;
         } catch (err) {
           failed += 1;

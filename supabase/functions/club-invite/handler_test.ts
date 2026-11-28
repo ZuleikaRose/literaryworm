@@ -126,3 +126,11 @@ Deno.test("parseEmail and longDate", () => {
   assertEquals(parseEmail(" A.B+c@Mail.Example.org "), "a.b+c@mail.example.org");
   assertEquals(longDate("2026-12-04"), "4 December 2026");
 });
+
+Deno.test("the invitation is written in the inviter's language", () => {
+  const invite = { to: "f@example.com", inviterName: "Ada", clubName: "Sunday Readers", bookTitle: null, finishesOn: "2026-12-04", inviteCode: "SundayRead" };
+  const fr = inviteEmail({ ...invite, language: "fr" }, SITE);
+  assertFalse(fr.subject === inviteEmail(invite, SITE).subject);
+  assertStringIncludes(fr.subject, "Sunday Readers");
+  assertStringIncludes(fr.html, 'lang="fr"');
+});

@@ -1,7 +1,10 @@
 // The note to a gift's buyer a few days before the day it starts, and the gift itself, emailed to
 // its recipient when the buyer asked us to. Inline styles only (email clients drop <style>
 // blocks), matching supabase/templates and the other emails. The buyer's reminder never has the
-// code in it (they see it on the Gifts page, signed in); the recipient's email is the code.
+// code in it (they see it on the Gifts page, signed in); the recipient's email is the code. In the
+// buyer's email language, or the recipient's when their address has an account (_shared/emailI18n.ts).
+
+import { emailLocale, type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface Gift {
   id: string;
@@ -33,7 +36,12 @@ const escapeHtml = (s: string) =>
  * "Sunday 14 March 2027": the day as written, whatever the time zone. Built from its parts, since
  * some ICU versions put a comma after the weekday (like meetingTime() in club-meetings).
  */
-export function giftDay(startsOn: string): string {
+export function giftDay(startsOn: string, lang: EmailLanguage = "en"): string {
+  if (lang !== "en") {
+    return new Intl.DateTimeFormat(emailLocale(lang), { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+      new Date(`${startsOn}T12:00:00Z`),
+    );
+  }
   const parts = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).formatToParts(
     new Date(`${startsOn}T12:00:00Z`),
   );
@@ -41,29 +49,37 @@ export function giftDay(startsOn: string): string {
   return `${part("weekday")} ${part("day")} ${part("month")} ${part("year")}`;
 }
 
-const length = (months: number) => (months === 12 ? "a year" : months === 1 ? "1 month" : `${months} months`);
-
-/** "3 months of Standard", or "a $50.00 gift card". */
-export function giftWhat(gift: Pick<Gift, "planId" | "months" | "creditCents" | "voiceHours">): string {
-  if (gift.voiceHours) return `${gift.voiceHours} hours of natural-voice reading`;
-  if (gift.creditCents) return `a $${(gift.creditCents / 100).toFixed(2)} gift card`;
-  return `${length(gift.months ?? 1)} of ${PLAN_NAMES[gift.planId ?? "basic"]}`;
+/** "3 months of Standard", or "a $50.00 gift card". Plan names stay as they are. */
+export function giftWhat(gift: Pick<Gift, "planId" | "months" | "creditCents" | "voiceHours">, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
+  if (gift.voiceHours) return t("{n} hours of natural-voice reading", { n: gift.voiceHours });
+  if (gift.creditCents) return t("a {amount} gift card", { amount: `$${(gift.creditCents / 100).toFixed(2)}` });
+  const months = gift.months ?? 1;
+  const plan = PLAN_NAMES[gift.planId ?? "basic"];
+  if (months === 12) return t("a year of {plan}", { plan });
+  if (months === 1) return t("1 month of {plan}", { plan });
+  return t("{n} months of {plan}", { n: months, plan });
 }
 
-export function giftStartEmail(input: { to: string; name: string | null; gift: Gift; site: string }): Email {
+export function giftStartEmail(input: { to: string; name: string | null; gift: Gift; site: string; language?: EmailLanguage }): Email {
+  const lang = input.language ?? "en";
+  const t = translator(lang);
   const { gift } = input;
-  const day = giftDay(gift.startsOn);
-  const what = giftWhat(gift);
-  const subject = `Your LiteraryWorm gift starts on ${day}`;
-  const hello = input.name ? `Hi ${input.name},` : "Hi,";
-  const lead = `The gift you bought, ${what}, can be redeemed from ${day}. If you haven't passed the code on yet, now's a good time.`;
+  const day = giftDay(gift.startsOn, lang);
+  const what = giftWhat(gift, lang);
+  const subject = t("Your LiteraryWorm gift starts on {day}", { day });
+  const hello = input.name ? t("Hi {name},", { name: input.name }) : t("Hi,");
+  const lead = t("The gift you bought, {what}, can be redeemed from {day}. If you haven't passed the code on yet, now's a good time.", { what, day });
   const page = `${input.site}/gifts`;
-  const hint = "Your gifts and their codes are on the Gifts page when you're signed in";
-  const why = "You're getting this because you bought a LiteraryWorm gift set to start on a later day. It's the only reminder we send about it.";
+  const hint = t("Your gifts and their codes are on the Gifts page when you're signed in");
+  const why = t("You're getting this because you bought a LiteraryWorm gift set to start on a later day. It's the only reminder we send about it.");
+  const heading = t("Your gift starts soon");
+  const starts = t("Starts {day}", { day });
+  const button = t("See your gifts");
   const text = [hello, "", lead, "", `${hint}: ${page}`, "", why, "LiteraryWorm · https://www.literaryworm.com"].join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -83,19 +99,19 @@ export function giftStartEmail(input: { to: string; name: string | null; gift: G
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">Your gift starts soon</h1>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(heading)}</h1>
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hello)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;border-bottom:1px solid #e0d9cc;${FONT}">
                       <div style="font-size:17px;font-weight:700;color:#1d1c1a;">${escapeHtml(what)}</div>
-                      <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">Starts ${escapeHtml(day)}</div>
+                      <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(starts)}</div>
                     </td>
                   </tr>
                 </table>
                 <p style="margin:20px 0 0;">
-                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">See your gifts</a>
+                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(button)}</a>
                 </p>
                 <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#5b5750;">${escapeHtml(hint)}.</p>
               </td>
@@ -127,30 +143,51 @@ export interface Delivery {
   from: string | null;
   /** LiteraryWorm books that come with it, added to the library when it's redeemed. */
   books?: { title: string; author: string }[];
+  /** The language to write it in: the recipient's if their address has an account, else the buyer's. */
+  language?: EmailLanguage;
 }
 
 /** ABCD-EFGH-JKLM-NPQR, as the app shows codes (formatGiftCode() in src/lib/gifts.ts). */
 export const formatGiftCode = (code: string) => code.match(/.{1,4}/g)?.join("-") ?? code;
 
-export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): Email {
+export function giftDeliveryEmail(input: { delivery: Delivery; site: string; language?: EmailLanguage }): Email {
+  const lang = input.language ?? input.delivery.language ?? "en";
+  const t = translator(lang);
   const { gift, message, from } = input.delivery;
   const books = input.delivery.books ?? [];
-  const booksLead = books.length === 1 ? "It comes with a book, waiting in your library when you redeem it:" : "It comes with these books, waiting in your library when you redeem it:";
-  const what = giftWhat(gift);
-  const subject = from ? `A LiteraryWorm gift from ${from}` : "You've been sent a LiteraryWorm gift";
-  const lead = `${from ?? "Someone"} sent you ${what} on LiteraryWorm: ebooks and audiobooks, with a profile for everyone at home.`;
+  const booksLead = books.length === 1
+    ? t("It comes with a book, waiting in your library when you redeem it:")
+    : t("It comes with these books, waiting in your library when you redeem it:");
+  const what = giftWhat(gift, lang);
+  const subject = from ? t("A LiteraryWorm gift from {from}", { from }) : t("You've been sent a LiteraryWorm gift");
+  const lead = from
+    ? t("{from} sent you {what} on LiteraryWorm: ebooks and audiobooks, with a profile for everyone at home.", { from, what })
+    : t("Someone sent you {what} on LiteraryWorm: ebooks and audiobooks, with a profile for everyone at home.", { what });
   const code = formatGiftCode(gift.code);
   const page = `${input.site}/gifts?code=${gift.code}`;
-  const hint = "Sign in or create an account, then enter the code on the Gifts page or in Account. It doesn't expire";
-  const why = `You're getting this because ${from ?? "someone"} bought you a LiteraryWorm gift and asked us to email it to you. We don't keep your address once this is sent, and we won't email you again unless you sign up.`;
+  const hint = t("Sign in or create an account, then enter the code on the Gifts page or in Account. It doesn't expire");
+  const why = from
+    ? t(
+      "You're getting this because {from} bought you a LiteraryWorm gift and asked us to email it to you. We don't keep your address once this is sent, and we won't email you again unless you sign up.",
+      { from },
+    )
+    : t(
+      "You're getting this because someone bought you a LiteraryWorm gift and asked us to email it to you. We don't keep your address once this is sent, and we won't email you again unless you sign up.",
+    );
+  const hi = t("Hi,");
+  const wrote = from ? t("{from} wrote:", { from }) : t("They wrote:");
+  const byAuthor = (author: string) => t("by {author}", { author });
+  const yourCode = t("Your code");
+  const heading = t("A gift for you");
+  const button = t("Redeem your gift");
   const text = [
-    "Hi,",
+    hi,
     "",
     lead,
-    ...(message ? ["", `${from ?? "They"} wrote:`, message] : []),
-    ...(books.length ? ["", booksLead, ...books.map((b) => `- ${b.title}, by ${b.author}`)] : []),
+    ...(message ? ["", wrote, message] : []),
+    ...(books.length ? ["", booksLead, ...books.map((b) => `- ${b.title}, ${byAuthor(b.author)}`)] : []),
     "",
-    `Your code: ${code}`,
+    `${yourCode}: ${code}`,
     "",
     `${hint}: ${page}`,
     "",
@@ -162,7 +199,7 @@ export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): 
     ? `<p style="margin:0 0 16px;padding:12px 16px;border-left:3px solid #a24e2f;background:#f1e4cb;font-size:16px;line-height:1.55;white-space:pre-line;">${escapeHtml(message)}</p>`
     : "";
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -182,28 +219,28 @@ export function giftDeliveryEmail(input: { delivery: Delivery; site: string }): 
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">A gift for you</h1>
-                <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">Hi,</p>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(heading)}</h1>
+                <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hi)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 ${quote}
                 ${
     books.length
       ? `<p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(booksLead)}</p><ul style="margin:0 0 16px;padding-left:20px;font-size:16px;line-height:1.55;">${books
-        .map((b) => `<li><strong>${escapeHtml(b.title)}</strong> <span style="color:#5b5750;">by ${escapeHtml(b.author)}</span></li>`)
+        .map((b) => `<li><strong>${escapeHtml(b.title)}</strong> <span style="color:#5b5750;">${escapeHtml(byAuthor(b.author))}</span></li>`)
         .join("")}</ul>`
       : ""
   }
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="padding:14px 0;border-top:1px solid #e0d9cc;border-bottom:1px solid #e0d9cc;${FONT}">
-                      <div style="font-size:15px;color:#3d3a35;">Your code</div>
+                      <div style="font-size:15px;color:#3d3a35;">${escapeHtml(yourCode)}</div>
                       <div style="margin-top:4px;font-size:22px;font-weight:700;letter-spacing:1px;color:#1d1c1a;font-family:Consolas,'Courier New',monospace;">${escapeHtml(code)}</div>
                       <div style="margin-top:4px;font-size:15px;line-height:1.55;color:#3d3a35;">${escapeHtml(what)}</div>
                     </td>
                   </tr>
                 </table>
                 <p style="margin:20px 0 0;">
-                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Redeem your gift</a>
+                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(button)}</a>
                 </p>
                 <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#5b5750;">${escapeHtml(hint)}.</p>
               </td>

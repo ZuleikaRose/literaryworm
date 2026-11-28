@@ -2,6 +2,14 @@
   {
     "releasedOn": "2026-11-28",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Emails in your language",
+    "body": "Our emails now come in the language you use LiteraryWorm in: book-out alerts, club reminders and digests, the Kids reading report, your year in reading, gifts, log-in alerts and the rest. Choose a different one under Language for emails in Account → Preferences. Book titles, names and What's new entries stay as they're written.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
     "kind": "update",
     "title": "Voice control in your language",
     "body": "Voice control in car mode now listens in the language you've chosen for LiteraryWorm, in all 21 of them: say play, pause, back 30 or next chapter in Spanish, Japanese, Greek or any of the others. The voice control dialog shows the words to use.",

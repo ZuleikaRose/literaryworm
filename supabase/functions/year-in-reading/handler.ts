@@ -8,11 +8,14 @@
 
 import { sameSecret } from "../whats-new/handler.ts";
 import { type Email, type ProfileYear, yearEmail } from "./email.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 
 export interface Recipient {
   userId: string;
   email: string;
   name: string | null;
+  /** The account's email language; English when not given. */
+  language?: EmailLanguage;
 }
 
 export interface Deps {
@@ -57,7 +60,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         // Nothing read after all (the profiles were deleted since the claim): nothing to send or retry.
         if (profiles.length === 0) continue;
         const unsubscribe = await deps.unsubscribeLink(r.userId);
-        await deps.send(yearEmail({ to: r.email, name: r.name, year, profiles, site: deps.siteOrigin, unsubscribe }), unsubscribe);
+        await deps.send(yearEmail({ to: r.email, name: r.name, year, profiles, site: deps.siteOrigin, unsubscribe, language: r.language }), unsubscribe);
         sent += 1;
       } catch (err) {
         failed += 1;

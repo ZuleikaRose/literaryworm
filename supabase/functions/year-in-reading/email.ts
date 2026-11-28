@@ -1,8 +1,10 @@
 // The Year in reading email: the year just ended for every profile in the household, for the
 // members who turned it on. Inline styles only (email clients drop <style> blocks), matching
-// the Kids reading report.
+// the Kids reading report. In the account's language (_shared/emailI18n.ts); profile names and
+// book titles stay as written.
 
 import { CATALOG } from "../_shared/catalog.ts";
+import { emailLocale, type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 import { type Email, timeRead } from "../kids-report/email.ts";
 
 export type { Email };
@@ -29,29 +31,46 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 /** Time and days, as plain words: "12 h 5 min on 48 days (3 h of it listening)." */
-export function timeLine(p: ProfileYear): string {
-  if (p.minutes <= 0) return "No reading or listening this year.";
-  const listening = p.listeningMinutes > 0 ? ` (${timeRead(p.listeningMinutes)} of it listening)` : "";
-  const days = p.daysRead === 1 ? "1 day" : `${p.daysRead} days`;
-  return `${timeRead(p.minutes)} on ${days}${listening}.`;
+export function timeLine(p: ProfileYear, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
+  if (p.minutes <= 0) return t("No reading or listening this year.");
+  const time = timeRead(p.minutes, lang);
+  const n = p.daysRead;
+  if (p.listeningMinutes > 0) {
+    const listening = timeRead(p.listeningMinutes, lang);
+    return n === 1 ? t("{time} on 1 day ({listening} of it listening).", { time, listening }) : t("{time} on {n} days ({listening} of it listening).", { time, n, listening });
+  }
+  return n === 1 ? t("{time} on 1 day.", { time }) : t("{time} on {n} days.", { time, n });
 }
 
 /** The finished books, catalog titles named (up to TITLES_SHOWN), others counted; null for none. */
-export function booksLine(p: ProfileYear): string | null {
+export function booksLine(p: ProfileYear, lang: EmailLanguage = "en"): string | null {
+  const t = translator(lang);
   if (p.booksFinished <= 0) return null;
   const titles = [...new Set(p.finishedBooks)]
     .map((id) => CATALOG[id]?.title)
-    .filter((t): t is string => Boolean(t))
+    .filter((x): x is string => Boolean(x))
     .slice(0, TITLES_SHOWN);
   const others = Math.max(p.booksFinished - titles.length, 0);
-  const count = p.booksFinished === 1 ? "1 book" : `${p.booksFinished} books`;
-  if (!titles.length) return `Finished ${count}.`;
-  return `Finished ${count}: ${titles.join(", ")}${others > 0 ? ` and ${others === 1 ? "1 more" : `${others} more`}` : ""}.`;
+  const n = p.booksFinished;
+  const named = titles.join(", ");
+  if (!titles.length) return n === 1 ? t("Finished 1 book.") : t("Finished {n} books.", { n });
+  if (others === 0) return n === 1 ? t("Finished 1 book: {titles}.", { titles: named }) : t("Finished {n} books: {titles}.", { n, titles: named });
+  return others === 1
+    ? t("Finished {n} books: {titles} and 1 more.", { n, titles: named })
+    : t("Finished {n} books: {titles} and {others} more.", { n, titles: named, others });
+}
+
+/** The month's name: English as written here, other languages from Intl. */
+function monthName(month: number, lang: EmailLanguage): string {
+  if (lang === "en") return MONTHS[month - 1];
+  return new Intl.DateTimeFormat(emailLocale(lang), { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, month - 1, 15)));
 }
 
 /** "Read most in March." or null. */
-export function monthLine(p: ProfileYear): string | null {
-  return p.bestMonth && p.bestMonth >= 1 && p.bestMonth <= 12 && p.minutes > 0 ? `Read most in ${MONTHS[p.bestMonth - 1]}.` : null;
+export function monthLine(p: ProfileYear, lang: EmailLanguage = "en"): string | null {
+  const t = translator(lang);
+  return p.bestMonth && p.bestMonth >= 1 && p.bestMonth <= 12 && p.minutes > 0 ? t("Read most in {month}.", { month: monthName(p.bestMonth, lang) }) : null;
 }
 
 export function yearEmail(input: {
@@ -62,18 +81,35 @@ export function yearEmail(input: {
   site: string;
   /** The one-click unsubscribe page for this account and email. */
   unsubscribe: string;
+  /** The account's email language (account_email_language()). */
+  language?: EmailLanguage;
 }): Email {
+  const lang = input.language ?? "en";
+  const t = translator(lang);
   const stats = `${input.site}/library?view=stats`;
   const settings = `${input.site}/account#preferences`;
-  const subject = `Your ${input.year} in reading`;
-  const hello = input.name ? `Hi ${input.name},` : "Hi,";
+  const year = input.year;
+  const subject = t("Your {year} in reading", { year });
+  const hello = input.name ? t("Hi {name},", { name: input.name }) : t("Hi,");
   const total = input.profiles.reduce((n, p) => n + p.booksFinished, 0);
-  const household = input.profiles.length === 1 ? "you" : "your household";
+  const alone = input.profiles.length === 1;
   const lead =
     total > 0
-      ? `In ${input.year} ${household} finished ${total === 1 ? "1 book" : `${total} books`}. Here's the year, profile by profile.`
-      : `Here's how ${household} read and listened in ${input.year}.`;
-  const lines = (p: ProfileYear) => [timeLine(p), booksLine(p), monthLine(p)].filter((l): l is string => Boolean(l));
+      ? alone
+        ? total === 1
+          ? t("In {year} you finished 1 book. Here's the year, profile by profile.", { year })
+          : t("In {year} you finished {n} books. Here's the year, profile by profile.", { year, n: total })
+        : total === 1
+          ? t("In {year} your household finished 1 book. Here's the year, profile by profile.", { year })
+          : t("In {year} your household finished {n} books. Here's the year, profile by profile.", { year, n: total })
+      : alone
+        ? t("Here's how you read and listened in {year}.", { year })
+        : t("Here's how your household read and listened in {year}.", { year });
+  const why = t("You're getting this because you turned on Year in reading.");
+  const unsubscribeText = t("Unsubscribe in one click");
+  const changeText = t("change it in Account");
+  const button = t("See your stats");
+  const lines = (p: ProfileYear) => [timeLine(p, lang), booksLine(p, lang), monthLine(p, lang)].filter((l): l is string => Boolean(l));
 
   const text = [
     hello,
@@ -81,10 +117,10 @@ export function yearEmail(input: {
     lead,
     "",
     ...input.profiles.flatMap((p) => [p.name, ...lines(p), ""]),
-    `See every day of it in My Library → Stats, where you can share the year as a picture: ${stats}`,
+    t("See every day of it in My Library → Stats, where you can share the year as a picture: {link}", { link: stats }),
     "",
-    `You're getting this because you turned on Year in reading. Unsubscribe in one click: ${input.unsubscribe}`,
-    `Or change it in Account → Preferences: ${settings}`,
+    `${why} ${t("Unsubscribe in one click: {link}", { link: input.unsubscribe })}`,
+    t("Or change it in Account → Preferences: {link}", { link: settings }),
     "LiteraryWorm · https://www.literaryworm.com",
   ].join("\n");
 
@@ -102,7 +138,7 @@ export function yearEmail(input: {
     .join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -129,14 +165,17 @@ export function yearEmail(input: {
                   ${rows}
                 </table>
                 <p style="margin:20px 0 0;">
-                  <a href="${escapeHtml(stats)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">See your stats</a>
+                  <a href="${escapeHtml(stats)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(button)}</a>
                 </p>
               </td>
             </tr>
             <tr>
               <td style="padding:24px 32px 32px;${FONT}font-size:12px;line-height:1.5;color:#5b5750;">
                 <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
-                You're getting this because you turned on Year in reading. <a href="${escapeHtml(input.unsubscribe)}" style="color:#a24e2f;">Unsubscribe in one click</a> or <a href="${escapeHtml(settings)}" style="color:#a24e2f;">change it in Account</a>.<br />
+                ${escapeHtml(why)} ${t("{unsubscribe} or {change}.", {
+                  unsubscribe: `<a href="${escapeHtml(input.unsubscribe)}" style="color:#a24e2f;">${escapeHtml(unsubscribeText)}</a>`,
+                  change: `<a href="${escapeHtml(settings)}" style="color:#a24e2f;">${escapeHtml(changeText)}</a>`,
+                })}<br />
                 LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
               </td>
             </tr>

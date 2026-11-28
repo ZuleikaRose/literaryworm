@@ -10,6 +10,7 @@
 // twice); one whose email fails is handed back for the next run.
 
 import { sameSecret } from "../whats-new/handler.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 import { type Delivery, type Email, type Gift, giftDeliveryEmail, giftStartEmail } from "./email.ts";
 
 /** One buyer to remind about one gift (what claim_gift_start_reminders() returns). */
@@ -17,6 +18,8 @@ export interface Reminder {
   gift: Gift;
   email: string;
   name: string | null;
+  /** The buyer's email language; English when left out. */
+  language?: EmailLanguage;
 }
 
 export interface Deps {
@@ -54,7 +57,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     let undelivered = 0;
     for (const d of deliveries) {
       try {
-        await deps.send(giftDeliveryEmail({ delivery: d, site: deps.siteOrigin }));
+        await deps.send(giftDeliveryEmail({ delivery: d, site: deps.siteOrigin, language: d.language }));
         delivered += 1;
       } catch (err) {
         undelivered += 1;
@@ -71,7 +74,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     let failed = 0;
     for (const r of due) {
       try {
-        await deps.send(giftStartEmail({ to: r.email, name: r.name, gift: r.gift, site: deps.siteOrigin }));
+        await deps.send(giftStartEmail({ to: r.email, name: r.name, gift: r.gift, site: deps.siteOrigin, language: r.language }));
         sent += 1;
       } catch (err) {
         failed += 1;

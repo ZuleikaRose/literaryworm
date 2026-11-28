@@ -8,11 +8,14 @@
 
 import { sameSecret } from "../whats-new/handler.ts";
 import { type Email, type KidWeek, kidsReportEmail } from "./email.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 
 export interface Recipient {
   userId: string;
   email: string;
   name: string | null;
+  /** The account's email language; English when not given. */
+  language?: EmailLanguage;
 }
 
 export interface Deps {
@@ -64,7 +67,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
         // The Kids profiles were deleted since the claim: nothing to report, and nothing to retry.
         if (kids.length === 0) continue;
         const unsubscribe = await deps.unsubscribeLink(r.userId);
-        await deps.send(kidsReportEmail({ to: r.email, name: r.name, weekFrom: from, weekTo: to, kids, site: deps.siteOrigin, unsubscribe }), unsubscribe);
+        await deps.send(kidsReportEmail({ to: r.email, name: r.name, weekFrom: from, weekTo: to, kids, site: deps.siteOrigin, unsubscribe, language: r.language }), unsubscribe);
         sent += 1;
       } catch (err) {
         failed += 1;

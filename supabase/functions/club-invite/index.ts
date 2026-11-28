@@ -1,5 +1,6 @@
 // Emails go through Mailgun's API (_shared/mailgun.ts: MAILGUN_API_KEY and MAILGUN_DOMAIN
 // function settings). Nothing is hard-coded.
+import { accountLanguage } from "../_shared/accountLanguage.ts";
 import { CATALOG } from "../_shared/catalog.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
@@ -28,5 +29,6 @@ Deno.serve((req) =>
     // Clubs are around catalog titles; anything else is named in the email without a title.
     bookTitle: (volumeId) => CATALOG[volumeId]?.title ?? null,
     siteOrigin: publicSiteOrigin(),
+    language: accountLanguage,
   })
 );

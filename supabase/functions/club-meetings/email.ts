@@ -1,8 +1,10 @@
 // Book club meeting emails: the reminder in the day before a meeting, and the note when one moves
 // or is cancelled. Inline styles only (email clients drop <style> blocks), matching
-// supabase/templates and the other emails.
+// supabase/templates and the other emails. In the member's email language (_shared/emailI18n.ts);
+// the calendar file stays English.
 
 import { CATALOG } from "../_shared/catalog.ts";
+import { emailLocale, type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface Meeting {
   id: string;
@@ -34,8 +36,20 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 /** "Sunday 8 November at 19:00 GMT", in the time zone the meeting was set in (UTC if that's unknown). */
-export function meetingTime(startsAt: string, timeZone: string): string {
+export function meetingTime(startsAt: string, timeZone: string, lang: EmailLanguage = "en"): string {
   const format = (zone: string) => {
+    if (lang !== "en") {
+      return new Intl.DateTimeFormat(emailLocale(lang), {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: zone,
+        timeZoneName: "short",
+      }).format(new Date(startsAt));
+    }
     const parts = new Intl.DateTimeFormat("en-GB", {
       weekday: "long",
       day: "numeric",
@@ -64,7 +78,10 @@ export function meetingTime(startsAt: string, timeZone: string): string {
 }
 
 /** "1 hour", "90 minutes". */
-export const meetingLength = (minutes: number) => (minutes === 60 ? "1 hour" : minutes === 120 ? "2 hours" : `${minutes} minutes`);
+export function meetingLength(minutes: number, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
+  return minutes === 60 ? t("1 hour") : minutes === 120 ? t("2 hours") : t("{n} minutes", { n: minutes });
+}
 
 interface Parts {
   to: string;
@@ -79,11 +96,20 @@ interface Parts {
   clubName: string;
   unsubscribe: string;
   site: string;
+  lang: EmailLanguage;
 }
 
 /** One email in the club meeting layout, as text and HTML. */
 function layout(p: Parts): Email {
+  const t = translator(p.lang);
   const settings = `${p.site}/account#preferences`;
+  const why = t("You're getting this because you're in {club}.", { club: p.clubName });
+  const stop = t("Stop meeting emails in one click");
+  const change = t("change your email settings");
+  // The two links go into the translated sentence after it's escaped.
+  const links = escapeHtml(t("{stop} or {change}.", { stop: "\u0001", change: "\u0002" }))
+    .replace("\u0001", `<a href="${escapeHtml(p.unsubscribe)}" style="color:#a24e2f;">${escapeHtml(stop)}</a>`)
+    .replace("\u0002", `<a href="${escapeHtml(settings)}" style="color:#a24e2f;">${escapeHtml(change)}</a>`);
   const [cardTitle, ...cardLines] = p.card;
   const text = [
     p.hello,
@@ -94,13 +120,13 @@ function layout(p: Parts): Email {
     "",
     `${p.pageHint}: ${p.page}`,
     "",
-    `You're getting this because you're in ${p.clubName}. Stop meeting emails in one click: ${p.unsubscribe}`,
-    `Or change your email settings: ${settings}`,
+    `${why} ${t("Stop meeting emails in one click: {link}", { link: p.unsubscribe })}`,
+    t("Or change your email settings: {link}", { link: settings }),
     "LiteraryWorm · https://www.literaryworm.com",
   ].join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(p.lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -132,7 +158,7 @@ function layout(p: Parts): Email {
                   </tr>
                 </table>
                 <p style="margin:20px 0 0;">
-                  <a href="${escapeHtml(p.page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Open the club</a>
+                  <a href="${escapeHtml(p.page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(t("Open the club"))}</a>
                 </p>
                 <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#5b5750;">${escapeHtml(p.pageHint)}.</p>
               </td>
@@ -140,7 +166,7 @@ function layout(p: Parts): Email {
             <tr>
               <td style="padding:24px 32px 32px;${FONT}font-size:12px;line-height:1.5;color:#5b5750;">
                 <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
-                You're getting this because you're in ${escapeHtml(p.clubName)}. <a href="${escapeHtml(p.unsubscribe)}" style="color:#a24e2f;">Stop meeting emails in one click</a> or <a href="${escapeHtml(settings)}" style="color:#a24e2f;">change your email settings</a>.<br />
+                ${escapeHtml(why)} ${links}<br />
                 LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
               </td>
             </tr>
@@ -155,22 +181,32 @@ function layout(p: Parts): Email {
   return { to: p.to, subject: p.subject, text, html };
 }
 
-export function meetingReminderEmail(input: { to: string; name: string | null; meeting: Meeting; site: string; unsubscribe: string }): Email {
+export function meetingReminderEmail(input: {
+  to: string;
+  name: string | null;
+  meeting: Meeting;
+  site: string;
+  unsubscribe: string;
+  language?: EmailLanguage;
+}): Email {
+  const lang = input.language ?? "en";
+  const t = translator(lang);
   const m = input.meeting;
-  const book = CATALOG[m.bookId]?.title ?? "your book";
-  const when = meetingTime(m.startsAt, m.timeZone);
+  const book = CATALOG[m.bookId]?.title ?? t("your book");
+  const when = meetingTime(m.startsAt, m.timeZone, lang);
   return layout({
     to: input.to,
-    subject: `${m.clubName} meets ${when}`,
-    heading: `${m.clubName} meets soon`,
-    hello: input.name ? `Hi ${input.name},` : "Hi,",
-    lead: `A reminder that ${m.clubName} meets soon to talk about ${book}.`,
-    card: [m.title, `${when}, for ${meetingLength(m.minutes)}`, ...(m.note ? [m.note] : [])],
+    subject: t("{club} meets {when}", { club: m.clubName, when }),
+    heading: t("{club} meets soon", { club: m.clubName }),
+    hello: input.name ? t("Hi {name},", { name: input.name }) : t("Hi,"),
+    lead: t("A reminder that {club} meets soon to talk about {book}.", { club: m.clubName, book }),
+    card: [m.title, t("{when}, for {length}", { when, length: meetingLength(m.minutes, lang) }), ...(m.note ? [m.note] : [])],
     page: `${input.site}/clubs/${m.clubId}`,
-    pageHint: "Open the club, catch up on the discussion and add the meeting to your calendar",
+    pageHint: t("Open the club, catch up on the discussion and add the meeting to your calendar"),
     clubName: m.clubName,
     unsubscribe: input.unsubscribe,
     site: input.site,
+    lang,
   });
 }
 
@@ -244,31 +280,34 @@ export function meetingFileName(clubName: string, startsAt: string): string {
 }
 
 export function meetingChangeEmail(
-  input: { to: string; name: string | null; change: MeetingChange; site: string; unsubscribe: string },
+  input: { to: string; name: string | null; change: MeetingChange; site: string; unsubscribe: string; language?: EmailLanguage },
   now = new Date(),
 ): Email {
+  const lang = input.language ?? "en";
+  const t = translator(lang);
   const { kind, meeting: m } = input.change;
-  const was = meetingTime(input.change.wasStartsAt, m.timeZone);
-  const when = meetingTime(m.startsAt, m.timeZone);
+  const was = meetingTime(input.change.wasStartsAt, m.timeZone, lang);
+  const when = meetingTime(m.startsAt, m.timeZone, lang);
   const moved = kind === "moved";
   const email = layout({
     to: input.to,
-    subject: moved ? `${m.clubName}: meeting moved to ${when}` : `${m.clubName}: meeting on ${was} cancelled`,
-    heading: moved ? "A club meeting has moved" : "A club meeting is cancelled",
-    hello: input.name ? `Hi ${input.name},` : "Hi,",
+    subject: moved ? t("{club}: meeting moved to {when}", { club: m.clubName, when }) : t("{club}: meeting on {was} cancelled", { club: m.clubName, was }),
+    heading: moved ? t("A club meeting has moved") : t("A club meeting is cancelled"),
+    hello: input.name ? t("Hi {name},", { name: input.name }) : t("Hi,"),
     lead: moved
-      ? `The ${m.clubName} meeting "${m.title}" has moved. It was ${was}.`
-      : `The ${m.clubName} meeting "${m.title}" on ${was} won't go ahead.`,
+      ? t("The {club} meeting \"{title}\" has moved. It was {was}.", { club: m.clubName, title: m.title, was })
+      : t("The {club} meeting \"{title}\" on {was} won't go ahead.", { club: m.clubName, title: m.title, was }),
     card: moved
-      ? [m.title, `Now ${when}, for ${meetingLength(m.minutes)}`, `Was ${was}`, ...(m.note ? [m.note] : [])]
-      : [m.title, `Cancelled: was ${was}`],
+      ? [m.title, t("Now {when}, for {length}", { when, length: meetingLength(m.minutes, lang) }), t("Was {was}", { was }), ...(m.note ? [m.note] : [])]
+      : [m.title, t("Cancelled: was {was}", { was })],
     page: `${input.site}/clubs/${m.clubId}`,
     pageHint: moved
-      ? "Open the attached calendar file to move it in your calendar, or open the club to say whether you can still come"
-      : "Open the attached calendar file to take it out of your calendar, or open the club to see its other meetings",
+      ? t("Open the attached calendar file to move it in your calendar, or open the club to say whether you can still come")
+      : t("Open the attached calendar file to take it out of your calendar, or open the club to see its other meetings"),
     clubName: m.clubName,
     unsubscribe: input.unsubscribe,
     site: input.site,
+    lang,
   });
   return {
     ...email,

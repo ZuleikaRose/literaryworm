@@ -107,3 +107,10 @@ Deno.test("names and chapter lines read naturally", () => {
   assertEquals(club.posts, 3);
   assertEquals(chapterLine(club.chapters[0]), "Chapter 2: 1 post from Ben");
 });
+
+Deno.test("the digest is written in the account's language", () => {
+  const input = { to: "a@example.com", name: "Ada", rows: [row("ada")], site: SITE, unsubscribe: `${SITE}/u` };
+  const french = clubPostsEmail({ ...input, language: "fr" });
+  assertStringIncludes(french.html, 'lang="fr"');
+  assertEquals(clubPostsEmail(input).html.includes('lang="en"'), true);
+});

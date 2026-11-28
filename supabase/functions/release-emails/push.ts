@@ -4,6 +4,7 @@
 // unsubscribed is forgotten; any other failure loses only that notification (the book is on Home
 // and in the bell anyway, and the email is separate).
 
+import { type EmailLanguage, translator } from "../_shared/emailI18n.ts";
 import type { PushMessage, PushResult, PushSubscriptionKeys } from "../_shared/webpush.ts";
 
 export interface DuePush {
@@ -12,6 +13,8 @@ export interface DuePush {
   volumeId: string;
   title: string;
   author: string | null;
+  /** The account's email language, also used for its notifications; English when absent. */
+  language?: EmailLanguage;
 }
 
 export interface Device extends PushSubscriptionKeys {
@@ -69,18 +72,23 @@ export async function deliver(deps: DeviceDeps, messages: Map<string, PushMessag
 
 /** One notification an account: the book, or how many came out. Taps open the book or Home. */
 export function releasePush(books: DuePush[]): PushMessage {
+  const t = translator(books[0]?.language ?? "en");
   if (books.length === 1) {
     const [b] = books;
+    const asked = b.profileName ? t("You asked to be reminded on {name}'s profile.", { name: b.profileName }) : t("You asked to be reminded.");
     return {
-      title: `Out today: ${b.title}`,
-      body: `${b.author ? `By ${b.author}. ` : ""}You asked to be reminded${b.profileName ? ` on ${b.profileName}'s profile` : ""}.`,
+      title: t("Out today: {title}", { title: b.title }),
+      body: `${b.author ? `${t("By {author}.", { author: b.author })} ` : ""}${asked}`,
       url: `/books/${encodeURIComponent(b.volumeId)}`,
       tag: `release-${b.volumeId}`,
     };
   }
   const names = books.map((b) => b.title);
-  const listed = names.length > 3 ? `${names.slice(0, 3).join(", ")} and ${names.length - 3} more` : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
-  return { title: `${books.length} books you were waiting for are out`, body: listed, url: "/", tag: "release-several" };
+  const listed =
+    names.length > 3
+      ? t("{list} and {count} more", { list: names.slice(0, 3).join(", "), count: names.length - 3 })
+      : t("{list} and {last}", { list: names.slice(0, -1).join(", "), last: names.at(-1) ?? "" });
+  return { title: t("{count} books you were waiting for are out", { count: books.length }), body: listed, url: "/", tag: "release-several" };
 }
 
 export const PUSH_BATCH = 200;

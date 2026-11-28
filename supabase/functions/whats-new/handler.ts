@@ -7,11 +7,14 @@
 // account whose email Mailgun refuses is handed back for the next day's run.
 
 import { type Email, type Entry, whatsNewEmail } from "./email.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 
 export interface Recipient {
   userId: string;
   email: string;
   name: string | null;
+  /** The account's email language; English when absent. */
+  language?: EmailLanguage;
 }
 
 export interface Deps {
@@ -73,7 +76,7 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     for (const r of recipients) {
       try {
         const unsubscribe = await deps.unsubscribeLink(r.userId);
-        await deps.send(whatsNewEmail({ to: r.email, name: r.name, month, entries, site: deps.siteOrigin, unsubscribe }), unsubscribe);
+        await deps.send(whatsNewEmail({ to: r.email, name: r.name, month, entries, site: deps.siteOrigin, unsubscribe, language: r.language }), unsubscribe);
         sent += 1;
       } catch (err) {
         failed += 1;

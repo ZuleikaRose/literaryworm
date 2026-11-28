@@ -146,3 +146,11 @@ Deno.test("the bedtime line: nights kept out of 7 and bedtime listening, only wi
   assertStringIncludes(email.text, "Bedtime kept 6 of 7 nights. 20 min of bedtime listening.");
   assertStringIncludes(email.html, "Bedtime kept 6 of 7 nights.");
 });
+
+Deno.test("the report is written in the account's language", () => {
+  const input = { to: "x@example.com", name: "Ann", weekFrom: "2026-10-26", weekTo: "2026-11-01", kids: [MIA], site: SITE, unsubscribe: `${SITE}/u` };
+  const english = kidsReportEmail(input);
+  const french = kidsReportEmail({ ...input, language: "fr" });
+  assertFalse(french.subject === english.subject);
+  assertStringIncludes(french.html, 'lang="fr"');
+});

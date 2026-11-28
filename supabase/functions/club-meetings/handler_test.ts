@@ -1,5 +1,5 @@
 // deno test --allow-env supabase/functions/club-meetings — runs offline with a stand-in database and Mailgun.
-import { assertEquals, assertFalse, assertStringIncludes } from "jsr:@std/assert@1.0.13";
+import { assertEquals, assertFalse, assertNotEquals, assertStringIncludes } from "jsr:@std/assert@1.0.13";
 import { type Email, type Meeting, meetingChangeEmail, meetingChangeIcs, meetingLength, meetingReminderEmail, meetingTime } from "./email.ts";
 import { type ChangeNotice, type Deps, handle, type Reminder } from "./handler.ts";
 
@@ -134,4 +134,12 @@ Deno.test("members hear when a meeting is cancelled; a change nobody got is hand
   const failing = setup([], { send: (e) => (e.to.includes("bounce") ? Promise.reject(new Error("refused")) : Promise.resolve()) }, [notice("ben", "cancelled", false)]);
   assertEquals((await (await run(failing.deps)).json()).changes, { meetings: 1, sent: 0, failed: 1 });
   assertEquals(failing.state.releasedChanges, ["meeting-1"]);
+});
+
+Deno.test("a member's email is written in their language", () => {
+  const en = meetingReminderEmail({ to: "x@example.com", name: "Ann", meeting: MEETING, site: SITE, unsubscribe: `${SITE}/u` });
+  const fr = meetingReminderEmail({ to: "x@example.com", name: "Ann", meeting: MEETING, site: SITE, unsubscribe: `${SITE}/u`, language: "fr" });
+  assertNotEquals(fr.subject, en.subject);
+  assertStringIncludes(fr.html, 'lang="fr"');
+  assertStringIncludes(fr.html, `${SITE}/u`);
 });

@@ -1,6 +1,9 @@
 // The weekly "new from authors you follow" email: one per account, listing every new book
 // found for its profiles since the last one. Inline styles only (email clients drop <style>
-// blocks), matching supabase/templates.
+// blocks), matching supabase/templates. In the account's language (_shared/emailI18n.ts); titles,
+// authors and profile names stay as written.
+
+import { type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface NewBook {
   userId: string;
@@ -12,6 +15,8 @@ export interface NewBook {
   title: string;
   author: string;
   published: string;
+  /** The account's email language (account_email_language()); English when absent. */
+  language?: EmailLanguage;
 }
 
 export interface Email {
@@ -46,30 +51,40 @@ function distinctBooks(books: NewBook[]): { book: NewBook; profiles: string[] }[
 /** The email for one account's new books (all the same userId and address). */
 export function authorNewsEmail(books: NewBook[], site: string): Email {
   const first = books[0];
+  const lang = first.language ?? "en";
+  const t = translator(lang);
   const settings = `${site}/account#preferences`;
   const link = (b: NewBook) => `${site}/books/${encodeURIComponent(b.volumeId)}`;
   const entries = distinctBooks(books);
   // Name the profiles only when the household has more than one with new books here.
   const several = new Set(books.map((b) => b.profileId)).size > 1;
-  const who = (profiles: string[]) => (several && profiles.length ? ` (followed by ${profiles.join(" and ")})` : "");
+  const joined = (names: string[]) => (names.length > 1 ? t("{list} and {last}", { list: names.slice(0, -1).join(", "), last: names[names.length - 1] }) : names[0]);
+  const who = (profiles: string[]) => (several && profiles.length ? ` ${t("(followed by {names})", { names: joined(profiles) })}` : "");
+  const by = (author: string) => t("by {author}", { author });
 
   const subject =
     entries.length === 1
-      ? `New from ${first.author}: ${subjectTitle(first.title)}`
-      : `${entries.length} new books from authors you follow`;
-  const hello = first.accountName ? `Hi ${first.accountName},` : "Hi,";
-  const lead = entries.length === 1 ? "An author you follow has a new book out." : "Authors you follow have new books out.";
+      ? t("New from {author}: {title}", { author: first.author, title: subjectTitle(first.title) })
+      : t("{count} new books from authors you follow", { count: entries.length });
+  const hello = first.accountName ? t("Hi {name},", { name: first.accountName }) : t("Hi,");
+  const lead = entries.length === 1 ? t("An author you follow has a new book out.") : t("Authors you follow have new books out.");
+  const inBell = t("They're in the bell in LiteraryWorm too.");
+  const why = entries.length === 1 ? t("You're getting this because you follow this author.") : t("You're getting this because you follow these authors.");
+  const turnOff = t("Turn these emails off in Account → Preferences:");
+  const turnOffLink = t("Turn these emails off");
+  const inPreferences = t("in Account → Preferences.");
+  const heading = t("New from authors you follow");
 
   const text = [
     hello,
     "",
     lead,
     "",
-    ...entries.map(({ book: b, profiles }) => `- ${b.title} by ${b.author}${who(profiles)}: ${link(b)}`),
+    ...entries.map(({ book: b, profiles }) => `- ${b.title} ${by(b.author)}${who(profiles)}: ${link(b)}`),
     "",
-    "They're in the bell in LiteraryWorm too.",
+    inBell,
     "",
-    `You're getting this because you follow ${entries.length === 1 ? "this author" : "these authors"}. Turn these emails off in Account → Preferences: ${settings}`,
+    `${why} ${turnOff} ${settings}`,
     "LiteraryWorm · https://www.literaryworm.com",
   ].join("\n");
 
@@ -78,14 +93,14 @@ export function authorNewsEmail(books: NewBook[], site: string): Email {
       ({ book: b, profiles }) => `<tr>
                     <td style="padding:12px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <a href="${escapeHtml(link(b))}" style="font-size:17px;font-weight:700;color:#a24e2f;text-decoration:none;">${escapeHtml(b.title)}</a>
-                      <div style="margin-top:2px;font-size:14px;line-height:1.5;color:#5b5750;">by ${escapeHtml(b.author)}${escapeHtml(who(profiles))}</div>
+                      <div style="margin-top:2px;font-size:14px;line-height:1.5;color:#5b5750;">${escapeHtml(by(b.author))}${escapeHtml(who(profiles))}</div>
                     </td>
                   </tr>`,
     )
     .join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -105,19 +120,19 @@ export function authorNewsEmail(books: NewBook[], site: string): Email {
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">New from authors you follow</h1>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(heading)}</h1>
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hello)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   ${rows}
                 </table>
-                <p style="margin:16px 0 0;font-size:14px;line-height:1.55;color:#5b5750;">They're in the bell in LiteraryWorm too.</p>
+                <p style="margin:16px 0 0;font-size:14px;line-height:1.55;color:#5b5750;">${escapeHtml(inBell)}</p>
               </td>
             </tr>
             <tr>
               <td style="padding:24px 32px 32px;${FONT}font-size:12px;line-height:1.5;color:#5b5750;">
                 <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
-                You're getting this because you follow ${entries.length === 1 ? "this author" : "these authors"}. <a href="${escapeHtml(settings)}" style="color:#a24e2f;">Turn these emails off</a> in Account → Preferences.<br />
+                ${escapeHtml(why)} <a href="${escapeHtml(settings)}" style="color:#a24e2f;">${escapeHtml(turnOffLink)}</a> ${escapeHtml(inPreferences)}<br />
                 LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
               </td>
             </tr>

@@ -215,3 +215,9 @@ Deno.test("the email escapes titles and names in HTML", () => {
   assertStringIncludes(email.html, "A &amp; B");
   assert(!email.html.includes("<b>Ada</b>"));
 });
+
+Deno.test("the email is written in the account's language, titles and names as they are", () => {
+  const email = authorNewsEmail([newBook({ language: "fr" })], SITE);
+  assertEquals(email.subject, "Nouveau de Matt Haig : The Life Impossible");
+  assertStringIncludes(email.html, '<html lang="fr">');
+});

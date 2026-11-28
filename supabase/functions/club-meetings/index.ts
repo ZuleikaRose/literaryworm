@@ -1,5 +1,6 @@
 // Deploy with JWT verification off (pg_cron sends the Vault secret, not a Supabase token).
 // Emails go through Mailgun's API (_shared/mailgun.ts). Nothing is hard-coded.
+import { addressLanguages } from "../_shared/accountLanguage.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { unsubscribeToken } from "../_shared/unsubscribe.ts";
@@ -64,7 +65,9 @@ Deno.serve((req) =>
     async claim(max) {
       const { data, error } = await serviceClient().rpc("claim_club_meeting_reminders", { max_count: max });
       if (error) throw error;
+      const languageOf = await addressLanguages((data as ReminderRow[]).map((r) => r.email));
       return (data as ReminderRow[]).map((r) => ({
+        language: languageOf(r.email),
         meeting: {
           id: r.meeting_id,
           clubId: r.club_id,
@@ -88,7 +91,9 @@ Deno.serve((req) =>
     async claimChanges(max) {
       const { data, error } = await serviceClient().rpc("claim_club_meeting_changes", { max_count: max });
       if (error) throw error;
+      const languageOf = await addressLanguages((data as ChangeRow[]).map((r) => r.email));
       return (data as ChangeRow[]).map((r) => ({
+        language: languageOf(r.email),
         change: {
           kind: r.kind,
           // A cancelled meeting keeps the time it had.

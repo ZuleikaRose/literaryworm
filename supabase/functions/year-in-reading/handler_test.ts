@@ -105,3 +105,12 @@ Deno.test("the email escapes names and has a one-click unsubscribe", () => {
   assertStringIncludes(email.html, `${SITE}/u`);
   assertStringIncludes(email.text, `${SITE}/library?view=stats`);
 });
+
+Deno.test("the year is written in the account's language", () => {
+  const input = { to: "x@example.com", name: "Ann", year: 2026, profiles: [AVERY], site: SITE, unsubscribe: `${SITE}/u` };
+  const french = yearEmail({ ...input, language: "fr" });
+  assertStringIncludes(french.html, 'lang="fr"');
+  // Month names come from Intl in other languages.
+  assertFalse(monthLine({ ...AVERY, bestMonth: 3 }, "fr")?.includes("March") ?? false);
+  assertEquals(yearEmail(input).subject, "Your 2026 in reading");
+});

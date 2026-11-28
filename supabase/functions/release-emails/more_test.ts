@@ -66,3 +66,8 @@ Deno.test("a device that has unsubscribed gets nothing more in the run", async (
   assertEquals(sends, 1);
   assertEquals(forgot, ["d1"]);
 });
+
+Deno.test("notifications are written in the account's language", () => {
+  const s = streakPush({ userId: "u", profileName: "Mia", days: 4, language: "fr" });
+  assertEquals(s.title, "4 jours d'affilée");
+});

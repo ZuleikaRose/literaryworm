@@ -2,6 +2,7 @@
 // Google Books is asked with the GOOGLE_BOOKS_API_KEY function setting, then its fallbacks
 // (KEY_SECRETS); emails go through Mailgun's API (_shared/mailgun.ts). Nothing is hard-coded.
 import { authorQuery, callGoogleWithKeys, googleKeys, listUrl } from "../_shared/googleBooks.ts";
+import { addressLanguages } from "../_shared/accountLanguage.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import type { NewBook } from "./email.ts";
@@ -45,7 +46,9 @@ Deno.serve((req) =>
     async claim(max) {
       const { data, error } = await serviceClient().rpc("claim_author_emails", { max_count: max });
       if (error) throw error;
-      return (data as ClaimedRow[]).map(
+      const rows = data as ClaimedRow[];
+      const languageOf = await addressLanguages(rows.map((r) => r.email));
+      return rows.map(
         (r): NewBook => ({
           userId: r.user_id,
           email: r.email,
@@ -56,6 +59,7 @@ Deno.serve((req) =>
           title: r.title,
           author: r.author,
           published: r.published,
+          language: languageOf(r.email),
         }),
       );
     },

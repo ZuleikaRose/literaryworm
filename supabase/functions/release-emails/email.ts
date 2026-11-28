@@ -1,5 +1,8 @@
 // The book-out email: one per account per run, listing every reminded book that's out.
-// Inline styles only (email clients drop <style> blocks), matching supabase/templates.
+// Inline styles only (email clients drop <style> blocks), matching supabase/templates. In the
+// account's language (_shared/emailI18n.ts); titles and authors stay as written.
+
+import { type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface DueReminder {
   userId: string;
@@ -11,6 +14,8 @@ export interface DueReminder {
   title: string;
   author: string | null;
   releaseDate: string;
+  /** The account's email language (account_email_language()); English when absent. */
+  language?: EmailLanguage;
 }
 
 export interface Email {
@@ -34,27 +39,36 @@ function subjectTitle(title: string): string {
 /** The email for one account's books (all the same userId and address). */
 export function releaseEmail(books: DueReminder[], site: string): Email {
   const first = books[0];
+  const lang = first.language ?? "en";
+  const t = translator(lang);
   const settings = `${site}/account#preferences`;
   const link = (b: DueReminder) => `${site}/books/${encodeURIComponent(b.volumeId)}`;
   // Name the profile only when the household has more than one with reminders here.
   const several = new Set(books.map((b) => b.profileId)).size > 1;
-  const who = (b: DueReminder) => (several && b.profileName ? ` (for ${b.profileName})` : "");
+  const who = (b: DueReminder) => (several && b.profileName ? ` ${t("(for {name})", { name: b.profileName })}` : "");
+  const by = (author: string) => t("by {author}", { author });
 
-  const subject = books.length === 1 ? `${subjectTitle(first.title)} is out now` : `${books.length} books you were waiting for are out now`;
-  const hello = first.accountName ? `Hi ${first.accountName},` : "Hi,";
-  const lead =
-    books.length === 1 ? "A book you asked us to remind you about is out today." : "Books you asked us to remind you about are out now.";
+  const subject =
+    books.length === 1 ? t("{title} is out now", { title: subjectTitle(first.title) }) : t("{count} books you were waiting for are out now", { count: books.length });
+  const hello = first.accountName ? t("Hi {name},", { name: first.accountName }) : t("Hi,");
+  const lead = books.length === 1 ? t("A book you asked us to remind you about is out today.") : t("Books you asked us to remind you about are out now.");
+  const onHome = t("It's on Home in LiteraryWorm too, until you dismiss it.");
+  const why = books.length === 1 ? t("You're getting this because you set Remind me on this book.") : t("You're getting this because you set Remind me on these books.");
+  const turnOff = t("Turn these emails off in Account → Preferences:");
+  const turnOffLink = t("Turn these emails off");
+  const inPreferences = t("in Account → Preferences.");
+  const heading = books.length === 1 ? t("It's out now") : t("They're out now");
 
   const text = [
     hello,
     "",
     lead,
     "",
-    ...books.map((b) => `- ${b.title}${b.author ? ` by ${b.author}` : ""}${who(b)}: ${link(b)}`),
+    ...books.map((b) => `- ${b.title}${b.author ? ` ${by(b.author)}` : ""}${who(b)}: ${link(b)}`),
     "",
-    "It's on Home in LiteraryWorm too, until you dismiss it.",
+    onHome,
     "",
-    `You're getting this because you set Remind me on ${books.length === 1 ? "this book" : "these books"}. Turn these emails off in Account → Preferences: ${settings}`,
+    `${why} ${turnOff} ${settings}`,
     "LiteraryWorm · https://www.literaryworm.com",
   ].join("\n");
 
@@ -63,14 +77,14 @@ export function releaseEmail(books: DueReminder[], site: string): Email {
       (b) => `<tr>
                     <td style="padding:12px 0;border-top:1px solid #e0d9cc;${FONT}">
                       <a href="${escapeHtml(link(b))}" style="font-size:17px;font-weight:700;color:#a24e2f;text-decoration:none;">${escapeHtml(b.title)}</a>
-                      <div style="margin-top:2px;font-size:14px;line-height:1.5;color:#5b5750;">${b.author ? `by ${escapeHtml(b.author)}` : "&nbsp;"}${escapeHtml(who(b))}</div>
+                      <div style="margin-top:2px;font-size:14px;line-height:1.5;color:#5b5750;">${b.author ? escapeHtml(by(b.author)) : "&nbsp;"}${escapeHtml(who(b))}</div>
                     </td>
                   </tr>`,
     )
     .join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -90,19 +104,19 @@ export function releaseEmail(books: DueReminder[], site: string): Email {
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${books.length === 1 ? "It's out now" : "They're out now"}</h1>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(heading)}</h1>
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hello)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   ${rows}
                 </table>
-                <p style="margin:16px 0 0;font-size:14px;line-height:1.55;color:#5b5750;">It's on Home in LiteraryWorm too, until you dismiss it.</p>
+                <p style="margin:16px 0 0;font-size:14px;line-height:1.55;color:#5b5750;">${escapeHtml(onHome)}</p>
               </td>
             </tr>
             <tr>
               <td style="padding:24px 32px 32px;${FONT}font-size:12px;line-height:1.5;color:#5b5750;">
                 <hr style="border:0;border-top:1px solid #e0d9cc;margin:0 0 16px;" />
-                You're getting this because you set Remind me on ${books.length === 1 ? "this book" : "these books"}. <a href="${escapeHtml(settings)}" style="color:#a24e2f;">Turn these emails off</a> in Account → Preferences.<br />
+                ${escapeHtml(why)} <a href="${escapeHtml(settings)}" style="color:#a24e2f;">${escapeHtml(turnOffLink)}</a> ${escapeHtml(inPreferences)}<br />
                 LiteraryWorm · <a href="https://www.literaryworm.com" style="color:#a24e2f;">www.literaryworm.com</a>
               </td>
             </tr>
