@@ -7,8 +7,14 @@
 #
 #   supabase/upload-voice-models.sh xjvisabdztxvnsglysdh   # the dev branch
 #   supabase/upload-voice-models.sh ldzdmrdvmacpudsbngvd   # production
+#   supabase/upload-voice-models.sh ldzdmrdvmacpudsbngvd --dry-run   # fetch and split, upload nothing
 set -euo pipefail
-ref="${1:?usage: $0 <project ref>}"
+ref="${1:?usage: $0 <project ref> [--dry-run]}"
+dry="${2:-}"
+upload() { # <file> <content type> <cache control>
+  if [ "$dry" = "--dry-run" ]; then echo "would upload $(basename "$1") ($(stat -c %s "$1") bytes, $2) to ss:///voice-models/ on $ref"; return; fi
+  supabase --experimental storage cp --remote="$ref" --yes --content-type "$2" --cache-control "$3" "$1" "ss:///voice-models/$(basename "$1")" > /dev/null
+}
 base=https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -19,8 +25,8 @@ for voice in ljspeech norman; do
   split -b 40M -d -a 1 "$work/$name.onnx" "$work/$name.onnx."
   rm "$work/$name.onnx"
   for part in "$work/$name.onnx."[0-9]; do
-    supabase --experimental storage cp --remote="$ref" --yes --content-type application/octet-stream --cache-control "public, max-age=31536000, immutable" "$part" "ss:///voice-models/$(basename "$part")" > /dev/null
+    upload "$part" application/octet-stream "public, max-age=31536000, immutable"
   done
-  supabase --experimental storage cp --remote="$ref" --yes --content-type application/json --cache-control "public, max-age=86400" "$work/$name.onnx.json" "ss:///voice-models/$name.onnx.json" > /dev/null
+  upload "$work/$name.onnx.json" application/json "public, max-age=86400"
 done
-echo "uploaded: $(ls "$work" | tr '\n' ' ')"
+[ "$dry" = "--dry-run" ] && echo "dry run: nothing uploaded" || echo "uploaded: $(ls "$work" | tr '\n' ' ')"
