@@ -44,6 +44,10 @@
 //                                            and the webhook writes it. Books that come with the
 //                                            gift go into the library as Want to read. Returns
 //                                            { gift: { planId, months, until, books }, subscription? }
+//   { action: "sync_email" }                after a change of email address (Supabase Auth, confirmed at
+//                                            both addresses): puts the account's current address on its
+//                                            Stripe Customer, if it has one, so receipts go there.
+//                                            Returns { changed }
 //   { action: "delete", password, confirm: true }
 //                                            cancels the plan, then deletes the user (and,
 //                                            by cascade, everything the account owns), then
@@ -176,6 +180,8 @@ export interface Deps {
   retention: Retention;
   /** The account's Stripe Customer, created the first time. */
   customerFor: (userId: string, email: string | undefined) => Promise<string>;
+  /** Puts `email` on the account's Stripe Customer, if it has one; true when it changed. */
+  syncCustomerEmail: (userId: string, email: string) => Promise<boolean>;
   /** The site to send the member back to: the request's origin when it's allowed. */
   siteOrigin: (req: Request) => string;
   now?: () => Date;
@@ -384,6 +390,12 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
           live ? deps.billing.discount(live) : null,
         ]);
         return json(req, METHODS, { invoices, discount });
+      }
+      case "sync_email": {
+        onlyKeys(body, ["action"]);
+        if (!user.email) throw new HttpError("bad_request", "This account has no email address.");
+        const changed = await deps.syncCustomerEmail(user.id, user.email);
+        return json(req, METHODS, { changed });
       }
       case "promo_code": {
         onlyKeys(body, ["action", "code"]);

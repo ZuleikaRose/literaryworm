@@ -1,6 +1,6 @@
 import type { CancelReason, SaveOffer } from "./cancelSurvey";
 import { isUiLanguage, tr, type UiLanguage } from "./i18n";
-import type { AccountReading } from "../store/state";
+import { emailKey, type AccountReading } from "../store/state";
 import type { Collections } from "./collections";
 import type {
   BookDay,
@@ -285,6 +285,44 @@ export async function verifyPassword(_email: string, password: string): Promise<
   return ok === true;
 }
 
+// --- Changing the email address (Supabase Auth's secure email change) ---
+
+/** Where both confirmation links bring the member back to (lib/emailChangeReturn.ts reads it). */
+export const EMAIL_CHANGED_PATH = "/account?email=changed";
+
+/**
+ * Asks Supabase Auth to move the account to `newEmail`, after checking the account password.
+ * Auth emails a link to the current address and one to the new address (secure email change);
+ * the address changes once both are followed, and Auth then tells the old address. Returns the
+ * address waiting for confirmation.
+ */
+export async function requestEmailChange(currentEmail: string, password: string, newEmail: string): Promise<string> {
+  const next = newEmail.trim();
+  if (emailKey(next) === emailKey(currentEmail)) throw new AccountError(tr("That's already your email address."));
+  if (!(await verifyPassword(currentEmail, password))) throw new AccountError(tr("That password isn't right."));
+  const { data, error } = await client().auth.updateUser({ email: next }, { emailRedirectTo: `${window.location.origin}${EMAIL_CHANGED_PATH}` });
+  if (error) {
+    const text = (error.message ?? "").toLowerCase();
+    if (error.code === "email_exists" || text.includes("already been registered") || text.includes("already registered"))
+      throw new AccountError(tr("Another account already uses that address."));
+    if (error.code === "email_address_invalid" || text.includes("invalid")) throw new AccountError(tr("Enter an email address like name@example.com."));
+    throw new AccountError(authMessage(error));
+  }
+  return data.user?.new_email ?? next;
+}
+
+/**
+ * Once the new address is in use: the account's Stripe customer gets it too (manage-account
+ * sync_email), so receipts go there. Never throws: a failure is only logged.
+ */
+export async function syncEmailToBilling(): Promise<void> {
+  try {
+    await callFunction<{ changed: boolean }>("manage-account", { action: "sync_email" }, tr("We couldn't reach LiteraryWorm."));
+  } catch (err) {
+    console.error("account: couldn't put the new email address on the billing account:", err instanceof Error ? err.message : err);
+  }
+}
+
 // --- Two-step sign-in (Supabase Auth MFA: an authenticator app's 6-digit codes) ---
 
 /**
@@ -538,6 +576,7 @@ export async function loadAccount(): Promise<Account | null> {
     publicReader: Boolean((reader.data as { public_reader?: boolean } | null)?.public_reader),
     name: profile.data?.display_name ?? "Reader",
     email: user.email ?? "",
+    pendingEmail: user.new_email ?? null,
     password: "",
     dob: details.data?.date_of_birth ?? "",
     marketingEmails: details.data?.marketing_emails ?? false,

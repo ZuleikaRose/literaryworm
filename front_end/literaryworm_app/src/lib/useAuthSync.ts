@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
-import { clearDeviceAfterSignOut, loadAccount, loadCollections, loadLibrary, loadProfiles, loadReading, secondStepNeeded, takeFreshSignIn } from "./accountApi";
+import { clearDeviceAfterSignOut, loadAccount, loadCollections, loadLibrary, loadProfiles, loadReading, secondStepNeeded, syncEmailToBilling, takeFreshSignIn } from "./accountApi";
 import { checkOfflinePlace } from "./offlinePlaces";
 import { supabase } from "./supabase";
 
@@ -45,6 +45,17 @@ export function useAuthSync() {
         // SIGNED_IN before INITIAL_SESSION, or TOKEN_REFRESHED first when the saved token has expired.
         if (["INITIAL_SESSION", "SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED", "MFA_CHALLENGE_VERIFIED"].includes(event)) {
           // A repeat for the same member (token refresh, the second restore event, a code given on Account) changes nothing.
+          // An email change finished (or was asked for) here or on another device: the session's user says so.
+          const current = accountRef.current;
+          if (current?.userId === session.user.id) {
+            const email = session.user.email ?? current.email;
+            const pendingEmail = session.user.new_email ?? null;
+            if (email !== current.email || pendingEmail !== (current.pendingEmail ?? null)) {
+              dispatch({ type: "updateAccount", patch: { email, pendingEmail } });
+              // Receipts go to the new address too.
+              if (email !== current.email) void syncEmailToBilling();
+            }
+          }
           if (event !== "USER_UPDATED" && accountRef.current?.userId === session.user.id) return;
           if (loading.current === session.user.id) return;
           loading.current = session.user.id;

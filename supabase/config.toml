@@ -176,6 +176,8 @@ additional_redirect_urls = ["http://localhost:5173/**", "http://localhost:5180/*
 [auth.email]
 # Hosted projects confirm new addresses by default; the CLI's default is off.
 enable_confirmations = true
+# A change of address is confirmed at both the old and the new one (as on the hosted projects).
+double_confirm_changes = true
 
 [auth.email.template.confirmation]
 subject = "Confirm your email address for LiteraryWorm"
@@ -184,3 +186,14 @@ content_path = "./supabase/templates/confirmation.html"
 [auth.email.template.recovery]
 subject = "Reset your LiteraryWorm password"
 content_path = "./supabase/templates/recovery.html"
+
+# Changing the email address (secure email change: sent to the current and the new address).
+[auth.email.template.email_change]
+subject = "Confirm the change of email address for LiteraryWorm"
+content_path = "./supabase/templates/email_change.html"
+
+# Sent to the old address once the change is made.
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Your LiteraryWorm email address was changed"
+content_path = "./supabase/templates/email_changed_notification.html"

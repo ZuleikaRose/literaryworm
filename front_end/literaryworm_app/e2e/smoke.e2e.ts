@@ -1728,6 +1728,9 @@ describe("the demo household", () => {
     await codes.waitFor();
     await expect(codes.isDisabled()).resolves.toBe(true);
     await page.getByText("The demo household can't make recovery codes.").waitFor();
+    // Changing the email address is for members: the demo says so and offers no form.
+    await page.getByText("The demo household can't change its email address.").waitFor();
+    await expect(page.getByRole("button", { name: "Change email address" }).count()).resolves.toBe(0);
     expect(errors()).toEqual([]);
   });
 

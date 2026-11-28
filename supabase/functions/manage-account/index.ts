@@ -2,7 +2,7 @@ import { allowedOrigins } from "../_shared/cors.ts";
 import { sendWithMailgun } from "../_shared/mailgun.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
 import { discountView, type InvoiceView, invoiceView, releaseSchedule, Stripe, stripeClient } from "../_shared/stripe.ts";
-import { customerFor, monthlyPrice } from "../_shared/stripeCustomers.ts";
+import { customerFor, monthlyPrice, syncCustomerEmail } from "../_shared/stripeCustomers.ts";
 import { confirmPassword, requireUser, serviceClient } from "../_shared/supabase.ts";
 import { removeAccountVoices } from "../_shared/uploadVoices.ts";
 import { type Gift, handle, type Subscription, type SubscriptionPatch } from "./handler.ts";
@@ -101,6 +101,7 @@ Deno.serve((req) =>
       },
     },
     customerFor,
+    syncCustomerEmail,
     gifts: {
       async find(code) {
         const { data, error } = await serviceClient().from("gift_codes").select("id, kind, plan_id, months, credit_cents, voice_hours, redeemed_at, starts_on, books").eq("code", code).maybeSingle();

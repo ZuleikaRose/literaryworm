@@ -125,6 +125,7 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
       },
     },
     customerFor: () => Promise.resolve("cus_9"),
+    syncCustomerEmail: () => Promise.resolve(false),
     siteOrigin: () => ORIGIN,
     now: () => NOW,
     ...overrides,
@@ -709,4 +710,19 @@ Deno.test("a natural-voice-hours gift is handed back if the pack can't be added"
   deps.gifts.addVoicePack = () => Promise.reject(new Error("database down"));
   assertEquals((await call(deps, { action: "gift", code: GIFT_CODE })).status, 500);
   assertEquals(state.gift.redeemed_at, null);
+});
+
+Deno.test("sync_email puts the account's current address on its Stripe customer", async () => {
+  const { deps } = setup(paid());
+  const synced: { userId: string; email: string }[] = [];
+  deps.syncCustomerEmail = (userId, email) => {
+    synced.push({ userId, email });
+    return Promise.resolve(true);
+  };
+  const res = await call(deps, { action: "sync_email" });
+  assertEquals(res.status, 200);
+  assertEquals(res.body, { changed: true });
+  assertEquals(synced, [{ userId: USER.id, email: USER.email }]);
+  assertEquals((await call(deps, { action: "sync_email", email: "eve@example.com" })).status, 400);
+  assertEquals(synced.length, 1);
 });

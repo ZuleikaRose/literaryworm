@@ -38,6 +38,7 @@ import {
   passkeyAddNeedsCode,
   paymentMethodUrl,
   renamePasskey,
+  requestEmailChange,
   startTwoStep,
   turnOffTwoStep,
   type TwoStepSetup,
@@ -55,7 +56,8 @@ import { PUSH_KINDS, type PushKind, toggleKind } from "../lib/pushState";
 import { answerable, type WaitingRequest } from "../lib/bookRequests";
 import { useBookRequests } from "../lib/useBookRequests";
 import { useTitle } from "../lib/useTitle";
-import { validateNewPassword } from "../lib/validation";
+import { validateEmail, validateNewPassword } from "../lib/validation";
+import { takeEmailReturn } from "../lib/emailChangeReturn";
 import { useActiveProfile, useStore } from "../store/context";
 import type { Account as AccountDetails } from "../types";
 import { CancelDialog } from "../components/CancelDialog";
@@ -534,6 +536,115 @@ function PlanSection({ account }: { account: AccountDetails }) {
 
 // --- Sign-in ---------------------------------------------------------------------
 
+/**
+ * The account's email address, and changing it (Supabase Auth's secure email change: a link to
+ * the current address and one to the new one; it changes once both are followed).
+ */
+function ChangeEmail({ account }: { account: AccountDetails }) {
+  const t = useT();
+  const { remote } = useAccount();
+  const { dispatch } = useStore();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const change = useAttempt();
+  const emailRef = useRef<HTMLInputElement>(null);
+  // Back from one of the confirmation links: what it said, read once when the app loaded.
+  const [returned] = useState(() => takeEmailReturn());
+  const pending = account.pendingEmail ?? null;
+
+  useEffect(() => {
+    if (open) emailRef.current?.focus();
+  }, [open]);
+
+  const returnNote = (() => {
+    if (!returned) return null;
+    if (returned.kind === "error")
+      return { error: true, text: returned.expired ? t("That link has expired or was already used. Ask for new links below.") : t("That link didn't work. Ask for new links below.") };
+    if (returned.kind === "partial" || pending) return { error: false, text: t("One address is confirmed. Follow the link we sent to the other one too.") };
+    return { error: false, text: t("Your email address is now {email}.", { email: account.email }) };
+  })();
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const problem = validateEmail(email);
+    setEmailError(problem);
+    if (problem) return;
+    if (!password) {
+      change.setError(t("Enter your account password."));
+      return;
+    }
+    let waiting = "";
+    const ok = await change.attempt(async () => {
+      waiting = await requestEmailChange(account.email, password, email);
+    });
+    if (ok) {
+      dispatch({ type: "updateAccount", patch: { pendingEmail: waiting } });
+      setOpen(false);
+      setEmail("");
+      setPassword("");
+    }
+  };
+
+  return (
+    <div className="account-form change-email">
+      <div className="account-fact-row">
+        <span>{t("Email")}</span>
+        <strong>{account.email}</strong>
+        {pending && <small>{t("Waiting for you to confirm {email}: follow the links we sent to both addresses.", { email: pending })}</small>}
+        {!remote && <small>{account.isDemo ? t("The demo household can't change its email address.") : t("Changing your email address needs a LiteraryWorm account.")}</small>}
+      </div>
+      {returnNote && (
+        <div className={returnNote.error ? "form-alert" : "form-success"} role={returnNote.error ? "alert" : "status"}>
+          <Icon name={returnNote.error ? "alert" : "check"} size={17} />
+          <p>{returnNote.text}</p>
+        </div>
+      )}
+      {remote && !open && (
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            setOpen(true);
+            change.setError(null);
+          }}
+        >
+          {pending ? t("Use a different address") : t("Change email address")}
+        </button>
+      )}
+      {remote && open && (
+        <form noValidate onSubmit={submit}>
+          <Field
+            ref={emailRef}
+            label={t("New email address")}
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailError(null);
+            }}
+            error={emailError}
+            hint={t("We'll send a link to {current} and one to the new address. Your address changes once you've followed both.", { current: account.email })}
+          />
+          <AccountPasswordField value={password} onChange={setPassword} />
+          <div className="modal-actions">
+            <button type="submit" className="primary-button" disabled={change.busy}>
+              {change.busy ? t("Sending…") : t("Send the links")}
+            </button>
+            <button type="button" className="secondary-button" onClick={() => setOpen(false)}>
+              {t("Cancel")}
+            </button>
+          </div>
+        </form>
+      )}
+      <Feedback error={change.error} done={change.done} />
+    </div>
+  );
+}
+
 function SignInSection({ account }: { account: AccountDetails }) {
   const t = useT();
   const { setDisplayName, changePassword } = useAccount();
@@ -588,11 +699,7 @@ function SignInSection({ account }: { account: AccountDetails }) {
         <Feedback error={name.error} done={name.done} />
       </form>
 
-      <div className="account-fact-row">
-        <span>{t("Email")}</span>
-        <strong>{account.email}</strong>
-        <small>{t("Changing your email address isn't available yet.")}</small>
-      </div>
+      <ChangeEmail account={account} />
 
       <form className="account-form" noValidate onSubmit={savePassword}>
         <h3>{t("Change password")}</h3>

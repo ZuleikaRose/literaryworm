@@ -16,6 +16,22 @@ export async function customerFor(userId: string, email: string | undefined): Pr
   return customer.id;
 }
 
+/**
+ * After a change of email address: the account's Stripe Customer (if it has one) gets the new
+ * address, so receipts and Stripe's own emails go there. True when it changed.
+ */
+export async function syncCustomerEmail(userId: string, email: string): Promise<boolean> {
+  const { data, error } = await serviceClient().from("stripe_customers").select("customer_id").eq("user_id", userId).maybeSingle();
+  if (error) throw error;
+  if (!data) return false;
+  const stripe = stripeClient();
+  const customer = await stripe.customers.retrieve(data.customer_id);
+  if ("deleted" in customer && customer.deleted) return false;
+  if ((customer.email ?? "").toLowerCase() === email.toLowerCase()) return false;
+  await stripe.customers.update(data.customer_id, { email });
+  return true;
+}
+
 /** The plan's active monthly (or yearly) price in Stripe, found by lookup key. */
 export async function planPrice(
   planId: PlanId,

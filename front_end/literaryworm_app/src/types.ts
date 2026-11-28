@@ -110,6 +110,11 @@ export interface Account {
   name: string;
   email: string;
   /**
+   * A new address the member asked to change to (Supabase Auth's `new_email`), until both the old
+   * and the new address have followed their confirmation links. Members only.
+   */
+  pendingEmail?: string | null;
+  /**
    * In-memory accounts only, so "Ask a grown-up" gates have something to check against.
    * Empty for real accounts: Supabase checks their password.
    */

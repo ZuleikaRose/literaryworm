@@ -1,3 +1,5 @@
+// Reads an email-change confirmation link's result before supabase-js clears the address.
+import "./lib/emailChangeReturn";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
