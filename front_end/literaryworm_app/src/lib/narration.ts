@@ -65,10 +65,12 @@ export type Narration =
  * device doesn't have falls back to the default; with no voices at all, the sample clock runs
  * silently.
  */
-export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[], natural = false, onDevice = false): Narration {
+export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[], natural = false, onDevice: readonly OnDeviceVoice[] = []): Narration {
   if (choice === SILENT_VOICE && !book.recording) return { kind: "silent" };
-  // An on-device voice is only ever chosen (never a default: it downloads its model the first time).
-  const onDeviceVoice = onDevice ? onDeviceChoice(choice) : null;
+  // An on-device voice is only ever chosen (never a default: it downloads its model the first time),
+  // and only one of those offered here (`onDevice`: all for members, the demo's few).
+  const chosenOnDevice = onDeviceChoice(choice);
+  const onDeviceVoice = chosenOnDevice && onDevice.some((v) => v.id === chosenOnDevice.id) ? chosenOnDevice : null;
   if (onDeviceVoice) return { kind: "onDevice", voice: onDeviceVoice };
   // A natural voice chosen for this book's language (or English); another language's voice falls back to the default.
   const naturalChoice = natural && choice?.startsWith(NATURAL_PREFIX)

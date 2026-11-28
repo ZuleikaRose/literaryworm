@@ -106,6 +106,19 @@ export function onDeviceOffered({ member, language }: { member: boolean; languag
   return member && isEnglish(language);
 }
 
+/**
+ * The models the demo offers: Linda, Norman and the VCTK speakers (every accent but one model), so a
+ * visitor trying the demo downloads at most three models from our storage, usually one. Members get
+ * all of ON_DEVICE_VOICES.
+ */
+export const DEMO_ON_DEVICE_FILES: readonly string[] = ["en_US-ljspeech-medium.onnx", "en_US-norman-medium.onnx", "en_GB-vctk-medium.onnx"];
+
+/** The on-device voices offered: none unless `offered`; the demo's three models' voices; else all of them. */
+export function offeredOnDeviceVoices({ offered, demo }: { offered: boolean; demo: boolean }): readonly OnDeviceVoice[] {
+  if (!offered) return [];
+  return demo ? ON_DEVICE_VOICES.filter((v) => DEMO_ON_DEVICE_FILES.includes(v.file)) : ON_DEVICE_VOICES;
+}
+
 /** The most characters in one piece: about 20 seconds of reading, voiced in a few seconds. */
 export const DEVICE_PIECE_CHARS = 280;
 

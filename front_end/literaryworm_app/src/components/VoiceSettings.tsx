@@ -4,7 +4,7 @@ import { NATURAL_PREFIX, type NaturalVoice, voiceGender, voicesFor } from "../li
 import { deviceVoiceGender } from "../lib/deviceVoiceGender";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { useOnDeviceVoice } from "../lib/useOnDeviceVoice";
-import { ON_DEVICE_ACCENTS, ON_DEVICE_PREFIX, ON_DEVICE_VOICES, type OnDeviceAccent, type OnDeviceVoice } from "../lib/onDeviceVoice";
+import { ON_DEVICE_ACCENTS, ON_DEVICE_PREFIX, type OnDeviceAccent, type OnDeviceVoice } from "../lib/onDeviceVoice";
 import { forgetOnDeviceVoices, onDeviceVoiceKept, onDeviceVoicesKept } from "../lib/onDeviceCache";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
@@ -31,8 +31,8 @@ export function VoiceSelect({ book }: { book: Book }) {
   const { narrationVoice } = useProfileData();
   const voices = useVoices();
   const naturalOffered = useNaturalVoice(book) !== null;
-  const onDeviceOffered = useOnDeviceVoice(book);
-  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered, onDeviceOffered);
+  const onDeviceVoices = useOnDeviceVoice(book);
+  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered, onDeviceVoices);
   // An English voice by its accent; another language's by the language's name, in the reader's language.
   const voiceKind = (v: NaturalVoice) =>
     v.accent === "British"
@@ -71,7 +71,8 @@ export function VoiceSelect({ book }: { book: Book }) {
     { gender: "woman", label: t("Natural voices on this device: women's (free, works offline)") },
     { gender: "man", label: t("Natural voices on this device: men's (free, works offline)") },
     { gender: "non-binary", label: t("Natural voices on this device: non-binary (free, works offline)") },
-  ].map((g) => ({ ...g, list: ON_DEVICE_VOICES.filter((v) => v.gender === g.gender).sort(byAccent) }));
+  ].map((g) => ({ ...g, list: onDeviceVoices.filter((v) => v.gender === g.gender).sort(byAccent) }))
+    .filter((g) => g.list.length > 0);
   // Natural voices, women's then men's, each in the book's language first (voicesFor()).
   const naturalGroups = (["woman", "man"] as const).map((gender) => ({
     gender,
@@ -95,7 +96,7 @@ export function VoiceSelect({ book }: { book: Book }) {
               </optgroup>
             ))}
           {/* Natural voices that run in this browser (lib/onDeviceVoice.ts): free, offline, nothing sent. */}
-          {onDeviceOffered &&
+          {onDeviceVoices.length > 0 &&
             onDeviceGroups.map((g) => (
               <optgroup key={g.gender} label={g.label}>
                 {g.list.map((v) => (

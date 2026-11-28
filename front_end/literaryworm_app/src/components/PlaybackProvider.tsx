@@ -295,8 +295,8 @@ function Engine({
   // Who reads: the recording, a device voice or a natural voice (once the book's text has loaded), or nobody.
   const voices = useVoices();
   const naturalSource = useNaturalVoice(book);
-  const onDeviceOffered = useOnDeviceVoice(book);
-  const narration = resolveNarration(book, narrationVoice, voices, naturalSource !== null, onDeviceOffered);
+  const onDeviceVoices = useOnDeviceVoice(book);
+  const narration = resolveNarration(book, narrationVoice, voices, naturalSource !== null, onDeviceVoices);
   const voice = narration.kind === "speech" ? narration.voice : null;
   const voiceRef = useRef(voice);
   useEffect(() => {

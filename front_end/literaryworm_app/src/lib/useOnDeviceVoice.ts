@@ -1,13 +1,17 @@
 import { useStore } from "../store/context";
 import type { Book } from "../types";
 import { usesBackend } from "./backend";
-import { onDeviceOffered } from "./onDeviceVoice";
+import { offeredOnDeviceVoices, onDeviceOffered, type OnDeviceVoice } from "./onDeviceVoice";
 
-/** Whether the on-device natural voices are offered for `book` (members and the demo, English books; lib/onDeviceVoice.ts). */
-export function useOnDeviceVoice(book: Book): boolean {
+/**
+ * The on-device natural voices offered for `book` (members and the demo, English books; lib/onDeviceVoice.ts):
+ * all 39 for members, the demo's three models' voices (DEMO_ON_DEVICE_FILES), none otherwise.
+ */
+export function useOnDeviceVoice(book: Book): readonly OnDeviceVoice[] {
   const { state } = useStore();
   // The demo too: the voices run in the visitor's own browser and nothing is sent, so the demo can
   // show them for real (the model downloads from our storage like a member's).
-  const member = (usesBackend && Boolean(state.account?.userId)) || Boolean(state.account?.isDemo);
-  return onDeviceOffered({ member, language: book.language });
+  const demo = Boolean(state.account?.isDemo);
+  const member = (usesBackend && Boolean(state.account?.userId)) || demo;
+  return offeredOnDeviceVoices({ offered: onDeviceOffered({ member, language: book.language }), demo });
 }

@@ -1101,8 +1101,9 @@ describe("the demo household", () => {
     await expect(page.getByLabel("Voice").inputValue()).resolves.toBe("librivox");
     await expect(page.getByLabel("Voice").locator('option[value^="natural:"]').count()).resolves.toBe(0);
     await page.getByText("Members can also hear the classics in natural voices from Google, with a voice of their own for each character.").waitFor();
-    // The voices that run on the device are offered in the demo too (never the default): 39 of them.
-    await expect(page.getByLabel("Voice").locator('option[value^="ondevice:"]').count()).resolves.toBe(39);
+    // The voices that run on the device are offered in the demo too (never the default): the 21 of
+    // three models (DEMO_ON_DEVICE_FILES), so a visitor downloads little; members get all 39.
+    await expect(page.getByLabel("Voice").locator('option[value^="ondevice:"]').count()).resolves.toBe(21);
     await expect(page.getByLabel("Voice").locator('optgroup[label^="Natural voices on this device: men"] option', { hasText: "Toronto (p363), Canadian English" }).count()).resolves.toBe(1);
     expect(errors()).toEqual([]);
   });

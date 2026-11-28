@@ -6,6 +6,8 @@ import {
   MODEL_PART_BYTES,
   modelPartPaths,
   modelPath,
+  DEMO_ON_DEVICE_FILES,
+  offeredOnDeviceVoices,
   ON_DEVICE_ACCENTS,
   ON_DEVICE_PREFIX,
   ON_DEVICE_VOICES,
@@ -96,5 +98,15 @@ describe("on-device voices", () => {
     const map = { "^": [1], $: [2], _: [0], " ": [3], ".": [10], j: [22], u: [33], ː: [122], w: [35], ɪ: [74], l: [24], ɹ: [88], d: [17], ʒ: [108], ˈ: [120], ɔ: [54], s: [31] };
     const tokens = ["j", "u", "ː", " ", "w", "ɪ", "l", " ", "ɹ", "ɪ", "d", "ʒ", "ˈ", "ɔ", "ɪ", "s", "."];
     expect(phonemeIds(tokens, map)).toEqual([1, 22, 0, 33, 0, 122, 0, 3, 0, 35, 0, 74, 0, 24, 0, 3, 0, 88, 0, 74, 0, 17, 0, 108, 0, 120, 0, 54, 0, 74, 0, 31, 0, 10, 0, 2]);
+  });
+  it("offers members all 39, the demo 21 voices from three models (every accent), and nobody else any", () => {
+    expect(offeredOnDeviceVoices({ offered: false, demo: false })).toEqual([]);
+    expect(offeredOnDeviceVoices({ offered: false, demo: true })).toEqual([]);
+    expect(offeredOnDeviceVoices({ offered: true, demo: false })).toHaveLength(39);
+    const demo = offeredOnDeviceVoices({ offered: true, demo: true });
+    expect(demo).toHaveLength(21);
+    expect(new Set(demo.map((v) => v.file))).toEqual(new Set(DEMO_ON_DEVICE_FILES));
+    for (const accent of ON_DEVICE_ACCENTS) expect(demo.some((v) => v.accent === accent)).toBe(true);
+    expect(demo.map((v) => v.name)).toEqual(expect.arrayContaining(["Linda", "Norman"]));
   });
 });

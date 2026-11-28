@@ -12,7 +12,7 @@
     "version": "2026.11",
     "kind": "update",
     "title": "More to try in the demo",
-    "body": "The demo now has the voices that run on your device (all 39, free and offline after one download), a language for emails and log-in emails in Preferences, and a second connected app: the LiteraryWorm command line, allowed to add books and change their status.",
+    "body": "The demo now has the voices that run on your device (21 of the 39, every accent included; free and offline after one download), a language for emails and log-in emails in Preferences, and a second connected app: the LiteraryWorm command line, allowed to add books and change their status.",
     "major": false
   },
   {
