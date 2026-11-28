@@ -1,5 +1,6 @@
 // stripe-webhook's database, Stripe and email calls. index.ts serves them to Stripe; referral-retry uses
 // them to replay an event set aside for review (the same code, so a replay does what the event would have).
+import { accountLanguage } from "../_shared/accountLanguage.ts";
 import { publicSiteOrigin, sendWithMailgun } from "../_shared/mailgun.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { paymentFailedEmail } from "./email.ts";
@@ -143,7 +144,8 @@ export const webhookDeps = (): Deps => ({
     const { data: user, error } = await db.auth.admin.getUserById(userId);
     if (error || !user.user?.email) throw new Error(error?.message ?? "no email address");
     const { data: profile } = await db.from("profiles").select("display_name").eq("id", userId).maybeSingle();
-    const email = paymentFailedEmail({ to: user.user.email, name: (profile?.display_name as string | null) ?? null, site: publicSiteOrigin() });
+    const language = await accountLanguage(userId);
+    const email = paymentFailedEmail({ to: user.user.email, name: (profile?.display_name as string | null) ?? null, site: publicSiteOrigin(), language });
     await sendWithMailgun({ ...email, tag: "payment-failed" });
   },
 });

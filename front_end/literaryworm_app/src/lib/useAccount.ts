@@ -1,3 +1,4 @@
+import type { UiLanguage } from "./i18n";
 import { startTransition } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
@@ -81,6 +82,11 @@ export function useAccount() {
   async function setClubPostEmails(on: boolean) {
     if (userId) await accountApi.setClubPostEmails(userId, on);
     dispatch({ type: "updateAccount", patch: { clubPostEmails: on } });
+  }
+
+  async function setEmailLanguage(lang: UiLanguage | null) {
+    if (userId) await accountApi.setEmailLanguage(userId, lang);
+    dispatch({ type: "updateAccount", patch: { emailLanguage: lang } });
   }
 
   async function setSignInEmails(on: boolean) {
@@ -206,5 +212,5 @@ export function useAccount() {
     URL.revokeObjectURL(url);
   }
 
-  return { account, remote: Boolean(userId), changeMembership, takeSaveOffer, keptByOffer, setDisplayName, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setYearEmails, setSignInEmails, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
+  return { account, remote: Boolean(userId), changeMembership, takeSaveOffer, keptByOffer, setDisplayName, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setYearEmails, setSignInEmails, setEmailLanguage, setKidsReportEmails, setClubMeetingEmails, setClubPostEmails, changePassword, deleteAccount, downloadData };
 }

@@ -61,7 +61,7 @@ import { takeEmailReturn } from "../lib/emailChangeReturn";
 import { useActiveProfile, useStore } from "../store/context";
 import type { Account as AccountDetails } from "../types";
 import { CancelDialog } from "../components/CancelDialog";
-import { rich, tk, tr } from "../lib/i18n";
+import { isUiLanguage, rich, tk, tr, UI_LANGUAGES } from "../lib/i18n";
 import { useT } from "../lib/useT";
 
 const DISPLAY_NAME_MAX = 60;
@@ -1353,7 +1353,9 @@ function PushKinds() {
 
 function PreferencesSection({ account }: { account: AccountDetails }) {
   const t = useT();
-  const { remote, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setYearEmails, setClubMeetingEmails, setClubPostEmails } = useAccount();
+  const { remote, setPublicReader, setMarketingEmails, setReleaseEmails, setAuthorEmails, setUpdateEmails, setYearEmails, setClubMeetingEmails, setClubPostEmails, setEmailLanguage } = useAccount();
+  const emailLanguageId = useId();
+  const emailLanguageHintId = useId();
   const readerHintId = useId();
   const { busy, error, done, attempt } = useAttempt();
   const hintId = useId();
@@ -1388,6 +1390,35 @@ function PreferencesSection({ account }: { account: AccountDetails }) {
             }}
           />
         </label>
+      )}
+      {remote && (
+        <div className="field">
+          <label className="field-label" htmlFor={emailLanguageId}>
+            {t("Language for emails")}
+          </label>
+          <select
+            id={emailLanguageId}
+            className="field-input"
+            aria-describedby={emailLanguageHintId}
+            value={account.emailLanguage ?? ""}
+            disabled={busy}
+            onChange={(e) => {
+              const value = e.target.value;
+              const lang = value && isUiLanguage(value) ? value : null;
+              void attempt(() => setEmailLanguage(lang), t("Saved. Our next emails will use it."));
+            }}
+          >
+            <option value="">{t("Same as the household's first grown-up profile")}</option>
+            {UI_LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code} lang={l.code}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+          <p className="field-hint" id={emailLanguageHintId}>
+            {t("Every email we send you, sign-in emails included. Book titles, names and What's new entries stay as they're written.")}
+          </p>
+        </div>
       )}
       <label className="switch-row">
         <span>

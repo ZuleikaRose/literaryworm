@@ -62,6 +62,7 @@ import { addGiftMonths, type BillingInterval, cancellationEnd, type DiscountView
 import { type CancelAnswer, parseCancelAnswer } from "../_shared/cancelReasons.ts";
 import { onlyKeys, parseGiftCode, parseInt, parsePromoCode, parseText } from "../_shared/validate.ts";
 import { deletedEmail, type Email } from "./email.ts";
+import type { EmailLanguage } from "../_shared/emailI18n.ts";
 
 /** "March 14, 2027", as the app writes dates, for a gift's start day (a calendar date, so read in UTC). */
 const longDate = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
@@ -175,6 +176,8 @@ export interface Deps {
   deleteUser: (userId: string) => Promise<void>;
   /** Emails the address that its account was deleted (Mailgun). */
   sendEmail: (email: Email) => Promise<void>;
+  /** The account's email language (account_email_language()); English on any failure. */
+  emailLanguage: (userId: string) => Promise<EmailLanguage>;
   billing: Billing;
   gifts: Gifts;
   retention: Retention;
@@ -524,9 +527,11 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
           if (sub.stripe_subscription_id) await deps.billing.cancelNow(sub.stripe_subscription_id);
           await deps.updateSubscription(user.id, { status: "cancelled", cancel_at_period_end: false, current_period_end: now.toISOString() });
         }
+        // Read before the account (and its profiles and settings) is gone.
+        const lang = await deps.emailLanguage(user.id).catch(() => "en" as const);
         await deps.deleteUser(user.id);
         // The account has gone either way: a confirmation that doesn't send is logged, not an error.
-        await deps.sendEmail(deletedEmail(user.email, cancelling)).catch((err) => console.error("manage-account: the deletion email didn't send", err));
+        await deps.sendEmail(deletedEmail(user.email, cancelling, lang)).catch((err) => console.error("manage-account: the deletion email didn't send", err));
         return json(req, METHODS, { deleted: true });
       }
       default:

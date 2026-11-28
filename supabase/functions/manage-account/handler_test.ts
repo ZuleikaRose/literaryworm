@@ -126,6 +126,7 @@ function setup(sub: Subscription | null, overrides: Partial<Deps> = {}) {
     },
     customerFor: () => Promise.resolve("cus_9"),
     syncCustomerEmail: () => Promise.resolve(false),
+    emailLanguage: () => Promise.resolve("en"),
     siteOrigin: () => ORIGIN,
     now: () => NOW,
     ...overrides,

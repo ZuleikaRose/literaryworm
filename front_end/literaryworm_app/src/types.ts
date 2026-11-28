@@ -1,4 +1,5 @@
 import type { UiLanguage } from "./lib/i18n";
+
 /** Age ratings are ordered: a profile sees every title at or below its own rating. */
 export type AgeRating = "kids" | "teen" | "all";
 export type Format = "ebook" | "audiobook";
@@ -141,6 +142,11 @@ export interface Account {
   clubPostEmails: boolean;
   /** Each January, an email of the household's year in reading (members only; off until they turn it on). */
   yearEmails: boolean;
+  /**
+   * The language LiteraryWorm's emails are written in (account_private.email_language); null or
+   * absent: the first grown-up profile's interface language, else English. Members only.
+   */
+  emailLanguage?: UiLanguage | null;
   /** An email after each new log-in to the account (account_private.sign_in_emails; members only, on by default). */
   signInEmails?: boolean;
   /**

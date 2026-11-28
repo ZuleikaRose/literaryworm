@@ -1,3 +1,4 @@
+import { accountLanguage } from "../_shared/accountLanguage.ts";
 import { allowedOrigins } from "../_shared/cors.ts";
 import { sendWithMailgun } from "../_shared/mailgun.ts";
 import { enforceRateLimit } from "../_shared/rateLimit.ts";
@@ -193,6 +194,7 @@ Deno.serve((req) =>
     },
     // A one-off service email: no unsubscribe link, since there's nothing left to unsubscribe from.
     sendEmail: (email) => sendWithMailgun({ ...email, tag: "account-deleted" }),
+    emailLanguage: accountLanguage,
     async deleteUser(userId) {
       const db = serviceClient();
       // Uploaded books' text lives in Storage, in a folder named after the account: delete it

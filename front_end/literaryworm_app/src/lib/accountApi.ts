@@ -1,5 +1,5 @@
 import type { CancelReason, SaveOffer } from "./cancelSurvey";
-import { isUiLanguage, tr, type UiLanguage } from "./i18n";
+import { activeLanguage, isUiLanguage, tr, type UiLanguage } from "./i18n";
 import { emailKey, type AccountReading } from "../store/state";
 import type { Collections } from "./collections";
 import type {
@@ -126,6 +126,8 @@ export async function signUp(input: SignUpInput): Promise<{ needsConfirmation: b
         date_of_birth: input.dob,
         terms_accepted: true,
         marketing_emails: input.marketingEmails,
+        // Supabase Auth's emails (confirming the address, resetting the password) are written in it.
+        ui_language: activeLanguage(),
         ...(input.referralCode ? { referral_code: input.referralCode } : {}),
         ...(input.affiliateCode ? { affiliate_code: input.affiliateCode } : {}),
       },
@@ -571,6 +573,10 @@ export async function loadAccount(): Promise<Account | null> {
   // still opens where the column isn't yet; unknown reads as not yet verified.
   const payment = await db.from("account_private").select("card_payment_at").eq("user_id", user.id).maybeSingle();
   if (payment.error) console.error("account: couldn't load the card payment check:", payment.error.message);
+  // The email language (migration 6881), read on its own too: unknown reads as not chosen.
+  const mailLanguage = await db.from("account_private").select("email_language").eq("user_id", user.id).maybeSingle();
+  if (mailLanguage.error) console.error("account: couldn't load the email language:", mailLanguage.error.message);
+  const chosenLanguage = (mailLanguage.data as { email_language?: string | null } | null)?.email_language ?? null;
   // Log-in alert emails (migration 6877), read on their own too: unknown reads as on, the default.
   const alerts = await db.from("account_private").select("sign_in_emails").eq("user_id", user.id).maybeSingle();
   if (alerts.error) console.error("account: couldn't load the log-in alert setting:", alerts.error.message);
@@ -589,6 +595,7 @@ export async function loadAccount(): Promise<Account | null> {
     kidsReportEmails: details.data?.kids_report_emails ?? false,
     yearEmails: details.data?.year_emails ?? false,
     signInEmails: (alerts.data as { sign_in_emails?: boolean } | null)?.sign_in_emails ?? true,
+    emailLanguage: chosenLanguage && isUiLanguage(chosenLanguage) ? chosenLanguage : null,
     clubMeetingEmails: details.data?.club_meeting_emails ?? true,
     clubPostEmails: details.data?.club_post_emails ?? false,
     kidsConsentVerified: Boolean((payment.data as { card_payment_at?: string | null } | null)?.card_payment_at),
@@ -984,6 +991,19 @@ export async function setUpdateEmails(userId: string, on: boolean): Promise<void
 export async function setYearEmails(userId: string, on: boolean): Promise<void> {
   const { error } = await client().from("account_private").update({ year_emails: on }).eq("user_id", userId);
   if (error) throw new AccountError("We couldn't save your email preference. Try again.");
+}
+
+/**
+ * The language of LiteraryWorm's emails (account_private.email_language; null follows the first
+ * grown-up profile). Supabase Auth's own emails read the user's metadata, so ui_language goes
+ * there too (a failure there is only logged).
+ */
+export async function setEmailLanguage(userId: string, lang: UiLanguage | null): Promise<void> {
+  const db = client();
+  const { error } = await db.from("account_private").update({ email_language: lang }).eq("user_id", userId);
+  if (error) throw new AccountError(tr("We couldn't save your email preference. Try again."));
+  const { error: metaError } = await db.auth.updateUser({ data: { ui_language: lang ?? activeLanguage() } });
+  if (metaError) console.error("account: couldn't note the email language for sign-in emails:", metaError.message);
 }
 
 /** An email after each new log-in (account_private.sign_in_emails, sent by the sign-in-alerts function). */

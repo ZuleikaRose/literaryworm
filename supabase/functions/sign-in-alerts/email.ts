@@ -1,7 +1,10 @@
 // The log-in alert: an email a few minutes after a new log-in to the account, naming the browser
 // and device and the time, with what to do if it wasn't the member. Inline styles only, matching
 // supabase/templates and the other emails. A security email: no unsubscribe link, but the member
-// can turn these off in Account → Sign-in, which the footer says.
+// can turn these off in Account → Sign-in, which the footer says. In the account's language
+// (_shared/emailI18n.ts).
+
+import { emailLocale, type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface Email {
   to: string;
@@ -18,6 +21,8 @@ export interface Alert {
   device: string;
   /** ISO time of the log-in. */
   signedInAt: string;
+  /** The account's email language (account_email_language()). */
+  language?: EmailLanguage;
 }
 
 const FONT = "font-family:'DM Sans',Arial,Helvetica,sans-serif;";
@@ -29,7 +34,8 @@ const escapeHtml = (s: string) =>
  * "Chrome on Windows": the same names as the app's device list (deviceLabel() in
  * src/lib/devicesApi.ts), so the email and Where you're logged in agree.
  */
-export function deviceLabel(userAgent: string): string {
+export function deviceLabel(userAgent: string, lang: EmailLanguage = "en"): string {
+  const t = translator(lang);
   const browser = /Edg\//.test(userAgent)
     ? "Edge"
     : /OPR\//.test(userAgent)
@@ -40,7 +46,7 @@ export function deviceLabel(userAgent: string): string {
           ? "Chrome"
           : /Safari\//.test(userAgent)
             ? "Safari"
-            : "A browser";
+            : t("A browser");
   const system = /iPhone/.test(userAgent)
     ? "iPhone"
     : /iPad/.test(userAgent)
@@ -56,12 +62,16 @@ export function deviceLabel(userAgent: string): string {
               : /Linux/.test(userAgent)
                 ? "Linux"
                 : "";
-  if (!userAgent.trim()) return "An unknown browser or app";
-  return system ? `${browser} on ${system}` : browser;
+  if (!userAgent.trim()) return t("An unknown browser or app");
+  return system ? t("{browser} on {system}", { browser, system }) : browser;
 }
 
 /** "Friday 27 November 2026 at 14:05 UTC", built from its parts (ICU versions differ on commas). */
-export function loginTime(iso: string): string {
+export function loginTime(iso: string, lang: EmailLanguage = "en"): string {
+  if (lang !== "en") {
+    const when = new Intl.DateTimeFormat(emailLocale(lang), { dateStyle: "full", timeStyle: "short", timeZone: "UTC" }).format(new Date(iso));
+    return `${when} UTC`;
+  }
   const parts = new Intl.DateTimeFormat("en-GB", {
     weekday: "long",
     day: "numeric",
@@ -78,20 +88,25 @@ export function loginTime(iso: string): string {
 
 export function signInAlertEmail(input: { alert: Alert; site: string }): Email {
   const { alert } = input;
-  const device = deviceLabel(alert.device);
-  const when = loginTime(alert.signedInAt);
-  const subject = "New log-in to your LiteraryWorm account";
-  const hello = alert.name ? `Hi ${alert.name},` : "Hi,";
-  const lead = "Someone just logged in to your LiteraryWorm account.";
-  const wasYou = "If this was you, there's nothing to do.";
-  const notYou =
-    "If it wasn't, change your password now, then choose Log out on every other device. Both are in Account → Sign-in. If you use two-step sign-in, your code stops anyone who only has your password.";
+  const lang = alert.language ?? "en";
+  const t = translator(lang);
+  const device = deviceLabel(alert.device, lang);
+  const when = loginTime(alert.signedInAt, lang);
+  const subject = t("New log-in to your LiteraryWorm account");
+  const hello = alert.name ? t("Hi {name},", { name: alert.name }) : t("Hi,");
+  const lead = t("Someone just logged in to your LiteraryWorm account.");
+  const wasYou = t("If this was you, there's nothing to do.");
+  const notYou = t(
+    "If it wasn't, change your password now, then choose Log out on every other device. Both are in Account → Sign-in. If you use two-step sign-in, your code stops anyone who only has your password.",
+  );
   const page = `${input.site}/account#sign-in`;
-  const why = "We email you about every new log-in to your account. You can turn these emails off in Account → Sign-in.";
+  const why = t("We email you about every new log-in to your account. You can turn these emails off in Account → Sign-in.");
+  const heading = t("New log-in to your account");
+  const button = t("Go to Sign-in");
   const text = [hello, "", lead, "", `${device}`, when, "", wasYou, "", notYou, page, "", why, "LiteraryWorm · https://www.literaryworm.com"].join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -111,7 +126,7 @@ export function signInAlertEmail(input: { alert: Alert; site: string }): Email {
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">New log-in to your account</h1>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(heading)}</h1>
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hello)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -125,7 +140,7 @@ export function signInAlertEmail(input: { alert: Alert; site: string }): Email {
                 <p style="margin:20px 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(wasYou)}</p>
                 <p style="margin:0 0 16px;font-size:16px;line-height:1.55;">${escapeHtml(notYou)}</p>
                 <p style="margin:0;">
-                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Go to Sign-in</a>
+                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(button)}</a>
                 </p>
               </td>
             </tr>

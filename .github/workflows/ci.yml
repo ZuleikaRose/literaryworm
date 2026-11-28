@@ -73,4 +73,4 @@ jobs:
       # Every function's entry point type-checks, with the shared code it imports.
       - run: deno check supabase/functions/*/index.ts
       # The functions' tests run offline: auth, the database and Stripe are stubbed.
-      - run: deno test --allow-env supabase/functions
+      - run: deno test --allow-env --allow-read=supabase/functions supabase/functions

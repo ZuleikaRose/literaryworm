@@ -1,6 +1,9 @@
 // The note when a membership payment fails (invoice.payment_failed, first attempt only): what to
 // do, and that natural voices pause until a payment goes through. Inline styles only, matching the
-// other emails. A one-off note about the member's own billing, so it has no unsubscribe link.
+// other emails. A one-off note about the member's own billing, so it has no unsubscribe link. In the
+// account's language (_shared/emailI18n.ts).
+
+import { type EmailLanguage, htmlLang, translator } from "../_shared/emailI18n.ts";
 
 export interface Email {
   to: string;
@@ -14,19 +17,26 @@ const FONT = "font-family:'DM Sans',Arial,Helvetica,sans-serif;";
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-export function paymentFailedEmail(input: { to: string; name: string | null; site: string }): Email {
-  const subject = "Your LiteraryWorm payment didn't go through";
-  const hello = input.name ? `Hi ${input.name},` : "Hi,";
-  const lead =
-    "We couldn't take your latest membership payment. Your card may have expired, or your bank may have declined it. Stripe will try again over the next few days.";
-  const action = "To keep your membership, update your payment method in Account → Plan and billing.";
-  const voices = "Natural voices for your uploads are paused until a payment goes through. Everything else, your library, profiles and progress included, stays as it is.";
+export function paymentFailedEmail(input: { to: string; name: string | null; site: string; language?: EmailLanguage }): Email {
+  const lang = input.language ?? "en";
+  const t = translator(lang);
+  const subject = t("Your LiteraryWorm payment didn't go through");
+  const hello = input.name ? t("Hi {name},", { name: input.name }) : t("Hi,");
+  const lead = t(
+    "We couldn't take your latest membership payment. Your card may have expired, or your bank may have declined it. Stripe will try again over the next few days.",
+  );
+  const action = t("To keep your membership, update your payment method in Account → Plan and billing.");
+  const voices = t(
+    "Natural voices for your uploads are paused until a payment goes through. Everything else, your library, profiles and progress included, stays as it is.",
+  );
   const page = `${input.site}/account#plan`;
-  const why = "You're getting this because a payment for your LiteraryWorm membership failed. We send it once for each failed payment.";
+  const why = t("You're getting this because a payment for your LiteraryWorm membership failed. We send it once for each failed payment.");
+  const heading = t("Your payment didn't go through");
+  const button = t("Update your payment method");
   const text = [hello, "", lead, "", `${action} ${page}`, "", voices, "", why, "LiteraryWorm · https://www.literaryworm.com"].join("\n");
 
   const html = `<!doctype html>
-<html lang="en">
+<html ${htmlLang(lang)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,12 +56,12 @@ export function paymentFailedEmail(input: { to: string; name: string | null; sit
             </tr>
             <tr>
               <td style="padding:8px 32px 0;${FONT}color:#1d1c1a;">
-                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">Your payment didn't go through</h1>
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;">${escapeHtml(heading)}</h1>
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.55;">${escapeHtml(hello)}</p>
                 <p style="margin:0 0 12px;font-size:16px;line-height:1.55;">${escapeHtml(lead)}</p>
                 <p style="margin:0 0 12px;font-size:16px;line-height:1.55;">${escapeHtml(action)}</p>
                 <p style="margin:20px 0 0;">
-                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Update your payment method</a>
+                  <a href="${escapeHtml(page)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#a24e2f;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">${escapeHtml(button)}</a>
                 </p>
                 <p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#5b5750;">${escapeHtml(voices)}</p>
               </td>
