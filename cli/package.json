@@ -1,7 +1,7 @@
 {
   "name": "literaryworm",
   "version": "1.1.0",
-  "description": "LiteraryWorm from the command line: search the catalog, and read your own library, highlights and reading time. Read-only.",
+  "description": "LiteraryWorm from the command line: search the catalog, read your own library, highlights and reading time, and, if you allow it, add books and change their status.",
   "homepage": "https://www.literaryworm.com/legal/help",
   "license": "UNLICENSED",
   "bin": {
