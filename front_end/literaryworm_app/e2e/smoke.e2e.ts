@@ -54,6 +54,22 @@ describe("a visitor", () => {
     expect(errors()).toEqual([]);
   });
 
+  it("ticks off each password rule on Sign up as it's typed", async () => {
+    const { page, errors } = await newPage();
+    await page.goto(`${BASE_URL}/signup`);
+    const checks = page.locator(".password-checks");
+    await checks.waitFor();
+    await expect(checks.locator(".password-check-ok").count()).resolves.toBe(0);
+    const password = page.getByLabel("Password", { exact: true });
+    await password.fill("reading by the sea");
+    await checks.locator(".password-check-ok", { hasText: "15 to 64 characters" }).waitFor();
+    await expect(checks.locator(".password-check-ok").count()).resolves.toBe(2);
+    await password.fill("Reading by the sea 4 ever!");
+    await expect(checks.locator(".password-check-ok").count()).resolves.toBe(5);
+    await checks.getByText("A symbol such as ! ? # or % (Done)").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
   it("switches Plans to yearly prices, two months free", async () => {
     const { page, errors } = await newPage();
     await page.goto(`${BASE_URL}/pricing`);
@@ -1712,6 +1728,22 @@ describe("the demo household", () => {
     await codes.waitFor();
     await expect(codes.isDisabled()).resolves.toBe(true);
     await page.getByText("The demo household can't make recovery codes.").waitFor();
+    expect(errors()).toEqual([]);
+  });
+
+  it("shows where the demo is logged in, and can't log the other devices out", async () => {
+    const { page, errors } = await newPage();
+    await signInDemo(page);
+    await goInApp(page, "/account#sign-in");
+    const panel = page.locator(".account-form", { has: page.getByRole("heading", { name: "Where you're logged in" }) });
+    const list = panel.getByRole("list", { name: "Devices logged in to your account" });
+    await list.getByText("This device").waitFor();
+    await expect(list.locator("li").count()).resolves.toBe(3);
+    await expect(list.locator("li").first().locator("strong").textContent()).resolves.toBe("Chrome on Windows");
+    await list.getByText("Open now").waitFor();
+    await panel.getByText("The demo household can't log devices out. This is a sample of how the list looks.").waitFor();
+    await expect(panel.getByRole("button", { name: "Log out on every other device" }).isDisabled()).resolves.toBe(true);
+    await expect(scrollsSideways(page)).resolves.toBe(false);
     expect(errors()).toEqual([]);
   });
 

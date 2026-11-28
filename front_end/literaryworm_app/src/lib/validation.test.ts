@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { hasPasswordMix, passwordMix, PASSWORD_SYMBOLS, validateNewPassword } from "./validation";
+import { hasPasswordMix, passwordChecks, passwordMix, PASSWORD_SYMBOLS, validateNewPassword } from "./validation";
 
 describe("new passwords follow Supabase Auth's rules", () => {
   it("needs a lowercase letter, a capital, a number and a symbol", () => {
@@ -26,5 +26,15 @@ describe("new passwords follow Supabase Auth's rules", () => {
     expect(validateNewPassword(`A1!${"a".repeat(62)}`)).toMatch(/64 characters or fewer/);
     expect(validateNewPassword("a long phrase without the rest")).toMatch(/lowercase letter, one capital/);
     expect(validateNewPassword("Reading by the sea 4 ever!")).toBeNull();
+  });
+
+  it("lists each rule for the live checklist, in order", () => {
+    const met = (p: string) => passwordChecks(p).filter((c) => c.ok).map((c) => c.id);
+    expect(passwordChecks("").map((c) => c.id)).toEqual(["length", "lower", "upper", "number", "symbol"]);
+    expect(met("")).toEqual([]);
+    expect(met("abc")).toEqual(["lower"]);
+    expect(met("a long phrase here")).toEqual(["length", "lower"]);
+    expect(met("Reading by the sea 4 ever!")).toEqual(["length", "lower", "upper", "number", "symbol"]);
+    expect(met(`Aa1!${"a".repeat(61)}`)).toEqual(["lower", "upper", "number", "symbol"]);
   });
 });

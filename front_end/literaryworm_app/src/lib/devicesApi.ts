@@ -1,6 +1,7 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { AccountError, signedInUserId } from "./accountApi";
 import { tr } from "./i18n";
+import { DEVICE_FRESH_MS } from "./signedInDevices";
 import { supabase } from "./supabase";
 
 /**
@@ -35,8 +36,7 @@ export interface Handoff {
 type DeviceRow = { id: string; label: string; last_seen_at: string };
 type HandoffRow = { id: string; profile_id: string; volume_id: string; position_seconds: number; from_label: string; created_at: string };
 
-/** A device counts as open if it checked in within this long (it checks in every minute). */
-export const DEVICE_FRESH_MS = 150_000;
+export { DEVICE_FRESH_MS };
 /** Handoffs older than this aren't offered: the listener has moved on. */
 export const HANDOFF_FRESH_MS = 15 * 60_000;
 /** Devices not seen for a day are cleared (with their handoffs) when this device signs in. */

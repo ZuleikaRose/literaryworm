@@ -38,7 +38,7 @@ import { forgetDeviceId } from "./deviceId";
 import { functionErrorMessage } from "./functionErrors";
 import { type Passkey, passkeyMessage, passkeyNameError, sortPasskeys, toPasskey, usedPasskey } from "./passkeys";
 import { defaultPlayerSettings } from "./reading";
-import { forgetPushOnSignOut } from "./push";
+import { forgetPushOnSignOut, pushEndpointHere, unsubscribePushHere } from "./push";
 import { forgetAllUploadsOffline } from "./uploadCache";
 import { loadUploads } from "./uploadsApi";
 import { SESSION_STORAGE_KEY, supabase } from "./supabase";
@@ -178,6 +178,48 @@ export async function signOut(): Promise<void> {
   } catch {
     // Storage blocked: nothing was stored to remove.
   }
+}
+
+/**
+ * This device was logged out without the member pressing Log out here (Log out on every other
+ * device, from another one, or the session ending): what `signOut()` clears, it clears too. The
+ * account's notification row is already gone; only the browser's subscription is left. Never throws.
+ */
+export async function clearDeviceAfterSignOut(): Promise<void> {
+  await forgetAllUploadsOffline().catch((err: unknown) => console.error("uploads: couldn't clear offline copies after sign-out:", err));
+  forgetDeviceId();
+  await unsubscribePushHere();
+}
+
+type DeviceRow = { id: string; label: string; last_seen_at: string };
+
+/** Every device the account has had open in the last day (listening_devices keeps them a day). */
+export async function loadSignedInDevices(): Promise<{ id: string; label: string; lastSeenAt: number }[]> {
+  if (!supabase) throw new AccountError(tr("This needs the LiteraryWorm backend, which isn't set up in this copy of the app."));
+  const { data, error } = await supabase.from("listening_devices").select("id, label, last_seen_at").order("last_seen_at", { ascending: false });
+  if (error) throw new AccountError(tr("We couldn't load your devices. Try again."));
+  return (data as DeviceRow[]).map((d) => ({ id: d.id, label: d.label, lastSeenAt: Date.parse(d.last_seen_at) }));
+}
+
+/**
+ * Log out on every other device: Supabase Auth ends every other session of the account (their
+ * refresh tokens stop working, so each is logged out when its hour-long access token next needs
+ * renewing, or at once if it's opened later), then the other devices' notifications and entries
+ * in the device list are removed. This device stays logged in.
+ */
+export async function signOutOtherDevices(hereId: string | null): Promise<void> {
+  if (!supabase) throw new AccountError(tr("This needs the LiteraryWorm backend, which isn't set up in this copy of the app."));
+  const { error } = await supabase.auth.signOut({ scope: "others" });
+  if (error) throw new AccountError(tr("We couldn't log out your other devices. Try again."));
+  // The sessions have ended; what follows only tidies up, so a failure is logged, not shown.
+  const endpoint = await pushEndpointHere();
+  // Every endpoint is an https address, so "" matches them all when this device has none.
+  const push = await supabase.from("push_subscriptions").delete().neq("endpoint", endpoint ?? "");
+  if (push.error) console.error("devices: couldn't stop other devices' notifications", push.error.message);
+  const devices = hereId
+    ? await supabase.from("listening_devices").delete().neq("id", hereId)
+    : await supabase.from("listening_devices").delete().not("id", "is", null);
+  if (devices.error) console.error("devices: couldn't clear the other devices", devices.error.message);
 }
 
 /**

@@ -365,6 +365,38 @@ textarea.field-input {
   font-size: 0.8125rem;
 }
 
+/* The live password checklist (components/PasswordChecklist.tsx), inside a field's hint. */
+.password-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.password-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.password-check-mark {
+  display: inline-grid;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.password-check-ok {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.password-check-ok .password-check-mark {
+  border-color: transparent;
+}
+
 .field-error {
   display: flex;
   align-items: flex-start;

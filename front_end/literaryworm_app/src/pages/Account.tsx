@@ -18,6 +18,8 @@ import { RedeemGift } from "../components/RedeemGift";
 import { TeamAccess } from "../components/TeamAccess";
 import { useStaffRoles } from "../lib/useStaffRoles";
 import { Icon } from "../components/Icon";
+import { PasswordChecklist } from "../components/PasswordChecklist";
+import { SignedInDevices } from "../components/SignedInDevices";
 import { PasswordField } from "../components/PasswordField";
 import { getBook } from "../data/books";
 import { formatPrice, perPeriod, planById, priceFor } from "../data/plans";
@@ -53,7 +55,7 @@ import { PUSH_KINDS, type PushKind, toggleKind } from "../lib/pushState";
 import { answerable, type WaitingRequest } from "../lib/bookRequests";
 import { useBookRequests } from "../lib/useBookRequests";
 import { useTitle } from "../lib/useTitle";
-import { PASSWORD_MAX, PASSWORD_MIN, validateNewPassword } from "../lib/validation";
+import { validateNewPassword } from "../lib/validation";
 import { useActiveProfile, useStore } from "../store/context";
 import type { Account as AccountDetails } from "../types";
 import { CancelDialog } from "../components/CancelDialog";
@@ -599,7 +601,7 @@ function SignInSection({ account }: { account: AccountDetails }) {
           ref={nextRef}
           label={t("New password")}
           autoComplete="new-password"
-          hint={t("{min} to {max} characters, with a lowercase letter, a capital, a number and a symbol such as ! ? # or %.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}
+          hint={<PasswordChecklist password={next} />}
           value={next}
           onChange={(e) => {
             setNext(e.target.value);
@@ -616,6 +618,8 @@ function SignInSection({ account }: { account: AccountDetails }) {
       <Passkeys account={account} />
 
       <TwoStepSignIn account={account} />
+
+      <SignedInDevices userId={account.userId ?? null} isDemo={Boolean(account.isDemo)} />
 
       <ConnectedApps isDemo={Boolean(account.isDemo)} />
     </Section>

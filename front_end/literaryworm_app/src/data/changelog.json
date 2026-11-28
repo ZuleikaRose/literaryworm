@@ -2,6 +2,22 @@
   {
     "releasedOn": "2026-11-27",
     "version": "2026.11",
+    "kind": "feature",
+    "title": "Log out on every other device",
+    "body": "Account → Sign-in now shows where you're logged in: the devices that have had LiteraryWorm open in the last day. If you lose a phone or forget to log out of a shared computer, Log out on every other device logs them all out and stops their notifications, while you stay logged in where you are.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-27",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "A checklist as you choose a password",
+    "body": "When you choose a new password, on sign-up, password reset or Change password, the form now ticks off each rule as you type: 15 to 64 characters, a lowercase letter, a capital, a number and a symbol.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-27",
+    "version": "2026.11",
     "kind": "update",
     "title": "Password rules shown as they are",
     "body": "New passwords need 15 to 64 characters with a lowercase letter, a capital, a number and a symbol such as ! ? # or %. The sign-up, password reset and Change password forms now say so and check it before sending, instead of the account service turning the password down afterwards. Passwords you already use keep working.",

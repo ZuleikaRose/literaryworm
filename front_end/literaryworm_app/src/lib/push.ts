@@ -79,6 +79,20 @@ export async function turnOffPush(): Promise<void> {
   await sub.unsubscribe().catch(() => undefined);
 }
 
+/** The address this browser's notifications arrive at, if it has turned them on. */
+export async function pushEndpointHere(): Promise<string | null> {
+  return (await currentSubscription().catch(() => null))?.endpoint ?? null;
+}
+
+/**
+ * After this device was logged out from another (Log out on every other device), whose call
+ * already removed the account's row: the browser stops listening too. Never throws.
+ */
+export async function unsubscribePushHere(): Promise<void> {
+  const sub = await currentSubscription().catch(() => null);
+  await sub?.unsubscribe().catch(() => undefined);
+}
+
 /** At sign-out: a shared device stops getting this account's notifications. Never throws. */
 export async function forgetPushOnSignOut(): Promise<void> {
   await turnOffPush().catch((err: unknown) => console.error("notifications: couldn't turn off at sign-out:", err));

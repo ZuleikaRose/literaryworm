@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/context";
-import { loadAccount, loadCollections, loadLibrary, loadProfiles, loadReading, secondStepNeeded, takeFreshSignIn } from "./accountApi";
+import { clearDeviceAfterSignOut, loadAccount, loadCollections, loadLibrary, loadProfiles, loadReading, secondStepNeeded, takeFreshSignIn } from "./accountApi";
 import { checkOfflinePlace } from "./offlinePlaces";
 import { supabase } from "./supabase";
 
@@ -33,7 +33,11 @@ export function useAuthSync() {
           return;
         }
         if (event === "SIGNED_OUT" || !session) {
-          if (accountRef.current?.userId) dispatch({ type: "signOut" });
+          if (accountRef.current?.userId) {
+            dispatch({ type: "signOut" });
+            // Logged out from another device (or the session ended): clear what Log out would have.
+            void clearDeviceAfterSignOut();
+          }
           else dispatch({ type: "authChecked" });
           return;
         }

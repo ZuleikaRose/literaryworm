@@ -7,6 +7,7 @@ import { StructuredData } from "../components/StructuredData";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCard } from "../components/AuthCard";
 import { Field } from "../components/Field";
+import { PasswordChecklist } from "../components/PasswordChecklist";
 import { Icon } from "../components/Icon";
 import { PasswordField } from "../components/PasswordField";
 import { ResendConfirmation } from "../components/ResendConfirmation";
@@ -18,7 +19,7 @@ import { useTurnstile } from "../lib/useTurnstile";
 import { rich } from "../lib/i18n";
 import { useT } from "../lib/useT";
 import { useTitle } from "../lib/useTitle";
-import { PASSWORD_MAX, PASSWORD_MIN, validateDob, validateEmail, validateNewPassword } from "../lib/validation";
+import { PASSWORD_MAX, validateDob, validateEmail, validateNewPassword } from "../lib/validation";
 import { useStore } from "../store/context";
 import { emailKey, makeProfile } from "../store/state";
 import type { PlanId } from "../types";
@@ -148,8 +149,6 @@ export default function SignUp() {
     navigate(setupUrl);
   };
 
-  const length = password.length;
-
   if (sentTo) {
     return (
       <AuthCard
@@ -247,20 +246,7 @@ export default function SignUp() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={liveErrors.password}
-            hint={
-              <>
-                {t("{min} to {max} characters, with a lowercase letter, a capital, a number and a symbol such as ! ? # or %.", { min: PASSWORD_MIN, max: PASSWORD_MAX })}{" "}
-                <span className={length >= PASSWORD_MIN ? "hint-ok" : undefined} aria-live="polite">
-                  {length >= PASSWORD_MIN ? (
-                    <>
-                      <Icon name="check" size={13} /> {t("Long enough")}
-                    </>
-                  ) : (
-                    `${length}/${PASSWORD_MIN}`
-                  )}
-                </span>
-              </>
-            }
+            hint={<PasswordChecklist password={password} />}
           />
           <Field
             label={t("Date of birth")}

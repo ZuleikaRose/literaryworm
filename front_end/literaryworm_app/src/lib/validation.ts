@@ -53,6 +53,20 @@ export function hasPasswordMix(password: string): boolean {
   return mix.lower && mix.upper && mix.number && mix.symbol;
 }
 
+export type PasswordCheck = "length" | "lower" | "upper" | "number" | "symbol";
+
+/** Each rule a new password must meet, in the order the forms list them, and whether it's met yet. */
+export function passwordChecks(password: string): { id: PasswordCheck; ok: boolean }[] {
+  const mix = passwordMix(password);
+  return [
+    { id: "length", ok: password.length >= PASSWORD_MIN && password.length <= PASSWORD_MAX },
+    { id: "lower", ok: mix.lower },
+    { id: "upper", ok: mix.upper },
+    { id: "number", ok: mix.number },
+    { id: "symbol", ok: mix.symbol },
+  ];
+}
+
 /**
  * The same rules as Supabase Auth: 15 to 64 characters, a lowercase letter, a capital, a number
  * and a symbol, and not a known breached password (Auth also checks Have I Been Pwned).
