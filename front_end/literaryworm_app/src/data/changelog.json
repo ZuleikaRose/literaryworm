@@ -1,5 +1,13 @@
 [
   {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
+    "kind": "update",
+    "title": "Voice control in your language",
+    "body": "Voice control in car mode now listens in the language you've chosen for LiteraryWorm, in all 21 of them: say play, pause, back 30 or next chapter in Spanish, Japanese, Greek or any of the others. The voice control dialog shows the words to use.",
+    "major": false
+  },
+  {
     "releasedOn": "2026-11-27",
     "version": "2026.11",
     "kind": "feature",

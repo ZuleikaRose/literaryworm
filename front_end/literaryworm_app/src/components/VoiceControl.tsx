@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePlayback } from "../lib/playback";
 import type { PlayerControls } from "../lib/usePlayerControls";
-import { parseVoiceCommand, type Recognizer, recognizerClass, VOICE_HINTS, voiceCommandLabel, type VoiceCommand, voiceLanguage } from "../lib/voiceCommands";
+import { parseVoiceCommand, type Recognizer, recognizerClass, voiceCommandLabel, type VoiceCommand, voiceHints, voiceLanguage } from "../lib/voiceCommands";
+import { useStore } from "../store/context";
 import type { Book } from "../types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
@@ -14,8 +15,8 @@ let agreedThisVisit = false;
 /**
  * Voice control in car mode's top bar: off until the listener turns it on (the first time, a
  * dialog says the browser's speech service hears the words: Google's in Chrome, Apple's in
- * Safari). Then the browser's own speech recognition listens for Play, Pause, Back, Forward, the
- * chapters and Exit car mode (lib/voiceCommands.ts) while car mode is open and the tab is showing,
+ * Safari). Then the browser's own speech recognition listens, in the interface language, for Play,
+ * Pause, Back, Forward, the chapters and Exit car mode (lib/voiceCommands.ts, lib/voiceVocab.ts) while car mode is open and the tab is showing,
  * and says what it did in a status line. LiteraryWorm records and keeps nothing. Car mode offers
  * it only where voiceControlOffered() says so (never to Kids profiles).
  */
@@ -23,11 +24,21 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
   const playback = usePlayback();
   const navigate = useNavigate();
   const t = useT();
+  const { state } = useStore();
+  // Read when a phrase arrives, so a language change applies without restarting the recognizer's handler.
+  const lang = state.a11y.language;
+  const langRef = useRef(lang);
+  const hints = voiceHints(lang);
   const [on, setOn] = useState(false);
   const [asking, setAsking] = useState(false);
   const [status, setStatus] = useState("");
   const recognizer = useRef<Recognizer | null>(null);
   const wanted = useRef(false);
+  useEffect(() => {
+    langRef.current = lang;
+    // Listening already: stop, and the restart (onend) listens in the new language.
+    if (wanted.current && recognizer.current) recognizer.current.abort();
+  }, [lang]);
   // The latest controls, so the recognizer's handlers never act on a stale place.
   const latest = useRef({ controls, playback });
   useEffect(() => {
@@ -81,12 +92,12 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
     const r = new Recognition();
     r.continuous = true;
     r.interimResults = false;
-    r.lang = voiceLanguage(navigator.language);
+    r.lang = voiceLanguage(navigator.language, langRef.current);
     r.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         if (!result.isFinal) continue;
-        const command = parseVoiceCommand(result[0]?.transcript ?? "");
+        const command = parseVoiceCommand(result[0]?.transcript ?? "", langRef.current);
         if (command) run(command);
       }
     };
@@ -103,6 +114,8 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
       if (!wanted.current || recognizer.current !== r || document.hidden) return;
       window.setTimeout(() => {
         if (!wanted.current || recognizer.current !== r) return;
+        // The interface language may have changed since: listen in the current one.
+        r.lang = voiceLanguage(navigator.language, langRef.current);
         try {
           r.start();
         } catch {
@@ -162,12 +175,12 @@ export function VoiceControl({ book, controls }: { book: Book; controls: PlayerC
         {status}
       </p>
       <Dialog open={asking} onClose={() => setAsking(false)} title={t("Turn on voice control?")} eyebrow={t("Car mode")}>
-        {/* The commands are said in English (lib/voiceCommands.ts listens for English words), so they stay English here. */}
+        {/* The words are the ones car mode listens for in this language (lib/voiceVocab.ts). */}
         <p>
           {t("Say {commands} or {last}, and car mode does it. You can add a length, such as {example}.", {
-            commands: VOICE_HINTS.slice(0, -1).join(", "),
-            last: VOICE_HINTS[VOICE_HINTS.length - 1],
-            example: "“back 30 seconds”",
+            commands: hints.slice(0, -1).join(", "),
+            last: hints[hints.length - 1],
+            example: `“${hints[2].toLocaleLowerCase()} 30”`,
           })}
         </p>
         <p>
