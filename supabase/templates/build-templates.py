@@ -5,7 +5,7 @@ src/i18n.json: each [[English text]] becomes a Go template choice on the member'
 English when it's missing or unknown. The button names inside <em> are taken from the app's own
 dictionaries (front_end/literaryworm_app/src/data/i18n), so the email names them as the app shows
 them. Run after changing a source or a translation, then put the templates on each project
-(the dashboard, or supabase/set-email-change-templates.sh for the email-change ones).
+(the dashboard, or supabase/set-auth-templates.sh for the email-change ones).
 
     python3 supabase/templates/build-templates.py
 """
@@ -54,8 +54,11 @@ def choice(key):
     out.append("{{ else }}" + key + "{{ end }}")
     return "".join(out)
 
-# Always a string, whatever the metadata holds; English when it's absent.
-PRELUDE = '{{- $l := printf "%v" (or .Data.ui_language "en") -}}\n'
+# Always one of the 21 codes, whatever the metadata holds; English when it's absent or unknown.
+PRELUDE = (
+    '{{- $l := printf "%v" (or .Data.ui_language "en") -}}'
+    + "{{- if not (eq $l " + " ".join(f'"{x}"' for x in LANGS) + ") }}{{ $l = \"en\" }}{{ end -}}\n"
+)
 for name in ["confirmation.html", "recovery.html", "email_change.html"]:
     source = (here / "src" / name).read_text()
     unknown = [k for k in re.findall(r"\[\[(.+?)\]\]", source) if k not in texts and k not in ("lang", "dir")]

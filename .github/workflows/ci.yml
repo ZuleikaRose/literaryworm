@@ -74,3 +74,16 @@ jobs:
       - run: deno check supabase/functions/*/index.ts
       # The functions' tests run offline: auth, the database and Stripe are stubbed.
       - run: deno test --allow-env --allow-read=supabase/functions supabase/functions
+
+  auth-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+      # Auth's email templates are Go templates: render each in every language, as Auth would.
+      - run: go run .
+        working-directory: supabase/templates/rendercheck
