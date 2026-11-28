@@ -28,6 +28,12 @@ export const ALIGNED_BOOKS = [
   "heart-of-darkness",
   "the-picture-of-dorian-gray",
   "the-secret-garden",
+  // Aligned on GitHub's machines, 2026-11-28 (chapter medians 94–97%; The Metamorphosis matched 27%, left out).
+  "the-hound-of-the-baskervilles",
+  "a-study-in-scarlet",
+  "the-wind-in-the-willows",
+  "a-little-princess",
+  "anne-of-green-gables",
 ] as const;
 
 export const isAligned = (bookId: string): boolean => (ALIGNED_BOOKS as readonly string[]).includes(bookId);
