@@ -55,6 +55,10 @@
       "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/storage/v1/object/public/book-texts/:file"
     },
     {
+      "source": "/voice-models/:file",
+      "destination": "https://ldzdmrdvmacpudsbngvd.supabase.co/storage/v1/object/public/voice-models/:file"
+    },
+    {
       "source": "/:page(pricing|signin|signup|reset-password|whats-new|affiliates|unsubscribe|search|profiles|gifts|browse|library|account|dashboard|support|maintenance)",
       "destination": "/shell"
     },

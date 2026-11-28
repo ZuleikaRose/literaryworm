@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { accentOf, LIBRIVOX_VOICE, narrationValue, resolveNarration, SILENT_VOICE, useVoices, voiceLabel } from "../lib/narration";
 import { NATURAL_PREFIX, type NaturalVoice, voiceGender, voicesFor } from "../lib/naturalVoice";
 import { deviceVoiceGender } from "../lib/deviceVoiceGender";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
+import { useOnDeviceVoice } from "../lib/useOnDeviceVoice";
+import { ON_DEVICE_PREFIX, ON_DEVICE_VOICES } from "../lib/onDeviceVoice";
+import { forgetOnDeviceVoices, onDeviceVoicesKept } from "../lib/onDeviceCache";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
 import { dateLocale } from "../lib/i18n";
@@ -16,7 +19,8 @@ import { VoicePreviewButton } from "./VoicePreviewButton";
 
 /**
  * Who reads a book and how, in one place: the Voice menu (natural voices first where they're
- * offered, with a preview; the LibriVox recording; the device's voices), Character voices, Who
+ * offered, with a preview; the natural voices that run on this device, for members' English books;
+ * the LibriVox recording; the device's voices), Character voices, Who
  * reads whom and Pronunciations. The player and the mini-player's settings, the reader's *Voices*
  * button and a club's page all show it, so the voices can change at any time while reading or
  * listening; a change while the book plays carries on from the same place.
@@ -27,7 +31,8 @@ export function VoiceSelect({ book }: { book: Book }) {
   const { narrationVoice } = useProfileData();
   const voices = useVoices();
   const naturalOffered = useNaturalVoice(book) !== null;
-  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered);
+  const onDeviceOffered = useOnDeviceVoice(book);
+  const narration = resolveNarration(book, narrationVoice, voices, naturalOffered, onDeviceOffered);
   // An English voice by its accent; another language's by the language's name, in the reader's language.
   const voiceKind = (v: NaturalVoice) =>
     v.accent === "British"
@@ -70,6 +75,16 @@ export function VoiceSelect({ book }: { book: Book }) {
                 ))}
               </optgroup>
             ))}
+          {/* Natural voices that run in this browser (lib/onDeviceVoice.ts): free, offline, nothing sent. */}
+          {onDeviceOffered && (
+            <optgroup label={t("Natural voices on this device (free, works offline)")}>
+              {ON_DEVICE_VOICES.map((v) => (
+                <option key={v.id} value={ON_DEVICE_PREFIX + v.id}>
+                  {t("{name}, {accent}", { name: v.name, accent: t("American English") })}
+                </option>
+              ))}
+            </optgroup>
+          )}
           {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
           {deviceGroups.map((g) => (
             <optgroup key={g.key} label={g.label}>
@@ -85,7 +100,39 @@ export function VoiceSelect({ book }: { book: Book }) {
       </label>
       {/* A few seconds of the chosen natural voice, recorded ahead (lib/voicePreview.ts). */}
       {narration.kind === "natural" && <VoicePreviewButton voiceId={narration.voice.id} name={narration.voice.name} />}
+      {narration.kind === "onDevice" && <OnDeviceVoiceNote />}
     </>
+  );
+}
+
+/** Under the Voice menu while an on-device voice reads: what it downloads, and removing it from the device. */
+function OnDeviceVoiceNote() {
+  const t = useT();
+  const [kept, setKept] = useState(0);
+  useEffect(() => {
+    let live = true;
+    const check = () => void onDeviceVoicesKept().then((n) => live && setKept(n));
+    check();
+    // The model is saved once the first part plays; look again now and then while this is open.
+    const timer = window.setInterval(check, 5000);
+    return () => {
+      live = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+  return (
+    <div className="field-hint on-device-note">
+      <p>
+        {kept > 0
+          ? t("This voice runs on your device and works offline. What you read never leaves it.")
+          : t("The first time, this voice downloads to your device (about 64 MB), then works offline. What you read never leaves your device.")}
+      </p>
+      {kept > 0 && (
+        <button type="button" className="text-button" onClick={() => void forgetOnDeviceVoices().then(() => setKept(0))}>
+          {t("Remove the on-device voices from this device")}
+        </button>
+      )}
+    </div>
   );
 }
 

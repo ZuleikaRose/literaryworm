@@ -5,6 +5,7 @@
 // Caches:
 //   lw-shell-<version>  the page and its hashed /assets files, refreshed whenever online
 //   lw-books            texts and audio the reader chose to save (src/lib/offline.ts writes it)
+//   lw-voices           on-device voices' models (src/lib/onDeviceEngine.ts writes it; never touched here)
 
 const SHELL = "lw-shell-v2";
 const BOOKS = "lw-books";

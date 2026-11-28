@@ -18524,3 +18524,82 @@ $migration$;
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-28'::date, '2026.11', 'feature', $lw$Let an assistant add books to your library$lw$, $lw$When you connect an AI assistant or the LiteraryWorm command line, it can now ask to add books from our catalog to your library and change a book's status, such as marking one finished. You choose: leave the new tick on when you allow it, or untick it and the app only reads. Nothing can remove a book, and Account → Sign-in shows which apps can make changes. From a terminal: npx literaryworm login --library, then add and mark.$lw$, false
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Let an assistant add books to your library$lw$ and c.released_on = '2026-11-28');
+
+-- =============================================================================
+-- 20261128006888_voice_models_bucket.sql
+-- =============================================================================
+-- On-device natural voices (front_end/literaryworm_app/src/lib/onDeviceVoice.ts): the Piper voice
+-- models (ONNX, about 64 MB each) and their configs, in a public Storage bucket. The site asks for
+-- /voice-models/<file>; Vercel forwards that here (vercel.json), and the browser keeps the file in
+-- its own cache, so each device downloads a voice once.
+--
+-- Public: anyone can read a file by its address. Nobody writes from the browser (no policies on
+-- storage.objects for this bucket); the models are uploaded with supabase/upload-voice-models.sh.
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('voice-models', 'voice-models', true, 134217728, array['application/octet-stream', 'application/json'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+-- =============================================================================
+-- 20261128006889_on_device_voice_policies.sql
+-- =============================================================================
+-- On-device voices (6888): the Privacy Policy, the Cookie Policy and Help each gain a paragraph,
+-- after the one named. Same text as src/data/legalPages.json. One update per page; a page whose
+-- anchor paragraph isn't there as stored stops the migration. Run again, it changes nothing.
+
+do $migration$
+declare
+  s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'privacy' for update;
+  if s is null then raise exception 'on-device voice policies: the privacy page is missing'; end if;
+  if strpos(s, $lw$"Reading aloud with a voice on your device: for books in English, members can choose Linda (a woman's voice) or Norman (a man's), natural voices that run in your own browser. The voice, about 64 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance."$lw$) = 0 then
+    raise exception 'on-device voice policies: on the privacy page, the paragraph to follow was not found as stored';
+  end if;
+  s := replace(s, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance."$lw$, $lw$"Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance.", "Reading aloud with a voice on your device: for books in English, members can choose Linda (a woman's voice) or Norman (a man's), natural voices that run in your own browser. The voice, about 64 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too."$lw$);
+  update public.legal_pages set sections = s::jsonb where slug = 'privacy';
+end
+$migration$;
+
+do $migration$
+declare
+  s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'cookies' for update;
+  if s is null then raise exception 'on-device voice policies: the cookies page is missing'; end if;
+  if strpos(s, $lw$"On-device voices you've chosen (the lw-voices cache): about 64 MB each, kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out."$lw$) = 0 then
+    raise exception 'on-device voice policies: on the cookies page, the paragraph to follow was not found as stored';
+  end if;
+  s := replace(s, $lw$"Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out."$lw$, $lw$"Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out.", "On-device voices you've chosen (the lw-voices cache): about 64 MB each, kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser."$lw$);
+  update public.legal_pages set sections = s::jsonb where slug = 'cookies';
+end
+$migration$;
+
+do $migration$
+declare
+  s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if s is null then raise exception 'on-device voice policies: the help page is missing'; end if;
+  if strpos(s, $lw$"Members can also choose Linda (a woman's voice) or Norman (a man's), American English natural voices that run on your own device, for any book in English. The first time, the voice downloads (about 64 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording."$lw$) = 0 then
+    raise exception 'on-device voice policies: on the help page, the paragraph to follow was not found as stored';
+  end if;
+  s := replace(s, $lw$"The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording."$lw$, $lw$"The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording.", "Members can also choose Linda (a woman's voice) or Norman (a man's), American English natural voices that run on your own device, for any book in English. The first time, the voice downloads (about 64 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$);
+  update public.legal_pages set sections = s::jsonb where slug = 'help';
+end
+$migration$;
+
+-- =============================================================================
+-- 20261128006890_whats_new_on_device_voices.sql
+-- =============================================================================
+-- What's new: natural voices that run on the device. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-28'::date, '2026.11', 'feature', $lw$Natural voices that run on your device$lw$, $lw$Members can now choose Linda or Norman, natural American English voices that run on your own device, for any book in English. Each downloads once (about 64 MB), then starts within a few seconds, works offline and is free, without counting towards your natural-voice hours. The text never leaves your device. Find them in the player's Voice menu.$lw$, true
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices that run on your device$lw$ and c.released_on = '2026-11-28');

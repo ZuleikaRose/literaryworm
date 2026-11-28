@@ -12,12 +12,14 @@ import { castParts, castVoiceFor } from "./deviceCast";
 import { speakingParts } from "./speaking";
 import { type Anchor, charactersAt, findPauses, pauseAnchors, secondsAt } from "./pauseTiming";
 import { defaultNaturalVoice, NATURAL_PREFIX, type NaturalVoice, type VoiceSegment, voicesFor, voiceSegments } from "./naturalVoice";
+import { ON_DEVICE_PREFIX, onDeviceChoice, type OnDeviceVoice } from "./onDeviceVoice";
 
 /**
  * Who reads an audiobook aloud. The playback engine (components/PlaybackProvider.tsx) keeps the
  * clock, sleep timer, limits and saving; a narrator only makes the sound and says where it is.
- * Three kinds: a book's LibriVox recording, the device's own voices reading the text, and (for
- * members' uploads) a natural voice from Google reading it a piece at a time (lib/naturalVoice.ts).
+ * Four kinds: a book's LibriVox recording, the device's own voices reading the text, a natural
+ * voice from Google reading it a piece at a time (lib/naturalVoice.ts), and an on-device natural
+ * voice (Piper, run in the browser; lib/onDeviceVoice.ts) played the same way.
  */
 
 export interface NarratorEvents {
@@ -52,6 +54,7 @@ export type Narration =
   | { kind: "recording" }
   | { kind: "speech"; voice: SpeechSynthesisVoice }
   | { kind: "natural"; voice: NaturalVoice }
+  | { kind: "onDevice"; voice: OnDeviceVoice }
   | { kind: "silent" };
 
 /**
@@ -62,8 +65,11 @@ export type Narration =
  * device doesn't have falls back to the default; with no voices at all, the sample clock runs
  * silently.
  */
-export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[], natural = false): Narration {
+export function resolveNarration(book: Book, choice: string | null, voices: SpeechSynthesisVoice[], natural = false, onDevice = false): Narration {
   if (choice === SILENT_VOICE && !book.recording) return { kind: "silent" };
+  // An on-device voice is only ever chosen (never a default: it downloads its model the first time).
+  const onDeviceVoice = onDevice ? onDeviceChoice(choice) : null;
+  if (onDeviceVoice) return { kind: "onDevice", voice: onDeviceVoice };
   // A natural voice chosen for this book's language (or English); another language's voice falls back to the default.
   const naturalChoice = natural && choice?.startsWith(NATURAL_PREFIX)
     ? voicesFor(book.language).find((v) => v.id === choice.slice(NATURAL_PREFIX.length)) ?? null
@@ -85,6 +91,8 @@ export function narrationValue(narration: Narration): string {
       return narration.voice.voiceURI;
     case "natural":
       return NATURAL_PREFIX + narration.voice.id;
+    case "onDevice":
+      return ON_DEVICE_PREFIX + narration.voice.id;
     case "recording":
       return LIBRIVOX_VOICE;
     default:

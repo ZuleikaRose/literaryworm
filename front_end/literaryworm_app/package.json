@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@fontsource/opendyslexic": "^5.3.0",
+    "@piper-plus/g2p": "0.5.0",
     "@supabase/supabase-js": "2.117.3",
+    "onnxruntime-web": "1.31.1",
     "pdfjs-dist": "6.4.299",
     "qrcode-generator": "2.0.4",
     "react": "^19.3.1",

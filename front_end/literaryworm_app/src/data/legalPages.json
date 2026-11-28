@@ -430,6 +430,7 @@
           "Voice control in car mode: off until you turn it on, and not offered to Kids profiles. While car mode is open and on screen, your browser listens through the microphone and its own speech service turns what you say into words (Google's in Chrome and Edge, Apple's in Safari), under that company's terms. The app only reads the words for a command: we never get the sound, and we keep nothing.",
           "Reading aloud with a device voice: the player can read a book, including one you uploaded, with a voice your browser offers. Voices marked (online) are your browser maker's online voices (Microsoft's in Edge, Google's in Chrome): to speak, your browser sends them the text being read, under that company's terms. Other voices run on your device. We send nothing ourselves.",
           "Reading aloud with a natural voice: members can choose a natural voice from Google for a book they uploaded or a public-domain classic (on a Kids profile only once a grown-up turns them on for it in Account → Family, with the account password). Our server sends Google Cloud Text-to-Speech the text being voiced, a part at a time as you listen (or every part, one after another, when you choose Voice the whole book), and keeps the audio in private storage: an upload's with your upload, deleted with the upload, its profile or your account; a classic's once for everyone, since it holds only the book's own words. We count how much is voiced each month, for your plan's allowance.",
+          "Reading aloud with a voice on your device: for books in English, members can choose Linda (a woman's voice) or Norman (a man's), natural voices that run in your own browser. The voice, about 64 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too.",
           "Pronunciations: respellings of names you add for an upload (how a name sounds) are kept with your profile's player settings, and sent to Google Cloud Text-to-Speech in place of those names in the parts that have them.",
           "For the family report in Account → Family, we also count how much new natural-voice reading each profile had voiced a month (a number of characters, never the text), kept a year and seen only by your account.",
           "Downloading an upload's audiobook joins the parts already kept on your device into one file there; nothing is sent to us or to Google for it.",
@@ -462,7 +463,7 @@
     "slug": "cookies",
     "title": "Cookie Policy",
     "summary": "What LiteraryWorm keeps in your browser, the few cookies set when you use it, and how to control them. We use no advertising or analytics cookies.",
-    "updated": "2026-11-27",
+    "updated": "2026-11-28",
     "sections": [
       {
         "heading": "In short",
@@ -500,6 +501,7 @@
           "The app's files (the lw-shell cache): so the app opens quickly and offline. Replaced when the app updates.",
           "Books saved for offline (the lw-books cache): stay until you remove them, with a small note of your offline place and any listening schedule.",
           "Books you uploaded and opened, or searched by keywords, and the natural-voice parts of them you've played or that were voiced ahead on Wi-Fi (the lw-uploads cache): stay until you delete the book or log out.",
+          "On-device voices you've chosen (the lw-voices cache): about 64 MB each, kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser.",
           "A push subscription, only if you turn on notifications on this device: stays until you turn them off or log out."
         ]
       },
@@ -1763,6 +1765,7 @@
           "Choose Listen on an upload to hear it read aloud by one of your device's voices, in the same player as any audiobook, with its speed, sleep timer and bookmarks. When LiteraryWorm has the same public-domain book with a LibriVox recording, read by a person, your upload offers that too: choose Listen to their recording. The recording keeps its own place, apart from your upload's.",
           "Members can also choose a natural voice from Google in the player's Voice menu (on a Kids profile once a grown-up turns them on in Account → Family), in the book's own language for 20 languages besides English, from French, Japanese and Chinese to Hindi, Arabic, Romanian and Greek. Each part is voiced the first time you play it and kept with your upload, so listening again is free, and the read-along follows each sentence.",
           "The public-domain classics have natural voices too. For members they come first in the Voice menu and read the classic's own full text; the LibriVox recording is still there to choose. A part another member has already heard in that voice plays straight away and doesn't count towards your month; a new one does. In the demo, classics keep their LibriVox recording.",
+          "Members can also choose Linda (a woman's voice) or Norman (a man's), American English natural voices that run on your own device, for any book in English. The first time, the voice downloads (about 64 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space.",
           "To listen to a whole upload or classic offline, choose Voice the whole book in the player (or on the book's page), under the natural voice, on Wi-Fi. Every part is voiced in the voice you chose in the player (with Character voices if they're on) and kept on that device. Parts voiced before don't count; new ones count towards the month's natural-voice reading, and it stops when that's used up.",
           "A classic's parts are kept on our server once for every member, since they're only the book's own words. So a part any member has heard in that voice before costs nothing, and voicing a classic ahead also saves the next listener's hours.",
           "Under Voice the whole book, On this device shows how many voiced parts of the book are kept here and how much space they take, so you can check a book is ready before a trip. Remove the voices from this device frees the space afterwards; the book stays, and the voices play again online.",

@@ -16,6 +16,13 @@ const texts: ProxyOptions = {
   },
 }
 
+// The on-device voices' models live in the public `voice-models` bucket (vercel.json sends
+// /voice-models/ there). Here the same, or from public/voice-models when a copy is kept there (not in git).
+const voiceModels: ProxyOptions = {
+  ...texts,
+  rewrite: (path) => path.replace(/^\/voice-models\//, '/storage/v1/object/public/voice-models/'),
+}
+
 /** src/lib/publicPages.ts, loaded through Vite (it imports the app's TypeScript and JSON). */
 interface PublicPagesModule {
   renderFor(template: string, pathname: string): string
@@ -70,6 +77,6 @@ function prerender(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), prerender()],
-  server: { proxy: { '/texts/': texts } },
-  preview: { proxy: { '/texts/': texts } },
+  server: { proxy: { '/texts/': texts, '/voice-models/': voiceModels } },
+  preview: { proxy: { '/texts/': texts, '/voice-models/': voiceModels } },
 })

@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-28",
     "version": "2026.11",
     "kind": "feature",
+    "title": "Natural voices that run on your device",
+    "body": "Members can now choose Linda or Norman, natural American English voices that run on your own device, for any book in English. Each downloads once (about 64 MB), then starts within a few seconds, works offline and is free, without counting towards your natural-voice hours. The text never leaves your device. Find them in the player's Voice menu.",
+    "major": true
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Let an assistant add books to your library",
     "body": "When you connect an AI assistant or the LiteraryWorm command line, it can now ask to add books from our catalog to your library and change a book's status, such as marking one finished. You choose: leave the new tick on when you allow it, or untick it and the app only reads. Nothing can remove a book, and Account → Sign-in shows which apps can make changes. From a terminal: npx literaryworm login --library, then add and mark.",
     "major": false

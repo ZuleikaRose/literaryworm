@@ -29,3 +29,4 @@ public/texts/*
 !public/texts/frankenstein.json
 !public/texts/pride-and-prejudice.json
 !public/texts/alice-in-wonderland.json
+public/voice-models/

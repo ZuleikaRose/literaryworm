@@ -10,6 +10,9 @@ import { useDailyLimit } from "../lib/useDailyLimit";
 import { useListeningAllowance } from "../lib/useListeningAllowance";
 import { speakerRate } from "../lib/castSpeeds";
 import { tr } from "../lib/i18n";
+import { useOnDeviceVoice } from "../lib/useOnDeviceVoice";
+import { onDeviceVoice } from "../lib/onDeviceVoice";
+import { onDeviceParts } from "../lib/onDeviceParts";
 import { bookText, naturalNarrator, type Narrator, type NarratorEvents, recordingNarrator, resolveNarration, speechNarrator, useVoices } from "../lib/narration";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { demoVoicePart } from "../lib/demoVoices";
@@ -292,7 +295,8 @@ function Engine({
   // Who reads: the recording, a device voice or a natural voice (once the book's text has loaded), or nobody.
   const voices = useVoices();
   const naturalSource = useNaturalVoice(book);
-  const narration = resolveNarration(book, narrationVoice, voices, naturalSource !== null);
+  const onDeviceOffered = useOnDeviceVoice(book);
+  const narration = resolveNarration(book, narrationVoice, voices, naturalSource !== null, onDeviceOffered);
   const voice = narration.kind === "speech" ? narration.voice : null;
   const voiceRef = useRef(voice);
   useEffect(() => {
@@ -332,8 +336,10 @@ function Engine({
     ? `${voice.voiceURI}${player.characterVoices ? "+cast" : ""}`
     : naturalId
       ? `natural:${naturalId}${sayKey ? `+say|${sayKey}` : ""}${player.characterVoices ? `+cast${castChoicesKey(choices) ? `|${castChoicesKey(choices)}` : ""}` : ""}`
-      : narration.kind;
-  const readsText = narration.kind === "speech" || narration.kind === "natural";
+      : narration.kind === "onDevice"
+        ? `ondevice:${narration.voice.id}`
+        : narration.kind;
+  const readsText = narration.kind === "speech" || narration.kind === "natural" || narration.kind === "onDevice";
   const [text, setText] = useState<string[] | null>(null);
   const textRef = useRef(text);
   useEffect(() => {
@@ -366,9 +372,16 @@ function Engine({
     const naturalKey = narrationKey.startsWith("natural:") ? narrationKey.slice("natural:".length) : null;
     const natural = naturalKey ? naturalVoice(naturalKey.replace(/\+.*$/, "")) : null;
     const characterVoices = Boolean(naturalKey?.includes("+cast"));
+    const onDevice = narrationKey.startsWith("ondevice:") ? onDeviceVoice(narrationKey.slice("ondevice:".length)) : null;
     const n =
       narrationKey === "recording" && book.recording
         ? recordingNarrator(book.recording.tracks, starts, events)
+        : onDevice && text
+          ? (() => {
+              // Voiced in this browser a short piece at a time (the engine loads on first use).
+              const part = onDeviceParts(onDevice, text);
+              return naturalNarrator(text, starts, lengths, part.url, events, undefined, part.pieces);
+            })()
         : natural && text
           ? naturalSourceRef.current === "demo"
             ? // The demo plays its recorded sample.
