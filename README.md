@@ -284,6 +284,53 @@ With no environment variables the app runs on its sample catalog. To use the rea
 
 Create an account with **Sign up** to use the real backend: your library and logs are saved in Supabase and you stay signed in after a refresh. Or use **Try the demo** on the log-in page for a ready-made household kept in memory. The demo's email and password are shown on that page; the password is generated fresh on each page load, so none is stored in the code.
 
+### The LiteraryWorm command line (CLI)
+
+`literaryworm` is on npm ([npmjs.com/package/literaryworm](https://www.npmjs.com/package/literaryworm)). It needs Node.js 18 or later; its source is `cli/`.
+
+**Download and start.** Nothing to install first: `npx` downloads it and runs it in one step.
+
+```bash
+npx literaryworm help        # every command
+npx literaryworm --version
+```
+
+To keep it installed and type `literaryworm` without `npx`:
+
+```bash
+npm install -g literaryworm
+literaryworm help
+```
+
+**Without an account.** Anyone can search the catalog and read the public pages:
+
+```bash
+npx literaryworm search pride and prejudice   # find catalog books (--limit N)
+npx literaryworm book pride-and-prejudice     # one book's details, by its id
+npx literaryworm pricing                      # plans and prices
+npx literaryworm whats-new                    # the latest changes (--limit N)
+```
+
+**Your own account.** Connect this computer once; LiteraryWorm opens in your browser, where you log in and allow it with your account password:
+
+```bash
+npx literaryworm login                        # read only: library, highlights, reading time
+npx literaryworm login --library              # also asks to add books and change their status
+npx literaryworm library --status reading     # want_to_read, reading, finished, did_not_finish
+npx literaryworm highlights pride-and-prejudice --limit 20
+npx literaryworm stats --days 30              # reading time for grown-up and teen profiles
+npx literaryworm add dracula --status want_to_read   # needs login --library
+npx literaryworm mark dracula --status finished      # needs login --library
+npx literaryworm status                       # is this computer connected?
+npx literaryworm logout                       # disconnect this computer
+```
+
+Add `--json` to any command for the raw answer. The connection is kept in `~/.config/literaryworm/credentials.json` (readable only by you). Remove it with `logout`, or at any time in **Account → Sign-in → Connected apps** on the site; it ends on its own after 90 days unused. Nothing can remove a book, see your password or payment details, or read a Kids profile's reading time.
+
+**AI assistants.** `npx literaryworm mcp` prints how to add LiteraryWorm to an assistant that supports MCP: `https://www.literaryworm.com/mcp` for your account (the same browser login), or `https://www.literaryworm.com/mcp/public` for the catalog without one.
+
+**Working on the CLI.** `cd cli && npm test` runs its Jest tests; `LITERARYWORM_URL=http://localhost:54321/functions/v1/mcp npx literaryworm ...` points it at another copy of the server.
+
 ### Secrets and environment variables
 
 `.env.example` lists every variable with no values. `.env` files are gitignored.
