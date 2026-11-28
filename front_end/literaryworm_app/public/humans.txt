@@ -16,7 +16,7 @@ Book search: Google Books API (by title, author, keywords or ISBN; answers cache
 Fonts: Literata, Manrope, DM Sans, Lexend (Google Fonts) and OpenDyslexic (SIL Open Font License)
 Reading uploaded PDFs: pdf.js by Mozilla (Apache-2.0), in the browser
 QR codes (Continue on your phone): qrcode-generator by Kazuhiko Arase (MIT), drawn in the browser
-On-device voices: ONNX Runtime Web by Microsoft (MIT); English pronunciation by @piper-plus/g2p (MIT); Piper voices by the Open Home Foundation and contributors (MIT): Linda from the LJ Speech Dataset (public domain, Piper voice by Bryce Beattie) and Norman from LibriVox recordings (public domain)
+On-device voices: ONNX Runtime Web by Microsoft (MIT); English pronunciation by @piper-plus/g2p (MIT); Piper voices by the Open Home Foundation and contributors (MIT), from LJ Speech, LibriVox and Bryce Beattie (public domain), Kathleen's and the Open Home Foundation's datasets (CC0), NVIDIA's Hi-Fi Multi-Speaker English TTS Dataset and the University of Edinburgh's CSTR VCTK Corpus and Alba corpus (CC BY 4.0), Google's crowdsourced UK and Ireland English dataset, OpenSLR 83 (CC BY-SA 4.0), CMU ARCTIC by Carnegie Mellon University, and Sam by Accenture (Apache 2.0)
 This product includes data from the Carnegie Mellon Pronouncing Dictionary, which is freely available at http://www.speech.cs.cmu.edu/cgi-bin/cmudict
 
 /* TECHNOLOGY */

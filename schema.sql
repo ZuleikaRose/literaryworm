@@ -18603,3 +18603,86 @@ $migration$;
 insert into public.changelog_entries (released_on, version, kind, title, body, major)
 select '2026-11-28'::date, '2026.11', 'feature', $lw$Natural voices that run on your device$lw$, $lw$Members can now choose Linda or Norman, natural American English voices that run on your own device, for any book in English. Each downloads once (about 64 MB), then starts within a few seconds, works offline and is free, without counting towards your natural-voice hours. The text never leaves your device. Find them in the player's Voice menu.$lw$, true
 where not exists (select 1 from public.changelog_entries c where c.title = $lw$Natural voices that run on your device$lw$ and c.released_on = '2026-11-28');
+
+-- =============================================================================
+-- 20261128006891_read_along_twenty_policy.sql
+-- =============================================================================
+-- The Accessibility Policy names the twenty classics with a true read-along (five more aligned
+-- 2026-11-28). Same text as src/data/legalPages.json. Stops if the paragraph isn't as stored; run again, changes nothing.
+
+do $migration$
+declare
+  s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'accessibility' for update;
+  if s is null then raise exception 'read-along policy: the accessibility page is missing'; end if;
+  if strpos(s, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden, The Hound of the Baskervilles, A Study in Scarlet, The Wind in the Willows, A Little Princess, Anne of Green Gables and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$) = 0 then raise exception 'read-along policy: the paragraph was not found as stored'; end if;
+  update public.legal_pages set sections = replace(s, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$, $lw$"The read-along transcript is sample text for titles without a public-domain text. For Alice's Adventures in Wonderland, Through the Looking-Glass, Frankenstein, Pride and Prejudice, A Christmas Carol, The Wonderful Wizard of Oz, Dr Jekyll and Mr Hyde, Treasure Island, Peter Pan, The War of the Worlds, The Jungle Book, Heart of Darkness, The Picture of Dorian Gray, The Secret Garden, The Hound of the Baskervilles, A Study in Scarlet, The Wind in the Willows, A Little Princess, Anne of Green Gables and The Call of the Wild it shows the book's own text, timed to the LibriVox recording; for the other LibriVox recordings it's hidden while the recording plays."$lw$)::jsonb where slug = 'accessibility';
+end
+$migration$;
+
+-- =============================================================================
+-- 20261128006892_whats_new_read_along_twenty.sql
+-- =============================================================================
+-- What's new: five more classics with a true read-along. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-28'::date, '2026.11', 'feature', $lw$Read along with five more classics$lw$, $lw$The read-along now shows the book's own words, marked as the LibriVox reader says them, for The Hound of the Baskervilles, A Study in Scarlet, The Wind in the Willows, A Little Princess and Anne of Green Gables: twenty classics in all. Turn on Read-along in the player.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$Read along with five more classics$lw$ and c.released_on = '2026-11-28');
+
+-- =============================================================================
+-- 20261128006893_on_device_voices_all_policies.sql
+-- =============================================================================
+-- 39 on-device voices: the Privacy Policy, Cookie Policy and Help describe them instead of Linda and
+-- Norman alone, and Help credits each voice's recordings. Same text as src/data/legalPages.json.
+-- Each change checks what's stored first; run again, it changes nothing.
+
+do $migration$
+declare s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'privacy' for update;
+  if strpos(s, $lw$"Reading aloud with a voice on your device: for books in English, members can choose from 39 natural voices that run in your own browser, with American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents (women's, men's and a non-binary voice). A voice, about 63 to 77 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"Reading aloud with a voice on your device: for books in English, members can choose Linda (a woman's voice) or Norman (a man's), natural voices that run in your own browser. The voice, about 64 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too."$lw$) = 0 then raise exception 'on-device voices: the privacy paragraph was not found as stored'; end if;
+  update public.legal_pages set sections = replace(s, $lw$"Reading aloud with a voice on your device: for books in English, members can choose Linda (a woman's voice) or Norman (a man's), natural voices that run in your own browser. The voice, about 64 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too."$lw$, $lw$"Reading aloud with a voice on your device: for books in English, members can choose from 39 natural voices that run in your own browser, with American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents (women's, men's and a non-binary voice). A voice, about 63 to 77 MB, downloads once from our own storage (Supabase) and is kept in your browser. The text it reads never leaves your device, and nothing about your listening is sent to us or anyone else, so Kids profiles can use them too."$lw$)::jsonb where slug = 'privacy';
+end
+$migration$;
+
+do $migration$
+declare s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'cookies' for update;
+  if strpos(s, $lw$"On-device voices you've chosen (the lw-voices cache): about 63 to 77 MB each (voices from the same set share one download), kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"On-device voices you've chosen (the lw-voices cache): about 64 MB each, kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser."$lw$) = 0 then raise exception 'on-device voices: the cookies paragraph was not found as stored'; end if;
+  update public.legal_pages set sections = replace(s, $lw$"On-device voices you've chosen (the lw-voices cache): about 64 MB each, kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser."$lw$, $lw$"On-device voices you've chosen (the lw-voices cache): about 63 to 77 MB each (voices from the same set share one download), kept until you choose Remove the on-device voices from this device under the player's Voice menu, or clear this site's data in your browser."$lw$)::jsonb where slug = 'cookies';
+end
+$migration$;
+
+do $migration$
+declare s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if strpos(s, $lw$"Members can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"Members can also choose Linda (a woman's voice) or Norman (a man's), American English natural voices that run on your own device, for any book in English. The first time, the voice downloads (about 64 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$) = 0 then raise exception 'on-device voices: the help paragraph was not found as stored'; end if;
+  update public.legal_pages set sections = replace(s, $lw$"Members can also choose Linda (a woman's voice) or Norman (a man's), American English natural voices that run on your own device, for any book in English. The first time, the voice downloads (about 64 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$, $lw$"Members can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$)::jsonb where slug = 'help';
+end
+$migration$;
+
+do $migration$
+declare s text;
+begin
+  select sections::text into s from public.legal_pages where slug = 'help' for update;
+  if strpos(s, $lw$"The on-device voices are Piper voices (MIT) made from these recordings: LJ Speech, LibriVox volunteers and Bryce Beattie (public domain); Kathleen's and the Open Home Foundation's datasets (CC0); NVIDIA's Hi-Fi Multi-Speaker English TTS Dataset, the University of Edinburgh's CSTR VCTK Corpus and Alba corpus (CC BY 4.0); Google's crowdsourced UK and Ireland English dataset (CC BY-SA 4.0); CMU ARCTIC from Carnegie Mellon University; and Sam, Accenture's non-binary voice (Apache 2.0). Pronunciation uses the Carnegie Mellon Pronouncing Dictionary."$lw$) > 0 then return; end if;
+  if strpos(s, $lw$"Members can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$) = 0 then raise exception 'on-device voices: the help paragraph to follow was not found'; end if;
+  update public.legal_pages set sections = replace(s, $lw$"Members can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space."$lw$, $lw$"Members can also choose from 39 natural voices that run on your own device, for any book in English: American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African accents, women's, men's and a non-binary voice, grouped that way in the Voice menu. The first time, a voice downloads (about 63 to 77 MB); after that it starts within a few seconds and works offline. It's free, doesn't count towards your month's natural-voice reading, and the text never leaves your device. Remove the on-device voices from this device, under the Voice menu, frees the space.", "The on-device voices are Piper voices (MIT) made from these recordings: LJ Speech, LibriVox volunteers and Bryce Beattie (public domain); Kathleen's and the Open Home Foundation's datasets (CC0); NVIDIA's Hi-Fi Multi-Speaker English TTS Dataset, the University of Edinburgh's CSTR VCTK Corpus and Alba corpus (CC BY 4.0); Google's crowdsourced UK and Ireland English dataset (CC BY-SA 4.0); CMU ARCTIC from Carnegie Mellon University; and Sam, Accenture's non-binary voice (Apache 2.0). Pronunciation uses the Carnegie Mellon Pronouncing Dictionary."$lw$)::jsonb where slug = 'help';
+end
+$migration$;
+
+-- =============================================================================
+-- 20261128006894_whats_new_on_device_voices_all.sql
+-- =============================================================================
+-- What's new: 39 on-device voices. src/data/changelog.json has the same.
+
+insert into public.changelog_entries (released_on, version, kind, title, body, major)
+select '2026-11-28'::date, '2026.11', 'feature', $lw$39 voices on your device, in eight English accents$lw$, $lw$The natural voices that run on your device now come in American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African English: 39 voices in all, women's, men's and a non-binary voice. Like Linda and Norman, each downloads once, then works offline for free, and the text never leaves your device. Find them in the player's Voice menu.$lw$, false
+where not exists (select 1 from public.changelog_entries c where c.title = $lw$39 voices on your device, in eight English accents$lw$ and c.released_on = '2026-11-28');

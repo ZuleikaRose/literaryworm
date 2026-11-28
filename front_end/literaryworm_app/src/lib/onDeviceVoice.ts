@@ -4,41 +4,70 @@
 // (the public `voice-models` bucket, served at /voice-models/) and kept in the `lw-voices` cache.
 // This file is the rules only (no ONNX), so it can be tested.
 
-/** One on-device voice. Every voice here is US English; its dataset licence allows any use. */
+/** The English accents the on-device voices have, in the order the Voice menu lists them. */
+export const ON_DEVICE_ACCENTS = ["American", "British", "Scottish", "Irish", "Canadian", "Australian", "New Zealand", "South African"] as const;
+export type OnDeviceAccent = (typeof ON_DEVICE_ACCENTS)[number];
+
+/** One on-device voice. Every dataset here allows any use (CC BY ones are credited in Help and humans.txt). */
 export interface OnDeviceVoice {
   id: string;
-  /** What the menu calls it. */
+  /** What the menu calls it: a single voice's own name, or a dataset speaker's place (and code). */
   name: string;
-  gender: "woman" | "man";
+  gender: "woman" | "man" | "non-binary";
+  accent: OnDeviceAccent;
   /** The model file in the `voice-models` bucket (its config is the same name + ".json"). */
   file: string;
   /** The model's size, for "about N MB". */
   bytes: number;
   /** The model is stored in this many parts (`<file>.0`, `.1`…), each under Storage's 50 MB upload limit. */
   parts: number;
-  /** Where the voice comes from (Help and humans.txt credit it). */
+  /** For a model of many speakers (VCTK, CMU ARCTIC): which one, by its name in the model's speaker_id_map. */
+  speaker?: string;
+  /** Where the recordings come from; the voices themselves are Piper's (MIT). */
   credit: string;
 }
 
+/** 39 voices from 16 Piper models (VCTK's and ARCTIC's speakers share one model each). */
 export const ON_DEVICE_VOICES: readonly OnDeviceVoice[] = [
-  {
-    id: "ljspeech",
-    name: "Linda",
-    gender: "woman",
-    file: "en_US-ljspeech-medium.onnx",
-    bytes: 63_531_379,
-    parts: 2,
-    credit: "LJ Speech Dataset (public domain); Piper voice by Bryce Beattie (MIT)",
-  },
-  {
-    id: "norman",
-    name: "Norman",
-    gender: "man",
-    file: "en_US-norman-medium.onnx",
-    bytes: 63_531_379,
-    parts: 2,
-    credit: "LibriVox recordings (public domain); Piper voice (MIT)",
-  },
+  { id: "ljspeech", name: "Linda", gender: "woman", accent: "American", file: "en_US-ljspeech-medium.onnx", bytes: 63_531_379, parts: 2, credit: "LJ Speech Dataset (public domain)" },
+  { id: "kristin", name: "Kristin", gender: "woman", accent: "American", file: "en_US-kristin-medium.onnx", bytes: 63_531_379, parts: 2, credit: "LibriVox recordings (public domain)" },
+  { id: "kathleen", name: "Kathleen", gender: "woman", accent: "American", file: "en_US-kathleen-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Kathleen voice dataset (CC0)" },
+  { id: "hifi92", name: "Hi-Fi 92", gender: "woman", accent: "American", file: "en_US-hifi_tts_92-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Hi-Fi Multi-Speaker English TTS Dataset by NVIDIA (CC BY 4.0)" },
+  { id: "arctic-slt", name: "Arctic SLT", gender: "woman", accent: "American", file: "en_US-arctic-medium.onnx", bytes: 76_786_611, parts: 2, speaker: "slt", credit: "CMU ARCTIC, Carnegie Mellon University (CMU licence)" },
+  { id: "arctic-clb", name: "Arctic CLB", gender: "woman", accent: "American", file: "en_US-arctic-medium.onnx", bytes: 76_786_611, parts: 2, speaker: "clb", credit: "CMU ARCTIC, Carnegie Mellon University (CMU licence)" },
+  { id: "norman", name: "Norman", gender: "man", accent: "American", file: "en_US-norman-medium.onnx", bytes: 63_531_379, parts: 2, credit: "LibriVox recordings (public domain)" },
+  { id: "john", name: "John", gender: "man", accent: "American", file: "en_US-john-medium.onnx", bytes: 63_531_379, parts: 2, credit: "LibriVox recordings (public domain)" },
+  { id: "bryce", name: "Bryce", gender: "man", accent: "American", file: "en_US-bryce-medium.onnx", bytes: 63_531_379, parts: 2, credit: "Recorded by Bryce Beattie (public domain)" },
+  { id: "joe", name: "Joe", gender: "man", accent: "American", file: "en_US-joe-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Open Home Foundation voice datasets (CC0)" },
+  { id: "mike", name: "Mike", gender: "man", accent: "American", file: "en_US-mike-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Open Home Foundation voice datasets (CC0)" },
+  { id: "arctic-bdl", name: "Arctic BDL", gender: "man", accent: "American", file: "en_US-arctic-medium.onnx", bytes: 76_786_611, parts: 2, speaker: "bdl", credit: "CMU ARCTIC, Carnegie Mellon University (CMU licence)" },
+  { id: "arctic-rms", name: "Arctic RMS", gender: "man", accent: "American", file: "en_US-arctic-medium.onnx", bytes: 76_786_611, parts: 2, speaker: "rms", credit: "CMU ARCTIC, Carnegie Mellon University (CMU licence)" },
+  { id: "sam", name: "Sam", gender: "non-binary", accent: "American", file: "en_US-sam-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Sam, the non-binary voice by Accenture (Apache 2.0)" },
+  { id: "cori", name: "Cori", gender: "woman", accent: "British", file: "en_GB-cori-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Hi-Fi Multi-Speaker English TTS Dataset by NVIDIA (CC BY 4.0)" },
+  { id: "southern-english", name: "Southern English", gender: "woman", accent: "British", file: "en_GB-southern_english_female-low.onnx", bytes: 63_104_526, parts: 2, credit: "Google's crowdsourced UK and Ireland English dataset, OpenSLR 83 (CC BY-SA 4.0)" },
+  { id: "vctk-p225", name: "Southern England (p225)", gender: "woman", accent: "British", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p225", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p228", name: "Southern England (p228)", gender: "woman", accent: "British", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p228", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "northern-english", name: "Northern English", gender: "man", accent: "British", file: "en_GB-northern_english_male-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Google's crowdsourced UK and Ireland English dataset, OpenSLR 83 (CC BY-SA 4.0)" },
+  { id: "vctk-p226", name: "Surrey (p226)", gender: "man", accent: "British", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p226", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p232", name: "Southern England (p232)", gender: "man", accent: "British", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p232", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p243", name: "London (p243)", gender: "man", accent: "British", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p243", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "alba", name: "Alba", gender: "woman", accent: "Scottish", file: "en_GB-alba-medium.onnx", bytes: 63_221_984, parts: 2, credit: "Alba speech corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "arctic-awb", name: "Arctic AWB", gender: "man", accent: "Scottish", file: "en_US-arctic-medium.onnx", bytes: 76_786_611, parts: 2, speaker: "awb", credit: "CMU ARCTIC, Carnegie Mellon University (CMU licence)" },
+  { id: "vctk-p252", name: "Edinburgh (p252)", gender: "man", accent: "Scottish", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p252", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p288", name: "Dublin (p288)", gender: "woman", accent: "Irish", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p288", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p245", name: "Dublin (p245)", gender: "man", accent: "Irish", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p245", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p303", name: "Toronto (p303)", gender: "woman", accent: "Canadian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p303", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p317", name: "Hamilton (p317)", gender: "woman", accent: "Canadian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p317", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p343", name: "Alberta (p343)", gender: "woman", accent: "Canadian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p343", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p363", name: "Toronto (p363)", gender: "man", accent: "Canadian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p363", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p316", name: "Alberta (p316)", gender: "man", accent: "Canadian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p316", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p302", name: "Montreal (p302)", gender: "man", accent: "Canadian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p302", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "arctic-jmk", name: "Arctic JMK", gender: "man", accent: "Canadian", file: "en_US-arctic-medium.onnx", bytes: 76_786_611, parts: 2, speaker: "jmk", credit: "CMU ARCTIC, Carnegie Mellon University (CMU licence)" },
+  { id: "vctk-p326", name: "Sydney (p326)", gender: "man", accent: "Australian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p326", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p374", name: "The Outback (p374)", gender: "man", accent: "Australian", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p374", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p335", name: "New Zealand (p335)", gender: "woman", accent: "New Zealand", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p335", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p314", name: "Cape Town (p314)", gender: "woman", accent: "South African", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p314", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
+  { id: "vctk-p347", name: "Johannesburg (p347)", gender: "man", accent: "South African", file: "en_GB-vctk-medium.onnx", bytes: 76_972_979, parts: 2, speaker: "p347", credit: "CSTR VCTK Corpus, University of Edinburgh (CC BY 4.0)" },
 ];
 
 /** ProfileData.narrationVoice for an on-device voice: this prefix and its id. */

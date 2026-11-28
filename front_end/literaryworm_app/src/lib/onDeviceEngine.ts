@@ -13,6 +13,8 @@ type Ort = typeof import("onnxruntime-web/wasm");
 type Session = import("onnxruntime-web/wasm").InferenceSession;
 interface VoiceConfig {
   phoneme_id_map: Record<string, number[]>;
+  /** Models of many speakers (VCTK, CMU ARCTIC) number them here. */
+  speaker_id_map?: Record<string, number>;
   audio: { sample_rate: number };
   inference: { noise_scale: number; length_scale: number; noise_w: number };
 }
@@ -61,8 +63,9 @@ async function voiceFile(path: string, parts: string[] = [path]): Promise<Respon
 }
 
 const loaded = new Map<string, Promise<{ session: Session; config: VoiceConfig }>>();
+/** A voice's model, loaded once per file (the speakers of one model share it). */
 function voiceModel(voice: OnDeviceVoice) {
-  let model = loaded.get(voice.id);
+  let model = loaded.get(voice.file);
   if (!model) {
     model = (async () => {
       const [ort, config, bytes] = await Promise.all([
@@ -72,8 +75,8 @@ function voiceModel(voice: OnDeviceVoice) {
       ]);
       return { session: await ort.InferenceSession.create(new Uint8Array(bytes)), config };
     })();
-    model.catch(() => loaded.delete(voice.id));
-    loaded.set(voice.id, model);
+    model.catch(() => loaded.delete(voice.file));
+    loaded.set(voice.file, model);
   }
   return model;
 }
@@ -87,11 +90,17 @@ export function speakOnDevice(voice: OnDeviceVoice, text: string): Promise<Uint8
     const [ort, g2p, { session, config }] = await Promise.all([runtime(), pronunciation(), voiceModel(voice)]);
     const ids = phonemeIds(g2p.phonemize(text).tokens, config.phoneme_id_map);
     const { noise_scale, length_scale, noise_w } = config.inference;
-    const result = await session.run({
+    const feeds: Record<string, import("onnxruntime-web/wasm").Tensor> = {
       input: new ort.Tensor("int64", BigInt64Array.from(ids, BigInt), [1, ids.length]),
       input_lengths: new ort.Tensor("int64", BigInt64Array.from([BigInt(ids.length)]), [1]),
       scales: new ort.Tensor("float32", Float32Array.from([noise_scale, length_scale, noise_w]), [3]),
-    });
+    };
+    if (voice.speaker !== undefined) {
+      const sid = config.speaker_id_map?.[voice.speaker];
+      if (sid === undefined) throw new Error(tr("This voice stopped working. Try another voice from the list."));
+      feeds.sid = new ort.Tensor("int64", BigInt64Array.from([BigInt(sid)]), [1]);
+    }
+    const result = await session.run(feeds);
     return wavBytes(result.output.data as Float32Array, config.audio.sample_rate);
   });
   queue = job.catch(() => undefined);

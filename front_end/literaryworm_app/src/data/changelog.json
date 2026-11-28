@@ -3,6 +3,14 @@
     "releasedOn": "2026-11-28",
     "version": "2026.11",
     "kind": "feature",
+    "title": "39 voices on your device, in eight English accents",
+    "body": "The natural voices that run on your device now come in American, British, Scottish, Irish, Canadian, Australian, New Zealand and South African English: 39 voices in all, women's, men's and a non-binary voice. Like Linda and Norman, each downloads once, then works offline for free, and the text never leaves your device. Find them in the player's Voice menu.",
+    "major": false
+  },
+  {
+    "releasedOn": "2026-11-28",
+    "version": "2026.11",
+    "kind": "feature",
     "title": "Read along with five more classics",
     "body": "The read-along now shows the book's own words, marked as the LibriVox reader says them, for The Hound of the Baskervilles, A Study in Scarlet, The Wind in the Willows, A Little Princess and Anne of Green Gables: twenty classics in all. Turn on Read-along in the player.",
     "major": false

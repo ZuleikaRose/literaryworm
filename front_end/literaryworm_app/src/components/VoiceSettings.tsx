@@ -4,8 +4,8 @@ import { NATURAL_PREFIX, type NaturalVoice, voiceGender, voicesFor } from "../li
 import { deviceVoiceGender } from "../lib/deviceVoiceGender";
 import { useNaturalVoice } from "../lib/useNaturalVoice";
 import { useOnDeviceVoice } from "../lib/useOnDeviceVoice";
-import { ON_DEVICE_PREFIX, ON_DEVICE_VOICES } from "../lib/onDeviceVoice";
-import { forgetOnDeviceVoices, onDeviceVoicesKept } from "../lib/onDeviceCache";
+import { ON_DEVICE_ACCENTS, ON_DEVICE_PREFIX, ON_DEVICE_VOICES, type OnDeviceAccent, type OnDeviceVoice } from "../lib/onDeviceVoice";
+import { forgetOnDeviceVoices, onDeviceVoiceKept, onDeviceVoicesKept } from "../lib/onDeviceCache";
 import { usePlayerSettings } from "../lib/usePlayerSettings";
 import { useT } from "../lib/useT";
 import { dateLocale } from "../lib/i18n";
@@ -53,6 +53,25 @@ export function VoiceSelect({ book }: { book: Book }) {
       { key: `${accent}-other`, label: t("{accent}: other voices", { accent: accentName(accent) }), list: inAccent.filter((v) => deviceVoiceGender(v) === null) },
     ].filter((g) => g.list.length > 0);
   });
+  // On-device voices: women's, men's and non-binary, each by accent (ON_DEVICE_ACCENTS), then name.
+  const onDeviceAccent = (accent: OnDeviceAccent) =>
+    ({
+      American: t("American English"),
+      British: t("British English"),
+      Scottish: t("Scottish English"),
+      Irish: t("Irish English"),
+      Canadian: t("Canadian English"),
+      Australian: t("Australian English"),
+      "New Zealand": t("New Zealand English"),
+      "South African": t("South African English"),
+    })[accent];
+  const byAccent = (a: OnDeviceVoice, b: OnDeviceVoice) =>
+    ON_DEVICE_ACCENTS.indexOf(a.accent) - ON_DEVICE_ACCENTS.indexOf(b.accent) || a.name.localeCompare(b.name);
+  const onDeviceGroups = [
+    { gender: "woman", label: t("Natural voices on this device: women's (free, works offline)") },
+    { gender: "man", label: t("Natural voices on this device: men's (free, works offline)") },
+    { gender: "non-binary", label: t("Natural voices on this device: non-binary (free, works offline)") },
+  ].map((g) => ({ ...g, list: ON_DEVICE_VOICES.filter((v) => v.gender === g.gender).sort(byAccent) }));
   // Natural voices, women's then men's, each in the book's language first (voicesFor()).
   const naturalGroups = (["woman", "man"] as const).map((gender) => ({
     gender,
@@ -76,15 +95,16 @@ export function VoiceSelect({ book }: { book: Book }) {
               </optgroup>
             ))}
           {/* Natural voices that run in this browser (lib/onDeviceVoice.ts): free, offline, nothing sent. */}
-          {onDeviceOffered && (
-            <optgroup label={t("Natural voices on this device (free, works offline)")}>
-              {ON_DEVICE_VOICES.map((v) => (
-                <option key={v.id} value={ON_DEVICE_PREFIX + v.id}>
-                  {t("{name}, {accent}", { name: v.name, accent: t("American English") })}
-                </option>
-              ))}
-            </optgroup>
-          )}
+          {onDeviceOffered &&
+            onDeviceGroups.map((g) => (
+              <optgroup key={g.gender} label={g.label}>
+                {g.list.map((v) => (
+                  <option key={v.id} value={ON_DEVICE_PREFIX + v.id}>
+                    {t("{name}, {accent}", { name: v.name, accent: onDeviceAccent(v.accent) })}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
           {book.recording && <option value={LIBRIVOX_VOICE}>{t("Original narrator: {name}", { name: book.recording.narrator })}</option>}
           {deviceGroups.map((g) => (
             <optgroup key={g.key} label={g.label}>
@@ -100,18 +120,22 @@ export function VoiceSelect({ book }: { book: Book }) {
       </label>
       {/* A few seconds of the chosen natural voice, recorded ahead (lib/voicePreview.ts). */}
       {narration.kind === "natural" && <VoicePreviewButton voiceId={narration.voice.id} name={narration.voice.name} />}
-      {narration.kind === "onDevice" && <OnDeviceVoiceNote />}
+      {narration.kind === "onDevice" && <OnDeviceVoiceNote voice={narration.voice} />}
     </>
   );
 }
 
 /** Under the Voice menu while an on-device voice reads: what it downloads, and removing it from the device. */
-function OnDeviceVoiceNote() {
+function OnDeviceVoiceNote({ voice }: { voice: OnDeviceVoice }) {
   const t = useT();
   const [kept, setKept] = useState(0);
+  const [thisOne, setThisOne] = useState(false);
   useEffect(() => {
     let live = true;
-    const check = () => void onDeviceVoicesKept().then((n) => live && setKept(n));
+    const check = () => {
+      void onDeviceVoicesKept().then((n) => live && setKept(n));
+      void onDeviceVoiceKept(voice).then((k) => live && setThisOne(k));
+    };
     check();
     // The model is saved once the first part plays; look again now and then while this is open.
     const timer = window.setInterval(check, 5000);
@@ -119,16 +143,25 @@ function OnDeviceVoiceNote() {
       live = false;
       window.clearInterval(timer);
     };
-  }, []);
+  }, [voice]);
   return (
     <div className="field-hint on-device-note">
       <p>
-        {kept > 0
+        {thisOne
           ? t("This voice runs on your device and works offline. What you read never leaves it.")
-          : t("The first time, this voice downloads to your device (about 64 MB), then works offline. What you read never leaves your device.")}
+          : t("The first time, this voice downloads to your device (about {size} MB), then works offline. What you read never leaves your device.", { size: Math.round(voice.bytes / 1e6) })}
       </p>
       {kept > 0 && (
-        <button type="button" className="text-button" onClick={() => void forgetOnDeviceVoices().then(() => setKept(0))}>
+        <button
+          type="button"
+          className="text-button"
+          onClick={() =>
+            void forgetOnDeviceVoices().then(() => {
+              setKept(0);
+              setThisOne(false);
+            })
+          }
+        >
           {t("Remove the on-device voices from this device")}
         </button>
       )}

@@ -3,7 +3,10 @@ import {
   DEVICE_PIECE_CHARS,
   devicePieces,
   isEnglish,
+  MODEL_PART_BYTES,
+  modelPartPaths,
   modelPath,
+  ON_DEVICE_ACCENTS,
   ON_DEVICE_PREFIX,
   ON_DEVICE_VOICES,
   onDeviceChoice,
@@ -13,15 +16,30 @@ import {
 } from "./onDeviceVoice";
 
 describe("on-device voices", () => {
-  it("has a US English woman and man, with distinct ids and a model each", () => {
-    expect(ON_DEVICE_VOICES.map((v) => v.gender).sort()).toEqual(["man", "woman"]);
+  it("has 39 voices with distinct ids, a woman and a man in most accents, and a model each", () => {
+    expect(ON_DEVICE_VOICES).toHaveLength(39);
     expect(new Set(ON_DEVICE_VOICES.map((v) => v.id)).size).toBe(ON_DEVICE_VOICES.length);
-    for (const v of ON_DEVICE_VOICES) expect(modelPath(v)).toMatch(/^\/voice-models\/en_US-[a-z_]+-medium\.onnx$/);
+    for (const accent of ON_DEVICE_ACCENTS) expect(ON_DEVICE_VOICES.some((v) => v.accent === accent)).toBe(true);
+    for (const accent of ["American", "British", "Scottish", "Irish", "Canadian", "South African"] as const) {
+      expect(ON_DEVICE_VOICES.some((v) => v.accent === accent && v.gender === "woman")).toBe(true);
+      expect(ON_DEVICE_VOICES.some((v) => v.accent === accent && v.gender === "man")).toBe(true);
+    }
+    for (const v of ON_DEVICE_VOICES) {
+      expect(modelPath(v)).toMatch(/^\/voice-models\/en_(US|GB)-[a-z0-9_]+-(low|medium)\.onnx$/);
+      // Each part is under Storage's 50 MB limit.
+      expect(v.parts).toBe(Math.ceil(v.bytes / MODEL_PART_BYTES));
+      expect(modelPartPaths(v)).toHaveLength(v.parts);
+      // Only the many-speaker models name a speaker.
+      expect(Boolean(v.speaker)).toBe(/vctk|arctic/.test(v.file));
+    }
+    // The speakers of one model share its file (one download for all of them).
+    expect(new Set(ON_DEVICE_VOICES.map((v) => v.file)).size).toBe(16);
     expect(modelPath(ON_DEVICE_VOICES[0], true)).toBe("/voice-models/en_US-ljspeech-medium.onnx.json");
   });
 
   it("reads a choice only when it names one of them", () => {
     expect(onDeviceChoice(`${ON_DEVICE_PREFIX}norman`)?.name).toBe("Norman");
+    expect(onDeviceChoice(`${ON_DEVICE_PREFIX}vctk-p343`)?.speaker).toBe("p343");
     expect(onDeviceChoice(`${ON_DEVICE_PREFIX}nobody`)).toBeNull();
     expect(onDeviceChoice("natural:Kore")).toBeNull();
     expect(onDeviceChoice(null)).toBeNull();
